@@ -5,10 +5,16 @@ const infuraUrl = (network, projectId) => `https://${network}.infura.io/v3/${pro
 // https://forum.openzeppelin.com/t/connecting-to-public-test-networks-with-truffle/2960
 module.exports = {
 
+  compilers: {
+    solc: {
+      version: "^0.6.0"
+    }
+  },
+
   networks: {
     local: {
       host: "127.0.0.1",
-      port: 8545,
+      port: 7545,
       network_id: "*",
     },
     ropsten: {
