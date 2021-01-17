@@ -1,5 +1,0 @@
-# Let svelte handle all routing
-[[redirects]]
-  from = "/*"
-  to = "/"
-  status = 200!
