@@ -1,3 +1,4 @@
 .nix-node
 node_modules
 public/build
+.env
