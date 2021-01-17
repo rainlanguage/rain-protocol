@@ -1,13 +1,22 @@
 <script>
 	import Tailwindcss from './Tailwindcss.svelte'
-	import Nav from './nav/Nav.svelte'
+	import { Router, Link, Route } from 'svelte-routing'
+	import Trade from './dashboard/Trade.svelte'
 
-	export let name;
+	export let url = ""
 </script>
 
 <Tailwindcss />
 <main>
-	<Nav />
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<Router url="{url}">
+	  <nav>
+	    <Link to="/trade/pacific-rim-uprising">Pacific Rim Uprising</Link>
+	    <Link to="/trade/top-gun">The Top Gun Collection</Link>
+	  </nav>
+	  <div>
+	    <Route path="/trade/:id" let:params>
+	      <Trade id="{params.id}" />
+	    </Route>
+	  </div>
+	</Router>
 </main>
