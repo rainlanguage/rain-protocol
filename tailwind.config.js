@@ -12,7 +12,12 @@ module.exports = {
   },
   darkMode: false, // or 'media' or 'class'
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'pacific-rim-uprising-1': '#513a35',
+        'top-gun-collection-1': '#59454b'
+      }
+    },
   },
   variants: {
     extend: {},
