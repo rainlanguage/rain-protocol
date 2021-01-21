@@ -4,6 +4,6 @@ pragma solidity ^0.6.0;
 
 import "./AnyToken.sol";
 
-contract TKNB is AnyToken {
-    constructor() public AnyToken(500000, "Token B", "TKNB") {}
+contract ReserveToken is AnyToken {
+    constructor() public AnyToken(500000, "Reserve Token", "RES") {}
 }

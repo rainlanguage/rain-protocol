@@ -74,3 +74,13 @@ truffle exec --network ropsten script/faucetAccounts.js
 ```
 
 Don't spam this or you will be blocked.
+
+#### Ganache config
+
+Run `ganache` in nix shell after checking out git submodules.
+
+Set port number to `8545` in config.
+
+Set gas limit to `10000000`.
+
+Link the truffle config in the root and in balancer-core.

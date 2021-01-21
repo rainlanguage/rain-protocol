@@ -8,13 +8,40 @@ let
  mnemonic = pkgs.writeShellScriptBin "mnemonic" ''
   mnemonics
  '';
+
+ ganache = pkgs.writeShellScriptBin "ganache" ''
+ ( cd ganache && npm install && npm run dev )
+ '';
+
+ deploy-poc = pkgs.writeShellScriptBin "deploy-poc" ''
+ truffle migrate --reset --network development
+ '';
+
+ deploy-balancer-core = pkgs.writeShellScriptBin "deploy-balancer-core" ''
+ ( cd balancer-core && truffle migrate --reset --network development )
+ '';
+
+ deploy-balancer-crp = pkgs.writeShellScriptBin "deploy-balancer-crp" ''
+ ( cd configurable-rights-pool && truffle migrate --reset --network development )
+ '';
+
+ deploy-all = pkgs.writeShellScriptBin "deploy-all" ''
+ deploy-balancer-core
+ deploy-balancer-crp
+ deploy-poc
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
  buildInputs = [
-  pkgs.nodejs-14_x
+  pkgs.nodejs-12_x
   dev
   mnemonic
+  ganache
+  deploy-balancer-core
+  deploy-balancer-crp
+  deploy-poc
+  deploy-all
  ];
 
  shellHook = ''

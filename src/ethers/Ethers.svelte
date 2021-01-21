@@ -2,41 +2,63 @@
 import { ethers } from "ethers"
 
 export let contractAbi
+export let contractAddress;
 
-const provider = new ethers.providers.JsonRpcProvider('http://localhost:7545', ethers.networks.unspecified)
+let userAddress
+let userEthBalance
+
+const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545', ethers.networks.unspecified)
 let privateKey = "0x0123456789012345678901234567890123456789012345678901234567890123";
 const signer = provider.getSigner()
 // let signer = new ethers.Wallet(privateKey);
 
-
-export let contractAddress;
-
-let address
-let balance
-
 console.log(signer)
 
-signer.getAddress().then((a) => address = a)
+signer.getAddress().then((a) => userAddress = a)
 
-$: if (address) {
-  provider.getBalance(address).then(b => balance = b)
+$: if (userAddress) {
+  provider.getBalance(userAddress).then(b => userEthBalance = b)
 }
 
-let contract = new ethers.Contract(contractAddress, contractAbi, signer);
-console.log(contract)
+let contract
+$: if (contractAddress && contractAbi) {
+  contract = new ethers.Contract(contractAddress, contractAbi, signer);
+  console.log(contract)
+}
 
-let totalSupply = '';
-contract.totalSupply().then(s => totalSupply = s)
+let totalSupply
+let name
+let symbol
+let userTokenBalance
+$: if (contract && userAddress) {
+  contract.totalSupply().then(s => totalSupply = s)
+  contract.name().then(n => name = n)
+  contract.symbol().then(s => symbol = s)
+  contract.balanceOf(userAddress).then(b => userTokenBalance = b)
+}
 
-let name = '';
-contract.name().then(n => name = n)
+createDisabled = true
+const crpFactoryAddress = '0x992a87203f982Ed89C20F58ba92F2780a2DFf45e'
+const bFactoryAddress = '0x1eF7fF688dC7dB328892a283AfdF7DC75781e878'
+let crpFactoryAbi
+$: fetch('/abi/balancer/CRPFactory.json')
+  .then(response => response.json())
+  .then(data => crpFactoryAbi = data.abi)
+let crpFactoryContract
+$: if (crbFactoryAbi && crpFactoryAddress && signer) {
+  crpFactoryContract = new ethers.Contract(crpFactoryAddress, crpFactoryAbi, signer)
+  createDisabled = false
+}
+const makeBalancerPool = () => {
+  let poolParams = {
+    poolTokenSymbol = "RESTKNA",
+    poolTokenName = "RES/TKNA",
 
-let symbol = '';
-contract.symbol().then(s => symbol = s)
+  }
+  crpFactoryContract.newCrp(
+    bFactoryAddress,
 
-let userBalance = '';
-$: if (address) {
-  contract.balanceOf(address).then(b => userBalance = b)
+  )
 }
 
 </script>
@@ -51,15 +73,15 @@ $: if (address) {
       User address
     </td>
     <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
-      {address}
+      {userAddress}
     </td>
   </tr>
   <tr>
     <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
-      User balance
+      User ETH balance
     </td>
     <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
-      {balance}
+      {userEthBalance}
     </td>
   </tr>
 </table>
@@ -104,9 +126,13 @@ $: if (address) {
       User balance
     </td>
     <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
-      {userBalance}
+      {userTokenBalance}
     </td>
   </tr>
 </table>
+
+<div>
+  <submit disabled={createDisabled} on:click="{makeBalancerPool}" value="make balancer pool">
+</div>
 
 </div>
