@@ -1,11 +1,5 @@
 <script>
 import Ethers from '../ethers/Ethers.svelte'
-
-let abi
-$: fetch('/abi/TKNB.json')
-  .then(response => response.json())
-  .then(data => abi = data.abi)
-
 </script>
 
 <style>
@@ -23,9 +17,7 @@ $: fetch('/abi/TKNB.json')
     <div class="py-8 px-4">
       <h1 class="text-5xl">Top Gun Collection</h1>
 
-      <Ethers
-      contractAddress={'0x6dbdfFe24966bDe025157D276C662Ee14Ea208AC'}
-      contractAbi={abi} />
+      <Ethers tokenKey="BToken" />
     </div>
   </div>
 </div>

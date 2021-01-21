@@ -1,5 +1,5 @@
-const TKNB = artifacts.require("TKNB");
+const BToken = artifacts.require("BToken");
 
 module.exports = function (deployer) {
-  deployer.deploy(TKNB);
+  deployer.deploy(BToken);
 };

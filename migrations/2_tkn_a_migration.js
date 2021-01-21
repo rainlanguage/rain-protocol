@@ -1,5 +1,5 @@
-const TKNA = artifacts.require("TKNA");
+const AToken = artifacts.require("AToken");
 
 module.exports = function (deployer) {
-  deployer.deploy(TKNA);
+  deployer.deploy(AToken);
 };
