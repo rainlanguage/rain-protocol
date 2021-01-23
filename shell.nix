@@ -10,7 +10,7 @@ let
  '';
 
  ganache = pkgs.writeShellScriptBin "ganache" ''
- ( cd ganache && npm install && npm run dev )
+ ( cd ganache && npm run dev )
  '';
 
  deploy-poc = pkgs.writeShellScriptBin "deploy-poc" ''

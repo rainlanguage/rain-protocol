@@ -1,0 +1,53 @@
+{
+    "private": true,
+    "name": "lbp",
+    "version": "0.0.1",
+    "license": "GPL-3.0-only",
+    "description": "Smart pool template for Liquidity Bootstrapping Pools",
+    "scripts": {
+        "compile": "truffle compile",
+        "testrpc": "ganache-cli --deterministic --defaultBalanceEther 500 --gasLimit 100000000",
+        "test": "truffle test",
+        "test:verbose": "VERBOSE=true truffle test",
+        "coverage": "yarn solidity-coverage",
+        "lint": "eslint .",
+        "lint:contracts": "solhint contracts/**/*.sol",
+        "lint:libraries": "solhint libraries/*.sol"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/balancer-labs/configurable-rights-pool.git"
+    },
+    "bugs": {
+        "url": "https://github.com/balancer-labs/configurable-rights-pool/issues"
+    },
+    "homepage": "https://github.com/balancer-labs/configurable-rights-pool#readme",
+    "devDependencies": {
+        "@openzeppelin/test-helpers": "^0.5.5",
+        "chai": "^4.2.0",
+        "coveralls": "^3.0.8",
+        "eslint": "^6.7.1",
+        "eslint-config-airbnb": "^18.0.1",
+        "eslint-plugin-import": "^2.18.2",
+        "eslint-plugin-jsx-a11y": "^6.2.3",
+        "eslint-plugin-react": "^7.17.0",
+        "ganache-core": "^2.6.1",
+        "mocha": "^6.2.0",
+        "solhint": "^3.2.0",
+        "solidity-coverage": "^0.6.7",
+        "standard": "^14.0.2",
+        "truffle": "^5.0.41",
+        "truffle-assertions": "^0.9.1",
+        "truffle-hdwallet-provider": "^1.0.17",
+        "web3": "^1.2.0"
+    },
+    "dependencies": {
+        "@truffle/hdwallet-provider": "^1.0.43",
+        "decimal.js": "^10.2.0",
+        "dotenv": "^8.2.0",
+        "ethers": "^4.0.40",
+        "ganache-cli": "^6.7.0",
+        "truffle-plugin-verify": "^0.4.0",
+        "yarn": "^1.22.5"
+    }
+}

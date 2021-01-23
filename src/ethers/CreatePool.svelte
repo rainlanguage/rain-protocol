@@ -72,6 +72,7 @@ const makeBalancerPool = () => {
   console.log(poolPermissions)
   console.log(crpFactoryContract)
   console.log(bFactoryContract)
+  bFactoryContract.getColor().then(d => console.log(d))
   let crpContract = crpFactoryContract.newCrp(
     bFactoryAddress,
     poolParams.poolTokenSymbol,
