@@ -34,7 +34,10 @@ $: if (contract && userAddress) {
   contract.totalSupply().then(s => totalSupply = s)
   contract.name().then(n => name = n)
   contract.symbol().then(s => symbol = s)
-  contract.balanceOf(userAddress).then(b => userTokenBalance = b)
+  contract.balanceOf(userAddress).then(b => {
+    console.log(b)
+    userTokenBalance = b
+  })
 }
 </script>
 

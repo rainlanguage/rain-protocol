@@ -5,5 +5,5 @@ pragma solidity ^0.6.0;
 import "./AnyToken.sol";
 
 contract ReserveToken is AnyToken {
-    constructor() public AnyToken(500000, "Reserve Token", "RES") {}
+    constructor() public AnyToken(10 ** (18 + 12), "Reserve Token", "RES") {}
 }
