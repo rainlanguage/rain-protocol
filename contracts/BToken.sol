@@ -5,5 +5,5 @@ pragma solidity ^0.6.0;
 import "./AnyToken.sol";
 
 contract BToken is AnyToken {
-    constructor() public AnyToken(10 ** 19, "Token B", "TKNB") {}
+    constructor() public AnyToken(10 ** (18 + 6), "Token B", "TKNB") {}
 }

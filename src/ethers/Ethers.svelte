@@ -4,6 +4,7 @@ import UserDetails from './UserDetails.svelte'
 import TokenDetails from './TokenDetails.svelte'
 import CreatePool from './CreatePool.svelte'
 
+export let tick
 export let tokenKey
 
 let contracts
@@ -17,12 +18,13 @@ const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545', e
 
 <div>
 
-<UserDetails provider={provider} />
+<UserDetails tick={tick} provider={provider} />
 
-<TokenDetails provider={provider} contracts={contracts} tokenKey={tokenKey} />
-<TokenDetails provider={provider} contracts={contracts} tokenKey={"ReserveToken"} />
+<TokenDetails tick={tick} provider={provider} contracts={contracts} tokenKey={tokenKey} />
+<TokenDetails tick={tick} provider={provider} contracts={contracts} tokenKey={"ReserveToken"} />
 
 <CreatePool
+  tick={tick}
   provider={provider}
   contracts={contracts}
   tokenKey={tokenKey}

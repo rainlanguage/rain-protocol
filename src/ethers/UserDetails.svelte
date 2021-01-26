@@ -1,4 +1,5 @@
 <script>
+export let tick
 export let provider
 
 const signer = provider.getSigner()
@@ -8,7 +9,7 @@ let userEthBalance
 let userAddress
 signer.getAddress().then((a) => userAddress = a)
 
-$: if (userAddress) {
+$: if (userAddress && tick) {
   provider.getBalance(userAddress).then(b => userEthBalance = b)
 }
 </script>

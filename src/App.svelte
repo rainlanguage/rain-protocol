@@ -5,6 +5,11 @@
 	import TopGun from './top-gun/TopGun.svelte'
 
 	export let url = ""
+
+	const TICK_TIME = 3000
+	let tick = 0
+	$: setTimeout(() => tick++, TICK_TIME)
+	$: console.log(tick)
 </script>
 
 <Tailwindcss />
@@ -20,10 +25,10 @@
 	  </nav>
 
     <Route path="/trade/pacific-rim-uprising">
-      <PacificRimUprising />
+      <PacificRimUprising tick={tick} />
     </Route>
     <Route path="/trade/top-gun">
-      <TopGun />
+      <TopGun tick={tick} />
     </Route>
 	</Router>
 </main>

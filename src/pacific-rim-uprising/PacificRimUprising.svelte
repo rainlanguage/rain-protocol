@@ -1,5 +1,7 @@
 <script>
 import Ethers from '../ethers/Ethers.svelte'
+
+export let tick
 </script>
 
 <style>
@@ -23,7 +25,7 @@ import Ethers from '../ethers/Ethers.svelte'
     <div class="py-8 px-4">
       <h1 class="text-5xl">Pacific Rim Uprising</h1>
 
-      <Ethers tokenKey="AToken" />
+      <Ethers tick={tick} tokenKey="AToken" />
     </div>
   </div>
 </div>

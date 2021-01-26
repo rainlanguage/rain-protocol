@@ -1,8 +1,0 @@
-build
-cache
-node_modules
-.idea/*
-.env
-coverage.json
-coverage/
-yarn-error.log

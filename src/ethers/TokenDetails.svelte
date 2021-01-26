@@ -1,5 +1,6 @@
 <script>
 import { ethers } from 'ethers'
+export let tick
 export let provider
 export let contracts
 export let tokenKey
@@ -30,12 +31,11 @@ let totalSupply
 let name
 let symbol
 let userTokenBalance
-$: if (contract && userAddress) {
+$: if (contract && userAddress && tick) {
   contract.totalSupply().then(s => totalSupply = s)
   contract.name().then(n => name = n)
   contract.symbol().then(s => symbol = s)
   contract.balanceOf(userAddress).then(b => {
-    console.log(b)
     userTokenBalance = b
   })
 }

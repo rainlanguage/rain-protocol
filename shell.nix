@@ -10,7 +10,7 @@ let
  '';
 
  ganache = pkgs.writeShellScriptBin "ganache" ''
- ( cd ganache && npm run dev )
+ ganache-cli --deterministic -g 1 -l 100000000 --noVMErrorsOnRPCResponse
  '';
 
  deploy-poc = pkgs.writeShellScriptBin "deploy-poc" ''
