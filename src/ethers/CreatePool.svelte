@@ -1,104 +1,35 @@
 <script>
 import { ethers } from 'ethers'
+import * as Contracts from '../store/Contracts'
+import * as ABI from '../store/ABI'
+import * as Keys from '../store/Keys'
 
 export let tick
 export let provider
-export let contracts
 export let tokenKey
 
-let crpFactoryAddress
-$: if (contracts) {
-  crpFactoryAddress = contracts["CRPFactory"]
-}
+let contractAddresses
+Contracts.store.subscribe(v => contractAddresses = v)
 
-let bFactoryAddress
-$: if (contracts) {
-  bFactoryAddress = contracts["BFactory"]
-}
-
-let reserveTokenAddress
-$: if (contracts) {
-  reserveTokenAddress = contracts["ReserveToken"]
-}
-
-let tokenAddress
-$: if (contracts) {
-  tokenAddress = contracts[tokenKey]
-}
+let contractAbis
+ABI.store.subscribe(v => contractAbis = v)
 
 const signer = provider.getSigner()
 
-let reserveTokenAbi
-$: fetch('/contracts/ReserveToken.json')
-  .then(response => response.json())
-  .then(data => reserveTokenAbi = data.abi)
-
-let tokenAbi
-$: fetch('/contracts/AToken.json')
-  .then(response => response.json())
-  .then(data => tokenAbi = data.abi)
-
-let createDisabled = true
-let crpFactoryAbi
-$: fetch('/contracts/CRPFactory.json')
-  .then(response => response.json())
-  .then(data => crpFactoryAbi = data.abi)
 let crpFactoryContract
-$: if (crpFactoryAbi && crpFactoryAddress && signer) {
-  crpFactoryContract = new ethers.Contract(crpFactoryAddress, crpFactoryAbi, signer)
+$: if (contractAddresses[Keys.crpFactory] && contractAbis[Keys.crpFactory] && signer) {
+  crpFactoryContract = new ethers.Contract(contractAddresses[Keys.crpFactory], contractAbis[Keys.crpFactory], signer)
 }
 
-let poolAbi
-$: fetch('/contracts/BPool.json')
-  .then(response => response.json())
-  .then(data => poolAbi = data.abi)
-let poolContractAddress
-let poolContract
-const createBalancerPool = async () => {
-  await crpContract['createPool(uint256,uint256,uint256)'](BigInt(Math.pow(10, 22)), 1, 1)
-}
-let poolTokens
-$: if(poolContractAddress && poolAbi && signer) {
-  poolContract = new ethers.Contract(poolContractAddress, poolAbi, signer)
-  // poolContract.totalSupply().then(supply => poolTotalSupply = supply)
-  // console.log(poolContract.totalSupply())
-  poolContract.getCurrentTokens().then(tokens => poolTokens = tokens)
-}
-let poolWeights = {}
-$: if (poolTokens && tick) {
-  for (const t of poolTokens) {
-    poolContract.getNormalizedWeight(t).then(weight => {
-      poolWeights[t] = weight.toString()
-    })
-  }
-}
+$: if (crpFactoryContract && !contractAddresses[Keys.crp]) {
+  crpFactoryContract.on('LogNewCrp', (caller, crpAddress) => {
+    Contracts.store.update(v => v[Keys.crp] = crpAddress)
+  })
 
-let bFactoryAbi
-$: fetch('/contracts/BFactory.json')
-  .then(response => response.json())
-  .then(data => bFactoryAbi = data.abi)
-let bFactoryContract
-$: if (bFactoryAbi && bFactoryAddress && signer) {
-  bFactoryContract = new ethers.Contract(bFactoryAddress, bFactoryAbi, signer)
-  bFactoryContract.on("LOG_NEW_POOL", (caller, poolAddress) => poolContractAddress = poolAddress)
-  bFactoryContract.on("LOG_BLABS", (p) => console.log('p', p))
-}
-
-let crpAbi
-$: fetch('/contracts/ConfigurableRightsPool.json')
-  .then(response => response.json())
-  .then(data => crpAbi = data.abi)
-
-$: if(crpFactoryContract && bFactoryContract) {
-  createDisabled = false
-}
-
-let crpContract
-const defineBalancerPool = async () => {
   let poolParams = {
-    poolTokenSymbol: "RTA",
-    poolTokenName: "RES/TKNA",
-    constituentTokens: [reserveTokenAddress, tokenAddress],
+    poolTokenSymbol: `${Keys.reserveToken}${tokenKey}`,
+    poolTokenName: `${Keys.reserveToken}${tokenKey} trading pool`,
+    constituentTokens: [contractAddresses[Keys.reserveToken], contractAddresses[tokenKey]],
     tokenBalances: [BigInt(Math.pow(10, 19)), BigInt(2 * Math.pow(10, 20))],
     tokenWeights: [BigInt(Math.pow(10, 18)), BigInt(2 * Math.pow(10,19))],
     swapFee: Math.pow(10, 12)
@@ -112,41 +43,66 @@ const defineBalancerPool = async () => {
     canChangeCap: false
   }
 
-  crpFactoryContract.on('LogNewCrp', (caller, crpAddress) => {
-    crpContract = new ethers.Contract(crpAddress, crpAbi, signer)
-    crpContract.on("Transfer", (from, to, amount) => console.log('Transfer', from, to, amount))
-    crpContract.on("LogCall", (bytes4, addressPayable, bytesCalldataPtr) => console.log('LogCall', bytes4, addressPayable, bytesCalldataPtr))
-    crpContract.on("CapChanged", (caller, oldCap, newCap) => console.log('CapChanged', caller, oldCap, newCap))
-    crpContract.on("Approval", (owner, spender, value) => console.log('Approval', owner, spender, value))
-    crpContract.on("LogExit", (owner, tokenOut, tokenAmountOut) => console.log('LogExit', owner, tokenOut, tokenAmountOut))
-    crpContract.on("LogJoin", (owner, tokenIn, tokenAmountIn) => console.log('LogJoin', owner, tokenIn, tokenAmountIn))
-    crpContract.on("NewTokenCommitted", (token, pool, caller) => console.log('NewTokenCommitted', token, pool, caller))
-    crpContract.on("OwnershipTransferred", (previousOwner, newOwner) => console.log('OwnershipTransferred', previousOwner, newOwner))
-  })
-
-  await crpFactoryContract.newCrp(
-    bFactoryAddress,
+  crpFactoryContract.newCrp(
+    contractAddresses[Keys.bFactory],
     poolParams,
     poolPermissions,
   );
 }
 
+let bFactoryContract
+$: if (contractAddresses[Keys.bFactory] && contractAbis[Keys.bFactory] && signer) {
+  bFactoryContract = new ethers.Contract(contractAddresses[Keys.bFactory], contractAbis[Keys.bFactory], signer)
+  bFactoryContract.on("LOG_NEW_POOL", (caller, address) => contractAddresses[Keys.pool] = address)
+}
+
+let crpContract
+$: if (bFactoryContract && contractAddresses[Keys.crp]) {
+  crpContract = new ethers.Contract(contractAddresses[Keys.crp], contractAbis[Keys.crp], signer)
+  crpContract.on("Transfer", (from, to, amount) => console.log('Transfer', from, to, amount))
+  crpContract.on("LogCall", (bytes4, addressPayable, bytesCalldataPtr) => console.log('LogCall', bytes4, addressPayable, bytesCalldataPtr))
+  crpContract.on("CapChanged", (caller, oldCap, newCap) => console.log('CapChanged', caller, oldCap, newCap))
+  crpContract.on("Approval", (owner, spender, value) => console.log('Approval', owner, spender, value))
+  crpContract.on("LogExit", (owner, tokenOut, tokenAmountOut) => console.log('LogExit', owner, tokenOut, tokenAmountOut))
+  crpContract.on("LogJoin", (owner, tokenIn, tokenAmountIn) => console.log('LogJoin', owner, tokenIn, tokenAmountIn))
+  crpContract.on("NewTokenCommitted", (token, pool, caller) => console.log('NewTokenCommitted', token, pool, caller))
+  crpContract.on("OwnershipTransferred", (previousOwner, newOwner) => console.log('OwnershipTransferred', previousOwner, newOwner))
+
+  crpContract['createPool(uint256,uint256,uint256)'](BigInt(Math.pow(10, 200)), 1, 1)
+}
+
+const approve = (key, approved) => {
+  let contract = new ethers.Contract(contractAddresses[key], contractAbis[key], signer)
+  contract.approve(contractAddresses[key], BigInt(Math.pow(10, 40)))
+  contract.once('Approval', (owner, spender, value) => approved = true)
+}
+
 let reserveApproved
-$: if (crpContract) {
-  let reserveTokenContract = new ethers.Contract(reserveTokenAddress, reserveTokenAbi, signer)
-  reserveTokenContract.approve(crpContract.address, BigInt(Math.pow(10, 40)))
-  reserveTokenContract.once('Approval', () => reserveApproved = true)
+$: if (contractAddresses[Keys.crp] && contractAddresses[Keys.reserveToken] && contractAbis[Keys.reserveToken]) {
+  approve(reserveApproved)
 }
-
 let tokenApproved
-$: if (crpContract) {
-  let tokenContract = new ethers.Contract(tokenAddress, tokenAbi, signer)
-  tokenContract.approve(crpContract.address, BigInt(Math.pow(10, 40)))
-  tokenContract.once('Approval', () => tokenApproved = true)
+$: if (contractAddresses[Keys.crp] && contractAddresses[tokenKey] && contractAbis[tokenKey]) {
+  approve(tokenApproved)
 }
 
-let showLogs = async () => {
-  console.log(await provider.getLogs({fromBlock: 0}))
+let poolContract
+$: if (contractAddresses[tokenKey + Keys.pool] && contractAbis[Keys.pool] && signer) {
+  poolContract = new ethers.Contract(contractAddresses[tokenKey + Keys.pool], contractAbis[Keys.pool], signer)
+}
+
+let poolTokens
+$: if(!poolTokens && contractAddresses[Keys.pool] && contractAbis[Keys.pool] && signer) {
+  poolContract = new ethers.Contract(contractAddresses[Keys.pool], contractAbis[Keys.pool], signer)
+  poolContract.getCurrentTokens().then(tokens => poolTokens = tokens)
+}
+let poolWeights = {}
+$: if (poolTokens && tick) {
+  for (const t of poolTokens) {
+    poolContract.getNormalizedWeight(t).then(weight => {
+      poolWeights[t] = weight.toString()
+    })
+  }
 }
 
 let weightCurveIsSet
@@ -163,6 +119,9 @@ $: if (tick && poolContract && crpContract && weightCurveIsSet) {
   crpContract.pokeWeights()
 }
 
+let showLogs = async () => {
+  console.log(await provider.getLogs({fromBlock: 0}))
+}
 </script>
 
 <div>
@@ -179,8 +138,6 @@ $: if (tick && poolContract && crpContract && weightCurveIsSet) {
         </td>
       </tr>
     </table>
-  {:else}
-    <input type="submit" on:click="{defineBalancerPool}" value="define balancer pool" />
   {/if}
 
   {#if crpContract && reserveApproved && tokenApproved}

@@ -1,14 +1,13 @@
 <script>
 import { ethers } from 'ethers'
+import * as Contracts from '../store/Contracts'
+
 export let tick
 export let provider
-export let contracts
 export let tokenKey
 
 let tokenAddress
-$: if (contracts) {
-  tokenAddress = contracts[tokenKey]
-}
+Contracts.store.subscribe(v => tokenAddress = v[tokenKey])
 
 let tokenAbi
 $: if (tokenKey) {
