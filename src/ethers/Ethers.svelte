@@ -10,20 +10,15 @@ export let tokenKey
 let tick
 Tick.store.subscribe(v => tick = v)
 
-const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545', ethers.networks.unspecified)
-
 </script>
 
 <div>
 
-<UserDetails provider={provider} />
+<UserDetails />
 
-<TokenDetails provider={provider} tokenKey={tokenKey} />
-<TokenDetails provider={provider} tokenKey={"ReserveToken"} />
+<TokenDetails tokenKey={tokenKey} />
+<TokenDetails tokenKey={"ReserveToken"} />
 
-<CreatePool
-  provider={provider}
-  tokenKey={tokenKey}
-/>
+<CreatePool tokenKey={tokenKey} />
 
 </div>

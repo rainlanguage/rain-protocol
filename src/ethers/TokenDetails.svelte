@@ -3,8 +3,8 @@ import { ethers } from 'ethers'
 import * as Contracts from '../store/Contracts'
 import * as ABI from '../store/ABI'
 import * as Tick from '../store/Tick'
+import * as Provider from '../store/Provider'
 
-export let provider
 export let tokenKey
 
 let tick
@@ -16,14 +16,12 @@ Contracts.store.subscribe(v => contractAddresses = v)
 let contractAbis
 ABI.store.subscribe(v => contractAbis = v)
 
-const signer = provider.getSigner()
-
 let userAddress
-signer.getAddress().then(a => userAddress = a)
+Provider.signer.getAddress().then(a => userAddress = a)
 
 let contract
 $: if (contractAddresses[tokenKey] && contractAbis[tokenKey]) {
-  contract = new ethers.Contract(contractAddresses[tokenKey], contractAbis[tokenKey], signer);
+  contract = new ethers.Contract(contractAddresses[tokenKey], contractAbis[tokenKey], Provider.signer);
 }
 
 let totalSupply

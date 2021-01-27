@@ -1,18 +1,17 @@
 <script>
 import * as Tick from '../store/Tick'
-
-export let provider
+import * as Provider from '../store/Provider'
 
 let tick
 Tick.store.subscribe(v => tick = v)
 
-const signer = provider.getSigner()
-
-let userEthBalance
+let provider
+Provider.store.subscribe(v => provider = v)
 
 let userAddress
-signer.getAddress().then((a) => userAddress = a)
+Provider.signer.getAddress().then(a => userAddress = a)
 
+let userEthBalance
 $: if (userAddress && tick) {
   provider.getBalance(userAddress).then(b => userEthBalance = b)
 }

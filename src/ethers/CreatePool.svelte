@@ -4,8 +4,8 @@ import * as Contracts from '../store/Contracts'
 import * as ABI from '../store/ABI'
 import * as Keys from '../store/Keys'
 import * as Tick from '../store/Tick'
+import * as Provider from '../store/Provider'
 
-export let provider
 export let tokenKey
 
 let tick
@@ -17,11 +17,9 @@ Contracts.store.subscribe(v => contractAddresses = v)
 let contractAbis
 ABI.store.subscribe(v => contractAbis = v)
 
-const signer = provider.getSigner()
-
 let crpFactoryContract
-$: if (contractAddresses[Keys.crpFactory] && contractAbis[Keys.crpFactory] && signer) {
-  crpFactoryContract = new ethers.Contract(contractAddresses[Keys.crpFactory], contractAbis[Keys.crpFactory], signer)
+$: if (contractAddresses[Keys.crpFactory] && contractAbis[Keys.crpFactory] && Provider.signer) {
+  crpFactoryContract = new ethers.Contract(contractAddresses[Keys.crpFactory], contractAbis[Keys.crpFactory], Provider.signer)
 }
 
 $: if (crpFactoryContract && !contractAddresses[Keys.crp]) {
@@ -57,8 +55,8 @@ $: if (crpFactoryContract && !contractAddresses[Keys.crp]) {
 }
 
 let bFactoryContract
-$: if (contractAddresses[Keys.bFactory] && contractAbis[Keys.bFactory] && signer) {
-  bFactoryContract = new ethers.Contract(contractAddresses[Keys.bFactory], contractAbis[Keys.bFactory], signer)
+$: if (contractAddresses[Keys.bFactory] && contractAbis[Keys.bFactory] && Provider.signer) {
+  bFactoryContract = new ethers.Contract(contractAddresses[Keys.bFactory], contractAbis[Keys.bFactory], Provider.signer)
   bFactoryContract.on("LOG_NEW_POOL", (caller, address) => {
     Contracts.store.update(v => {
       v[tokenKey + Keys.pool] = address
@@ -69,7 +67,7 @@ $: if (contractAddresses[Keys.bFactory] && contractAbis[Keys.bFactory] && signer
 
 let crpContract
 $: if (bFactoryContract && contractAddresses[Keys.crp]) {
-  crpContract = new ethers.Contract(contractAddresses[Keys.crp], contractAbis[Keys.crp], signer)
+  crpContract = new ethers.Contract(contractAddresses[Keys.crp], contractAbis[Keys.crp], Provider.signer)
   crpContract.on("Transfer", (from, to, amount) => console.log('Transfer', from, to, amount))
   crpContract.on("LogCall", (bytes4, addressPayable, bytesCalldataPtr) => console.log('LogCall', bytes4, addressPayable, bytesCalldataPtr))
   crpContract.on("CapChanged", (caller, oldCap, newCap) => console.log('CapChanged', caller, oldCap, newCap))
@@ -83,14 +81,14 @@ $: if (bFactoryContract && contractAddresses[Keys.crp]) {
 let reserveApproved
 $: if (crpContract && contractAddresses[Keys.reserveToken] && contractAbis[Keys.reserveToken]) {
   console.info('approve reserve')
-  let reserveContract = new ethers.Contract(contractAddresses[Keys.reserveToken], contractAbis[Keys.reserveToken], signer)
+  let reserveContract = new ethers.Contract(contractAddresses[Keys.reserveToken], contractAbis[Keys.reserveToken], Provider.signer)
   reserveContract.approve(crpContract.address, BigInt(Math.pow(10, 50)))
   reserveContract.once('Approval', () => reserveApproved = true)
 }
 let tokenApproved
 $: if (crpContract && contractAddresses[tokenKey] && contractAbis[tokenKey]) {
   console.info('approve token')
-  let tokenContract = new ethers.Contract(contractAddresses[tokenKey], contractAbis[tokenKey], signer)
+  let tokenContract = new ethers.Contract(contractAddresses[tokenKey], contractAbis[tokenKey], Provider.signer)
   tokenContract.approve(crpContract.address, BigInt(Math.pow(10, 50)))
   tokenContract.once('Approval', () => tokenApproved = true)
 }
@@ -101,12 +99,12 @@ $: if (crpContract && reserveApproved && tokenApproved && !contractAddresses[tok
 }
 
 let poolContract
-$: if (contractAddresses[tokenKey + Keys.pool] && contractAbis[Keys.pool] && signer) {
-  poolContract = new ethers.Contract(contractAddresses[tokenKey + Keys.pool], contractAbis[Keys.pool], signer)
+$: if (contractAddresses[tokenKey + Keys.pool] && contractAbis[Keys.pool] && Provider.signer) {
+  poolContract = new ethers.Contract(contractAddresses[tokenKey + Keys.pool], contractAbis[Keys.pool], Provider.signer)
 }
 
 let poolTokens
-$: if(!poolTokens && poolContract && signer) {
+$: if(!poolTokens && poolContract && Provider.signer) {
   poolContract.getCurrentTokens().then(tokens => poolTokens = tokens)
 }
 let poolWeights = {}
