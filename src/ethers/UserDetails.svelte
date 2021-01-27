@@ -1,6 +1,10 @@
 <script>
-export let tick
+import * as Tick from '../store/Tick'
+
 export let provider
+
+let tick
+Tick.store.subscribe(v => tick = v)
 
 const signer = provider.getSigner()
 

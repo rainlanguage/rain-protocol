@@ -2,10 +2,13 @@
 import { ethers } from 'ethers'
 import * as Contracts from '../store/Contracts'
 import * as ABI from '../store/ABI'
+import * as Tick from '../store/Tick'
 
-export let tick
 export let provider
 export let tokenKey
+
+let tick
+Tick.store.subscribe(v => tick = v)
 
 let contractAddresses
 Contracts.store.subscribe(v => contractAddresses = v)

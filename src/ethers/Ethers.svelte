@@ -3,9 +3,12 @@ import { ethers } from "ethers"
 import UserDetails from './UserDetails.svelte'
 import TokenDetails from './TokenDetails.svelte'
 import CreatePool from './CreatePool.svelte'
+import * as Tick from '../store/Tick'
 
-export let tick
 export let tokenKey
+
+let tick
+Tick.store.subscribe(v => tick = v)
 
 const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545', ethers.networks.unspecified)
 
@@ -13,13 +16,12 @@ const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545', e
 
 <div>
 
-<UserDetails tick={tick} provider={provider} />
+<UserDetails provider={provider} />
 
-<TokenDetails tick={tick} provider={provider} tokenKey={tokenKey} />
-<TokenDetails tick={tick} provider={provider} tokenKey={"ReserveToken"} />
+<TokenDetails provider={provider} tokenKey={tokenKey} />
+<TokenDetails provider={provider} tokenKey={"ReserveToken"} />
 
 <CreatePool
-  tick={tick}
   provider={provider}
   tokenKey={tokenKey}
 />
