@@ -1,7 +1,7 @@
 import { createWritableLocalStore } from './localStorage'
 import * as Keys from './Keys'
 
-const key = 'ABIv3'
+const key = 'ABI'
 const init = {}
 
 export let store = createWritableLocalStore(key, init);
@@ -12,6 +12,7 @@ const toLoad = [
   Keys.bFactory,
   Keys.crpFactory,
   Keys.crp,
+  Keys.pool,
   Keys.aToken,
   Keys.bToken,
   Keys.reserveToken,

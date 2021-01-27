@@ -11,8 +11,6 @@ export let tokenKey
 let contractAddresses
 Contracts.store.subscribe(v => contractAddresses = v)
 
-$: console.log(contractAddresses)
-
 let contractAbis
 ABI.store.subscribe(v => contractAbis = v)
 
@@ -26,7 +24,6 @@ $: if (contractAddresses[Keys.crpFactory] && contractAbis[Keys.crpFactory] && si
 $: if (crpFactoryContract && !contractAddresses[Keys.crp]) {
   crpFactoryContract.on('LogNewCrp', (caller, crpAddress) => {
     Contracts.store.update(v => {
-      console.log(v)
       v[Keys.crp] = crpAddress
       return v
     })
@@ -58,23 +55,17 @@ $: if (crpFactoryContract && !contractAddresses[Keys.crp]) {
 
 let bFactoryContract
 $: if (contractAddresses[Keys.bFactory] && contractAbis[Keys.bFactory] && signer) {
-  console.log('bFactory')
   bFactoryContract = new ethers.Contract(contractAddresses[Keys.bFactory], contractAbis[Keys.bFactory], signer)
-  bFactoryContract.on("LOG_NEW_POOL", (caller, address) => Contracts.store.update(v => {
-    console.log('b', v)
-    v[tokenKey + Keys.pool] = address
-    return v
-  }))
+  bFactoryContract.on("LOG_NEW_POOL", (caller, address) => {
+    Contracts.store.update(v => {
+      v[tokenKey + Keys.pool] = address
+      return v
+    })
+  })
 }
 
 let crpContract
-const createPool = async (contract) => {
-  console.log('prepool', contract)
-  let pool = await contract['createPool(uint256,uint256,uint256)'](BigInt(Math.pow(10, 20)), 1, 1)
-  console.log(pool)
-}
-$: if (bFactoryContract && contractAddresses[Keys.crp] && !contractAddresses[tokenKey + Keys.pool]) {
-  console.log('foo')
+$: if (bFactoryContract && contractAddresses[Keys.crp]) {
   crpContract = new ethers.Contract(contractAddresses[Keys.crp], contractAbis[Keys.crp], signer)
   crpContract.on("Transfer", (from, to, amount) => console.log('Transfer', from, to, amount))
   crpContract.on("LogCall", (bytes4, addressPayable, bytesCalldataPtr) => console.log('LogCall', bytes4, addressPayable, bytesCalldataPtr))
@@ -84,23 +75,26 @@ $: if (bFactoryContract && contractAddresses[Keys.crp] && !contractAddresses[tok
   crpContract.on("LogJoin", (owner, tokenIn, tokenAmountIn) => console.log('LogJoin', owner, tokenIn, tokenAmountIn))
   crpContract.on("NewTokenCommitted", (token, pool, caller) => console.log('NewTokenCommitted', token, pool, caller))
   crpContract.on("OwnershipTransferred", (previousOwner, newOwner) => console.log('OwnershipTransferred', previousOwner, newOwner))
-  console.log('bar')
-  createPool(crpContract)
-}
-
-const approve = (key, approved) => {
-  let contract = new ethers.Contract(contractAddresses[key], contractAbis[key], signer)
-  contract.approve(contractAddresses[key], BigInt(Math.pow(10, 30)))
-  contract.once('Approval', (owner, spender, value) => approved = true)
 }
 
 let reserveApproved
-$: if (contractAddresses[Keys.crp] && contractAddresses[Keys.reserveToken] && contractAbis[Keys.reserveToken]) {
-  approve(Keys.reserveToken, reserveApproved)
+$: if (crpContract && contractAddresses[Keys.reserveToken] && contractAbis[Keys.reserveToken]) {
+  console.info('approve reserve')
+  let reserveContract = new ethers.Contract(contractAddresses[Keys.reserveToken], contractAbis[Keys.reserveToken], signer)
+  reserveContract.approve(crpContract.address, BigInt(Math.pow(10, 50)))
+  reserveContract.once('Approval', () => reserveApproved = true)
 }
 let tokenApproved
-$: if (contractAddresses[Keys.crp] && contractAddresses[tokenKey] && contractAbis[tokenKey]) {
-  approve(tokenKey, tokenApproved)
+$: if (crpContract && contractAddresses[tokenKey] && contractAbis[tokenKey]) {
+  console.info('approve token')
+  let tokenContract = new ethers.Contract(contractAddresses[tokenKey], contractAbis[tokenKey], signer)
+  tokenContract.approve(crpContract.address, BigInt(Math.pow(10, 50)))
+  tokenContract.once('Approval', () => tokenApproved = true)
+}
+
+$: if (crpContract && reserveApproved && tokenApproved && !contractAddresses[tokenKey + Keys.pool]) {
+  console.info('creating pool')
+  crpContract['createPool(uint256,uint256,uint256)'](BigInt(Math.pow(10, 20)), 1, 1)
 }
 
 let poolContract
@@ -109,8 +103,7 @@ $: if (contractAddresses[tokenKey + Keys.pool] && contractAbis[Keys.pool] && sig
 }
 
 let poolTokens
-$: if(!poolTokens && contractAddresses[Keys.pool] && contractAbis[Keys.pool] && signer) {
-  poolContract = new ethers.Contract(contractAddresses[Keys.pool], contractAbis[Keys.pool], signer)
+$: if(!poolTokens && poolContract && signer) {
   poolContract.getCurrentTokens().then(tokens => poolTokens = tokens)
 }
 let poolWeights = {}
@@ -155,10 +148,6 @@ let showLogs = async () => {
         </td>
       </tr>
     </table>
-  {/if}
-
-  {#if crpContract && reserveApproved && tokenApproved}
-    <input type="submit" on:click="{createBalancerPool}" value="create balancer pool" />
   {/if}
 
   <input type="submit" on:click="{showLogs}" value="show logs" />
