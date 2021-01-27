@@ -1,29 +1,26 @@
 <script>
 import { ethers } from 'ethers'
 import * as Contracts from '../store/Contracts'
+import * as ABI from '../store/ABI'
 
 export let tick
 export let provider
 export let tokenKey
 
-let tokenAddress
-Contracts.store.subscribe(v => tokenAddress = v[tokenKey])
+let contractAddresses
+Contracts.store.subscribe(v => contractAddresses = v)
 
-let tokenAbi
-$: if (tokenKey) {
-  fetch(`/abi/token/${tokenKey}.json`)
-    .then(response => response.json())
-    .then(data => tokenAbi = data.abi)
-}
+let contractAbis
+ABI.store.subscribe(v => contractAbis = v)
 
 const signer = provider.getSigner()
 
 let userAddress
-signer.getAddress().then((a) => userAddress = a)
+signer.getAddress().then(a => userAddress = a)
 
 let contract
-$: if (tokenAddress && tokenAbi) {
-  contract = new ethers.Contract(tokenAddress, tokenAbi, signer);
+$: if (contractAddresses[tokenKey] && contractAbis[tokenKey]) {
+  contract = new ethers.Contract(contractAddresses[tokenKey], contractAbis[tokenKey], signer);
 }
 
 let totalSupply
@@ -34,9 +31,7 @@ $: if (contract && userAddress && tick) {
   contract.totalSupply().then(s => totalSupply = s)
   contract.name().then(n => name = n)
   contract.symbol().then(s => symbol = s)
-  contract.balanceOf(userAddress).then(b => {
-    userTokenBalance = b
-  })
+  contract.balanceOf(userAddress).then(b => userTokenBalance = b)
 }
 </script>
 
@@ -64,7 +59,7 @@ $: if (contract && userAddress && tick) {
       Token address
     </td>
     <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
-      {tokenAddress}
+      {contractAddresses[tokenKey]}
     </td>
   </tr>
   <tr>

@@ -9,7 +9,6 @@
 	const TICK_TIME = 3000
 	let tick = 0
 	$: setTimeout(() => tick++, TICK_TIME)
-	$: console.log(tick)
 </script>
 
 <Tailwindcss />

@@ -1,7 +1,7 @@
 import { createWritableLocalStore } from './localStorage'
 import * as Keys from './Keys'
 
-const key = 'ABIv1'
+const key = 'ABIv3'
 const init = {}
 
 export let store = createWritableLocalStore(key, init);
@@ -22,7 +22,10 @@ store.subscribe(v => {
     if (!v[l]) {
       fetch(`/contracts/${l}.json`)
       .then(raw => raw.json())
-      .then(parsed => store.update(v => v[l] = parsed.abi))
+      .then(parsed => store.update(v => {
+        v[l] = parsed.abi
+        return v
+      }))
     }
   }
 })

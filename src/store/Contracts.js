@@ -1,6 +1,6 @@
 import { createWritableLocalStore } from './localStorage'
 
-const key = 'Contracts'
+const key = 'Contracts.v7'
 const init = null
 
 export let store = createWritableLocalStore(key, init);
@@ -12,7 +12,7 @@ store.subscribe(v => {
     fetch('/contracts.json')
     .then(raw => raw.json())
     .then(parsed => {
-      store.set(parsed)
+      store.update(_ => parsed)
     })
   }
 })
