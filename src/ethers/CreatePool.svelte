@@ -132,6 +132,13 @@ $: if (poolContract) {
   weightCurveIsSet = true
 }
 
+let poolTokenBalance
+let poolReserveBalance
+$: if (tick && poolContract) {
+  console.info('pool balance')
+  poolContract.getBalance(contractAddresses[Keys.reserveToken]).then(v => poolReserveBalance = v)
+  poolContract.getBalance(contractAddresses[tokenKey]).then(v => poolTokenBalance = v)
+}
 $: if (tick && poolContract && crpContract && weightCurveIsSet) {
   crpContract.pokeWeights()
 }
@@ -158,7 +165,29 @@ $: if (tick && poolContract && crpContract && weightCurveIsSet) {
   poolContract.getSpotPrice(contractAddresses[Keys.reserveToken], contractAddresses[tokenKey]).then(v => buyPrice = BigInt(v))
 }
 const buyIt = () => {
-  poolContract.swapExactAmountIn(contractAddresses[Keys.reserveToken], toBuy, contractAddresses[tokenKey], 0, buyPrice * BigInt(1000)).then(v => console.log('v', v))
+  poolContract.swapExactAmountIn(
+    contractAddresses[Keys.reserveToken],
+    toBuy,
+    contractAddresses[tokenKey],
+    0,
+    buyPrice * BigInt(1000)
+  )
+}
+
+let sellPrice = BigInt(0)
+let toSell = BigInt(ONE * 10)
+$: sellTotal = BigInt(sellPrice || 0) * BigInt(toSell || 0)
+$: if (tick && poolContract && crpContract && weightCurveIsSet) {
+  poolContract.getSpotPrice(contractAddresses[tokenKey], contractAddresses[Keys.reserveToken]).then(v => sellPrice = BigInt(v))
+}
+const sellIt = () => {
+  poolContract.swapExactAmountIn(
+    contractAddresses[tokenKey],
+    toSell,
+    contractAddresses[Keys.reserveToken],
+    0,
+    sellPrice * BigInt(1000)
+  )
 }
 
 let showLogs = async () => {
@@ -202,6 +231,22 @@ let showLogs = async () => {
         </td>
         <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
           {poolTokens}
+        </td>
+      </tr>
+      <tr>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          Reserve balance
+        </td>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          {poolReserveBalance}
+        </td>
+      </tr>
+      <tr>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          Token balance
+        </td>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          {poolTokenBalance}
         </td>
       </tr>
       <tr>
@@ -256,6 +301,42 @@ let showLogs = async () => {
         </td>
         <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
           <input type="submit" on:click={buyIt} />
+        </td>
+      </tr>
+    </table>
+
+    <h2 class="text-4xl">Sell tokens</h2>
+    <table class="border-separate border border-pacific-rim-uprising-1">
+      <tr>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          Sell price (inc fees.)
+        </td>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          {sellPrice}
+        </td>
+      </tr>
+      <tr>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          To sell
+        </td>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          <input type="number" bind:value={toSell} />
+        </td>
+      </tr>
+      <tr>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          Total cost
+        </td>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          {sellTotal}
+        </td>
+      </tr>
+      <tr>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          Sell it!
+        </td>
+        <td class="border-separate border border-pacific-rim-uprising-1 bg-white">
+          <input type="submit" on:click={sellIt} />
         </td>
       </tr>
     </table>
