@@ -29,6 +29,9 @@
     </Route>
     <Route path="/trade/top-gun">
       <TopGun />
-    </Route>
+	</Route>
+	<Route path="/redeem">
+
+	</Route>
 	</Router>
 </main>

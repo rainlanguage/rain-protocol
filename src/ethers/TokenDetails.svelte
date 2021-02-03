@@ -20,8 +20,10 @@ let userAddress
 Provider.signer.getAddress().then(a => userAddress = a)
 
 let contract
-$: if (contractAddresses[tokenKey] && contractAbis[tokenKey]) {
+$: if (!contract && contractAddresses[tokenKey] && contractAbis[tokenKey]) {
+  console.log(Provider.signer)
   contract = new ethers.Contract(contractAddresses[tokenKey], contractAbis[tokenKey], Provider.signer);
+  console.log(contract)
 }
 
 let totalSupply

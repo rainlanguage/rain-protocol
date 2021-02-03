@@ -30,3 +30,5 @@ store.subscribe(v => {
     }
   }
 })
+
+store.subscribe(v => console.log(v))
