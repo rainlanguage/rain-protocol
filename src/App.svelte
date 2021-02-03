@@ -14,8 +14,13 @@
 			<div class="pacific-rim-uprising px-8 py-4 rounded bg-pacific-rim-uprising-1 border-8 text-yellow-50">
 		    <Link to="/trade/pacific-rim-uprising">Pacific Rim Uprising</Link>
 			</div>
+
 			<div class="top-gun-collection px-8 py-4 rounded border-top-gun-collection-1 border-8 text-top-gun-collection-1">
 		    <Link to="/trade/top-gun">The Top Gun Collection</Link>
+			</div>
+
+			<div class="redeem px-8 py-4 rounded border-top-gun-collection-1 border-8 text-top-gun-collection-1">
+			<Link to="/redeem">Redeem</Link>
 			</div>
 	  </nav>
 
