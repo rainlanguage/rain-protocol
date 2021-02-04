@@ -5,9 +5,9 @@ pragma solidity ^0.6.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract Redeemer {
+contract AnyRedeemer {
 
-    uint256 public unlockTime;
+    uint256 public unlockBlock;
     uint256 public ratio;
     IERC20 reserveToken;
     IERC20 token;
@@ -16,10 +16,10 @@ contract Redeemer {
         IERC20 _reserveToken,
         uint256 _reserveTokenAmount,
         IERC20 _token,
-        uint256 _unlockTime
+        uint256 _unlockBlock
     ) public {
-        require(_unlockTime > block.timestamp, "ERR_INIT_PAST");
-        unlockTime = _unlockTime;
+        require(_unlockBlock > block.number, "ERR_INIT_PAST");
+        unlockBlock = _unlockBlock;
         reserveToken = _reserveToken;
         token = _token;
 
@@ -34,7 +34,7 @@ contract Redeemer {
     }
 
     function isUnlocked() public view returns(bool _isUnlocked) {
-        return unlockTime < block.timestamp;
+        return unlockBlock < block.number;
     }
 
     modifier onlyIfUnlocked {

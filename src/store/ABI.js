@@ -9,10 +9,10 @@ export let store = createWritableLocalStore(key, init);
 store.useLocalStorage()
 
 const toLoad = [
-  `${Keys.configurableRightsPool}/${Keys.bFactory}`,
-  `${Keys.configurableRightsPool}/${Keys.crpFactory}`,
-  `${Keys.configurableRightsPool}/${Keys.crp}`,
-  `${Keys.configurableRightsPool}/${Keys.pool}`,
+  Keys.bFactory,
+  Keys.crpFactory,
+  Keys.crp,
+  Keys.pool,
   Keys.aToken,
   Keys.bToken,
   Keys.reserveToken,

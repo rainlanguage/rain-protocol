@@ -14,13 +14,16 @@ let tick
 Tick.store.subscribe(v => tick = v)
 
 let contractAddresses
+$: console.info('contractAddresses', contractAddresses)
 Contracts.store.subscribe(v => contractAddresses = v)
 
 let contractAbis
 ABI.store.subscribe(v => contractAbis = v)
 
 let crpFactoryContract
+$: console.info(crpFactoryContract, contractAddresses, contractAbis, Keys, Provider.signer)
 $: if (!crpFactoryContract && contractAddresses[Keys.crpFactory] && contractAbis[Keys.crpFactory] && Provider.signer) {
+  console.info('CreatePool crpFactoryContract')
   crpFactoryContract = new ethers.Contract(contractAddresses[Keys.crpFactory], contractAbis[Keys.crpFactory], Provider.signer)
 }
 
@@ -38,7 +41,6 @@ $: if (crpFactoryContract && !contractAddresses[Keys.crp]) {
     constituentTokens: [contractAddresses[Keys.reserveToken], contractAddresses[tokenKey]],
     tokenBalances: [BigInt(ONE * 1000), BigInt(ONE * 1000)],
     tokenWeights: [BigInt(ONE), BigInt(2 * ONE)],
-    // tokenWeights: [5, 10],
     swapFee: Math.pow(10, 12)
   }
   let poolPermissions = {
@@ -124,7 +126,6 @@ let weightCurveIsSet
 $: if (poolContract) {
   console.info('updateWeightsGradually')
   crpContract.updateWeightsGradually(
-    // [BigInt(Math.pow(10, 19)), BigInt(2 * Math.pow(10,18))],
     [BigInt(ONE * 2), BigInt(ONE)],
     0,
     10000,
