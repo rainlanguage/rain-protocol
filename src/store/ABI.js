@@ -1,5 +1,5 @@
 import { createWritableLocalStore } from './localStorage'
-import * as Keys from './Keys'
+import * as Constants from './Constants'
 
 const key = 'ABI'
 const init = {}
@@ -9,22 +9,25 @@ export let store = createWritableLocalStore(key, init);
 store.useLocalStorage()
 
 const toLoad = [
-  Keys.bFactory,
-  Keys.crpFactory,
-  Keys.crp,
-  Keys.pool,
-  Keys.aToken,
-  Keys.bToken,
-  Keys.reserveToken,
+  Constants.bFactoryPath,
+  Constants.crpFactoryPath,
+  Constants.crpPath,
+  Constants.poolPath,
+  Constants.aTokenPath,
+  Constants.bTokenPath,
+  Constants.reserveTokenPath,
 ]
 
+console.log(toLoad)
+
 store.subscribe(v => {
-  for (const l of toLoad) {
-    if (!v[l]) {
-      fetch(`/contracts/${l}.json`)
+  for (const p of toLoad) {
+    console.log(p)
+    if (!v[p]) {
+      fetch(p)
       .then(raw => raw.json())
       .then(parsed => store.update(v => {
-        v[l] = parsed.abi
+        v[p] = parsed.abi
         return v
       }))
     }

@@ -1,6 +1,6 @@
 import { writable } from "svelte/store"
 
-const v = 10
+const v = 12
 
 export const createWritableLocalStore = (key, startValue) => {
   const { subscribe, set, update } = writable(startValue);
