@@ -14,7 +14,7 @@ let
  '';
 
  local-deploy = pkgs.writeShellScriptBin "local-deploy" ''
-  hardhat run --network localhost scripts/deploy.js
+  hardhat run --network localhost scripts/deploy.ts
  '';
 in
 pkgs.stdenv.mkDerivation {

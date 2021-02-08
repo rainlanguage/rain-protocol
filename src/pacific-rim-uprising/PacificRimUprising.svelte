@@ -1,5 +1,6 @@
 <script>
 import Ethers from '../ethers/Ethers.svelte'
+import * as Constants from '../store/Constants.ts'
 </script>
 
 <style>
@@ -23,7 +24,7 @@ import Ethers from '../ethers/Ethers.svelte'
     <div class="py-8 px-4">
       <h1 class="text-5xl">Pacific Rim Uprising</h1>
 
-      <Ethers tokenKey="AToken" />
+      <Ethers tokenKey="{Constants.aTokenPath}" />
     </div>
   </div>
 </div>

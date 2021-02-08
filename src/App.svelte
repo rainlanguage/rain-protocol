@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import Tailwindcss from './Tailwindcss.svelte'
 	import { Router, Link, Route } from 'svelte-routing'
 	import PacificRimUprising from './pacific-rim-uprising/PacificRimUprising.svelte'

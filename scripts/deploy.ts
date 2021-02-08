@@ -24,8 +24,8 @@ async function main() {
   const smartPoolManager = await deploy("contracts/configurable-rights-pool/libraries/SmartPoolManager.sol:SmartPoolManager", {})
   const crpFactory = await deploy("contracts/configurable-rights-pool/contracts/CRPFactory.sol:CRPFactory", {
       BalancerSafeMath: Constants.safeMathAddress,
-      RightsManager: '0x5fc8d32690cc91d4c39d9d3abcbd16989f875707',
-      SmartPoolManager: '0x0165878a594ca255338adfa4d48449f69242eb8f',
+      RightsManager: Constants.rightsManager,
+      SmartPoolManager: Constants.smartPoolManager,
   })
 }
 

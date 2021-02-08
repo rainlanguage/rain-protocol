@@ -18,19 +18,20 @@ $: console.info('contractAddresses', contractAddresses)
 Contracts.store.subscribe(v => contractAddresses = v)
 
 let contractAbis
+$: console.info('contractAbis', contractAbis)
 ABI.store.subscribe(v => contractAbis = v)
 
 let crpFactoryContract
 $: console.info(crpFactoryContract, contractAddresses, contractAbis, Constants, Provider.signer)
-$: if (!crpFactoryContract && contractAddresses[Constants.crpFactory] && contractAbis[Constants.crpFactory] && Provider.signer) {
+$: if (!crpFactoryContract && contractAddresses[Constants.crpFactoryPath] && contractAbis[Constants.crpFactoryPath] && Provider.signer) {
   console.info('CreatePool crpFactoryContract')
-  crpFactoryContract = new ethers.Contract(contractAddresses[Constants.crpFactory], contractAbis[Constants.crpFactory], Provider.signer)
+  crpFactoryContract = new ethers.Contract(contractAddresses[Constants.crpFactoryPath], contractAbis[Constants.crpFactoryPath], Provider.signer)
 }
 
-$: if (crpFactoryContract && !contractAddresses[Constants.crp]) {
+$: if (crpFactoryContract && !contractAddresses[Constants.crpPath]) {
   crpFactoryContract.on('LogNewCrp', (caller, crpAddress) => {
     Contracts.store.update(v => {
-      v[Constants.crp] = crpAddress
+      v[Constants.crpPath] = crpAddress
       return v
     })
   })
@@ -38,7 +39,7 @@ $: if (crpFactoryContract && !contractAddresses[Constants.crp]) {
   let poolParams = {
     poolTokenSymbol: `${Constants.reserveToken}${tokenKey}`,
     poolTokenName: `${Constants.reserveToken}${tokenKey} trading pool`,
-    constituentTokens: [contractAddresses[Constants.reserveToken], contractAddresses[tokenKey]],
+    constituentTokens: [contractAddresses[Constants.reserveTokenPath], contractAddresses[tokenKey]],
     tokenBalances: [BigInt(ONE * 1000), BigInt(ONE * 1000)],
     tokenWeights: [BigInt(ONE), BigInt(2 * ONE)],
     swapFee: Math.pow(10, 12)
@@ -52,17 +53,22 @@ $: if (crpFactoryContract && !contractAddresses[Constants.crp]) {
     canChangeCap: false
   }
 
-  console.info('newCrp')
-  crpFactoryContract.newCrp(
-    contractAddresses[Constants.bFactory],
+  console.info(
+    'newCrp',
+    contractAddresses[Constants.bFactoryPath],
+    poolParams,
+    poolPermissions
+  )
+  crpFactoryContract['newCrp(address,(string,string,address[],uint256[],uint256[],uint256),(bool,bool,bool,bool,bool,bool))'](
+    contractAddresses[Constants.bFactoryPath],
     poolParams,
     poolPermissions,
   );
 }
 
 let bFactoryContract
-$: if (!bFactoryContract && contractAddresses[Constants.bFactory] && contractAbis[Constants.bFactory] && Provider.signer) {
-  bFactoryContract = new ethers.Contract(contractAddresses[Constants.bFactory], contractAbis[Constants.bFactory], Provider.signer)
+$: if (!bFactoryContract && contractAddresses[Constants.bFactoryPath] && contractAbis[Constants.bFactoryPath] && Provider.signer) {
+  bFactoryContract = new ethers.Contract(contractAddresses[Constants.bFactoryPath], contractAbis[Constants.bFactoryPath], Provider.signer)
   bFactoryContract.on("LOG_NEW_POOL", (caller, address) => {
     Contracts.store.update(v => {
       v[tokenKey + Constants.pool] = address
@@ -72,8 +78,8 @@ $: if (!bFactoryContract && contractAddresses[Constants.bFactory] && contractAbi
 }
 
 let crpContract
-$: if (!crpContract && bFactoryContract && contractAddresses[Constants.crp]) {
-  crpContract = new ethers.Contract(contractAddresses[Constants.crp], contractAbis[Constants.crp], Provider.signer)
+$: if (!crpContract && bFactoryContract && contractAddresses[Constants.crpPath]) {
+  crpContract = new ethers.Contract(contractAddresses[Constants.crpPath], contractAbis[Constants.crpPath], Provider.signer)
   crpContract.on("Transfer", (from, to, amount) => console.log('Transfer', from, to, amount))
   crpContract.on("LogCall", (bytes4, addressPayable, bytesCalldataPtr) => console.log('LogCall', bytes4, addressPayable, bytesCalldataPtr))
   crpContract.on("CapChanged", (caller, oldCap, newCap) => console.log('CapChanged', caller, oldCap, newCap))
@@ -85,9 +91,9 @@ $: if (!crpContract && bFactoryContract && contractAddresses[Constants.crp]) {
 }
 
 let reserveApproved
-$: if (!reserveApproved && crpContract && contractAddresses[Constants.reserveToken] && contractAbis[Constants.reserveToken]) {
+$: if (!reserveApproved && crpContract && contractAddresses[Constants.reserveTokenPath] && contractAbis[Constants.reserveTokenPath]) {
   console.info('approve reserve')
-  let reserveContract = new ethers.Contract(contractAddresses[Constants.reserveToken], contractAbis[Constants.reserveToken], Provider.signer)
+  let reserveContract = new ethers.Contract(contractAddresses[Constants.reserveTokenPath], contractAbis[Constants.reserveTokenPath], Provider.signer)
   reserveContract.approve(crpContract.address, BigInt(ONE * 1000000))
   reserveContract.once('Approval', () => reserveApproved = true)
 }
@@ -100,14 +106,16 @@ $: if (!tokenApproved && crpContract && contractAddresses[tokenKey] && contractA
 }
 
 $: if (crpContract && reserveApproved && tokenApproved && !contractAddresses[tokenKey + Constants.pool]) {
-  console.info('creating pool')
+  console.info('creating pool', crpContract)
   crpContract['createPool(uint256,uint256,uint256)'](BigInt(ONE * 100), 1, 1)
 }
 
 let poolContract
-$: if (contractAddresses[tokenKey + Constants.pool] && contractAbis[Constants.pool] && Provider.signer) {
-  poolContract = new ethers.Contract(contractAddresses[tokenKey + Constants.pool], contractAbis[Constants.pool], Provider.signer)
+$: if (contractAddresses[tokenKey + Constants.pool] && contractAbis[Constants.poolPath] && Provider.signer) {
+  console.log('foo')
+  poolContract = new ethers.Contract(contractAddresses[tokenKey + Constants.pool], contractAbis[Constants.poolPath], Provider.signer)
 }
+$: console.log('pool', poolContract, contractAddresses, contractAddresses[tokenKey + Constants.pool], contractAbis)
 
 let poolTokens
 $: if(!poolTokens && poolContract && Provider.signer) {
@@ -137,7 +145,7 @@ let poolTokenBalance
 let poolReserveBalance
 $: if (tick && poolContract) {
   console.info('pool balance')
-  poolContract.getBalance(contractAddresses[Constants.reserveToken]).then(v => poolReserveBalance = v)
+  poolContract.getBalance(contractAddresses[Constants.reserveTokenPath]).then(v => poolReserveBalance = v)
   poolContract.getBalance(contractAddresses[tokenKey]).then(v => poolTokenBalance = v)
 }
 $: if (tick && poolContract && crpContract && weightCurveIsSet) {
@@ -145,9 +153,9 @@ $: if (tick && poolContract && crpContract && weightCurveIsSet) {
 }
 
 let reservePoolApproved
-$: if (!reservePoolApproved && poolContract && contractAddresses[Constants.reserveToken] && contractAbis[Constants.reserveToken]) {
+$: if (!reservePoolApproved && poolContract && contractAddresses[Constants.reserveTokenPath] && contractAbis[Constants.reserveToken]) {
   console.info('approve reserve pool')
-  let reserveContract = new ethers.Contract(contractAddresses[Constants.reserveToken], contractAbis[Constants.reserveToken], Provider.signer)
+  let reserveContract = new ethers.Contract(contractAddresses[Constants.reserveTokenPath], contractAbis[Constants.reserveToken], Provider.signer)
   reserveContract.approve(poolContract.address, BigInt(ONE * 1000000))
   reserveContract.once('Approval', () => reservePoolApproved = true)
 }
@@ -159,15 +167,17 @@ $: if (!tokenPoolApproved && poolContract && contractAddresses[tokenKey] && cont
   tokenContract.once('Approval', () => tokenPoolApproved = true)
 }
 
+$: console.log(reserveApproved, tokenPoolApproved)
+
 let buyPrice = BigInt(0)
 let toBuy = BigInt(ONE * 10)
 $: buyTotal = BigInt(buyPrice || 0) * BigInt(toBuy || 0)
 $: if (tick && poolContract && crpContract && weightCurveIsSet) {
-  poolContract.getSpotPrice(contractAddresses[Constants.reserveToken], contractAddresses[tokenKey]).then(v => buyPrice = BigInt(v))
+  poolContract.getSpotPrice(contractAddresses[Constants.reserveTokenPath], contractAddresses[tokenKey]).then(v => buyPrice = BigInt(v))
 }
 const buyIt = () => {
   poolContract.swapExactAmountIn(
-    contractAddresses[Constants.reserveToken],
+    contractAddresses[Constants.reserveTokenPath],
     toBuy,
     contractAddresses[tokenKey],
     0,
@@ -179,13 +189,13 @@ let sellPrice = BigInt(0)
 let toSell = BigInt(ONE * 10)
 $: sellTotal = BigInt(sellPrice || 0) * BigInt(toSell || 0)
 $: if (tick && poolContract && crpContract && weightCurveIsSet) {
-  poolContract.getSpotPrice(contractAddresses[tokenKey], contractAddresses[Constants.reserveToken]).then(v => sellPrice = BigInt(v))
+  poolContract.getSpotPrice(contractAddresses[tokenKey], contractAddresses[Constants.reserveTokenPath]).then(v => sellPrice = BigInt(v))
 }
 const sellIt = () => {
   poolContract.swapExactAmountIn(
     contractAddresses[tokenKey],
     toSell,
-    contractAddresses[Constants.reserveToken],
+    contractAddresses[Constants.reserveTokenPath],
     0,
     sellPrice * BigInt(1000)
   )

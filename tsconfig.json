@@ -1,15 +1,6 @@
 {
-  "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "outDir": "dist",
-    "resolveJsonModule": true
-  },
-  "include": [
-    "./scripts",
-    "./test"
-  ],
-  "files": ["./hardhat.config.ts"]
+  "extends": "@tsconfig/svelte/tsconfig.json",
+
+  "include": ["src/**/*"],
+  "exclude": ["node_modules/*", "__sapper__/*", "public/*"]
 }
