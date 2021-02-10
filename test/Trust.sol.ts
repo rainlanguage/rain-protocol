@@ -3,26 +3,50 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import type { Trust } from "../typechain/Trust"
 import type { ReserveToken } from "../typechain/ReserveToken"
+import type { BFactory } from "../typechain/BFactory"
+import type { CRPFactory } from "../typechain/CRPFactory"
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
 const tokenJson = require ('../artifacts/contracts/TrustToken.sol/TrustToken.json')
 
-describe("Trust", () => {
-  it("should create tokens", async() => {
+const basicDeploy = async (name, libs, address) => {
+  const factory = await ethers.getContractFactory(
+    name,
+    {
+      libraries: libs
+    },
+  )
+
+  const contract = (await factory.deploy())
+
+  await contract.deployed()
+
+  assert.equal(contract.address, address)
+
+  return contract
+}
+
+describe("Trust", async function() {
+  it("should create tokens", async function() {
+    this.timeout(0)
+
     const signers = await ethers.getSigners();
 
-    const reserveFactory = await ethers.getContractFactory(
-      "ReserveToken",
-      signers[0],
-    )
+    const safeMath = await basicDeploy("BalancerSafeMath", {}, '0x5FbDB2315678afecb367f032d93F642f64180aa3')
+    const rightsManager = await basicDeploy("RightsManager", {}, '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512')
+    const smartPoolManager = await basicDeploy("SmartPoolManager", {}, '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0')
 
-    const reserve = (await reserveFactory.deploy()) as ReserveToken
+    const bFactory = await basicDeploy("BFactory", {}, '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9') as BFactory
 
-    await reserve.deployed()
+    const crpFactory = await basicDeploy("CRPFactory", {
+      "BalancerSafeMath": safeMath.address,
+      "RightsManager": rightsManager.address,
+      "SmartPoolManager": smartPoolManager.address,
+    }, '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9') as CRPFactory
 
-    assert.equal(reserve.address, '0x5FbDB2315678afecb367f032d93F642f64180aa3')
+    const reserve = await basicDeploy("ReserveToken", {}, '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707') as ReserveToken
 
     const trustFactory = await ethers.getContractFactory(
       "Trust",
@@ -40,18 +64,36 @@ describe("Trust", () => {
       lockedAmount: 10000,
       poolAmount: 25,
     }
+    const normalizedApprovalAmount = ethers.BigNumber.from(
+      (BigInt(reserveDeposit.lockedAmount) * BigInt(Math.pow(10, (await reserve.decimals())))).toString()
+    )
+    console.log(normalizedApprovalAmount)
 
     const unlockBlock = 30
 
-    const trust = (await trustFactory.deploy(tokenDefinition, reserveDeposit, unlockBlock)) as Trust
+    const trust = (await trustFactory.deploy()) as Trust
 
     await trust.deployed()
 
-    assert.equal(trust.address, '0x5FbDB2315678afecb367f032d93F642f64180aa3')
+    assert.equal(trust.address, '0x0165878A594ca255338adfa4d48449f69242Eb8F')
+
+    console.log(`Approving ${ethers.constants.MaxUint256} for ${trust.address} from ${signers[0].address}`)
+    await reserve["increaseAllowance(address,uint256)"](trust.address, ethers.constants.MaxUint256)
+    // await reserve.approve(trust.address, 100)
+
+    // console.log(signers[0])
+
+    console.log((await reserve.allowance(signers[0].address, trust.address)).toString())
+
+    console.log('about to init')
+
+    await trust.init(tokenDefinition, reserveDeposit, unlockBlock, {
+      gasLimit: ethers.BigNumber.from('100000000')
+    })
 
     const token = await trust.token()
 
-    assert.equal(token, '0xa16E02E87b7454126E5E10d957A927A7F5B5d2be')
+    assert.equal(token, '0x3B02fF1e626Ed7a8fd6eC5299e2C54e1421B626B')
 
     const tokenContract = new ethers.Contract(token, tokenJson.abi, signers[0])
 
