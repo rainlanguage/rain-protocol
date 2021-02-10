@@ -5,7 +5,7 @@ pragma solidity ^0.6.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract AnyRedeemer {
+contract Redeemer {
 
     uint256 public unlockBlock;
     uint256 public ratio;
@@ -13,21 +13,21 @@ contract AnyRedeemer {
     IERC20 token;
 
     constructor(
-        IERC20 _reserveToken,
-        uint256 _reserveTokenAmount,
+        IERC20 _reserve_token,
+        uint256 _reserve_token_amount,
         IERC20 _token,
-        uint256 _unlockBlock
+        uint256 _unlock_block
     ) public {
-        require(_unlockBlock > block.number, "ERR_INIT_PAST");
-        unlockBlock = _unlockBlock;
-        reserveToken = _reserveToken;
+        require(_unlock_block > block.number, "ERR_INIT_PAST");
+        unlockBlock = _unlock_block;
+        reserveToken = _reserve_token;
         token = _token;
 
-        bool xfer = IERC20(reserveToken).transferFrom(msg.sender, address(this), _reserveTokenAmount);
+        bool xfer = IERC20(reserveToken).transferFrom(msg.sender, address(this), _reserve_token_amount);
         require(xfer, "ERR_INIT_RESERVE");
 
         ratio = SafeMath.div(
-            _reserveTokenAmount,
+            _reserve_token_amount,
             IERC20(token).totalSupply(),
             "ERR_INIT_RATIO"
         );
