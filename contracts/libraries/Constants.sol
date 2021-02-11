@@ -9,6 +9,7 @@ pragma solidity 0.6.12;
 import "../configurable-rights-pool/libraries/BalancerConstants.sol";
 
 library Constants {
-    address constant BFactory = 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9;
-    address constant CRPFactory = 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9;
+    address constant BFactory = 0x9424B1412450D0f8Fc2255FAf6046b98213B76Bd;
+    address constant CRPFactory = 0xed52D8E202401645eDAD1c0AA21e872498ce47D0;
+    address constant RightsManager = 0x0F811b1AF2B6B447B008eFF31eCceeE5A0b1d842;
 }

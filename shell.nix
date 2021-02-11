@@ -13,6 +13,14 @@ let
   hardhat node
  '';
 
+ local-fork = pkgs.writeShellScriptBin "local-fork" ''
+ hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/G0Vg_iZFiAuUD6hjXqcVg-Nys-NGiTQy --fork-block-number 11833335
+ '';
+
+ local-test = pkgs.writeShellScriptBin "local-test" ''
+ hardhat test --network localhost
+ '';
+
  local-deploy = pkgs.writeShellScriptBin "local-deploy" ''
   hardhat run --network localhost scripts/deploy.ts
  '';
@@ -25,6 +33,8 @@ pkgs.stdenv.mkDerivation {
   mnemonic
   local-node
   local-deploy
+  local-test
+  local-fork
  ];
 
  shellHook = ''

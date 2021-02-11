@@ -138,31 +138,31 @@ contract Trust is Ownable {
         poolWeights.push(reserve_weight);
         poolWeights.push(token_weight);
 
-        pool = CRPFactory.CRPFactory(Constants.CRPFactory).newCrp(
-            Constants.BFactory,
-            ConfigurableRightsPool.ConfigurableRightsPool.PoolParams(
-                "TrustPool",
-                "The Trust Pool",
-                poolAddresses,
-                poolAmounts,
-                poolWeights,
-                BalancerConstants.MIN_FEE
-            ),
-            RightsManager.RightsManager.Rights(
-                // Pause
-                false,
-                // Change fee
-                false,
-                // Change weights (needed for gradual weight)
-                true,
-                // Add/remove tokens
-                true,
-                // Whitelist LPs (@todo needed?)
-                false,
-                // Change cap
-                false
-            )
-        );
+        // pool = CRPFactory.CRPFactory(Constants.CRPFactory).newCrp(
+        //     Constants.BFactory,
+        //     ConfigurableRightsPool.ConfigurableRightsPool.PoolParams(
+        //         "TrustPool",
+        //         "The Trust Pool",
+        //         poolAddresses,
+        //         poolAmounts,
+        //         poolWeights,
+        //         BalancerConstants.MIN_FEE
+        //     ),
+        //     RightsManager.RightsManager.Rights(
+        //         // Pause
+        //         false,
+        //         // Change fee
+        //         false,
+        //         // Change weights (needed for gradual weight)
+        //         true,
+        //         // Add/remove tokens
+        //         true,
+        //         // Whitelist LPs (@todo needed?)
+        //         false,
+        //         // Change cap
+        //         false
+        //     )
+        // );
         console.log("newCrp success");
 
         initialized = true;
