@@ -18,7 +18,7 @@ import "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol" as Conf
 import './configurable-rights-pool/contracts/CRPFactory.sol' as CRPFactory;
 
 import "./libraries/Constants.sol";
-import "./Redeemer.sol" as Redeemer;
+import { RedeemableToken } from "./RedeemableToken.sol";
 import "./TrustToken.sol" as TrustToken;
 
 contract Trust is Ownable {
@@ -50,7 +50,7 @@ contract Trust is Ownable {
 
     ERC20.ERC20 public reserve_token;
     TrustToken.TrustToken public token;
-    Redeemer.Redeemer public redeemer;
+    RedeemableToken public redeemable_token;
     ConfigurableRightsPool.ConfigurableRightsPool public pool;
 
     bool initialized = false;

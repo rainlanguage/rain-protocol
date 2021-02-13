@@ -22,6 +22,9 @@ describe("Initable", async function() {
 
         await initable.deployed()
 
+        // can inspect the initialized state
+        assert(!await initable.initialized(), 'initialized early')
+
         // beforeInit must not error before we init
         await initable.beforeInit()
 
@@ -38,7 +41,10 @@ describe("Initable", async function() {
         }
         assert(afterInitBeforeDidError)
 
-        let init = await initable.init()
+        await initable.init()
+
+        // can inspect the initialized state
+        assert(await initable.initialized(), 'failed to initialize')
 
         // beforeInit must error now that we init
         let beforeInitAfterDidError = false
