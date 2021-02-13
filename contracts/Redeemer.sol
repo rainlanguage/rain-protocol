@@ -2,31 +2,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import "hardhat/console.sol";
+import { console } from "hardhat/console.sol";
 
-contract Redeemer is Ownable {
+import { Initable } from './libraries/Initable.sol';
+
+contract Redeemer is Ownable, Initable {
 
     uint256 public unlockBlock;
     uint256 public ratio;
     IERC20 reserveToken;
     IERC20 token;
 
-    bool initialized = false;
-    modifier onlyNotInit {
-        require(!initialized);
-        _;
-    }
-
     function init(
         IERC20 _reserve_token,
         uint256 _reserve_token_amount,
         IERC20 _token,
         uint256 _unlock_block
-    ) public onlyOwner onlyNotInit {
+    ) public onlyOwner withInit {
         console.log("Redeemer init");
 
         require(_unlock_block > block.number, "ERR_INIT_PAST");

@@ -1,10 +1,10 @@
 import * as Util from './Util'
-import chai from "chai";
-import { solidity } from "ethereum-waffle";
+import chai from "chai"
+import { solidity } from "ethereum-waffle"
 import type { ReserveToken } from "../typechain/ReserveToken"
 import type { TrustToken } from "../typechain/TrustToken"
 import type { TrustPool } from "../typechain/TrustPool"
-import { ethers } from 'hardhat';
+import { ethers } from 'hardhat'
 
 chai.use(solidity);
 const { expect, assert } = chai;
