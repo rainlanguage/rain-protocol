@@ -9,6 +9,8 @@ contract BlockBlockableTest is BlockBlockable {
 
     function unblockable() public view {}
 
+    function whileBlocked() public view onlyBlocked {}
+
     function blockable() public view onlyUnblocked {}
 
     function trySetUnblockBlock(uint256 _unblock_block) public {

@@ -23,6 +23,8 @@ abstract contract BlockBlockable {
     string constant private ERR_ONLY_BLOCKED = "ERR_ONLY_BLOCKED";
     string constant private ERR_ONLY_UNBLOCKED = "ERR_ONLY_UNBLOCKED";
 
+    event UnblockSet(uint256 _unblock_block);
+
     // The outside world is free to inspect the unblock block.
     // The contract is no longer blocked when this block exists.
     // The contract starts unblocked.
@@ -55,5 +57,7 @@ abstract contract BlockBlockable {
         unblock_block = _unblock_block;
         // The unblock block MUST be nonzero.
         require(0 < unblock_block, ERR_BLOCK_ZERO);
+
+        emit UnblockSet(unblock_block);
     }
 }

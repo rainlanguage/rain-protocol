@@ -18,10 +18,11 @@ import "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol" as Conf
 import './configurable-rights-pool/contracts/CRPFactory.sol' as CRPFactory;
 
 import "./libraries/Constants.sol";
+import './libraries/Initable.sol';
 import { RedeemableToken } from "./RedeemableToken.sol";
 import "./TrustToken.sol" as TrustToken;
 
-contract Trust is Ownable {
+contract Trust is Ownable, Initable {
 
     using SafeMath for uint256;
 
@@ -53,57 +54,51 @@ contract Trust is Ownable {
     RedeemableToken public redeemable_token;
     ConfigurableRightsPool.ConfigurableRightsPool public pool;
 
-    bool initialized = false;
-    modifier onlyNotInit {
-        require(!initialized);
-        _;
-    }
-
     function init(
-        TokenDefinition memory _token_definition,
+        TokenDefinition memory,
         ReserveDeposit memory _reserve_deposit,
-        uint256 _unlock_block
-    ) public onlyOwner onlyNotInit {
-        console.log("Trust init: %s", address(this));
+        uint256
+    ) public onlyOwner withInit {
+        // console.log("Trust init: %s", address(this));
 
-        token = new TrustToken.TrustToken(
-            _token_definition.initialSupply.mul(BalancerConstants.BONE),
-            _token_definition.name,
-            _token_definition.symbol
-        );
+        // token = new TrustToken.TrustToken(
+        //     _token_definition.initialSupply.mul(BalancerConstants.BONE),
+        //     _token_definition.name,
+        //     _token_definition.symbol
+        // );
 
-        reserve_token = _reserve_deposit.reserveToken;
+        // reserve_token = _reserve_deposit.reserveToken;
 
-        console.log("Trust init: TrustToken: address: %s", address(token));
-        console.log("Trust init: TrustToken: name: %s", token.name());
-        console.log("Trust init: TrustToken: symbol: %s", token.symbol());
-        console.log("Trust init: TrustToken: supply: %s", token.totalSupply());
-        console.log("Trust init: TrustToken: trust balance: %s", token.balanceOf(address(this)));
+        // console.log("Trust init: TrustToken: address: %s", address(token));
+        // console.log("Trust init: TrustToken: name: %s", token.name());
+        // console.log("Trust init: TrustToken: symbol: %s", token.symbol());
+        // console.log("Trust init: TrustToken: supply: %s", token.totalSupply());
+        // console.log("Trust init: TrustToken: trust balance: %s", token.balanceOf(address(this)));
 
-        uint256 normalized_locked_amount = SafeMath.mul(uint256(10) ** ERC20.ERC20(reserve_token).decimals(), _reserve_deposit.lockedAmount);
-        console.log(
-            "Trust init: About to transfer %s of %s",
-            normalized_locked_amount,
-            ERC20.ERC20(reserve_token).name()
-        );
-        console.log("Sender balance: %s", ERC20.ERC20(reserve_token).balanceOf(address(msg.sender)));
-        console.log("Sender address: %s", address(msg.sender));
-        console.log("Contract address: %s", address(this));
-        console.log("Contract allowance: %s", ERC20.ERC20(reserve_token).allowance(address(msg.sender), address(this)));
-        bool redeemer_xfer = ERC20.ERC20(reserve_token).transferFrom(address(msg.sender), address(this), normalized_locked_amount);
-        require(redeemer_xfer, "ERR_RESERVE_TOKEN_TRANSFER");
-        console.log("Trust init: transfer successful");
-        console.log("Trust init: trust reserve balance: %s", ERC20.ERC20(reserve_token).balanceOf(address(this)));
+        // uint256 normalized_locked_amount = SafeMath.mul(uint256(10) ** ERC20.ERC20(reserve_token).decimals(), _reserve_deposit.lockedAmount);
+        // console.log(
+        //     "Trust init: About to transfer %s of %s",
+        //     normalized_locked_amount,
+        //     ERC20.ERC20(reserve_token).name()
+        // );
+        // console.log("Sender balance: %s", ERC20.ERC20(reserve_token).balanceOf(address(msg.sender)));
+        // console.log("Sender address: %s", address(msg.sender));
+        // console.log("Contract address: %s", address(this));
+        // console.log("Contract allowance: %s", ERC20.ERC20(reserve_token).allowance(address(msg.sender), address(this)));
+        // bool redeemer_xfer = ERC20.ERC20(reserve_token).transferFrom(address(msg.sender), address(this), normalized_locked_amount);
+        // require(redeemer_xfer, "ERR_RESERVE_TOKEN_TRANSFER");
+        // console.log("Trust init: transfer successful");
+        // console.log("Trust init: trust reserve balance: %s", ERC20.ERC20(reserve_token).balanceOf(address(this)));
 
-        redeemer = new Redeemer.Redeemer();
+        // redeemer = new Redeemer.Redeemer();
 
-        ERC20.ERC20(reserve_token).increaseAllowance(address(redeemer), normalized_locked_amount);
+        // ERC20.ERC20(reserve_token).increaseAllowance(address(redeemer), normalized_locked_amount);
 
-        redeemer.init(reserve_token, normalized_locked_amount, token, _unlock_block);
-        require(!redeemer.isUnlocked());
+        // redeemer.init(reserve_token, normalized_locked_amount, token, _unlock_block);
+        // require(!redeemer.isUnlocked());
 
-        console.log("Trust init: Redeemer: address: %s", address(redeemer));
-        console.log("Trust init: Redeemer: unlocked: %s", redeemer.isUnlocked());
+        // console.log("Trust init: Redeemer: address: %s", address(redeemer));
+        // console.log("Trust init: Redeemer: unlocked: %s", redeemer.isUnlocked());
 
         uint256 normalized_pool_reserve_amount = SafeMath.mul(uint256(10) ** ERC20.ERC20(reserve_token).decimals(), _reserve_deposit.poolAmount);
         uint256 normalized_pool_token_amount = token.balanceOf(address(this));

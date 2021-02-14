@@ -23,6 +23,8 @@ abstract contract Initable {
     string constant private ERR_ONLY_INIT = "ERR_ONLY_INIT";
     string constant private ERR_ONLY_NOT_INIT = "ERR_ONLY_NOT_INIT";
 
+    event Initialized();
+
     // The outside world is free to inspect the initialization state.
     // Initialization is atomic and binary, it either is or is not initialized.
     // Multi-step interactions are out of scope.
@@ -54,5 +56,6 @@ abstract contract Initable {
         _;
         console.log("Initable: initialized");
         initialized = true;
+        emit Initialized();
     }
 }

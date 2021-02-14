@@ -1,4 +1,3 @@
-import * as Util from './Util'
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
@@ -41,7 +40,11 @@ describe("Initable", async function() {
         }
         assert(afterInitBeforeDidError)
 
+        const initialized = new Promise(resolve => {
+            initable.once('Initialized', resolve)
+        })
         await initable.init()
+        await initialized
 
         // can inspect the initialized state
         assert(await initable.initialized(), 'failed to initialize')

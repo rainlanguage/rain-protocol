@@ -26,6 +26,9 @@ describe("BlockBlockable", async function() {
         // can always call unblockable function
         await blockable.unblockable()
 
+        // can call blocked at the start
+        await blockable.whileBlocked()
+
         let blockableDidError = false
         try {
             await blockable.blockable()
@@ -39,11 +42,28 @@ describe("BlockBlockable", async function() {
 
         assert(nowBlock > 0, 'blocked at block 0')
 
+        const unblockPromise = new Promise(resolve => {
+            blockable.once('UnblockSet', (unblockBlock) => {
+                assert(unblockBlock.eq(nowBlock), 'UnblockSet error has wrong unblock block')
+                resolve(true)
+            })
+        })
         await blockable.trySetUnblockBlock(nowBlock)
+        await unblockPromise
 
         // we can call all functions now
         await blockable.unblockable()
         await blockable.blockable()
+
+        // except the blocked
+        let whileBlockedDidError = false
+        try {
+            await blockable.whileBlocked()
+        } catch (e) {
+            assert(e.toString().includes('revert ERR_ONLY_BLOCKED'))
+            whileBlockedDidError = true
+        }
+        assert(whileBlockedDidError, 'only blocked did not error when unblocked')
 
         // except changing the unblock block
         let changeUnblockDidError = false
