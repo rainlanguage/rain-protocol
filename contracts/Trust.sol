@@ -20,7 +20,6 @@ import './configurable-rights-pool/contracts/CRPFactory.sol' as CRPFactory;
 import "./libraries/Constants.sol";
 import './libraries/Initable.sol';
 import { RedeemableToken } from "./RedeemableToken.sol";
-import "./TrustToken.sol" as TrustToken;
 
 contract Trust is Ownable, Initable {
 
@@ -50,7 +49,7 @@ contract Trust is Ownable, Initable {
     }
 
     ERC20.ERC20 public reserve_token;
-    TrustToken.TrustToken public token;
+    // TrustToken.TrustToken public token;
     RedeemableToken public redeemable_token;
     ConfigurableRightsPool.ConfigurableRightsPool public pool;
 
@@ -100,38 +99,38 @@ contract Trust is Ownable, Initable {
         // console.log("Trust init: Redeemer: address: %s", address(redeemer));
         // console.log("Trust init: Redeemer: unlocked: %s", redeemer.isUnlocked());
 
-        uint256 normalized_pool_reserve_amount = SafeMath.mul(uint256(10) ** ERC20.ERC20(reserve_token).decimals(), _reserve_deposit.poolAmount);
-        uint256 normalized_pool_token_amount = token.balanceOf(address(this));
-        console.log("Pool reserve amount: %s", normalized_pool_reserve_amount);
-        console.log("Pool token amount: %s", normalized_pool_token_amount);
+        // uint256 normalized_pool_reserve_amount = SafeMath.mul(uint256(10) ** ERC20.ERC20(reserve_token).decimals(), _reserve_deposit.poolAmount);
+        // uint256 normalized_pool_token_amount = token.balanceOf(address(this));
+        // console.log("Pool reserve amount: %s", normalized_pool_reserve_amount);
+        // console.log("Pool token amount: %s", normalized_pool_token_amount);
 
-        // Weight 20 for reserve.
-        uint256 reserve_weight = BalancerConstants.MIN_WEIGHT;
-        // Weight proportional for token or min-weight.
-        uint256 token_weight = Math.min(
-            SafeMath.sub(BalancerConstants.MAX_WEIGHT, SafeMath.add(reserve_weight, BalancerConstants.BONE)),
-            SafeMath.mul(
-                SafeMath.div(normalized_pool_token_amount, normalized_pool_reserve_amount),
-                reserve_weight
-            )
-        );
-        console.log("Pool reserve weight: %s", reserve_weight);
-        console.log("Pool token weight: %s", token_weight);
+        // // Weight 20 for reserve.
+        // uint256 reserve_weight = BalancerConstants.MIN_WEIGHT;
+        // // Weight proportional for token or min-weight.
+        // uint256 token_weight = Math.min(
+        //     SafeMath.sub(BalancerConstants.MAX_WEIGHT, SafeMath.add(reserve_weight, BalancerConstants.BONE)),
+        //     SafeMath.mul(
+        //         SafeMath.div(normalized_pool_token_amount, normalized_pool_reserve_amount),
+        //         reserve_weight
+        //     )
+        // );
+        // console.log("Pool reserve weight: %s", reserve_weight);
+        // console.log("Pool token weight: %s", token_weight);
 
-        console.log("About to newCrp");
+        // console.log("About to newCrp");
 
 
-        address[] storage poolAddresses;
-        poolAddresses.push(address(reserve_token));
-        poolAddresses.push(address(token));
+        // address[] storage poolAddresses;
+        // poolAddresses.push(address(reserve_token));
+        // poolAddresses.push(address(token));
 
-        uint256[] storage poolAmounts;
-        poolAmounts.push(normalized_pool_reserve_amount);
-        poolAmounts.push(normalized_pool_token_amount);
+        // uint256[] storage poolAmounts;
+        // poolAmounts.push(normalized_pool_reserve_amount);
+        // poolAmounts.push(normalized_pool_token_amount);
 
-        uint256[] storage poolWeights;
-        poolWeights.push(reserve_weight);
-        poolWeights.push(token_weight);
+        // uint256[] storage poolWeights;
+        // poolWeights.push(reserve_weight);
+        // poolWeights.push(token_weight);
 
         // pool = CRPFactory.CRPFactory(Constants.CRPFactory).newCrp(
         //     Constants.BFactory,
