@@ -1,9 +1,6 @@
-[submodule "balancer-core"]
-	path = balancer-core
-	url = git@github.com:balancer-labs/balancer-core.git
-[submodule "ganache"]
-	path = ganache
-	url = git@github.com:trufflesuite/ganache.git
-[submodule "configurable-rights-pool"]
-	path = configurable-rights-pool
+[submodule "contracts/configurable-rights-pool"]
+	path = contracts/configurable-rights-pool
 	url = git@github.com:balancer-labs/configurable-rights-pool.git
+[submodule "contracts/balancer-core"]
+	path = contracts/balancer-core
+	url = git@github.com:balancer-labs/balancer-core.git

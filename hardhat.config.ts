@@ -1,4 +1,4 @@
-import { HardhatUserConfig } from "hardhat/types";
+import type { HardhatUserConfig }  from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 const config: HardhatUserConfig = {

@@ -1,51 +1,33 @@
 let
  pkgs = import <nixpkgs> {};
 
- dev = pkgs.writeShellScriptBin "dev" ''
-  npm run dev
+ local-node = pkgs.writeShellScriptBin "local-node" ''
+  hardhat node
  '';
 
- mnemonic = pkgs.writeShellScriptBin "mnemonic" ''
-  mnemonics
+ local-fork = pkgs.writeShellScriptBin "local-fork" ''
+ hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/G0Vg_iZFiAuUD6hjXqcVg-Nys-NGiTQy --fork-block-number 11833335
  '';
 
- ganache = pkgs.writeShellScriptBin "ganache" ''
- ganache-cli --deterministic -g 1 -l 100000000 --noVMErrorsOnRPCResponse
+ local-test = pkgs.writeShellScriptBin "local-test" ''
+ hardhat test --network localhost
  '';
 
- deploy-poc = pkgs.writeShellScriptBin "deploy-poc" ''
- truffle migrate --reset --network development
- '';
-
- deploy-balancer-core = pkgs.writeShellScriptBin "deploy-balancer-core" ''
- ( cd balancer-core && truffle migrate --reset --network development )
- '';
-
- deploy-balancer-crp = pkgs.writeShellScriptBin "deploy-balancer-crp" ''
- ( cd configurable-rights-pool && truffle migrate --reset --network development )
- '';
-
- deploy-all = pkgs.writeShellScriptBin "deploy-all" ''
- deploy-balancer-core
- deploy-balancer-crp
- deploy-poc
+ local-deploy = pkgs.writeShellScriptBin "local-deploy" ''
+  hardhat run --network localhost scripts/deploy.ts
  '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
  buildInputs = [
-  pkgs.nodejs-12_x
-  dev
-  mnemonic
-  ganache
-  deploy-balancer-core
-  deploy-balancer-crp
-  deploy-poc
-  deploy-all
+  pkgs.nodejs-14_x
+  local-node
+  local-fork
+  local-test
+  local-deploy
  ];
 
  shellHook = ''
-  source .env
   export PATH=$( npm bin ):$PATH
   # keep it fresh
   npm install

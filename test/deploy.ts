@@ -1,62 +1,62 @@
 import { ethers } from "hardhat";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import { ReserveToken } from "../typechain/ReserveToken"
-import { AToken } from "../typechain/AToken"
-import { BFactory } from "../typechain/BFactory"
-import { BalancerSafeMathMockInterface } from "../typechain/BalancerSafeMathMock"
-import { CRPFactory } from "../typechain/CRPFactory"
+import type { ReserveToken } from "../typechain/ReserveToken"
+import type { AToken } from "../typechain/AToken"
+import type { BFactory } from "../typechain/BFactory"
+import type { BalancerSafeMathMockInterface } from "../typechain/BalancerSafeMathMock"
+import type { CRPFactory } from "../typechain/CRPFactory"
 chai.use(solidity);
 const { expect } = chai;
 
-describe("Deploy", () => {
-  it("should deploy", async() => {
-    const signers = await ethers.getSigners();
+// describe("Deploy", () => {
+//   it("should deploy", async() => {
+//     const signers = await ethers.getSigners();
 
-    const reserveTokenFactory = await ethers.getContractFactory(
-      "ReserveToken",
-      signers[0],
-    );
+//     const reserveTokenFactory = await ethers.getContractFactory(
+//       "ReserveToken",
+//       signers[0],
+//     );
 
-    const reserveToken = (await reserveTokenFactory.deploy()) as ReserveToken
+//     const reserveToken = (await reserveTokenFactory.deploy()) as ReserveToken
 
-    const aTokenFactory = await ethers.getContractFactory(
-      "AToken",
-      signers[0],
-    )
+//     const aTokenFactory = await ethers.getContractFactory(
+//       "AToken",
+//       signers[0],
+//     )
 
-    const aToken = (await aTokenFactory.deploy()) as AToken
+//     const aToken = (await aTokenFactory.deploy()) as AToken
 
-    const bFactoryFactory = await ethers.getContractFactory(
-      "BFactory",
-      signers[0]
-    )
+//     const bFactoryFactory = await ethers.getContractFactory(
+//       "BFactory",
+//       signers[0]
+//     )
 
-    const bFactory = (await bFactoryFactory.deploy()) as BFactory
+//     const bFactory = (await bFactoryFactory.deploy()) as BFactory
 
-    const balancerSafeMathMockFactory = await ethers.getContractFactory(
-      "BalancerSafeMathMock",
-      signers[0]
-    )
+//     const balancerSafeMathFactory = await ethers.getContractFactory(
+//       "BalancerSafeMath",
+//       signers[0]
+//     )
 
-    const balancerSafeMathMock = (await balancerSafeMathMockFactory.deploy()) as BalancerSafeMathMockInterface
+//     // const balancerSafeMath = (await balancerSafeMathFactory.deploy()) as BalancerSafeMathInterface
 
-    console.log(balancerSafeMathMock)
+//     // console.log(balancerSafeMathMock)
 
-    const crpFactoryFactory = await ethers.getContractFactory(
-      "CRPFactory",
-      signers[0]
-    )
+//     // const crpFactoryFactory = await ethers.getContractFactory(
+//     //   "CRPFactory",
+//     //   signers[0]
+//     // )
 
-    const crpFactory = (await crpFactoryFactory.deploy()) as CRPFactory
+//     // const crpFactory = (await crpFactoryFactory.deploy()) as CRPFactory
 
-    console.log(crpFactory)
+//     // console.log(crpFactory)
 
-    // console.log(bFactory)
+//     // console.log(bFactory)
 
-    // console.log(reserveToken)
+//     // console.log(reserveToken)
 
-  })
+//   })
 
 
   // console.log(reserveTokenFactory)
@@ -99,4 +99,4 @@ describe("Deploy", () => {
   //     expect(count).to.eq(0);
   //   });
   // });
-});
+// });

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-import "./AnyToken.sol";
+import "./TrustToken.sol";
 
-contract BToken is AnyToken {
-    constructor() public AnyToken(10 ** (18 + 7), "Token B", "TKNB") {}
+contract BToken is TrustToken {
+    constructor() public TrustToken(10 ** (18 + 7), "Token B", "TKNB") {}
 }
