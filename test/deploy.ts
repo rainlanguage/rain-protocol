@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import type { ReserveToken } from "../typechain/ReserveToken"
-import type { AToken } from "../typechain/AToken"
+// import type { AToken } from "../typechain/AToken"
 import type { BFactory } from "../typechain/BFactory"
 import type { BalancerSafeMathMockInterface } from "../typechain/BalancerSafeMathMock"
 import type { CRPFactory } from "../typechain/CRPFactory"
