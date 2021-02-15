@@ -2,10 +2,8 @@
   "name": "tv-balancer-poc",
   "version": "1.0.0",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "start": "sirv public --single",
-    "validate": "svelte-check"
+    "build": "hardhat compile",
+    "test": "hardhat test"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
