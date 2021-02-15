@@ -3,9 +3,9 @@
 pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./configurable-rights-pool/libraries/BalancerConstants.sol";
-
 import "@openzeppelin/contracts/math/SafeMath.sol";
+
+import "../configurable-rights-pool/libraries/BalancerConstants.sol";
 
 // An example token that can be used as a reserve asset.
 // On mainnet this would likely be some brand of stablecoin but can be anything.
