@@ -3,6 +3,9 @@ import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ReserveToken } from '../typechain/ReserveToken'
+import type { RightsManager } from '../typechain/RightsManager'
+import type { CRPFactory } from '../typechain/CRPFactory'
+import type { BFactory } from '../typechain/BFactory'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -13,13 +16,23 @@ describe("RedeemableERC20Pool", async function() {
 
         const signers = await ethers.getSigners()
 
+        const rightsManager = (await Util.basicDeploy('RightsManager', {})) as RightsManager
+        const balancerSafeMath = (await Util.basicDeploy('BalancerSafeMath', {}))
+        const smartPoolManager = (await Util.basicDeploy('SmartPoolManager', {}))
+        const crpFactory = (await Util.basicDeploy('CRPFactory', {
+            'RightsManager': rightsManager.address,
+            'BalancerSafeMath': balancerSafeMath.address,
+            'SmartPoolManager': smartPoolManager.address,
+        })) as CRPFactory
+        const bFactory = (await Util.basicDeploy('BFactory', {})) as BFactory
+
         const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
 
         const redeemableFactory = await ethers.getContractFactory(
             'RedeemableERC20'
         )
 
-        const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
+        const reserveTotal = ethers.BigNumber.from('100' + Util.eighteenZeros)
         const ratio = ethers.BigNumber.from('2' + Util.eighteenZeros)
 
         const redeemable = await redeemableFactory.deploy(
@@ -53,12 +66,19 @@ describe("RedeemableERC20Pool", async function() {
         await redeemable.init(unblockBlock)
 
         const poolFactory = await ethers.getContractFactory(
-            'RedeemableERC20Pool'
+            'RedeemableERC20Pool',
+            {
+                libraries: {
+                    'RightsManager': rightsManager.address
+                }
+            }
         )
 
         const bookRatio = ethers.BigNumber.from('3' + Util.eighteenZeros)
 
         const pool = await poolFactory.deploy(
+            crpFactory.address,
+            bFactory.address,
             redeemable.address,
             bookRatio
         )
@@ -67,6 +87,8 @@ describe("RedeemableERC20Pool", async function() {
 
         assert((await pool.token()) === redeemable.address, 'wrong token address')
         assert((await pool.book_ratio()).eq(bookRatio), 'wrong book ratio')
+        assert(await pool.owner() === signers[0].address, 'wrong owner')
+        assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
 
         const expectedRights = [false, false, true, true, false, false]
         expectedRights.forEach(async (v, i) => {
@@ -106,6 +128,19 @@ describe("RedeemableERC20Pool", async function() {
             const actual = await pool.pool_fee()
             assert(actual.eq(expected), `wrong pool fee ${expected} ${actual}`)
         }
+
+        await reserve.approve(
+            pool.address,
+            await pool.pool_amounts(0)
+        )
+        await redeemable.approve(
+            pool.address,
+            await pool.pool_amounts(1)
+        )
+
+        await pool.init({
+            gasLimit: 10000000
+        })
 
     })
 })

@@ -20,6 +20,7 @@ import { RightsManager } from "./configurable-rights-pool/libraries/RightsManage
 import { BalancerConstants } from "./configurable-rights-pool/libraries/BalancerConstants.sol";
 import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
+import { BFactory } from './configurable-rights-pool/contracts/test/BFactory.sol';
 
 contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
@@ -75,14 +76,19 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     // the TKN during the blocked period, such as access to events, experiences, NFTs, etc.
     uint256 public book_ratio;
 
-
+    CRPFactory public crp_factory;
+    BFactory public balancer_factory;
     ConfigurableRightsPool public crp;
     IBPool public pool;
 
     constructor (
+        CRPFactory _crp_factory,
+        BFactory _balancer_factory,
         RedeemableERC20 _token,
         uint256 _book_ratio
     ) public {
+        crp_factory = _crp_factory;
+        balancer_factory = _balancer_factory;
         token = _token;
         book_ratio = _book_ratio;
 
@@ -143,7 +149,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // It is required that the pool initializes with full ownership of all Tokens in existence.
         uint256 _token_supply = token.totalSupply();
         // require(IERC20(_token).balanceOf(address(this)) == _token_supply, "ERR_TOKEN_BALANCE");
-        console.log("RedeemableERC20Pool: construct_pool_amounts amounts: token: %s", _token_supply);
+        console.log("RedeemableERC20Pool: construct_pool_amounts: token: %s", _token_supply);
         pool_amounts.push(_token_supply);
     }
 
@@ -198,10 +204,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
     function construct_crp () private onlyNotInit onlyOwner onlyBlocked {
         // CRPFactory.
-        crp = CRPFactory(Constants.CRPFactory).newCrp(
-            Constants.BFactory,
+        crp = crp_factory.newCrp(
+            address(balancer_factory),
             ConfigurableRightsPool.PoolParams(
-                "R20P"
+                "R20P",
                 "RedeemableERC20Pool",
                 pool_addresses,
                 pool_amounts,
@@ -215,88 +221,58 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     function init() public withInit onlyOwner onlyBlocked {
         // ensure allowances are set exactly.
         // allowances should NEVER be different to the pool amounts.
-        require(IERC20(reserve).allowance(this.owner, address(this)) == pool_amounts[0], 'ERR_RESERVE_ALLOWANCE');
-        require(IERC20(token).allowance(this.owner, address(this)) == pool_amounts[1], 'ERR_TOKEN_ALLOWANCE');
-
-        // take all token.
-        bool token_xfer = IERC20(token).transferFrom(this.owner, address(this), pool_amounts[1]);
-        require(token_xfer, 'ERR_TOKEN_TRANSFER');
-        require(IERC20(token).balanceOf(address(this)) == IERC20(token).totalSupply(), 'ERR_TOKEN_TRANSFER');
+        console.log(
+            "RedeemableERC20Pool: init: allowances: %s %s",
+            token.reserve().allowance(this.owner(), address(this)),
+            token.allowance(this.owner(), address(this))
+        );
+        require(token.reserve().allowance(this.owner(), address(this)) == pool_amounts[0], 'ERR_RESERVE_ALLOWANCE');
+        require(token.allowance(this.owner(), address(this)) == pool_amounts[1], 'ERR_TOKEN_ALLOWANCE');
 
         // take allocated reserves.
-        bool reserve_xfer = IERC20(reserve).transferFrom(this.owner, address(this), pool_amounts[0]);
+        console.log("RedeemableERC20Pool: init: take reserves");
+        bool reserve_xfer = token.reserve().transferFrom(this.owner(), address(this), pool_amounts[0]);
         // we do NOT require an exact balance of the reserve after xfer as someone other than the owner could grief the contract with reserve dust.
-        // if the owner's xfer completed we know we have at least the required reserve.
         require(reserve_xfer, 'ERR_RESERVE_TRANSFER');
+        require(token.reserve().balanceOf(address(this)) >= pool_amounts[0], 'ERR_RESERVE_TRANSFER');
 
+        // take all token.
+        console.log("RedeemableERC20Pool: init: take token");
+        bool token_xfer = token.transferFrom(this.owner(), address(this), pool_amounts[1]);
+        require(token_xfer, 'ERR_TOKEN_TRANSFER');
+        require(token.balanceOf(address(this)) == token.totalSupply(), 'ERR_TOKEN_TRANSFER');
 
+        console.log(
+            "RedeemableERC20Pool: init: balances: %s %s",
+            token.reserve().balanceOf(address(this)),
+            token.balanceOf(address(this))
+        );
+
+        token.reserve().approve(address(crp), pool_amounts[0]);
+        token.approve(address(crp), pool_amounts[1]);
+
+        crp.createPool(
+            // No need for many pool tokens.
+            BalancerConstants.MIN_POOL_SUPPLY,
+            // No minimum weight change period.
+            0,
+            // No time lock (we handle our own locks in the trust).
+            0
+        );
+
+        // Kick off the auction!
+        start_block = block.number;
+        crp.updateWeightsGradually(
+            // Flip the weights
+            target_weights,
+            // From now
+            start_block,
+            // Until unlock
+            token.unblock_block()
+        );
+
+        // Mirror the token unblock block.
+        BlockBlockable.setUnblockBlock(token.unblock_block());
     }
-
-    // function init_pool_params(address _reserve, address _token, uint256 _reserve_amount) private onlyNotInit onlyOwner onlyBlocked returns (ConfigurableRightsPool.PoolParams memory) {
-    //     console.log("RedeemableERC20Pool: init_pool_params: reserve: %s", _reserve);
-    //     console.log("TrustPool: Init params: token: %s", _token);
-    //     console.log("TrustPool: Init params: reserve amount: %s", _reserve_amount);
-    //     return ConfigurableRightsPool.PoolParams(
-    //         "TrustPool",
-    //         "The Trust Pool",
-    //         pool_addresses,
-    //         pool_amounts,
-    //         start_weights,
-    //         pool_fee
-    //     );
-    // }
-
-    // function init() public withInit onlyOwner onlyBlocked {
-    //     // console.log("TrustPool init: reserve: %s", reserve);
-    //     // console.log("TrustPool init: token: %s", token);
-    //     // console.log("TrustPool init: reserve amount: %s", reserve_amount);
-
-    //     // Ensure the caller set their allowances correctly.
-    //     require(IERC20(reserve).allowance(this.owner, address(this)) == pool_amounts[0], "ERR_RESERVE_ALLOWANCE");
-    //     require(IERC20(token).allowance(msg.sender, address(this)) == IERC20(token).totalSupply(), "ERR_TOKEN_ALLOWANCE");
-
-    //     // Take full ownership of the token supply.
-    //     IERC20(token).transferFrom(msg.sender, address(this), IERC20(token).totalSupply());
-    //     require(IERC20(token).balanceOf(address(this)) == IERC20(token).totalSupply(), "ERR_TOKEN_TRANSFER");
-
-    //     // Take ownership of the allocated reserves.
-    //     IERC20(reserve).transferFrom(msg.sender, address(this), reserve_amount);
-    //     require(IERC20(reserve).balanceOf(address(this)) == reserve_amount, "ERR_RESERVE_TRANSFER");
-
-    //     // Build a CRPFactory.
-    //     crp = CRPFactory(Constants.CRPFactory).newCrp(
-    //         Constants.BFactory,
-    //         init_pool_params(reserve, token, reserve_amount),
-    //         rights
-    //     );
-
-    //     // Mint the pool token.
-    //     // As small as possible because we don't trade/distribute/divide the pool tokens.
-    //     IERC20(token).approve(address(crp), IERC20(token).totalSupply());
-    //     IERC20(reserve).approve(address(crp), reserve_amount);
-    //     ConfigurableRightsPool(crp).createPool(
-    //         BalancerConstants.MIN_POOL_SUPPLY,
-    //         // No minimum weight change period.
-    //         0,
-    //         // No time lock (we handle our own locks in the trust).
-    //         0
-    //     );
-    //     pool = crp.bPool();
-
-    //     // Kick off the auction!
-    //     start_block = block.number;
-    //     crp.updateWeightsGradually(
-    //         // Flip the weights
-    //         target_weights,
-    //         // From now
-    //         start_block,
-    //         // Until unlock
-    //         _unblock_block
-    //     );
-
-    //     BlockBlockable.setUnblockBlock(_unblock_block);
-    // }
-
-    // function exit() public onlyInit onlyUnblocked onlyOwner
 
 }
