@@ -26,12 +26,12 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
     // Everything publicly visible because we have nothing to hide.
 
-    // The rights fo the TrustPool.
+    // The rights fo the RedeemableERC20Pool.
     // Balancer wants this to be a dynamic array even though it has fixed length.
     // For that we store it here on the contract.
     bool[] public rights;
 
-    // The addresses in the TrustPool, as [reserve, token].
+    // The addresses in the RedeemableERC20Pool, as [reserve, token].
     // Balancer needs this to be a dynamic array.
     address[] public pool_addresses;
 

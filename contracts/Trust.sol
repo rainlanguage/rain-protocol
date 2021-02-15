@@ -135,7 +135,7 @@ contract Trust is Ownable, Initable {
         // pool = CRPFactory.CRPFactory(Constants.CRPFactory).newCrp(
         //     Constants.BFactory,
         //     ConfigurableRightsPool.ConfigurableRightsPool.PoolParams(
-        //         "TrustPool",
+        //         "TrustPRedeemableERC20Poolool",
         //         "The Trust Pool",
         //         poolAddresses,
         //         poolAmounts,
