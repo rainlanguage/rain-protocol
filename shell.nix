@@ -1,14 +1,6 @@
 let
  pkgs = import <nixpkgs> {};
 
- dev = pkgs.writeShellScriptBin "dev" ''
-  npm run dev
- '';
-
- mnemonic = pkgs.writeShellScriptBin "mnemonic" ''
-  mnemonics
- '';
-
  local-node = pkgs.writeShellScriptBin "local-node" ''
   hardhat node
  '';
@@ -28,17 +20,14 @@ in
 pkgs.stdenv.mkDerivation {
  name = "shell";
  buildInputs = [
-  pkgs.nodejs-12_x
-  dev
-  mnemonic
+  pkgs.nodejs-14_x
   local-node
-  local-deploy
-  local-test
   local-fork
+  local-test
+  local-deploy
  ];
 
  shellHook = ''
-  source .env
   export PATH=$( npm bin ):$PATH
   # keep it fresh
   npm install
