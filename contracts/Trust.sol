@@ -19,7 +19,7 @@ import './configurable-rights-pool/contracts/CRPFactory.sol' as CRPFactory;
 
 import "./libraries/Constants.sol";
 import './libraries/Initable.sol';
-import { RedeemableToken } from "./RedeemableToken.sol";
+import { RedeemableERC20 } from "./RedeemableERC20.sol";
 
 contract Trust is Ownable, Initable {
 
@@ -50,7 +50,7 @@ contract Trust is Ownable, Initable {
 
     ERC20.ERC20 public reserve_token;
     // TrustToken.TrustToken public token;
-    RedeemableToken public redeemable_token;
+    RedeemableERC20 public redeemable_token;
     ConfigurableRightsPool.ConfigurableRightsPool public pool;
 
     function init(
