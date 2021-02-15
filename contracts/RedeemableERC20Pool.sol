@@ -93,6 +93,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         construct_pool_amounts();
         construct_pool_weights();
         construct_pool_fee();
+        construct_crp();
     }
 
     // Construct the rights that will be used by the CRP.
@@ -193,6 +194,42 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         console.log("RedeemableERC20Pool: construct_pool_fee: %s", BalancerConstants.MIN_FEE);
         pool_fee = BalancerConstants.MIN_FEE;
         require(pool_fee == BalancerConstants.MIN_FEE, 'ERR_POOL_FEE');
+    }
+
+    function construct_crp () private onlyNotInit onlyOwner onlyBlocked {
+        // CRPFactory.
+        crp = CRPFactory(Constants.CRPFactory).newCrp(
+            Constants.BFactory,
+            ConfigurableRightsPool.PoolParams(
+                "R20P"
+                "RedeemableERC20Pool",
+                pool_addresses,
+                pool_amounts,
+                start_weights,
+                pool_fee
+            ),
+            RightsManager.constructRights(rights)
+        );
+    }
+
+    function init() public withInit onlyOwner onlyBlocked {
+        // ensure allowances are set exactly.
+        // allowances should NEVER be different to the pool amounts.
+        require(IERC20(reserve).allowance(this.owner, address(this)) == pool_amounts[0], 'ERR_RESERVE_ALLOWANCE');
+        require(IERC20(token).allowance(this.owner, address(this)) == pool_amounts[1], 'ERR_TOKEN_ALLOWANCE');
+
+        // take all token.
+        bool token_xfer = IERC20(token).transferFrom(this.owner, address(this), pool_amounts[1]);
+        require(token_xfer, 'ERR_TOKEN_TRANSFER');
+        require(IERC20(token).balanceOf(address(this)) == IERC20(token).totalSupply(), 'ERR_TOKEN_TRANSFER');
+
+        // take allocated reserves.
+        bool reserve_xfer = IERC20(reserve).transferFrom(this.owner, address(this), pool_amounts[0]);
+        // we do NOT require an exact balance of the reserve after xfer as someone other than the owner could grief the contract with reserve dust.
+        // if the owner's xfer completed we know we have at least the required reserve.
+        require(reserve_xfer, 'ERR_RESERVE_TRANSFER');
+
+
     }
 
     // function init_pool_params(address _reserve, address _token, uint256 _reserve_amount) private onlyNotInit onlyOwner onlyBlocked returns (ConfigurableRightsPool.PoolParams memory) {
