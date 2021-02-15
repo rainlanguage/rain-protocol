@@ -275,4 +275,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         BlockBlockable.setUnblockBlock(token.unblock_block());
     }
 
+    // function exit() public onlyInit onlyOwner onlyUnblocked {
+    //     crp.bPool().transfer(this.owner(), crp.bPool().totalSupply());
+    // }
+
 }
