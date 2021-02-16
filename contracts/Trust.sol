@@ -16,11 +16,17 @@ import "hardhat/console.sol";
 import { CRPFactory } from './configurable-rights-pool/contracts/CRPFactory.sol';
 import { BFactory } from './configurable-rights-pool/contracts/test/BFactory.sol';
 
+import { Constants } from './libraries/Constants.sol';
 import { Initable } from './libraries/Initable.sol';
 import { RedeemableERC20 } from './RedeemableERC20.sol';
 import { RedeemableERC20Pool } from './RedeemableERC20Pool.sol';
 
 contract Trust is Ownable, Initable {
+
+    CRPFactory crp_factory;
+    BFactory balancer_factory;
+    uint256 book_ratio;
+    uint256 reserve_total;
 
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
@@ -35,8 +41,17 @@ contract Trust is Ownable, Initable {
         uint256 _mint_ratio,
         uint256 _book_ratio
     ) public {
-        // @todo
-        uint256 _token_reserve = _reserve_total;
+        crp_factory = _crp_factory;
+        balancer_factory = _balancer_factory;
+        book_ratio = _book_ratio;
+        reserve_total = _reserve_total;
+
+        console.log("Trust: constructor: reserve_total: %s", _reserve_total);
+        uint256 _token_reserve = SafeMath.div(
+            SafeMath.mul(_reserve_total, _book_ratio),
+            SafeMath.add(_book_ratio, Constants.ONE)
+        );
+        console.log("Trust: constructor: token_reserve: %s %s", _book_ratio, _token_reserve);
         token = new RedeemableERC20(
             _name,
             _symbol,
@@ -44,17 +59,27 @@ contract Trust is Ownable, Initable {
             _token_reserve,
             _mint_ratio
         );
-
-        pool = new RedeemableERC20Pool(
-            _crp_factory,
-            _balancer_factory,
-            token,
-            _book_ratio
-        );
     }
 
     function init(uint256 _unblock_block) public {
+        token.reserve().transferFrom(this.owner(), address(this), reserve_total);
+        console.log("Trust: init token: reserve balance: %s", token.reserve().balanceOf(address(this)));
+
+        token.reserve().approve(address(token), token.reserve_total());
         token.init(_unblock_block);
+
+        pool = new RedeemableERC20Pool(
+            crp_factory,
+            balancer_factory,
+            token,
+            book_ratio
+        );
+        console.log("Trust: init pool: reserve balance: %s", token.reserve().balanceOf(address(this)));
+        token.approve(address(pool), token.totalSupply());
+        // @todo dust is possible here, e.g. if the book ratio is 2 we divide by 3.
+        // Either the init will fail and revert.
+        // Or there will be a rounding error in the reserve trapped in the trust.
+        token.reserve().approve(address(pool), pool.pool_amounts(0));
         pool.init();
     }
 }

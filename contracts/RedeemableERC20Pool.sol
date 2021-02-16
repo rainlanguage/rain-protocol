@@ -138,8 +138,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     function construct_pool_amounts () private onlyNotInit onlyOwner onlyBlocked {
         // The reserve amount is calculated from the book ratio and the redeemable token pool.
         uint256 _reserve_amount = SafeMath.div(
-            SafeMath.mul(token.reserve_total(), book_ratio),
-            Constants.ONE
+            SafeMath.mul(token.reserve_total(), Constants.ONE),
+            book_ratio
         );
         console.log("RedeemableERC20Pool: construct_pool_amounts: book_ratio: %s", book_ratio);
         console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_amount: %s", _reserve_amount);
@@ -222,7 +222,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // ensure allowances are set exactly.
         // allowances should NEVER be different to the pool amounts.
         console.log(
-            "RedeemableERC20Pool: init: allowances: %s %s",
+            "RedeemableERC20Pool: init: allowances: %s %s %s",
+            pool_amounts[0],
             token.reserve().allowance(this.owner(), address(this)),
             token.allowance(this.owner(), address(this))
         );

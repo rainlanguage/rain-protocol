@@ -16,15 +16,7 @@ describe("RedeemableERC20Pool", async function() {
 
         const signers = await ethers.getSigners()
 
-        const rightsManager = (await Util.basicDeploy('RightsManager', {})) as RightsManager
-        const balancerSafeMath = (await Util.basicDeploy('BalancerSafeMath', {}))
-        const smartPoolManager = (await Util.basicDeploy('SmartPoolManager', {}))
-        const crpFactory = (await Util.basicDeploy('CRPFactory', {
-            'RightsManager': rightsManager.address,
-            'BalancerSafeMath': balancerSafeMath.address,
-            'SmartPoolManager': smartPoolManager.address,
-        })) as CRPFactory
-        const bFactory = (await Util.basicDeploy('BFactory', {})) as BFactory
+        const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
 
         const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
 
