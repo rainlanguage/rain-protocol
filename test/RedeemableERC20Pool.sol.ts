@@ -24,8 +24,8 @@ describe("RedeemableERC20Pool", async function() {
             'RedeemableERC20'
         )
 
-        const reserveTotal = ethers.BigNumber.from('100' + Util.eighteenZeros)
-        const ratio = ethers.BigNumber.from('2' + Util.eighteenZeros)
+        const reserveTotal = ethers.BigNumber.from('150000' + Util.eighteenZeros)
+        const ratio = ethers.BigNumber.from('1' + Util.eighteenZeros)
 
         const redeemable = await redeemableFactory.deploy(
             'RedeemableERC20',
@@ -66,7 +66,7 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        const bookRatio = ethers.BigNumber.from('3' + Util.eighteenZeros)
+        const bookRatio = ethers.BigNumber.from('2' + Util.eighteenZeros)
 
         const pool = await poolFactory.deploy(
             crpFactory.address,
@@ -94,7 +94,7 @@ describe("RedeemableERC20Pool", async function() {
             assert(actual === v, `wrong pool address ${i} ${v} ${actual}`)
         })
 
-        const expectedPoolAmounts = [reserveTotal.mul(3), await redeemable.totalSupply()]
+        const expectedPoolAmounts = [reserveTotal.div(2), await redeemable.totalSupply()]
         expectedPoolAmounts.forEach(async (v, i) => {
             const actual = await pool.pool_amounts(i)
             assert(actual.eq(v), `wrong pool amount ${i} ${v} ${actual}`)

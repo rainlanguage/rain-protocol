@@ -33,28 +33,35 @@ import { NotRuggableERC20 } from './libraries/NotRuggableERC20.sol';
 //
 // Redemption is possible when the contract is initialized and unblocked.
 //
+// Transfers are NOT possible once redemptions open _except_:
+//
+// - To burn tokens during redemption
+// - To send to the owner (e.g. to facilitate exiting a balancer pool)
+//
 // The `redeem` function MUST be used to redeem RedeemableERC20s.
-// Simply sending RedeemableERC20 tokens to the RedeemableERC20 contract address will _burn them along with their associated reserve token_.
+// Sending RedeemableERC20 tokens to the RedeemableERC20 contract address will _make them unrecoverable_.
 //
 // The `redeem` function will simply revert if called before the unblock block.
 //
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
 contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
-    event Redeem(address _redeemer, uint256 _redeem_amount);
+    event Redeem(address _redeemer, uint256 _redeem_amount, uint256 _reserve_release);
 
     // RedeemableERC20 will be issued in a fixed ratio to the locked reserve.
     // This is openly visible to the world, for building dashboards or whatever.
     // A ratio of 1:1, as in Balancer, is 10 ** 18
-    uint256 public ratio;
+    // This is NOT the redemption ratio if more reserve is added after construction.
+    uint256 public mint_ratio;
 
     // This is the reserve token.
     // It is openly visible to the world so people can verify the reserve token has value.
     IERC20 public reserve;
 
-    // This is the total amount of reserve initially locked.
-    // This is openly visible to the world so people can calculate the book value of their tokens.
-    uint256 public reserve_total;
+    // The starting reserve balance.
+    // This is openly visible but be aware that the redemptions are dynamic against the
+    // current reserve balance of this contract.
+    uint256 public reserve_init;
 
     // In the constructor we set everything that configures the contract but it stateless.
     // There are no token transfers, mints or locks.
@@ -70,17 +77,17 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         // In either case the redeem function would be pointing at a dangling reserve balance.
         IERC20 _reserve,
         // The amount of reserve to take against minting.
-        uint256 _reserve_total,
+        uint256 _reserve_init,
         // The ratio of RedeemableERC20 to mint per reserve token.
         // This, as per Balancer, should be an integer as 10^18 to represent decimals.
         // Therefore a 1:1 ratio is 1 000000 000000 000000.
-        uint256 _ratio
+        uint256 _mint_ratio
     ) public ERC20(_name, _symbol) {
         console.log("RedeemableERC20: constructor: %s %s", _name, _symbol);
-        console.log("RedeemableERC20: constructor: %s %s", _reserve_total, _ratio);
+        console.log("RedeemableERC20: constructor: %s %s", _reserve_init, _mint_ratio);
         reserve = _reserve;
-        reserve_total = _reserve_total;
-        ratio = _ratio;
+        mint_ratio = _mint_ratio;
+        reserve_init = _reserve_init;
     }
 
     // All the stateful stuff is done in init().
@@ -105,14 +112,14 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
         // The reserve allowance MUST be exactly what we are going to take from the owner and lock.
         // There is NEVER any reason for the owner to send more or less reserve than what was configured at construction.
-        console.log("RedeemableERC20: Reserve: %s from %s", reserve_total, mintor);
-        require(IERC20(reserve).allowance(mintor, address(this)) == reserve_total, "ERR_ALLOWANCE_RESERVE");
-        bool xfer = IERC20(reserve).transferFrom(mintor, address(this), reserve_total);
+        console.log("RedeemableERC20: Reserve: %s from %s", reserve_init, mintor);
+        require(IERC20(reserve).allowance(mintor, address(this)) == reserve_init, "ERR_ALLOWANCE_RESERVE");
+        bool xfer = IERC20(reserve).transferFrom(mintor, address(this), reserve_init);
         require(xfer, "ERR_INIT_RESERVE");
 
         // Mint redeemable tokens according to the preset schedule.
         uint256 token_supply = SafeMath.div(
-            SafeMath.mul(ratio, reserve_total),
+            SafeMath.mul(mint_ratio, reserve_init),
             Constants.ONE
         );
         console.log("RedeemableERC20: Mint %s %s for %s", token_supply, this.name(), mintor);
@@ -132,6 +139,9 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         // Open Zeppelin already reverts any other transfer from the 0 address.
         // We do need to allow minting when the supply is 0.
         require(_sender != address(0) || ERC20(this).totalSupply() == 0, "ERR_RUG_PULL");
+
+        // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
+        require(_receiver != address(this), "ERR_TOKEN_SEND_SELF");
 
         // There are two clear phases:
         //
@@ -157,6 +167,14 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         }
     }
 
+    // Redeem tokens.
+    // Tokens can be _redeemed_ but NOT _transferred_ after the unblock block.
+    //
+    // Calculate the redeem value of tokens as:
+    //
+    // ( token.balanceOf(msg.sender) / token.totalSupply() ) * reserve.balanceOf(address(this))
+    //
+    // Note: Any tokens held by this contract are burned before redemption starts.
     function redeem(uint256 _redeem_amount) public onlyInit onlyUnblocked {
         // The fraction of the reserve we release is the fraction of the outstanding total supply passed in.
         uint256 _reserve_fraction = SafeMath.div(SafeMath.mul(_redeem_amount, Constants.ONE), this.totalSupply());
@@ -178,6 +196,6 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         // _burn reverts internally if needed; there is no return value.
         super._burn(msg.sender, _redeem_amount);
 
-        emit Redeem(msg.sender, _redeem_amount);
+        emit Redeem(msg.sender, _redeem_amount, _reserve_release);
     }
 }

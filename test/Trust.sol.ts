@@ -32,8 +32,8 @@ describe("Trust", async function() {
     const tokenName = 'Token'
     const tokenSymbol = 'TKN'
 
-    const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
-    const mintRatio = ethers.BigNumber.from('3' + Util.eighteenZeros)
+    const reserveTotal = ethers.BigNumber.from('150000' + Util.eighteenZeros)
+    const mintRatio = ethers.BigNumber.from('1' + Util.eighteenZeros)
     const bookRatio = ethers.BigNumber.from('2' + Util.eighteenZeros)
 
     const trust = await trustFactory.deploy(
