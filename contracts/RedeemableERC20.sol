@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-// import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -39,7 +39,7 @@ import { NotRuggableERC20 } from './libraries/NotRuggableERC20.sol';
 // The `redeem` function will simply revert if called before the unblock block.
 //
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
-contract RedeemableERC20 is Ownable, Initable, BlockBlockable, NotRuggableERC20 {
+contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
     event Redeem(address _redeemer, uint256 _redeem_amount);
 
@@ -75,7 +75,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, NotRuggableERC20 
         // This, as per Balancer, should be an integer as 10^18 to represent decimals.
         // Therefore a 1:1 ratio is 1 000000 000000 000000.
         uint256 _ratio
-    ) public NotRuggableERC20(_name, _symbol) {
+    ) public ERC20(_name, _symbol) {
         console.log("RedeemableERC20: constructor: %s %s", _name, _symbol);
         console.log("RedeemableERC20: constructor: %s %s", _reserve_total, _ratio);
         reserve = _reserve;
@@ -122,18 +122,61 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, NotRuggableERC20 
         BlockBlockable.setUnblockBlock(_unblock_block);
     }
 
+    function _beforeTokenTransfer(address _sender, address _receiver, uint256 _amount) internal override {
+        console.logAddress(_sender);
+        console.logAddress(_receiver);
+        console.log("RedeemableERC20: _beforeTokenTransfer %s", _amount);
+        // NotRuggableERC20._beforeTokenTransfer(_sender, _receiver, _amount);
+
+        // `_mint` in Open Zeppelin ERC20 is always from the 0 address.
+        // Open Zeppelin already reverts any other transfer from the 0 address.
+        // We do need to allow minting when the supply is 0.
+        require(_sender != address(0) || ERC20(this).totalSupply() == 0, "ERR_RUG_PULL");
+
+        // There are two clear phases:
+        //
+        // ## Before redemption is unblocked
+        //
+        // - All transfers other than minting (see above) are allowed (trading, transferring, etc.)
+        // - Redemption is NOT allowed
+        //
+        // ## After redemption is unblocked
+        //
+        // - All transfers are frozen (no trading, transferring, etc.) but redemption/burning is allowed
+        // - Transfers TO the owner are allowed (notably the pool tokens can be used by the owner to exit the pool)
+        // - Transfers FROM the owner are NOT allowed (the owner can only redeem like everyone else)
+        if (BlockBlockable.isUnblocked()) {
+            // Redemption is unblocked.
+            // Can burn.
+            // Only owner can transfer.
+            require(_receiver == address(0) || _receiver == this.owner(), "ERR_FROZEN");
+        }
+        else {
+            // Redemption is blocked.
+            // All transfer actions allowed.
+        }
+    }
+
     function redeem(uint256 _redeem_amount) public onlyInit onlyUnblocked {
-        // Redeem uses _transfer to move its own tokens to itself which does NOT require approval.
-        // _transfer reverts internally there is no return value.
-        console.log("RedeemableERC20: redeem: amount %s", _redeem_amount);
-        super._transfer(msg.sender, address(this), _redeem_amount);
+        // The fraction of the reserve we release is the fraction of the outstanding total supply passed in.
+        uint256 _reserve_fraction = SafeMath.div(SafeMath.mul(_redeem_amount, Constants.ONE), this.totalSupply());
+        uint256 _reserve_release = SafeMath.div(
+            SafeMath.mul(reserve.balanceOf(address(this)), _reserve_fraction),
+            Constants.ONE
+        );
+
+        console.log("RedeemableERC20: redeem: %s %s", _redeem_amount, this.totalSupply());
+        console.log("RedeemableERC20: redeem: reserve %s %s %s", reserve.balanceOf(address(this)), _reserve_fraction, _reserve_release);
 
         // transfer can fail without reverting so we need to revert ourselves if the reserve fails to be sent.
         // (transfer cannot actually fail without reverting, but it's probably a good idea to handle the bool as though it can)
-        uint256 _reserve_release = SafeMath.div(SafeMath.mul(_redeem_amount, Constants.ONE), ratio);
-        console.log("RedeemableERC20: redeem: reserve %s", _reserve_release);
         bool _xfer_out = IERC20(reserve).transfer(msg.sender, _reserve_release);
         require(_xfer_out, "ERR_REDEEM_RESERVE");
+
+        // Redeem __burns__ tokens which reduces the total supply and requires no approval.
+        // Because the total supply changes, we need to do this __after__ the reserve handling.
+        // _burn reverts internally if needed; there is no return value.
+        super._burn(msg.sender, _redeem_amount);
 
         emit Redeem(msg.sender, _redeem_amount);
     }

@@ -135,54 +135,66 @@ describe("RedeemableERC20", async function() {
         assert(redeemBlockedDidError, 'redeem was not blocked')
 
         // create a few blocks by sending some tokens around
-        while ((await ethers.provider.getBlockNumber()) < unblockBlock) {
+        while ((await ethers.provider.getBlockNumber()) < unblockBlock - 1) {
             await redeemableERC20.transfer(signers[1].address, 1)
         }
+
+        // Funds need to be frozen once redemption unblocks.
+        let frozenDidError = false
+        try {
+            await redeemableERC20.transfer(signers[1].address, 1)
+        } catch (e) {
+            assert(e.toString().includes('revert ERR_FROZEN'))
+            frozenDidError = true
+        }
+        assert(frozenDidError, 'funds were not frozen')
 
         // redeem should work now
         // redeem does NOT need approval
         const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(signers[0].address)
-        const redeemableContractBalanceBefore = await redeemableERC20.balanceOf(redeemableERC20.address)
+        const redeemableContractTotalSupplyBefore = await redeemableERC20.totalSupply()
         const reserveSignerBalanceBefore = await reserve.balanceOf(signers[0].address)
         const reserveContractBalanceBefore = await reserve.balanceOf(redeemableERC20.address)
 
         // redemption should emit this
+        const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
+        const expectedReserveRedemption = ethers.BigNumber.from('25' + Util.eighteenZeros)
         let redeemEvent = new Promise(resolve => {
             redeemableERC20.once('Redeem', (redeemer, amount) => {
                 assert(redeemer === signers[0].address, 'wrong redeemer address in event')
-                assert(amount.eq(5000), 'wrong redemption amount in event')
+                assert(amount.eq(redeemAmount), 'wrong redemption amount in event')
                 resolve(true)
             })
         })
-        await redeemableERC20.redeem(5000)
+        await redeemableERC20.redeem(redeemAmount)
         await redeemEvent
 
         const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[0].address)
-        const redeemableContractBalanceAfter = await redeemableERC20.balanceOf(redeemableERC20.address)
+        const redeemableContractTotalSupplyAfter = await redeemableERC20.totalSupply()
         const reserveSignerBalanceAfter = await reserve.balanceOf(signers[0].address)
         const reserveContractBalanceAfter = await reserve.balanceOf(redeemableERC20.address)
 
-        // signer should have redeemed 5000 redeemable tokens
+        // signer should have redeemed 50 redeemable tokens
         assert(
-            redeemableSignerBalanceBefore.sub(redeemableSignerBalanceAfter).eq(5000),
+            redeemableSignerBalanceBefore.sub(redeemableSignerBalanceAfter).eq(redeemAmount),
             'wrong number of redeemable tokens redeemed'
         )
 
-        // signer should have gained 2500 reserve tokens
+        // signer should have gained 25 reserve tokens
         assert(
-            reserveSignerBalanceAfter.sub(reserveSignerBalanceBefore).eq(2500),
-            'wrong number of reserve tokens released'
+            reserveSignerBalanceAfter.sub(reserveSignerBalanceBefore).eq(expectedReserveRedemption),
+            `wrong number of reserve tokens released ${reserveSignerBalanceBefore} ${reserveSignerBalanceAfter}`
         )
 
-        // contract should have gained 5000 redeemable tokens
+        // total supply should have lost 50 redeemable tokens
         assert(
-            redeemableContractBalanceAfter.sub(redeemableContractBalanceBefore).eq(5000),
-            'contract did not receive correct tokens'
+            redeemableContractTotalSupplyBefore.sub(redeemableContractTotalSupplyAfter).eq(redeemAmount),
+            `contract did not receive correct tokens ${redeemableContractTotalSupplyBefore} ${redeemableContractTotalSupplyAfter}`
         )
 
-        // contract should have sent 2500 reserve tokens
+        // contract should have sent 25 reserve tokens
         assert(
-            reserveContractBalanceBefore.sub(reserveContractBalanceAfter).eq(2500),
+            reserveContractBalanceBefore.sub(reserveContractBalanceAfter).eq(expectedReserveRedemption),
             'contract did not send correct reserve tokens'
         )
 

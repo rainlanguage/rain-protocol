@@ -18,6 +18,7 @@ abstract contract NotRuggableERC20 is ERC20 {
     constructor (string memory _name, string memory _symbol) public ERC20(_name, _symbol) { }
 
     function _beforeTokenTransfer(address _sender, address, uint256) internal override {
+        console.log("NotRuggableERC20: _beforeTokenTransfer");
         // `_mint` in Open Zeppelin ERC20 is always from the 0 address.
         // Open Zeppelin already reverts any other transfer from the 0 address.
         // We do need to allow minting when the supply is 0.
