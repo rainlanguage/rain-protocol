@@ -15,7 +15,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Constants } from "./libraries/Constants.sol";
 import { RedeemableERC20 } from './RedeemableERC20.sol';
 
-import { IBPool } from "./configurable-rights-pool/contracts/IBFactory.sol";
+import { BPool } from "./configurable-rights-pool/contracts/test/BPool.sol";
 import { RightsManager } from "./configurable-rights-pool/libraries/RightsManager.sol";
 import { BalancerConstants } from "./configurable-rights-pool/libraries/BalancerConstants.sol";
 import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
@@ -76,21 +76,36 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     // the TKN during the blocked period, such as access to events, experiences, NFTs, etc.
     uint256 public book_ratio;
 
+    // The spot price of a balancer pool token is a function of both the amounts of each token and their weights.
+    // This differs to e.g. a uniswap pool where the weights are always 1:1.
+    // So we can define a valuation of all our tokens in terms of the deposited reserve.
+    // We also want to set the weight of the reserve small for flexibility, i.e. 1.
+    // For example:
+    // - 50 000 reserve tokens
+    // - 1 000 000 token valuation
+    // - 2x book ratio && 2x mint ratio => 100 000 reserve in token => 200 000 token in existence
+    // - Token spot price x total token = initial valuation => 1 000 000 = spot x 200 000 => spot = 5
+    // - Spot price calculation is in balancer whitepaper: https://balancer.finance/whitepaper/
+    // - Spot = ( Br / Wr ) / ( Bt / Wt )
+    // - 5 = ( 50 000 / 1 ) / ( 200 000 / Wt ) => 50 000 x Wt = 1 000 000 => Wt = 20
+    uint256 public initial_valuation;
+
     CRPFactory public crp_factory;
     BFactory public balancer_factory;
     ConfigurableRightsPool public crp;
-    IBPool public pool;
 
     constructor (
         CRPFactory _crp_factory,
         BFactory _balancer_factory,
         RedeemableERC20 _token,
-        uint256 _book_ratio
+        uint256 _book_ratio,
+        uint256 _initial_valuation
     ) public {
         crp_factory = _crp_factory;
         balancer_factory = _balancer_factory;
         token = _token;
         book_ratio = _book_ratio;
+        initial_valuation = _initial_valuation;
 
         // These functions all mutate the dynamic arrays that Balancer expects.
         // Gross.
@@ -137,12 +152,18 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
     function construct_pool_amounts () private onlyNotInit onlyOwner onlyBlocked {
         // The reserve amount is calculated from the book ratio and the redeemable token pool.
+        //
+        // If the book ratio is 2 then ( 2 / ( 2 + 1 ) ) goes to the token and ( 1 / ( 2 + 1) ) is here.
+        uint256 _reserve_ratio = SafeMath.div(
+            SafeMath.mul(Constants.ONE, Constants.ONE),
+            SafeMath.add(book_ratio, Constants.ONE)
+        );
         uint256 _reserve_amount = SafeMath.div(
-            SafeMath.mul(token.reserve_total(), book_ratio),
+            SafeMath.mul( _reserve_ratio, token.reserve_init() ),
             Constants.ONE
         );
         console.log("RedeemableERC20Pool: construct_pool_amounts: book_ratio: %s", book_ratio);
-        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_amount: %s", _reserve_amount);
+        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_amount: %s %s", _reserve_ratio, _reserve_amount);
         pool_amounts.push(_reserve_amount);
 
         // The token amount is always the total supply.
@@ -158,40 +179,52 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         require(pool_amounts[0] > 0, "ERR_RESERVE_AMOUNT");
         require(pool_amounts[1] > 0, "ERR_TOKEN_AMOUNT");
 
-        // The reserve weight is as small as we can make it.
-        // The goal is to distribute tokens.
-        console.log("RedeemableERC20Pool: construct_pool_weights: reserve_weight: %s", BalancerConstants.MIN_WEIGHT);
-        start_weights.push(BalancerConstants.MIN_WEIGHT);
+        // Spot = ( Br / Wr ) / ( Bt / Wt )
+        // https://balancer.finance/whitepaper/
+        // => ( Bt / Wt ) = ( Br / Wr ) / Spot
+        // => Wt = ( Spot x Bt ) / ( Br / Wr )
+        uint256 _reserve_weight = BalancerConstants.MIN_WEIGHT;
+        uint256 _target_spot = SafeMath.div(SafeMath.mul(initial_valuation, Constants.ONE), pool_amounts[1]);
+        uint256 _token_weight = SafeMath.div(
+            SafeMath.mul(SafeMath.mul(_target_spot, pool_amounts[1]), Constants.ONE),
+            SafeMath.mul(pool_amounts[0], BalancerConstants.MIN_WEIGHT)
+        );
 
-        // The token weight is the ratio of pooled reserve to token supply.
-        // Balancer hard caps the combined weight at 50.
-        // If reserve weight + token weight > 50 the weights cannot rebalance.
-        // Even if the weight would only go above 50 during a rebalance the operation will fail.
-        uint256 _desired_token_weight = SafeMath.div(
-            SafeMath.mul(
-                book_ratio,
-                token.ratio()
-            ),
-            Constants.ONE
+        require(_token_weight >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
+        require(
+            SafeMath.sub(BalancerConstants.MAX_WEIGHT, Constants.HEADROOM) >= SafeMath.add(_token_weight, _reserve_weight),
+            "ERR_MAX_WEIGHT"
         );
-        // Clamp the weight within the allowable range.
-        uint256 _headroom = BalancerConstants.BONE;
-        uint256 _achievable_token_weight = Math.max(
-            BalancerConstants.MIN_WEIGHT,
-            Math.min(
-                SafeMath.sub(BalancerConstants.MAX_WEIGHT, _headroom),
-                _desired_token_weight
-            )
-        );
-        console.log("RedeemableERC20Pool: construct_pool_weights: token_weight: %s", _desired_token_weight, _achievable_token_weight);
-        start_weights.push(_achievable_token_weight);
+
+        console.log("RedeemableERC20Pool: construct_pool_weights: weights: %s %s", _target_spot, _token_weight);
+        console.log("RedeemableERC20Pool: construct_pool_weights: reserve_weight: %s", _reserve_weight);
+        start_weights.push(_reserve_weight);
+        start_weights.push(_token_weight);
 
         // Target weights are the theoretical endpoint of updating gradually.
-        // We simply flip the starting ratios because why not?
-        target_weights.push(start_weights[1]);
-        target_weights.push(start_weights[0]);
-        require(target_weights[0] == start_weights[1], "ERR_TARGET_WEIGHT_0");
-        require(target_weights[1] == start_weights[0], "ERR_TARGET_WEIGHT_1");
+        // Since the pool starts with the full token supply this is the maximum possible dump.
+        // We set the weight to the market cap of the redeem value.
+
+        uint256 _reserve_weight_final = BalancerConstants.MIN_WEIGHT;
+        uint256 _redeem_reserve = token.reserve_init();
+        uint256 _target_spot_final = SafeMath.div(
+            SafeMath.mul(_redeem_reserve, Constants.ONE),
+            pool_amounts[1]
+        );
+        uint256 _token_weight_final = SafeMath.div(
+            SafeMath.mul(SafeMath.mul(_target_spot_final, pool_amounts[1]), Constants.ONE),
+            SafeMath.mul(_redeem_reserve, BalancerConstants.MIN_WEIGHT)
+        );
+        console.log("RedeemableERC20Pool: construct_pool_weights: weights_final: %s %s", _target_spot_final, _token_weight_final);
+        console.log("RedeemableERC20Pool: construct_pool_weights: reserve_weight_final: %s", _reserve_weight_final);
+        target_weights.push(_reserve_weight_final);
+        target_weights.push(_token_weight_final);
+
+        require(_token_weight_final >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT_FINAL");
+        require(
+            SafeMath.sub(BalancerConstants.MAX_WEIGHT, Constants.HEADROOM) >= SafeMath.add(_token_weight_final, _reserve_weight_final),
+            "ERR_MAX_WEIGHT_FINAL"
+        );
     }
 
     // We are not here to make money off fees.
@@ -222,7 +255,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // ensure allowances are set exactly.
         // allowances should NEVER be different to the pool amounts.
         console.log(
-            "RedeemableERC20Pool: init: allowances: %s %s",
+            "RedeemableERC20Pool: init: allowances: %s %s %s",
+            pool_amounts[0],
             token.reserve().allowance(this.owner(), address(this)),
             token.allowance(this.owner(), address(this))
         );
@@ -258,6 +292,19 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             0,
             // No time lock (we handle our own locks in the trust).
             0
+        );
+
+        // Double check the spot price is what we wanted.
+        uint256 _target_spot = SafeMath.div(SafeMath.mul(initial_valuation, Constants.ONE), pool_amounts[1]);
+        uint256 _actual_spot = BPool(address(crp.bPool())).getSpotPriceSansFee(pool_addresses[0], pool_addresses[1]);
+        console.log(
+            "RedeemableERC20Pool: init: spots %s %s",
+            _target_spot,
+            _actual_spot
+        );
+        require(
+            _target_spot == _actual_spot,
+            "ERR_SPOT_PRICE"
         );
 
         // Kick off the auction!
