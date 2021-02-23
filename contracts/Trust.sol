@@ -142,9 +142,6 @@ contract Trust is Ownable, Initable {
         token.addUnfreezable(address(pool.crp()));
         token.addUnfreezable(address(balancer_factory));
         token.addUnfreezable(address(pool));
-
-        // token.addUnfreezable(address(crp));
-        // token.addUnfreezable(address(balancer_factory));
     }
 
     function exit() public onlyOwner onlyInit {
