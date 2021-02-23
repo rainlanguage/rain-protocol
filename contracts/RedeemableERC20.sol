@@ -12,7 +12,6 @@ import { console } from "hardhat/console.sol";
 import { Constants } from './libraries/Constants.sol';
 import { Initable } from './libraries/Initable.sol';
 import { BlockBlockable } from './libraries/BlockBlockable.sol';
-import { NotRuggableERC20 } from './libraries/NotRuggableERC20.sol';
 
 // RedeemableERC20 is an ERC20 issued in fixed ratio and redeemable for another ERC20 at a fixed block
 //
@@ -133,12 +132,20 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         console.logAddress(_sender);
         console.logAddress(_receiver);
         console.log("RedeemableERC20: _beforeTokenTransfer %s", _amount);
-        // NotRuggableERC20._beforeTokenTransfer(_sender, _receiver, _amount);
 
+        // We explicitly will never mint more than once.
+        // We never get explicit dispatch info from _mint or _burn etc.
+        // to know what is happening we need to infer it from context.
         // `_mint` in Open Zeppelin ERC20 is always from the 0 address.
         // Open Zeppelin already reverts any other transfer from the 0 address.
         // We do need to allow minting when the supply is 0.
-        require(_sender != address(0) || ERC20(this).totalSupply() == 0, "ERR_RUG_PULL");
+        require(
+            // _mint always comes from 0x0.
+            ( _sender != address(0) )
+            // which is fine if we're still initializing.
+            || ( !initialized )
+            // _burn will look like a _mint if we're burning from 0x0.
+            || ( _sender == address(0) && _receiver == address(0) ), "ERR_RUG_PULL");
 
         // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
         require(_receiver != address(this), "ERR_TOKEN_SEND_SELF");
@@ -158,7 +165,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         if (BlockBlockable.isUnblocked()) {
             // Redemption is unblocked.
             // Can burn.
-            // Only owner can transfer.
+            // Only owner can receive.
             require(_receiver == address(0) || _receiver == this.owner(), "ERR_FROZEN");
         }
         else {
@@ -174,10 +181,20 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     //
     // ( token.balanceOf(msg.sender) / token.totalSupply() ) * reserve.balanceOf(address(this))
     //
-    // Note: Any tokens held by this contract are burned before redemption starts.
+    // Note: Any tokens held by the 0 address are burned defensively.
+    //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
     function redeem(uint256 _redeem_amount) public onlyInit onlyUnblocked {
+        // We have to allow direct transfers to address 0x0 in order for _burn to work.
+        // This is NEVER a good thing though.
+        // The user that sent to 0x0 will lose their funds without recourse.
+        // When super._burn() is called it correctly decreases the totalSupply.
+        // When a user inadvertently or maliciously sends to 0x0 without burning we want to give more rewards to everyone else.
+        // We _could_ defensively call super._burn() here but it would open a griefing opportunity
+        // where someone can send dust to 0x0 and force the next redemption to pay for a burn.
+        uint256 _circulating_supply = this.totalSupply() - this.balanceOf(address(0));
+
         // The fraction of the reserve we release is the fraction of the outstanding total supply passed in.
-        uint256 _reserve_fraction = SafeMath.div(SafeMath.mul(_redeem_amount, Constants.ONE), this.totalSupply());
+        uint256 _reserve_fraction = SafeMath.div(SafeMath.mul(_redeem_amount, Constants.ONE), _circulating_supply);
         uint256 _reserve_release = SafeMath.div(
             SafeMath.mul(reserve.balanceOf(address(this)), _reserve_fraction),
             Constants.ONE

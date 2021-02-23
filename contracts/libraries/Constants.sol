@@ -10,6 +10,7 @@ import "../configurable-rights-pool/libraries/BalancerConstants.sol";
 
 library Constants {
     uint256 constant ONE = 10 ** 18;
+    uint256 constant HEADROOM = 10 ** 18;
 
     // These are the addresses that Balancer has deployed to on the network being used.
     address constant BFactory = 0x9424B1412450D0f8Fc2255FAf6046b98213B76Bd;

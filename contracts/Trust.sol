@@ -73,6 +73,7 @@ contract Trust is Ownable, Initable {
     BFactory balancer_factory;
     uint256 book_ratio;
     uint256 reserve_total;
+    uint256 initial_pool_valuation;
 
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
@@ -83,15 +84,22 @@ contract Trust is Ownable, Initable {
         string memory _name,
         string memory _symbol,
         IERC20 _reserve,
-        uint256 _reserve_total, // $150 000
+        // e.g. $150 000 USDC to be shared across pool and redeem
+        uint256 _reserve_total,
+        // e.g. 2x to mint twice as many tokens as redeemable reserve tokens
         uint256 _mint_ratio,
-        uint256 _book_ratio // 2   |  P: 50 000 |  T: 100 0000 |
-
+        // e.g. 2x to put twice as many reserve tokens in redeem as the pool
+        //      |  P: 50 000 |  T: 100 0000 |
+        uint256 _book_ratio,
+        // initial marketcap of the token according to the balancer pool denominated in reserve token
+        // e.g. $1 000 000 USDC for a spot price of $5 with 200 000 tokens backed by $100 000 redeem and $50 000 pool
+        uint256 _initial_pool_valuation
     ) public {
         crp_factory = _crp_factory;
         balancer_factory = _balancer_factory;
         book_ratio = _book_ratio;
         reserve_total = _reserve_total;
+        initial_pool_valuation = _initial_pool_valuation;
 
         console.log("Trust: constructor: reserve_total: %s", _reserve_total);
         uint256 _token_reserve = SafeMath.div(
@@ -119,7 +127,8 @@ contract Trust is Ownable, Initable {
             crp_factory,
             balancer_factory,
             token,
-            book_ratio
+            book_ratio,
+            initial_pool_valuation
         );
         console.log("Trust: init pool: reserve balance: %s", token.reserve().balanceOf(address(this)));
         token.approve(address(pool), token.totalSupply());
