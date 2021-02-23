@@ -8,8 +8,6 @@ import * as Util from './Util'
 chai.use(solidity);
 const { expect, assert } = chai;
 
-// const tokenJson = require ('../artifacts/contracts/TrustToken.sol/TrustToken.json')
-
 describe("Trust", async function() {
   it("should create tokens", async function() {
     this.timeout(0)

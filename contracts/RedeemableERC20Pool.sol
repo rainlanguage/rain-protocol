@@ -190,24 +190,41 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             SafeMath.mul(pool_amounts[0], BalancerConstants.MIN_WEIGHT)
         );
 
+        require(_token_weight >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
         require(
             SafeMath.sub(BalancerConstants.MAX_WEIGHT, Constants.HEADROOM) >= SafeMath.add(_token_weight, _reserve_weight),
             "ERR_MAX_WEIGHT"
         );
 
-        // The reserve weight is as small as we can make it.
-        // The goal is to distribute tokens.
         console.log("RedeemableERC20Pool: construct_pool_weights: weights: %s %s", _target_spot, _token_weight);
         console.log("RedeemableERC20Pool: construct_pool_weights: reserve_weight: %s", _reserve_weight);
         start_weights.push(_reserve_weight);
         start_weights.push(_token_weight);
 
         // Target weights are the theoretical endpoint of updating gradually.
-        // We simply flip the starting ratios because why not?
-        target_weights.push(start_weights[1]);
-        target_weights.push(start_weights[0]);
-        require(target_weights[0] == start_weights[1], "ERR_TARGET_WEIGHT_0");
-        require(target_weights[1] == start_weights[0], "ERR_TARGET_WEIGHT_1");
+        // Since the pool starts with the full token supply this is the maximum possible dump.
+        // We set the weight to the market cap of the redeem value.
+
+        uint256 _reserve_weight_final = BalancerConstants.MIN_WEIGHT;
+        uint256 _redeem_reserve = token.reserve_init();
+        uint256 _target_spot_final = SafeMath.div(
+            SafeMath.mul(_redeem_reserve, Constants.ONE),
+            pool_amounts[1]
+        );
+        uint256 _token_weight_final = SafeMath.div(
+            SafeMath.mul(SafeMath.mul(_target_spot_final, pool_amounts[1]), Constants.ONE),
+            SafeMath.mul(_redeem_reserve, BalancerConstants.MIN_WEIGHT)
+        );
+        console.log("RedeemableERC20Pool: construct_pool_weights: weights_final: %s %s", _target_spot_final, _token_weight_final);
+        console.log("RedeemableERC20Pool: construct_pool_weights: reserve_weight_final: %s", _reserve_weight_final);
+        target_weights.push(_reserve_weight_final);
+        target_weights.push(_token_weight_final);
+
+        require(_token_weight_final >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT_FINAL");
+        require(
+            SafeMath.sub(BalancerConstants.MAX_WEIGHT, Constants.HEADROOM) >= SafeMath.add(_token_weight_final, _reserve_weight_final),
+            "ERR_MAX_WEIGHT_FINAL"
+        );
     }
 
     // We are not here to make money off fees.

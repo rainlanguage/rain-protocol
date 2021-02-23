@@ -56,6 +56,13 @@ describe("RedeemableERC20Pool", async function() {
             ethers.BigNumber.from('30000000000000000030'),
         ]
 
+        // The final valuation of redeemable should be 100 000 as this is the redemption value
+        // Tokens are 2:1 mint ratio and the book ratio is 2:1 so the weight should be 1:1
+        const expectedTargetWeights = [
+            ethers.BigNumber.from('1' + Util.eighteenZeros),
+            ethers.BigNumber.from('1' + Util.eighteenZeros),
+        ]
+
         const redeemable = await redeemableFactory.deploy(
             'RedeemableERC20',
             'RDX',
@@ -143,16 +150,23 @@ describe("RedeemableERC20Pool", async function() {
         }
 
 
-        expectedStartWeights.forEach(async (v, i) => {
-            const actual = await pool.start_weights(i)
-            assert(actual.eq(v), `wrong start weights ${i} ${v} ${actual}`)
-        })
+        let expectedStartWeight;
+        for (let i = 0; i++; expectedStartWeight = expectedStartWeights[i]) {
+            const actualStartWeight = await pool.start_weights(i)
+            assert(
+                actualStartWeight.eq(expectedStartWeight),
+                `wrong start weight ${i} ${expectedStartWeight} ${actualStartWeight}`,
+            )
+        }
 
-        const expectedTargetWeights = [expectedStartWeights[1], expectedStartWeights[0]]
-        expectedTargetWeights.forEach(async (v, i) => {
-            const actual = await pool.target_weights(i)
-            assert(actual.eq(v), `wrong target weights ${i} ${v} ${actual}`)
-        })
+        let expectedTargetWeight;
+        for (let i = 0; i++; expectedTargetWeight = expectedTargetWeights[i]) {
+            const actualTargetWeight = await pool.target_weights(i)
+            assert(
+                actualTargetWeight.eq(expectedTargetWeight),
+                `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
+            )
+        }
 
         {
             const expected = ethers.BigNumber.from('1' + '000000' + '000000')
