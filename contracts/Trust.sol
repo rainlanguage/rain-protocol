@@ -137,5 +137,9 @@ contract Trust is Ownable, Initable {
         // Or there will be a rounding error in the reserve trapped in the trust.
         token.reserve().approve(address(pool), pool.pool_amounts(0));
         pool.init();
+
+        console.log("Trust: init: owner before: %s %s", token.owner(), pool.owner());
+        token.transferOwnership(address(pool));
+        console.log("Trust: init: owner after: %s %s", token.owner(), pool.owner());
     }
 }
