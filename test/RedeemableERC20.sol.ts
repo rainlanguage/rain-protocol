@@ -143,6 +143,9 @@ describe("RedeemableERC20", async function() {
         }
         assert(selfSendDidError, 'self send was not blocked')
 
+        // owner can unfreeze themselves (and others) _before_ unblocking.
+        await redeemableERC20.addUnfreezable(signers[0].address)
+
         // create a few blocks by sending some tokens around
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await redeemableERC20.transfer(signers[1].address, 1)
@@ -160,8 +163,9 @@ describe("RedeemableERC20", async function() {
 
         let frozenDidError2 = false
         const redeemableERC202 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
-        // CAN send TO the owner after unlock.
+        // owner is on the unfreezable list.
         await redeemableERC202.transfer(signers[0].address, 1)
+
         // but not to anyone else.
         try {
             await redeemableERC202.transfer(signers[2].address, 1)
