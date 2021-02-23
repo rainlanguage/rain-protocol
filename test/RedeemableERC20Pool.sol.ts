@@ -38,7 +38,7 @@ describe("RedeemableERC20Pool", async function() {
         // - reserve in token = ( 2 / 3 ) * reserve = 100 000
         // - mint ratio is 2
         // - token total = 2 x 100 000 = 200 000
-        const expectedRedeemableTotal = ethers.BigNumber.from('200' + Util.eighteenZeros)
+        const expectedRedeemableTotal = ethers.BigNumber.from('200000' + Util.eighteenZeros)
         const expectedRedeemableReserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
         const expectedPoolReserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
         const expectedRights = [false, false, true, true, false, false]
@@ -47,13 +47,14 @@ describe("RedeemableERC20Pool", async function() {
 
         // Let's say we want to value the redeemable at 1 000 000 reserve
         // The pool has 50 000 reserve
-        // So the weight needs to be 20:1 if tokens are 1:1
-        // But tokens are minted 2:1 so weights need to be 40:1
+        // So the weight needs to be 20:1
+        // The mint ratio doesn't matter.
+        // Whatever the total tokens on the other side of the reserve is, that will be valued at
+        // 20x the reserve value, measured in terms of the reserve value.
         const poolInitialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
         const expectedStartWeights = [
             ethers.BigNumber.from('1' + Util.eighteenZeros),
-            // ethers.BigNumber.from('4' + Util.eighteenZeros),
-            ethers.BigNumber.from('30000000000000000030'),
+            ethers.BigNumber.from('20' + Util.eighteenZeros),
         ]
 
         // The final valuation of redeemable should be 100 000 as this is the redemption value
@@ -90,7 +91,7 @@ describe("RedeemableERC20Pool", async function() {
 
         const now = await ethers.provider.getBlockNumber()
 
-        const unblockBlock = now + 10
+        const unblockBlock = now + 15
 
         await reserve.approve(redeemable.address, reserveRedeemable)
         await redeemable.init(unblockBlock)
@@ -126,13 +127,13 @@ describe("RedeemableERC20Pool", async function() {
         assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
 
         let expectedRight;
-        for (let i = 0; i++; expectedRight = expectedRights[i]) {
+        for (let i = 0; expectedRight = expectedRights[i]; i++) {
             const actualRight = await pool.rights(i)
             assert(actualRight === expectedRight, `wrong right ${i} ${expectedRight} ${actualRight}`)
         }
 
         let expectedPoolAddress;
-        for (let i = 0; i++; expectedPoolAddress = expectedPoolAddresses[i]) {
+        for (let i = 0; expectedPoolAddress = expectedPoolAddresses[i]; i++) {
             const actualPoolAddress = await pool.pool_addresses(i)
             assert(
                 actualPoolAddress === expectedPoolAddress,
@@ -141,17 +142,16 @@ describe("RedeemableERC20Pool", async function() {
         }
 
         let expectedPoolAmount;
-        for (let i = 0; i++; expectedPoolAmount = expectedPoolAmounts[i]) {
+        for (let i = 0; expectedPoolAmount = expectedPoolAmounts[i]; i++) {
             const actualPoolAmount = await pool.pool_amounts(i)
             assert(
-                actualPoolAmount === expectedPoolAmount,
+                actualPoolAmount.eq(expectedPoolAmount),
                 `wrong pool amount ${i} ${expectedPoolAmount} ${actualPoolAmount}`
             )
         }
 
-
         let expectedStartWeight;
-        for (let i = 0; i++; expectedStartWeight = expectedStartWeights[i]) {
+        for (let i = 0; expectedStartWeight = expectedStartWeights[i]; i++) {
             const actualStartWeight = await pool.start_weights(i)
             assert(
                 actualStartWeight.eq(expectedStartWeight),
@@ -160,7 +160,7 @@ describe("RedeemableERC20Pool", async function() {
         }
 
         let expectedTargetWeight;
-        for (let i = 0; i++; expectedTargetWeight = expectedTargetWeights[i]) {
+        for (let i = 0; expectedTargetWeight = expectedTargetWeights[i]; i++) {
             const actualTargetWeight = await pool.target_weights(i)
             assert(
                 actualTargetWeight.eq(expectedTargetWeight),
@@ -187,5 +187,38 @@ describe("RedeemableERC20Pool", async function() {
             gasLimit: 10000000
         })
 
+        // The trust would do this internally but we need to do it here to test.
+        const crp = await pool.crp()
+        console.log('crp', crp)
+        const balancer_factory = await pool.balancer_factory()
+        console.log('balancer_factory', balancer_factory)
+        const bPool = await pool.pool()
+        console.log('bPool', bPool)
+        await redeemable.addUnfreezable(crp)
+        await redeemable.addUnfreezable(balancer_factory)
+        await redeemable.addUnfreezable(pool.address)
+
+        let exitErrored = false
+        try {
+            await pool.exit()
+        } catch (e) {
+            assert(e.toString().includes('revert ERR_ONLY_UNBLOCKED'), 'exit was allowed before unblock')
+            exitErrored = true
+        }
+        assert(exitErrored, 'failed to error on early exit')
+
+        // create a few blocks by sending some tokens around
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await reserve.transfer(signers[1].address, 1)
+        }
+
+        console.log('pool', pool.address)
+        console.log('redeemable', redeemable.address)
+        console.log('signer', signers[0].address)
+
+        await pool.exit()
+
+        console.log('' + await reserve.balanceOf(signers[0].address))
+        console.log('' + await redeemable.totalSupply())
     })
 })

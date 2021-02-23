@@ -116,7 +116,7 @@ contract Trust is Ownable, Initable {
         );
     }
 
-    function init(uint256 _unblock_block) public {
+    function init(uint256 _unblock_block) public onlyOwner withInit {
         token.reserve().transferFrom(this.owner(), address(this), reserve_total);
         console.log("Trust: init token: reserve balance: %s", token.reserve().balanceOf(address(this)));
 
@@ -137,5 +137,15 @@ contract Trust is Ownable, Initable {
         // Or there will be a rounding error in the reserve trapped in the trust.
         token.reserve().approve(address(pool), pool.pool_amounts(0));
         pool.init();
+
+        // Need to make a few addresses unfreezable to facilitate exits.
+        token.addUnfreezable(address(pool.crp()));
+        token.addUnfreezable(address(balancer_factory));
+        token.addUnfreezable(address(pool));
+    }
+
+    function exit() public onlyOwner onlyInit {
+        pool.exit();
+        token.reserve().transfer(this.owner(), token.reserve().balanceOf(address(this)));
     }
 }

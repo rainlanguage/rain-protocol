@@ -52,11 +52,27 @@ describe("Trust", async function() {
     await reserve.approve(trust.address, reserveTotal)
 
     const now = await ethers.provider.getBlockNumber()
-    const unlockBlock = now + 10
+    const unblockBlock = now + 10
 
-    await trust.init(unlockBlock, {
+    await trust.init(unblockBlock, {
       gasLimit: 100000000
     })
+
+    const poolFactory = await ethers.getContractFactory(
+      'RedeemableERC20Pool',
+      {
+          libraries: {
+              'RightsManager': rightsManager.address
+          }
+      }
+    )
+
+    // create a few blocks by sending some tokens around
+    while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+      await reserve.transfer(signers[1].address, 1)
+    }
+
+    await trust.exit()
 
   })
 });

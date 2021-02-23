@@ -15,6 +15,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Constants } from "./libraries/Constants.sol";
 import { RedeemableERC20 } from './RedeemableERC20.sol';
 
+import { IBPool } from "./configurable-rights-pool/contracts/IBFactory.sol";
 import { BPool } from "./configurable-rights-pool/contracts/test/BPool.sol";
 import { RightsManager } from "./configurable-rights-pool/libraries/RightsManager.sol";
 import { BalancerConstants } from "./configurable-rights-pool/libraries/BalancerConstants.sol";
@@ -93,6 +94,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     CRPFactory public crp_factory;
     BFactory public balancer_factory;
     ConfigurableRightsPool public crp;
+    IBPool public pool;
 
     constructor (
         CRPFactory _crp_factory,
@@ -153,17 +155,25 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     function construct_pool_amounts () private onlyNotInit onlyOwner onlyBlocked {
         // The reserve amount is calculated from the book ratio and the redeemable token pool.
         //
-        // If the book ratio is 2 then ( 2 / ( 2 + 1 ) ) goes to the token and ( 1 / ( 2 + 1) ) is here.
-        uint256 _reserve_ratio = SafeMath.div(
-            SafeMath.mul(Constants.ONE, Constants.ONE),
-            SafeMath.add(book_ratio, Constants.ONE)
-        );
+        // If the book ratio is 2 then ( 2 / ( 2 + 1 ) ) goes to the token and ( 1 / ( 2 + 1 ) ) is here.
+        // - reserve_init = ( book / ( book + 1 ) ) x reserve_total
+        // - pool_reserve = ( 1 / ( book + 1 ) ) x reserve_total
+        // - ( reserve_init x ( book + 1 ) ) / book = pool_reserve x ( book + 1 )
+        // - reserve_init / book = pool_reserve
+        // uint256 _reserve_ratio = SafeMath.div(
+        //     SafeMath.mul(Constants.ONE, Constants.ONE),
+        //     SafeMath.add(book_ratio, Constants.ONE)
+        // );
+        // uint256 _reserve_amount = SafeMath.div(
+        //     SafeMath.mul( _reserve_ratio, token.reserve_init() ),
+        //     Constants.ONE
+        // );
         uint256 _reserve_amount = SafeMath.div(
-            SafeMath.mul( _reserve_ratio, token.reserve_init() ),
-            Constants.ONE
+            SafeMath.mul(token.reserve_init(), Constants.ONE),
+            book_ratio
         );
         console.log("RedeemableERC20Pool: construct_pool_amounts: book_ratio: %s", book_ratio);
-        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_amount: %s %s", _reserve_ratio, _reserve_amount);
+        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_amount: %s", _reserve_amount);
         pool_amounts.push(_reserve_amount);
 
         // The token amount is always the total supply.
@@ -264,14 +274,14 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         require(token.allowance(this.owner(), address(this)) == pool_amounts[1], 'ERR_TOKEN_ALLOWANCE');
 
         // take allocated reserves.
-        console.log("RedeemableERC20Pool: init: take reserves");
+        console.log("RedeemableERC20Pool: init: take reserves: %s", pool_amounts[0]);
         bool reserve_xfer = token.reserve().transferFrom(this.owner(), address(this), pool_amounts[0]);
         // we do NOT require an exact balance of the reserve after xfer as someone other than the owner could grief the contract with reserve dust.
         require(reserve_xfer, 'ERR_RESERVE_TRANSFER');
         require(token.reserve().balanceOf(address(this)) >= pool_amounts[0], 'ERR_RESERVE_TRANSFER');
 
         // take all token.
-        console.log("RedeemableERC20Pool: init: take token");
+        console.log("RedeemableERC20Pool: init: take token: %s", pool_amounts[1]);
         bool token_xfer = token.transferFrom(this.owner(), address(this), pool_amounts[1]);
         require(token_xfer, 'ERR_TOKEN_TRANSFER');
         require(token.balanceOf(address(this)) == token.totalSupply(), 'ERR_TOKEN_TRANSFER');
@@ -287,11 +297,20 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
         crp.createPool(
             // No need for many pool tokens.
-            BalancerConstants.MIN_POOL_SUPPLY,
+            BalancerConstants.MAX_POOL_SUPPLY,
             // No minimum weight change period.
             0,
             // No time lock (we handle our own locks in the trust).
             0
+        );
+        pool = crp.bPool();
+        console.log(
+            "RedeemableERC20Pool: pool tokens: %s",
+            crp.balanceOf(address(this))
+        );
+        require(
+            BalancerConstants.MAX_POOL_SUPPLY == crp.balanceOf(address(this)),
+            "ERR_POOL_TOKENS"
         );
 
         // Double check the spot price is what we wanted.
@@ -322,8 +341,38 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         BlockBlockable.setUnblockBlock(token.unblock_block());
     }
 
-    // function exit() public onlyInit onlyOwner onlyUnblocked {
-    //     crp.bPool().transfer(this.owner(), crp.bPool().totalSupply());
-    // }
+    function exit() public onlyInit onlyOwner onlyUnblocked {
+        console.log("RedeemableERC20Pool: exit: %s %s", address(this), crp.balanceOf(address(this)));
+        console.logAddress(address(crp));
+        console.logAddress(address(crp.bPool()));
+        crp.exitPool(
+            crp.balanceOf(address(this)) - BalancerConstants.MIN_POOL_SUPPLY,
+            new uint256[](2)
+        );
+        console.log(
+            "RedeemableERC20Pool: exited: reserve: %s %s",
+            pool_amounts[0],
+            token.reserve().balanceOf(address(this))
+        );
+        console.log(
+            "RedeemableERC20Pool: exited: token: %s %s",
+            pool_amounts[1],
+            token.balanceOf(address(this))
+        );
+        token.redeem(token.balanceOf(address(this)));
+        console.log(
+            "RedeemableERC20Pool: redeemed: reserve: %s %s %s",
+            token.reserve_init(),
+            pool_amounts[0],
+            token.reserve().balanceOf(address(this))
+        );
+        console.log(
+            "RedeemableERC20Pool: redeemed: token: %s %s",
+            pool_amounts[1],
+            token.balanceOf(address(this))
+        );
+
+        token.reserve().transfer(msg.sender, token.reserve().balanceOf(address(this)));
+    }
 
 }

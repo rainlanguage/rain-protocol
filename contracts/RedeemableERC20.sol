@@ -62,6 +62,8 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     // current reserve balance of this contract.
     uint256 public reserve_init;
 
+    mapping(address => bool) public unfreezables;
+
     // In the constructor we set everything that configures the contract but it stateless.
     // There are no token transfers, mints or locks.
     // Redemption is not possible until after init()
@@ -128,10 +130,12 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         BlockBlockable.setUnblockBlock(_unblock_block);
     }
 
+    function addUnfreezable(address _address) public onlyOwner onlyBlocked onlyInit {
+        unfreezables[_address] = true;
+    }
+
     function _beforeTokenTransfer(address _sender, address _receiver, uint256 _amount) internal override {
-        console.logAddress(_sender);
-        console.logAddress(_receiver);
-        console.log("RedeemableERC20: _beforeTokenTransfer %s", _amount);
+        console.log("RedeemableERC20: _beforeTokenTransfer %s %s %s", _amount, _sender, _receiver);
 
         // We explicitly will never mint more than once.
         // We never get explicit dispatch info from _mint or _burn etc.
@@ -166,7 +170,8 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
             // Redemption is unblocked.
             // Can burn.
             // Only owner can receive.
-            require(_receiver == address(0) || _receiver == this.owner(), "ERR_FROZEN");
+            console.log("RedeemableERC20: _beforeTokenTransfer: owner: %s", this.owner());
+            require(_receiver == address(0) || unfreezables[_receiver] == true, "ERR_FROZEN");
         }
         else {
             // Redemption is blocked.
