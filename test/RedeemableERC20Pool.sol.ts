@@ -150,75 +150,75 @@ describe("RedeemableERC20Pool", async function() {
             )
         }
 
-        // let expectedStartWeight;
-        // for (let i = 0; expectedStartWeight = expectedStartWeights[i]; i++) {
-        //     const actualStartWeight = await pool.start_weights(i)
-        //     assert(
-        //         actualStartWeight.eq(expectedStartWeight),
-        //         `wrong start weight ${i} ${expectedStartWeight} ${actualStartWeight}`,
-        //     )
-        // }
+        let expectedStartWeight;
+        for (let i = 0; expectedStartWeight = expectedStartWeights[i]; i++) {
+            const actualStartWeight = await pool.start_weights(i)
+            assert(
+                actualStartWeight.eq(expectedStartWeight),
+                `wrong start weight ${i} ${expectedStartWeight} ${actualStartWeight}`,
+            )
+        }
 
-        // let expectedTargetWeight;
-        // for (let i = 0; expectedTargetWeight = expectedTargetWeights[i]; i++) {
-        //     const actualTargetWeight = await pool.target_weights(i)
-        //     assert(
-        //         actualTargetWeight.eq(expectedTargetWeight),
-        //         `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
-        //     )
-        // }
+        let expectedTargetWeight;
+        for (let i = 0; expectedTargetWeight = expectedTargetWeights[i]; i++) {
+            const actualTargetWeight = await pool.target_weights(i)
+            assert(
+                actualTargetWeight.eq(expectedTargetWeight),
+                `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
+            )
+        }
 
-        // {
-        //     const expected = ethers.BigNumber.from('1' + '000000' + '000000')
-        //     const actual = await pool.pool_fee()
-        //     assert(actual.eq(expected), `wrong pool fee ${expected} ${actual}`)
-        // }
+        {
+            const expected = ethers.BigNumber.from('1' + '000000' + '000000')
+            const actual = await pool.pool_fee()
+            assert(actual.eq(expected), `wrong pool fee ${expected} ${actual}`)
+        }
 
-        // await reserve.approve(
-        //     pool.address,
-        //     await pool.pool_amounts(0)
-        // )
-        // await redeemable.approve(
-        //     pool.address,
-        //     await pool.pool_amounts(1)
-        // )
+        await reserve.approve(
+            pool.address,
+            await pool.pool_amounts(0)
+        )
+        await redeemable.approve(
+            pool.address,
+            await pool.pool_amounts(1)
+        )
 
-        // await pool.init({
-        //     gasLimit: 10000000
-        // })
+        await pool.init({
+            gasLimit: 10000000
+        })
 
-        // // The trust would do this internally but we need to do it here to test.
-        // const crp = await pool.crp()
-        // console.log('crp', crp)
-        // const balancer_factory = await pool.balancer_factory()
-        // console.log('balancer_factory', balancer_factory)
-        // const bPool = await pool.pool()
-        // console.log('bPool', bPool)
-        // await redeemable.addUnfreezable(crp)
-        // await redeemable.addUnfreezable(balancer_factory)
-        // await redeemable.addUnfreezable(pool.address)
+        // The trust would do this internally but we need to do it here to test.
+        const crp = await pool.crp()
+        console.log('crp', crp)
+        const balancer_factory = await pool.balancer_factory()
+        console.log('balancer_factory', balancer_factory)
+        const bPool = await pool.pool()
+        console.log('bPool', bPool)
+        await redeemable.addUnfreezable(crp)
+        await redeemable.addUnfreezable(balancer_factory)
+        await redeemable.addUnfreezable(pool.address)
 
-        // let exitErrored = false
-        // try {
-        //     await pool.exit()
-        // } catch (e) {
-        //     assert(e.toString().includes('revert ERR_ONLY_UNBLOCKED'), 'exit was allowed before unblock')
-        //     exitErrored = true
-        // }
-        // assert(exitErrored, 'failed to error on early exit')
+        let exitErrored = false
+        try {
+            await pool.exit()
+        } catch (e) {
+            assert(e.toString().includes('revert ERR_ONLY_UNBLOCKED'), 'exit was allowed before unblock')
+            exitErrored = true
+        }
+        assert(exitErrored, 'failed to error on early exit')
 
-        // // create a few blocks by sending some tokens around
-        // while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
-        //     await reserve.transfer(signers[1].address, 1)
-        // }
+        // create a few blocks by sending some tokens around
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await reserve.transfer(signers[1].address, 1)
+        }
 
-        // console.log('pool', pool.address)
-        // console.log('redeemable', redeemable.address)
-        // console.log('signer', signers[0].address)
+        console.log('pool', pool.address)
+        console.log('redeemable', redeemable.address)
+        console.log('signer', signers[0].address)
 
-        // await pool.exit()
+        await pool.exit()
 
-        // console.log('' + await reserve.balanceOf(signers[0].address))
-        // console.log('' + await redeemable.totalSupply())
+        console.log('' + await reserve.balanceOf(signers[0].address))
+        console.log('' + await redeemable.totalSupply())
     })
 })
