@@ -2,6 +2,40 @@
 
 Implements a hybrid wrapped ERC20 + [Liquidity Bootstrapping Pool](https://docs.balancer.finance/smart-contracts/smart-pools/liquidity-bootstrapping-faq) with bespoke 'Last Wallet Standing' mechanic.
 
+## Why a token??
+
+> An engineer has a problem.
+> Tries to solve it with a token.
+> The engineer has two problems.
+
+Notably TV already has a token, the `TVK` token that is being actively bootstrapped.
+
+Surely anything that dilutes attention and diverts liquidity away from `TVK` is a liability?
+
+These tokens are short term wrappers around a reserve asset so that people can participate in an event/membership without losing exposure to the underlying reserve.
+
+It allows TV to tailor specific events to fans of a specific IP rather than simply airdropping rewards blindly to all current `TVK` hodlers.
+
+So `TVK` can be the reserve asset for a redeemable token and when redemptions open the `TVK` can be recovered as-is.
+This has the effect of locking up `TVK` supply within the token during the distribution phase and until everyone exits during the redemption phase.
+
+The mechanism differs from staking in that:
+
+- Hodling a redeemable token is incentivised by rewards denominated in things _other than itself_ so it is not confusing inflation (dilution) with dividends (new value)
+- Redemption is a one-way event whereas staking can be entered and exited relatively freely
+- Value accrual is increasingly concentrated between remaining hodlers as others exit to liquidity, we call this 'Last Wallet Standing'
+- Hodlers are guaranteed a minimum exit value fixed at the system inception denominated in the reserve asset (i.e. something other than itself)
+
+The value of a redeemable token is a combination of all of:
+
+- The book value of the asset it is redeemable for
+- The speculative potential _future_ rewards that hodling it might realise (e.g. NFT airdrop, exclusive event access, etc.)
+- The social status of provably and publically participating in an exclusive event tied to creative IP and not exiting (proof of fandom)
+
+The value of a redeemable token is NOT a circular reference to itself or derived from speculative trading because after redemption _all transfers/trades are frozen_.
+
+The distribution is based on a one-time fixed-duration dutch auction facilitated by a dedicated Balancer Liquidity Bootstrapping Pool (see below).
+
 ## Wrapped ERC20
 
 `RedeemableERC20.sol` implements an `Ownable`, `Initable`, `BlockBlockable` 'redeemable' `ERC20`.
@@ -111,7 +145,56 @@ This means the maximum possible dump of the pool at the lowest possible weight (
 
 The [Balancer documentation](https://docs.balancer.finance/) is the best reference for more details on how this works.
 
+### RedeemableERC20Pool
+
+The Balancer functionality is wrapped by the `RedeemableERC20Pool` contract.
+
+This contract exposes a constructor and `init` so that the `Trust` contract can treat the Balancer weight calculations and setup as a 'black box'.
+
+This means that the pool tokens created during the initialization of the Balancer LBP _are owned by the `RedeemableERC20Pool` and never touch either the `Trust` nor a TV controlled wallet directly.
+
+The `exit` method on the `RedeemableERC20Pool` is callable only by the owner (the `Trust`, not TV) and only after the unblock block exists.
+
+## Trust
+
+The `Trust` contract is what the TV wallet deploys and implements "can't be evil".
+
+The only things that TV can do that the general public cannot for a given pool:
+
+- Construct it with the base parameters such as the reserve, ratios and initial marketcap
+- _Provide_ the initial reserve token that will be split according to the book ratio between the pool and the redeem phase
+- Initialize the unblock block
+- Recover pool funds + proceeds of the token sale + unclaimed tokens after the unblock block exists
+
+TV never touches any token minting (neither the pool tokens nor the redeemable tokens) or redemption directly (other than how the general public can).
+
+The `Trust` exposes its own `exit` method that forwards to the `RedeemableERC20Pool` and then transfers the total reserve token ( proceeds of trading + redemption of remaining token stock ) as a lump sump back to the TV wallet that owns the `Trust`.
+
+The trust exposes the addresses of its various components as public so each can be viewed and interacted with according to its own public methods.
+
 ## Risk mitigation
+
+### Audits && optimisations
+
+__These contracts are NOT audited.__
+
+__These contracts are NOT gas optimised.__
+
+__There have been NO simulations designed or run.__
+
+The details documented here:
+
+- Are based on a pre-audit code implementation
+- Have low-medium automated test coverage that demonstrates basic mechanics non-exhuastively
+- Are subject to change in the face of a security challenge, deployment blocker or other Good Idea
+
+### Iterative value locked and accrued
+
+The intent is to deploy many iterations of this code, each with a relatively small reserve so that the basic mechanics can be battle tested with capped risk for each iteration.
+
+Each iteration has a fixed point after which all tokens are frozen and (barring some critical bug) pro-rata redeemable for at least the value of the underlying reserve asset.
+
+The bootstrap-distribute-redeem-reboot lifecycle provides a natural safety net against exploits and entry point for future functionality without an ever-growing honey pot to secure behind a single code deploy.
 
 ### Stuck AMM
 
@@ -239,7 +322,7 @@ The spot price on the Balancer AMM can never drop below the redemption/book valu
 If you subscribe to the idea that crypto assets 'have no intrinsic value' and therefore they are 100% speculative, then having this token drop to the redemption value is the same as it dropping to zero. I.e. when the token reaches the book value, 100% of the speculative premium has been lost. However, by setting a redemption value for the token, we force buyers to match a non-zero non-speculative value on the token that locks up capital before they can consider speculating.
 When a buyer purchases a vanilla ERC20 on the open market, 100% of the price they pay is subject to speculation (loss), whereas a TV token may be valued as 50% speculative and 50% stable/reserve, which should dampen price swings similar to a traditional diversified portfolio of assets.
 
-### Front running / MEV
+### Front running && MEV
 
 Balancer does NOT have a general solution for front-running or MEV as far as I am aware.
 
@@ -281,6 +364,114 @@ At the moment we can use the Matic testnet to test our contracts but have no go-
 
 We SHOULD contact the Balancer team re: timelines and/or blockers to derisk this.
 
+### Rug pull
+
+A rug pull is a common scam where a 'team' (usually anon) mints a token, creates an AMM pool (e.g. TKN/WETH), promotes the token and then after a significant amount of the counter token (e.g. WETH) accumulates they mint a huge amount of the token to clear out the AMM pool.
+
+Effectively it is a reboot of the old ICO exit scams but facilitated by an AMM.
+
+TV is NOT an anonymous team and relies on their reputation, goodwill and brand in order to continue operating effectively in the space.
+
+Part of the TV reputation is that we can use Solidity to enforce "can't be evil" rather than the much weaker and retractible "don't be evil".
+
+TV cannot rug pull their users with these contracts:
+
+- The redeemable ERC20 token inherits from the audited Open Zeppelin ERC20 contracts
+- The `_transfer` functions are NOT overridden
+- The `_beforeTokenTransfer` explicitly reverts any transactions from the `0x0` address (i.e. `_mint` in the OZ contract) after initialization
+- The redeemable ERC20 token is owned by the `Trust` contract, NOT a TV wallet, so we aren't even the owner of the token
+- The pool is also owned by the `Trust` contract, NOT a TV wallet, so we cannot exit the pool without the `Trust` mediating the process
+- All the admin functions for the redeemable token and redeemable pool use the audited `onlyOwner` from the OZ contracts, and _the `Trust` is the owner_ not a TV wallet
+- Pool exit is a two step process that can only be initiated as token transfers are frozen and involves _redemption_ of the remaining tokens to the underlying reserve, redeemable tokens never touch a TV wallet, unless TV participates in the distribution auction on equal footing with the general public
+
+### Early exit && non-delivery by TV
+
+The `Trust` owns both the balancer pool (indirectly through the `RedeemableERC20Pool` contract) and the redeemable ERC20 tokens.
+
+TV can initialize a trust but has no priviledged access to any functions modified as `onlyOwner`.
+
+As the owner of the `Trust`, TV can request that the `Trust` attempt to `exit` on behalf of TV, which will call the underlying `exit` function on the `RedeemableERC20Pool` contract, which will revert before the preset `_unblock_block` exists.
+
+The unblock block is public and can only be set during initialization of the `Trust`.
+
+As long as TV initializes the system through the `Trust` it is not possible for them to dump/exit the pool tokens early.
+
+__TV CAN always fail to deliver meaningful value during the redeem phase__.
+
+Any user that loses faith in the ability for TV to deliver meaningful (subjective or financial) value can always redeem their tokens during the redemption phase for their book value.
+
+If TV truly fail to deliver on _any_ redeemable token, it would significantly and perhaps permanently damage their reputation, and hence their ability to successfully bootstrap future tokens.
+
+The intent is that many (hundreds or even thousands) of redeemable pools are created over time, all with different value propositions, reserves, init and unblock times, and different backing IPs.
+
+It is not possible that TV can simultaneously exit all the redeemable tokens at the same time (in contrast they could market dump their TVK balance at any time).
+
+## Flashloan attack
+
+A flashloan involves a user borrowing a large amount of token X in order to execute a series of methods on arbitrary contracts for personal profit, then returning token X in the same block for zero collateral.
+
+Flashloans amplify and lower the barrier to exploits that combine various economic incentives across multiple protocols into an aggregate extraction of value at the expense of users of the involved protocols.
+
+Flashloan risk is generally very difficult to analyse, or even attribute blame to for purposes of insurance, as exploits become increasingly sophisticated and involve valid interactions between many separate protocols.
+
+It is reasonable to assume that automated flashloan bots will be refined much like arbitrage bots, that constantly scan and simulate contract interactions then automatically execute any profitable trade.
+
+Flashloans have also been used to manipulate the voting process of 'governance tokens'.
+
+The usual mitigation strategy is to require at least one block to complete between acquisition of a token and the ability to use it in some functionality.
+
+It is reasonable to assume that future contracts MAY develop flashloan-like characteristics that can span multiple blocks.
+
+Our hybrid model is resistant to flashloans in their current form and probably future unknown evolutions of it:
+
+- Each TaaE token has distinct and fixed distribution and redemption phases so trading can never influence redemption
+- Redemption is a one way event and tokens are fixed during redemption, so flash loans are impossible because transfers are impossible
+- Redemption tokens have no utility during the distribution phase, there are no rewards, no voting, no contract interactions from TV during distribution that can be manipulated by a loan
+- The Balancer pool is preconfigured so that maximum dump of the token is equivalent to the book value of the reserve, the theoretical worst case market action on the LBP is that the TV have their reserve returned to them and no users participate in the redemption phase
+- 100% of the token supply is provided to the LBP at its inception so there are no outside sources of liquidity to manipulate other than user-initiated secondary markets derived from the LBP during the distribution phase
+
+## Choice of reserve asset
+
+None of the code in this system has any control over the reserve asset code.
+
+It is up to the TV team and each participating user to conduct their own risk assessment of the reserve asset.
+
+For example:
+
+- Stable coins may introduce regulatory risk, e.g. the American STABLE Act or similar may suddenly apply to a reedeemable token
+- Centralise stable coins could censor the redemption or pool mechanisms by blocking transfers beyond our control
+- The reserve asset could experience its own exit scams and/or exploits
+- The reserve asset could somehow be 'wound down' out from underneath users who want to redeem against it
+
+It essentially comes down to counterparty risk (e.g. tether) + technical risk (e.g. hacks) + value risk (e.g. worthless/volatile reserve).
+
+Rough analysis of notable assets:
+
+- WETH: Zero counterparty risk, low technical risk, high value risk
+- USDC/DAI: Some counterparty risk, some technical risk, low value risk
+- TVK: Zero counterparty risk (relative to the redeemable token), some technical risk, high value risk
+- NFT/partner token: Some counterparty risk, some technical risk, very high value risk
+
+## Contract upgrades && admin keys && hacks && exploits
+
+TaaE tokens have fixed scope and duration.
+
+Every phase change, from bootstrap, distribution and redemption is one-way with predictable timing.
+
+The final state of the system is that hodlers receive rewards and slowly drop out to the underlying asset as a one-way move, or hold a frozen asset indefinitely if they choose to.
+
+Every new token event requires a new Trust with its own lifecycle.
+
+Rather than try to upgrade existing contracts in-situ, the TV team can apply updates to the Solidity code between `Trust` deployments.
+
+If a vulnerability is found in a version of the `Trust` the theoretical maximum damage of an exploit is capped at the current locked reserve across the pool and token across vulnerable `Trust` contracts, plus the damage to TV's reputation.
+
+By versioning and newly deploying `Trust` contracts, any fix to a discovered exploit will be available for all new `Trust` contracts past that point.
+
+By separating the concerns of the redemption token and Balancer pool management, it is less likely that a single exploit can extract 100% of the reserve token from the system. It is more likely than an exploit would fully or partially drain the Balancer pool OR the token redemption method.
+
+As there are no upgrades, admin functions or keys, if the TV wallet is compromised then TV loses their ability to `exit` the trust after the distribution phase but everything else will continue as initialized. End-users won't even notice that the TV wallet was hacked unless they are specifically tracking it on etherscan.
+
 ## Development setup
 
 ### Nix Shell
@@ -296,4 +487,10 @@ Drop into a nix-shell.
 ```
 cd tv-balancer-poc
 nix-shell
+```
+
+### Run tests
+
+```
+nix-shell --run 'hardhat test'
 ```
