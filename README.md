@@ -494,7 +494,7 @@ curl -L https://nixos.org/nix/install | sh
 Drop into a nix-shell.
 
 ```
-cd tv-balancer-poc
+cd tv-balancer
 nix-shell
 ```
 

@@ -1,5 +1,5 @@
 {
-  "name": "tv-balancer-poc",
+  "name": "tv-balancer",
   "version": "1.0.0",
   "scripts": {
     "build": "hardhat compile",
