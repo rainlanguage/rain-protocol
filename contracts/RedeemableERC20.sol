@@ -89,8 +89,8 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         console.log("RedeemableERC20: constructor: %s %s", _name, _symbol);
         console.log("RedeemableERC20: constructor: %s %s", _reserve_init, _mint_ratio);
         reserve = _reserve;
-        mint_ratio = _mint_ratio;
         reserve_init = _reserve_init;
+        mint_ratio = _mint_ratio;
     }
 
     // All the stateful stuff is done in init().

@@ -294,9 +294,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
         // Double check the spot price is what we wanted.
         uint256 _target_spot = SafeMath.div(SafeMath.mul(initial_valuation, Constants.ONE), pool_amounts[1]);
+        address[] memory _pool_addresses = pool_addresses();
         uint256 _actual_spot = BPool(address(crp.bPool())).getSpotPriceSansFee(
-            pool_addresses()[0],
-            pool_addresses()[1]
+            _pool_addresses[0],
+            _pool_addresses[1]
         );
         console.log(
             "RedeemableERC20Pool: init: spots %s %s",
