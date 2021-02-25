@@ -167,13 +167,6 @@ describe("RedeemableERC20Pool", async function() {
                 `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
             )
         }
-
-        {
-            const expected = ethers.BigNumber.from('1' + '000000' + '000000')
-            const actual = await pool.pool_fee()
-            assert(actual.eq(expected), `wrong pool fee ${expected} ${actual}`)
-        }
-
         await reserve.approve(
             pool.address,
             await pool.pool_amounts(0)
