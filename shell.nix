@@ -21,6 +21,7 @@ pkgs.stdenv.mkDerivation {
  name = "shell";
  buildInputs = [
   pkgs.nodejs-14_x
+  pkgs.python3
   local-node
   local-fork
   local-test
