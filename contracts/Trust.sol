@@ -135,6 +135,7 @@ contract Trust is Ownable, Initable {
         // @todo dust is possible here, e.g. if the book ratio is 2 we divide by 3.
         // Either the init will fail and revert.
         // Or there will be a rounding error in the reserve trapped in the trust.
+        // Recommend testing a dry run on local for desired parameters to avoid failed init on prod.
         token.reserve().approve(address(pool), pool.pool_amounts(0));
         pool.init();
 

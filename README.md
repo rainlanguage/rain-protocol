@@ -224,6 +224,15 @@ Anyone can call the "update weights gradually" function on the pool, it is a pub
 
 Ignoring stampedes (many redundant weight updates in the same block) and MEV/front-running (another user positions their trade after the rebalance but before the desired trade), it is always profitable to rebalance the weights if the new spot price is better than the fees of the rebalance. This is because the weights monotonically drift downwards towards the book value floor.
 
+#### Overweight pool
+
+Balancer pools can never exceed a combined weight of `50` as the sum of the weights of the tokens.
+
+This is true even during a single operation so Balancer recommend never setting weights at exactly `50` if they need to change.
+
+We do need them to change according to the reweighting curve so there is a `POOL_HEADROOM` constant (currently `1`).
+We require that the `Trust` bootstraps with combined weights equal to or lower than `BalancerConstants.MAX_WEIGHT - Constants.POOL_HEADROOM`.
+
 ### Impermanent loss && price dumping on TV
 
 Impermanent Loss (IL) is a ubiquitous issue in AMMs to be mitigated or at least discussed.
