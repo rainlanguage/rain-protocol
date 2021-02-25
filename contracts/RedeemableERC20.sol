@@ -109,7 +109,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         // Init can only be called by the owner.
         // Only the owner can send reserve and receive minted tokens.
         // The intent is that the owner will be another smart contract managing the token flows.
-        address mintor = Ownable(this).owner();
+        address mintor = this.owner();
 
         // The reserve allowance MUST be exactly what we are going to take from the owner and lock.
         // There is NEVER any reason for the owner to send more or less reserve than what was configured at construction.
