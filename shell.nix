@@ -16,15 +16,24 @@ let
  local-deploy = pkgs.writeShellScriptBin "local-deploy" ''
   hardhat run --network localhost scripts/deploy.ts
  '';
+
+ security-check = pkgs.writeShellScriptBin "security-check" ''
+ python3 -m venv venv
+ source ./venv/bin/activate
+ pip install slither-analyzer
+ slither .
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
  buildInputs = [
   pkgs.nodejs-14_x
+  pkgs.python3
   local-node
   local-fork
   local-test
   local-deploy
+  security-check
  ];
 
  shellHook = ''
