@@ -19,10 +19,9 @@ import { console } from "hardhat/console.sol";
 // - Focusses on guarding the initializor function (has no modifiers to guard other functions)
 // - Performs nested initialization calls like a constructor would (requires two bits of state instead of one)
 // - Can be called from within a constructor (we want to initialize _after_ constructing)
+//
+// Emits an `Initialized` event upon successful init.
 abstract contract Initable {
-    string constant private ERR_ONLY_INIT = "ERR_ONLY_INIT";
-    string constant private ERR_ONLY_NOT_INIT = "ERR_ONLY_NOT_INIT";
-
     event Initialized();
 
     // The outside world is free to inspect the initialization state.
@@ -35,7 +34,7 @@ abstract contract Initable {
     // All functions that reference finalized initialization state MUST use this modifier.
     modifier onlyInit() {
         console.log("Initable: onlyInit: %s", initialized);
-        require(initialized, ERR_ONLY_INIT);
+        require(initialized, "ERR_ONLY_INIT");
         _;
     }
 
@@ -43,7 +42,7 @@ abstract contract Initable {
     // Functions MAY use this to facilitate initialization then disable themselves.
     modifier onlyNotInit() {
         console.log("Initable: onlyNotInit: %s", initialized);
-        require(!initialized, ERR_ONLY_NOT_INIT);
+        require(!initialized, "ERR_ONLY_NOT_INIT");
         _;
     }
 
@@ -52,7 +51,7 @@ abstract contract Initable {
     // Sets initialized to true after initialization completes without reverting.
     modifier withInit() {
         console.log("Initable: withInit: %s", initialized);
-        require(!initialized, ERR_ONLY_NOT_INIT);
+        require(!initialized, "ERR_ONLY_NOT_INIT");
         _;
         console.log("Initable: initialized");
         initialized = true;

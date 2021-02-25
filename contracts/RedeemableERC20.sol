@@ -43,6 +43,8 @@ import { BlockBlockable } from './libraries/BlockBlockable.sol';
 // The `redeem` function will simply revert if called before the unblock block.
 //
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
+//
+// A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserve_release)`.
 contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
     event Redeem(address _redeemer, uint256 _redeem_amount, uint256 _reserve_release);
@@ -87,8 +89,8 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         console.log("RedeemableERC20: constructor: %s %s", _name, _symbol);
         console.log("RedeemableERC20: constructor: %s %s", _reserve_init, _mint_ratio);
         reserve = _reserve;
-        mint_ratio = _mint_ratio;
         reserve_init = _reserve_init;
+        mint_ratio = _mint_ratio;
     }
 
     // All the stateful stuff is done in init().

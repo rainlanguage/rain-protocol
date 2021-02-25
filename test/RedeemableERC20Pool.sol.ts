@@ -134,7 +134,7 @@ describe("RedeemableERC20Pool", async function() {
 
         let expectedPoolAddress;
         for (let i = 0; expectedPoolAddress = expectedPoolAddresses[i]; i++) {
-            const actualPoolAddress = await pool.pool_addresses(i)
+            const actualPoolAddress = (await pool.pool_addresses())[i]
             assert(
                 actualPoolAddress === expectedPoolAddress,
                 `wrong pool address ${i} ${expectedPoolAddress} ${actualPoolAddress}`
@@ -167,13 +167,6 @@ describe("RedeemableERC20Pool", async function() {
                 `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
             )
         }
-
-        {
-            const expected = ethers.BigNumber.from('1' + '000000' + '000000')
-            const actual = await pool.pool_fee()
-            assert(actual.eq(expected), `wrong pool fee ${expected} ${actual}`)
-        }
-
         await reserve.approve(
             pool.address,
             await pool.pool_amounts(0)
