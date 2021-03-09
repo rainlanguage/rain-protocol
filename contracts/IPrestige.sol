@@ -4,11 +4,10 @@ pragma solidity ^0.7.3;
 
 interface IPrestige {
     enum Status {
-        Common,
-        Uncommon,
-        Rare,
-        Special,
-        Legendary,
+        Copper,
+        Bronze,
+        Silver,
+        Gold,
         Platinum
     }
 

@@ -11,17 +11,21 @@ contract TVKPrestige is IPrestige {
 
     mapping (address => Status) public statuses;
 
-    uint256 public constant common = uint256(0);
-    uint256 public constant uncommon = uint256(10 ** 18);
-    uint256 public constant rare = uint256(20 ** 18);
-    uint256 public constant special = uint256(50 ** 18);
-    uint256 public constant legendary = uint256(100 ** 18);
-    uint256 public constant platinum = uint256(200 ** 18);
+    // Nothing, this is everyone.
+    uint256 public constant copper = uint256(0);
+    // 1000 TVK
+    uint256 public constant bronze = uint256(10 ** (18 + 3));
+    // 5000 TVK
+    uint256 public constant silver = uint256(5 * 10 ** (18 + 3));
+    // 10 000 TVK
+    uint256 public constant gold = uint256(10 ** (18 + 4));
+    // 25 000 TVK
+    uint256 public constant platinum = uint256(25 * 10 ** (18 + 3));
 
     constructor() {}
 
-    function levels() pure public returns (uint256[6] memory) {
-        return [common, uncommon, rare, special, legendary, platinum];
+    function levels() pure public returns (uint256[5] memory) {
+        return [copper, bronze, silver, gold, platinum];
     }
 
     function set_status(address _account, Status _status) external override {
