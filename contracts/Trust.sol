@@ -159,29 +159,14 @@ contract Trust is Ownable, Initable {
 
         uint256 _final_balance = token.reserve().balanceOf(address(this));
 
-        // We hit our minimum raise!
-        // Send the tokens to the owner
-        if (_final_balance >= SafeMath.add(reserve_total, min_raise)) {
-            console.log("Trust: exit minimum reached: final balance: %s", _final_balance);
-            token.reserve().transfer(this.owner(), _final_balance);
+        // We failed to hit the minimum raise :(
+        // Forward proceeds of the sale to the token holders for redemption.
+        if (_final_balance < SafeMath.add(reserve_total, min_raise) && _final_balance > reserve_total) {
+            token.reserve().transfer(address(token), SafeMath.sub(_final_balance, reserve_total));
         }
-        // Failed to reach minimum raise :(
-        // Refund the reserve and roll the rest to token holders.
-        else if (_final_balance >= reserve_total) {
-            console.log("Trust: raise failed: %s %s", _final_balance, reserve_total);
-            token.reserve().transfer(this.owner(), reserve_total);
-            token.reserve().transfer(address(token), token.reserve().balanceOf(address(this)));
-        }
-        // Not only did we fail to reach the minimum raise but we are below the reserve_total.
-        // This can only happen if negligible/zero trading occurs during the distribution.
-        // The balancer weight algorithm guarantees that sales occur for at least the book price
-        // BUT balancer also requires 1/1000000th of the pool tokens locked as dust, which can trigger this condition.
-        // This is an edge case that hopefully normally only occurs during testing.
-        // All we can do is refund the owner to the maximum extent possible.
-        else {
-            console.log("Trust: raise failed + dust lock: %s %s", _final_balance, reserve_total);
-            token.reserve().transfer(this.owner(), token.reserve().balanceOf(address(this)));
-        }
+
+        // Send everything else to the trust owner.
+        token.reserve().transfer(this.owner(), token.reserve().balanceOf(address(this)));
 
         require(token.reserve().balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
     }
