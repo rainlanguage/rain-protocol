@@ -162,6 +162,7 @@ contract Trust is Ownable, Initable {
         // We failed to hit the minimum raise :(
         // Forward proceeds of the sale to the token holders for redemption.
         if (_final_balance < SafeMath.add(reserve_total, min_raise) && _final_balance > reserve_total) {
+            console.log("Trust: exit refunding: %s %s %s", _final_balance, reserve_total, SafeMath.sub(_final_balance, reserve_total));
             token.reserve().transfer(address(token), SafeMath.sub(_final_balance, reserve_total));
         }
 
