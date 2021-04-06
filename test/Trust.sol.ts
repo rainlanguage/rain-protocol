@@ -34,6 +34,7 @@ describe("Trust", async function() {
     const mintRatio = ethers.BigNumber.from('1' + Util.eighteenZeros)
     const bookRatio = ethers.BigNumber.from('2' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    const minRaise = ethers.BigNumber.from('0')
 
     const trust = await trustFactory.deploy(
       crpFactory.address,
@@ -44,7 +45,8 @@ describe("Trust", async function() {
       reserveTotal,
       mintRatio,
       bookRatio,
-      initialValuation
+      initialValuation,
+      minRaise,
     )
 
     await trust.deployed()
