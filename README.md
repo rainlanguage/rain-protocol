@@ -202,6 +202,8 @@ The Trust contract has a minimum raise parameter (can be zero).
 
 When the Trust contract `exit` is called the total reserve asset in the pool after redeeming any excees tokens is compared to the initial reserve total across both the pool and the tokens.
 
+The Trust contract `exit` is public and can be called by anyone, this is to stop the Trust owner holding the overall process hostage in the case of a failed raise (blocking end-users getting their refunds). Internally this delegates to the pool's `exit` function which can only be called by the owner (the Trust) and after the unblock block, so it cannot be called early even though it is public.
+
 If the difference before and after the distribution period is less than the minimum then the Trust owner will be refunded their initial reserve and the remainder will be forwarded to the redemption token reserve.
 
 This means the Trust owner will either meet their minimum raise or be refunded in full, minus gas and dust.
