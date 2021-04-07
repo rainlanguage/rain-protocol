@@ -107,7 +107,6 @@ describe("Trust", async function() {
           ethers.BigNumber.from('1'),
           ethers.BigNumber.from('1000000' + Util.eighteenZeros)
         )
-        console.log('foo')
         i++
       }
 
@@ -170,6 +169,20 @@ describe("Trust", async function() {
         reserveBalance1
       ),
       'wrong balance 1 after redemption: ' + reserveBalance1
+    )
+
+    const token2 = new ethers.Contract(
+      (await trust.token()),
+      redeemableTokenJson.abi,
+      signers[2]
+    )
+    await token2.redeem(await token2.balanceOf(signers[2].address))
+    const reserveBalance2 = await reserve.balanceOf(signers[2].address)
+    assert(
+      ethers.BigNumber.from('9210150624866932101').eq(
+        reserveBalance2
+      ),
+      'wrong balance 2 after redemption: ' + reserveBalance2
     )
   })
 
