@@ -185,7 +185,7 @@ __There have been NO simulations designed or run.__
 The details documented here:
 
 - Are based on a pre-audit code implementation
-- Have low-medium automated test coverage that demonstrates basic mechanics non-exhuastively
+- Have low-medium automated test coverage that demonstrates basic mechanics non-exhaustively
 - Are subject to change in the face of a security challenge, deployment blocker or other Good Idea
 
 ### Iterative value locked and accrued
@@ -200,7 +200,7 @@ The bootstrap-distribute-redeem-reboot lifecycle provides a natural safety net a
 
 The Trust contract has a minimum raise parameter (can be zero).
 
-When the Trust contract `exit` is called the total reserve asset in the pool after redeeming any excees tokens is compared to the initial reserve total across both the pool and the tokens.
+When the Trust contract `exit` is called the total reserve asset in the pool after redeeming any excess tokens is compared to the initial reserve total across both the pool and the tokens.
 
 The Trust contract `exit` is public and can be called by anyone, this is to stop the Trust owner holding the overall process hostage in the case of a failed raise (blocking end-users getting their refunds). Internally this delegates to the pool's `exit` function which can only be called by the owner (the Trust) and after the unblock block, so it cannot be called early even though it is public.
 
@@ -208,9 +208,9 @@ If the difference before and after the distribution period is less than the mini
 
 This means the Trust owner will either meet their minimum raise or be refunded in full, minus gas and dust.
 
-The token holders will receive 100% of the funds raised (above the reserve) during the sale __in aggregate if it fails__.
+Token holders can then use the existing redemption mechanism to receive their refund from the token reserve, which now contains 100% of the funds raised above the pool reserve. Token redemption is always pro-rata, so refunds are __in aggregate if the raise fails__.
 
-The token refund is pro-rata, so users that paid above average for their tokens will receive less of the refund and users who paid below average will receive more of the refund. It is possible for users to make a profit in the case of a failed raise if they buy when the price is low. We don't want to base our incentives around the case of a failed raise, but it is a real incentive to be patient and buy when the price is lower than average.
+Users that paid above average for their tokens will receive less of the refund and users who paid below average will receive more of the refund. It is possible for users to make a profit in the case of a failed raise if they buy when the price is low. We don't want to base our incentives around the case of a failed raise, but it is a real incentive to be patient and buy when the price is lower than average.
 
 If the raise is successful then __all the proceeds go to the Trust owner__. The token holders are entitled to the rewards + book value of the token that was backed by the owner at the start of the raise. It is expected that the Trust owner will use the proceeds of the sale to cover costs of producing the rewards for token holders, plus some reasonable margin.
 
