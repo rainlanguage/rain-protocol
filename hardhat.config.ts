@@ -3,9 +3,17 @@ import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 const config: HardhatUserConfig = {
   networks: {
+    /*
     hardhat: {
       blockGasLimit: 100000000,
       allowUnlimitedContractSize: true,
+    }
+  }, */
+  hardhat: {
+      forking: {
+        url: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
+        blockNumber: 12206000
+      }
     }
   },
   solidity: {
