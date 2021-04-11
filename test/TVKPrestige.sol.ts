@@ -32,7 +32,7 @@ describe("Levels", async function(){
     const silver = ethers.BigNumber.from('5000' + eighteenZeros)
     const gold = ethers.BigNumber.from('10000' + eighteenZeros)
     const platinum = ethers.BigNumber.from('25000' + eighteenZeros)
-    const diamond = ethers.BigNumber.from('1000000' + eighteenZeros)
+    const diamond = ethers.BigNumber.from('100000' + eighteenZeros)
 
     expect(levels[0]).to.equal(copper);
     expect(levels[1]).to.equal(bronze);

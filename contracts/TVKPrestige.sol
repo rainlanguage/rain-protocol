@@ -21,8 +21,8 @@ contract TVKPrestige is IPrestige {
     uint256 public constant gold = uint256(10 ** (18 + 4));
     // 25 000 TVK
     uint256 public constant platinum = uint256(25 * 10 ** (18 + 3));
-    // 1 000 000 TVK
-    uint256 public constant diamond = uint256(10 ** (18 + 6));
+    // 100 000 TVK
+    uint256 public constant diamond = uint256(10 ** (18 + 5));
 
     constructor() {}
 
