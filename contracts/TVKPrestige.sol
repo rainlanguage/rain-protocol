@@ -47,9 +47,8 @@ contract TVKPrestige is IPrestige {
             ));
         }
 
-        statuses[_account] = _status;
-
         emit StatusChange(_account, this.status(_account), _status);
+        statuses[_account] = _status;
     }
 
     function status(address _account) external override view returns (Status) {
