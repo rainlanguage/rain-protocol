@@ -120,7 +120,7 @@ describe("Account status", async function(){
     // change the status to silver and check if event emitted
     await expect(tvkPrestige.set_status(address, 2))
     .to.emit(tvkPrestige, 'StatusChange')
-    .withArgs(address, 2, 2)
+    .withArgs(address, 0, 2)
 
     // check with the contract
     const status = await tvkPrestige.status(address)
@@ -183,12 +183,12 @@ describe("Account status", async function(){
     // change the platinum to bronze and check if event emitted
     await expect(tvkPrestige.set_status(address, 4))
     .to.emit(tvkPrestige, 'StatusChange')
-    .withArgs(address, 4, 4)
+    .withArgs(address, 0, 4)
 
     // change the status to bronze and check if event emitted
     await expect(tvkPrestige.set_status(address, 1))
     .to.emit(tvkPrestige, 'StatusChange')
-    .withArgs(address, 1, 1)
+    .withArgs(address, 4, 1)
 
     // check with the contract
     const status = await tvkPrestige.status(address)
