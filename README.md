@@ -185,7 +185,7 @@ __There have been NO simulations designed or run.__
 The details documented here:
 
 - Are based on a pre-audit code implementation
-- Have low-medium automated test coverage that demonstrates basic mechanics non-exhuastively
+- Have low-medium automated test coverage that demonstrates basic mechanics non-exhaustively
 - Are subject to change in the face of a security challenge, deployment blocker or other Good Idea
 
 ### Iterative value locked and accrued
@@ -195,6 +195,30 @@ The intent is to deploy many iterations of this code, each with a relatively sma
 Each iteration has a fixed point after which all tokens are frozen and (barring some critical bug) pro-rata redeemable for at least the value of the underlying reserve asset.
 
 The bootstrap-distribute-redeem-reboot lifecycle provides a natural safety net against exploits and entry point for future functionality without an ever-growing honey pot to secure behind a single code deploy.
+
+### Minimum raise threshold
+
+The Trust contract has a minimum raise parameter (can be zero).
+
+When the Trust contract `exit` is called the total reserve asset in the pool after redeeming any excess tokens is compared to the initial reserve total across both the pool and the tokens.
+
+The Trust contract `exit` is public and can be called by anyone, this is to stop the Trust owner holding the overall process hostage in the case of a failed raise (blocking end-users getting their refunds). Internally this delegates to the pool's `exit` function which can only be called by the owner (the Trust) and after the unblock block, so it cannot be called early even though it is public.
+
+If the difference before and after the distribution period is less than the minimum then the Trust owner will be refunded their initial reserve and the remainder will be forwarded to the redemption token reserve.
+
+This means the Trust owner will either meet their minimum raise or be refunded in full, minus gas and dust.
+
+Token holders can then use the existing redemption mechanism to receive their refund from the token reserve, which now contains 100% of the funds raised above the pool reserve. Token redemption is always pro-rata, so refunds are __in aggregate if the raise fails__.
+
+Users that paid above average for their tokens will receive less of the refund and users who paid below average will receive more of the refund. It is possible for users to make a profit in the case of a failed raise if they buy when the price is low. We don't want to base our incentives around the case of a failed raise, but it is a real incentive to be patient and buy when the price is lower than average.
+
+If the raise is successful then __all the proceeds go to the Trust owner__. The token holders are entitled to the rewards + book value of the token that was backed by the owner at the start of the raise. It is expected that the Trust owner will use the proceeds of the sale to cover costs of producing the rewards for token holders, plus some reasonable margin.
+
+Other than gas and dust it is not possible that the Trust owner loses their initial depost. In the absolute worst case scenario, where nobody buys any tokens at all, or equivalently tokens are purchased and subsequently 100% of tokens are dumped back in to the AMM, the final weight in the balancer pool sets a spot price equal to the book value of the tokens.
+
+If 100% of the total supply of the minted tokens at the final (lowest) balancer weight gives a spot price equal to the book price then the reserve tokens in the AMM pool + redemption of unsold tokens is always equal to or greater than the initial reserve across the pool and token redemption reserve.
+
+This is because the lowest possible spot price offered by the AMM moves exactly the book price from the sold tokens into the AMM pool 1:1. All other prices offered by the AMM move more than the book price into the AMM pool.
 
 ### Stuck AMM
 

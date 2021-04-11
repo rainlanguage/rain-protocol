@@ -74,6 +74,7 @@ contract Trust is Ownable, Initable {
     uint256 book_ratio;
     uint256 reserve_total;
     uint256 initial_pool_valuation;
+    uint256 min_raise;
 
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
@@ -93,13 +94,17 @@ contract Trust is Ownable, Initable {
         uint256 _book_ratio,
         // initial marketcap of the token according to the balancer pool denominated in reserve token
         // e.g. $1 000 000 USDC for a spot price of $5 with 200 000 tokens backed by $100 000 redeem and $50 000 pool
-        uint256 _initial_pool_valuation
+        uint256 _initial_pool_valuation,
+        // minimum amount to raise from the distribution period.
+        // this is only relevant to the exit function, determines whether the raise is sent to the owner or rolled to token holders.
+        uint256 _min_raise
     ) public {
         crp_factory = _crp_factory;
         balancer_factory = _balancer_factory;
         book_ratio = _book_ratio;
         reserve_total = _reserve_total;
         initial_pool_valuation = _initial_pool_valuation;
+        min_raise = _min_raise;
 
         console.log("Trust: constructor: reserve_total: %s", _reserve_total);
         uint256 _token_reserve = SafeMath.div(
@@ -145,8 +150,25 @@ contract Trust is Ownable, Initable {
         token.addUnfreezable(address(pool));
     }
 
-    function exit() public onlyOwner onlyInit {
+    // This function can be called by anyone!
+    // It defers to the pool exit function (which is owned by the trust and has block blocking).
+    // If the minimum raise is reached then the trust owner receives the raise.
+    // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
+    function exit() public onlyInit {
         pool.exit();
+
+        uint256 _final_balance = token.reserve().balanceOf(address(this));
+
+        // We failed to hit the minimum raise :(
+        // Forward proceeds of the sale to the token holders for redemption.
+        if (_final_balance < SafeMath.add(reserve_total, min_raise) && _final_balance > reserve_total) {
+            console.log("Trust: exit refunding: %s %s %s", _final_balance, reserve_total, SafeMath.sub(_final_balance, reserve_total));
+            token.reserve().transfer(address(token), SafeMath.sub(_final_balance, reserve_total));
+        }
+
+        // Send everything else to the trust owner.
         token.reserve().transfer(this.owner(), token.reserve().balanceOf(address(this)));
+
+        require(token.reserve().balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
     }
 }
