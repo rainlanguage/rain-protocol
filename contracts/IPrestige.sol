@@ -12,9 +12,9 @@ interface IPrestige {
         Diamond
     }
 
-    event StatusChange(address _address, Status _old, Status _new);
+    event StatusChange(address _address, Status[2] _change);
 
-    function set_status(address _account, Status _status) external;
+    function set_status(address _account, Status _new_status) external;
 
-    function status(address account) external view returns (Status);
+    function status(address account) external view returns (uint256 _start_block, Status _current_status);
 }
