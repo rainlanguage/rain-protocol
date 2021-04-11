@@ -181,7 +181,7 @@ describe("Account status", async function(){
     // get balance of TVK
     const balance = await tvkToken.balanceOf(address)
 
-    // change the platinum to bronze and check if event emitted
+    // change the status to platinum and check if event emitted
     await expect(tvkPrestige.set_status(address, 4))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, 0, 4)
@@ -284,6 +284,6 @@ describe("Account status", async function(){
     await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
 
 
-    await expect(tvkPrestige.set_status(address, 6)).to.be.reverted
+    await expect(tvkPrestige.set_status(address, 7)).to.be.reverted
   })
 });
