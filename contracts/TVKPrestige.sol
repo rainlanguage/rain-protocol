@@ -30,8 +30,18 @@ contract TVKPrestige is IPrestige {
         return [copper, bronze, silver, gold, platinum, diamond];
     }
 
-    function set_status(address _account, Status _new_status) external override {
-        (uint256 _start_block, Status _current_status) = this.status(_account);
+    function status(address _account) public override view returns (uint256 _start_block, Status _current_status) {
+        uint256 _encoded_status = statuses[_account];
+        _start_block = _encoded_status >> 128;
+        // Uninitialized status is the current block.
+        if (_start_block == 0) {
+            _start_block = block.number;
+        }
+        _current_status = Status(uint128(statuses[_account]));
+    }
+
+    function set_status(address _account, Status _new_status) public override {
+        (uint256 _start_block, Status _current_status) = status(_account);
         uint256 _current = levels()[uint(_current_status)];
         // Status enum casts to level index.
         uint256 _new_limit = levels()[uint(_new_status)];
@@ -60,15 +70,5 @@ contract TVKPrestige is IPrestige {
         emit StatusChange(_account, [_current_status, _new_status]);
 
         statuses[_account] = uint256(uint128(_start_block) << 128 | uint128(uint8(_new_status)));
-    }
-
-    function status(address _account) external override view returns (uint256 _start_block, Status _current_status) {
-        uint256 _encoded_status = statuses[_account];
-        _start_block = _encoded_status >> 128;
-        // Uninitialized status is the current block.
-        if (_start_block == 0) {
-            _start_block = block.number;
-        }
-        _current_status = Status(uint128(statuses[_account]));
     }
 }
