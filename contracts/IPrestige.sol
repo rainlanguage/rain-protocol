@@ -8,7 +8,8 @@ interface IPrestige {
         Bronze,
         Silver,
         Gold,
-        Platinum
+        Platinum,
+        Diamond
     }
 
     event StatusChange(address _address, Status _old, Status _new);

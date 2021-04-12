@@ -21,11 +21,13 @@ contract TVKPrestige is IPrestige {
     uint256 public constant gold = uint256(10 ** (18 + 4));
     // 25 000 TVK
     uint256 public constant platinum = uint256(25 * 10 ** (18 + 3));
+    // 100 000 TVK
+    uint256 public constant diamond = uint256(10 ** (18 + 5));
 
     constructor() {}
 
-    function levels() pure public returns (uint256[5] memory) {
-        return [copper, bronze, silver, gold, platinum];
+    function levels() pure public returns (uint256[6] memory) {
+        return [copper, bronze, silver, gold, platinum, diamond];
     }
 
     function set_status(address _account, Status _status) external override {

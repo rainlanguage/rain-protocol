@@ -32,13 +32,14 @@ describe("Levels", async function(){
     const silver = ethers.BigNumber.from('5000' + eighteenZeros)
     const gold = ethers.BigNumber.from('10000' + eighteenZeros)
     const platinum = ethers.BigNumber.from('25000' + eighteenZeros)
+    const diamond = ethers.BigNumber.from('100000' + eighteenZeros)
 
     expect(levels[0]).to.equal(copper);
     expect(levels[1]).to.equal(bronze);
     expect(levels[2]).to.equal(silver);
     expect(levels[3]).to.equal(gold);
     expect(levels[4]).to.equal(platinum);
-
+    expect(levels[5]).to.equal(diamond);
   });
 });
 
@@ -180,7 +181,7 @@ describe("Account status", async function(){
     // get balance of TVK
     const balance = await tvkToken.balanceOf(address)
 
-    // change the platinum to bronze and check if event emitted
+    // change the status to platinum and check if event emitted
     await expect(tvkPrestige.set_status(address, 4))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, 0, 4)
@@ -283,6 +284,6 @@ describe("Account status", async function(){
     await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
 
 
-    await expect(tvkPrestige.set_status(address, 6)).to.be.reverted
+    await expect(tvkPrestige.set_status(address, 7)).to.be.reverted
   })
 });
