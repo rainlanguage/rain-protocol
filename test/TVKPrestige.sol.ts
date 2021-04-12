@@ -303,6 +303,6 @@ describe("Account status", async function(){
     await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
 
 
-    await expect(tvkPrestige.set_status(address, 6, [])).to.be.reverted
+    await expect(tvkPrestige.set_status(address, 7, [])).to.be.reverted
   })
 });
