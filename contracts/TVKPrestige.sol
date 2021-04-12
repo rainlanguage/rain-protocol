@@ -9,7 +9,7 @@ import "./IPrestige.sol";
 contract TVKPrestige is IPrestige {
     IERC20 public constant tvk = IERC20(0xd084B83C305daFD76AE3E1b4E1F1fe2eCcCb3988);
 
-    mapping (address => Status) public statuses;
+    mapping (address => uint256) public statuses;
 
     // Nothing, this is everyone.
     uint256 public constant copper = uint256(0);
@@ -30,30 +30,49 @@ contract TVKPrestige is IPrestige {
         return [copper, bronze, silver, gold, platinum, diamond];
     }
 
-    function set_status(address _account, Status _status) external override {
-        uint256 _current = levels()[uint256(this.status(_account))];
-        // Status enum casts to level index.
-        uint256 _new_limit = levels()[uint256(_status)];
+    function _status(address account) private view returns (uint256 start_block, Status current_status) {
+        uint256 _encoded_status = statuses[account];
+        start_block = _encoded_status >> 128;
+        // Uninitialized status is the current block.
+        if (start_block == 0) {
+            start_block = block.number;
+        }
+        current_status = Status(uint128(statuses[account]));
+    }
 
-        // Going up, take ownership of TVK.
-        if (_new_limit >= _current) {
-            tvk.transferFrom(_account, address(this), SafeMath.sub(
-                _new_limit,
-                _current
+    function status(address account) external override view returns (uint256 start_block, Status current_status) {
+        return _status(account);
+    }
+
+    function set_status(address account, Status new_status, bytes memory) external override {
+        (uint256 start_block, Status current_status) = _status(account);
+        uint256 _current_tvk = levels()[uint(current_status)];
+        // Status enum casts to level index.
+        uint256 _new_tvk = levels()[uint(new_status)];
+
+        if (_new_tvk >= _current_tvk) {
+            // Initialize _start_block if needed.
+            // Otherwise preserve it for upgrading members.
+            if (start_block == 0) {
+                start_block = block.number;
+            }
+            // Going up, take ownership of TVK.
+            tvk.transferFrom(account, address(this), SafeMath.sub(
+                _new_tvk,
+                _current_tvk
             ));
-        // Going down, process a refund.
         } else {
-            tvk.transfer(_account, SafeMath.sub(
-                _current,
-                _new_limit
+            // Reset _start_block.
+            start_block = block.number;
+            // Going down, process a refund.
+            tvk.transfer(account, SafeMath.sub(
+                _current_tvk,
+                _new_tvk
             ));
         }
 
-        emit StatusChange(_account, this.status(_account), _status);
-        statuses[_account] = _status;
-    }
+        emit StatusChange(account, [current_status, new_status]);
 
-    function status(address _account) external override view returns (Status) {
-        return statuses[_account];
+        statuses[account] = uint256(uint128(start_block) << 128 | uint128(uint8(new_status)));
     }
 }

@@ -27,7 +27,7 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
     "gold()": FunctionFragment;
     "levels()": FunctionFragment;
     "platinum()": FunctionFragment;
-    "set_status(address,uint8)": FunctionFragment;
+    "set_status(address,uint8,bytes)": FunctionFragment;
     "silver()": FunctionFragment;
     "status(address)": FunctionFragment;
     "statuses(address)": FunctionFragment;
@@ -42,7 +42,7 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "platinum", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "set_status",
-    values: [string, BigNumberish]
+    values: [string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "silver", values?: undefined): string;
   encodeFunctionData(functionFragment: "status", values: [string]): string;
@@ -62,7 +62,7 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "tvk", data: BytesLike): Result;
 
   events: {
-    "StatusChange(address,uint8,uint8)": EventFragment;
+    "StatusChange(address,uint8[2])": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "StatusChange"): EventFragment;
@@ -145,14 +145,16 @@ export class TVKPrestige extends Contract {
     "platinum()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     set_status(
-      _account: string,
-      _status: BigNumberish,
+      account: string,
+      new_status: BigNumberish,
+      arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "set_status(address,uint8)"(
-      _account: string,
-      _status: BigNumberish,
+    "set_status(address,uint8,bytes)"(
+      account: string,
+      new_status: BigNumberish,
+      arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -160,19 +162,26 @@ export class TVKPrestige extends Contract {
 
     "silver()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    status(_account: string, overrides?: CallOverrides): Promise<[number]>;
+    status(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, number] & { start_block: BigNumber; current_status: number }
+    >;
 
     "status(address)"(
-      _account: string,
+      account: string,
       overrides?: CallOverrides
-    ): Promise<[number]>;
+    ): Promise<
+      [BigNumber, number] & { start_block: BigNumber; current_status: number }
+    >;
 
-    statuses(arg0: string, overrides?: CallOverrides): Promise<[number]>;
+    statuses(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "statuses(address)"(
       arg0: string,
       overrides?: CallOverrides
-    ): Promise<[number]>;
+    ): Promise<[BigNumber]>;
 
     tvk(overrides?: CallOverrides): Promise<[string]>;
 
@@ -212,14 +221,16 @@ export class TVKPrestige extends Contract {
   "platinum()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   set_status(
-    _account: string,
-    _status: BigNumberish,
+    account: string,
+    new_status: BigNumberish,
+    arg2: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "set_status(address,uint8)"(
-    _account: string,
-    _status: BigNumberish,
+  "set_status(address,uint8,bytes)"(
+    account: string,
+    new_status: BigNumberish,
+    arg2: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -227,16 +238,26 @@ export class TVKPrestige extends Contract {
 
   "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  status(_account: string, overrides?: CallOverrides): Promise<number>;
+  status(
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, number] & { start_block: BigNumber; current_status: number }
+  >;
 
   "status(address)"(
-    _account: string,
+    account: string,
     overrides?: CallOverrides
-  ): Promise<number>;
+  ): Promise<
+    [BigNumber, number] & { start_block: BigNumber; current_status: number }
+  >;
 
-  statuses(arg0: string, overrides?: CallOverrides): Promise<number>;
+  statuses(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  "statuses(address)"(arg0: string, overrides?: CallOverrides): Promise<number>;
+  "statuses(address)"(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   tvk(overrides?: CallOverrides): Promise<string>;
 
@@ -276,14 +297,16 @@ export class TVKPrestige extends Contract {
     "platinum()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     set_status(
-      _account: string,
-      _status: BigNumberish,
+      account: string,
+      new_status: BigNumberish,
+      arg2: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "set_status(address,uint8)"(
-      _account: string,
-      _status: BigNumberish,
+    "set_status(address,uint8,bytes)"(
+      account: string,
+      new_status: BigNumberish,
+      arg2: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -291,19 +314,26 @@ export class TVKPrestige extends Contract {
 
     "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    status(_account: string, overrides?: CallOverrides): Promise<number>;
+    status(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, number] & { start_block: BigNumber; current_status: number }
+    >;
 
     "status(address)"(
-      _account: string,
+      account: string,
       overrides?: CallOverrides
-    ): Promise<number>;
+    ): Promise<
+      [BigNumber, number] & { start_block: BigNumber; current_status: number }
+    >;
 
-    statuses(arg0: string, overrides?: CallOverrides): Promise<number>;
+    statuses(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "statuses(address)"(
       arg0: string,
       overrides?: CallOverrides
-    ): Promise<number>;
+    ): Promise<BigNumber>;
 
     tvk(overrides?: CallOverrides): Promise<string>;
 
@@ -312,12 +342,11 @@ export class TVKPrestige extends Contract {
 
   filters: {
     StatusChange(
-      _address: null,
-      _old: null,
-      _new: null
+      account: null,
+      change: null
     ): TypedEventFilter<
-      [string, number, number],
-      { _address: string; _old: number; _new: number }
+      [string, [number, number]],
+      { account: string; change: [number, number] }
     >;
   };
 
@@ -347,14 +376,16 @@ export class TVKPrestige extends Contract {
     "platinum()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     set_status(
-      _account: string,
-      _status: BigNumberish,
+      account: string,
+      new_status: BigNumberish,
+      arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "set_status(address,uint8)"(
-      _account: string,
-      _status: BigNumberish,
+    "set_status(address,uint8,bytes)"(
+      account: string,
+      new_status: BigNumberish,
+      arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -362,10 +393,10 @@ export class TVKPrestige extends Contract {
 
     "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    status(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+    status(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "status(address)"(
-      _account: string,
+      account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -407,14 +438,16 @@ export class TVKPrestige extends Contract {
     "platinum()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     set_status(
-      _account: string,
-      _status: BigNumberish,
+      account: string,
+      new_status: BigNumberish,
+      arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "set_status(address,uint8)"(
-      _account: string,
-      _status: BigNumberish,
+    "set_status(address,uint8,bytes)"(
+      account: string,
+      new_status: BigNumberish,
+      arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -423,12 +456,12 @@ export class TVKPrestige extends Contract {
     "silver()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     status(
-      _account: string,
+      account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "status(address)"(
-      _account: string,
+      account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
