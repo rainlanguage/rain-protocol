@@ -23,20 +23,14 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "_address",
+        name: "account",
         type: "address",
       },
       {
         indexed: false,
-        internalType: "enum IPrestige.Status",
-        name: "_old",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "enum IPrestige.Status",
-        name: "_new",
-        type: "uint8",
+        internalType: "enum IPrestige.Status[2]",
+        name: "change",
+        type: "uint8[2]",
       },
     ],
     name: "StatusChange",
@@ -46,13 +40,18 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_account",
+        name: "account",
         type: "address",
       },
       {
         internalType: "enum IPrestige.Status",
-        name: "_status",
+        name: "new_status",
         type: "uint8",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
       },
     ],
     name: "set_status",
@@ -71,8 +70,13 @@ const _abi = [
     name: "status",
     outputs: [
       {
+        internalType: "uint256",
+        name: "start_block",
+        type: "uint256",
+      },
+      {
         internalType: "enum IPrestige.Status",
-        name: "",
+        name: "current_status",
         type: "uint8",
       },
     ],
