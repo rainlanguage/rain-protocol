@@ -23,56 +23,79 @@ contract TVKPrestige is IPrestige {
     uint256 public constant platinum = uint256(25 * 10 ** (18 + 3));
     // 100 000 TVK
     uint256 public constant diamond = uint256(10 ** (18 + 5));
+    // 250 000 TVK
+    uint256 public constant chad = uint256(25 * 10 ** (18 + 4));
+    // 1 000 000 TVK
+    uint256 public constant jawad = uint256(10 ** (18 + 6));
 
     constructor() {}
 
-    function levels() pure public returns (uint256[6] memory) {
-        return [copper, bronze, silver, gold, platinum, diamond];
+    function levels() pure public returns (uint256[8] memory) {
+        return [copper, bronze, silver, gold, platinum, diamond, chad, jawad];
     }
 
-    function _status(address account) private view returns (uint256 start_block, Status current_status) {
-        uint256 _encoded_status = statuses[account];
-        start_block = _encoded_status >> 128;
-        // Uninitialized status is the current block.
-        if (start_block == 0) {
-            start_block = block.number;
-        }
-        current_status = Status(uint128(statuses[account]));
+    function _status_report(address account) private view returns (uint256) {
+        return statuses[account];
     }
 
-    function status(address account) external override view returns (uint256 start_block, Status current_status) {
-        return _status(account);
+    function status_report(address account) external override view returns (uint256) {
+        return _status_report(account);
     }
 
     function set_status(address account, Status new_status, bytes memory) external override {
-        (uint256 start_block, Status current_status) = _status(account);
-        uint256 _current_tvk = levels()[uint(current_status)];
+        uint256 _report = _status_report(account);
+
+        uint current_status = 0;
+        for (uint i=0; i<8; i++) {
+            uint32 _ith_status_start = uint32(uint256(_report >> (i * 32)));
+            if (_ith_status_start > 0) {
+                current_status = i;
+            }
+            else {
+                break;
+            }
+        }
+
+        uint256 _current_tvk = levels()[current_status];
         // Status enum casts to level index.
         uint256 _new_tvk = levels()[uint(new_status)];
 
         if (_new_tvk >= _current_tvk) {
-            // Initialize _start_block if needed.
-            // Otherwise preserve it for upgrading members.
-            if (start_block == 0) {
-                start_block = block.number;
-            }
             // Going up, take ownership of TVK.
             tvk.transferFrom(account, address(this), SafeMath.sub(
                 _new_tvk,
                 _current_tvk
             ));
+
+            for (uint i=0; i<8; i++) {
+                // Zero everything above the current status.
+                if (i>current_status) {
+                    uint32 _offset = uint32(i * 32);
+                    uint256 _mask = uint256(0xffffffff) << _offset;
+                    _report = _report & ~_mask;
+
+                    // Anything up to new status needs a new block number.
+                    if (i<=uint(new_status)) {
+                        _report = _report | uint256(uint32(block.number) << _offset);
+                    }
+                }
+            }
         } else {
-            // Reset _start_block.
-            start_block = block.number;
             // Going down, process a refund.
             tvk.transfer(account, SafeMath.sub(
                 _current_tvk,
                 _new_tvk
             ));
+
+            // Zero out everything above the new status.
+            uint256 _mask = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
+            uint256 _offset = (uint(new_status) + 1) * 32;
+            _mask = (_mask >> _offset) << _offset;
+            _report = _report & ~_mask;
         }
 
-        emit StatusChange(account, [current_status, new_status]);
+        emit StatusChange(account, [Status(current_status), new_status]);
 
-        statuses[account] = uint256(uint128(start_block) << 128 | uint128(uint8(new_status)));
+        statuses[account] = _report;
     }
 }
