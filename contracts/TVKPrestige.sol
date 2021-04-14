@@ -4,9 +4,12 @@ pragma solidity ^0.7.3;
 
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import "./IPrestige.sol";
 
+
 contract TVKPrestige is IPrestige {
+    using SafeERC20 for IERC20;
     IERC20 public constant tvk = IERC20(0xd084B83C305daFD76AE3E1b4E1F1fe2eCcCb3988);
 
     mapping (address => uint256) public statuses;
@@ -42,12 +45,26 @@ contract TVKPrestige is IPrestige {
         return _status_report(account);
     }
 
-    function set_status(address account, Status new_status, bytes memory) external override {
+    function status_block (address account) external view returns (uint32) {
+        uint256 _report = _status_report(account);
+
+        uint32 current_status = 0;
+        for (uint i=0; i<8; i++) {
+            uint32 _ith_status_start = uint32(uint256(_report >> (i * 32)));
+            if (_ith_status_start > 0) {
+                current_status = _ith_status_start;
+            }
+        }
+        return current_status;
+    }
+
+    function set_status(address account, Status new_status, bytes memory) external override{
         uint256 _report = _status_report(account);
 
         uint current_status = 0;
         for (uint i=0; i<8; i++) {
             uint32 _ith_status_start = uint32(uint256(_report >> (i * 32)));
+
             if (_ith_status_start > 0) {
                 current_status = i;
             }
@@ -61,8 +78,8 @@ contract TVKPrestige is IPrestige {
         uint256 _new_tvk = levels()[uint(new_status)];
 
         if (_new_tvk >= _current_tvk) {
-            // Going up, take ownership of TVK.
-            tvk.transferFrom(account, address(this), SafeMath.sub(
+            //Going up, take ownership of TVK.
+            tvk.safeTransferFrom(account, address(this), SafeMath.sub(
                 _new_tvk,
                 _current_tvk
             ));
@@ -73,16 +90,16 @@ contract TVKPrestige is IPrestige {
                     uint32 _offset = uint32(i * 32);
                     uint256 _mask = uint256(0xffffffff) << _offset;
                     _report = _report & ~_mask;
-
                     // Anything up to new status needs a new block number.
                     if (i<=uint(new_status)) {
                         _report = _report | uint256(uint32(block.number) << _offset);
                     }
                 }
             }
+            //return _report;
         } else {
-            // Going down, process a refund.
-            tvk.transfer(account, SafeMath.sub(
+            //Going down, process a refund.
+            tvk.safeTransfer(account, SafeMath.sub(
                 _current_tvk,
                 _new_tvk
             ));
@@ -93,7 +110,7 @@ contract TVKPrestige is IPrestige {
             _mask = (_mask >> _offset) << _offset;
             _report = _report & ~_mask;
         }
-
+        
         emit StatusChange(account, [Status(current_status), new_status]);
 
         statuses[account] = _report;

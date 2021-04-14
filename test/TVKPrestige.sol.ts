@@ -33,6 +33,9 @@ describe("Levels", async function(){
     const gold = ethers.BigNumber.from('10000' + eighteenZeros)
     const platinum = ethers.BigNumber.from('25000' + eighteenZeros)
     const diamond = ethers.BigNumber.from('100000' + eighteenZeros)
+    const chad = ethers.BigNumber.from('250000' + eighteenZeros)
+    const jawad = ethers.BigNumber.from('1000000' + eighteenZeros)
+    
 
     expect(levels[0]).to.equal(copper);
     expect(levels[1]).to.equal(bronze);
@@ -40,6 +43,8 @@ describe("Levels", async function(){
     expect(levels[3]).to.equal(gold);
     expect(levels[4]).to.equal(platinum);
     expect(levels[5]).to.equal(diamond);
+    expect(levels[6]).to.equal(chad);
+    expect(levels[7]).to.equal(jawad);
   });
 });
 
@@ -67,9 +72,9 @@ describe("Account status", async function(){
     await tvkPrestige.deployed()
 
     // no status yet, so status should be copper = 0
-    const status = await tvkPrestige.status(signers[0].address);
-    assert(status[0].eq(await tvkPrestige.provider.getBlockNumber()))
-    assert(status[1] === 0)
+    const status = await tvkPrestige.status_block(signers[0].address);
+    //assert(status.eq(await tvkPrestige.provider.getBlockNumber()));
+    assert(Number(status) === 0)
   });
 
   it("will take ownership of the correct amount of TVK when the new status is higher, and emit the correct event", async function(){
@@ -120,14 +125,17 @@ describe("Account status", async function(){
     const balance = await tvkToken.balanceOf(address)
 
     // change the status to silver and check if event emitted
+    // status = await tvkPrestige.set_status(address, 2, []);
     await expect(tvkPrestige.set_status(address, 2, []))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, [0, 2])
 
     // check with the contract
-    const status = await tvkPrestige.status(address)
-    assert(status[0].eq(await tvkPrestige.provider.getBlockNumber()))
-    assert(status[1] === 2, 'status not updated successfully')
+    const status = await tvkPrestige.status_block(address);
+    assert(Number(status) === 2);
+    // const status = await tvkPrestige.status(address)
+    // assert(status[0].eq(await tvkPrestige.provider.getBlockNumber()))
+    // assert(status[1] === 2, 'status not updated successfully')
 
     // new balance should be old balance less amount for silver
     const levels = await tvkPrestige.levels()
