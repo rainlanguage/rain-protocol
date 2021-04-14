@@ -4,6 +4,7 @@ pragma solidity ^0.6.0;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -57,6 +58,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
     // This is the reserve token.
     // It is openly visible to the world so people can verify the reserve token has value.
+    using SafeERC20 for IERC20;
     IERC20 public reserve;
 
     // The starting reserve balance.
@@ -117,7 +119,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         // There is NEVER any reason for the owner to send more or less reserve than what was configured at construction.
         console.log("RedeemableERC20: Reserve: %s from %s", reserve_init, mintor);
         require(IERC20(reserve).allowance(mintor, address(this)) == reserve_init, "ERR_ALLOWANCE_RESERVE");
-        bool xfer = IERC20(reserve).transferFrom(mintor, address(this), reserve_init);
+        bool xfer = IERC20(reserve).safeTransferFrom(mintor, address(this), reserve_init);
         require(xfer, "ERR_INIT_RESERVE");
 
         // Mint redeemable tokens according to the preset schedule.
@@ -212,7 +214,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
         // transfer can fail without reverting so we need to revert ourselves if the reserve fails to be sent.
         // (transfer cannot actually fail without reverting, but it's probably a good idea to handle the bool as though it can)
-        bool _xfer_out = IERC20(reserve).transfer(msg.sender, _reserve_release);
+        bool _xfer_out = IERC20(reserve).safeTransfer(msg.sender, _reserve_release);
         require(_xfer_out, "ERR_REDEEM_RESERVE");
 
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.

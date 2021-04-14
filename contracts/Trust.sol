@@ -76,6 +76,7 @@ contract Trust is Ownable, Initable {
     uint256 initial_pool_valuation;
     uint256 min_raise;
 
+    using SafeERC20 for IERC20;
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
 
