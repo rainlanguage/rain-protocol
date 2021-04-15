@@ -72,10 +72,69 @@ describe("Account status", async function(){
     await tvkPrestige.deployed()
 
     // no status yet, so status should be copper = 0
-    const status = await tvkPrestige.status_block(signers[0].address);
+    const status = await tvkPrestige.index_current_report(signers[0].address);
     //assert(status.eq(await tvkPrestige.provider.getBlockNumber()));
     assert(Number(status) === 0)
   });
+  
+  
+  it("will return new status invalid", async function(){
+    // reset the fork
+    await hre.network.provider.request({
+      method: "hardhat_reset",
+      params: [{
+        forking: {
+          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
+          blockNumber: 12206000
+        }
+      }]
+    })
+
+    // get first hardhat signer address
+    const signers = await ethers.getSigners()
+    const address = signers[0].address;
+
+    // deploy TVKPrestige
+    const tvkprestigeFactory = await ethers.getContractFactory(
+        'TVKPrestige'
+    );
+    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
+    let deployedTvkPrestige = await tvkPrestige.deployed()
+
+    // impersonate the TVK treasury
+    await hre.network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [TVK_TREASURY_ADDRESS]}
+    )
+
+    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
+    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
+
+    // transfer 10000 TVK to first hardhat signer
+    await tvkTokenForWhale.transfer(address, '10000' + eighteenZeros)
+
+    await hre.network.provider.request({
+      method: "hardhat_stopImpersonatingAccount",
+      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
+    )
+
+    // get the TVK token contract and set allowance for TVK prestige contract
+    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
+    await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
+
+    // get balance of TVK
+    const balance = await tvkToken.balanceOf(address)
+    
+    try {
+      // change the status to silver and check if event emitted
+      await expect(tvkPrestige.set_status(address, 8, []))
+      .to.emit(tvkPrestige, 'StatusChange')
+      .withArgs(address, [0, 8])
+    } catch (error) {
+      assert.ok(error.message === "VM Exception while processing transaction: invalid opcode")
+    }
+  });
+
 
   it("will take ownership of the correct amount of TVK when the new status is higher, and emit the correct event", async function(){
     // reset the fork
@@ -125,17 +184,15 @@ describe("Account status", async function(){
     const balance = await tvkToken.balanceOf(address)
 
     // change the status to silver and check if event emitted
-    // status = await tvkPrestige.set_status(address, 2, []);
     await expect(tvkPrestige.set_status(address, 2, []))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, [0, 2])
 
     // check with the contract
-    const status = await tvkPrestige.status_block(address);
-    assert(Number(status) === 2);
-    // const status = await tvkPrestige.status(address)
-    // assert(status[0].eq(await tvkPrestige.provider.getBlockNumber()))
-    // assert(status[1] === 2, 'status not updated successfully')
+    const status = await tvkPrestige.status_report(address)
+    expect(status).to.equal(await tvkPrestige.provider.getBlockNumber())
+    const index_status = await tvkPrestige.index_current_report(address)
+    expect(Number(index_status)).to.equal(2)
 
     // new balance should be old balance less amount for silver
     const levels = await tvkPrestige.levels()
@@ -196,9 +253,11 @@ describe("Account status", async function(){
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, [0, 4])
 
-    const platinumStatus = await tvkPrestige.status(address)
-    assert(platinumStatus[0].eq(await tvkPrestige.provider.getBlockNumber()))
-    assert(platinumStatus[1] === 4, 'status not updated successfully')
+    // check with the contract
+    const platinum = await tvkPrestige.status_report(address)
+    expect(platinum).to.equal(await tvkPrestige.provider.getBlockNumber())
+    const index_platinum = await tvkPrestige.index_current_report(address)
+    expect(Number(index_platinum)).to.equal(4)
 
     // change the status to bronze and check if event emitted
     await expect(tvkPrestige.set_status(address, 1, []))
@@ -206,27 +265,27 @@ describe("Account status", async function(){
     .withArgs(address, [4, 1])
 
     // check with the contract
-    const bronzeStatus = await tvkPrestige.status(address)
-    const bronzeBlock = await tvkPrestige.provider.getBlockNumber()
-    assert(bronzeStatus[0].eq(bronzeBlock))
-    assert(bronzeStatus[1] === 1, 'status not updated successfully')
+    const bronze = await tvkPrestige.status_report(address)
+    expect(bronze).to.equal(platinum)
+    const index_bronze = await tvkPrestige.index_current_report(address)
+    expect(Number(index_bronze)).to.equal(1)
 
     // new balance should be the bronze level
     const levels = await tvkPrestige.levels()
-    const bronze = levels[1]
+    const bronze_level = levels[1]
     const newBalance = await tvkToken.balanceOf(address)
-    expect(newBalance).to.equal(balance.sub(bronze), "new balance after status change is incorrect")
+    expect(newBalance).to.equal(balance.sub(bronze_level), "new balance after status change is incorrect")
 
     // Moving back up again to gold does NOT reset block number.
     await expect(tvkPrestige.set_status(address, 3, []))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, [1, 3])
 
-    const goldStatus = await tvkPrestige.status(address)
+    const goldStatus = await tvkPrestige.status_report(address)
     const goldBlock = await tvkPrestige.provider.getBlockNumber()
-    assert(bronzeBlock !== goldBlock, 'block did not progress')
-    assert(!goldStatus[0].eq(bronzeBlock), 'gold reset block')
-    assert(goldStatus[0].eq(goldBlock), 'bronze -> gold reset start block')
+    assert(bronze !== goldBlock, 'block did not progress')
+    assert(goldStatus != bronze, 'gold reset block')
+    assert(goldStatus == goldBlock, 'bronze -> gold reset start block')
   });
 
   it("will revert if not enough TVK for higher status", async function(){

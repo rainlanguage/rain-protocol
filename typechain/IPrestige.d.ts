@@ -21,10 +21,15 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IPrestigeInterface extends ethers.utils.Interface {
   functions: {
+    "index_current_report(address)": FunctionFragment;
     "set_status(address,uint8,bytes)": FunctionFragment;
     "status_report(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "index_current_report",
+    values: [string]
+  ): string;
   encodeFunctionData(
     functionFragment: "set_status",
     values: [string, BigNumberish, BytesLike]
@@ -34,6 +39,10 @@ interface IPrestigeInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "index_current_report",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "set_status", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "status_report",
@@ -91,6 +100,16 @@ export class IPrestige extends Contract {
   interface: IPrestigeInterface;
 
   functions: {
+    index_current_report(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "index_current_report(address)"(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     set_status(
       account: string,
       new_status: BigNumberish,
@@ -108,13 +127,23 @@ export class IPrestige extends Contract {
     status_report(
       account: string,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[number]>;
 
     "status_report(address)"(
       account: string,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[number]>;
   };
+
+  index_current_report(
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "index_current_report(address)"(
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   set_status(
     account: string,
@@ -130,14 +159,24 @@ export class IPrestige extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  status_report(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+  status_report(account: string, overrides?: CallOverrides): Promise<number>;
 
   "status_report(address)"(
     account: string,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<number>;
 
   callStatic: {
+    index_current_report(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "index_current_report(address)"(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     set_status(
       account: string,
       new_status: BigNumberish,
@@ -152,15 +191,12 @@ export class IPrestige extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    status_report(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    status_report(account: string, overrides?: CallOverrides): Promise<number>;
 
     "status_report(address)"(
       account: string,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<number>;
   };
 
   filters: {
@@ -174,6 +210,16 @@ export class IPrestige extends Contract {
   };
 
   estimateGas: {
+    index_current_report(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "index_current_report(address)"(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     set_status(
       account: string,
       new_status: BigNumberish,
@@ -200,6 +246,16 @@ export class IPrestige extends Contract {
   };
 
   populateTransaction: {
+    index_current_report(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "index_current_report(address)"(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     set_status(
       account: string,
       new_status: BigNumberish,
