@@ -6,7 +6,7 @@ import hre from 'hardhat'
 import { erc20ABI } from '../test/erc20-abi'
 
 // constants you may want to change before testing
-const TEST_ADDRESS = "0x050a1301Dd78eebe9157819e300f25c3912AA1F8"
+const TEST_ADDRESS = "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
 const TVK_AMOUNT = 1000000
 
 // other constants
