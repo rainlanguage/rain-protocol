@@ -7,6 +7,7 @@ import { erc20ABI } from '../test/erc20-abi'
 
 // constants you may want to change before testing
 const TEST_ADDRESS = "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
+const TEST_ADDRESS_2 = "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65"
 const TVK_AMOUNT = 1000000
 
 // other constants
@@ -22,7 +23,7 @@ async function main() {
         params: [{
         forking: {
             jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-            blockNumber: 12206000
+            // blockNumber: 12206000
         }
         }]
     })
@@ -45,13 +46,16 @@ async function main() {
     const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
     const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
 
-    // transfer TVK amount to the test address
+    // transfer TVK amount to the test addresses
     await tvkTokenForWhale.transfer(TEST_ADDRESS, TVK_AMOUNT + eighteenZeros)
+    await tvkTokenForWhale.transfer(TEST_ADDRESS_2, TVK_AMOUNT + eighteenZeros)
 
-    // get balance of TVK
+    // get balance of TVK for test addresses
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
     const balance = await tvkToken.balanceOf(TEST_ADDRESS)
+    const balance_2 = await tvkToken.balanceOf(TEST_ADDRESS_2)
     console.log('Balance for ' + TEST_ADDRESS + ' is ' + balance)
+    console.log('Balance for ' + TEST_ADDRESS_2 + ' is ' + balance_2)
 
     await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
