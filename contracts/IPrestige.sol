@@ -22,7 +22,5 @@ interface IPrestige {
     // This is encoded as a uint256 with blocks represented as 8x concatenated u32.
     // I.e. Each 4 bytes of the uint256 represents a u32 status start time.
     // The low bits represent low status and high bits the high status.
-    function status_report(address account) external view returns (uint32);
-
-    function index_current_report(address account) external view returns (uint);
+    function status_report(address account) external view returns (uint256);
 }

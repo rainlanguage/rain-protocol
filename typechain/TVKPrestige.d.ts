@@ -226,12 +226,12 @@ export class TVKPrestige extends Contract {
     status_report(
       account: string,
       overrides?: CallOverrides
-    ): Promise<[number]>;
+    ): Promise<[BigNumber]>;
 
     "status_report(address)"(
       account: string,
       overrides?: CallOverrides
-    ): Promise<[number]>;
+    ): Promise<[BigNumber]>;
 
     statuses(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -331,12 +331,12 @@ export class TVKPrestige extends Contract {
 
   "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  status_report(account: string, overrides?: CallOverrides): Promise<number>;
+  status_report(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   "status_report(address)"(
     account: string,
     overrides?: CallOverrides
-  ): Promise<number>;
+  ): Promise<BigNumber>;
 
   statuses(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -436,12 +436,15 @@ export class TVKPrestige extends Contract {
 
     "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    status_report(account: string, overrides?: CallOverrides): Promise<number>;
+    status_report(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     "status_report(address)"(
       account: string,
       overrides?: CallOverrides
-    ): Promise<number>;
+    ): Promise<BigNumber>;
 
     statuses(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
