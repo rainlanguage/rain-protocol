@@ -7,12 +7,10 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import "./IPrestige.sol";
 
-
 contract TVKPrestige is IPrestige {
     using SafeERC20 for IERC20;
     IERC20 public constant tvk = IERC20(0xd084B83C305daFD76AE3E1b4E1F1fe2eCcCb3988);
 
-    // Mapping status by address
     mapping (address => uint256) public statuses;
 
     // Nothing, this is everyone.
@@ -57,14 +55,13 @@ contract TVKPrestige is IPrestige {
         return _status_report(account);
     }
 
-
     /**
     *   Updates the level of an account by an entered level
     *   address account - Account to change the status.
     *   Status new_status - New status to be changed.
     *   bytes -
     **/
-    function set_status(address account, Status new_status, bytes memory) external override{
+    function set_status(address account, Status new_status, bytes memory) external override {
         uint256 _report = _status_report(account);
         
         uint current_status = 0;
@@ -88,7 +85,7 @@ contract TVKPrestige is IPrestige {
 
             for (uint i=0; i<8; i++) {
                 // Zero everything above the current status.
-                 if (i>current_status || uint32(uint256(_report >> 0)) == 0) {
+                 if (i>current_status || uint32(_report) == 0) {
                     uint32 _offset = uint32(i * 32);
                     uint256 _mask = uint256(0xffffffff) << _offset;
                     _report = _report & ~_mask;

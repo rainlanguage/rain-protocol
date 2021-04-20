@@ -13,11 +13,6 @@ const config: HardhatUserConfig = {
       forking: {
         url: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
         blockNumber: 12206000
-      },
-      chainId: 1337,
-      mining: {
-        auto: false,
-        interval: 2000
       }
     }
   },

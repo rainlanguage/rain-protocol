@@ -77,8 +77,7 @@ describe("Account status", async function(){
     const report = tvkStatusReport(status.toString())
     assert(report[0] === 0)
   });
-  
-  
+
   it("will return new status invalid", async function(){
     // reset the fork
     await hre.network.provider.request({
@@ -133,7 +132,6 @@ describe("Account status", async function(){
     }
   });
 
-
   it("will take ownership of the correct amount of TVK when the new status is higher, and emit the correct event", async function(){
     // reset the fork
     await hre.network.provider.request({
@@ -167,7 +165,7 @@ describe("Account status", async function(){
     const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
 
     // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '1000000' + eighteenZeros)
+    await tvkTokenForWhale.transfer(address, '10000' + eighteenZeros)
 
     await hre.network.provider.request({
       method: "hardhat_stopImpersonatingAccount",
@@ -176,7 +174,7 @@ describe("Account status", async function(){
 
     // get the TVK token contract and set allowance for TVK prestige contract
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '1000000' + eighteenZeros)
+    await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
 
     // get balance of TVK
     const balance = await tvkToken.balanceOf(address)
@@ -190,8 +188,7 @@ describe("Account status", async function(){
     const status = await tvkPrestige.status_report(address)
     const report = tvkStatusReport(status.toString())
     expect(report[2]).to.equal(await tvkPrestige.provider.getBlockNumber())
-
-
+    
     // new balance should be old balance less amount for silver
     const levels = await tvkPrestige.levels()
     const silver = levels[2]
