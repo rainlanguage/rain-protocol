@@ -47,6 +47,8 @@ import { BlockBlockable } from './libraries/BlockBlockable.sol';
 // A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserve_release)`.
 contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
+    using SafeMath for uint256;
+
     event Redeem(address _redeemer, uint256 _redeem_amount, uint256 _reserve_release);
 
     // RedeemableERC20 will be issued in a fixed ratio to the locked reserve.
@@ -103,30 +105,26 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     //
     // The owner is expected to fairly distribute the token before redemptions are unblocked.
     // The owner must set the _unblock_block at init time so the distribution and redemption periods are fixed and can be audited.
+    //
+    // Init can only be called by the owner.
+    // Only the owner can send reserve and receive minted tokens.
+    // The intent is that the owner will be another smart contract managing the token flows.
     function init(
         uint256 _unblock_block
     ) public onlyOwner onlyBlocked withInit {
         console.log("RedeemableERC20: init: %s", _unblock_block);
 
-        // Init can only be called by the owner.
-        // Only the owner can send reserve and receive minted tokens.
-        // The intent is that the owner will be another smart contract managing the token flows.
-        address mintor = owner();
-
         // The reserve allowance MUST be exactly what we are going to take from the owner and lock.
         // There is NEVER any reason for the owner to send more or less reserve than what was configured at construction.
-        console.log("RedeemableERC20: Reserve: %s from %s", reserve_init, mintor);
-        require(IERC20(reserve).allowance(mintor, address(this)) == reserve_init, "ERR_ALLOWANCE_RESERVE");
-        bool xfer = IERC20(reserve).transferFrom(mintor, address(this), reserve_init);
+        console.log("RedeemableERC20: Reserve: %s from %s", reserve_init, msg.sender);
+        require(IERC20(reserve).allowance(msg.sender, address(this)) == reserve_init, "ERR_ALLOWANCE_RESERVE");
+        bool xfer = IERC20(reserve).transferFrom(msg.sender, address(this), reserve_init);
         require(xfer, "ERR_INIT_RESERVE");
 
         // Mint redeemable tokens according to the preset schedule.
-        uint256 token_supply = SafeMath.div(
-            SafeMath.mul(mint_ratio, reserve_init),
-            Constants.ONE
-        );
-        console.log("RedeemableERC20: Mint %s %s for %s", token_supply, name(), mintor);
-        _mint(mintor, token_supply);
+        uint256 token_supply = mint_ratio.mul(reserve_init).div(Constants.ONE);
+        console.log("RedeemableERC20: Mint %s %s for %s", token_supply, name(), msg.sender);
+        _mint(msg.sender, token_supply);
 
         // Set the unblock schedule.
         BlockBlockable.setUnblockBlock(_unblock_block);
@@ -206,11 +204,8 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         uint256 _circulating_supply = totalSupply() - balanceOf(address(0));
 
         // The fraction of the reserve we release is the fraction of the outstanding total supply passed in.
-        uint256 _reserve_fraction = SafeMath.div(SafeMath.mul(_redeem_amount, Constants.ONE), _circulating_supply);
-        uint256 _reserve_release = SafeMath.div(
-            SafeMath.mul(reserve.balanceOf(address(this)), _reserve_fraction),
-            Constants.ONE
-        );
+        uint256 _reserve_fraction = _redeem_amount.mul(Constants.ONE).div(_circulating_supply);
+        uint256 _reserve_release = reserve.balanceOf(address(this)).mul(_reserve_fraction).div(Constants.ONE);
 
         console.log("RedeemableERC20: redeem: %s %s", _redeem_amount, totalSupply());
         console.log("RedeemableERC20: redeem: reserve %s %s %s", reserve.balanceOf(address(this)), _reserve_fraction, _reserve_release);

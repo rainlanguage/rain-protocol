@@ -25,6 +25,8 @@ import { BFactory } from './configurable-rights-pool/contracts/test/BFactory.sol
 
 contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
+    using SafeMath for uint256;
+
     // The amounts of each token at initialization as [reserve_amount, token_amount].
     // Balancer needs this to be a dynamic array but for us it is always length 2.
     uint256[] public pool_amounts;
@@ -149,10 +151,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // - pool_reserve = ( 1 / ( book + 1 ) ) x reserve_total
         // - ( reserve_init x ( book + 1 ) ) / book = pool_reserve x ( book + 1 )
         // - reserve_init / book = pool_reserve
-        uint256 _reserve_amount = SafeMath.div(
-            SafeMath.mul(token.reserve_init(), Constants.ONE),
-            book_ratio
-        );
+        uint256 _reserve_amount = token.reserve_init().mul(Constants.ONE).div(book_ratio);
         console.log("RedeemableERC20Pool: construct_pool_amounts: book_ratio: %s", book_ratio);
         console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_amount: %s", _reserve_amount);
         pool_amounts.push(_reserve_amount);
@@ -175,15 +174,14 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // => ( Bt / Wt ) = ( Br / Wr ) / Spot
         // => Wt = ( Spot x Bt ) / ( Br / Wr )
         uint256 _reserve_weight = BalancerConstants.MIN_WEIGHT;
-        uint256 _target_spot = SafeMath.div(SafeMath.mul(initial_valuation, Constants.ONE), pool_amounts[1]);
-        uint256 _token_weight = SafeMath.div(
-            SafeMath.mul(SafeMath.mul(_target_spot, pool_amounts[1]), Constants.ONE),
-            SafeMath.mul(pool_amounts[0], BalancerConstants.MIN_WEIGHT)
-        );
+        uint256 _target_spot = initial_valuation.mul(Constants.ONE).div(pool_amounts[1]);
+        uint256 _token_weight = _target_spot.mul(pool_amounts[1]).mul(Constants.ONE).div(
+            pool_amounts[0].mul(BalancerConstants.MIN_WEIGHT)
+            );
 
         require(_token_weight >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
         require(
-            SafeMath.sub(BalancerConstants.MAX_WEIGHT, Constants.POOL_HEADROOM) >= SafeMath.add(_token_weight, _reserve_weight),
+            BalancerConstants.MAX_WEIGHT.sub(Constants.POOL_HEADROOM) >= _token_weight.add(_reserve_weight),
             "ERR_MAX_WEIGHT"
         );
 
@@ -198,13 +196,9 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
         uint256 _reserve_weight_final = BalancerConstants.MIN_WEIGHT;
         uint256 _redeem_reserve = token.reserve_init();
-        uint256 _target_spot_final = SafeMath.div(
-            SafeMath.mul(_redeem_reserve, Constants.ONE),
-            pool_amounts[1]
-        );
-        uint256 _token_weight_final = SafeMath.div(
-            SafeMath.mul(SafeMath.mul(_target_spot_final, pool_amounts[1]), Constants.ONE),
-            SafeMath.mul(_redeem_reserve, BalancerConstants.MIN_WEIGHT)
+        uint256 _target_spot_final = _redeem_reserve.mul(Constants.ONE).div(pool_amounts[1]);
+        uint256 _token_weight_final = _target_spot_final.mul(pool_amounts[1]).mul(Constants.ONE).div(
+                _redeem_reserve.mul(BalancerConstants.MIN_WEIGHT)
         );
         console.log("RedeemableERC20Pool: construct_pool_weights: weights_final: %s %s", _target_spot_final, _token_weight_final);
         console.log("RedeemableERC20Pool: construct_pool_weights: reserve_weight_final: %s", _reserve_weight_final);
@@ -213,7 +207,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
         require(_token_weight_final >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT_FINAL");
         require(
-            SafeMath.sub(BalancerConstants.MAX_WEIGHT, Constants.POOL_HEADROOM) >= SafeMath.add(_token_weight_final, _reserve_weight_final),
+            BalancerConstants.MAX_WEIGHT.sub(Constants.POOL_HEADROOM) >= _token_weight_final.add(_reserve_weight_final),
             "ERR_MAX_WEIGHT_FINAL"
         );
     }
@@ -293,7 +287,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         );
 
         // Double check the spot price is what we wanted.
-        uint256 _target_spot = SafeMath.div(SafeMath.mul(initial_valuation, Constants.ONE), pool_amounts[1]);
+        uint256 _target_spot = initial_valuation.mul(Constants.ONE).div(pool_amounts[1]);
         address[] memory _pool_addresses = pool_addresses();
         uint256 _actual_spot = BPool(address(crp.bPool())).getSpotPriceSansFee(
             _pool_addresses[0],
