@@ -57,35 +57,6 @@ contract TVKPrestige is IPrestige {
         return _status_report(account);
     }
 
-    /**
-    *   Return uint with the index of the current level of the entered account.
-    *   address account - Account to be consulted.
-    **/
-    // function index_current_report (address account) external view returns (uint) {
-    //     uint256 _report = _status_report(account);
-
-    //     uint current_status = 0;
-    //     for (uint i=0; i<8; i++) {
-    //         uint32 _ith_status_start = uint32(uint256(_report >> (i * 32)));
-    //         if (_ith_status_start > 0) {
-    //             current_status = i;
-    //         }
-    //     }
-    //     return current_status;
-    // }
-
-    /**
-    *   Return uint32 with the block according to the account and the index entered..
-    *   address account - Account to be consulted.
-    *   uint i - Status index
-    **/
-    function report_by_index (address account, uint i) private view returns (uint256) {
-        uint256 _report = _status_report(account);
-
-        uint256 _ith_status_start = uint256(uint32(_report) >> (i * 32));
-        return _ith_status_start;
-    }
-
 
     /**
     *   Updates the level of an account by an entered level
@@ -117,14 +88,14 @@ contract TVKPrestige is IPrestige {
 
             for (uint i=0; i<8; i++) {
                 // Zero everything above the current status.
-                 if (i>current_status || report_by_index(account, current_status) == 0) {
+                 if (i>current_status || uint32(uint256(_report >> 0)) == 0) {
                     uint32 _offset = uint32(i * 32);
                     uint256 _mask = uint256(0xffffffff) << _offset;
                     _report = _report & ~_mask;
                     
                     // Anything up to new status needs a new block number.
                     if (i<=uint(new_status)) {
-                        _report = _report | uint256(block.number) << _offset;
+                        _report = _report | uint256(uint256(block.number) << _offset);
                     }
                 }
             }
