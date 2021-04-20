@@ -141,7 +141,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         return _pool_addresses;
     }
 
-    function construct_pool_amounts () private onlyNotInit onlyOwner onlyBlocked {
+    function construct_pool_amounts () private {
         // The reserve amount is calculated from the book ratio and the redeemable token pool.
         //
         // If the book ratio is 2 then ( 2 / ( 2 + 1 ) ) goes to the token and ( 1 / ( 2 + 1 ) ) is here.
@@ -165,7 +165,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         pool_amounts.push(_token_supply);
     }
 
-    function construct_pool_weights () private onlyNotInit onlyOwner onlyBlocked {
+    function construct_pool_weights () private {
         // This function requires that construct_pool_amounts be run prior.
         require(pool_amounts[0] > 0, "ERR_RESERVE_AMOUNT");
         require(pool_amounts[1] > 0, "ERR_TOKEN_AMOUNT");
@@ -224,7 +224,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         return BalancerConstants.MIN_FEE;
     }
 
-    function construct_crp () private onlyNotInit onlyOwner onlyBlocked {
+    function construct_crp () private {
         // CRPFactory.
         crp = crp_factory.newCrp(
             address(balancer_factory),
