@@ -191,6 +191,8 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     // This means that the users get their redeemed pro-rata share of the outstanding token supply
     // burned in return for a pro-rata share of the current reserve balance.
     //
+    // I.e. whatever % of redeemable tokens the sender burns is the % of the current reserve they receive.
+    //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
     function redeem(uint256 _redeem_amount) public onlyInit onlyUnblocked {
