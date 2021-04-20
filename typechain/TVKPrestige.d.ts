@@ -26,7 +26,6 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
     "copper()": FunctionFragment;
     "diamond()": FunctionFragment;
     "gold()": FunctionFragment;
-    "index_current_report(address)": FunctionFragment;
     "jawad()": FunctionFragment;
     "levels()": FunctionFragment;
     "platinum()": FunctionFragment;
@@ -42,10 +41,6 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "copper", values?: undefined): string;
   encodeFunctionData(functionFragment: "diamond", values?: undefined): string;
   encodeFunctionData(functionFragment: "gold", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "index_current_report",
-    values: [string]
-  ): string;
   encodeFunctionData(functionFragment: "jawad", values?: undefined): string;
   encodeFunctionData(functionFragment: "levels", values?: undefined): string;
   encodeFunctionData(functionFragment: "platinum", values?: undefined): string;
@@ -66,10 +61,6 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "copper", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "diamond", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "gold", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "index_current_report",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "jawad", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "levels", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "platinum", data: BytesLike): Result;
@@ -153,16 +144,6 @@ export class TVKPrestige extends Contract {
 
     "gold()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    index_current_report(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "index_current_report(address)"(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     jawad(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "jawad()"(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -226,12 +207,12 @@ export class TVKPrestige extends Contract {
     status_report(
       account: string,
       overrides?: CallOverrides
-    ): Promise<[number]>;
+    ): Promise<[BigNumber]>;
 
     "status_report(address)"(
       account: string,
       overrides?: CallOverrides
-    ): Promise<[number]>;
+    ): Promise<[BigNumber]>;
 
     statuses(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -264,16 +245,6 @@ export class TVKPrestige extends Contract {
   gold(overrides?: CallOverrides): Promise<BigNumber>;
 
   "gold()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  index_current_report(
-    account: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "index_current_report(address)"(
-    account: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   jawad(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -331,12 +302,12 @@ export class TVKPrestige extends Contract {
 
   "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  status_report(account: string, overrides?: CallOverrides): Promise<number>;
+  status_report(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   "status_report(address)"(
     account: string,
     overrides?: CallOverrides
-  ): Promise<number>;
+  ): Promise<BigNumber>;
 
   statuses(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -369,16 +340,6 @@ export class TVKPrestige extends Contract {
     gold(overrides?: CallOverrides): Promise<BigNumber>;
 
     "gold()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    index_current_report(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "index_current_report(address)"(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     jawad(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -436,12 +397,15 @@ export class TVKPrestige extends Contract {
 
     "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    status_report(account: string, overrides?: CallOverrides): Promise<number>;
+    status_report(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     "status_report(address)"(
       account: string,
       overrides?: CallOverrides
-    ): Promise<number>;
+    ): Promise<BigNumber>;
 
     statuses(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -485,16 +449,6 @@ export class TVKPrestige extends Contract {
     gold(overrides?: CallOverrides): Promise<BigNumber>;
 
     "gold()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    index_current_report(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "index_current_report(address)"(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     jawad(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -568,16 +522,6 @@ export class TVKPrestige extends Contract {
     gold(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "gold()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    index_current_report(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "index_current_report(address)"(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     jawad(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
