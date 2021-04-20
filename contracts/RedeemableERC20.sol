@@ -186,7 +186,10 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     //
     // Calculate the redeem value of tokens as:
     //
-    // ( token.balanceOf(msg.sender) / token.totalSupply() ) * reserve.balanceOf(address(this))
+    // ( _redeem_amount / token.totalSupply() ) * reserve.balanceOf(address(this))
+    //
+    // This means that the users get their redeemed pro-rata share of the outstanding token supply
+    // burned in return for a pro-rata share of the current reserve balance.
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
@@ -217,7 +220,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
-        // _burn reverts internally if needed; there is no return value.
+        // _burn reverts internally if needed (e.g. if burn exceeds balance); there is no return value.
         super._burn(msg.sender, _redeem_amount);
 
         emit Redeem(msg.sender, _redeem_amount, _reserve_release);

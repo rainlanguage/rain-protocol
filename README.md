@@ -32,9 +32,13 @@ nix-shell
 
 ### Run tests
 
+From _outside_ the nix-shell run:
+
 ```
 nix-shell --run 'hardhat test'
 ```
+
+Inside the nix-shell you can just run `hardhat test` as normal.
 
 ## Why a token??
 
