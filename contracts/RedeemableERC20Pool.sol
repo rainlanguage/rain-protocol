@@ -246,22 +246,22 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         console.log(
             "RedeemableERC20Pool: init: allowances: %s %s %s",
             pool_amounts[0],
-            token.reserve().allowance(this.owner(), address(this)),
-            token.allowance(this.owner(), address(this))
+            token.reserve().allowance(owner(), address(this)),
+            token.allowance(owner(), address(this))
         );
-        require(token.reserve().allowance(this.owner(), address(this)) == pool_amounts[0], 'ERR_RESERVE_ALLOWANCE');
-        require(token.allowance(this.owner(), address(this)) == pool_amounts[1], 'ERR_TOKEN_ALLOWANCE');
+        require(token.reserve().allowance(owner(), address(this)) == pool_amounts[0], 'ERR_RESERVE_ALLOWANCE');
+        require(token.allowance(owner(), address(this)) == pool_amounts[1], 'ERR_TOKEN_ALLOWANCE');
 
         // take allocated reserves.
         console.log("RedeemableERC20Pool: init: take reserves: %s", pool_amounts[0]);
-        bool reserve_xfer = token.reserve().transferFrom(this.owner(), address(this), pool_amounts[0]);
+        bool reserve_xfer = token.reserve().transferFrom(owner(), address(this), pool_amounts[0]);
         // we do NOT require an exact balance of the reserve after xfer as someone other than the owner could grief the contract with reserve dust.
         require(reserve_xfer, 'ERR_RESERVE_TRANSFER');
         require(token.reserve().balanceOf(address(this)) >= pool_amounts[0], 'ERR_RESERVE_TRANSFER');
 
         // take all token.
         console.log("RedeemableERC20Pool: init: take token: %s", pool_amounts[1]);
-        bool token_xfer = token.transferFrom(this.owner(), address(this), pool_amounts[1]);
+        bool token_xfer = token.transferFrom(owner(), address(this), pool_amounts[1]);
         require(token_xfer, 'ERR_TOKEN_TRANSFER');
         require(token.balanceOf(address(this)) == token.totalSupply(), 'ERR_TOKEN_TRANSFER');
 
@@ -355,7 +355,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             token.balanceOf(address(this))
         );
 
-        token.reserve().transfer(this.owner(), token.reserve().balanceOf(address(this)));
+        token.reserve().transfer(owner(), token.reserve().balanceOf(address(this)));
     }
 
 }

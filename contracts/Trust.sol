@@ -117,7 +117,7 @@ contract Trust is Ownable, Initable {
     }
 
     function init(uint256 _unblock_block) public onlyOwner withInit {
-        token.reserve().transferFrom(this.owner(), address(this), reserve_total);
+        token.reserve().transferFrom(owner(), address(this), reserve_total);
         console.log("Trust: init token: reserve balance: %s", token.reserve().balanceOf(address(this)));
 
         token.reserve().approve(address(token), token.reserve_init());
@@ -147,6 +147,6 @@ contract Trust is Ownable, Initable {
 
     function exit() public onlyOwner onlyInit {
         pool.exit();
-        token.reserve().transfer(this.owner(), token.reserve().balanceOf(address(this)));
+        token.reserve().transfer(owner(), token.reserve().balanceOf(address(this)));
     }
 }
