@@ -77,8 +77,7 @@ describe("Account status", async function(){
     const report = tvkStatusReport(status.toString())
     assert(report[0] === 0)
   });
-  
-  
+
   it("will return new status invalid", async function(){
     // reset the fork
     await hre.network.provider.request({
@@ -132,7 +131,6 @@ describe("Account status", async function(){
       assert.ok(error.message === "VM Exception while processing transaction: invalid opcode")
     }
   });
-
 
   it("will take ownership of the correct amount of TVK when the new status is higher, and emit the correct event", async function(){
     // reset the fork
@@ -190,8 +188,7 @@ describe("Account status", async function(){
     const status = await tvkPrestige.status_report(address)
     const report = tvkStatusReport(status.toString())
     expect(report[2]).to.equal(await tvkPrestige.provider.getBlockNumber())
-
-
+    
     // new balance should be old balance less amount for silver
     const levels = await tvkPrestige.levels()
     const silver = levels[2]
