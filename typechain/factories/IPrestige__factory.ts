@@ -67,17 +67,12 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "status",
+    name: "status_report",
     outputs: [
       {
         internalType: "uint256",
-        name: "start_block",
+        name: "",
         type: "uint256",
-      },
-      {
-        internalType: "enum IPrestige.Status",
-        name: "current_status",
-        type: "uint8",
       },
     ],
     stateMutability: "view",
