@@ -2,6 +2,44 @@
 
 Implements a hybrid wrapped ERC20 + [Liquidity Bootstrapping Pool](https://docs.balancer.finance/smart-contracts/smart-pools/liquidity-bootstrapping-faq) with bespoke 'Last Wallet Standing' mechanic.
 
+
+## Development setup
+
+### Git submodules
+
+As we are wrapping balancer contracts, we have git submodules pointing to their repositories.
+
+When you clone this repository make sure to use `--recurse-submodules`
+
+```
+git clone --recurse-submodules git@github.com:thedavidmeister/tv-balancer.git
+```
+
+### Nix Shell
+
+Install the nix shell if you haven't already.
+
+```
+curl -L https://nixos.org/nix/install | sh
+```
+
+Drop into a nix-shell.
+
+```
+cd tv-balancer
+nix-shell
+```
+
+### Run tests
+
+From _outside_ the nix-shell run:
+
+```
+nix-shell --run 'hardhat test'
+```
+
+Inside the nix-shell you can just run `hardhat test` as normal.
+
 ## Why a token??
 
 > An engineer has a problem.
@@ -480,26 +518,3 @@ By versioning and newly deploying `Trust` contracts, any fix to a discovered exp
 By separating the concerns of the redemption token and Balancer pool management, it is less likely that a single exploit can extract 100% of the reserve token from the system. It is more likely than an exploit would fully or partially drain the Balancer pool OR the token redemption method.
 
 As there are no upgrades, admin functions or keys, if the TV wallet is compromised then TV loses their ability to `exit` the trust after the distribution phase but everything else will continue as initialized. End-users won't even notice that the TV wallet was hacked unless they are specifically tracking it on etherscan.
-
-## Development setup
-
-### Nix Shell
-
-Install the nix shell if you haven't already.
-
-```
-curl -L https://nixos.org/nix/install | sh
-```
-
-Drop into a nix-shell.
-
-```
-cd tv-balancer
-nix-shell
-```
-
-### Run tests
-
-```
-nix-shell --run 'hardhat test'
-```

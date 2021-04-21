@@ -6,8 +6,6 @@ pragma solidity 0.6.12;
  * @title Put all the constants in one place
  */
 
-import "../configurable-rights-pool/libraries/BalancerConstants.sol";
-
 library Constants {
     // Same as BalancerConstants.ONE
     uint256 constant ONE = 10 ** 18;

@@ -31,9 +31,9 @@ abstract contract BlockBlockable {
     function isUnblocked() public view returns (bool) {
         return
             // Unblock block not set => blocked.
-            ( 0 < unblock_block )
+            ( 0 < unblock_block ) &&
             // Unblock block is set and is now or in the past => unblocked.
-            && ( block.number >= unblock_block );
+            ( block.number >= unblock_block );
     }
 
     // Modified function MUST ONLY be called when the unblock_block NOT exists.
