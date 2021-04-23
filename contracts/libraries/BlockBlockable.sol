@@ -28,6 +28,7 @@ abstract contract BlockBlockable {
     // The contract starts unblocked.
     uint256 public unblock_block = 0;
 
+
     function isUnblocked() public view returns (bool) {
         return
             // Unblock block not set => blocked.
@@ -36,25 +37,40 @@ abstract contract BlockBlockable {
             && ( block.number >= unblock_block );
     }
 
+
     // Modified function MUST ONLY be called when the unblock_block NOT exists.
     // Useful for functions that MAY prepare state before the unblocking that should not be allowed to modify state after the fact.
     modifier onlyBlocked() {
-        console.log("BlockBlockable: onlyBlocked: %s %s", unblock_block, block.number);
+        console.log(
+            "BlockBlockable: onlyBlocked: %s %s", 
+            unblock_block, 
+            block.number
+        );
         require(!isUnblocked(), "ERR_ONLY_BLOCKED");
         _;
     }
 
+
     // Modified function MUST ONLY be called when the unblock_block exists.
     modifier onlyUnblocked() {
-        console.log("BlockBlockable: onlyUnblocked: %s %s", unblock_block, block.number);
+        console.log(
+            "BlockBlockable: onlyUnblocked: %s %s", 
+            unblock_block, 
+            block.number
+        );
         require(isUnblocked(), "ERR_ONLY_UNBLOCKED");
         _;
     }
 
+
     // Set the block after which the contract is unblocked.
     // This function has no access controls so use it with `onlyOwner` or similar.
     function setUnblockBlock(uint256 _unblock_block) internal {
-        console.log("BlockBlockable: setUnblockBlock: %s %s", unblock_block, _unblock_block);
+        console.log(
+            "BlockBlockable: setUnblockBlock: %s %s", 
+            unblock_block, 
+            _unblock_block
+        );
         // The unblock block can only be set once.
         require(0 == unblock_block, "ERR_BLOCK_ONCE");
         // Set the unblock block.

@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import { SafeERC20 } from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import "hardhat/console.sol";
 
@@ -80,6 +81,7 @@ contract Trust is Ownable, Initable {
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
 
+
     constructor (
         CRPFactory _crp_factory,
         BFactory _balancer_factory,
@@ -112,7 +114,11 @@ contract Trust is Ownable, Initable {
             SafeMath.mul(_reserve_total, _book_ratio),
             SafeMath.add(_book_ratio, Constants.ONE)
         );
-        console.log("Trust: constructor: token_reserve: %s %s", _book_ratio, _token_reserve);
+        console.log(
+            "Trust: constructor: token_reserve: %s %s", 
+            _book_ratio, 
+            _token_reserve
+        );
         token = new RedeemableERC20(
             _name,
             _symbol,
@@ -122,9 +128,17 @@ contract Trust is Ownable, Initable {
         );
     }
 
+
     function init(uint256 _unblock_block) public onlyOwner withInit {
-        token.reserve().transferFrom(this.owner(), address(this), reserve_total);
-        console.log("Trust: init token: reserve balance: %s", token.reserve().balanceOf(address(this)));
+        token.reserve().safeTransferFrom(
+            this.owner(), 
+            address(this), 
+            reserve_total
+        );
+        console.log(
+            "Trust: init token: reserve balance: %s", 
+            token.reserve().balanceOf(address(this))
+        );
 
         token.reserve().approve(address(token), token.reserve_init());
         token.init(_unblock_block);
@@ -136,7 +150,10 @@ contract Trust is Ownable, Initable {
             book_ratio,
             initial_pool_valuation
         );
-        console.log("Trust: init pool: reserve balance: %s", token.reserve().balanceOf(address(this)));
+        console.log(
+            "Trust: init pool: reserve balance: %s", 
+            token.reserve().balanceOf(address(this))
+        );
         token.approve(address(pool), token.totalSupply());
         // @todo dust is possible here, e.g. if the book ratio is 2 we divide by 3.
         // Either the init will fail and revert.
@@ -151,6 +168,7 @@ contract Trust is Ownable, Initable {
         token.addUnfreezable(address(pool));
     }
 
+
     // This function can be called by anyone!
     // It defers to the pool exit function (which is owned by the trust and has block blocking).
     // If the minimum raise is reached then the trust owner receives the raise.
@@ -163,12 +181,23 @@ contract Trust is Ownable, Initable {
         // We failed to hit the minimum raise :(
         // Forward proceeds of the sale to the token holders for redemption.
         if (_final_balance < SafeMath.add(reserve_total, min_raise) && _final_balance > reserve_total) {
-            console.log("Trust: exit refunding: %s %s %s", _final_balance, reserve_total, SafeMath.sub(_final_balance, reserve_total));
-            token.reserve().transfer(address(token), SafeMath.sub(_final_balance, reserve_total));
+            console.log(
+                "Trust: exit refunding: %s %s %s", 
+                _final_balance, 
+                reserve_total, 
+                SafeMath.sub(_final_balance, reserve_total)
+            );
+            token.reserve().safeTransfer(
+                address(token), 
+                SafeMath.sub(_final_balance, reserve_total)
+            );
         }
 
         // Send everything else to the trust owner.
-        token.reserve().transfer(this.owner(), token.reserve().balanceOf(address(this)));
+        token.reserve().safeTransfer(
+            this.owner(), 
+            token.reserve().balanceOf(address(this))
+        );
 
         require(token.reserve().balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
     }

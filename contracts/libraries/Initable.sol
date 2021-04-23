@@ -30,6 +30,7 @@ abstract contract Initable {
     // ONLY the withInit modified function can modify this directly.
     bool public initialized = false;
 
+
     // Mofified function can only be called _after_ initialization.
     // All functions that reference finalized initialization state MUST use this modifier.
     modifier onlyInit() {
@@ -38,6 +39,7 @@ abstract contract Initable {
         _;
     }
 
+
     // Modified function can only be called _before_ initialization.
     // Functions MAY use this to facilitate initialization then disable themselves.
     modifier onlyNotInit() {
@@ -45,6 +47,7 @@ abstract contract Initable {
         require(!initialized, "ERR_ONLY_NOT_INIT");
         _;
     }
+
 
     // Modified function initializes the contract.
     // MUST only be called once.

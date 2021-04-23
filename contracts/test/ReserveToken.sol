@@ -11,6 +11,7 @@ import "../configurable-rights-pool/libraries/BalancerConstants.sol";
 // On mainnet this would likely be some brand of stablecoin but can be anything.
 contract ReserveToken is ERC20 {
 
+
     constructor() public ERC20("USD Classic", "USDCC") {
         // One _billion_ dollars 👷😈
         _mint(msg.sender, SafeMath.mul(1000000000, BalancerConstants.BONE));
