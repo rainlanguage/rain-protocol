@@ -1,2 +1,0 @@
-slither
-tests
