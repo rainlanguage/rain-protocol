@@ -1,0 +1,3 @@
+[console_scripts]
+crytic-compile = crytic_compile.__main__:main
+
