@@ -48,12 +48,13 @@ import { BlockBlockable } from './libraries/BlockBlockable.sol';
 // A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserve_release)`.
 contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
+    using SafeMath for uint256;
+
     event Redeem(
         address _redeemer, 
         uint256 _redeem_amount, 
         uint256 _reserve_release
     );
-
 
     // RedeemableERC20 will be issued in a fixed ratio to the locked reserve.
     // This is openly visible to the world, for building dashboards or whatever.
@@ -122,6 +123,10 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     //
     // The owner is expected to fairly distribute the token before redemptions are unblocked.
     // The owner must set the _unblock_block at init time so the distribution and redemption periods are fixed and can be audited.
+    //
+    // Init can only be called by the owner.
+    // Only the owner can send reserve and receive minted tokens.
+    // The intent is that the owner will be another smart contract managing the token flows.
     function init(uint256 _unblock_block) 
         public 
         onlyOwner 
@@ -130,36 +135,28 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     {
         console.log("RedeemableERC20: init: %s", _unblock_block);
 
-        // Init can only be called by the owner.
-        // Only the owner can send reserve and receive minted tokens.
-        // The intent is that the owner will be another smart contract managing the token flows.
-        address mintor = this.owner();
-
         // The reserve allowance MUST be exactly what we are going to take from the owner and lock.
         // There is NEVER any reason for the owner to send more or less reserve than what was configured at construction.
-        console.log("RedeemableERC20: Reserve: %s from %s", reserve_init, mintor);
+        console.log("RedeemableERC20: Reserve: %s from %s", reserve_init, msg.sender);
         require(
-            IERC20(reserve).allowance(mintor, address(this)) == reserve_init, 
+            IERC20(reserve).allowance(msg.sender, address(this)) == reserve_init, 
             "ERR_ALLOWANCE_RESERVE"
         );
         IERC20(reserve).safeTransferFrom(
-            mintor, 
+            msg.sender, 
             address(this), 
             reserve_init
         );
 
         // Mint redeemable tokens according to the preset schedule.
-        uint256 token_supply = SafeMath.div(
-            SafeMath.mul(mint_ratio, reserve_init),
-            Constants.ONE
-        );
+        uint256 token_supply = mint_ratio.mul(reserve_init).div(Constants.ONE);
         console.log(
             "RedeemableERC20: Mint %s %s for %s", 
             token_supply, 
-            this.name(), 
-            mintor
+            name(), 
+            msg.sender
         );
-        _mint(mintor, token_supply);
+        _mint(msg.sender, token_supply);
 
         // Set the unblock schedule.
         BlockBlockable.setUnblockBlock(_unblock_block);
@@ -175,13 +172,17 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         unfreezables[_address] = true;
     }
 
-
     // Redeem tokens.
     // Tokens can be _redeemed_ but NOT _transferred_ after the unblock block.
     //
     // Calculate the redeem value of tokens as:
     //
-    // ( token.balanceOf(msg.sender) / token.totalSupply() ) * reserve.balanceOf(address(this))
+    // ( _redeem_amount / token.totalSupply() ) * reserve.balanceOf(address(this))
+    //
+    // This means that the users get their redeemed pro-rata share of the outstanding token supply
+    // burned in return for a pro-rata share of the current reserve balance.
+    //
+    // I.e. whatever % of redeemable tokens the sender burns is the % of the current reserve they receive.
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
@@ -193,22 +194,16 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         // When a user inadvertently or maliciously sends to 0x0 without burning we want to give more rewards to everyone else.
         // We _could_ defensively call super._burn() here but it would open a griefing opportunity
         // where someone can send dust to 0x0 and force the next redemption to pay for a burn.
-        uint256 _circulating_supply = this.totalSupply() - this.balanceOf(address(0));
+        uint256 _circulating_supply = totalSupply() - balanceOf(address(0));
 
         // The fraction of the reserve we release is the fraction of the outstanding total supply passed in.
-        uint256 _reserve_fraction = SafeMath.div(
-            SafeMath.mul(_redeem_amount, Constants.ONE), 
-            _circulating_supply
-        );
-        uint256 _reserve_release = SafeMath.div(
-            SafeMath.mul(reserve.balanceOf(address(this)), _reserve_fraction),
-            Constants.ONE
-        );
+        uint256 _reserve_fraction = _redeem_amount.mul(Constants.ONE).div(_circulating_supply);
+        uint256 _reserve_release = reserve.balanceOf(address(this)).mul(_reserve_fraction).div(Constants.ONE);
 
         console.log(
             "RedeemableERC20: redeem: %s %s", 
             _redeem_amount, 
-            this.totalSupply()
+            totalSupply()
         );
         console.log(
             "RedeemableERC20: redeem: reserve %s %s %s", 
@@ -223,7 +218,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
-        // _burn reverts internally if needed; there is no return value.
+        // _burn reverts internally if needed (e.g. if burn exceeds balance); there is no return value.
         super._burn(msg.sender, _redeem_amount);
 
         emit Redeem(msg.sender, _redeem_amount, _reserve_release);
@@ -280,7 +275,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
             // Only owner can receive.
             console.log(
                 "RedeemableERC20: _beforeTokenTransfer: owner: %s", 
-                this.owner()
+                owner()
             );
             require(
                 _receiver == address(0) || unfreezables[_receiver] == true, 

@@ -70,6 +70,8 @@ import { RedeemableERC20Pool } from './RedeemableERC20Pool.sol';
 // | Phase trading distribution | Phase goodies + stablecoin proxy           |
 contract Trust is Ownable, Initable {
 
+    using SafeMath for uint256;
+
     CRPFactory crp_factory;
     BFactory balancer_factory;
     uint256 book_ratio;
@@ -110,9 +112,8 @@ contract Trust is Ownable, Initable {
         min_raise = _min_raise;
 
         console.log("Trust: constructor: reserve_total: %s", _reserve_total);
-        uint256 _token_reserve = SafeMath.div(
-            SafeMath.mul(_reserve_total, _book_ratio),
-            SafeMath.add(_book_ratio, Constants.ONE)
+        uint256 _token_reserve = _reserve_total.mul(_book_ratio).div(
+            _book_ratio.add(Constants.ONE)
         );
         console.log(
             "Trust: constructor: token_reserve: %s %s", 
@@ -131,7 +132,7 @@ contract Trust is Ownable, Initable {
 
     function init(uint256 _unblock_block) public onlyOwner withInit {
         token.reserve().safeTransferFrom(
-            this.owner(), 
+            owner(), 
             address(this), 
             reserve_total
         );
@@ -195,7 +196,7 @@ contract Trust is Ownable, Initable {
 
         // Send everything else to the trust owner.
         token.reserve().safeTransfer(
-            this.owner(), 
+            owner(), 
             token.reserve().balanceOf(address(this))
         );
 
