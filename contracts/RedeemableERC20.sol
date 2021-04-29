@@ -51,28 +51,18 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     using SafeMath for uint256;
 
     event Redeem(
-        address _redeemer, 
-        uint256 _redeem_amount, 
+        address _redeemer,
+        uint256 _redeem_amount,
         uint256 _reserve_release
     );
 
-    // RedeemableERC20 will be issued in a fixed ratio to the locked reserve.
-    // This is openly visible to the world, for building dashboards or whatever.
-    // A ratio of 1:1, as in Balancer, is 10 ** 18
-    // This is NOT the redemption ratio if more reserve is added after construction.
-    uint256 public mint_ratio;
 
+    uint256 public mint_init;
 
     // This is the reserve token.
     // It is openly visible to the world so people can verify the reserve token has value.
     using SafeERC20 for IERC20;
     IERC20 public reserve;
-
-
-    // The starting reserve balance.
-    // This is openly visible but be aware that the redemptions are dynamic against the
-    // current reserve balance of this contract.
-    uint256 public reserve_init;
 
 
     mapping(address => bool) public unfreezables;
@@ -91,83 +81,38 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         // For example, USDC could freeze the tokens owned by the RedeemableERC20 contract or close their business.
         // In either case the redeem function would be pointing at a dangling reserve balance.
         IERC20 _reserve,
-        // The amount of reserve to take against minting.
-        uint256 _reserve_init,
-        // The ratio of RedeemableERC20 to mint per reserve token.
-        // This, as per Balancer, should be an integer as 10^18 to represent decimals.
-        // Therefore a 1:1 ratio is 1 000000 000000 000000.
-        uint256 _mint_ratio
-    ) 
-        public 
-        ERC20(_name, _symbol) 
+        uint256 _mint_init,
+        uint256 _unblock_block
+    )
+        public
+        ERC20(_name, _symbol)
     {
         console.log("RedeemableERC20: constructor: %s %s", _name, _symbol);
         console.log(
-            "RedeemableERC20: constructor: %s %s", 
-            _reserve_init, 
-            _mint_ratio
+            "RedeemableERC20: constructor: %s %s %s",
+            _mint_init,
+            _unblock_block
         );
         reserve = _reserve;
-        reserve_init = _reserve_init;
-        mint_ratio = _mint_ratio;
-    }
-
-
-    // All the stateful stuff is done in init().
-    //
-    // Notably the caller MUST approve EXACTLY the reserve_total of the reserve token for this contract.
-    // init will revert if the allowance is not set correctly.
-    //
-    // This contract will transfer the preset amount of reserve token to itself and mint the fixed preset ratio of itself.
-    // The newly minted token is for this contract's owner and only the owner can call init.
-    //
-    // The owner is expected to fairly distribute the token before redemptions are unblocked.
-    // The owner must set the _unblock_block at init time so the distribution and redemption periods are fixed and can be audited.
-    //
-    // Init can only be called by the owner.
-    // Only the owner can send reserve and receive minted tokens.
-    // The intent is that the owner will be another smart contract managing the token flows.
-    function init(uint256 _unblock_block) 
-        public 
-        onlyOwner 
-        onlyBlocked 
-        withInit 
-    {
-        console.log("RedeemableERC20: init: %s", _unblock_block);
-
-        // The reserve allowance MUST be exactly what we are going to take from the owner and lock.
-        // There is NEVER any reason for the owner to send more or less reserve than what was configured at construction.
-        console.log("RedeemableERC20: Reserve: %s from %s", reserve_init, msg.sender);
-        require(
-            IERC20(reserve).allowance(msg.sender, address(this)) == reserve_init, 
-            "ERR_ALLOWANCE_RESERVE"
-        );
-        IERC20(reserve).safeTransferFrom(
-            msg.sender, 
-            address(this), 
-            reserve_init
-        );
+        mint_init = _mint_init;
 
         // Mint redeemable tokens according to the preset schedule.
-        uint256 token_supply = mint_ratio.mul(reserve_init).div(Constants.ONE);
         console.log(
-            "RedeemableERC20: Mint %s %s for %s", 
-            token_supply, 
-            name(), 
+            "RedeemableERC20: Mint %s %s for %s",
+            mint_init,
+            name(),
             msg.sender
         );
-        _mint(msg.sender, token_supply);
+        _mint(msg.sender, mint_init);
 
         // Set the unblock schedule.
         BlockBlockable.setUnblockBlock(_unblock_block);
     }
 
-
-    function addUnfreezable(address _address) 
-        public 
-        onlyOwner 
-        onlyBlocked 
-        onlyInit 
+    function addUnfreezable(address _address)
+        public
+        onlyOwner
+        onlyBlocked
     {
         unfreezables[_address] = true;
     }
@@ -201,14 +146,14 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         uint256 _reserve_release = reserve.balanceOf(address(this)).mul(_reserve_fraction).div(Constants.ONE);
 
         console.log(
-            "RedeemableERC20: redeem: %s %s", 
-            _redeem_amount, 
+            "RedeemableERC20: redeem: %s %s",
+            _redeem_amount,
             totalSupply()
         );
         console.log(
-            "RedeemableERC20: redeem: reserve %s %s %s", 
-            reserve.balanceOf(address(this)), 
-            _reserve_fraction, 
+            "RedeemableERC20: redeem: reserve %s %s %s",
+            reserve.balanceOf(address(this)),
+            _reserve_fraction,
             _reserve_release
         );
 
@@ -226,17 +171,17 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
 
 
     function _beforeTokenTransfer(
-        address _sender, 
-        address _receiver, 
+        address _sender,
+        address _receiver,
         uint256 _amount
-    ) 
-        internal 
-        override 
+    )
+        internal
+        override
     {
         console.log(
-            "RedeemableERC20: _beforeTokenTransfer %s %s %s", 
-            _amount, 
-            _sender, 
+            "RedeemableERC20: _beforeTokenTransfer %s %s %s",
+            _amount,
+            _sender,
             _receiver
         );
 
