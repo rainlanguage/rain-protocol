@@ -92,16 +92,19 @@ contract Trust is Ownable, Initable {
         IERC20 _reserve,
         // Amount of reserve token to initialize the pool.
         // The starting/final weights are calculated against this.
-        // This amount will be refunded to the Trust owner after the distribution.
+        // This amount will be refunded to the Trust owner regardless whether the min_raise is met.
         uint256 _reserve_init,
         // Number of redeemable tokens to mint.
         uint256 _mint_init,
-        // initial marketcap of the token according to the balancer pool denominated in reserve token
+        // Initial marketcap of the token according to the balancer pool denominated in reserve token.
+        // Final market cap will be _redeem_init + _min_raise.
         uint256 _initial_pool_valuation,
-        // the amount of reserve to back the redemption initially after trading finishes.
+        // The amount of reserve to back the redemption initially after trading finishes.
+        // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
         uint256 _redeem_init,
-        // minimum amount to raise from the distribution period.
-        // this is only relevant to the exit function, determines whether the raise is sent to the owner or rolled to token holders.
+        // Minimum amount to raise from the distribution period.
+        // The raise is only considered successful if enough NEW funds enter the system to cover BOTH the _redeem_init + _min_raise.
+        // If the raise is successful the _redeem_init is sent to token holders, otherwise the failed raise is refunded instead.
         uint256 _min_raise
     ) public {
         crp_factory = _crp_factory;

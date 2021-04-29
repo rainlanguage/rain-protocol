@@ -46,7 +46,7 @@ import { BlockBlockable } from './libraries/BlockBlockable.sol';
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
 //
 // A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserve_release)`.
-contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
+contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
 
     using SafeMath for uint256;
 
@@ -131,7 +131,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
-    function redeem(uint256 _redeem_amount) public onlyInit onlyUnblocked {
+    function redeem(uint256 _redeem_amount) public onlyUnblocked {
         // We have to allow direct transfers to address 0x0 in order for _burn to work.
         // This is NEVER a good thing though.
         // The user that sent to 0x0 will lose their funds without recourse.
@@ -184,20 +184,6 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
             _sender,
             _receiver
         );
-
-        // We explicitly will never mint more than once.
-        // We never get explicit dispatch info from _mint or _burn etc.
-        // to know what is happening we need to infer it from context.
-        // `_mint` in Open Zeppelin ERC20 is always from the 0 address.
-        // Open Zeppelin already reverts any other transfer from the 0 address.
-        // We do need to allow minting when the supply is 0.
-        require(
-            // _mint always comes from 0x0.
-            (_sender != address(0))
-            // which is fine if we're still initializing.
-            || (!initialized)
-            // _burn will look like a _mint if we're burning from 0x0.
-            || (_sender == address(0) && _receiver == address(0)), "ERR_RUG_PULL");
 
         // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
         require(_receiver != address(this), "ERR_TOKEN_SEND_SELF");
