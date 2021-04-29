@@ -157,8 +157,6 @@ contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
             _reserve_release
         );
 
-        // transfer can fail without reverting so we need to revert ourselves if the reserve fails to be sent.
-        // (transfer cannot actually fail without reverting, but it's probably a good idea to handle the bool as though it can)
         IERC20(reserve).safeTransfer(msg.sender, _reserve_release);
 
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.

@@ -48,7 +48,6 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     uint256 public start_block;
 
     // RedeemableERC20 token.
-    // The reserve token is derived from this.
     RedeemableERC20 public token;
 
     uint256 public reserve_init;
@@ -59,9 +58,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     // So we can define a valuation of all our tokens in terms of the deposited reserve.
     // We also want to set the weight of the reserve small for flexibility, i.e. 1.
     // For example:
-    // - 50 000 reserve tokens
+    // - 200 000 reserve tokens
     // - 1 000 000 token valuation
-    // - 2x book ratio && 2x mint ratio => 100 000 reserve in token => 200 000 token in existence
     // - Token spot price x total token = initial valuation => 1 000 000 = spot x 200 000 => spot = 5
     // - Spot price calculation is in balancer whitepaper: https://balancer.finance/whitepaper/
     // - Spot = ( Br / Wr ) / ( Bt / Wt )
@@ -114,15 +112,13 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     }
 
     function construct_pool_amounts () private {
-        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_init: %s", reserve_init);
         pool_amounts.push(reserve_init);
+        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_init: %s", pool_amounts[0]);
 
         // The token amount is always the total supply.
         // It is required that the pool initializes with full ownership of all Tokens in existence.
-        uint256 _token_supply = token.totalSupply();
-        // require(IERC20(_token).balanceOf(address(this)) == _token_supply, "ERR_TOKEN_BALANCE");
-        console.log("RedeemableERC20Pool: construct_pool_amounts: token: %s", _token_supply);
-        pool_amounts.push(_token_supply);
+        pool_amounts.push(token.totalSupply());
+        console.log("RedeemableERC20Pool: construct_pool_amounts: token: %s", pool_amounts[1]);
     }
 
     function construct_pool_weights () private {
@@ -156,10 +152,9 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // We set the weight to the market cap of the redeem value.
 
         uint256 _reserve_weight_final = BalancerConstants.MIN_WEIGHT;
-        uint256 _redeem_reserve = redeem_init;
         uint256 _target_spot_final = final_valuation.mul(Constants.ONE).div(pool_amounts[1]);
         uint256 _token_weight_final = _target_spot_final.mul(pool_amounts[1]).mul(Constants.ONE).div(
-                _redeem_reserve.mul(BalancerConstants.MIN_WEIGHT)
+                redeem_init.mul(BalancerConstants.MIN_WEIGHT)
         );
         console.log("RedeemableERC20Pool: construct_pool_weights: weights_final: %s %s", _target_spot_final, _token_weight_final);
         console.log("RedeemableERC20Pool: construct_pool_weights: reserve_weight_final: %s", _reserve_weight_final);
@@ -233,40 +228,40 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             token.allowance(owner(), address(this))
         );
         require(
-            token.reserve().allowance(owner(), address(this)) == pool_amounts[0], 
+            token.reserve().allowance(owner(), address(this)) == pool_amounts[0],
             'ERR_RESERVE_ALLOWANCE'
         );
         require(
-            token.allowance(owner(), address(this)) == pool_amounts[1], 
+            token.allowance(owner(), address(this)) == pool_amounts[1],
             'ERR_TOKEN_ALLOWANCE'
         );
 
         // take allocated reserves.
         console.log(
-            "RedeemableERC20Pool: init: take reserves: %s", 
+            "RedeemableERC20Pool: init: take reserves: %s",
             pool_amounts[0]
         );
         token.reserve().safeTransferFrom(
-            owner(), 
-            address(this), 
+            owner(),
+            address(this),
             pool_amounts[0]
         );
         // we do NOT require an exact balance of the reserve after xfer as someone other than the owner could grief the contract with reserve dust.
         require(
-            token.reserve().balanceOf(address(this)) >= pool_amounts[0], 
+            token.reserve().balanceOf(address(this)) >= pool_amounts[0],
             'ERR_RESERVE_TRANSFER'
         );
 
         // take all token.
         console.log("RedeemableERC20Pool: init: take token: %s", pool_amounts[1]);
         require(token.transferFrom(
-            owner(), 
-            address(this), 
+            owner(),
+            address(this),
             pool_amounts[1]
         ),
         "ERR_TOKEN_TRANSFER");
         require(
-            token.balanceOf(address(this)) == token.totalSupply(), 
+            token.balanceOf(address(this)) == token.totalSupply(),
             'ERR_TOKEN_TRANSFER'
         );
 
