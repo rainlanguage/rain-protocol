@@ -205,11 +205,11 @@ contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
             // Can burn.
             // Only owner can receive.
             console.log(
-                "RedeemableERC20: _beforeTokenTransfer: owner: %s", 
+                "RedeemableERC20: _beforeTokenTransfer: owner: %s",
                 owner()
             );
             require(
-                _receiver == address(0) || unfreezables[_receiver] == true, 
+                _receiver == address(0) || unfreezables[_receiver] == true,
                 "ERR_FROZEN"
             );
         } else {
