@@ -24,7 +24,9 @@ interface IPrestige {
     event StatusChange(address account, Status[2] change);
 
     /**
-    *   Updates the level of an account by an entered level
+    *   Updates the level of an account by an entered level.
+    *   The implementing contract is responsible for taking any actions required to set the status.
+    *   For example, taking/refunding funds/NFTs etc.
     *   address account - Account to change the status.
     *   Status new_status - New status to be changed.
     *   bytes - Arbitrary input to disambiguate ownership (e.g. NFTs to lock).
