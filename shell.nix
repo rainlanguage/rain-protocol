@@ -17,8 +17,12 @@ let
   hardhat run --network localhost scripts/deploy.ts
  '';
 
- test = pkgs.writeShellScriptBin "ci-test" ''
+ ci-test = pkgs.writeShellScriptBin "ci-test" ''
  hardhat test
+ '';
+
+ ci-lint = pkgs.writeShellScriptBin "ci-lint" ''
+ solhint 'contracts/**/*.sol'
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -42,7 +46,8 @@ pkgs.stdenv.mkDerivation {
   local-fork
   local-test
   local-deploy
-  test
+  ci-test
+  ci-lint
   security-check
  ];
 

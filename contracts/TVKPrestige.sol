@@ -4,7 +4,7 @@ pragma solidity ^0.7.3;
 
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "./IPrestige.sol";
 
 contract TVKPrestige is IPrestige {
@@ -30,12 +30,10 @@ contract TVKPrestige is IPrestige {
     // 1 000 000 TVK
     uint256 public constant JAWAD = uint256(10 ** (18 + 6));
 
-    constructor() {}
-
     /**
     *   Returns a uint256 array of all existing levels
     **/
-    function levels() pure public returns (uint256[8] memory) {
+    function levels() public pure returns (uint256[8] memory) {
         return [COPPER, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, CHAD, JAWAD];
     }
 
@@ -67,27 +65,27 @@ contract TVKPrestige is IPrestige {
             _report = block.number;
         }
 
-        uint256 _current_status = 0;
+        uint256 _currentStatus = 0;
         for (uint256 i=0; i<8; i++) {
-            uint32 _ith_status_start = uint32(uint256(_report >> (i * 32)));
-            if (_ith_status_start > 0) {
-                _current_status = i;
+            uint32 _ithStatusStart = uint32(uint256(_report >> (i * 32)));
+            if (_ithStatusStart > 0) {
+                _currentStatus = i;
             }
         }
 
-        uint256 _current_tvk = levels()[_current_status];
+        uint256 _currentTvk = levels()[_currentStatus];
         // Status enum casts to level index.
-        uint256 _new_tvk = levels()[uint(newStatus)];
+        uint256 _newTvk = levels()[uint(newStatus)];
 
-        emit StatusChange(account, [Status(_current_status), newStatus]);
+        emit StatusChange(account, [Status(_currentStatus), newStatus]);
 
-        if (_new_tvk >= _current_tvk) {
+        if (_newTvk >= _currentTvk) {
             // Going up, take ownership of TVK.
             // Zero everything above the current status.
-            _report = _truncateStatusesAbove(_report, _current_status);
+            _report = _truncateStatusesAbove(_report, _currentStatus);
 
             // Anything up to new status needs a new block number.
-            for (uint256 i=_current_status+1; i<=uint256(newStatus); i++) {
+            for (uint256 i=_currentStatus+1; i<=uint256(newStatus); i++) {
                 uint32 _offset = uint32(i * 32);
                 _report = _report | uint256(uint256(block.number) << _offset);
             }
@@ -95,8 +93,8 @@ contract TVKPrestige is IPrestige {
 
             // Last thing to do as checks-effects-interactions
             TVK.safeTransferFrom(account, address(this), SafeMath.sub(
-                _new_tvk,
-                _current_tvk
+                _newTvk,
+                _currentTvk
             ));
         } else {
             // Going down, process a refund.
@@ -107,8 +105,8 @@ contract TVKPrestige is IPrestige {
 
             // Last thing to do as checks-effects-interactions
             TVK.safeTransfer(account, SafeMath.sub(
-                _current_tvk,
-                _new_tvk
+                _currentTvk,
+                _newTvk
             ));
         }
     }
