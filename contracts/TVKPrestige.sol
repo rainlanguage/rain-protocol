@@ -42,14 +42,11 @@ contract TVKPrestige is IPrestige {
 
 
     /// Updates the level of an account by an entered level
-    /// @param  account the account to change the status.
+    /// @param account the account to change the status.
     /// @param new_status the new status to be changed.
-    function set_status(
-        address account, 
-        Status new_status, 
-        bytes memory
-    ) 
-    external override 
+    function set_status(address account, Status new_status, bytes memory)
+        external 
+        override 
     {
         uint256 _report = _status_report(account);
         
