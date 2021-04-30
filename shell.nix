@@ -26,7 +26,6 @@ let
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''
- set -euxo pipefail
  rm -rf venv
  rm -rf artifacts
  rm -rf cache

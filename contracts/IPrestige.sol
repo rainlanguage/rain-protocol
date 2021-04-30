@@ -3,6 +3,10 @@
 pragma solidity ^0.7.3;
 
 interface IPrestige {
+    /**
+    * 8 Possible statuses.
+    * Fits nicely as uint32 in uint256 which is helpful for internal storage concerns.
+    **/
     enum Status {
         COPPER,
         BRONZE,
@@ -14,6 +18,9 @@ interface IPrestige {
         JAWAD
     }
 
+    /**
+    * Every time a status changes we log before and after as a Status[2] against the account.
+    **/
     event StatusChange(address account, Status[2] change);
 
     /**
@@ -24,9 +31,11 @@ interface IPrestige {
     **/
     function setStatus(address account, Status newStatus, bytes memory data) external;
 
-    // Returns the earliest block the account has held each status for continuously.
-    // This is encoded as a uint256 with blocks represented as 8x concatenated u32.
-    // I.e. Each 4 bytes of the uint256 represents a u32 status start time.
-    // The low bits represent low status and high bits the high status.
+    /**
+    * Returns the earliest block the account has held each status for continuously.
+    * This is encoded as a uint256 with blocks represented as 8x concatenated u32.
+    * I.e. Each 4 bytes of the uint256 represents a u32 status start time.
+    * The low bits represent low status and high bits the high status.
+    **/
     function statusReport(address account) external view returns (uint256);
 }
