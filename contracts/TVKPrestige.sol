@@ -13,7 +13,7 @@ contract TVKPrestige is IPrestige {
 
     mapping (address => uint256) public statuses;
 
-    // Nothing, this is everyone.
+    // Nothing, this can be anyone.
     uint256 public constant copper = uint256(0);
     // 1000 TVK
     uint256 public constant bronze = uint256(10 ** (18 + 3));
@@ -40,30 +40,22 @@ contract TVKPrestige is IPrestige {
     }
 
     /**
-    *   Return uint256 corresponding to the status of the entered account.
-    *   address account - Account to be consulted.
-    **/
-    function _status_report(address account) private view returns (uint256) {
-        return statuses[account];
-    }
-
-    /**
     *   Returns uint32 the block number that corresponds to the current status report.
-    *   address account - Account to be consulted.
+    *   address account - Account to be reported on.
     **/
     function status_report(address account) external override view returns (uint256) {
-        return _status_report(account);
+        return statuses[account];
     }
 
     /**
     *   Updates the level of an account by an entered level
     *   address account - Account to change the status.
     *   Status new_status - New status to be changed.
-    *   bytes -
+    *   bytes - Arbitrary input to disambiguate ownership (not used here).
     **/
     function set_status(address account, Status new_status, bytes memory) external override {
-        uint256 _report = _status_report(account);
-        
+        uint256 _report = statuses[account];
+
         uint current_status = 0;
         for (uint i=0; i<8; i++) {
             uint32 _ith_status_start = uint32(uint256(_report >> (i * 32)));
@@ -76,39 +68,37 @@ contract TVKPrestige is IPrestige {
         // Status enum casts to level index.
         uint256 _new_tvk = levels()[uint(new_status)];
 
-        if (_new_tvk >= _current_tvk) {
-            //Going up, take ownership of TVK.
-            tvk.safeTransferFrom(account, address(this), SafeMath.sub(
-                _new_tvk,
-                _current_tvk
-            ));
+        emit StatusChange(account, [Status(current_status), new_status]);
 
+        if (_new_tvk >= _current_tvk) {
             for (uint i=0; i<8; i++) {
                 // Zero everything above the current status.
                  if (i>current_status || uint32(_report) == 0) {
                     uint32 _offset = uint32(i * 32);
                     uint256 _mask = uint256(0xffffffff) << _offset;
                     _report = _report & ~_mask;
-                    
+
                     // Anything up to new status needs a new block number.
                     if (i<=uint(new_status)) {
                         _report = _report | uint256(uint256(block.number) << _offset);
                     }
                 }
             }
-        } else {
-            //Going down, process a refund.
-            tvk.safeTransfer(account, SafeMath.sub(
-                _current_tvk,
-                _new_tvk
-            ));
+            statuses[account] = _report;
 
+            // Going up, take ownership of TVK.
+            // Last thing to do as checks-effects-interactions
+            tvk.safeTransferFrom(account, address(this), SafeMath.sub(
+                _new_tvk,
+                _current_tvk
+            ));
+        } else {
             uint256 _mask = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
             if (0==uint(new_status)) {
                 // Zero everything above the current status.
                 uint32 _offset = uint32(0 * 32);
                 _report = _report & ~_mask;
-                    
+
                 // Anything up to new status needs a new block number.
                 _report = _report | uint256(uint256(block.number) << _offset);
             } else {
@@ -117,10 +107,14 @@ contract TVKPrestige is IPrestige {
                 _mask = (_mask >> _offset) << _offset;
                 _report = _report & ~_mask;
             }
-        }
-        
-        emit StatusChange(account, [Status(current_status), new_status]);
+            statuses[account] = _report;
 
-        statuses[account] = _report;
+            // Going down, process a refund.
+            // Last thing to do as checks-effects-interactions
+            tvk.safeTransfer(account, SafeMath.sub(
+                _current_tvk,
+                _new_tvk
+            ));
+        }
     }
 }

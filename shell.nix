@@ -17,6 +17,10 @@ let
   hardhat run --network localhost scripts/deploy.ts
  '';
 
+ test = pkgs.writeShellScriptBin "ci-test" ''
+ hardhat test
+ '';
+
  security-check = pkgs.writeShellScriptBin "security-check" ''
  python3 -m venv venv
  source ./venv/bin/activate
@@ -33,6 +37,7 @@ pkgs.stdenv.mkDerivation {
   local-fork
   local-test
   local-deploy
+  test
   security-check
  ];
 

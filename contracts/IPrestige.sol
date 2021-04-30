@@ -16,6 +16,12 @@ interface IPrestige {
 
     event StatusChange(address account, Status[2] change);
 
+    /**
+    *   Updates the level of an account by an entered level
+    *   address account - Account to change the status.
+    *   Status new_status - New status to be changed.
+    *   bytes - Arbitrary input to disambiguate ownership (e.g. NFTs to lock).
+    **/
     function set_status(address account, Status new_status, bytes memory data) external;
 
     // Returns the earliest block the account has held each status for continuously.
