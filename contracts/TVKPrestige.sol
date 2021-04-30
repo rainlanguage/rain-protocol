@@ -56,24 +56,27 @@ contract TVKPrestige is IPrestige {
     function setStatus(address account, Status newStatus, bytes memory) external override {
         uint256 _report = statuses[account];
 
-        uint current_status = 0;
+        uint _current_status = 0;
         for (uint i=0; i<8; i++) {
             uint32 _ith_status_start = uint32(uint256(_report >> (i * 32)));
             if (_ith_status_start > 0) {
-                current_status = i;
+                _current_status = i;
             }
         }
+        if (_current_status == 0 && _report == 0) {
+            _report = block.number;
+        }
 
-        uint256 _current_tvk = levels()[current_status];
+        uint256 _current_tvk = levels()[_current_status];
         // Status enum casts to level index.
         uint256 _new_tvk = levels()[uint(newStatus)];
 
-        emit StatusChange(account, [Status(current_status), newStatus]);
+        emit StatusChange(account, [Status(_current_status), newStatus]);
 
         if (_new_tvk >= _current_tvk) {
-            for (uint i=0; i<8; i++) {
+            for (uint i=1; i<8; i++) {
                 // Zero everything above the current status.
-                 if (i>current_status || uint32(_report) == 0) {
+                if (i>_current_status) {
                     uint32 _offset = uint32(i * 32);
                     uint256 _mask = uint256(0xffffffff) << _offset;
                     _report = _report & ~_mask;
@@ -93,20 +96,12 @@ contract TVKPrestige is IPrestige {
                 _current_tvk
             ));
         } else {
+            // Zero out everything above the new status.
             uint256 _mask = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
-            if (0==uint(newStatus)) {
-                // // Zero everything above the current status.
-                // uint32 _offset = uint32(0 * 32);
-                // _report = _report & ~_mask;
+            uint256 _offset = (uint(newStatus) + 1) * 32;
+            _mask = (_mask >> _offset) << _offset;
+            _report = _report & ~_mask;
 
-                // Anything up to new status needs a new block number.
-                _report = block.number;
-            } else {
-                // Zero out everything above the new status.
-                uint256 _offset = (uint(newStatus) + 1) * 32;
-                _mask = (_mask >> _offset) << _offset;
-                _report = _report & ~_mask;
-            }
             statuses[account] = _report;
 
             // Going down, process a refund.
