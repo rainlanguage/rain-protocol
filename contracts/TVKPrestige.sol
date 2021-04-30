@@ -47,7 +47,7 @@ contract TVKPrestige is IPrestige {
         return statuses[account];
     }
 
-    function _zeroStatusesAbove(uint256 report, uint256 status) private pure returns (uint256 _report) {
+    function _truncateStatusesAbove(uint256 report, uint256 status) private pure returns (uint256 _report) {
         uint256 _mask = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
         uint256 _offset = (uint256(status) + 1) * 32;
         _mask = (_mask >> _offset) << _offset;
@@ -62,6 +62,10 @@ contract TVKPrestige is IPrestige {
     **/
     function setStatus(address account, Status newStatus, bytes memory) external override {
         uint256 _report = statuses[account];
+        // Uses an inequality here to silence slither complaints about x == y.
+        if (_report < 1) {
+            _report = block.number;
+        }
 
         uint256 _current_status = 0;
         for (uint256 i=0; i<8; i++) {
@@ -69,9 +73,6 @@ contract TVKPrestige is IPrestige {
             if (_ith_status_start > 0) {
                 _current_status = i;
             }
-        }
-        if (_current_status == 0 && _report == 0) {
-            _report = block.number;
         }
 
         uint256 _current_tvk = levels()[_current_status];
@@ -83,9 +84,10 @@ contract TVKPrestige is IPrestige {
         if (_new_tvk >= _current_tvk) {
             // Going up, take ownership of TVK.
             // Zero everything above the current status.
-            _report = _zeroStatusesAbove(_report, _current_status);
+            _report = _truncateStatusesAbove(_report, _current_status);
+
+            // Anything up to new status needs a new block number.
             for (uint256 i=_current_status+1; i<=uint256(newStatus); i++) {
-                // Anything up to new status needs a new block number.
                 uint32 _offset = uint32(i * 32);
                 _report = _report | uint256(uint256(block.number) << _offset);
             }
@@ -99,7 +101,7 @@ contract TVKPrestige is IPrestige {
         } else {
             // Going down, process a refund.
             // Zero out everything above the new status.
-            _report = _zeroStatusesAbove(_report, uint256(newStatus));
+            _report = _truncateStatusesAbove(_report, uint256(newStatus));
 
             statuses[account] = _report;
 
