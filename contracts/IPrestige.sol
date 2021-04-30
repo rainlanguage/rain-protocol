@@ -4,14 +4,14 @@ pragma solidity ^0.7.3;
 
 interface IPrestige {
     enum Status {
-        Copper,
-        Bronze,
-        Silver,
-        Gold,
-        Platinum,
-        Diamond,
-        Chad,
-        Jawad
+        COPPER,
+        BRONZE,
+        SILVER,
+        GOLD,
+        PLATINUM,
+        DIAMOND,
+        CHAD,
+        JAWAD
     }
 
     event StatusChange(address account, Status[2] change);
@@ -22,11 +22,11 @@ interface IPrestige {
     *   Status new_status - New status to be changed.
     *   bytes - Arbitrary input to disambiguate ownership (e.g. NFTs to lock).
     **/
-    function set_status(address account, Status new_status, bytes memory data) external;
+    function setStatus(address account, Status newStatus, bytes memory data) external;
 
     // Returns the earliest block the account has held each status for continuously.
     // This is encoded as a uint256 with blocks represented as 8x concatenated u32.
     // I.e. Each 4 bytes of the uint256 represents a u32 status start time.
     // The low bits represent low status and high bits the high status.
-    function status_report(address account) external view returns (uint256);
+    function statusReport(address account) external view returns (uint256);
 }

@@ -21,22 +21,22 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IPrestigeInterface extends ethers.utils.Interface {
   functions: {
-    "set_status(address,uint8,bytes)": FunctionFragment;
-    "status_report(address)": FunctionFragment;
+    "setStatus(address,uint8,bytes)": FunctionFragment;
+    "statusReport(address)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "set_status",
+    functionFragment: "setStatus",
     values: [string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "status_report",
+    functionFragment: "statusReport",
     values: [string]
   ): string;
 
-  decodeFunctionResult(functionFragment: "set_status", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setStatus", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "status_report",
+    functionFragment: "statusReport",
     data: BytesLike
   ): Result;
 
@@ -91,73 +91,73 @@ export class IPrestige extends Contract {
   interface: IPrestigeInterface;
 
   functions: {
-    set_status(
+    setStatus(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "set_status(address,uint8,bytes)"(
+    "setStatus(address,uint8,bytes)"(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    status_report(
+    statusReport(
       account: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "status_report(address)"(
+    "statusReport(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
 
-  set_status(
+  setStatus(
     account: string,
-    new_status: BigNumberish,
+    newStatus: BigNumberish,
     data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "set_status(address,uint8,bytes)"(
+  "setStatus(address,uint8,bytes)"(
     account: string,
-    new_status: BigNumberish,
+    newStatus: BigNumberish,
     data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  status_report(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+  statusReport(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  "status_report(address)"(
+  "statusReport(address)"(
     account: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   callStatic: {
-    set_status(
+    setStatus(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "set_status(address,uint8,bytes)"(
+    "setStatus(address,uint8,bytes)"(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    status_report(
+    statusReport(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "status_report(address)"(
+    "statusReport(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -174,52 +174,52 @@ export class IPrestige extends Contract {
   };
 
   estimateGas: {
-    set_status(
+    setStatus(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "set_status(address,uint8,bytes)"(
+    "setStatus(address,uint8,bytes)"(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    status_report(
+    statusReport(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "status_report(address)"(
+    "statusReport(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    set_status(
+    setStatus(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "set_status(address,uint8,bytes)"(
+    "setStatus(address,uint8,bytes)"(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    status_report(
+    statusReport(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "status_report(address)"(
+    "statusReport(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

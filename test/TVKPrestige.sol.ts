@@ -73,7 +73,7 @@ describe("Account status", async function(){
     await tvkPrestige.deployed()
 
     // no status yet, so status should be copper = 0
-    const status = await tvkPrestige.status_report(signers[0].address)
+    const status = await tvkPrestige.statusReport(signers[0].address)
     const report = tvkStatusReport(status.toString())
     assert(report[0] === 0)
   });
@@ -124,7 +124,7 @@ describe("Account status", async function(){
     
     try {
       // change the status to silver and check if event emitted
-      await expect(tvkPrestige.set_status(address, 8, []))
+      await expect(tvkPrestige.setStatus(address, 8, []))
       .to.emit(tvkPrestige, 'StatusChange')
       .withArgs(address, [0, 8])
     } catch (error) {
@@ -180,15 +180,15 @@ describe("Account status", async function(){
     const balance = await tvkToken.balanceOf(address)
 
     // change the status to silver and check if event emitted
-    await expect(tvkPrestige.set_status(address, 2, []))
+    await expect(tvkPrestige.setStatus(address, 2, []))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, [0, 2])
 
     // check with the contract
-    const status = await tvkPrestige.status_report(address)
+    const status = await tvkPrestige.statusReport(address)
     const report = tvkStatusReport(status.toString())
     expect(report[2]).to.equal(await tvkPrestige.provider.getBlockNumber())
-    
+
     // new balance should be old balance less amount for silver
     const levels = await tvkPrestige.levels()
     const silver = levels[2]
@@ -244,22 +244,22 @@ describe("Account status", async function(){
     const balance = await tvkToken.balanceOf(address)
 
     // change the status to platinum and check if event emitted
-    await expect(tvkPrestige.set_status(address, 4, []))
+    await expect(tvkPrestige.setStatus(address, 4, []))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, [0, 4])
 
     // check with the contract
-    const platinum = await tvkPrestige.status_report(address)
+    const platinum = await tvkPrestige.statusReport(address)
     const platinumReport = tvkStatusReport(platinum.toString())[4]
     expect(platinumReport).to.equal(await tvkPrestige.provider.getBlockNumber())
 
     // change the status to bronze and check if event emitted
-    await expect(tvkPrestige.set_status(address, 1, []))
+    await expect(tvkPrestige.setStatus(address, 1, []))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, [4, 1])
 
     // check with the contract
-    const bronze = await tvkPrestige.status_report(address)
+    const bronze = await tvkPrestige.statusReport(address)
     const bronzeReport = tvkStatusReport(bronze.toString())[1]
     expect(bronzeReport).to.equal(platinumReport)
 
@@ -270,11 +270,11 @@ describe("Account status", async function(){
     expect(newBalance).to.equal(balance.sub(bronze_level), "new balance after status change is incorrect")
 
     // Moving back up again to gold does NOT reset block number.
-    await expect(tvkPrestige.set_status(address, 3, []))
+    await expect(tvkPrestige.setStatus(address, 3, []))
     .to.emit(tvkPrestige, 'StatusChange')
     .withArgs(address, [1, 3])
 
-    const gold = await tvkPrestige.status_report(address)
+    const gold = await tvkPrestige.statusReport(address)
     const goldBlock = await tvkPrestige.provider.getBlockNumber()
     const goldReport = tvkStatusReport(gold.toString())[3]
     expect(goldReport).to.equal(await tvkPrestige.provider.getBlockNumber())
@@ -328,7 +328,7 @@ describe("Account status", async function(){
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
     await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
 
-    await expect(tvkPrestige.set_status(address, 3, [])).to.be.revertedWith("revert ERC20: transfer amount exceeds balance")
+    await expect(tvkPrestige.setStatus(address, 3, [])).to.be.revertedWith("revert ERC20: transfer amount exceeds balance")
   })
 
 
@@ -366,6 +366,6 @@ describe("Account status", async function(){
     await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
 
 
-    await expect(tvkPrestige.set_status(address, 7, [])).to.be.reverted
+    await expect(tvkPrestige.setStatus(address, 7, [])).to.be.reverted
   })
 });

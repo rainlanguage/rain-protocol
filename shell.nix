@@ -22,6 +22,11 @@ let
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''
+ rm -rf venv
+ rm -rf artifacts
+ rm -rf cache
+ rm -rf node_modules
+ npm install
  python3 -m venv venv
  source ./venv/bin/activate
  pip install slither-analyzer

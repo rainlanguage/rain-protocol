@@ -45,7 +45,7 @@ const _abi = [
       },
       {
         internalType: "enum IPrestige.Status",
-        name: "new_status",
+        name: "newStatus",
         type: "uint8",
       },
       {
@@ -54,7 +54,7 @@ const _abi = [
         type: "bytes",
       },
     ],
-    name: "set_status",
+    name: "setStatus",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -67,7 +67,7 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "status_report",
+    name: "statusReport",
     outputs: [
       {
         internalType: "uint256",
