@@ -31,7 +31,12 @@ interface IPrestige {
     *   Status new_status - New status to be changed.
     *   bytes - Arbitrary input to disambiguate ownership (e.g. NFTs to lock).
     **/
-    function setStatus(address account, Status newStatus, bytes memory data) external;
+    function setStatus(
+        address account, 
+        Status newStatus, 
+        bytes memory data
+    ) 
+        external;
 
     /**
     * Returns the earliest block the account has held each status for continuously.
