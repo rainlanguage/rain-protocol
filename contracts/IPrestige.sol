@@ -32,10 +32,10 @@ interface IPrestige {
     *   bytes - Arbitrary input to disambiguate ownership (e.g. NFTs to lock).
     **/
     function setStatus(
-        address account, 
-        Status newStatus, 
+        address account,
+        Status newStatus,
         bytes memory data
-    ) 
+    )
         external;
 
     /**

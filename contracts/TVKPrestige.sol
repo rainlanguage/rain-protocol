@@ -41,9 +41,9 @@ contract TVKPrestige is IPrestige {
     /// Updates the level of an account by an entered level
     /// @param account the account to change the status.
     /// @param newStatus the new status to be changed.
-    function setStatus(address account, Status newStatus, bytes memory) 
-        external 
-        override 
+    function setStatus(address account, Status newStatus, bytes memory)
+        external
+        override
     {
         uint256 _report = statuses[account];
 
@@ -103,11 +103,11 @@ contract TVKPrestige is IPrestige {
     /// Return status report
     /// @param account - Account to be reported on.
     /// @return uint32 the block number that corresponds to the current status report.
-    function statusReport(address account) 
-        external 
-        override 
-        view 
-        returns (uint256) 
+    function statusReport(address account)
+        external
+        override
+        view
+        returns (uint256)
     {
         return statuses[account];
     }
@@ -125,9 +125,9 @@ contract TVKPrestige is IPrestige {
     /// @param status - Status level to truncate above (exclusive)
     /// @return uint256 the truncated report.
     function _truncateStatusesAbove(uint256 report, uint256 status)
-        private 
-        pure 
-        returns (uint256) 
+        private
+        pure
+        returns (uint256)
     {
         uint256 _mask = uint256(
             0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff

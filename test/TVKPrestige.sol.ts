@@ -98,14 +98,14 @@ describe("Levels", async function(){
   it("will return the chad status level", async function(){
     // the expected chad level
     const chad = ethers.BigNumber.from('250000' + eighteenZeros)
-    
+
     // get the levels
     const levels = await tvkPrestige.levels()
 
     expect(levels[6]).to.equal(chad);
   });
 
-  
+
   it("will return the jawad status level", async function(){
     // the expected jawad level
     const jawad = ethers.BigNumber.from('1000000' + eighteenZeros)
@@ -715,7 +715,10 @@ describe("Account status", async function(){
     // check with the contract
     const status = await tvkPrestige.statusReport(address);
     const report = tvkStatusReport(status.toString());
-    assert(report[2] !== report[4]);
+    assert(report[0] === report[1]);
+    assert(report[1] === report[2]);
+    assert(report[2] < report[3]);
+    assert(report[3] === report[4]);
     expect(report[5]).to.equal(0);
     expect(report[6]).to.equal(0);
     expect(report[7]).to.equal(0);
@@ -771,7 +774,7 @@ describe("Account status", async function(){
 
     // change the status to silver
     tvkPrestige.setStatus(address, 2, [])
-    
+
     // new balance should be old balance less amount for silver
     const levels = await tvkPrestige.levels()
     const silver = levels[2]
@@ -931,7 +934,7 @@ describe("Account status", async function(){
     // get the TVK token contract and set allowance for TVK prestige contract
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
     await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
-    
+
     try {
       // change the status to silver and check if event emitted
       await expect(tvkPrestige.setStatus(address, 100, []))
