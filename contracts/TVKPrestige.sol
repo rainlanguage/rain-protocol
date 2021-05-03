@@ -4,123 +4,136 @@ pragma solidity ^0.7.3;
 
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "./IPrestige.sol";
 
 contract TVKPrestige is IPrestige {
     using SafeERC20 for IERC20;
-    IERC20 public constant tvk = IERC20(0xd084B83C305daFD76AE3E1b4E1F1fe2eCcCb3988);
 
-    mapping (address => uint256) public statuses;
+    // Hardcoded as a constant to make auditing easier and lower storage requirements a bit.
+    IERC20 public constant TVK = IERC20(
+        0xd084B83C305daFD76AE3E1b4E1F1fe2eCcCb3988
+    );
 
-    // Nothing, this is everyone.
-    uint256 public constant copper = uint256(0);
+
+    mapping(address => uint256) public statuses;
+
+
+    // Nothing, this can be anyone.
+    uint256 public constant COPPER = uint256(0);
     // 1000 TVK
-    uint256 public constant bronze = uint256(10 ** (18 + 3));
+    uint256 public constant BRONZE = uint256(10 ** (18+3));
     // 5000 TVK
-    uint256 public constant silver = uint256(5 * 10 ** (18 + 3));
+    uint256 public constant SILVER = uint256(5*10 ** (18+3));
     // 10 000 TVK
-    uint256 public constant gold = uint256(10 ** (18 + 4));
+    uint256 public constant GOLD = uint256(10 ** (18+4));
     // 25 000 TVK
-    uint256 public constant platinum = uint256(25 * 10 ** (18 + 3));
+    uint256 public constant PLATINUM = uint256(25*10 ** (18+3));
     // 100 000 TVK
-    uint256 public constant diamond = uint256(10 ** (18 + 5));
+    uint256 public constant DIAMOND = uint256(10 ** (18+5));
     // 250 000 TVK
-    uint256 public constant chad = uint256(25 * 10 ** (18 + 4));
+    uint256 public constant CHAD = uint256(25*10 ** (18+4));
     // 1 000 000 TVK
-    uint256 public constant jawad = uint256(10 ** (18 + 6));
+    uint256 public constant JAWAD = uint256(10 ** (18+6));
 
-    constructor() {}
 
-    /**
-    *   Returns a uint256 array of all existing levels
-    **/
-    function levels() pure public returns (uint256[8] memory) {
-        return [copper, bronze, silver, gold, platinum, diamond, chad, jawad];
+
+    /// Updates the level of an account by an entered level
+    /// @param account the account to change the status.
+    /// @param newStatus the new status to be changed.
+    function setStatus(address account, Status newStatus, bytes memory) 
+        external 
+        override 
+    {
+        uint256 _report = statuses[account];
+
+        // Initialize the report to the current block if we've never seen this account.
+        // slither-disable-next-line incorrect-equality
+        if (_report == 0) {
+            _report = block.number;
+        }
+
+        // Read the status report to find the highest non-zero status level.
+        uint256 _currentStatusInt = 0;
+        for (uint256 i = 0; i < 8; i++) {
+            // The shift right removes statuses below this status.
+            // The uint32 cast removes statuses above this status.
+            uint32 _ithStatusStart = uint32(uint256(_report >> (i*32)));
+            if (_ithStatusStart > 0) {
+                _currentStatusInt = i;
+            }
+        }
+        uint256 _newStatusInt = uint256(newStatus);
+
+        // Zero out everything above the new status.
+        _report = _truncateStatusesAbove(_report, _newStatusInt);
+
+        // Anything between the current/new statuses needs the current block number.
+        for (uint256 i = _currentStatusInt + 1; i <= _newStatusInt; i++) {
+            _report = _report | uint256(block.number << (i*32));
+        }
+        statuses[account] = _report;
+
+        // Emit this event for IPrestige.
+        emit StatusChange(account, [Status(_currentStatusInt), newStatus]);
+
+        // Last thing to do as checks-effects-interactions.
+        // Handle the TVK transfer.
+        // Convert the current status to a TVK amount.
+        uint256 _currentTvk = levels()[_currentStatusInt];
+        // Convert the new status to a TVK amount.
+        uint256 _newTvk = levels()[_newStatusInt];
+
+        if (_newTvk >= _currentTvk) {
+            // Going up, take ownership of TVK.
+            TVK.safeTransferFrom(account, address(this), SafeMath.sub(
+                _newTvk,
+                _currentTvk
+            ));
+        } else {
+            // Going down, process a refund.
+            TVK.safeTransfer(account, SafeMath.sub(
+                _currentTvk,
+                _newTvk
+            ));
+        }
     }
 
-    /**
-    *   Return uint256 corresponding to the status of the entered account.
-    *   address account - Account to be consulted.
-    **/
-    function _status_report(address account) private view returns (uint256) {
+
+    /// Return status report
+    /// @param account - Account to be reported on.
+    /// @return uint32 the block number that corresponds to the current status report.
+    function statusReport(address account) 
+        external 
+        override 
+        view 
+        returns (uint256) 
+    {
         return statuses[account];
     }
 
-    /**
-    *   Returns uint32 the block number that corresponds to the current status report.
-    *   address account - Account to be consulted.
-    **/
-    function status_report(address account) external override view returns (uint256) {
-        return _status_report(account);
+
+    /// Return existing levels
+    /// @return uint256 array of all existing levels
+    function levels() public pure returns (uint256[8] memory) {
+        return [COPPER, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, CHAD, JAWAD];
     }
 
-    /**
-    *   Updates the level of an account by an entered level
-    *   address account - Account to change the status.
-    *   Status new_status - New status to be changed.
-    *   bytes -
-    **/
-    function set_status(address account, Status new_status, bytes memory) external override {
-        uint256 _report = _status_report(account);
-        
-        uint current_status = 0;
-        for (uint i=0; i<8; i++) {
-            uint32 _ith_status_start = uint32(uint256(_report >> (i * 32)));
-            if (_ith_status_start > 0) {
-                current_status = i;
-            }
-        }
 
-        uint256 _current_tvk = levels()[current_status];
-        // Status enum casts to level index.
-        uint256 _new_tvk = levels()[uint(new_status)];
-
-        if (_new_tvk >= _current_tvk) {
-            //Going up, take ownership of TVK.
-            tvk.safeTransferFrom(account, address(this), SafeMath.sub(
-                _new_tvk,
-                _current_tvk
-            ));
-
-            for (uint i=0; i<8; i++) {
-                // Zero everything above the current status.
-                 if (i>current_status || uint32(_report) == 0) {
-                    uint32 _offset = uint32(i * 32);
-                    uint256 _mask = uint256(0xffffffff) << _offset;
-                    _report = _report & ~_mask;
-                    
-                    // Anything up to new status needs a new block number.
-                    if (i<=uint(new_status)) {
-                        _report = _report | uint256(uint256(block.number) << _offset);
-                    }
-                }
-            }
-        } else {
-            //Going down, process a refund.
-            tvk.safeTransfer(account, SafeMath.sub(
-                _current_tvk,
-                _new_tvk
-            ));
-
-            uint256 _mask = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
-            if (0==uint(new_status)) {
-                // Zero everything above the current status.
-                uint32 _offset = uint32(0 * 32);
-                _report = _report & ~_mask;
-                    
-                // Anything up to new status needs a new block number.
-                _report = _report | uint256(uint256(block.number) << _offset);
-            } else {
-                // Zero out everything above the new status.
-                uint256 _offset = (uint(new_status) + 1) * 32;
-                _mask = (_mask >> _offset) << _offset;
-                _report = _report & ~_mask;
-            }
-        }
-        
-        emit StatusChange(account, [Status(current_status), new_status]);
-
-        statuses[account] = _report;
+    /// Return zeroes out all the statuses above the provided status.
+    /// @param report - Status report to truncate with high bit zeros
+    /// @param status - Status level to truncate above (exclusive)
+    /// @return uint256 the truncated report.
+    function _truncateStatusesAbove(uint256 report, uint256 status)
+        private 
+        pure 
+        returns (uint256) 
+    {
+        uint256 _mask = uint256(
+            0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        );
+        uint256 _offset = (uint256(status) + 1) * 32;
+        _mask = (_mask >> _offset) << _offset;
+        return report & ~_mask;
     }
 }

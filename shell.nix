@@ -17,7 +17,20 @@ let
   hardhat run --network localhost scripts/deploy.ts
  '';
 
+ ci-test = pkgs.writeShellScriptBin "ci-test" ''
+ hardhat test
+ '';
+
+ ci-lint = pkgs.writeShellScriptBin "ci-lint" ''
+ solhint 'contracts/**/*.sol'
+ '';
+
  security-check = pkgs.writeShellScriptBin "security-check" ''
+ rm -rf venv
+ rm -rf artifacts
+ rm -rf cache
+ rm -rf node_modules
+ npm install
  python3 -m venv venv
  source ./venv/bin/activate
  pip install slither-analyzer
@@ -33,6 +46,8 @@ pkgs.stdenv.mkDerivation {
   local-fork
   local-test
   local-deploy
+  ci-test
+  ci-lint
   security-check
  ];
 

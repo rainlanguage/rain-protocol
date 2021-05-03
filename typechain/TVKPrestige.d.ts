@@ -21,57 +21,57 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface TVKPrestigeInterface extends ethers.utils.Interface {
   functions: {
-    "bronze()": FunctionFragment;
-    "chad()": FunctionFragment;
-    "copper()": FunctionFragment;
-    "diamond()": FunctionFragment;
-    "gold()": FunctionFragment;
-    "jawad()": FunctionFragment;
+    "BRONZE()": FunctionFragment;
+    "CHAD()": FunctionFragment;
+    "COPPER()": FunctionFragment;
+    "DIAMOND()": FunctionFragment;
+    "GOLD()": FunctionFragment;
+    "JAWAD()": FunctionFragment;
+    "PLATINUM()": FunctionFragment;
+    "SILVER()": FunctionFragment;
+    "TVK()": FunctionFragment;
     "levels()": FunctionFragment;
-    "platinum()": FunctionFragment;
-    "set_status(address,uint8,bytes)": FunctionFragment;
-    "silver()": FunctionFragment;
-    "status_report(address)": FunctionFragment;
+    "setStatus(address,uint8,bytes)": FunctionFragment;
+    "statusReport(address)": FunctionFragment;
     "statuses(address)": FunctionFragment;
-    "tvk()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "bronze", values?: undefined): string;
-  encodeFunctionData(functionFragment: "chad", values?: undefined): string;
-  encodeFunctionData(functionFragment: "copper", values?: undefined): string;
-  encodeFunctionData(functionFragment: "diamond", values?: undefined): string;
-  encodeFunctionData(functionFragment: "gold", values?: undefined): string;
-  encodeFunctionData(functionFragment: "jawad", values?: undefined): string;
+  encodeFunctionData(functionFragment: "BRONZE", values?: undefined): string;
+  encodeFunctionData(functionFragment: "CHAD", values?: undefined): string;
+  encodeFunctionData(functionFragment: "COPPER", values?: undefined): string;
+  encodeFunctionData(functionFragment: "DIAMOND", values?: undefined): string;
+  encodeFunctionData(functionFragment: "GOLD", values?: undefined): string;
+  encodeFunctionData(functionFragment: "JAWAD", values?: undefined): string;
+  encodeFunctionData(functionFragment: "PLATINUM", values?: undefined): string;
+  encodeFunctionData(functionFragment: "SILVER", values?: undefined): string;
+  encodeFunctionData(functionFragment: "TVK", values?: undefined): string;
   encodeFunctionData(functionFragment: "levels", values?: undefined): string;
-  encodeFunctionData(functionFragment: "platinum", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "set_status",
+    functionFragment: "setStatus",
     values: [string, BigNumberish, BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "silver", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "status_report",
+    functionFragment: "statusReport",
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "statuses", values: [string]): string;
-  encodeFunctionData(functionFragment: "tvk", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "bronze", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "chad", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "copper", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "diamond", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "gold", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "jawad", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "BRONZE", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "CHAD", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "COPPER", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "DIAMOND", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "GOLD", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "JAWAD", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "PLATINUM", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "SILVER", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "TVK", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "levels", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "platinum", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "set_status", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "silver", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setStatus", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "status_report",
+    functionFragment: "statusReport",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "statuses", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "tvk", data: BytesLike): Result;
 
   events: {
     "StatusChange(address,uint8[2])": EventFragment;
@@ -124,29 +124,41 @@ export class TVKPrestige extends Contract {
   interface: TVKPrestigeInterface;
 
   functions: {
-    bronze(overrides?: CallOverrides): Promise<[BigNumber]>;
+    BRONZE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "bronze()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "BRONZE()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    chad(overrides?: CallOverrides): Promise<[BigNumber]>;
+    CHAD(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "chad()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "CHAD()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    copper(overrides?: CallOverrides): Promise<[BigNumber]>;
+    COPPER(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "copper()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "COPPER()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    diamond(overrides?: CallOverrides): Promise<[BigNumber]>;
+    DIAMOND(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "diamond()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "DIAMOND()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    gold(overrides?: CallOverrides): Promise<[BigNumber]>;
+    GOLD(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "gold()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "GOLD()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    jawad(overrides?: CallOverrides): Promise<[BigNumber]>;
+    JAWAD(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "jawad()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "JAWAD()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    PLATINUM(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "PLATINUM()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    SILVER(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "SILVER()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    TVK(overrides?: CallOverrides): Promise<[string]>;
+
+    "TVK()"(overrides?: CallOverrides): Promise<[string]>;
 
     levels(
       overrides?: CallOverrides
@@ -182,34 +194,26 @@ export class TVKPrestige extends Contract {
       ]
     >;
 
-    platinum(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "platinum()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    set_status(
+    setStatus(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "set_status(address,uint8,bytes)"(
+    "setStatus(address,uint8,bytes)"(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    silver(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "silver()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    status_report(
+    statusReport(
       account: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "status_report(address)"(
+    "statusReport(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -220,35 +224,43 @@ export class TVKPrestige extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    tvk(overrides?: CallOverrides): Promise<[string]>;
-
-    "tvk()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  bronze(overrides?: CallOverrides): Promise<BigNumber>;
+  BRONZE(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "bronze()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "BRONZE()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  chad(overrides?: CallOverrides): Promise<BigNumber>;
+  CHAD(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "chad()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "CHAD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  copper(overrides?: CallOverrides): Promise<BigNumber>;
+  COPPER(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "copper()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "COPPER()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  diamond(overrides?: CallOverrides): Promise<BigNumber>;
+  DIAMOND(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "diamond()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "DIAMOND()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  gold(overrides?: CallOverrides): Promise<BigNumber>;
+  GOLD(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "gold()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "GOLD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  jawad(overrides?: CallOverrides): Promise<BigNumber>;
+  JAWAD(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "jawad()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "JAWAD()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  PLATINUM(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "PLATINUM()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  SILVER(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "SILVER()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  TVK(overrides?: CallOverrides): Promise<string>;
+
+  "TVK()"(overrides?: CallOverrides): Promise<string>;
 
   levels(
     overrides?: CallOverrides
@@ -280,31 +292,23 @@ export class TVKPrestige extends Contract {
     ]
   >;
 
-  platinum(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "platinum()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  set_status(
+  setStatus(
     account: string,
-    new_status: BigNumberish,
+    newStatus: BigNumberish,
     arg2: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "set_status(address,uint8,bytes)"(
+  "setStatus(address,uint8,bytes)"(
     account: string,
-    new_status: BigNumberish,
+    newStatus: BigNumberish,
     arg2: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  silver(overrides?: CallOverrides): Promise<BigNumber>;
+  statusReport(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  status_report(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "status_report(address)"(
+  "statusReport(address)"(
     account: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -316,34 +320,42 @@ export class TVKPrestige extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  tvk(overrides?: CallOverrides): Promise<string>;
-
-  "tvk()"(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
-    bronze(overrides?: CallOverrides): Promise<BigNumber>;
+    BRONZE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "bronze()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "BRONZE()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    chad(overrides?: CallOverrides): Promise<BigNumber>;
+    CHAD(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "chad()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "CHAD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    copper(overrides?: CallOverrides): Promise<BigNumber>;
+    COPPER(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "copper()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "COPPER()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    diamond(overrides?: CallOverrides): Promise<BigNumber>;
+    DIAMOND(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "diamond()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "DIAMOND()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    gold(overrides?: CallOverrides): Promise<BigNumber>;
+    GOLD(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "gold()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "GOLD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    jawad(overrides?: CallOverrides): Promise<BigNumber>;
+    JAWAD(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "jawad()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "JAWAD()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PLATINUM(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "PLATINUM()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    SILVER(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "SILVER()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    TVK(overrides?: CallOverrides): Promise<string>;
+
+    "TVK()"(overrides?: CallOverrides): Promise<string>;
 
     levels(
       overrides?: CallOverrides
@@ -375,34 +387,26 @@ export class TVKPrestige extends Contract {
       ]
     >;
 
-    platinum(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "platinum()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    set_status(
+    setStatus(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       arg2: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "set_status(address,uint8,bytes)"(
+    "setStatus(address,uint8,bytes)"(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       arg2: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    silver(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    status_report(
+    statusReport(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "status_report(address)"(
+    "statusReport(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -413,10 +417,6 @@ export class TVKPrestige extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    tvk(overrides?: CallOverrides): Promise<string>;
-
-    "tvk()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -430,62 +430,66 @@ export class TVKPrestige extends Contract {
   };
 
   estimateGas: {
-    bronze(overrides?: CallOverrides): Promise<BigNumber>;
+    BRONZE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "bronze()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "BRONZE()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    chad(overrides?: CallOverrides): Promise<BigNumber>;
+    CHAD(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "chad()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "CHAD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    copper(overrides?: CallOverrides): Promise<BigNumber>;
+    COPPER(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "copper()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "COPPER()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    diamond(overrides?: CallOverrides): Promise<BigNumber>;
+    DIAMOND(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "diamond()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "DIAMOND()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    gold(overrides?: CallOverrides): Promise<BigNumber>;
+    GOLD(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "gold()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "GOLD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    jawad(overrides?: CallOverrides): Promise<BigNumber>;
+    JAWAD(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "jawad()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "JAWAD()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PLATINUM(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "PLATINUM()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    SILVER(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "SILVER()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    TVK(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "TVK()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     levels(overrides?: CallOverrides): Promise<BigNumber>;
 
     "levels()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    platinum(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "platinum()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    set_status(
+    setStatus(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "set_status(address,uint8,bytes)"(
+    "setStatus(address,uint8,bytes)"(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    silver(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "silver()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    status_report(
+    statusReport(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "status_report(address)"(
+    "statusReport(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -496,69 +500,69 @@ export class TVKPrestige extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    tvk(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "tvk()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    bronze(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    BRONZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "bronze()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "BRONZE()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    chad(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    CHAD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "chad()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "CHAD()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    copper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    COPPER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "copper()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "COPPER()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    diamond(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    DIAMOND(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "diamond()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "DIAMOND()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    gold(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    GOLD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "gold()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "GOLD()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    jawad(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    JAWAD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "jawad()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "JAWAD()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    PLATINUM(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "PLATINUM()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    SILVER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "SILVER()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    TVK(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "TVK()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     levels(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "levels()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    platinum(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "platinum()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    set_status(
+    setStatus(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "set_status(address,uint8,bytes)"(
+    "setStatus(address,uint8,bytes)"(
       account: string,
-      new_status: BigNumberish,
+      newStatus: BigNumberish,
       arg2: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    silver(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "silver()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    status_report(
+    statusReport(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "status_report(address)"(
+    "statusReport(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -572,9 +576,5 @@ export class TVKPrestige extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    tvk(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "tvk()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }
