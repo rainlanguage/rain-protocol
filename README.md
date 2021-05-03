@@ -1,5 +1,56 @@
 # tv-prestige
 
+## Development setup
+
+### Nix Shell
+
+Nix shell is optional if you are happy to manage your own `npm` and `python`.
+
+See the `shell.nix` file for example commands.
+
+Install the nix shell if you haven't already.
+
+```
+curl -L https://nixos.org/nix/install | sh
+```
+
+Drop into a nix-shell.
+
+```
+cd tv-balancer
+nix-shell
+```
+
+### Run tests
+
+From _outside_ the nix-shell run:
+
+```
+nix-shell --run ci-test
+```
+
+Inside the nix-shell you can just run `ci-test` directly.
+
+### Lint code
+
+From _outside_ the nix-shell run:
+
+```
+nix-shell --run ci-lint
+```
+
+Inside the nix-shell you can just run `ci-lint` directly.
+
+### Automated security checks
+
+From _outside_ the nix-shell run:
+
+```
+nix-shell --run security-check
+```
+
+Inside the nix-shell you can just run `security-check` directly.
+
 ## IPrestige
 
 `IPrestige` is a simple interface that contracts can implement to provide membership lists for other contracts.
