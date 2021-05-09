@@ -79,8 +79,10 @@ contract Trust is Ownable, Initable {
     uint256 public initial_pool_valuation;
     uint256 public redeem_init;
     uint256 public min_raise;
+    uint256 public seed_fee;
 
     using SafeERC20 for IERC20;
+    IERC20 public seeder;
     IERC20 public reserve;
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
@@ -90,6 +92,7 @@ contract Trust is Ownable, Initable {
         CRPFactory _crp_factory,
         BFactory _balancer_factory,
         IERC20 _reserve,
+        IERC20 _seeder,
         // Amount of reserve token to initialize the pool.
         // The starting/final weights are calculated against this.
         // This amount will be refunded to the Trust owner regardless whether the min_raise is met.
@@ -105,16 +108,20 @@ contract Trust is Ownable, Initable {
         // Minimum amount to raise from the distribution period.
         // The raise is only considered successful if enough NEW funds enter the system to cover BOTH the _redeem_init + _min_raise.
         // If the raise is successful the _redeem_init is sent to token holders, otherwise the failed raise is refunded instead.
-        uint256 _min_raise
+        uint256 _min_raise,
+        // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
+        uint256 _seed_fee
     ) public {
         crp_factory = _crp_factory;
         balancer_factory = _balancer_factory;
+        seeder = _seeder;
         reserve = _reserve;
         reserve_init = _reserve_init;
         mint_init = _mint_init;
         initial_pool_valuation = _initial_pool_valuation;
         redeem_init = _redeem_init;
         min_raise = _min_raise;
+        seed_fee = _seed_fee;
     }
 
 
@@ -128,7 +135,7 @@ contract Trust is Ownable, Initable {
         );
 
         token.reserve().safeTransferFrom(
-            owner(),
+            address(seeder),
             address(this),
             reserve_init
         );
@@ -172,17 +179,27 @@ contract Trust is Ownable, Initable {
 
         uint256 _final_balance = token.reserve().balanceOf(address(this));
         uint256 _profit = _final_balance.sub(reserve_init);
-        // Min profit is the raise plus the redemption backing.
-        uint256 _min_profit = min_raise.add(redeem_init);
+        // Min profit is the raise plus the redemption backing plus the seed fee.
+        uint256 _min_profit = min_raise.add(redeem_init).add(seed_fee);
+        // Default is that the seeders get a refund for their initial backing.
+        uint256 _seeder_entitlement = reserve_init;
 
         // Back the redemption if we reached the minimum.
+        // Also tally the seed fee.
         if (_min_profit <= _profit) {
             reserve.safeTransfer(address(token), redeem_init);
+            _seeder_entitlement = _seeder_entitlement.add(seed_fee);
         }
         // Process a pro-rata refund if we did not.
         else {
             reserve.safeTransfer(address(token), _profit);
         }
+
+        // Pay the seeder.
+        token.reserve().safeTransfer(
+            address(seeder),
+            _seeder_entitlement
+        );
 
         // Send everything else to the trust owner.
         token.reserve().safeTransfer(
