@@ -177,36 +177,40 @@ contract Trust is Ownable, Initable {
     function exit() public onlyInit {
         pool.exit();
 
-        uint256 _final_balance = token.reserve().balanceOf(address(this));
-        uint256 _profit = _final_balance.sub(reserve_init);
-        // Min profit is the raise plus the redemption backing plus the seed fee.
-        uint256 _min_profit = min_raise.add(redeem_init).add(seed_fee);
-        // Default is that the seeders get a refund for their initial backing.
-        uint256 _seeder_entitlement = reserve_init;
+        uint256 _final_balance = reserve.balanceOf(address(this));
+        // Any final balance above this is considered a successful raise.
+        uint256 _success_balance = reserve_init.add(seed_fee).add(redeem_init).add(min_raise);
 
-        // Back the redemption if we reached the minimum.
-        // Also tally the seed fee.
-        if (_min_profit <= _profit) {
-            reserve.safeTransfer(address(token), redeem_init);
-            _seeder_entitlement = _seeder_entitlement.add(seed_fee);
+        if (_success_balance <= _final_balance) {
+            reserve.safeTransfer(
+                address(token),
+                redeem_init
+            );
+            reserve.safeTransfer(
+                address(seeder),
+                reserve_init.add(seed_fee)
+            );
+            // The creator's cup doth overfloweth.
+            token.reserve().safeTransfer(
+                owner(),
+                reserve.balanceOf(address(this))
+            );
         }
-        // Process a pro-rata refund if we did not.
         else {
-            reserve.safeTransfer(address(token), _profit);
+            // The seeder gets the initial seed back but no fee.
+            reserve.safeTransfer(
+                address(seeder),
+                reserve_init
+            );
+            // Token holders get a pro-rata refund.
+            reserve.safeTransfer(
+                address(token),
+                reserve.balanceOf(address(this))
+            );
+            // Creator gets nothing.
         }
 
-        // Pay the seeder.
-        token.reserve().safeTransfer(
-            address(seeder),
-            _seeder_entitlement
-        );
-
-        // Send everything else to the trust owner.
-        token.reserve().safeTransfer(
-            owner(),
-            token.reserve().balanceOf(address(this))
-        );
-
+        // Double check all our math :)
         require(token.reserve().balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
     }
 }
