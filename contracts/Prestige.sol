@@ -71,15 +71,11 @@ contract Prestige is IPrestige {
     /// @return uint256 the truncated report.
     function _truncateStatusesAbove(uint256 report, uint256 status)
         private
-        view
+        pure
         returns (uint256)
     {
-        // Maybe easier to read this than a giant 0xff..
-        uint256 _mask = 0;
-        _mask--;
         uint256 _offset = uint256(status) * 32;
-        _mask = (_mask >> _offset) << _offset;
-        console.log("_truncateStatusesAbove: %s %s %s", report, status, _mask);
+        uint256 _mask = (UNINITIALIZED >> _offset) << _offset;
         return report | _mask;
     }
 }

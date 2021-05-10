@@ -19,20 +19,18 @@ library PrestigeUtil {
                 return IPrestige.Status(i);
             }
         }
-        return IPrestige.Status(9);
+        return IPrestige.Status(8);
     }
 
     // Returns the block that a given status has been held since.
     // Returns 0xffffffff if a status has never been held.
-    function statusBlock(uint256 statusReport, IPrestige.Status status) internal view returns (uint32) {
+    function statusBlock(uint256 statusReport, IPrestige.Status status) internal pure returns (uint32) {
         uint256 _statusInt = uint256(status);
-        console.log("PrestigeUtil: %s %s", statusReport, _statusInt);
         // NIL is a special case. Everyone has always been at least NIL, since block 0.
         if (_statusInt == 0) {
             return 0;
         } else {
             uint256 offset = (uint256(status) - 1) * 32;
-            console.log("PrestigeUtil: offset: %s", offset);
             return uint32(
                 uint256(
                     statusReport >> offset
