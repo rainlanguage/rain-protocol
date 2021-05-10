@@ -3,7 +3,7 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import { IPrestige } from '../typechain/IPrestige'
 import type { Prestige } from '../typechain/Prestige'
-import type { PrestigeByConstructionTest } from '../typechain/PrestigeByConstructionTest'
+import type { PrestigeByConstructionTest, PrestigeByConstructionTestInterface } from '../typechain/PrestigeByConstructionTest'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -87,14 +87,14 @@ describe("PrestigeByConstruction", async function() {
 
         await prestigeByConstruction2.ifCopper()
 
-        let ifSilverDidError = false
+        let ifBronzeDidError = false
         try {
-            await prestigeByConstruction2.ifSilver()
+            await prestigeByConstruction2.ifBronze()
         } catch(e) {
             assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            ifSilverDidError = true
+            ifBronzeDidError = true
         }
-        assert(ifSilverDidError, 'did not error for silver')
+        assert(ifBronzeDidError, 'did not error for bronze')
 
         await prestige.setStatus(signers[0].address, 2, [])
 
@@ -104,14 +104,51 @@ describe("PrestigeByConstruction", async function() {
 
         await prestigeByConstruction2.ifCopper()
 
-        let ifSilverLateDidError = false
+        let ifBronzeLateDidError = false
         try {
-            await prestigeByConstruction2.ifSilver()
+            await prestigeByConstruction2.ifBronze()
         } catch(e) {
             assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            ifSilverLateDidError = true
+            ifBronzeLateDidError = true
         }
-        assert(ifSilverLateDidError, 'did not error when the user upgraded silver after the construction')
+        assert(ifBronzeLateDidError, 'did not error when the user upgraded bronze after the construction')
+
+        const prestigeByConstruction3 = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
+
+        await prestigeByConstruction3.deployed()
+
+        await prestigeByConstruction3.unlimited()
+
+        await prestigeByConstruction3.ifNil()
+
+        await prestigeByConstruction3.ifCopper()
+
+        await prestigeByConstruction3.ifBronze()
+
+        let ifSilverDidError = false
+        try {
+            await prestigeByConstruction3.ifSilver()
+        } catch(e) {
+            assert(e.toString().includes('revert ERR_MIN_STATUS'))
+            ifSilverDidError = true
+        }
+        assert(ifSilverDidError, 'did not error for silver')
+
+        await prestige.setStatus(signers[0].address, 8, [])
+
+        const prestigeByConstruction4 = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
+
+        await prestigeByConstruction4.deployed()
+
+        await prestigeByConstruction4.unlimited()
+
+        await prestigeByConstruction4.ifNil()
+
+        await prestigeByConstruction4.ifCopper()
+
+        await prestigeByConstruction4.ifBronze()
+
+        await prestigeByConstruction4.ifJawad()
 
     })
 })
