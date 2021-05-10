@@ -31,6 +31,7 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
     "PLATINUM()": FunctionFragment;
     "SILVER()": FunctionFragment;
     "TVK()": FunctionFragment;
+    "UNINITIALIZED()": FunctionFragment;
     "levels()": FunctionFragment;
     "setStatus(address,uint8,bytes)": FunctionFragment;
     "statusReport(address)": FunctionFragment;
@@ -47,6 +48,10 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "PLATINUM", values?: undefined): string;
   encodeFunctionData(functionFragment: "SILVER", values?: undefined): string;
   encodeFunctionData(functionFragment: "TVK", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "UNINITIALIZED",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "levels", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setStatus",
@@ -68,6 +73,10 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "PLATINUM", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "SILVER", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "TVK", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "UNINITIALIZED",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "levels", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setStatus", data: BytesLike): Result;
   decodeFunctionResult(
@@ -166,6 +175,10 @@ export class TVKPrestige extends Contract {
     TVK(overrides?: CallOverrides): Promise<[string]>;
 
     "TVK()"(overrides?: CallOverrides): Promise<[string]>;
+
+    UNINITIALIZED(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "UNINITIALIZED()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     levels(
       overrides?: CallOverrides
@@ -275,6 +288,10 @@ export class TVKPrestige extends Contract {
 
   "TVK()"(overrides?: CallOverrides): Promise<string>;
 
+  UNINITIALIZED(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "UNINITIALIZED()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   levels(
     overrides?: CallOverrides
   ): Promise<
@@ -375,6 +392,10 @@ export class TVKPrestige extends Contract {
     TVK(overrides?: CallOverrides): Promise<string>;
 
     "TVK()"(overrides?: CallOverrides): Promise<string>;
+
+    UNINITIALIZED(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "UNINITIALIZED()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     levels(
       overrides?: CallOverrides
@@ -491,6 +512,10 @@ export class TVKPrestige extends Contract {
 
     "TVK()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    UNINITIALIZED(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "UNINITIALIZED()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     levels(overrides?: CallOverrides): Promise<BigNumber>;
 
     "levels()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -567,6 +592,10 @@ export class TVKPrestige extends Contract {
     TVK(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "TVK()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    UNINITIALIZED(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "UNINITIALIZED()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     levels(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
