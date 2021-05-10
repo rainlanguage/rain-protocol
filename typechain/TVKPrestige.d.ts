@@ -27,6 +27,7 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
     "DIAMOND()": FunctionFragment;
     "GOLD()": FunctionFragment;
     "JAWAD()": FunctionFragment;
+    "NIL()": FunctionFragment;
     "PLATINUM()": FunctionFragment;
     "SILVER()": FunctionFragment;
     "TVK()": FunctionFragment;
@@ -42,6 +43,7 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "DIAMOND", values?: undefined): string;
   encodeFunctionData(functionFragment: "GOLD", values?: undefined): string;
   encodeFunctionData(functionFragment: "JAWAD", values?: undefined): string;
+  encodeFunctionData(functionFragment: "NIL", values?: undefined): string;
   encodeFunctionData(functionFragment: "PLATINUM", values?: undefined): string;
   encodeFunctionData(functionFragment: "SILVER", values?: undefined): string;
   encodeFunctionData(functionFragment: "TVK", values?: undefined): string;
@@ -62,6 +64,7 @@ interface TVKPrestigeInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "DIAMOND", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "GOLD", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "JAWAD", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "NIL", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "PLATINUM", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "SILVER", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "TVK", data: BytesLike): Result;
@@ -148,6 +151,10 @@ export class TVKPrestige extends Contract {
 
     "JAWAD()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    NIL(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "NIL()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     PLATINUM(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "PLATINUM()"(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -172,6 +179,7 @@ export class TVKPrestige extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ]
       ]
@@ -189,6 +197,7 @@ export class TVKPrestige extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ]
       ]
@@ -197,14 +206,14 @@ export class TVKPrestige extends Contract {
     setStatus(
       account: string,
       newStatus: BigNumberish,
-      arg2: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "setStatus(address,uint8,bytes)"(
       account: string,
       newStatus: BigNumberish,
-      arg2: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -250,6 +259,10 @@ export class TVKPrestige extends Contract {
 
   "JAWAD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  NIL(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "NIL()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   PLATINUM(overrides?: CallOverrides): Promise<BigNumber>;
 
   "PLATINUM()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -273,6 +286,7 @@ export class TVKPrestige extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ]
   >;
@@ -288,6 +302,7 @@ export class TVKPrestige extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ]
   >;
@@ -295,14 +310,14 @@ export class TVKPrestige extends Contract {
   setStatus(
     account: string,
     newStatus: BigNumberish,
-    arg2: BytesLike,
+    data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "setStatus(address,uint8,bytes)"(
     account: string,
     newStatus: BigNumberish,
-    arg2: BytesLike,
+    data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -345,6 +360,10 @@ export class TVKPrestige extends Contract {
 
     "JAWAD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    NIL(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "NIL()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     PLATINUM(overrides?: CallOverrides): Promise<BigNumber>;
 
     "PLATINUM()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -368,6 +387,7 @@ export class TVKPrestige extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ]
     >;
@@ -383,6 +403,7 @@ export class TVKPrestige extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ]
     >;
@@ -390,14 +411,14 @@ export class TVKPrestige extends Contract {
     setStatus(
       account: string,
       newStatus: BigNumberish,
-      arg2: BytesLike,
+      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "setStatus(address,uint8,bytes)"(
       account: string,
       newStatus: BigNumberish,
-      arg2: BytesLike,
+      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -454,6 +475,10 @@ export class TVKPrestige extends Contract {
 
     "JAWAD()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    NIL(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "NIL()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     PLATINUM(overrides?: CallOverrides): Promise<BigNumber>;
 
     "PLATINUM()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -473,14 +498,14 @@ export class TVKPrestige extends Contract {
     setStatus(
       account: string,
       newStatus: BigNumberish,
-      arg2: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "setStatus(address,uint8,bytes)"(
       account: string,
       newStatus: BigNumberish,
-      arg2: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -527,6 +552,10 @@ export class TVKPrestige extends Contract {
 
     "JAWAD()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    NIL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "NIL()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     PLATINUM(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "PLATINUM()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -546,14 +575,14 @@ export class TVKPrestige extends Contract {
     setStatus(
       account: string,
       newStatus: BigNumberish,
-      arg2: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "setStatus(address,uint8,bytes)"(
       account: string,
       newStatus: BigNumberish,
-      arg2: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

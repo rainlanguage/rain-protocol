@@ -4,10 +4,12 @@ pragma solidity ^0.7.3;
 
 interface IPrestige {
     /**
-    * 8 Possible statuses.
+    * 9 Possible statuses.
     * Fits nicely as uint32 in uint256 which is helpful for internal storage concerns.
+    * 8 statuses can be achieved, NIL is the status when no status has been achieved.
     **/
     enum Status {
+        NIL,
         COPPER,
         BRONZE,
         SILVER,
