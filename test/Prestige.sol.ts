@@ -107,7 +107,7 @@ describe('Account status', async function() {
 
     it("will emit the status to which it was upgraded if it is upgraded for the first time", async function(){
         const [signers, prestige] = await setup()
-        // change the status to silver and check if event emitted
+        // change the status to bronze and check if event emitted
         await expect(prestige.setStatus(signers[0].address, 2, []))
         .to.emit(prestige, 'StatusChange')
         .withArgs(signers[0].address, [0, 2])
@@ -128,9 +128,9 @@ describe('Account status', async function() {
 
     it("will output the previous status level and the new updated status level", async function(){
         const [signers, prestige] = await setup()
-        // change the status to bronce
+        // change the status to copper
         await prestige.setStatus(signers[0].address, 1, []);
-        // change the status to gold
+        // change the status to silver
         await expect(prestige.setStatus(signers[0].address, 3, []))
         .to.emit(prestige, 'StatusChange')
         .withArgs(signers[0].address, [1, 3])
@@ -138,10 +138,10 @@ describe('Account status', async function() {
     
     it("will return the previous block number at the lower state level if it is updated to a higher state", async function(){
         const [signers, prestige] = await setup()
-        // change the status to bronze
+        // change the status to copper
         const tx = await prestige.setStatus(signers[0].address, 1, []);
         const previousBlock = tx.blockNumber
-        // change the status to gold
+        // change the status to silver
         await prestige.setStatus(signers[0].address, 3, []);
         // check with the contract
         const status = await prestige.statusReport(signers[0].address)
@@ -151,7 +151,7 @@ describe('Account status', async function() {
     
     it("will change the status from higher to lower", async function(){
         const [signers, prestige] = await setup()
-        // change the status to gold
+        // change the status to silver
         await prestige.setStatus(signers[0].address, 3, []);
         // change the status to bronze
         await expect(prestige.setStatus(signers[0].address, 1, []))
@@ -161,10 +161,10 @@ describe('Account status', async function() {
     
     it("will return the previous block number at the current level if updating from a higher to a lower state", async function(){
         const [signers, prestige] = await setup()
-        // change the status to gold
+        // change the status to silver
         const tx = await prestige.setStatus(signers[0].address, 3, []);
         const previousBlock = tx.blockNumber
-        // change the status to bronze
+        // change the status to copper
         await prestige.setStatus(signers[0].address, 1, []);
         // check with the contract
         const status = await prestige.statusReport(signers[0].address)
@@ -174,10 +174,10 @@ describe('Account status', async function() {
     
     it("will be possible to know the previous status from the current status", async function(){
         const [signers, prestige] = await setup()
-        // change the status to gold
+        // change the status to copper
         await prestige.setStatus(signers[0].address,  1, []);
         const previousBlock = await prestige.provider.getBlockNumber();
-        // change the status to bronze
+        // change the status to silver
         await prestige.setStatus(signers[0].address, 3, []);
         // check with the contract
         const status = await prestige.statusReport(signers[0].address)
@@ -187,7 +187,7 @@ describe('Account status', async function() {
 
     it("will return the original block number if status 1 is called again", async function(){
         const [signers, prestige] = await setup()
-        // change the status to silver
+        // change the status to bronze
         await prestige.setStatus(signers[0].address,  2, []);
         const originalBlock = await prestige.provider.getBlockNumber();
         // change the status to copper
@@ -200,13 +200,13 @@ describe('Account status', async function() {
 
     it("will return original block number at current status and the rest at uninitializedStatusAsNum after two continuous decrements", async function(){
         const [signers, prestige] = await setup()
-        // change the status to platinum
+        // change the status to silver
         await prestige.setStatus(signers[0].address,  3, []);
         const originalBlock = await prestige.provider.getBlockNumber();
 
-        // change the status to gold
-        await prestige.setStatus(signers[0].address, 2, []);
         // change the status to bronze
+        await prestige.setStatus(signers[0].address, 2, []);
+        // change the status to copper
         await prestige.setStatus(signers[0].address, 1, []);
 
         // check with the contract
@@ -219,7 +219,7 @@ describe('Account status', async function() {
 
     it("will return two different block numbers if two consecutive increments occur, the high bits will be uninitializedStatusAsNum", async function(){
         const [signers, prestige] = await setup()
-        // change the status to platinum
+        // change the status to bronze
         await prestige.setStatus(signers[0].address,  2, []);
 
         // change the status to gold
