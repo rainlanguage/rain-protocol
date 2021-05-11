@@ -32,13 +32,14 @@ contract Prestige is IPrestige {
 
         uint256 _report = statusReport(account);
 
+        Status currentStatus = PrestigeUtil.statusAtFromReport(_report, uint32(block.number));
+
         if (_report == UNINITIALIZED) {
             _report = (_report ^ uint32(UNINITIALIZED)) | block.number;
         }
 
         console.log("setStatus: _report: %s", _report);
 
-        Status currentStatus = PrestigeUtil.statusAtFromReport(_report, uint32(block.number));
         uint256 _currentStatusInt = uint256(currentStatus);
         uint256 _newStatusInt = uint256(newStatus);
 
