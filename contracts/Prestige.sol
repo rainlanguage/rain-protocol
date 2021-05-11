@@ -5,12 +5,10 @@ pragma solidity ^0.6.12;
 import { IPrestige } from "./IPrestige.sol";
 import { PrestigeUtil } from "./PrestigeUtil.sol";
 
-import { console } from "hardhat/console.sol";
-
 contract Prestige is IPrestige {
     mapping(address => uint256) public statuses;
 
-    uint256 constant public UNINITIALIZED = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+    uint256 constant public UNINITIALIZED = uint256(-1);
 
     /// Return status report
     /// @param account - Account to be reported on.

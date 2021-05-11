@@ -41,8 +41,6 @@ describe("PrestigeByConstruction", async function() {
             prestige.address === await prestigeByConstruction.prestige()
         )
 
-        console.log(await prestige.statusReport(signers[0].address))
-
         assert(
             (await prestige.statusReport(signers[0].address))
                 .eq(ethers.BigNumber.from('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'))

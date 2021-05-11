@@ -2,15 +2,13 @@ import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { Prestige } from '../typechain/Prestige'
-import hre from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { tvkStatusReport, blockNumbersToReport } from '../utils/status-report'
+import { tvkStatusReport, blockNumbersToReport, assertError } from '../utils/status-report'
 
 chai.use(solidity)
 const { expect, assert } = chai
 
 let uninitializedReport = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-let uninitializedStatus = '0xffffffff'
 let uninitializedStatusAsNum = 4294967295
 const nil = 0;
 const copper = 1;
@@ -33,19 +31,12 @@ const setup = async ():Promise<[SignerWithAddress[], Prestige]> => {
     return [signers, prestige]
 }
 
-const assertError = async (f:Function, s:string, e:string) => {
-    let didError = false
-    try {
-        await f()
-    } catch (e) {
-        assert(e.toString().includes(s))
-        didError = true
-    }
-    assert(didError, e)
-}
-
-
 describe('Account status', async function() {
+
+    it('has correct uninitalized value', async function() {
+        const [_, prestige] = await setup()
+        assert(uninitializedReport === await (await prestige.UNINITIALIZED()).toHexString())
+    })
 
     it('will return uninitialized status report if nothing set', async function() {
         const [signers, prestige] = await setup()
@@ -135,7 +126,7 @@ describe('Account status', async function() {
         .to.emit(prestige, 'StatusChange')
         .withArgs(signers[0].address, [1, 3])
     });
-    
+
     it("will return the previous block number at the lower state level if it is updated to a higher state", async function(){
         const [signers, prestige] = await setup()
         // change the status to copper
@@ -148,7 +139,7 @@ describe('Account status', async function() {
         const report = tvkStatusReport(status.toString())
         expect(report[0]).to.equal(previousBlock)
     });
-    
+
     it("will change the status from higher to lower", async function(){
         const [signers, prestige] = await setup()
         // change the status to silver
@@ -158,7 +149,7 @@ describe('Account status', async function() {
         .to.emit(prestige, 'StatusChange')
         .withArgs(signers[0].address, [3, 1])
     });
-    
+
     it("will return the previous block number at the current level if updating from a higher to a lower state", async function(){
         const [signers, prestige] = await setup()
         // change the status to silver
@@ -171,7 +162,7 @@ describe('Account status', async function() {
         const report = tvkStatusReport(status.toString())
         expect(report[0]).to.equal(previousBlock)
     });
-    
+
     it("will be possible to know the previous status from the current status", async function(){
         const [signers, prestige] = await setup()
         // change the status to copper
@@ -187,8 +178,8 @@ describe('Account status', async function() {
 
     it("will return the original block number if status 1 is called again", async function(){
         const [signers, prestige] = await setup()
-        // change the status to bronze
-        await prestige.setStatus(signers[0].address,  2, []);
+        // change the status to anything
+        await prestige.setStatus(signers[0].address,  Math.min(1, Math.floor(Math.random() * statuses.length)), []);
         const originalBlock = await prestige.provider.getBlockNumber();
         // change the status to copper
         await prestige.setStatus(signers[0].address, 1, []);
@@ -236,5 +227,5 @@ describe('Account status', async function() {
         expect(report[6]).to.equal(uninitializedStatusAsNum);
         expect(report[7]).to.equal(uninitializedStatusAsNum);
     });
-    
+
 })
