@@ -15,6 +15,7 @@ contract Prestige is IPrestige {
     /// @return uint256 the block number that corresponds to the current status report.
     function statusReport(address account)
         public
+        virtual
         override
         view
         returns (uint256)
@@ -23,7 +24,7 @@ contract Prestige is IPrestige {
         return report == 0 ? UNINITIALIZED : report;
     }
 
-    function setStatus(address account, Status newStatus, bytes memory data) external override {
+    function setStatus(address account, Status newStatus, bytes memory data) external virtual override {
         // The user must move to at least COPPER.
         // The NIL status is reserved for users that have never interacted with the contract.
         require(newStatus != Status.NIL, "ERR_NIL_STATUS");
@@ -45,6 +46,9 @@ contract Prestige is IPrestige {
 
         statuses[account] = _report;
 
+        // Last thing to do as checks-effects-interactions.
+        // Call the _afterSetStatus hook to allow "real" prestige contracts to enforce requirements.
+        // The prestige contract MUST require its needs to rollback the status change.
         _afterSetStatus(account, currentStatus, newStatus, data);
 
         // Emit this event for IPrestige.
@@ -58,7 +62,7 @@ contract Prestige is IPrestige {
     /// @param status - Status level to truncate above (exclusive)
     /// @return uint256 the truncated report.
     function _truncateStatusesAbove(uint256 report, uint256 status)
-        private
+        internal
         pure
         returns (uint256)
     {

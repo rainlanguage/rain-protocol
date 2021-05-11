@@ -28,6 +28,8 @@ import { PrestigeByConstruction } from "../PrestigeByConstruction.sol";
  */
 contract PrestigeByConstructionClaimTest is ERC20, PrestigeByConstruction {
 
+    mapping(address => bool) public claims;
+
     /**
      * Nothing special needs to happen in the constructor.
      * Simply forward/set the desired IPrestige in the PrestigeByConstruction constructor.
@@ -39,7 +41,9 @@ contract PrestigeByConstructionClaimTest is ERC20, PrestigeByConstruction {
      * The onlyStatus modifier checks the claimant against GOLD status.
      * The IPrestige contract decides for itself whether the claimant is GOLD as at the current block.number
      */
-    function claim() public onlyStatus(msg.sender, IPrestige.Status.GOLD) {
-        super._mint(msg.sender, 100);
+    function claim(address account) public onlyStatus(account, IPrestige.Status.GOLD) {
+        require(!claims[account], "ERR_MULTI_MINT");
+        claims[account] = true;
+        super._mint(account, 100);
     }
 }

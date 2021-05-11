@@ -179,7 +179,7 @@ describe('Account status', async function() {
     it("will return the original block number if status 1 is called again", async function(){
         const [signers, prestige] = await setup()
         // change the status to anything
-        await prestige.setStatus(signers[0].address,  Math.min(1, Math.floor(Math.random() * statuses.length)), []);
+        await prestige.setStatus(signers[0].address,  Math.max(1, Math.floor(Math.random() * statuses.length)), []);
         const originalBlock = await prestige.provider.getBlockNumber();
         // change the status to copper
         await prestige.setStatus(signers[0].address, 1, []);
