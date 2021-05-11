@@ -14,7 +14,6 @@ contract PrestigeByConstruction {
         constructionBlock = block.number;
     }
 
-
     /// Modifier that restricts access to functions depending on the status required by the function
     /// @param account - Account status to be queried.
     /// @param status - Status to compare with the account status

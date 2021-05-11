@@ -5,6 +5,9 @@ pragma solidity ^0.6.12;
 import { IPrestige } from "../IPrestige.sol";
 import { PrestigeByConstruction } from "../PrestigeByConstruction.sol";
 
+/**
+ * An empty contract that facilitates tests enumerating behaviour of the modifiers at each status level
+ */
 contract PrestigeByConstructionTest is PrestigeByConstruction {
 
     constructor(IPrestige _prestige) public PrestigeByConstruction(_prestige) { } // solhint-disable-line no-empty-blocks
