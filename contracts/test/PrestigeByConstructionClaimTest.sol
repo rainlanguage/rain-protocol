@@ -8,7 +8,7 @@ import { PrestigeByConstruction } from "../PrestigeByConstruction.sol";
 
 contract PrestigeByConstructionClaimTest is ERC20, PrestigeByConstruction {
 
-    constructor(IPrestige _prestige) public PrestigeByConstruction(_prestige) ERC20("goldTkn", "GTKN") { }
+    constructor(IPrestige _prestige) public PrestigeByConstruction(_prestige) ERC20("goldTkn", "GTKN") { } // solhint-disable-line no-empty-blocks
 
     function claim() public onlyStatus(msg.sender, IPrestige.Status.GOLD) {
         super._mint(msg.sender, 100);
