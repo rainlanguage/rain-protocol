@@ -33,10 +33,13 @@ contract PrestigeByConstruction {
     /// @param account - Account status to be queried.
     /// @param status - Status required by the restricted function.
     modifier onlyStatus(address account, IPrestige.Status status) {
+        _;
+        // isStatus involves an external call to prestige.statusReport.
+        // for this reason we require AFTER the modified function to prevent re-entrancy.
+        // https://consensys.github.io/smart-contract-best-practices/recommendations/#use-modifiers-only-for-checks
         require(
             isStatus(account, status),
             "ERR_MIN_STATUS"
         );
-        _;
     }
 }

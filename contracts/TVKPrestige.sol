@@ -43,7 +43,6 @@ contract TVKPrestige is Prestige {
         internal
         override
     {
-        // Last thing to do as checks-effects-interactions.
         // Handle the TVK transfer.
         // Convert the current status to a TVK amount.
         uint256 _oldTvk = levels()[uint(oldStatus)];
