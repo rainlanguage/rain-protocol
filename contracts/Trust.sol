@@ -26,6 +26,14 @@ import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 import { BalancerContracts } from "./RedeemableERC20Pool.sol";
 import { RedeemableERC20Config } from "./RedeemableERC20.sol";
 
+struct TrustConfig {
+    address seeder;
+    // Amount of reserve token to initialize the pool.
+    // The starting/final weights are calculated against this.
+    // This amount will be refunded to the Trust owner regardless whether the min_raise is met.
+    uint256 reserveInit;
+}
+
 // Examples
 // 2 book ratio: 20:1 95%
 // | P: 50 000 | T: 100 000 |
@@ -76,26 +84,20 @@ contract Trust is Ownable, Initable {
 
     using SafeMath for uint256;
 
-    CRPFactory crp_factory;
-    BFactory balancer_factory;
-    uint256 public reserve_init;
+    TrustConfig public trustConfig;
+
     uint256 public initial_pool_valuation;
     uint256 public redeem_init;
     uint256 public min_raise;
     uint256 public seed_fee;
 
     using SafeERC20 for IERC20;
-    IERC20 public seeder;
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
 
     constructor (
+        TrustConfig memory _trustConfig,
         RedeemableERC20Config memory _redeemableERC20Config,
-        IERC20 _seeder,
-        // Amount of reserve token to initialize the pool.
-        // The starting/final weights are calculated against this.
-        // This amount will be refunded to the Trust owner regardless whether the min_raise is met.
-        uint256 _reserve_init,
         // Initial marketcap of the token according to the balancer pool denominated in reserve token.
         // Final market cap will be _redeem_init + _min_raise.
         uint256 _initial_pool_valuation,
@@ -109,8 +111,8 @@ contract Trust is Ownable, Initable {
         // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
         uint256 _seed_fee
     ) public {
-        seeder = _seeder;
-        reserve_init = _reserve_init;
+        trustConfig = _trustConfig;
+
         initial_pool_valuation = _initial_pool_valuation;
         redeem_init = _redeem_init;
         min_raise = _min_raise;
@@ -126,15 +128,15 @@ contract Trust is Ownable, Initable {
     function fund(BalancerContracts calldata balancerContracts) external onlyOwner withInit {
         IERC20 _reserve = token.reserve();
         _reserve.safeTransferFrom(
-            address(seeder),
+            trustConfig.seeder,
             address(this),
-            reserve_init
+            trustConfig.reserveInit
         );
 
         pool = new RedeemableERC20Pool(
             balancerContracts,
             token,
-            reserve_init,
+            trustConfig.reserveInit,
             redeem_init,
             initial_pool_valuation,
             min_raise.add(redeem_init)
@@ -146,7 +148,7 @@ contract Trust is Ownable, Initable {
 
         // Need to make a few addresses unfreezable to facilitate exits.
         token.addUnfreezable(address(pool.crp()));
-        token.addUnfreezable(address(balancer_factory));
+        token.addUnfreezable(address(balancerContracts.balancerFactory));
         token.addUnfreezable(address(pool));
     }
 
@@ -161,7 +163,7 @@ contract Trust is Ownable, Initable {
 
         uint256 _final_balance = _reserve.balanceOf(address(this));
         // Any final balance above this is considered a successful raise.
-        uint256 _success_balance = reserve_init.add(seed_fee).add(redeem_init).add(min_raise);
+        uint256 _success_balance = trustConfig.reserveInit.add(seed_fee).add(redeem_init).add(min_raise);
 
         if (_success_balance <= _final_balance) {
             _reserve.safeTransfer(
@@ -169,8 +171,8 @@ contract Trust is Ownable, Initable {
                 redeem_init
             );
             _reserve.safeTransfer(
-                address(seeder),
-                reserve_init.add(seed_fee)
+                trustConfig.seeder,
+                trustConfig.reserveInit.add(seed_fee)
             );
             // The creator's cup doth overfloweth.
             _reserve.safeTransfer(
@@ -181,8 +183,8 @@ contract Trust is Ownable, Initable {
         else {
             // The seeder gets the initial seed back but no fee.
             _reserve.safeTransfer(
-                address(seeder),
-                reserve_init
+                trustConfig.seeder,
+                trustConfig.reserveInit
             );
             // Token holders get a pro-rata refund.
             _reserve.safeTransfer(
