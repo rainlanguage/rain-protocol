@@ -255,5 +255,4 @@ describe("PrestigeByConstructionClaim", async function() {
         }
         assert(errStatus,'function does not correctly restrict multiple mints')
     });
-
 });

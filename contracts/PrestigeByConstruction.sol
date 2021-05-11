@@ -35,7 +35,9 @@ contract PrestigeByConstruction {
     modifier onlyStatus(address account, IPrestige.Status status) {
         _;
         // isStatus involves an external call to prestige.statusReport.
-        // for this reason we require AFTER the modified function to prevent re-entrancy.
+        // for this reason we require AFTER the modified function to prevent malicious re-entrancy.
+        // Also `statusReport` from `IPrestige` is `view` so the compiler will complain
+        // about accidental re-entrant state modification by IPrestige contracts.
         // https://consensys.github.io/smart-contract-best-practices/recommendations/#use-modifiers-only-for-checks
         require(
             isStatus(account, status),
