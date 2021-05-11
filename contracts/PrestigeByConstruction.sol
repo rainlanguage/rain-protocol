@@ -35,7 +35,7 @@ contract PrestigeByConstruction {
         returns (bool)
     {
         uint256 _statusReport = prestige.statusReport(account);
-        uint256 _statusBlock = PrestigeUtil.statusBlock(_statusReport, status);
+        uint256 _statusBlock = PrestigeUtil.statusBlock(_statusReport, uint256(status));
         return _statusBlock <= constructionBlock;
     }
 
