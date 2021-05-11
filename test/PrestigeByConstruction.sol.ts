@@ -1,35 +1,37 @@
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import { IPrestige } from '../typechain/IPrestige'
 import type { Prestige } from '../typechain/Prestige'
-import type { PrestigeByConstructionTest, PrestigeByConstructionTestInterface } from '../typechain/PrestigeByConstructionTest'
+import type { PrestigeByConstructionTest } from '../typechain/PrestigeByConstructionTest'
 
 chai.use(solidity)
 const { expect, assert } = chai
 
 describe("PrestigeByConstruction", async function() {
-    it("should be prestige lockable", async function() {
-        this.timeout(0)
+    let owner: any;
+    let prestigeByConstructionFactory: any;
+    let prestige: Prestige;
+    let prestigeByConstruction: PrestigeByConstructionTest;
+    
 
-        const signers = await ethers.getSigners()
+    before(async () => {    
+        [owner] = await ethers.getSigners()
 
         const prestigeFactory = await ethers.getContractFactory(
             'Prestige'
         )
-
-        const prestige = await prestigeFactory.deploy() as Prestige
-
+        prestige = await prestigeFactory.deploy() as Prestige
         await prestige.deployed()
 
-        const prestigeByConstructionFactory = await ethers.getContractFactory(
+        prestigeByConstructionFactory = await ethers.getContractFactory(
             'PrestigeByConstructionTest'
         )
-
-        const prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
-
+        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
         await prestigeByConstruction.deployed()
+    });
 
+
+    it("should return the parameters entered in the constructor", async function() {
         const now = await ethers.provider.getBlockNumber()
         const constructionBlock = await prestigeByConstruction.constructionBlock();
 
@@ -40,115 +42,94 @@ describe("PrestigeByConstruction", async function() {
         assert(
             prestige.address === await prestigeByConstruction.prestige()
         )
+    });
 
-        console.log(await prestige.statusReport(signers[0].address))
 
+    it ("should return false if isStatus is queried with a wrong status than the current status", async function() {
         assert(
-            (await prestige.statusReport(signers[0].address))
-                .eq(ethers.BigNumber.from('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'))
+            !(await prestigeByConstruction.isStatus(owner.address, 4))
         )
+    });
 
+
+    it("should be able to use unlimited access functions in any status", async function() {
+        assert(await prestigeByConstruction.isStatus(owner.address, 0))
+            
         await prestigeByConstruction.unlimited()
+    });
+
+
+    it("should enter a function restricted to Nil status if the status has never been updated", async function() {
+        assert(await prestigeByConstruction.isStatus(owner.address, 0))
 
         await prestigeByConstruction.ifNil()
+    });
 
-        let ifCopperDidError = false
+
+    it("should fail if you try to enter a function of a specific status if it has never been updated", async function() {
+        assert(await prestigeByConstruction.isStatus(owner.address, 0))
+
         try {
-            await prestigeByConstruction.ifCopper()
-        } catch(e) {
-            assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            ifCopperDidError = true
+            await prestigeByConstruction.ifGold()
+        } catch (e) {
+            assert(e.message.toString().includes('revert ERR_MIN_STATUS'))
         }
-        assert(ifCopperDidError, 'did not error when user did not have copper')
+    });
 
-        await prestige.setStatus(signers[0].address, 1, [])
+
+    it("shouldn't you set to use a function of the new status after construction", async function() {
+        await prestige.setStatus(owner.address, 1, [])
 
         await prestigeByConstruction.unlimited()
 
         await prestigeByConstruction.ifNil()
 
         // Setting the status AFTER construction doesn't help.
-        let ifCopperLateDidError = false
         try {
             await prestigeByConstruction.ifCopper()
         } catch(e) {
             assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            ifCopperLateDidError = true
         }
-        assert(ifCopperLateDidError, 'did not error when the user upgraded copper after the construction')
+    });
 
-        const prestigeByConstruction2 = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
 
-        await prestigeByConstruction2.deployed()
+    it("should be able to use unlimited functions and lower status than the upgraded one", async function() {
+        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
 
-        await prestigeByConstruction2.unlimited()
+        await prestigeByConstruction.deployed()
 
-        await prestigeByConstruction2.ifNil()
+        await prestigeByConstruction.unlimited()
 
-        await prestigeByConstruction2.ifCopper()
+        await prestigeByConstruction.ifNil()
 
-        let ifBronzeDidError = false
+        await prestigeByConstruction.ifCopper()
+    });
+
+
+    it("should not be able to use a function for a status if you do not have that status", async function() {
         try {
-            await prestigeByConstruction2.ifBronze()
+            await prestigeByConstruction.ifBronze()
         } catch(e) {
             assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            ifBronzeDidError = true
         }
-        assert(ifBronzeDidError, 'did not error for bronze')
+    });
 
-        await prestige.setStatus(signers[0].address, 2, [])
 
-        await prestigeByConstruction2.unlimited()
+    it("should be possible to use all functions restricted to the lower status of the highest status", async function () {
+        await prestige.setStatus(owner.address, 8, [])
 
-        await prestigeByConstruction2.ifNil()
+        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
 
-        await prestigeByConstruction2.ifCopper()
+        await prestigeByConstruction.deployed()
 
-        let ifBronzeLateDidError = false
-        try {
-            await prestigeByConstruction2.ifBronze()
-        } catch(e) {
-            assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            ifBronzeLateDidError = true
-        }
-        assert(ifBronzeLateDidError, 'did not error when the user upgraded bronze after the construction')
+        await prestigeByConstruction.unlimited()
 
-        const prestigeByConstruction3 = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
+        await prestigeByConstruction.ifNil()
 
-        await prestigeByConstruction3.deployed()
+        await prestigeByConstruction.ifCopper()
 
-        await prestigeByConstruction3.unlimited()
+        await prestigeByConstruction.ifBronze()
 
-        await prestigeByConstruction3.ifNil()
-
-        await prestigeByConstruction3.ifCopper()
-
-        await prestigeByConstruction3.ifBronze()
-
-        let ifSilverDidError = false
-        try {
-            await prestigeByConstruction3.ifSilver()
-        } catch(e) {
-            assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            ifSilverDidError = true
-        }
-        assert(ifSilverDidError, 'did not error for silver')
-
-        await prestige.setStatus(signers[0].address, 8, [])
-
-        const prestigeByConstruction4 = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
-
-        await prestigeByConstruction4.deployed()
-
-        await prestigeByConstruction4.unlimited()
-
-        await prestigeByConstruction4.ifNil()
-
-        await prestigeByConstruction4.ifCopper()
-
-        await prestigeByConstruction4.ifBronze()
-
-        await prestigeByConstruction4.ifJawad()
-
-    })
+        await prestigeByConstruction.ifJawad()
+    });
 })
