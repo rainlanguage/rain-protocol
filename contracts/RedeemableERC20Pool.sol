@@ -24,6 +24,11 @@ import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/Con
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
 import { BFactory } from './configurable-rights-pool/contracts/test/BFactory.sol';
 
+struct BalancerContracts {
+    CRPFactory crpFactory;
+    BFactory balancerFactory;
+}
+
 contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
     using SafeMath for uint256;
@@ -67,15 +72,11 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     uint256 public initial_valuation;
     uint256 public final_valuation;
 
-    CRPFactory public crp_factory;
-    BFactory public balancer_factory;
     ConfigurableRightsPool public crp;
     IBPool public pool;
 
-
     constructor (
-        CRPFactory _crp_factory,
-        BFactory _balancer_factory,
+        BalancerContracts memory _balancerContracts,
         RedeemableERC20 _token,
         uint256 _reserve_init,
         uint256 _redeem_init,
@@ -84,8 +85,6 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     )
         public
     {
-        crp_factory = _crp_factory;
-        balancer_factory = _balancer_factory;
         token = _token;
         reserve_init = _reserve_init;
         redeem_init = _redeem_init;
@@ -96,7 +95,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // We build these here because their values are set during bootstrap then are immutable.
         construct_pool_amounts();
         construct_pool_weights();
-        construct_crp();
+        constructCrp(_balancerContracts);
     }
 
 
@@ -202,10 +201,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         return _rights;
     }
 
-    function construct_crp () private {
+    function constructCrp (BalancerContracts memory _balancerContracts) private {
         // CRPFactory.
-        crp = crp_factory.newCrp(
-            address(balancer_factory),
+        crp = _balancerContracts.crpFactory.newCrp(
+            address(_balancerContracts.balancerFactory),
             ConfigurableRightsPool.PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",

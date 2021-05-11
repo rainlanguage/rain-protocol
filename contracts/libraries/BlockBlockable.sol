@@ -42,8 +42,8 @@ abstract contract BlockBlockable {
     // Useful for functions that MAY prepare state before the unblocking that should not be allowed to modify state after the fact.
     modifier onlyBlocked() {
         console.log(
-            "BlockBlockable: onlyBlocked: %s %s", 
-            unblock_block, 
+            "BlockBlockable: onlyBlocked: %s %s",
+            unblock_block,
             block.number
         );
         require(!isUnblocked(), "ERR_ONLY_BLOCKED");
@@ -54,8 +54,8 @@ abstract contract BlockBlockable {
     // Modified function MUST ONLY be called when the unblock_block exists.
     modifier onlyUnblocked() {
         console.log(
-            "BlockBlockable: onlyUnblocked: %s %s", 
-            unblock_block, 
+            "BlockBlockable: onlyUnblocked: %s %s",
+            unblock_block,
             block.number
         );
         require(isUnblocked(), "ERR_ONLY_UNBLOCKED");
@@ -67,8 +67,8 @@ abstract contract BlockBlockable {
     // This function has no access controls so use it with `onlyOwner` or similar.
     function setUnblockBlock(uint256 _unblock_block) internal {
         console.log(
-            "BlockBlockable: setUnblockBlock: %s %s", 
-            unblock_block, 
+            "BlockBlockable: setUnblockBlock: %s %s",
+            unblock_block,
             _unblock_block
         );
         // The unblock block can only be set once.

@@ -21,6 +21,10 @@ import { Constants } from './libraries/Constants.sol';
 import { Initable } from './libraries/Initable.sol';
 import { RedeemableERC20 } from './RedeemableERC20.sol';
 import { RedeemableERC20Pool } from './RedeemableERC20Pool.sol';
+import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
+
+import { BalancerContracts } from "./RedeemableERC20Pool.sol";
+import { RedeemableERC20Config } from "./RedeemableERC20.sol";
 
 // Examples
 // 2 book ratio: 20:1 95%
@@ -75,7 +79,6 @@ contract Trust is Ownable, Initable {
     CRPFactory crp_factory;
     BFactory balancer_factory;
     uint256 public reserve_init;
-    uint256 public mint_init;
     uint256 public initial_pool_valuation;
     uint256 public redeem_init;
     uint256 public min_raise;
@@ -83,22 +86,16 @@ contract Trust is Ownable, Initable {
 
     using SafeERC20 for IERC20;
     IERC20 public seeder;
-    IERC20 public reserve;
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
 
-
     constructor (
-        CRPFactory _crp_factory,
-        BFactory _balancer_factory,
-        IERC20 _reserve,
+        RedeemableERC20Config memory _redeemableERC20Config,
         IERC20 _seeder,
         // Amount of reserve token to initialize the pool.
         // The starting/final weights are calculated against this.
         // This amount will be refunded to the Trust owner regardless whether the min_raise is met.
         uint256 _reserve_init,
-        // Number of redeemable tokens to mint.
-        uint256 _mint_init,
         // Initial marketcap of the token according to the balancer pool denominated in reserve token.
         // Final market cap will be _redeem_init + _min_raise.
         uint256 _initial_pool_valuation,
@@ -112,55 +109,39 @@ contract Trust is Ownable, Initable {
         // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
         uint256 _seed_fee
     ) public {
-        crp_factory = _crp_factory;
-        balancer_factory = _balancer_factory;
         seeder = _seeder;
-        reserve = _reserve;
         reserve_init = _reserve_init;
-        mint_init = _mint_init;
         initial_pool_valuation = _initial_pool_valuation;
         redeem_init = _redeem_init;
         min_raise = _min_raise;
         seed_fee = _seed_fee;
+
+        token = new RedeemableERC20(
+            _redeemableERC20Config
+        );
     }
 
-
-    function init(string memory _name, string memory _symbol, uint256 _unblock_block) public onlyOwner withInit {
-        token = new RedeemableERC20(
-            _name,
-            _symbol,
-            reserve,
-            mint_init,
-            _unblock_block
-        );
-
-        token.reserve().safeTransferFrom(
+    // Fund the Trust.
+    // This is where the trust takes ownership of assets to begin the distribution phase.
+    function fund(BalancerContracts calldata balancerContracts) external onlyOwner withInit {
+        IERC20 _reserve = token.reserve();
+        _reserve.safeTransferFrom(
             address(seeder),
             address(this),
             reserve_init
         );
-        console.log(
-            "Trust: init token: reserve balance: %s",
-            token.reserve().balanceOf(address(this))
-        );
-
-        reserve.approve(address(token), reserve_init);
 
         pool = new RedeemableERC20Pool(
-            crp_factory,
-            balancer_factory,
+            balancerContracts,
             token,
             reserve_init,
             redeem_init,
             initial_pool_valuation,
             min_raise.add(redeem_init)
         );
-        console.log(
-            "Trust: init pool: reserve balance: %s",
-            token.reserve().balanceOf(address(this))
-        );
         token.approve(address(pool), token.totalSupply());
-        token.reserve().approve(address(pool), pool.pool_amounts(0));
+        _reserve.approve(address(pool), pool.pool_amounts(0));
+
         pool.init();
 
         // Need to make a few addresses unfreezable to facilitate exits.
@@ -174,43 +155,44 @@ contract Trust is Ownable, Initable {
     // It defers to the pool exit function (which is owned by the trust and has block blocking).
     // If the minimum raise is reached then the trust owner receives the raise.
     // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
-    function exit() public onlyInit {
+    function exit() external onlyInit {
         pool.exit();
+        IERC20 _reserve = token.reserve();
 
-        uint256 _final_balance = reserve.balanceOf(address(this));
+        uint256 _final_balance = _reserve.balanceOf(address(this));
         // Any final balance above this is considered a successful raise.
         uint256 _success_balance = reserve_init.add(seed_fee).add(redeem_init).add(min_raise);
 
         if (_success_balance <= _final_balance) {
-            reserve.safeTransfer(
+            _reserve.safeTransfer(
                 address(token),
                 redeem_init
             );
-            reserve.safeTransfer(
+            _reserve.safeTransfer(
                 address(seeder),
                 reserve_init.add(seed_fee)
             );
             // The creator's cup doth overfloweth.
-            token.reserve().safeTransfer(
+            _reserve.safeTransfer(
                 owner(),
-                reserve.balanceOf(address(this))
+                _reserve.balanceOf(address(this))
             );
         }
         else {
             // The seeder gets the initial seed back but no fee.
-            reserve.safeTransfer(
+            _reserve.safeTransfer(
                 address(seeder),
                 reserve_init
             );
             // Token holders get a pro-rata refund.
-            reserve.safeTransfer(
+            _reserve.safeTransfer(
                 address(token),
-                reserve.balanceOf(address(this))
+                _reserve.balanceOf(address(this))
             );
             // Creator gets nothing.
         }
 
         // Double check all our math :)
-        require(token.reserve().balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
+        require(_reserve.balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
     }
 }

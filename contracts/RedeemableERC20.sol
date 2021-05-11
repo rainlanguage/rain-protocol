@@ -1,6 +1,8 @@
 // contracts/GLDToken.sol
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.12;
+
+pragma experimental ABIEncoderV2;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -13,6 +15,25 @@ import { console } from "hardhat/console.sol";
 import { Constants } from './libraries/Constants.sol';
 import { Initable } from './libraries/Initable.sol';
 import { BlockBlockable } from './libraries/BlockBlockable.sol';
+import { PrestigeByConstruction } from "./tv-prestige/contracts/PrestigeByConstruction.sol";
+import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
+
+struct RedeemableERC20Config {
+    // Name forwarded through to parent ERC20 contract.
+    string name;
+    // Symbol forwarded through to parent ERC20 contract.
+    string symbol;
+    // Reserve can be any IERC20 token.
+    // IMPORTANT: It is up to the caller to define a reserve that will remain functional and outlive the RedeemableERC20.
+    // For example, USDC could freeze the tokens owned by the RedeemableERC20 contract or close their business.
+    // In either case the redeem function would be pointing at a dangling reserve balance.
+    IERC20 reserve;
+    IPrestige prestige;
+    IPrestige.Status minimumStatus;
+    // Number of redeemable tokens to mint.
+    uint256 mintInit;
+    uint256 unblockBlock;
+}
 
 // RedeemableERC20 is an ERC20 issued in fixed ratio and redeemable for another ERC20 at a fixed block
 //
@@ -46,7 +67,7 @@ import { BlockBlockable } from './libraries/BlockBlockable.sol';
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
 //
 // A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserve_release)`.
-contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
+contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC20 {
 
     using SafeMath for uint256;
 
@@ -56,57 +77,35 @@ contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
         uint256 _reserve_release
     );
 
-
-    uint256 public mint_init;
+    uint256 public mintInit;
 
     // This is the reserve token.
     // It is openly visible to the world so people can verify the reserve token has value.
     using SafeERC20 for IERC20;
     IERC20 public reserve;
-
+    IPrestige.Status public minimumPrestigeStatus;
 
     mapping(address => bool) public unfreezables;
-
 
     // In the constructor we set everything that configures the contract but it stateless.
     // There are no token transfers, mints or locks.
     // Redemption is not possible until after init()
     constructor (
-        // Name forwarded through to parent ERC20 contract.
-        string memory _name,
-        // Symbol forwarded through to parent ERC20 contract.
-        string memory _symbol,
-        // Reserve can be any IERC20 token.
-        // IMPORTANT: It is up to the caller to define a reserve that will remain functional and outlive the RedeemableERC20.
-        // For example, USDC could freeze the tokens owned by the RedeemableERC20 contract or close their business.
-        // In either case the redeem function would be pointing at a dangling reserve balance.
-        IERC20 _reserve,
-        uint256 _mint_init,
-        uint256 _unblock_block
+        RedeemableERC20Config memory _redeemableERC20Config
     )
         public
-        ERC20(_name, _symbol)
+        ERC20(_redeemableERC20Config.name, _redeemableERC20Config.symbol)
+        PrestigeByConstruction(_redeemableERC20Config.prestige)
     {
-        console.log("RedeemableERC20: constructor: %s %s", _name, _symbol);
-        console.log(
-            "RedeemableERC20: constructor: %s %s %s",
-            _mint_init,
-            _unblock_block
-        );
-        reserve = _reserve;
-        mint_init = _mint_init;
+        reserve = _redeemableERC20Config.reserve;
+        mintInit = _redeemableERC20Config.mintInit;
+        minimumPrestigeStatus = _redeemableERC20Config.minimumStatus;
 
         // Mint redeemable tokens according to the preset schedule.
-        console.log(
-            "RedeemableERC20: Mint %s %s for %s",
-            mint_init,
-            name(),
-            msg.sender
-        );
-        _mint(msg.sender, mint_init);
+        _mint(msg.sender, mintInit);
 
         // Set the unblock schedule.
-        BlockBlockable.setUnblockBlock(_unblock_block);
+        BlockBlockable.setUnblockBlock(_redeemableERC20Config.unblockBlock);
     }
 
     function addUnfreezable(address _address)
@@ -213,6 +212,10 @@ contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
         } else {
             // Redemption is blocked.
             // All transfer actions allowed.
+            require(
+                super.isStatus(_receiver, minimumPrestigeStatus),
+                "ERR_MIN_STATUS"
+            );
         }
     }
 }
