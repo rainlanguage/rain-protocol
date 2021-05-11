@@ -72,7 +72,6 @@ describe('Account status', async function() {
             if (status) {
                 await prestige.setStatus(signers[0].address, status, [])
                 expected[i] = await ethers.provider.getBlockNumber()
-                console.log(i, expected)
                 expectedReport = blockNumbersToReport(expected)
                 i++
             }
@@ -85,17 +84,20 @@ describe('Account status', async function() {
         const [signers, prestige] = await setup()
         let expected = tvkStatusReport(uninitializedReport)
         let expectedReport = blockNumbersToReport(expected)
-        let o = 1
-        let n = 1
+        let o = 0
+        let n = 0
         while (o < statuses.length) {
             n = Math.min(o + Math.floor(Math.random() * statuses.length), statuses.length - 1)
             await prestige.setStatus(signers[0].address, n, [])
             let block = await ethers.provider.getBlockNumber()
-            expected = expected.map((item:number, index:number) => --n >= index && index > --o ? block : item)
+            expected = expected.map((item:number, index:number) => n - 1 >= index && index > o - 1 && n != o ? block : item)
             expectedReport = blockNumbersToReport(expected)
+            if (expectedReport == uninitializedReport) {
+                expected[0] = block
+                expectedReport = blockNumbersToReport(expected)
+            }
             let actualReport = (await prestige.statusReport(signers[0].address)).toHexString().substring(2).padStart(64, '0')
-            console.log(expectedReport)
-            console.log(actualReport)
+            assert(expectedReport === actualReport)
             o = n
 
             if (o === statuses.length - 1) break
