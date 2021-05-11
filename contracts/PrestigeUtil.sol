@@ -10,6 +10,7 @@ library PrestigeUtil {
 
     /**
      * Returns the highest status achieved relative to a block number and status report.
+     *
      * Note that typically the statusReport will be from the _current_ contract state.
      * When the `statusReport` comes from a later block than the `blockNumber` this means
      * the user must have held the status continuously from `blockNumber` _through_ to the report block.
@@ -29,6 +30,7 @@ library PrestigeUtil {
 
     /**
      * Returns the block that a given status has been held since according to a status report.
+     *
      * The status report SHOULD encode "never" as 0xFFFFFFFF
      * @param report The status report to read a block number from.
      * @param statusInt The status integer to read the block number for.
@@ -54,6 +56,7 @@ library PrestigeUtil {
 
     /**
      * Resets all the statuses above the reference status.
+     *
      * @param report Status report to truncate with high bit 1s.
      * @param statusInt Status int level to truncate above (exclusive).
      * @return uint256 the truncated report.
@@ -70,6 +73,7 @@ library PrestigeUtil {
 
     /**
      * Updates a report with a block number for every status integer in a range.
+     *
      * Does nothing if the end status is equal or less than the start status.
      * @param report The report to update.
      * @param startStatusInt The statusInt at the start of the range (exclusive).
@@ -86,6 +90,7 @@ library PrestigeUtil {
 
     /**
      * Updates a report to a new status.
+     *
      * Internally dispatches to `truncateStatusesAbove` and `updateBlocksForStatuRange`.
      * The dispatch is based on whether the new status is above or below the current status.
      * The `currentStatusInt` MUST match the result of `statusAtFromReport`.

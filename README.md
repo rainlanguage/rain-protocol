@@ -92,11 +92,14 @@ For example, consider the case where `GOLD` can be achieved by EITHER locking 1x
 
 The `data` parameter can also be ignored by the contract implementing `IPrestige`. For example, ERC20 tokens are fungible so only the balance approved by the user is relevant to a status change.
 
+The `setStatus` function SHOULD prevent users from reassigning `NIL` to themselves.
+The `NIL` status represents never having any status.
+
 ### statusReport
 
 The status report for any account can be viewed with `statusReport`.
 
-A status report is a `uint256` that contains each of the block numbers each status has been held continously since as a `uint32`.
+A status report is a `uint256` that contains each of the block numbers each status has been held continously since as a `uint32`. There are 9 possible statuses, starting with `NIL` for `0` offset or "never held any status" then working up through 8x 4 byte offsets to the full 256 bits.
 
 Low bits = Lower status.
 
@@ -116,11 +119,31 @@ GUIs are encouraged to make this dynamic very clear for users as round-tripping 
 
 The intent is that downstream code can provide additional benefits for members who have maintained a certain tier for/since a long time. These benefits can be provided by inspecting the status report, and by on-chain contracts directly, rather than needing to work with snapshots etc.
 
+## PrestigeUtil
+
+`PrestigeUtil` implements several pure functions that can be used to interface with status reports.
+
+- `statusAtFromReport`: Returns the highest status achieved relative to a block number and status report.
+- `statusBlock`: Returns the block that a given status has been held since according to a status report.
+- `truncateStatusesAbove`: Resets all the statuses above the reference status.
+- `updateBlocksForStatusRange`: Updates a report with a block number for every status integer in a range.
+- `updateReportWithStatusAtBlock`: Updates a report to a new status.
+
+## Prestige
+
+`Prestige` is a base contract that other contracts are expected to inherit.
+
+It handles all the internal accounting and state changes for `statusReport` and `setStatus`.
+
+It calls an `_afterSetStatus` hook that inheriting contracts can override to enforce status requirements.
+
 ## TVKPrestige
 
-`TVKPrestige` is the first implementation of `IPrestige`.
+`TVKPrestige` is the first contract inheriting from `Prestige`.
 
-It has 8 hardcoded TVK levels for each status:
+In addition to the standard accounting it requires that users lock `TVK` tokens to achieve a status.
+
+It has 8 hardcoded TVK levels for each non-NIL status:
 
 - `COPPER`: 0 TVK
 - `BRONZE`: 1000 TVK
@@ -138,12 +161,22 @@ The contract has no parameters.
 The contract cannot be reused for other membership schemes as-is.
 There is no admin functionality.
 
-The `setStatus` function simply:
-
-- builds the new status report for the user
-- emits the `StatusChange` event
-- transfers the diff between the old/new status to/from the user as required
+The `_afterSetStatus` simply transfers the diff between the old/new status to/from the user as required.
 
 THIS CONTRACT KEEPS NO RECORD OF USER TRANSFERS.
 
 __ANY TOKENS SEND DIRECTLY TO THE CONTRACT WITHOUT CALLING `setStatus` ARE LOST FOREVER.__
+
+## PrestigeByConstruction
+
+`PrestigeByConstruction` is a base contracts that other contracts are expected to inherit.
+
+It provides a check `isStatus` and modifier `onlyStatus` to enforce status levels.
+
+The `IPrestige` contract and reference block is set during construction.
+
+For an account to have a status it must have had the status at least one block BEFORE the `PrestigeByConstruction` contract was constructed and then held the status through to the CURRENT result of `statusReport` as per the `IPrestige`.
+
+The construction block is referenced against the current status as a simple guard against things like flash loans that can be used to temporarily gain priviledges for a very short period of time at little or no cost.
+
+Technically the `IPrestige` could re-enter the `PrestigeByConstruction` so the `onlyStatus` modifier runs AFTER the modified function.
