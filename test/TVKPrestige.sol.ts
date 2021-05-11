@@ -352,7 +352,7 @@ describe("Account status", async function(){
       .to.emit(tvkPrestige, 'StatusChange')
       .withArgs(address, [0, 100])
     } catch (error) {
-      assert.ok(error.message === "VM Exception while processing transaction: invalid opcode")
+      assert.ok(error.message === "Error: VM Exception while processing transaction: invalid opcode")
     }
   });
 
