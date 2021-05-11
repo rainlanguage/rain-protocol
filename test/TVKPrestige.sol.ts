@@ -28,6 +28,16 @@ describe("Levels", async function(){
     await tvkPrestige.deployed()
   });
 
+  it('will return the nil status level', async function() {
+    // the expected nil level
+    const nil = ethers.BigNumber.from(0)
+
+    // get the levels
+    const levels = await tvkPrestige.levels()
+
+    expect(levels[0]).to.equal(nil)
+  })
+
 
   it("will return the copper status level", async function(){
     // the expected copper level
@@ -36,7 +46,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[0]).to.equal(copper);
+    expect(levels[1]).to.equal(copper);
   });
 
 
@@ -47,7 +57,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[1]).to.equal(bronze);
+    expect(levels[2]).to.equal(bronze);
   });
 
 
@@ -58,7 +68,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[2]).to.equal(silver);
+    expect(levels[3]).to.equal(silver);
   });
 
 
@@ -69,7 +79,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[3]).to.equal(gold);
+    expect(levels[4]).to.equal(gold);
   });
 
 
@@ -80,7 +90,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[4]).to.equal(platinum);
+    expect(levels[5]).to.equal(platinum);
   });
 
 
@@ -91,7 +101,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[5]).to.equal(diamond);
+    expect(levels[6]).to.equal(diamond);
   });
 
 
@@ -102,7 +112,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[6]).to.equal(chad);
+    expect(levels[7]).to.equal(chad);
   });
 
 
@@ -113,7 +123,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[7]).to.equal(jawad);
+    expect(levels[8]).to.equal(jawad);
   });
 
 
@@ -121,7 +131,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[8]).to.equal(undefined);
+    expect(levels[9]).to.equal(undefined);
   });
 });
 

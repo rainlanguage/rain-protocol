@@ -87,7 +87,7 @@ describe('Account status', async function() {
         let o = 0
         let n = 0
         while (o < statuses.length) {
-            n = Math.min(o + Math.floor(Math.random() * statuses.length), statuses.length - 1)
+            n = Math.max(1, Math.min(o + Math.floor(Math.random() * statuses.length), statuses.length - 1))
             await prestige.setStatus(signers[0].address, n, [])
             let block = await ethers.provider.getBlockNumber()
             expected = expected.map((item:number, index:number) => n - 1 >= index && index > o - 1 && n != o ? block : item)
@@ -126,7 +126,7 @@ describe('Account status', async function() {
         expect(report[1]).to.equal(currentBlock)
         expect(report[2]).to.equal(currentBlock)
     });
-    
+
     it("will output the previous status level and the new updated status level", async function(){
         const [signers, prestige] = await setup()
         // change the status to bronce
