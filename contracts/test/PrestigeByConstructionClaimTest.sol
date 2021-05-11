@@ -45,10 +45,7 @@ contract PrestigeByConstructionClaimTest is ERC20, PrestigeByConstruction {
      * The onlyStatus modifier checks the claimant against GOLD status.
      * The IPrestige contract decides for itself whether the claimant is GOLD as at the current block.number
      */
-    function claim(address account)
-        public
-        onlyStatus(account, IPrestige.Status.GOLD)
-    {
+    function claim(address account) external onlyStatus(account, IPrestige.Status.GOLD) {
         require(!claims[account], "ERR_MULTI_MINT");
         claims[account] = true;
         super._mint(account, 100);
