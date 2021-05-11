@@ -27,22 +27,16 @@ contract Prestige is IPrestige {
         // The NIL status is reserved for users that have never interacted with the contract.
         require(newStatus != Status.NIL, "ERR_NIL_STATUS");
 
-        uint256 _report = statusReport(account);
+        uint256 report = statusReport(account);
 
-        Status currentStatus = PrestigeUtil.statusAtFromReport(_report, uint32(block.number));
+        IPrestige.Status currentStatus = PrestigeUtil.statusAtFromReport(report, block.number);
 
-        uint256 _currentStatusInt = uint256(currentStatus);
-        uint256 _newStatusInt = uint256(newStatus);
-
-        // Truncate above the new status.
-        _report = PrestigeUtil._truncateStatusesAbove(_report, _newStatusInt);
-
-        // Anything between the current/new statuses needs the current block number.
-        for (uint256 i = _currentStatusInt; i < _newStatusInt; i++) {
-            _report = (_report & ~uint256(uint256(uint32(PrestigeUtil.UNINITIALIZED)) << i*32)) | uint256(block.number << (i*32));
-        }
-
-        statuses[account] = _report;
+        statuses[account] = PrestigeUtil.updateReportWithStatusAtBlock(
+            report,
+            uint256(currentStatus),
+            uint256(newStatus),
+            block.number
+        );
 
         // Last thing to do as checks-effects-interactions.
         // Call the _afterSetStatus hook to allow "real" prestige contracts to enforce requirements.
