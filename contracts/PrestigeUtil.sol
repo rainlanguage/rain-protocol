@@ -13,9 +13,9 @@ library PrestigeUtil {
     // When the `statusReport` comes from a later block than the `blockNumber` this means
     // the user must have held the status continuously from `blockNumber` _through_ to the report block.
     // I.e. NOT a snapshot.
-    function statusAtFromReport(uint256 statusReport, uint32 blockNumber) internal pure returns (IPrestige.Status) {
+    function statusAtFromReport(uint256 statusReport, uint256 blockNumber) internal pure returns (IPrestige.Status) {
         for (uint256 i = 0; i < 8; i++) {
-            if (uint32(uint256(statusReport >> (i*32))) > blockNumber) {
+            if (uint32(uint256(statusReport >> (i*32))) > uint32(blockNumber)) {
                 return IPrestige.Status(i);
             }
         }
@@ -43,7 +43,7 @@ library PrestigeUtil {
     /// @param report - Status report to truncate with high bit ones
     /// @param status - Status level to truncate above (exclusive)
     /// @return uint256 the truncated report.
-    function _truncateStatusesAbove(uint256 report, uint256 status)
+    function truncateStatusesAbove(uint256 report, uint256 status)
         internal
         pure
         returns (uint256)
@@ -51,6 +51,26 @@ library PrestigeUtil {
         uint256 _offset = uint256(status) * 32;
         uint256 _mask = (UNINITIALIZED >> _offset) << _offset;
         return report | _mask;
+    }
+
+    function updateBlocksForStatusRange(uint256 blockNumber, uint256 report, uint256 currentStatusInt, uint256 newStatusInt) internal pure returns (uint256) {
+        for (uint256 i = currentStatusInt; i < newStatusInt; i++) {
+            report = (report & ~uint256(uint256(uint32(PrestigeUtil.UNINITIALIZED)) << i*32)) | uint256(blockNumber << (i*32));
+        }
+        return report;
+    }
+
+    function updateReportWithStatusAtBlock(uint256 report, uint256 currentStatusInt, uint256 newStatusInt, uint256 blockNumber) internal pure returns (uint256) {
+        // Truncate above the new status if it is lower than the current one.
+        if (newStatusInt < currentStatusInt) {
+            report = PrestigeUtil.truncateStatusesAbove(report, newStatusInt);
+        }
+        // Otherwise fill the gap between current and new with the block number.
+        else {
+            report = PrestigeUtil.updateBlocksForStatusRange(blockNumber, report, currentStatusInt, newStatusInt);
+        }
+
+        return report;
     }
 
 }
