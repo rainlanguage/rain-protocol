@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.7.3;
+pragma solidity ^0.6.12;
 
 import { IPrestige } from "../IPrestige.sol";
 import { PrestigeByConstruction } from "../PrestigeByConstruction.sol";
 
 contract PrestigeByConstructionTest is PrestigeByConstruction {
 
-    constructor(IPrestige _prestige) PrestigeByConstruction(_prestige) { }
+    constructor(IPrestige _prestige) public PrestigeByConstruction(_prestige) { }
 
     function unlimited() public view { }
 
