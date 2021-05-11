@@ -3,6 +3,8 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { Prestige } from '../typechain/Prestige'
 import type { PrestigeByConstructionTest } from '../typechain/PrestigeByConstructionTest'
+import type { PrestigeByConstructionClaimTest } from '../typechain/PrestigeByConstructionClaimTest'
+
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -184,4 +186,74 @@ describe("PrestigeByConstruction", async function() {
         }
         assert(errStatus,'did not make a mistake when the user entered dimond when he did not have it.')
     });
-})
+});
+
+
+describe("PrestigeByConstructionClaim", async function() {
+    let owner: any;
+    let prestige: Prestige;
+    let prestigeByConstructionClaim: PrestigeByConstructionClaimTest;
+    let prestigeByConstructionClaimFactory: any;
+
+
+    before(async () => {
+        [owner] = await ethers.getSigners()
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        prestige = await prestigeFactory.deploy() as Prestige
+        await prestige.deployed()
+
+        prestigeByConstructionClaimFactory = await ethers.getContractFactory(
+            'PrestigeByConstructionClaimTest'
+        )
+        prestigeByConstructionClaim = await prestigeByConstructionClaimFactory.deploy(prestige.address) as PrestigeByConstructionClaimTest
+        await prestigeByConstructionClaim.deployed()
+    });
+
+
+    it("shouldn't you set to use a function of the new status after construction", async function() {
+        await prestige.setStatus(owner.address, 4, [])
+
+        let errStatus = false
+        try {
+            await prestigeByConstructionClaim.claim(owner.address)
+        } catch (e) {
+            assert(e.toString().includes('revert ERR_MIN_STATUS'))
+            errStatus = true
+        }
+        assert(errStatus,'did not make a mistake when the user upgraded the gold after construction')
+    });
+
+
+    it("should enter the function and mint 100 tokens", async function() {
+        prestigeByConstructionClaim = await prestigeByConstructionClaimFactory.deploy(prestige.address) as PrestigeByConstructionClaimTest
+        await prestigeByConstructionClaim.deployed()
+
+        await prestigeByConstructionClaim.claim(owner.address)
+        
+        assert(
+            (await prestigeByConstructionClaim.claims(owner.address)),
+            "did not enter correctly to the function"
+        )
+
+        assert(
+            Number(await prestigeByConstructionClaim.balanceOf(owner.address)) === 100,
+            "did not enter correctly to the function"
+        )
+    });
+
+
+    it("should not allow multiple minting", async function() {        
+        let errStatus = false
+        try {
+            await prestigeByConstructionClaim.claim(owner.address)
+        } catch (e) {
+            assert(e.toString().includes('revert ERR_MULTI_MINT'))
+            errStatus = true
+        }
+        assert(errStatus,'function does not correctly restrict multiple mints')
+    });
+
+});

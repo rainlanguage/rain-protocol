@@ -11,7 +11,11 @@ library PrestigeUtil {
     // When the `statusReport` comes from a later block than the `blockNumber` this means
     // the user must have held the status continuously from `blockNumber` _through_ to the report block.
     // I.e. NOT a snapshot.
-    function statusAtFromReport(uint256 statusReport, uint32 blockNumber) internal pure returns (IPrestige.Status) {
+    function statusAtFromReport(uint256 statusReport, uint32 blockNumber)
+        internal
+        pure
+        returns (IPrestige.Status)
+    {
         for (uint256 i = 0; i < 8; i++) {
             if (uint32(uint256(statusReport >> (i*32))) > blockNumber) {
                 return IPrestige.Status(i);
@@ -22,7 +26,11 @@ library PrestigeUtil {
 
     // Returns the block that a given status has been held since.
     // Returns 0xffffffff if a status has never been held.
-    function statusBlock(uint256 statusReport, IPrestige.Status status) internal pure returns (uint32) {
+    function statusBlock(uint256 statusReport, IPrestige.Status status)
+        internal
+        pure
+        returns (uint32)
+    {
         uint256 _statusInt = uint256(status);
         // NIL is a special case. Everyone has always been at least NIL, since block 0.
         if (_statusInt == 0) {
