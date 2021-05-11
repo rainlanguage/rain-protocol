@@ -6,6 +6,8 @@ import { IPrestige } from "./IPrestige.sol";
 
 library PrestigeUtil {
 
+    uint256 constant public UNINITIALIZED = uint256(-1);
+
     // Returns the highest status achieved relative to a block number and status report.
     // Note that typically the statusReport will be from the _current_ contract state.
     // When the `statusReport` comes from a later block than the `blockNumber` this means
@@ -35,6 +37,20 @@ library PrestigeUtil {
                 )
             );
         }
+    }
+
+    /// Return maxes out all the statuses above the provided status.
+    /// @param report - Status report to truncate with high bit ones
+    /// @param status - Status level to truncate above (exclusive)
+    /// @return uint256 the truncated report.
+    function _truncateStatusesAbove(uint256 report, uint256 status)
+        internal
+        pure
+        returns (uint256)
+    {
+        uint256 _offset = uint256(status) * 32;
+        uint256 _mask = (UNINITIALIZED >> _offset) << _offset;
+        return report | _mask;
     }
 
 }

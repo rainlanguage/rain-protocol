@@ -33,11 +33,6 @@ const setup = async ():Promise<[SignerWithAddress[], Prestige]> => {
 
 describe('Account status', async function() {
 
-    it('has correct uninitalized value', async function() {
-        const [_, prestige] = await setup()
-        assert(uninitializedReport === await (await prestige.UNINITIALIZED()).toHexString())
-    })
-
     it('will return uninitialized status report if nothing set', async function() {
         const [signers, prestige] = await setup()
         for (let signer of signers) {
