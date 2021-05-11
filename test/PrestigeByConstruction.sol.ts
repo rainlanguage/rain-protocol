@@ -69,11 +69,14 @@ describe("PrestigeByConstruction", async function() {
     it("should fail if you try to enter a function of a specific status if it has never been updated", async function() {
         assert(await prestigeByConstruction.isStatus(owner.address, 0))
 
+        let errStatus = false
         try {
             await prestigeByConstruction.ifGold()
         } catch (e) {
             assert(e.message.toString().includes('revert ERR_MIN_STATUS'))
+            errStatus = true
         }
+        assert(errStatus, 'did not make a mistake when the user entered gold when he did not have it')
     });
 
 
@@ -85,11 +88,14 @@ describe("PrestigeByConstruction", async function() {
         await prestigeByConstruction.ifNil()
 
         // Setting the status AFTER construction doesn't help.
+        let errStatus = false
         try {
             await prestigeByConstruction.ifCopper()
         } catch(e) {
             assert(e.toString().includes('revert ERR_MIN_STATUS'))
+            errStatus = true
         }
+        assert('did not make a mistake when the user upgraded the copper after construction')
     });
 
 
@@ -107,11 +113,15 @@ describe("PrestigeByConstruction", async function() {
 
 
     it("should not be able to use a function for a status if you do not have that status", async function() {
+        let errStatus = false
         try {
             await prestigeByConstruction.ifBronze()
         } catch(e) {
             assert(e.toString().includes('revert ERR_MIN_STATUS'))
+            errStatus = true;
         }
+
+        assert(errStatus,'did not make a mistake when the user entered bronze when he did not have it.')
     });
 
 
@@ -131,5 +141,47 @@ describe("PrestigeByConstruction", async function() {
         await prestigeByConstruction.ifBronze()
 
         await prestigeByConstruction.ifJawad()
+    });
+
+
+    it("should enter the functions of the previous state when downgrading after construction", async function () {
+        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
+        await prestigeByConstruction.deployed()
+
+        await prestige.setStatus(owner.address, 6, [])
+
+        await prestigeByConstruction.unlimited()
+
+        await prestigeByConstruction.ifNil()
+
+        await prestigeByConstruction.ifCopper()
+
+        await prestigeByConstruction.ifBronze()
+
+        await prestigeByConstruction.ifDiamond()
+
+    });
+
+
+    it("Should not enter the functions of the former state when downgrading after construction", async function () {
+        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
+        await prestigeByConstruction.deployed()
+
+        await prestige.setStatus(owner.address, 3, [])
+
+        await prestigeByConstruction.unlimited()
+
+        await prestigeByConstruction.ifNil()
+
+        await prestigeByConstruction.ifCopper()
+
+        let errStatus = false
+        try {
+            await prestigeByConstruction.ifDiamond()
+        } catch(e) {
+            assert(e.toString().includes('revert ERR_MIN_STATUS'))
+            errStatus = true;
+        }
+        assert(errStatus,'did not make a mistake when the user entered dimond when he did not have it.')
     });
 })
