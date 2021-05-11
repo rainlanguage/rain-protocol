@@ -128,34 +128,6 @@ describe("Levels", async function(){
 
 describe("Account status", async function(){
 
-  it("will return 0 copper status if none has been set for the account", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    const signers = await ethers.getSigners();
-
-    // deploy the contract
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    await tvkPrestige.deployed()
-
-    // no status yet, so status should be copper = 0
-    const status = await tvkPrestige.statusReport(signers[0].address)
-    const report = tvkStatusReport(status.toString())
-    assert(report[0] === 0)
-  });
-
-
   it("will emit the status to which it was upgraded if it is upgraded for the first time", async function(){
     // reset the fork
     await hre.network.provider.request({
