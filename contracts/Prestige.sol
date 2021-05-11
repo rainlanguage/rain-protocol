@@ -21,7 +21,8 @@ contract Prestige is IPrestige {
         returns (uint256)
     {
         uint256 report = statuses[account];
-        return report == 0 ? PrestigeUtil.UNINITIALIZED : report;
+        // Inequality here to silence slither warnings.
+        return report > 0 ? report : PrestigeUtil.UNINITIALIZED;
     }
 
     /**
@@ -68,5 +69,6 @@ contract Prestige is IPrestige {
      * @param newStatus The status the account will have after this update.
      * @param data Additional arbitrary data to inform status update requirements.
      */
+    //slither-disable-next-line dead-code
     function _afterSetStatus(address account, Status oldStatus, Status newStatus, bytes memory data) internal virtual { } // solhint-disable-line no-empty-blocks
 }
