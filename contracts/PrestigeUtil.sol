@@ -4,8 +4,6 @@ pragma solidity ^0.6.12;
 
 import { IPrestige } from "./IPrestige.sol";
 
-import { console } from "hardhat/console.sol";
-
 library PrestigeUtil {
 
     // Returns the highest status achieved relative to a block number and status report.

@@ -5,12 +5,10 @@ pragma solidity ^0.6.12;
 import { IPrestige } from "./IPrestige.sol";
 import { PrestigeUtil } from "./PrestigeUtil.sol";
 
-import { console } from "hardhat/console.sol";
-
 contract Prestige is IPrestige {
     mapping(address => uint256) public statuses;
 
-    uint256 constant public UNINITIALIZED = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+    uint256 constant public UNINITIALIZED = uint256(-1);
 
     /// Return status report
     /// @param account - Account to be reported on.
@@ -34,23 +32,16 @@ contract Prestige is IPrestige {
 
         Status currentStatus = PrestigeUtil.statusAtFromReport(_report, uint32(block.number));
 
-        console.log("setStatus: _report: %s", _report);
-
         uint256 _currentStatusInt = uint256(currentStatus);
         uint256 _newStatusInt = uint256(newStatus);
 
-        console.log("setStatus: status ints: %s %s", _currentStatusInt, _newStatusInt);
-
         // Truncate above the new status.
         _report = _truncateStatusesAbove(_report, _newStatusInt);
-
-        console.log("setStatus: truncated _report %s", _report);
 
         // Anything between the current/new statuses needs the current block number.
         for (uint256 i = _currentStatusInt; i < _newStatusInt; i++) {
             _report = (_report ^ uint256(uint256(uint32(UNINITIALIZED)) << i*32)) | uint256(block.number << (i*32));
         }
-        console.log("setStatus: filled _report %s", _report);
 
         statuses[account] = _report;
 
@@ -60,7 +51,7 @@ contract Prestige is IPrestige {
         emit StatusChange(account, [currentStatus, newStatus]);
     }
 
-    function _afterSetStatus(address account, Status oldStatus, Status newStatus, bytes memory data) internal virtual { }
+    function _afterSetStatus(address account, Status oldStatus, Status newStatus, bytes memory data) internal virtual { } // solhint-disable-line no-empty-blocks
 
     /// Return maxes out all the statuses above the provided status.
     /// @param report - Status report to truncate with high bit ones

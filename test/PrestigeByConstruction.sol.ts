@@ -12,9 +12,9 @@ describe("PrestigeByConstruction", async function() {
     let prestigeByConstructionFactory: any;
     let prestige: Prestige;
     let prestigeByConstruction: PrestigeByConstructionTest;
-    
 
-    before(async () => {    
+
+    before(async () => {
         [owner] = await ethers.getSigners()
 
         const prestigeFactory = await ethers.getContractFactory(
@@ -54,7 +54,7 @@ describe("PrestigeByConstruction", async function() {
 
     it("should be able to use unlimited access functions in any status", async function() {
         assert(await prestigeByConstruction.isStatus(owner.address, 0))
-            
+
         await prestigeByConstruction.unlimited()
     });
 

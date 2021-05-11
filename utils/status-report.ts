@@ -24,3 +24,14 @@ export function blockNumbersToReport (blockNos: number[]): string {
 
     return [...blockNos].reverse().map((i) => BigInt(i).toString(16).padStart(8, '0')).join('')
 }
+
+export const assertError = async (f:Function, s:string, e:string) => {
+    let didError = false
+    try {
+        await f()
+    } catch (e) {
+        assert(e.toString().includes(s))
+        didError = true
+    }
+    assert(didError, e)
+}
