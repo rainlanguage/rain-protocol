@@ -1,7 +1,7 @@
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import type { Prestige } from '../typechain/Prestige'
+import { Prestige } from '../typechain/Prestige'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { tvkStatusReport, blockNumbersToReport, assertError } from '../utils/status-report'
 
