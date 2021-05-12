@@ -22,7 +22,7 @@ library PrestigeUtil {
     function statusAtFromReport(
         uint256 report,
         uint256 blockNumber
-    ) 
+    )
         internal pure returns (IPrestige.Status)
     {
         for (uint256 i = 0; i < 8; i++) {
@@ -91,7 +91,7 @@ library PrestigeUtil {
         uint256 startStatusInt,
         uint256 endStatusInt,
         uint256 blockNumber
-    ) 
+    )
         internal pure returns (uint256)
     {
         for (uint256 i = startStatusInt; i < endStatusInt; i++) {

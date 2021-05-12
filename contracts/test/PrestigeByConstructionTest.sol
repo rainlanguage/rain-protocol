@@ -19,7 +19,7 @@ contract PrestigeByConstructionTest is PrestigeByConstruction {
 
     function ifNil()
         external
-        view 
+        view
         onlyStatus(msg.sender, IPrestige.Status.NIL)
     { } // solhint-disable-line no-empty-blocks
 

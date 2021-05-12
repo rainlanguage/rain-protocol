@@ -81,7 +81,7 @@ contract Prestige is IPrestige {
         Status oldStatus,
         Status newStatus,
         bytes memory data
-    ) 
+    )
         internal virtual
     { } // solhint-disable-line no-empty-blocks
 }
