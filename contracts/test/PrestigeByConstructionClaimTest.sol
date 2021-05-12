@@ -46,7 +46,10 @@ contract PrestigeByConstructionClaimTest is ERC20, PrestigeByConstruction {
      * The IPrestige contract decides for itself whether the claimant is GOLD as at the current block.number
      * The claim can only be done once per account.
      */
-    function claim(address account) external onlyStatus(account, IPrestige.Status.GOLD) {
+    function claim(address account)
+        external
+        onlyStatus(account, IPrestige.Status.GOLD)
+    {
         require(!claims[account], "ERR_MULTI_MINT");
         claims[account] = true;
         super._mint(account, 100);

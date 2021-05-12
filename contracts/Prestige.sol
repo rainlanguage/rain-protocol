@@ -33,7 +33,13 @@ contract Prestige is IPrestige {
      * Calls `_afterSetStatus` that inheriting contracts SHOULD override to enforce status requirements.
      * Emits `StatusChange` event.
      */
-    function setStatus(address account, Status newStatus, bytes memory data) external virtual override {
+    function setStatus(
+        address account,
+        Status newStatus,
+        bytes memory data
+    )
+        external virtual override
+    {
         // The user must move to at least COPPER.
         // The NIL status is reserved for users that have never interacted with the contract.
         require(newStatus != Status.NIL, "ERR_NIL_STATUS");
@@ -70,5 +76,12 @@ contract Prestige is IPrestige {
      * @param data Additional arbitrary data to inform status update requirements.
      */
     //slither-disable-next-line dead-code
-    function _afterSetStatus(address account, Status oldStatus, Status newStatus, bytes memory data) internal virtual { } // solhint-disable-line no-empty-blocks
+    function _afterSetStatus(
+        address account,
+        Status oldStatus,
+        Status newStatus,
+        bytes memory data
+    ) 
+        internal virtual
+    { } // solhint-disable-line no-empty-blocks
 }

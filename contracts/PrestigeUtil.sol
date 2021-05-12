@@ -19,7 +19,12 @@ library PrestigeUtil {
      * @param blockNumber The block number check the statuses against.
      * @return The highest status held since `blockNumber` according to `report`.
      */
-    function statusAtFromReport(uint256 report, uint256 blockNumber) internal pure returns (IPrestige.Status) {
+    function statusAtFromReport(
+        uint256 report,
+        uint256 blockNumber
+    ) 
+        internal pure returns (IPrestige.Status)
+    {
         for (uint256 i = 0; i < 8; i++) {
             if (uint32(uint256(report >> (i*32))) > uint32(blockNumber)) {
                 return IPrestige.Status(i);
@@ -81,7 +86,14 @@ library PrestigeUtil {
      * @param blockNumber The block number to set for every status in the range.
      * @return The updated report.
      */
-    function updateBlocksForStatusRange(uint256 report, uint256 startStatusInt, uint256 endStatusInt, uint256 blockNumber) internal pure returns (uint256) {
+    function updateBlocksForStatusRange(
+        uint256 report,
+        uint256 startStatusInt,
+        uint256 endStatusInt,
+        uint256 blockNumber
+    ) 
+        internal pure returns (uint256)
+    {
         for (uint256 i = startStatusInt; i < endStatusInt; i++) {
             report = (report & ~uint256(uint256(uint32(PrestigeUtil.UNINITIALIZED)) << i*32)) | uint256(blockNumber << (i*32));
         }
@@ -102,14 +114,26 @@ library PrestigeUtil {
      * @param blockNumber The block number to update the status at.
      * @return The updated report.
      */
-    function updateReportWithStatusAtBlock(uint256 report, uint256 currentStatusInt, uint256 newStatusInt, uint256 blockNumber) internal pure returns (uint256) {
+    function updateReportWithStatusAtBlock(
+        uint256 report,
+        uint256 currentStatusInt,
+        uint256 newStatusInt,
+        uint256 blockNumber
+    )
+        internal pure returns (uint256)
+    {
         // Truncate above the new status if it is lower than the current one.
         if (newStatusInt < currentStatusInt) {
             report = truncateStatusesAbove(report, newStatusInt);
         }
         // Otherwise fill the gap between current and new with the block number.
         else {
-            report = updateBlocksForStatusRange(report, currentStatusInt, newStatusInt, blockNumber);
+            report = updateBlocksForStatusRange(
+                report,
+                currentStatusInt,
+                newStatusInt,
+                blockNumber
+            );
         }
         return report;
     }
