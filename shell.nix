@@ -17,7 +17,9 @@ let
   hardhat run --network localhost scripts/deploy.ts
  '';
 
+ # seems to help to compile twice for some reason Prestige typechain can go missing on the first compile...
  ci-test = pkgs.writeShellScriptBin "ci-test" ''
+ hardhat compile
  hardhat test
  '';
 

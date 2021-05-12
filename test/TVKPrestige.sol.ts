@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { tvkStatusReport } from '../utils/status-report'
+import { assertError, tvkStatusReport } from '../utils/status-report'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { TVKPrestige } from '../typechain/TVKPrestige'
@@ -28,6 +28,16 @@ describe("Levels", async function(){
     await tvkPrestige.deployed()
   });
 
+  it('will return the nil status level', async function() {
+    // the expected nil level
+    const nil = ethers.BigNumber.from(0)
+
+    // get the levels
+    const levels = await tvkPrestige.levels()
+
+    expect(levels[0]).to.equal(nil)
+  })
+
 
   it("will return the copper status level", async function(){
     // the expected copper level
@@ -36,7 +46,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[0]).to.equal(copper);
+    expect(levels[1]).to.equal(copper);
   });
 
 
@@ -47,7 +57,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[1]).to.equal(bronze);
+    expect(levels[2]).to.equal(bronze);
   });
 
 
@@ -58,7 +68,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[2]).to.equal(silver);
+    expect(levels[3]).to.equal(silver);
   });
 
 
@@ -69,7 +79,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[3]).to.equal(gold);
+    expect(levels[4]).to.equal(gold);
   });
 
 
@@ -80,7 +90,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[4]).to.equal(platinum);
+    expect(levels[5]).to.equal(platinum);
   });
 
 
@@ -91,7 +101,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[5]).to.equal(diamond);
+    expect(levels[6]).to.equal(diamond);
   });
 
 
@@ -102,7 +112,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[6]).to.equal(chad);
+    expect(levels[7]).to.equal(chad);
   });
 
 
@@ -113,7 +123,7 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[7]).to.equal(jawad);
+    expect(levels[8]).to.equal(jawad);
   });
 
 
@@ -121,609 +131,12 @@ describe("Levels", async function(){
     // get the levels
     const levels = await tvkPrestige.levels()
 
-    expect(levels[8]).to.equal(undefined);
+    expect(levels[9]).to.equal(undefined);
   });
 });
 
 
 describe("Account status", async function(){
-
-  it("will return 0 copper status if none has been set for the account", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    const signers = await ethers.getSigners();
-
-    // deploy the contract
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    await tvkPrestige.deployed()
-
-    // no status yet, so status should be copper = 0
-    const status = await tvkPrestige.statusReport(signers[0].address)
-    const report = tvkStatusReport(status.toString())
-    assert(report[0] === 0)
-  });
-
-
-  it("will emit the status to which it was upgraded if it is upgraded for the first time", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '5000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '5000' + eighteenZeros)
-
-    // change the status to silver and check if event emitted
-    await expect(tvkPrestige.setStatus(address, 2, []))
-    .to.emit(tvkPrestige, 'StatusChange')
-    .withArgs(address, [0, 2])
-  });
-
-
-  it("will return the current block number from level 0 to the new account status if updated for the first time", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '10000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
-
-    // change the status to silver
-    await tvkPrestige.setStatus(address, 3, []);
-
-    // check with the contract
-    const status = await tvkPrestige.statusReport(address)
-    const report = tvkStatusReport(status.toString())
-    const currentBlock = await tvkPrestige.provider.getBlockNumber()
-    expect(report[0]).to.equal(currentBlock)
-    expect(report[1]).to.equal(currentBlock)
-    expect(report[2]).to.equal(currentBlock)
-    expect(report[3]).to.equal(currentBlock)
-  });
-
-
-  it("will output the previous status level and the new updated status level", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '100000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '100000' + eighteenZeros)
-
-    // change the status to bronce
-    await tvkPrestige.setStatus(address, 1, []);
-    // change the status to gold
-    await expect(tvkPrestige.setStatus(address, 3, []))
-    .to.emit(tvkPrestige, 'StatusChange')
-    .withArgs(address, [1, 3])
-  });
-
-
-
-  it("will return the previous block number at the lower state level if it is updated to a higher state", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '100000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '100000' + eighteenZeros)
-
-    // change the status to bronce
-    await tvkPrestige.setStatus(address, 1, []);
-    const previousBlock = await tvkPrestige.provider.getBlockNumber()
-    // change the status to gold
-    await tvkPrestige.setStatus(address, 3, []);
-
-    // check with the contract
-    const status = await tvkPrestige.statusReport(address)
-    const report = tvkStatusReport(status.toString())
-    expect(report[1]).to.equal(previousBlock)
-  });
-
-
-  it("will change the status from higher to lower", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '100000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '100000' + eighteenZeros)
-
-    // change the status to gold
-    await tvkPrestige.setStatus(address, 3, []);
-    // change the status to bronze
-    await expect(tvkPrestige.setStatus(address, 1, []))
-    .to.emit(tvkPrestige, 'StatusChange')
-    .withArgs(address, [3, 1])
-  });
-
-
-  it("will return the previous block number at the current level if updating from a higher to a lower state", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '100000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '100000' + eighteenZeros)
-
-    // change the status to gold
-    await tvkPrestige.setStatus(address, 3, []);
-    const previousBlock = await tvkPrestige.provider.getBlockNumber();
-    // change the status to bronze
-    await tvkPrestige.setStatus(address, 1, []);
-
-    // check with the contract
-    const status = await tvkPrestige.statusReport(address)
-    const report = tvkStatusReport(status.toString())
-    expect(report[1]).to.equal(previousBlock)
-  });
-
-
-  it("will be possible to know the previous status from the current status", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '100000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '100000' + eighteenZeros)
-
-    // change the status to gold
-    await tvkPrestige.setStatus(address,  1, []);
-    const previousBlock = await tvkPrestige.provider.getBlockNumber();
-    // change the status to bronze
-    await tvkPrestige.setStatus(address, 3, []);
-
-    // check with the contract
-    const status = await tvkPrestige.statusReport(address)
-    const report = tvkStatusReport(status.toString())
-    expect(report[1]).to.equal(previousBlock)
-  });
-
-
-  it("will return the original block number if status 0 is called again", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '100000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '100000' + eighteenZeros)
-
-    // change the status to silver
-    await tvkPrestige.setStatus(address,  2, []);
-    const originalBlock = await tvkPrestige.provider.getBlockNumber();
-    // change the status to copper
-    await tvkPrestige.setStatus(address, 0, []);
-
-    // check with the contract
-    const status = await tvkPrestige.statusReport(address)
-    const report = tvkStatusReport(status.toString())
-    expect(report[0]).to.equal(originalBlock)
-  });
-
-
-  it("will return original block number at current status and the rest at 0 after two continuous decrements", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '100000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '100000' + eighteenZeros)
-
-    // change the status to platinum
-    await tvkPrestige.setStatus(address,  3, []);
-    const originalBlock = await tvkPrestige.provider.getBlockNumber();
-
-    // change the status to gold
-    await tvkPrestige.setStatus(address, 2, []);
-    // change the status to bronze
-    await tvkPrestige.setStatus(address, 1, []);
-
-    // check with the contract
-    const status = await tvkPrestige.statusReport(address)
-    const report = tvkStatusReport(status.toString())
-    expect(report[3]).to.equal(0)
-    expect(report[2]).to.equal(0)
-    expect(report[1]).to.equal(originalBlock)
-  });
-
-
-  it("will return two different block numbers if two consecutive increments occur, the high bits will be 0", async function(){
-    // reset the fork
-    await hre.network.provider.request({
-      method: "hardhat_reset",
-      params: [{
-        forking: {
-          jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/0T6PEQIu3w1qwoPoPG3XPJHvKAzXEjkv",
-          blockNumber: 12206000
-        }
-      }]
-    })
-
-    // get first hardhat signer address
-    const signers = await ethers.getSigners()
-    const address = signers[0].address;
-
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
-    );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
-
-    // impersonate the TVK treasury
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [TVK_TREASURY_ADDRESS]}
-    )
-
-    const tvkSigner = await ethers.provider.getSigner(TVK_TREASURY_ADDRESS)
-    const tvkTokenForWhale = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, tvkSigner)
-
-    // transfer 10000 TVK to first hardhat signer
-    await tvkTokenForWhale.transfer(address, '100000' + eighteenZeros)
-
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
-    )
-
-    // get the TVK token contract and set allowance for TVK prestige contract
-    const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '100000' + eighteenZeros)
-
-    // change the status to platinum
-    await tvkPrestige.setStatus(address,  2, []);
-
-    // change the status to gold
-    await tvkPrestige.setStatus(address, 4, []);
-
-    // check with the contract
-    const status = await tvkPrestige.statusReport(address);
-    const report = tvkStatusReport(status.toString());
-    assert(report[0] === report[1]);
-    assert(report[1] === report[2]);
-    assert(report[2] < report[3]);
-    assert(report[3] === report[4]);
-    expect(report[5]).to.equal(0);
-    expect(report[6]).to.equal(0);
-    expect(report[7]).to.equal(0);
-  });
-
 
   it("will take ownership of the correct amount of TVK when the new status is higher", async function(){
     // reset the fork
@@ -781,7 +194,6 @@ describe("Account status", async function(){
     const newBalance = await tvkToken.balanceOf(address)
     expect(newBalance).to.equal(balance.sub(silver), "new balance after status change is incorrect")
   });
-
 
   it("will refund the correct amount of TVK when the new status is lower", async function(){
     // reset the fork
@@ -890,7 +302,6 @@ describe("Account status", async function(){
     await expect(tvkPrestige.setStatus(address, 3, [])).to.be.revertedWith("revert ERC20: transfer amount exceeds balance")
   })
 
-
   it("will return new status invalid", async function(){
     // reset the fork
     await hre.network.provider.request({
@@ -935,16 +346,12 @@ describe("Account status", async function(){
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
     await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
 
-    try {
-      // change the status to silver and check if event emitted
-      await expect(tvkPrestige.setStatus(address, 100, []))
-      .to.emit(tvkPrestige, 'StatusChange')
-      .withArgs(address, [0, 100])
-    } catch (error) {
-      assert.ok(error.message === "VM Exception while processing transaction: invalid opcode")
-    }
+    assertError(
+      async () => await tvkPrestige.setStatus(address, 100, []),
+      "VM Exception while processing transaction: invalid opcode",
+      "failed to error for invalid status"
+    )
   });
-
 
   it("will revert if invalid status code used", async function(){
     // get first hardhat signer address
