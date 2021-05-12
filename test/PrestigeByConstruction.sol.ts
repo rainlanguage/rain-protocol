@@ -168,14 +168,11 @@ describe("PrestigeByConstruction", async function() {
 
         await prestigeByConstruction.ifCopper()
 
-        let errStatus = false
-        try {
-            await prestigeByConstruction.ifDiamond()
-        } catch(e) {
-            assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            errStatus = true;
-        }
-        assert(errStatus,'did not make a mistake when the user entered dimond when he did not have it.')
+        assertError(
+            async () => await prestigeByConstruction.ifDiamond(),
+            'revert ERR_MIN_STATUS',
+            'did not make a mistake when the user entered dimond when he did not have it.'
+        )
     });
 });
 
@@ -207,14 +204,11 @@ describe("PrestigeByConstructionClaim", async function() {
     it("shouldn't you set to use a function of the new status after construction", async function() {
         await prestige.setStatus(owner.address, 4, [])
 
-        let errStatus = false
-        try {
-            await prestigeByConstructionClaim.claim(owner.address)
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            errStatus = true
-        }
-        assert(errStatus,'did not make a mistake when the user upgraded the gold after construction')
+        assertError(
+            async () => await prestigeByConstructionClaim.claim(owner.address),
+            'revert ERR_MIN_STATUS',
+            'did not make a mistake when the user upgraded the gold after construction'
+        )
     });
 
 
@@ -237,13 +231,10 @@ describe("PrestigeByConstructionClaim", async function() {
 
 
     it("should not allow multiple minting", async function() {
-        let errStatus = false
-        try {
-            await prestigeByConstructionClaim.claim(owner.address)
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_MULTI_MINT'))
-            errStatus = true
-        }
-        assert(errStatus,'function does not correctly restrict multiple mints')
+        assertError(
+            async() => await prestigeByConstructionClaim.claim(owner.address),
+            'revert ERR_MULTI_MINT',
+            'function does not correctly restrict multiple mints'
+        )
     });
 });
