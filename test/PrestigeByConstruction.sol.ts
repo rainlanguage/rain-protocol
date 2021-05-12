@@ -4,6 +4,7 @@ import { ethers } from 'hardhat'
 import type { Prestige } from '../typechain/Prestige'
 import type { PrestigeByConstructionTest } from '../typechain/PrestigeByConstructionTest'
 import type { PrestigeByConstructionClaimTest } from '../typechain/PrestigeByConstructionClaimTest'
+import { assertError } from '../utils/status-report'
 
 
 chai.use(solidity)
@@ -71,14 +72,11 @@ describe("PrestigeByConstruction", async function() {
     it("should fail if you try to enter a function of a specific status if it has never been updated", async function() {
         assert(await prestigeByConstruction.isStatus(owner.address, 0))
 
-        let errStatus = false
-        try {
-            await prestigeByConstruction.ifGold()
-        } catch (e) {
-            assert(e.message.toString().includes('revert ERR_MIN_STATUS'))
-            errStatus = true
-        }
-        assert(errStatus, 'did not make a mistake when the user entered gold when he did not have it')
+        assertError(
+            async () => await prestigeByConstruction.ifGold(),
+            'revert ERR_MIN_STATUS',
+            'did not make a mistake when the user entered gold when he did not have it'
+        )
     });
 
 
@@ -90,14 +88,11 @@ describe("PrestigeByConstruction", async function() {
         await prestigeByConstruction.ifNil()
 
         // Setting the status AFTER construction doesn't help.
-        let errStatus = false
-        try {
-            await prestigeByConstruction.ifCopper()
-        } catch(e) {
-            assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            errStatus = true
-        }
-        assert('did not make a mistake when the user upgraded the copper after construction')
+        assertError(
+            async () => await prestigeByConstruction.ifCopper(),
+            'revert ERR_MIN_STATUS',
+            'did not make a mistake when the user upgraded the copper after construction'
+        )
     });
 
 
@@ -115,15 +110,11 @@ describe("PrestigeByConstruction", async function() {
 
 
     it("should not be able to use a function for a status if you do not have that status", async function() {
-        let errStatus = false
-        try {
-            await prestigeByConstruction.ifBronze()
-        } catch(e) {
-            assert(e.toString().includes('revert ERR_MIN_STATUS'))
-            errStatus = true;
-        }
-
-        assert(errStatus,'did not make a mistake when the user entered bronze when he did not have it.')
+        assertError(
+            async () => await prestigeByConstruction.ifBronze(),
+            'revert ERR_MIN_STATUS',
+            'did not make a mistake when the user entered bronze when he did not have it.'
+        )
     });
 
 
@@ -232,7 +223,7 @@ describe("PrestigeByConstructionClaim", async function() {
         await prestigeByConstructionClaim.deployed()
 
         await prestigeByConstructionClaim.claim(owner.address)
-        
+
         assert(
             (await prestigeByConstructionClaim.claims(owner.address)),
             "did not enter correctly to the function"
@@ -245,7 +236,7 @@ describe("PrestigeByConstructionClaim", async function() {
     });
 
 
-    it("should not allow multiple minting", async function() {        
+    it("should not allow multiple minting", async function() {
         let errStatus = false
         try {
             await prestigeByConstructionClaim.claim(owner.address)

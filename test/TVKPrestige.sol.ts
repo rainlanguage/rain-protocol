@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { tvkStatusReport } from '../utils/status-report'
+import { assertError, tvkStatusReport } from '../utils/status-report'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { TVKPrestige } from '../typechain/TVKPrestige'
@@ -346,17 +346,11 @@ describe("Account status", async function(){
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
     await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
 
-    try {
-      // change the status to silver and check if event emitted
-      await expect(tvkPrestige.setStatus(address, 100, []))
-      .to.emit(tvkPrestige, 'StatusChange')
-      .withArgs(address, [0, 100])
-    } catch (error) {
-      assert(
-        error.message.includes("VM Exception while processing transaction: invalid opcode"),
-        'wrong error message: ' + error.message
-      )
-    }
+    assertError(
+      async () => await tvkPrestige.setStatus(address, 100, []),
+      "VM Exception while processing transaction: invalid opcode",
+      "failed to error for invalid status"
+    )
   });
 
   it("will revert if invalid status code used", async function(){
