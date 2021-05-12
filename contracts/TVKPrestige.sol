@@ -39,7 +39,12 @@ contract TVKPrestige is Prestige {
     /// Updates the level of an account by an entered level
     /// @param account the account to change the status.
     /// @param newStatus the new status to be changed.
-    function _afterSetStatus(address account, Status oldStatus, Status newStatus, bytes memory)
+    function _afterSetStatus(
+        address account,
+        Status oldStatus,
+        Status newStatus,
+        bytes memory
+    )
         internal
         override
     {

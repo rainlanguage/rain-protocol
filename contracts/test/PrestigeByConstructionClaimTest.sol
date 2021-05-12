@@ -35,14 +35,21 @@ contract PrestigeByConstructionClaimTest is ERC20, PrestigeByConstruction {
      * Simply forward/set the desired IPrestige in the PrestigeByConstruction constructor.
      * The ERC20 constructor is as per Open Zeppelin.
      */
-    constructor(IPrestige _prestige) public PrestigeByConstruction(_prestige) ERC20("goldTkn", "GTKN") { } // solhint-disable-line no-empty-blocks
+    constructor(IPrestige _prestige)
+        public
+        PrestigeByConstruction(_prestige)
+        ERC20("goldTkn", "GTKN")
+    { } // solhint-disable-line no-empty-blocks
 
     /**
      * The onlyStatus modifier checks the claimant against GOLD status.
      * The IPrestige contract decides for itself whether the claimant is GOLD as at the current block.number
      * The claim can only be done once per account.
      */
-    function claim(address account) external onlyStatus(account, IPrestige.Status.GOLD) {
+    function claim(address account)
+        external
+        onlyStatus(account, IPrestige.Status.GOLD)
+    {
         require(!claims[account], "ERR_MULTI_MINT");
         claims[account] = true;
         super._mint(account, 100);
