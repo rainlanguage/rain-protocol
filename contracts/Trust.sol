@@ -71,15 +71,18 @@ import { RedeemableERC20Pool } from './RedeemableERC20Pool.sol';
 contract Trust is Ownable, Initable {
 
     using SafeMath for uint256;
+    using Math for uint256;
 
     CRPFactory crp_factory;
     BFactory balancer_factory;
-    uint256 book_ratio;
-    uint256 reserve_total;
-    uint256 initial_pool_valuation;
-    uint256 min_raise;
+    uint256 public reserve_init;
+    uint256 public mint_init;
+    uint256 public initial_pool_valuation;
+    uint256 public redeem_init;
+    uint256 public min_raise;
 
     using SafeERC20 for IERC20;
+    IERC20 public reserve;
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
 
@@ -87,79 +90,66 @@ contract Trust is Ownable, Initable {
     constructor (
         CRPFactory _crp_factory,
         BFactory _balancer_factory,
-        string memory _name,
-        string memory _symbol,
         IERC20 _reserve,
-        // e.g. $150 000 USDC to be shared across pool and redeem
-        uint256 _reserve_total,
-        // e.g. 2x to mint twice as many tokens as redeemable reserve tokens
-        uint256 _mint_ratio,
-        // e.g. 2x to put twice as many reserve tokens in redeem as the pool
-        //      |  P: 50 000 |  T: 100 0000 |
-        uint256 _book_ratio,
-        // initial marketcap of the token according to the balancer pool denominated in reserve token
-        // e.g. $1 000 000 USDC for a spot price of $5 with 200 000 tokens backed by $100 000 redeem and $50 000 pool
+        // Amount of reserve token to initialize the pool.
+        // The starting/final weights are calculated against this.
+        // This amount will be refunded to the Trust owner regardless whether the min_raise is met.
+        uint256 _reserve_init,
+        // Number of redeemable tokens to mint.
+        uint256 _mint_init,
+        // Initial marketcap of the token according to the balancer pool denominated in reserve token.
+        // Final market cap will be _redeem_init + _min_raise.
         uint256 _initial_pool_valuation,
-        // minimum amount to raise from the distribution period.
-        // this is only relevant to the exit function, determines whether the raise is sent to the owner or rolled to token holders.
+        // The amount of reserve to back the redemption initially after trading finishes.
+        // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
+        uint256 _redeem_init,
+        // Minimum amount to raise from the distribution period.
+        // The raise is only considered successful if enough NEW funds enter the system to cover BOTH the _redeem_init + _min_raise.
+        // If the raise is successful the _redeem_init is sent to token holders, otherwise the failed raise is refunded instead.
         uint256 _min_raise
     ) public {
         crp_factory = _crp_factory;
         balancer_factory = _balancer_factory;
-        book_ratio = _book_ratio;
-        reserve_total = _reserve_total;
+        reserve = _reserve;
+        reserve_init = _reserve_init;
+        mint_init = _mint_init;
         initial_pool_valuation = _initial_pool_valuation;
+        redeem_init = _redeem_init;
         min_raise = _min_raise;
-
-        console.log("Trust: constructor: reserve_total: %s", _reserve_total);
-        uint256 _token_reserve = _reserve_total.mul(_book_ratio).div(
-            _book_ratio.add(Constants.ONE)
-        );
-        console.log(
-            "Trust: constructor: token_reserve: %s %s", 
-            _book_ratio, 
-            _token_reserve
-        );
-        token = new RedeemableERC20(
-            _name,
-            _symbol,
-            _reserve,
-            _token_reserve,
-            _mint_ratio
-        );
     }
 
 
-    function init(uint256 _unblock_block) public onlyOwner withInit {
-        token.reserve().safeTransferFrom(
-            owner(), 
-            address(this), 
-            reserve_total
-        );
-        console.log(
-            "Trust: init token: reserve balance: %s", 
-            token.reserve().balanceOf(address(this))
+    function init(string memory _name, string memory _symbol, uint256 _unblock_block) public onlyOwner withInit {
+        token = new RedeemableERC20(
+            _name,
+            _symbol,
+            reserve,
+            mint_init,
+            _unblock_block
         );
 
-        token.reserve().approve(address(token), token.reserve_init());
-        token.init(_unblock_block);
+        token.reserve().safeTransferFrom(
+            owner(),
+            address(this),
+            reserve_init
+        );
+
+        reserve.approve(address(token), reserve_init);
 
         pool = new RedeemableERC20Pool(
             crp_factory,
             balancer_factory,
             token,
-            book_ratio,
-            initial_pool_valuation
+            reserve_init,
+            redeem_init,
+            initial_pool_valuation,
+            min_raise.add(redeem_init)
         );
         console.log(
-            "Trust: init pool: reserve balance: %s", 
+            "Trust: init pool: reserve balance: %s",
             token.reserve().balanceOf(address(this))
         );
         token.approve(address(pool), token.totalSupply());
-        // @todo dust is possible here, e.g. if the book ratio is 2 we divide by 3.
-        // Either the init will fail and revert.
-        // Or there will be a rounding error in the reserve trapped in the trust.
-        // Recommend testing a dry run on local for desired parameters to avoid failed init on prod.
         token.reserve().approve(address(pool), pool.pool_amounts(0));
         pool.init();
 
@@ -178,28 +168,23 @@ contract Trust is Ownable, Initable {
         pool.exit();
 
         uint256 _final_balance = token.reserve().balanceOf(address(this));
+        uint256 _success_balance = reserve_init.add(redeem_init).add(min_raise);
 
-        // We failed to hit the minimum raise :(
-        // Forward proceeds of the sale to the token holders for redemption.
-        if (_final_balance < SafeMath.add(reserve_total, min_raise) && _final_balance > reserve_total) {
-            console.log(
-                "Trust: exit refunding: %s %s %s", 
-                _final_balance, 
-                reserve_total, 
-                SafeMath.sub(_final_balance, reserve_total)
-            );
-            token.reserve().safeTransfer(
-                address(token), 
-                SafeMath.sub(_final_balance, reserve_total)
-            );
+        // Set aside only the redemption if we reached the minimum.
+        if (_success_balance <= _final_balance) {
+            reserve.safeTransfer(owner(), _final_balance.sub(redeem_init));
+        }
+        // Send the init reserve or whatever we can back to the owner if not.
+        else {
+            reserve.safeTransfer(owner(), reserve_init.min(_final_balance));
         }
 
-        // Send everything else to the trust owner.
+        // Send everything left to the token holders.
         token.reserve().safeTransfer(
-            owner(), 
+            address(token),
             token.reserve().balanceOf(address(this))
         );
 
-        require(token.reserve().balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
+        assert(token.reserve().balanceOf(address(this)) == 0);
     }
 }

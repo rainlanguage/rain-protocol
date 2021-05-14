@@ -23,6 +23,10 @@ let
  pip install slither-analyzer
  slither .
  '';
+
+ ci-test = pkgs.writeShellScriptBin "ci-test" ''
+ hardhat test
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
@@ -34,6 +38,7 @@ pkgs.stdenv.mkDerivation {
   local-test
   local-deploy
   security-check
+  ci-test
  ];
 
  shellHook = ''

@@ -46,33 +46,23 @@ import { BlockBlockable } from './libraries/BlockBlockable.sol';
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
 //
 // A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserve_release)`.
-contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
+contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
 
     using SafeMath for uint256;
 
     event Redeem(
-        address _redeemer, 
-        uint256 _redeem_amount, 
+        address _redeemer,
+        uint256 _redeem_amount,
         uint256 _reserve_release
     );
 
-    // RedeemableERC20 will be issued in a fixed ratio to the locked reserve.
-    // This is openly visible to the world, for building dashboards or whatever.
-    // A ratio of 1:1, as in Balancer, is 10 ** 18
-    // This is NOT the redemption ratio if more reserve is added after construction.
-    uint256 public mint_ratio;
 
+    uint256 public mint_init;
 
     // This is the reserve token.
     // It is openly visible to the world so people can verify the reserve token has value.
     using SafeERC20 for IERC20;
     IERC20 public reserve;
-
-
-    // The starting reserve balance.
-    // This is openly visible but be aware that the redemptions are dynamic against the
-    // current reserve balance of this contract.
-    uint256 public reserve_init;
 
 
     mapping(address => bool) public unfreezables;
@@ -91,83 +81,26 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         // For example, USDC could freeze the tokens owned by the RedeemableERC20 contract or close their business.
         // In either case the redeem function would be pointing at a dangling reserve balance.
         IERC20 _reserve,
-        // The amount of reserve to take against minting.
-        uint256 _reserve_init,
-        // The ratio of RedeemableERC20 to mint per reserve token.
-        // This, as per Balancer, should be an integer as 10^18 to represent decimals.
-        // Therefore a 1:1 ratio is 1 000000 000000 000000.
-        uint256 _mint_ratio
-    ) 
-        public 
-        ERC20(_name, _symbol) 
+        uint256 _mint_init,
+        uint256 _unblock_block
+    )
+        public
+        ERC20(_name, _symbol)
     {
-        console.log("RedeemableERC20: constructor: %s %s", _name, _symbol);
-        console.log(
-            "RedeemableERC20: constructor: %s %s", 
-            _reserve_init, 
-            _mint_ratio
-        );
         reserve = _reserve;
-        reserve_init = _reserve_init;
-        mint_ratio = _mint_ratio;
-    }
-
-
-    // All the stateful stuff is done in init().
-    //
-    // Notably the caller MUST approve EXACTLY the reserve_total of the reserve token for this contract.
-    // init will revert if the allowance is not set correctly.
-    //
-    // This contract will transfer the preset amount of reserve token to itself and mint the fixed preset ratio of itself.
-    // The newly minted token is for this contract's owner and only the owner can call init.
-    //
-    // The owner is expected to fairly distribute the token before redemptions are unblocked.
-    // The owner must set the _unblock_block at init time so the distribution and redemption periods are fixed and can be audited.
-    //
-    // Init can only be called by the owner.
-    // Only the owner can send reserve and receive minted tokens.
-    // The intent is that the owner will be another smart contract managing the token flows.
-    function init(uint256 _unblock_block) 
-        public 
-        onlyOwner 
-        onlyBlocked 
-        withInit 
-    {
-        console.log("RedeemableERC20: init: %s", _unblock_block);
-
-        // The reserve allowance MUST be exactly what we are going to take from the owner and lock.
-        // There is NEVER any reason for the owner to send more or less reserve than what was configured at construction.
-        console.log("RedeemableERC20: Reserve: %s from %s", reserve_init, msg.sender);
-        require(
-            IERC20(reserve).allowance(msg.sender, address(this)) == reserve_init, 
-            "ERR_ALLOWANCE_RESERVE"
-        );
-        IERC20(reserve).safeTransferFrom(
-            msg.sender, 
-            address(this), 
-            reserve_init
-        );
+        mint_init = _mint_init;
 
         // Mint redeemable tokens according to the preset schedule.
-        uint256 token_supply = mint_ratio.mul(reserve_init).div(Constants.ONE);
-        console.log(
-            "RedeemableERC20: Mint %s %s for %s", 
-            token_supply, 
-            name(), 
-            msg.sender
-        );
-        _mint(msg.sender, token_supply);
+        _mint(msg.sender, mint_init);
 
         // Set the unblock schedule.
         BlockBlockable.setUnblockBlock(_unblock_block);
     }
 
-
-    function addUnfreezable(address _address) 
-        public 
-        onlyOwner 
-        onlyBlocked 
-        onlyInit 
+    function addUnfreezable(address _address)
+        public
+        onlyOwner
+        onlyBlocked
     {
         unfreezables[_address] = true;
     }
@@ -186,7 +119,7 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
-    function redeem(uint256 _redeem_amount) public onlyInit onlyUnblocked {
+    function redeem(uint256 _redeem_amount) public onlyUnblocked {
         // We have to allow direct transfers to address 0x0 in order for _burn to work.
         // This is NEVER a good thing though.
         // The user that sent to 0x0 will lose their funds without recourse.
@@ -200,60 +133,27 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         uint256 _reserve_fraction = _redeem_amount.mul(Constants.ONE).div(_circulating_supply);
         uint256 _reserve_release = reserve.balanceOf(address(this)).mul(_reserve_fraction).div(Constants.ONE);
 
-        console.log(
-            "RedeemableERC20: redeem: %s %s", 
-            _redeem_amount, 
-            totalSupply()
-        );
-        console.log(
-            "RedeemableERC20: redeem: reserve %s %s %s", 
-            reserve.balanceOf(address(this)), 
-            _reserve_fraction, 
-            _reserve_release
-        );
-
-        // transfer can fail without reverting so we need to revert ourselves if the reserve fails to be sent.
-        // (transfer cannot actually fail without reverting, but it's probably a good idea to handle the bool as though it can)
-        IERC20(reserve).safeTransfer(msg.sender, _reserve_release);
-
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
         // _burn reverts internally if needed (e.g. if burn exceeds balance); there is no return value.
         super._burn(msg.sender, _redeem_amount);
 
         emit Redeem(msg.sender, _redeem_amount, _reserve_release);
+
+        // External function call last.
+        // Send the reserve token to the redeemer.
+        IERC20(reserve).safeTransfer(msg.sender, _reserve_release);
     }
 
 
     function _beforeTokenTransfer(
-        address _sender, 
-        address _receiver, 
+        address _sender,
+        address _receiver,
         uint256 _amount
-    ) 
-        internal 
-        override 
+    )
+        internal
+        override
     {
-        console.log(
-            "RedeemableERC20: _beforeTokenTransfer %s %s %s", 
-            _amount, 
-            _sender, 
-            _receiver
-        );
-
-        // We explicitly will never mint more than once.
-        // We never get explicit dispatch info from _mint or _burn etc.
-        // to know what is happening we need to infer it from context.
-        // `_mint` in Open Zeppelin ERC20 is always from the 0 address.
-        // Open Zeppelin already reverts any other transfer from the 0 address.
-        // We do need to allow minting when the supply is 0.
-        require(
-            // _mint always comes from 0x0.
-            (_sender != address(0))
-            // which is fine if we're still initializing.
-            || (!initialized)
-            // _burn will look like a _mint if we're burning from 0x0.
-            || (_sender == address(0) && _receiver == address(0)), "ERR_RUG_PULL");
-
         // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
         require(_receiver != address(this), "ERR_TOKEN_SEND_SELF");
 
@@ -272,13 +172,9 @@ contract RedeemableERC20 is Ownable, Initable, BlockBlockable, ERC20 {
         if (BlockBlockable.isUnblocked()) {
             // Redemption is unblocked.
             // Can burn.
-            // Only owner can receive.
-            console.log(
-                "RedeemableERC20: _beforeTokenTransfer: owner: %s", 
-                owner()
-            );
+            // Only owner and unfreezables can receive.
             require(
-                _receiver == address(0) || unfreezables[_receiver] == true, 
+                _receiver == address(0) || unfreezables[_receiver] == true,
                 "ERR_FROZEN"
             );
         } else {

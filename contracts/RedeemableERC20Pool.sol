@@ -48,39 +48,24 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     uint256 public start_block;
 
     // RedeemableERC20 token.
-    // The reserve token is derived from this.
     RedeemableERC20 public token;
 
-    // The initial ratio of book-value-token:reserve
-    // i.e. the book value of the token is its redeem value and is already a ratio
-    // This should be between 2-5+x and MUST be at least one.
-    // For example, if the token is minted at a 3:1 ratio of e.g. DAI
-    // 1000 DAI = 3000 token in circulation
-    // Setting this ratio at 2 would seed the pool with 500 DAI NOT 1500 DAI
-    // i.e. this ratio represents the ratio of the auction pool vs. the redeem pool.
-    // If the market decides to arbitrage this auction down to 1:1 (i.e. there is zero IP premium assigned to the token)
-    // then the reserve in the balancer pool will equal the redeem pool.
-    // The owner will then withdraw the balancer pool and users will exit the redeem pool.
-    // The overall effect will be a net zero in that case.
-    // If the ratio drops below 1 there is a guaranteed arbitrage for anyone to buy the token knowing they can redeem
-    // them at a profit later.
-    // We want the ratio to be much higher than 1 to represent the additional benefits (not profit, not a security!) of holding
-    // the TKN during the blocked period, such as access to events, experiences, NFTs, etc.
-    uint256 public book_ratio;
+    uint256 public reserve_init;
+    uint256 public redeem_init;
 
     // The spot price of a balancer pool token is a function of both the amounts of each token and their weights.
     // This differs to e.g. a uniswap pool where the weights are always 1:1.
     // So we can define a valuation of all our tokens in terms of the deposited reserve.
     // We also want to set the weight of the reserve small for flexibility, i.e. 1.
     // For example:
-    // - 50 000 reserve tokens
+    // - 200 000 reserve tokens
     // - 1 000 000 token valuation
-    // - 2x book ratio && 2x mint ratio => 100 000 reserve in token => 200 000 token in existence
     // - Token spot price x total token = initial valuation => 1 000 000 = spot x 200 000 => spot = 5
     // - Spot price calculation is in balancer whitepaper: https://balancer.finance/whitepaper/
     // - Spot = ( Br / Wr ) / ( Bt / Wt )
     // - 5 = ( 50 000 / 1 ) / ( 200 000 / Wt ) => 50 000 x Wt = 1 000 000 => Wt = 20
     uint256 public initial_valuation;
+    uint256 public final_valuation;
 
     CRPFactory public crp_factory;
     BFactory public balancer_factory;
@@ -92,16 +77,20 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         CRPFactory _crp_factory,
         BFactory _balancer_factory,
         RedeemableERC20 _token,
-        uint256 _book_ratio,
-        uint256 _initial_valuation
-    ) 
-        public 
+        uint256 _reserve_init,
+        uint256 _redeem_init,
+        uint256 _initial_valuation,
+        uint256 _final_valuation
+    )
+        public
     {
         crp_factory = _crp_factory;
         balancer_factory = _balancer_factory;
         token = _token;
-        book_ratio = _book_ratio;
+        reserve_init = _reserve_init;
+        redeem_init = _redeem_init;
         initial_valuation = _initial_valuation;
+        final_valuation = _final_valuation;
 
         // These functions all mutate the dynamic arrays that Balancer expects.
         // We build these here because their values are set during bootstrap then are immutable.
@@ -123,24 +112,13 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     }
 
     function construct_pool_amounts () private {
-        // The reserve amount is calculated from the book ratio and the redeemable token pool.
-        //
-        // If the book ratio is 2 then ( 2 / ( 2 + 1 ) ) goes to the token and ( 1 / ( 2 + 1 ) ) is here.
-        // - reserve_init = ( book / ( book + 1 ) ) x reserve_total
-        // - pool_reserve = ( 1 / ( book + 1 ) ) x reserve_total
-        // - ( reserve_init x ( book + 1 ) ) / book = pool_reserve x ( book + 1 )
-        // - reserve_init / book = pool_reserve
-        uint256 _reserve_amount = token.reserve_init().mul(Constants.ONE).div(book_ratio);
-        console.log("RedeemableERC20Pool: construct_pool_amounts: book_ratio: %s", book_ratio);
-        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_amount: %s", _reserve_amount);
-        pool_amounts.push(_reserve_amount);
+        pool_amounts.push(reserve_init);
+        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_init: %s", pool_amounts[0]);
 
         // The token amount is always the total supply.
         // It is required that the pool initializes with full ownership of all Tokens in existence.
-        uint256 _token_supply = token.totalSupply();
-        // require(IERC20(_token).balanceOf(address(this)) == _token_supply, "ERR_TOKEN_BALANCE");
-        console.log("RedeemableERC20Pool: construct_pool_amounts: token: %s", _token_supply);
-        pool_amounts.push(_token_supply);
+        pool_amounts.push(token.totalSupply());
+        console.log("RedeemableERC20Pool: construct_pool_amounts: token: %s", pool_amounts[1]);
     }
 
     function construct_pool_weights () private {
@@ -174,10 +152,9 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // We set the weight to the market cap of the redeem value.
 
         uint256 _reserve_weight_final = BalancerConstants.MIN_WEIGHT;
-        uint256 _redeem_reserve = token.reserve_init();
-        uint256 _target_spot_final = _redeem_reserve.mul(Constants.ONE).div(pool_amounts[1]);
+        uint256 _target_spot_final = final_valuation.mul(Constants.ONE).div(pool_amounts[1]);
         uint256 _token_weight_final = _target_spot_final.mul(pool_amounts[1]).mul(Constants.ONE).div(
-                _redeem_reserve.mul(BalancerConstants.MIN_WEIGHT)
+                redeem_init.mul(BalancerConstants.MIN_WEIGHT)
         );
         console.log("RedeemableERC20Pool: construct_pool_weights: weights_final: %s %s", _target_spot_final, _token_weight_final);
         console.log("RedeemableERC20Pool: construct_pool_weights: reserve_weight_final: %s", _reserve_weight_final);
@@ -251,40 +228,40 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             token.allowance(owner(), address(this))
         );
         require(
-            token.reserve().allowance(owner(), address(this)) == pool_amounts[0], 
+            token.reserve().allowance(owner(), address(this)) == pool_amounts[0],
             'ERR_RESERVE_ALLOWANCE'
         );
         require(
-            token.allowance(owner(), address(this)) == pool_amounts[1], 
+            token.allowance(owner(), address(this)) == pool_amounts[1],
             'ERR_TOKEN_ALLOWANCE'
         );
 
         // take allocated reserves.
         console.log(
-            "RedeemableERC20Pool: init: take reserves: %s", 
+            "RedeemableERC20Pool: init: take reserves: %s",
             pool_amounts[0]
         );
         token.reserve().safeTransferFrom(
-            owner(), 
-            address(this), 
+            owner(),
+            address(this),
             pool_amounts[0]
         );
         // we do NOT require an exact balance of the reserve after xfer as someone other than the owner could grief the contract with reserve dust.
         require(
-            token.reserve().balanceOf(address(this)) >= pool_amounts[0], 
+            token.reserve().balanceOf(address(this)) >= pool_amounts[0],
             'ERR_RESERVE_TRANSFER'
         );
 
         // take all token.
         console.log("RedeemableERC20Pool: init: take token: %s", pool_amounts[1]);
         require(token.transferFrom(
-            owner(), 
-            address(this), 
+            owner(),
+            address(this),
             pool_amounts[1]
         ),
         "ERR_TOKEN_TRANSFER");
         require(
-            token.balanceOf(address(this)) == token.totalSupply(), 
+            token.balanceOf(address(this)) == token.totalSupply(),
             'ERR_TOKEN_TRANSFER'
         );
 
@@ -350,8 +327,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
     function exit() public onlyInit onlyOwner onlyUnblocked {
         console.log(
-            "RedeemableERC20Pool: exit: %s %s", 
-            address(this), 
+            "RedeemableERC20Pool: exit: %s %s",
+            address(this),
             crp.balanceOf(address(this))
         );
         // It is not possible to destroy a Balancer pool completely with an exit (i think).
@@ -372,8 +349,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         );
         token.redeem(token.balanceOf(address(this)));
         console.log(
-            "RedeemableERC20Pool: redeemed: reserve: %s %s %s",
-            token.reserve_init(),
+            "RedeemableERC20Pool: redeemed: reserve: %s %s",
             pool_amounts[0],
             token.reserve().balanceOf(address(this))
         );
@@ -384,7 +360,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         );
 
         token.reserve().safeTransfer(
-            owner(), 
+            owner(),
             token.reserve().balanceOf(address(this))
         );
     }
