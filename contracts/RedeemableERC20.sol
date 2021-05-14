@@ -87,9 +87,13 @@ contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
         public
         ERC20(_name, _symbol)
     {
-        console.log("RedeemableERC20: constructor: %s %s", _name, _symbol);
         console.log(
-            "RedeemableERC20: constructor: %s %s %s",
+            "RedeemableERC20: constructor: %s %s",
+            _name,
+            _symbol
+        );
+        console.log(
+            "RedeemableERC20: constructor: %s %s",
             _mint_init,
             _unblock_block
         );
@@ -109,6 +113,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
         BlockBlockable.setUnblockBlock(_unblock_block);
     }
 
+
     function addUnfreezable(address _address)
         public
         onlyOwner
@@ -116,6 +121,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
     {
         unfreezables[_address] = true;
     }
+
 
     // Redeem tokens.
     // Tokens can be _redeemed_ but NOT _transferred_ after the unblock block.
@@ -142,20 +148,27 @@ contract RedeemableERC20 is Ownable, BlockBlockable, ERC20 {
         uint256 _circulating_supply = totalSupply() - balanceOf(address(0));
 
         // The fraction of the reserve we release is the fraction of the outstanding total supply passed in.
-        uint256 _reserve_fraction = _redeem_amount.mul(Constants.ONE).div(_circulating_supply);
-        uint256 _reserve_release = reserve.balanceOf(address(this)).mul(_reserve_fraction).div(Constants.ONE);
+        uint256 _reserve_fraction = _redeem_amount.mul(Constants.ONE).div(
+            _circulating_supply
+        );
+        uint256 _reserve_release = reserve.balanceOf(
+            address(this)
+        )
+        .mul(_reserve_fraction).div(Constants.ONE);
 
         console.log(
             "RedeemableERC20: redeem: %s %s",
             _redeem_amount,
             totalSupply()
         );
+
         console.log(
             "RedeemableERC20: redeem: reserve %s %s %s",
             reserve.balanceOf(address(this)),
             _reserve_fraction,
             _reserve_release
         );
+        
 
         IERC20(reserve).safeTransfer(msg.sender, _reserve_release);
 

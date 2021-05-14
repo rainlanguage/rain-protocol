@@ -131,11 +131,15 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // => ( Bt / Wt ) = ( Br / Wr ) / Spot
         // => Wt = ( Spot x Bt ) / ( Br / Wr )
         uint256 _reserve_weight = BalancerConstants.MIN_WEIGHT;
+        console.log('initial_valuation',initial_valuation);
+        console.log('pool_amounts[1]',pool_amounts[1]);
+        console.log('pool_amounts[0]',pool_amounts[0]);
+
         uint256 _target_spot = initial_valuation.mul(Constants.ONE).div(pool_amounts[1]);
         uint256 _token_weight = _target_spot.mul(pool_amounts[1]).mul(Constants.ONE).div(
             pool_amounts[0].mul(BalancerConstants.MIN_WEIGHT)
-            );
-
+        );
+        console.log('_token_weight',_token_weight);
         require(_token_weight >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
         require(
             BalancerConstants.MAX_WEIGHT.sub(Constants.POOL_HEADROOM) >= _token_weight.add(_reserve_weight),
