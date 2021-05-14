@@ -71,6 +71,7 @@ import { RedeemableERC20Pool } from './RedeemableERC20Pool.sol';
 contract Trust is Ownable, Initable {
 
     using SafeMath for uint256;
+    using Math for uint256;
 
     CRPFactory crp_factory;
     BFactory balancer_factory;
@@ -132,10 +133,6 @@ contract Trust is Ownable, Initable {
             address(this),
             reserve_init
         );
-        console.log(
-            "Trust: init token: reserve balance: %s",
-            token.reserve().balanceOf(address(this))
-        );
 
         reserve.approve(address(token), reserve_init);
 
@@ -171,25 +168,23 @@ contract Trust is Ownable, Initable {
         pool.exit();
 
         uint256 _final_balance = token.reserve().balanceOf(address(this));
-        uint256 _profit = _final_balance.sub(reserve_init);
-        // Min profit is the raise plus the redemption backing.
-        uint256 _min_profit = min_raise.add(redeem_init);
+        uint256 _success_balance = reserve_init.add(redeem_init).add(min_raise);
 
-        // Back the redemption if we reached the minimum.
-        if (_min_profit <= _profit) {
-            reserve.safeTransfer(address(token), redeem_init);
+        // Set aside only the redemption if we reached the minimum.
+        if (_success_balance <= _final_balance) {
+            reserve.safeTransfer(owner(), _final_balance.sub(redeem_init));
         }
-        // Process a pro-rata refund if we did not.
+        // Send the init reserve or whatever we can back to the owner if not.
         else {
-            reserve.safeTransfer(address(token), _profit);
+            reserve.safeTransfer(owner(), reserve_init.min(_final_balance));
         }
 
-        // Send everything else to the trust owner.
+        // Send everything left to the token holders.
         token.reserve().safeTransfer(
-            owner(),
+            address(token),
             token.reserve().balanceOf(address(this))
         );
 
-        require(token.reserve().balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
+        assert(token.reserve().balanceOf(address(this)) == 0);
     }
 }

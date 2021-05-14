@@ -1,17 +1,11 @@
-name: Hardhat Tests
-
-on: [ push, pull_request ]
-
+name: Standard tests
+on: [push, pull_request]
 jobs:
-  tests:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - run: npm install
-      - run: npm run test
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v13
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - run: nix-shell --run ci-test
