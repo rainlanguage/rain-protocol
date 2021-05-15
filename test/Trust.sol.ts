@@ -42,16 +42,21 @@ describe("Trust", async function() {
     const mintInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
     const minRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    // @todo not a very interesting test
+    const seeder = signers[0].address
+    const seedFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
     const trust = await trustFactory.deploy(
       crpFactory.address,
       bFactory.address,
       reserve.address,
+      seeder,
       reserveInit,
       mintInit,
       initialValuation,
       redeemInit,
-      minRaise
+      minRaise,
+      seedFee
     )
 
     await trust.deployed()
@@ -209,16 +214,20 @@ describe("Trust", async function() {
     const mintInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
     const minRaise = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const seeder = signers[0].address
+    const seedFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
     const trust = await trustFactory.deploy(
       crpFactory.address,
       bFactory.address,
       reserve.address,
+      seeder,
       reserveInit,
       mintInit,
       initialValuation,
       redeemInit,
       minRaise,
+      seedFee,
     )
 
     await trust.deployed()
@@ -354,16 +363,20 @@ describe("Trust", async function() {
     const mintInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
     const minRaise = ethers.BigNumber.from('0')
+    const seeder = signers[0].address
+    const seedFee = ethers.BigNumber.from('0')
 
     const trust = await trustFactory.deploy(
       crpFactory.address,
       bFactory.address,
       reserve.address,
+      seeder,
       reserveInit,
       mintInit,
       initialValuation,
       redeemInit,
       minRaise,
+      seedFee
     )
 
     await trust.deployed()
