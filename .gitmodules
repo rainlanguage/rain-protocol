@@ -1,3 +1,6 @@
 [submodule "contracts/configurable-rights-pool"]
 	path = contracts/configurable-rights-pool
 	url = git@github.com:balancer-labs/configurable-rights-pool.git
+[submodule "contracts/tv-prestige"]
+	path = contracts/tv-prestige
+	url = https://github.com/thedavidmeister/tv-prestige.git

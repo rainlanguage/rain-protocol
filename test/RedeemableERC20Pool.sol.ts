@@ -3,9 +3,7 @@ import chai, { util } from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ReserveToken } from '../typechain/ReserveToken'
-import type { RightsManager } from '../typechain/RightsManager'
-import type { CRPFactory } from '../typechain/CRPFactory'
-import type { BFactory } from '../typechain/BFactory'
+import type { Prestige } from '../typechain/Prestige'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -19,6 +17,12 @@ describe("RedeemableERC20Pool", async function() {
         const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
 
         const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = 0
 
         const redeemableFactory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -61,11 +65,15 @@ describe("RedeemableERC20Pool", async function() {
         const unblockBlock = now + 15
 
         const redeemable = await redeemableFactory.deploy(
-            tokenName,
-            tokenSymbol,
-            reserve.address,
-            mintInit,
-            unblockBlock,
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                reserve: reserve.address,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                mintInit: mintInit,
+                unblockBlock: unblockBlock,
+            }
         )
 
         await redeemable.deployed()
@@ -95,8 +103,10 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         const pool = await poolFactory.deploy(
-            crpFactory.address,
-            bFactory.address,
+            {
+                crpFactory: crpFactory.address,
+                balancerFactory: bFactory.address,
+            },
             redeemable.address,
             reserveInit,
             redeemInit,
@@ -167,12 +177,10 @@ describe("RedeemableERC20Pool", async function() {
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
         console.log('crp', crp)
-        const balancer_factory = await pool.balancer_factory()
-        console.log('balancer_factory', balancer_factory)
         const bPool = await pool.pool()
         console.log('bPool', bPool)
         await redeemable.addUnfreezable(crp)
-        await redeemable.addUnfreezable(balancer_factory)
+        await redeemable.addUnfreezable(bFactory.address)
         await redeemable.addUnfreezable(pool.address)
 
         Util.assertError(

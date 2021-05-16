@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
-import { console } from "hardhat/console.sol";
-
 // A BlockBlockable contract can block modified functions until a specified block.
 //
 // The unblock block can only be set once.

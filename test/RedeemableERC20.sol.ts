@@ -3,7 +3,7 @@ import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ReserveToken } from '../typechain/ReserveToken'
-import { Server } from 'http'
+import type { Prestige } from '../typechain/Prestige'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -18,6 +18,12 @@ describe("RedeemableERC20", async function() {
 
         // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = 0
+
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
         )
@@ -29,11 +35,15 @@ describe("RedeemableERC20", async function() {
         const unblockBlock = now + 8
 
         const redeemableERC20 = await redeemableERC20Factory.deploy(
-            tokenName,
-            tokenSymbol,
-            reserve.address,
-            mintInit,
-            unblockBlock
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                reserve: reserve.address,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                mintInit: mintInit,
+                unblockBlock: unblockBlock
+            }
         )
 
         await redeemableERC20.deployed()
@@ -71,7 +81,7 @@ describe("RedeemableERC20", async function() {
             'redeemable token not owned correctly'
         )
         assert(
-            (await redeemableERC20.mint_init()).eq(mintInit),
+            (await redeemableERC20.mintInit()).eq(mintInit),
             'redeemable token ratio not set'
         )
         assert(

@@ -14,7 +14,10 @@ const config: HardhatUserConfig = {
     eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat' && hre.network.name !== 'localhost'),
   },
   solidity: {
-    compilers: [{ version: "0.6.12", settings: {} }],
+    compilers: [
+      { version: "0.6.12", settings: {} },
+      { version: "0.7.3", settings: {} }
+    ],
   },
 };
 export default config;
