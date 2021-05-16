@@ -158,9 +158,9 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
 
     function _beforeTokenTransfer(
-        address _sender,
+        address,
         address _receiver,
-        uint256 _amount
+        uint256
     )
         internal
         override
