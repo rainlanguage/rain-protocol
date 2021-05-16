@@ -70,6 +70,7 @@ struct RedeemableERC20Config {
 contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC20 {
 
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     event Redeem(
         address _redeemer,
@@ -81,7 +82,6 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
     // This is the reserve token.
     // It is openly visible to the world so people can verify the reserve token has value.
-    using SafeERC20 for IERC20;
     IERC20 public reserve;
     IPrestige.Status public minimumPrestigeStatus;
 
@@ -144,26 +144,16 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         uint256 _reserve_fraction = _redeem_amount.mul(Constants.ONE).div(_circulating_supply);
         uint256 _reserve_release = reserve.balanceOf(address(this)).mul(_reserve_fraction).div(Constants.ONE);
 
-        console.log(
-            "RedeemableERC20: redeem: %s %s",
-            _redeem_amount,
-            totalSupply()
-        );
-        console.log(
-            "RedeemableERC20: redeem: reserve %s %s %s",
-            reserve.balanceOf(address(this)),
-            _reserve_fraction,
-            _reserve_release
-        );
-
-        IERC20(reserve).safeTransfer(msg.sender, _reserve_release);
-
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
         // _burn reverts internally if needed (e.g. if burn exceeds balance); there is no return value.
         super._burn(msg.sender, _redeem_amount);
 
         emit Redeem(msg.sender, _redeem_amount, _reserve_release);
+
+        // External function call last.
+        // Send the reserve token to the redeemer.
+        IERC20(reserve).safeTransfer(msg.sender, _reserve_release);
     }
 
 
@@ -175,13 +165,6 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         internal
         override
     {
-        console.log(
-            "RedeemableERC20: _beforeTokenTransfer %s %s %s",
-            _amount,
-            _sender,
-            _receiver
-        );
-
         // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
         require(_receiver != address(this), "ERR_TOKEN_SEND_SELF");
 
@@ -200,11 +183,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         if (BlockBlockable.isUnblocked()) {
             // Redemption is unblocked.
             // Can burn.
-            // Only owner can receive.
-            console.log(
-                "RedeemableERC20: _beforeTokenTransfer: owner: %s",
-                owner()
-            );
+            // Only owner and unfreezables can receive.
             require(
                 _receiver == address(0) || unfreezables[_receiver] == true,
                 "ERR_FROZEN"

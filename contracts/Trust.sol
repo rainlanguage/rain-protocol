@@ -83,6 +83,7 @@ struct TrustConfig {
 contract Trust is Ownable, Initable {
 
     using SafeMath for uint256;
+    using Math for uint256;
 
     TrustConfig public trustConfig;
 
@@ -162,39 +163,66 @@ contract Trust is Ownable, Initable {
         IERC20 _reserve = token.reserve();
 
         uint256 _final_balance = _reserve.balanceOf(address(this));
-        // Any final balance above this is considered a successful raise.
         uint256 _success_balance = trustConfig.reserveInit.add(seed_fee).add(redeem_init).add(min_raise);
 
-        if (_success_balance <= _final_balance) {
-            _reserve.safeTransfer(
-                address(token),
-                redeem_init
-            );
-            _reserve.safeTransfer(
-                trustConfig.seeder,
-                trustConfig.reserveInit.add(seed_fee)
-            );
-            // The creator's cup doth overfloweth.
-            _reserve.safeTransfer(
-                owner(),
-                _reserve.balanceOf(address(this))
-            );
+        // Base payments for each fundraiser.
+        uint256 _seedPay = 0;
+        uint256 _creatorPay = 0;
+
+        // Set aside the redemption and seed fee if we reached the minimum.
+        if (_final_balance >= _success_balance) {
+            // The seeder gets the reserve + seed fee
+            _seedPay = trustConfig.reserveInit.add(seed_fee);
+
+            // The creators get new funds raised minus redeem and seed fees.
+            // Can subtract without underflow due to the inequality check for this code block.
+            // Proof (assuming all positive integers):
+            // final balance >= success balance
+            // AND seed pay = reserve init + seed fee
+            // AND success balance = reserve init + seed fee + redeem init + min raise
+            // SO success balance = seed pay + redeem init + min raise
+            // SO success balance >= seed pay + redeem init
+            // SO success balance - (seed pay + redeem init) >= 0
+            // SO final balance - (seed pay + redeem init) >= 0
+            //
+            // Implied is the remainder of _final_balance as redeem_init
+            // This will be transferred to the token holders below.
+            _creatorPay = _final_balance.sub(_seedPay.add(redeem_init));
         }
         else {
-            // The seeder gets the initial seed back but no fee.
-            _reserve.safeTransfer(
-                trustConfig.seeder,
-                trustConfig.reserveInit
-            );
-            // Token holders get a pro-rata refund.
-            _reserve.safeTransfer(
-                address(token),
-                _reserve.balanceOf(address(this))
-            );
-            // Creator gets nothing.
+            // If we did not reach the minimum the creator gets nothing.
+            // Refund what we can to other participants.
+            // Due to pool dust it is possible the final balance is less than the reserve init.
+            // If we don't take the min then we will attempt to transfer more than exists and brick the contract.
+            //
+            // Implied if _final_balance > reserve_init is the remainder goes to token holders below.
+            _seedPay = trustConfig.reserveInit.min(_final_balance);
         }
 
-        // Double check all our math :)
-        require(_reserve.balanceOf(address(this)) == 0, "ERR_EXIT_CLEAN");
+        if (_creatorPay > 0) {
+            _reserve.safeTransfer(
+                owner(),
+                _creatorPay
+            );
+        }
+
+        _reserve.safeTransfer(
+            trustConfig.seeder,
+            _seedPay
+        );
+
+        // Send everything left to the token holders.
+        // Implicitly the remainder of the _final_balance is:
+        // - the redeem init if successful
+        // - whatever users deposited in the AMM if unsuccessful
+        uint256 _remainder = _reserve.balanceOf(address(this));
+        if (_remainder > 0) {
+            _reserve.safeTransfer(
+                address(token),
+                _remainder
+            );
+        }
+
+        assert(_reserve.balanceOf(address(this)) == 0);
     }
 }

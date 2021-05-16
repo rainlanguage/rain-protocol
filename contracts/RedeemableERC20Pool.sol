@@ -112,12 +112,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
     function construct_pool_amounts () private {
         pool_amounts.push(reserve_init);
-        console.log("RedeemableERC20Pool: construct_pool_amounts: reserve_init: %s", pool_amounts[0]);
 
         // The token amount is always the total supply.
         // It is required that the pool initializes with full ownership of all Tokens in existence.
         pool_amounts.push(token.totalSupply());
-        console.log("RedeemableERC20Pool: construct_pool_amounts: token: %s", pool_amounts[1]);
     }
 
     function construct_pool_weights () private {
