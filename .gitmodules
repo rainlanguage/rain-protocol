@@ -3,4 +3,4 @@
 	url = git@github.com:balancer-labs/configurable-rights-pool.git
 [submodule "contracts/tv-prestige"]
 	path = contracts/tv-prestige
-	url = git@github.com:thedavidmeister/tv-prestige.git
+	url = https://github.com/thedavidmeister/tv-prestige.git
