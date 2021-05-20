@@ -89,7 +89,7 @@ describe("RedeemableERC20Pool", async function() {
             `total supply was not ${mintInit} on redeemable construction`
         )
         assert(
-            (await redeemable.unblock_block()).eq(unblockBlock),
+            (await redeemable.unblockBlock()).eq(unblockBlock),
             `unblock block was not ${unblockBlock} in construction`
         )
 
@@ -128,7 +128,7 @@ describe("RedeemableERC20Pool", async function() {
 
         let expectedPoolAddress;
         for (let i = 0; expectedPoolAddress = expectedPoolAddresses[i]; i++) {
-            const actualPoolAddress = (await pool.pool_addresses())[i]
+            const actualPoolAddress = (await pool.poolAddresses())[i]
             assert(
                 actualPoolAddress === expectedPoolAddress,
                 `wrong pool address ${i} ${expectedPoolAddress} ${actualPoolAddress}`
@@ -137,7 +137,7 @@ describe("RedeemableERC20Pool", async function() {
 
         let expectedPoolAmount;
         for (let i = 0; expectedPoolAmount = expectedPoolAmounts[i]; i++) {
-            const actualPoolAmount = await pool.pool_amounts(i)
+            const actualPoolAmount = await pool.poolAmounts(i)
             assert(
                 actualPoolAmount.eq(expectedPoolAmount),
                 `wrong pool amount ${i} ${expectedPoolAmount} ${actualPoolAmount}`
@@ -146,7 +146,7 @@ describe("RedeemableERC20Pool", async function() {
 
         let expectedStartWeight;
         for (let i = 0; expectedStartWeight = expectedStartWeights[i]; i++) {
-            const actualStartWeight = await pool.start_weights(i)
+            const actualStartWeight = await pool.startWeights(i)
             assert(
                 actualStartWeight.eq(expectedStartWeight),
                 `wrong start weight ${i} ${expectedStartWeight} ${actualStartWeight}`,
@@ -155,7 +155,7 @@ describe("RedeemableERC20Pool", async function() {
 
         let expectedTargetWeight;
         for (let i = 0; expectedTargetWeight = expectedTargetWeights[i]; i++) {
-            const actualTargetWeight = await pool.target_weights(i)
+            const actualTargetWeight = await pool.targetWeights(i)
             assert(
                 actualTargetWeight.eq(expectedTargetWeight),
                 `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
@@ -163,11 +163,11 @@ describe("RedeemableERC20Pool", async function() {
         }
         await reserve.approve(
             pool.address,
-            await pool.pool_amounts(0)
+            await pool.poolAmounts(0)
         )
         await redeemable.approve(
             pool.address,
-            await pool.pool_amounts(1)
+            await pool.poolAmounts(1)
         )
 
         await pool.init({
@@ -176,9 +176,7 @@ describe("RedeemableERC20Pool", async function() {
 
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
-        console.log('crp', crp)
         const bPool = await pool.pool()
-        console.log('bPool', bPool)
         await redeemable.addUnfreezable(crp)
         await redeemable.addUnfreezable(bFactory.address)
         await redeemable.addUnfreezable(pool.address)
@@ -194,13 +192,6 @@ describe("RedeemableERC20Pool", async function() {
             await reserve.transfer(signers[1].address, 1)
         }
 
-        console.log('pool', pool.address)
-        console.log('redeemable', redeemable.address)
-        console.log('signer', signers[0].address)
-
         await pool.exit()
-
-        console.log('' + await reserve.balanceOf(signers[0].address))
-        console.log('' + await redeemable.totalSupply())
     })
 })
