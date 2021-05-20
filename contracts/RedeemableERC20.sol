@@ -6,15 +6,13 @@ pragma experimental ABIEncoderV2;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { console } from "hardhat/console.sol";
-
-import { Constants } from './libraries/Constants.sol';
-import { Initable } from './libraries/Initable.sol';
-import { BlockBlockable } from './libraries/BlockBlockable.sol';
+import { Constants } from "./libraries/Constants.sol";
+import { Initable } from "./libraries/Initable.sol";
+import { BlockBlockable } from "./libraries/BlockBlockable.sol";
 import { PrestigeByConstruction } from "./tv-prestige/contracts/PrestigeByConstruction.sol";
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
@@ -66,7 +64,7 @@ struct RedeemableERC20Config {
 //
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
 //
-// A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserve_release)`.
+// A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserveRelease)`.
 contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC20 {
 
     using SafeMath for uint256;
@@ -74,8 +72,8 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
     event Redeem(
         address _redeemer,
-        uint256 _redeem_amount,
-        uint256 _reserve_release
+        uint256 _redeemAmount,
+        uint256 _reserveRelease
     );
 
     uint256 public mintInit;
@@ -121,7 +119,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     //
     // Calculate the redeem value of tokens as:
     //
-    // ( _redeem_amount / token.totalSupply() ) * reserve.balanceOf(address(this))
+    // ( _redeemAmount / token.totalSupply() ) * reserve.balanceOf(address(this))
     //
     // This means that the users get their redeemed pro-rata share of the outstanding token supply
     // burned in return for a pro-rata share of the current reserve balance.
@@ -130,7 +128,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
-    function redeem(uint256 _redeem_amount) public onlyUnblocked {
+    function redeem(uint256 _redeemAmount) public onlyUnblocked {
         // We have to allow direct transfers to address 0x0 in order for _burn to work.
         // This is NEVER a good thing though.
         // The user that sent to 0x0 will lose their funds without recourse.
@@ -138,22 +136,22 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // When a user inadvertently or maliciously sends to 0x0 without burning we want to give more rewards to everyone else.
         // We _could_ defensively call super._burn() here but it would open a griefing opportunity
         // where someone can send dust to 0x0 and force the next redemption to pay for a burn.
-        uint256 _circulating_supply = totalSupply() - balanceOf(address(0));
+        uint256 _circulatingSupply = totalSupply() - balanceOf(address(0));
 
         // The fraction of the reserve we release is the fraction of the outstanding total supply passed in.
-        uint256 _reserve_fraction = _redeem_amount.mul(Constants.ONE).div(_circulating_supply);
-        uint256 _reserve_release = reserve.balanceOf(address(this)).mul(_reserve_fraction).div(Constants.ONE);
+        uint256 _reserveFraction = _redeemAmount.mul(Constants.ONE).div(_circulatingSupply);
+        uint256 _reserveRelease = reserve.balanceOf(address(this)).mul(_reserveFraction).div(Constants.ONE);
 
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
         // _burn reverts internally if needed (e.g. if burn exceeds balance); there is no return value.
-        super._burn(msg.sender, _redeem_amount);
+        super._burn(msg.sender, _redeemAmount);
 
-        emit Redeem(msg.sender, _redeem_amount, _reserve_release);
+        emit Redeem(msg.sender, _redeemAmount, _reserveRelease);
 
         // External function call last.
         // Send the reserve token to the redeemer.
-        IERC20(reserve).safeTransfer(msg.sender, _reserve_release);
+        IERC20(reserve).safeTransfer(msg.sender, _reserveRelease);
     }
 
 

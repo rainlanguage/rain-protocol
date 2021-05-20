@@ -7,6 +7,5 @@ import { Prestige } from "../tv-prestige/contracts/Prestige.sol";
 /**
  * An empty contract that facilitates tests enumerating behaviour of the modifiers at each status level
  */
-contract PrestigeTest is Prestige {
-
-}
+// solhint-disable-next-line no-empty-blocks
+contract PrestigeTest is Prestige { }

@@ -21,7 +21,7 @@ describe("BlockBlockable", async function() {
 
         await blockable.deployed()
 
-        assert(ethers.BigNumber.from(0).eq(await blockable.unblock_block()), 'wrong starting unblock block 1')
+        assert(ethers.BigNumber.from(0).eq(await blockable.unblockBlock()), 'wrong starting unblock block 1')
 
         // can always call unblockable function
         await blockable.unblockable()
@@ -80,7 +80,7 @@ describe("BlockBlockable", async function() {
 
         await moreBlockable.deployed()
 
-        assert(ethers.BigNumber.from(0).eq(await moreBlockable.unblock_block()), 'wrong starting unblock block 2')
+        assert(ethers.BigNumber.from(0).eq(await moreBlockable.unblockBlock()), 'wrong starting unblock block 2')
 
         await moreBlockable.unblockable()
 

@@ -104,15 +104,15 @@ There are some technical differences between a Balancer Liquidity Bootstrapping 
      - The `_mint_ratio` which is the number of redeemable tokens minted per reserve token deposited
      - `mint_ratio`, `reserve_init` and `reserve` become available as immutable public getters
 0. After construction the owner of the redeemable token MUST approve _exactly_ the number of reserve tokens `_reserve_init` defined in construction.
-0. Once the reserve tokens are approved the owner can `init` the redeemable token and set the `_unblock_block`
+0. Once the reserve tokens are approved the owner can `init` the redeemable token and set the `_unblockBlock`
      - The redeemable contract will transfer `_reserve_init` reserve tokens from the owner to itself
      - The redeemable contract will `_mint` ( `_reserve_init` x `_mint_ratio` ) of itself for its owner
-     - The `unblock_block` becomes available as an immutable public getter
+     - The `unblockBlock` becomes available as an immutable public getter
 0. After the contract is initialized but before it is unblocked:
      - The owner can add 'unfreezable' addresses
      - All token holders can freely transfer the minted ERC20 as per OZ ERC20
      - But redeemable tokens cannot be sent to the redeemable token contract
-0. After the contract is unblocked (the predefined `unblock_block` exists)
+0. After the contract is unblocked (the predefined `unblockBlock` exists)
      - All ERC20 transfers are frozen except TO addresses on the unfreezable list.
      - `redeem` is now callable by everyone
 
@@ -144,7 +144,7 @@ This is what we call 'Last Wallet Standing':
   - Access to exclusive events, etc.
   - Airdrops, NFTs, etc.
   - Social status
-- Hodling in the redeemable token after `unblock_block` incurs opportunity cost due to frozen liquidity
+- Hodling in the redeemable token after `unblockBlock` incurs opportunity cost due to frozen liquidity
 - As hodlers redeem for liquidity future rewards are increasingly concentrated to the remaining holders
 
 There is a natural but subjective and individual equilibrium where each hodler chooses to redeem for liquidity after receiving a certain number of rewards.
@@ -461,7 +461,7 @@ The `Trust` owns both the balancer pool (indirectly through the `RedeemableERC20
 
 TV can initialize a trust but has no priviledged access to any functions modified as `onlyOwner`.
 
-As the owner of the `Trust`, TV can request that the `Trust` attempt to `exit` on behalf of TV, which will call the underlying `exit` function on the `RedeemableERC20Pool` contract, which will revert before the preset `_unblock_block` exists.
+As the owner of the `Trust`, TV can request that the `Trust` attempt to `exit` on behalf of TV, which will call the underlying `exit` function on the `RedeemableERC20Pool` contract, which will revert before the preset `_unblockBlock` exists.
 
 The unblock block is public and can only be set during initialization of the `Trust`.
 

@@ -8,8 +8,8 @@ pragma solidity 0.6.12;
 
 library Constants {
     // Same as BalancerConstants.ONE
-    uint256 constant ONE = 10 ** 18;
+    uint256 public constant ONE = 10 ** 18;
     // Balancer weights can get stuck if combined weights need to exceed 50 during a transaction.
     // This is the minimum headroom we give ourselves to prevent this happening.
-    uint256 constant POOL_HEADROOM = 10 ** 18;
+    uint256 public constant POOL_HEADROOM = 10 ** 18;
 }

@@ -62,7 +62,7 @@ describe("RedeemableERC20", async function() {
 
         // The unblock block is not set (i.e. contract is blocked)
         assert(
-            (await redeemableERC20.unblock_block()).eq(unblockBlock),
+            (await redeemableERC20.unblockBlock()).eq(unblockBlock),
             `unblock block was not ${unblockBlock} in construction`
         )
 
@@ -101,7 +101,7 @@ describe("RedeemableERC20", async function() {
             'reserve balance in redeemer is wrong'
         )
         assert(
-            (await redeemableERC20.unblock_block()).eq(unblockBlock),
+            (await redeemableERC20.unblockBlock()).eq(unblockBlock),
             'unblock block not set correctly'
         )
 

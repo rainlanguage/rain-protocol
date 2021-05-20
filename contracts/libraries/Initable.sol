@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
-import { console } from "hardhat/console.sol";
-
 // An Initable contract effectively has a second constructor.
 //
 // The intent is to facilitate a simple two step _interactive_ construction process.
@@ -34,7 +32,6 @@ abstract contract Initable {
     // Mofified function can only be called _after_ initialization.
     // All functions that reference finalized initialization state MUST use this modifier.
     modifier onlyInit() {
-        console.log("Initable: onlyInit: %s", initialized);
         require(initialized, "ERR_ONLY_INIT");
         _;
     }
@@ -43,7 +40,6 @@ abstract contract Initable {
     // Modified function can only be called _before_ initialization.
     // Functions MAY use this to facilitate initialization then disable themselves.
     modifier onlyNotInit() {
-        console.log("Initable: onlyNotInit: %s", initialized);
         require(!initialized, "ERR_ONLY_NOT_INIT");
         _;
     }
@@ -53,10 +49,8 @@ abstract contract Initable {
     // MUST only be called once.
     // Sets initialized to true after initialization completes without reverting.
     modifier withInit() {
-        console.log("Initable: withInit: %s", initialized);
         require(!initialized, "ERR_ONLY_NOT_INIT");
         _;
-        console.log("Initable: initialized");
         initialized = true;
         emit Initialized();
     }
