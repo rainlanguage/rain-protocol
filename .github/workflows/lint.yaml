@@ -1,4 +1,4 @@
-name: Security checks
+name: Lint checks
 on: [push, pull_request]
 jobs:
   test:
