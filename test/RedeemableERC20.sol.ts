@@ -8,6 +8,17 @@ import type { Prestige } from '../typechain/Prestige'
 chai.use(solidity)
 const { expect, assert } = chai
 
+const NIL = 0;
+const COPPER = 1;
+const BRONZE = 2;
+const SILVER = 3;
+const GOLD = 4;
+const PLATINUM = 5;
+const DIAMOND = 6;
+const CHAD = 7;
+const JAWAD = 8;
+const statuses = [NIL, COPPER, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, CHAD, JAWAD]
+
 describe("RedeemableERC20", async function() {
     it("should lock tokens until redeemed", async function() {
         this.timeout(0)
@@ -22,7 +33,7 @@ describe("RedeemableERC20", async function() {
             'Prestige'
         )
         const prestige = await prestigeFactory.deploy() as Prestige
-        const minimumStatus = 0
+        const minimumStatus = NIL
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -112,9 +123,6 @@ describe("RedeemableERC20", async function() {
             'self send was not blocked'
         )
 
-        // owner can unfreeze themselves (and others) _before_ unblocking.
-        await redeemableERC20.addUnfreezable(signers[0].address)
-
         // create a few blocks by sending some tokens around
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await redeemableERC20.transfer(signers[1].address, 1)
@@ -137,6 +145,8 @@ describe("RedeemableERC20", async function() {
             'revert ERR_FROZEN',
             'funds were not frozen 2'
         )
+
+        // pool exits and reserve tokens sent to redeemable ERC20 address
         const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
         await reserve.transfer(redeemableERC20.address, reserveTotal)
 
@@ -236,5 +246,125 @@ describe("RedeemableERC20", async function() {
             await event
             i++
         }
+    })
+
+    it('should allow token transfers in constructor regardless of owner prestige level', async function() {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const reserve = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = COPPER
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const mintInit = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                reserve: reserve.address,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                mintInit: mintInit,
+                unblockBlock: unblockBlock
+            }
+        )
+
+        await redeemableERC20.deployed()
+
+        // owner is made unfreezable during construction, so required token transfers can go ahead
+        assert((await redeemableERC20.unfreezables(signers[0].address)), "owner not made unfreezable during construction")
+    })
+
+    it('should allow redemption only if redeemer meets minimum prestige level', async function() {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const reserve = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = COPPER
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const mintInit = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                reserve: reserve.address,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                mintInit: mintInit,
+                unblockBlock: unblockBlock
+            }
+        )
+
+        // grant second signer COPPER status so they can receive transferred tokens
+        await prestige.setStatus(signers[1].address, COPPER, [])        
+
+        // ? Is this correct way to query prestige level of a given signer?
+        assert((await prestige.statusReport(signers[1].address)).eq(COPPER), "second signer not granted COPPER prestige")
+
+        // create a few blocks by sending some tokens around, after which redeeming now possible
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await redeemableERC20.transfer(signers[1].address, 1)
+        }
+        
+        // pool exits and reserve tokens sent to redeemable ERC20 address
+        const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
+        await reserve.transfer(redeemableERC20.address, reserveTotal)
+
+        const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
+
+        // create new signer with COPPER prestige level
+        const prestige_COPPER = new ethers.Contract(prestige.address, prestige.interface, signers[2])
+        const redeemableERC20_COPPER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
+
+        // ? Is this correct way to query prestige level of a given signer?
+        assert((await prestige.statusReport(signers[2].address)).eq(NIL), 'signer not set to default prestige level NIL');
+
+        Util.assertError(
+            async () => await redeemableERC20_COPPER.redeem(redeemAmount), 
+            "revert ERR_MIN_STATUS", 
+            "user could redeem despite not meeting minimum status"
+        )
+        
+        await prestige_COPPER.setStatus(signers[2].address, COPPER, [])
+
+        // ? Is this correct way to query prestige level of a given signer?
+        assert((await prestige.statusReport(signers[2].address)).eq(COPPER), 'signer not set to new prestige level COPPER');
+
+        await redeemableERC20_COPPER.redeem(redeemAmount)
     })
 })
