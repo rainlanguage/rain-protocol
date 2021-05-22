@@ -107,7 +107,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         _mint(msg.sender, mintInit);
 
         // Set the unblock schedule.
-        BlockBlockable.setUnblockBlock(_redeemableERC20Config.unblockBlock);
+        setUnblockBlock(_redeemableERC20Config.unblockBlock);
     }
 
     function addUnfreezable(address _address)

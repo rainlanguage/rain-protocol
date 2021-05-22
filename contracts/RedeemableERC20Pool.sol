@@ -30,6 +30,22 @@ struct PoolConfig {
     // The starting/final weights are calculated against this.
     // This amount will be refunded to the Trust owner regardless whether the minRaise is met.
     uint256 reserveInit;
+    // Initial marketcap of the token according to the balancer pool denominated in reserve token.
+    // The spot price of a balancer pool token is a function of both the amounts of each token and their weights.
+    // This differs to e.g. a uniswap pool where the weights are always 1:1.
+    // So we can define a valuation of all our tokens in terms of the deposited reserve.
+    // We also want to set the weight of the reserve small for flexibility, i.e. 1.
+    // For example:
+    // - 200 000 reserve tokens
+    // - 1 000 000 token valuation
+    // - Token spot price x total token = initial valuation => 1 000 000 = spot x 200 000 => spot = 5
+    // - Spot price calculation is in balancer whitepaper: https://balancer.finance/whitepaper/
+    // - Spot = ( Br / Wr ) / ( Bt / Wt )
+    // - 5 = ( 50 000 / 1 ) / ( 200 000 / Wt ) => 50 000 x Wt = 1 000 000 => Wt = 20
+    uint256 initialValuation;
+    // Final market cap must be at least _redeemInit + _minRaise + seedFee.
+    // The Trust enforces this invariant to avoid final prices that are too low for the sale to succeed.
+    uint256 finalValuation;
 }
 
 contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
@@ -37,6 +53,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     using SafeMath for uint256;
 
     using SafeERC20 for IERC20;
+    using SafeERC20 for RedeemableERC20;
 
     // The amounts of each token at initialization as [reserve_amount, token_amount].
     // Balancer needs this to be a dynamic array but for us it is always length 2.
@@ -61,43 +78,28 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     uint256 public reserveInit;
     uint256 public redeemInit;
 
-    // The spot price of a balancer pool token is a function of both the amounts of each token and their weights.
-    // This differs to e.g. a uniswap pool where the weights are always 1:1.
-    // So we can define a valuation of all our tokens in terms of the deposited reserve.
-    // We also want to set the weight of the reserve small for flexibility, i.e. 1.
-    // For example:
-    // - 200 000 reserve tokens
-    // - 1 000 000 token valuation
-    // - Token spot price x total token = initial valuation => 1 000 000 = spot x 200 000 => spot = 5
-    // - Spot price calculation is in balancer whitepaper: https://balancer.finance/whitepaper/
-    // - Spot = ( Br / Wr ) / ( Bt / Wt )
-    // - 5 = ( 50 000 / 1 ) / ( 200 000 / Wt ) => 50 000 x Wt = 1 000 000 => Wt = 20
-    uint256 public initialValuation;
-    uint256 public finalValuation;
-
     ConfigurableRightsPool public crp;
     IBPool public pool;
 
     constructor (
-        PoolConfig memory _poolConfig,
+        PoolConfig memory poolConfig,
         RedeemableERC20 _token,
-        uint256 _redeemInit,
-        uint256 _initialValuation,
-        uint256 _finalValuation
+        uint256 _redeemInit
     )
         public
     {
         token = _token;
-        reserveInit = _poolConfig.reserveInit;
+        reserveInit = poolConfig.reserveInit;
         redeemInit = _redeemInit;
-        initialValuation = _initialValuation;
-        finalValuation = _finalValuation;
 
         // These functions all mutate the dynamic arrays that Balancer expects.
         // We build these here because their values are set during bootstrap then are immutable.
         constructPoolAmounts();
-        constructPoolWeights();
-        constructCrp(_poolConfig);
+        constructPoolWeights(poolConfig);
+        constructCrp(poolConfig);
+
+        // Mirror the token unblock block.
+        setUnblockBlock(token.unblockBlock());
     }
 
     // The addresses in the RedeemableERC20Pool, as [reserve, token].
@@ -119,7 +121,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         poolAmounts.push(token.totalSupply());
     }
 
-    function constructPoolWeights () private {
+    function constructPoolWeights (PoolConfig memory poolConfig) private {
         // This function requires that constructPoolAmounts be run prior.
         require(poolAmounts[0] > 0, "ERR_RESERVE_AMOUNT");
         require(poolAmounts[1] > 0, "ERR_TOKEN_AMOUNT");
@@ -129,7 +131,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // => ( Bt / Wt ) = ( Br / Wr ) / Spot
         // => Wt = ( Spot x Bt ) / ( Br / Wr )
         uint256 _reserveWeight = BalancerConstants.MIN_WEIGHT;
-        uint256 _targetSpot = initialValuation.mul(Constants.ONE).div(poolAmounts[1]);
+        uint256 _targetSpot = poolConfig.initialValuation.mul(Constants.ONE).div(poolAmounts[1]);
         uint256 _tokenWeight = _targetSpot.mul(poolAmounts[1]).mul(Constants.ONE).div(
             poolAmounts[0].mul(BalancerConstants.MIN_WEIGHT)
             );
@@ -148,7 +150,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // We set the weight to the market cap of the redeem value.
 
         uint256 _reserveWeightFinal = BalancerConstants.MIN_WEIGHT;
-        uint256 _targetSpotFinal = finalValuation.mul(Constants.ONE).div(poolAmounts[1]);
+        uint256 _targetSpotFinal = poolConfig.finalValuation.mul(Constants.ONE).div(poolAmounts[1]);
         uint256 _tokenWeightFinal = _targetSpotFinal.mul(poolAmounts[1]).mul(Constants.ONE).div(
                 redeemInit.mul(BalancerConstants.MIN_WEIGHT)
         );
@@ -237,15 +239,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         );
 
         // take all token.
-        require(token.transferFrom(
+        token.safeTransferFrom(
             owner(),
             address(this),
             poolAmounts[1]
-        ),
-        "ERR_TOKEN_TRANSFER");
-        require(
-            token.balanceOf(address(this)) == token.totalSupply(),
-            "ERR_TOKEN_TRANSFER"
         );
 
         token.reserve().approve(address(crp), poolAmounts[0]);
@@ -260,36 +257,16 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             0
         );
         pool = crp.bPool();
-        require(
-            BalancerConstants.MAX_POOL_SUPPLY == crp.balanceOf(address(this)),
-            "ERR_POOL_TOKENS"
-        );
-
-        // Double check the spot price is what we wanted.
-        uint256 _targetSpot = initialValuation.mul(Constants.ONE).div(poolAmounts[1]);
-        address[] memory _poolAddresses = poolAddresses();
-        uint256 _actualSpot = BPool(address(crp.bPool())).getSpotPriceSansFee(
-            _poolAddresses[0],
-            _poolAddresses[1]
-        );
-        require(
-            _targetSpot == _actualSpot,
-            "ERR_SPOT_PRICE"
-        );
 
         // Kick off the auction!
-        startBlock = block.number;
         crp.updateWeightsGradually(
             // Flip the weights
             targetWeights,
             // From now
-            startBlock,
-            // Until unlock
+            block.number,
+            // Until unblock
             token.unblockBlock()
         );
-
-        // Mirror the token unblock block.
-        BlockBlockable.setUnblockBlock(token.unblockBlock());
     }
 
     function exit() public onlyInit onlyOwner onlyUnblocked {

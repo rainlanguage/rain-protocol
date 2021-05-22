@@ -59,6 +59,7 @@ describe("Trust", async function() {
     const trust = await trustFactory.deploy(
       {
         seeder: seeder,
+        creator: signers[0].address,
       },
       {
         name: tokenName,
@@ -73,8 +74,9 @@ describe("Trust", async function() {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserveInit: reserveInit,
+        initialValuation: initialValuation,
+        finalValuation: redeemInit.add(minRaise).add(seedFee),
       },
-      initialValuation,
       redeemInit,
       minRaise,
       seedFee
@@ -185,7 +187,7 @@ describe("Trust", async function() {
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
     assert(
-      ethers.BigNumber.from('1803296164054938186011').eq(
+      ethers.BigNumber.from('1804365142097232262011').eq(
         reserveBalance1
       ),
       'wrong balance 1 after redemption: ' + reserveBalance1
@@ -199,7 +201,7 @@ describe("Trust", async function() {
     await token2.redeem(await token2.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
     assert(
-      ethers.BigNumber.from('196702591330485876923').eq(
+      ethers.BigNumber.from('195633608265583452440').eq(
         reserveBalance2
       ),
       'wrong balance 2 after redemption: ' + reserveBalance2
@@ -247,6 +249,7 @@ describe("Trust", async function() {
     const trust = await trustFactory.deploy(
       {
         seeder: seeder,
+        creator: signers[0].address,
       },
       {
         name: tokenName,
@@ -261,8 +264,9 @@ describe("Trust", async function() {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserveInit: reserveInit,
+        initialValuation: initialValuation,
+        finalValuation: redeemInit.add(minRaise).add(seedFee),
       },
-      initialValuation,
       redeemInit,
       minRaise,
       seedFee,
@@ -350,7 +354,7 @@ describe("Trust", async function() {
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
     assert(
-      ethers.BigNumber.from('759444584241452779619').eq(
+      ethers.BigNumber.from('759479979862994679088').eq(
         reserveBalance1
       ),
       'wrong balance 1 after redemption: ' + reserveBalance1
@@ -364,7 +368,7 @@ describe("Trust", async function() {
     await token2.redeem(await token1.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
     assert(
-      ethers.BigNumber.from('2240469054144448228580').eq(
+      ethers.BigNumber.from('2240433654963901744119').eq(
         reserveBalance2
       ),
       'wrong balance 2 after redemption: ' + reserveBalance2
@@ -413,6 +417,7 @@ describe("Trust", async function() {
     const trust = await trustFactory.deploy(
       {
         seeder: seeder,
+        creator: signers[0].address,
       },
       {
         name: tokenName,
@@ -427,8 +432,9 @@ describe("Trust", async function() {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserveInit: reserveInit,
+        initialValuation: initialValuation,
+        finalValuation: redeemInit.add(minRaise).add(seedFee),
       },
-      initialValuation,
       redeemInit,
       minRaise,
       seedFee

@@ -25,6 +25,7 @@ import { PoolConfig } from "./RedeemableERC20Pool.sol";
 import { RedeemableERC20Config } from "./RedeemableERC20.sol";
 
 struct TrustConfig {
+    address creator;
     address seeder;
 }
 
@@ -74,14 +75,13 @@ struct TrustConfig {
 //
 // | TV hype to create premium  | TV cashes out premium and delivers goodies |
 // | Phase trading distribution | Phase goodies + stablecoin proxy           |
-contract Trust is Ownable {
+contract Trust {
 
     using SafeMath for uint256;
     using Math for uint256;
 
     TrustConfig public trustConfig;
 
-    uint256 public initialPoolValuation;
     uint256 public redeemInit;
     uint256 public minRaise;
     uint256 public seedFee;
@@ -94,9 +94,6 @@ contract Trust is Ownable {
         TrustConfig memory _trustConfig,
         RedeemableERC20Config memory _redeemableERC20Config,
         PoolConfig memory _poolConfig,
-        // Initial marketcap of the token according to the balancer pool denominated in reserve token.
-        // Final market cap will be _redeemInit + _minRaise.
-        uint256 _initialPoolValuation,
         // The amount of reserve to back the redemption initially after trading finishes.
         // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
         uint256 _redeemInit,
@@ -109,7 +106,6 @@ contract Trust is Ownable {
     ) public {
         trustConfig = _trustConfig;
 
-        initialPoolValuation = _initialPoolValuation;
         redeemInit = _redeemInit;
         minRaise = _minRaise;
         seedFee = _seedFee;
@@ -118,12 +114,11 @@ contract Trust is Ownable {
             _redeemableERC20Config
         );
 
+        require(_poolConfig.finalValuation >= _redeemInit.add(_minRaise).add(_seedFee), "ERR_MIN_FINAL_VALUATION");
         pool = new RedeemableERC20Pool(
             _poolConfig,
             token,
-            redeemInit,
-            initialPoolValuation,
-            minRaise.add(redeemInit)
+            redeemInit
         );
         token.approve(address(pool), token.totalSupply());
 
@@ -199,7 +194,7 @@ contract Trust is Ownable {
 
         if (_creatorPay > 0) {
             _reserve.safeTransfer(
-                owner(),
+                trustConfig.creator,
                 _creatorPay
             );
         }

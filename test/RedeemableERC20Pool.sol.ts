@@ -107,11 +107,11 @@ describe("RedeemableERC20Pool", async function() {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
                 reserveInit: reserveInit,
+                initialValuation: initialValuation,
+                finalValuation: finalValuation,
             },
             redeemable.address,
             redeemInit,
-            initialValuation,
-            finalValuation,
         )
 
         await pool.deployed()
@@ -397,11 +397,11 @@ describe("RedeemableERC20Pool", async function() {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
                 reserveInit: reserveInit,
+                initialValuation: initialValuation,
+                finalValuation: finalValuation,
             },
             redeemable.address,
             redeemInit,
-            initialValuation,
-            finalValuation,
         )
 
         await pool.deployed()
@@ -519,11 +519,11 @@ describe("RedeemableERC20Pool", async function() {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
                 reserveInit: reserveInit,
+                initialValuation: initialValuation,
+                finalValuation: finalValuation,
             },
             redeemable.address,
             redeemInit,
-            initialValuation,
-            finalValuation,
         )
 
         Util.assertError(
@@ -608,11 +608,11 @@ describe("RedeemableERC20Pool", async function() {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
                 reserveInit: reserveInit,
+                initialValuation: initialValuation,
+                finalValuation: finalValuation,
             },
             redeemable.address,
             redeemInit,
-            initialValuation,
-            finalValuation,
         )
 
         Util.assertError(
@@ -698,11 +698,11 @@ describe("RedeemableERC20Pool", async function() {
                     crpFactory: crpFactory.address,
                     balancerFactory: bFactory.address,
                     reserveInit: reserveInit,
+                    initialValuation: initialValuation,
+                    finalValuation: finalValuation,
                 },
                 redeemable.address,
                 redeemInit,
-                initialValuation,
-                finalValuation,
             ),
             'revert SafeMath: division by zero',
             'initial redeemable token amount of 0 was accepted at construction'
