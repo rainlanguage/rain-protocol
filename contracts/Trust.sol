@@ -33,6 +33,7 @@ struct TrustConfig {
     address seeder;
     // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
     uint256 seederFee;
+    uint256 raiseDuration;
 }
 
 // Examples
@@ -91,6 +92,7 @@ contract Trust {
     uint256 public redeemInit;
 
     using SafeERC20 for IERC20;
+    using SafeERC20 for RedeemableERC20;
     RedeemableERC20 public token;
     RedeemableERC20Pool public pool;
 
@@ -102,6 +104,9 @@ contract Trust {
         // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
         uint256 _redeemInit
     ) public {
+        require(_redeemableERC20Config.totalSupply >= _poolConfig.reserveInit, "ERR_MIN_TOKEN_SUPPLY");
+        require(_poolConfig.reserveInit > 0, "ERR_MIN_RESERVE");
+        require(_poolConfig.initialValuation >= _poolConfig.finalValuation, "ERR_MIN_INITIAL_VALUTION");
         require(_poolConfig.finalValuation >= _redeemInit.add(_trustConfig.minCreatorRaise).add(_trustConfig.seederFee), "ERR_MIN_FINAL_VALUATION");
 
         RedeemableERC20 _token = new RedeemableERC20(
@@ -113,16 +118,15 @@ contract Trust {
             _redeemInit
         );
 
-        // Preapprove moving tokens into the pool.
-        // When the seed funds are raised this will happen in `startRaise`.
-        _token.approve(address(_pool), _redeemableERC20Config.totalSupply);
-
         // Need to make a few addresses unfreezable to facilitate exits.
         _token.addUnfreezable(address(_pool.crp()));
         _token.addUnfreezable(address(_poolConfig.balancerFactory));
         _token.addUnfreezable(address(_pool));
 
-        // Save some state for later.
+        // Send all tokens to the pool immediately.
+        // When the seed funds are raised `startRaise` will build a pool from these.
+        _token.safeTransfer(address(_pool), _redeemableERC20Config.totalSupply);
+
         trustConfig = _trustConfig;
         redeemInit = _redeemInit;
         token = _token;
@@ -136,6 +140,9 @@ contract Trust {
     // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function startRaise() external {
+        uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
+        token.ownerSetUnblockBlock(_unblockBlock);
+        pool.ownerSetUnblockBlock(_unblockBlock);
         pool.init(trustConfig.seeder);
     }
 

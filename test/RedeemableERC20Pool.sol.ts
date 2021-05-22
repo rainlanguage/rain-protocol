@@ -78,8 +78,6 @@ describe("RedeemableERC20Pool", async function() {
 
         await redeemable.deployed()
 
-        const expectedPoolAddresses = [reserve.address, redeemable.address]
-
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
             'reserve was not 0 on redeemable construction'
@@ -116,6 +114,9 @@ describe("RedeemableERC20Pool", async function() {
 
         await pool.deployed()
 
+        // Trust normally does this internally.
+        await redeemable.transfer(pool.address, await redeemable.totalSupply())
+
         assert((await pool.token()) === redeemable.address, 'wrong token address')
         assert(await pool.owner() === signers[0].address, 'wrong owner')
         assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
@@ -124,15 +125,6 @@ describe("RedeemableERC20Pool", async function() {
         for (let i = 0; expectedRight = expectedRights[i]; i++) {
             const actualRight = await pool.rights(i)
             assert(actualRight === expectedRight, `wrong right ${i} ${expectedRight} ${actualRight}`)
-        }
-
-        let expectedPoolAddress;
-        for (let i = 0; expectedPoolAddress = expectedPoolAddresses[i]; i++) {
-            const actualPoolAddress = (await pool.poolAddresses())[i]
-            assert(
-                actualPoolAddress === expectedPoolAddress,
-                `wrong pool address ${i} ${expectedPoolAddress} ${actualPoolAddress}`
-            )
         }
 
         let expectedPoolAmount;
@@ -406,6 +398,9 @@ describe("RedeemableERC20Pool", async function() {
 
         await pool.deployed()
 
+        // Trust normally does this internally.
+        await redeemable.transfer(pool.address, await redeemable.totalSupply())
+
         assert((await pool.token()) === redeemable.address, 'wrong token address')
         assert(await pool.owner() === signers[0].address, 'wrong owner')
         assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
@@ -514,22 +509,23 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        const pool = poolFactory.deploy(
-            redeemable.address,
-            {
-                crpFactory: crpFactory.address,
-                balancerFactory: bFactory.address,
-                reserveInit: reserveInit,
-                initialValuation: initialValuation,
-                finalValuation: finalValuation,
-            },
-            redeemInit,
-        )
-
         Util.assertError(
-            async () => await pool,
-            'revert ERR_RESERVE_AMOUNT',
-            'initial reserve amount of 0 was accepted at construction'
+            async () => {
+                const pool = await poolFactory.deploy(
+                    redeemable.address,
+                    {
+                        crpFactory: crpFactory.address,
+                        balancerFactory: bFactory.address,
+                        reserveInit: reserveInit,
+                        initialValuation: initialValuation,
+                        finalValuation: finalValuation,
+                    },
+                    redeemInit,
+                )
+                await pool.deployed()
+            },
+            'revert SafeMath: division by zero',
+            'failed to error when reserve is 0 at construction',
         )
     })
 
@@ -603,22 +599,23 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        const pool = poolFactory.deploy(
-            redeemable.address,
-            {
-                crpFactory: crpFactory.address,
-                balancerFactory: bFactory.address,
-                reserveInit: reserveInit,
-                initialValuation: initialValuation,
-                finalValuation: finalValuation,
-            },
-            redeemInit,
-        )
-
         Util.assertError(
-            async () => await pool,
-            'revert ERR_TOKEN_AMOUNT',
-            'initial mint amount of 0 was accepted at construction'
+            async () => {
+                const pool = await poolFactory.deploy(
+                    redeemable.address,
+                    {
+                        crpFactory: crpFactory.address,
+                        balancerFactory: bFactory.address,
+                        reserveInit: reserveInit,
+                        initialValuation: initialValuation,
+                        finalValuation: finalValuation,
+                    },
+                    redeemInit,
+                )
+                await pool.deployed()
+            },
+            'revert SafeMath: division by zero',
+            'failed to error when constructed with 0 total supply'
         )
     })
 

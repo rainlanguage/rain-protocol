@@ -102,9 +102,6 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         unfreezables[msg.sender] = true;
         // Mint redeemable tokens according to the preset schedule.
         _mint(msg.sender, _redeemableERC20Config.totalSupply);
-
-        // Set the unblock schedule.
-        setUnblockBlock(_redeemableERC20Config.unblockBlock);
     }
 
     function addUnfreezable(address _address)
@@ -155,6 +152,9 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         reserve.safeTransfer(msg.sender, _reserveRelease);
     }
 
+    function ownerSetUnblockBlock(uint256 _unblockBlock) external onlyOwner {
+        setUnblockBlock(_unblockBlock);
+    }
 
     function _beforeTokenTransfer(
         address,
