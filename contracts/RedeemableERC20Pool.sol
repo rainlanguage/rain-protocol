@@ -82,24 +82,24 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     IBPool public pool;
 
     constructor (
-        PoolConfig memory poolConfig,
         RedeemableERC20 _token,
+        PoolConfig memory _poolConfig,
         uint256 _redeemInit
     )
         public
     {
         token = _token;
-        reserveInit = poolConfig.reserveInit;
+        reserveInit = _poolConfig.reserveInit;
         redeemInit = _redeemInit;
 
         // These functions all mutate the dynamic arrays that Balancer expects.
         // We build these here because their values are set during bootstrap then are immutable.
-        constructPoolAmounts();
-        constructPoolWeights(poolConfig);
-        constructCrp(poolConfig);
+        constructPoolAmounts(_token, _poolConfig);
+        constructPoolWeights(_poolConfig);
+        constructCrp(_poolConfig);
 
         // Mirror the token unblock block.
-        setUnblockBlock(token.unblockBlock());
+        setUnblockBlock(_token.unblockBlock());
     }
 
     // The addresses in the RedeemableERC20Pool, as [reserve, token].
@@ -113,12 +113,12 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         return _poolAddresses;
     }
 
-    function constructPoolAmounts () private {
-        poolAmounts.push(reserveInit);
+    function constructPoolAmounts (RedeemableERC20 _token, PoolConfig memory _poolConfig) private {
+        poolAmounts.push(_poolConfig.reserveInit);
 
         // The token amount is always the total supply.
         // It is required that the pool initializes with full ownership of all Tokens in existence.
-        poolAmounts.push(token.totalSupply());
+        poolAmounts.push(_token.totalSupply());
     }
 
     function constructPoolWeights (PoolConfig memory poolConfig) private {
@@ -164,16 +164,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         );
     }
 
-    // We are not here to make money off fees.
-    // Set to the minimum balancer allows.
-    function poolFee () private pure returns (uint256) {
-        return BalancerConstants.MIN_FEE;
-    }
-
     // Construct the rights that will be used by the CRP.
     // These are hardcoded, we do NOT want any flexibility in our permissions.
     function rights() private pure returns (bool[] memory) {
-        // The rights fo the RedeemableERC20Pool.
+        // The rights for the RedeemableERC20Pool.
         // Balancer wants this to be a dynamic array even though it has fixed length.
         bool[] memory _rights = new bool[](6);
 
@@ -208,48 +202,37 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
                 poolAddresses(),
                 poolAmounts,
                 startWeights,
-                poolFee()
+                // Fees do not make sense for us.
+                // We exit and distribute fees via. the Trust NOT AMM mechanics.
+                BalancerConstants.MIN_FEE
             ),
             RightsManager.constructRights(rights())
         );
     }
 
-    function init() public withInit onlyOwner onlyBlocked {
-        // ensure allowances are set exactly.
-        // allowances should NEVER be different to the pool amounts.
-        require(
-            token.reserve().allowance(owner(), address(this)) == poolAmounts[0],
-            "ERR_RESERVE_ALLOWANCE"
-        );
-        require(
-            token.allowance(owner(), address(this)) == poolAmounts[1],
-            "ERR_TOKEN_ALLOWANCE"
-        );
-
-        // take allocated reserves.
-        token.reserve().safeTransferFrom(
+    function init(address seeder) public withInit onlyOwner onlyBlocked {
+        // Take token from owner (Trust).
+        RedeemableERC20 _token = token;
+        uint256 _tokenAmount = poolAmounts[1];
+        _token.safeTransferFrom(
             owner(),
             address(this),
-            poolAmounts[0]
+            _tokenAmount
         );
-        // we do NOT require an exact balance of the reserve after xfer as someone other than the owner could grief the contract with reserve dust.
-        require(
-            token.reserve().balanceOf(address(this)) >= poolAmounts[0],
-            "ERR_RESERVE_TRANSFER"
-        );
+        _token.approve(address(crp), _tokenAmount);
 
-        // take all token.
-        token.safeTransferFrom(
-            owner(),
+        // Take reserves from seeder.
+        IERC20 _reserve = _token.reserve();
+        uint256 _reserveAmount = poolAmounts[0];
+        _reserve.safeTransferFrom(
+            seeder,
             address(this),
-            poolAmounts[1]
+            _reserveAmount
         );
-
-        token.reserve().approve(address(crp), poolAmounts[0]);
-        token.approve(address(crp), poolAmounts[1]);
+        _reserve.approve(address(crp), _reserveAmount);
 
         crp.createPool(
-            // No need for many pool tokens.
+            // Max pool tokens to minimise dust on exit.
             BalancerConstants.MAX_POOL_SUPPLY,
             // No minimum weight change period.
             0,
@@ -265,7 +248,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             // From now
             block.number,
             // Until unblock
-            token.unblockBlock()
+            _token.unblockBlock()
         );
     }
 
@@ -276,7 +259,11 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             crp.balanceOf(address(this)) - BalancerConstants.MIN_POOL_SUPPLY,
             new uint256[](2)
         );
+
+        // Redeem/burn all unsold token inventory.
         token.redeem(token.balanceOf(address(this)));
+
+        // Send reserve back to owner (Trust) to be distributed to stakeholders.
         token.reserve().safeTransfer(
             owner(),
             token.reserve().balanceOf(address(this))

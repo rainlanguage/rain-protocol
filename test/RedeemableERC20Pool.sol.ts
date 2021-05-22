@@ -30,7 +30,7 @@ describe("RedeemableERC20Pool", async function() {
 
         const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
         const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-        const mintInit = ethers.BigNumber.from('200000' + Util.eighteenZeros)
+        const totalTokenSupply = ethers.BigNumber.from('200000' + Util.eighteenZeros)
         const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
 
         const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
@@ -39,7 +39,7 @@ describe("RedeemableERC20Pool", async function() {
 
         const expectedRights = [false, false, true, true, false, false]
 
-        const expectedPoolAmounts = [reserveInit, mintInit]
+        const expectedPoolAmounts = [reserveInit, totalTokenSupply]
 
         // Let's say we want to value the redeemable at 1 000 000 reserve
         // The pool has 50 000 reserve
@@ -71,7 +71,7 @@ describe("RedeemableERC20Pool", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
+                totalSupply: totalTokenSupply,
                 unblockBlock: unblockBlock,
             }
         )
@@ -85,8 +85,8 @@ describe("RedeemableERC20Pool", async function() {
             'reserve was not 0 on redeemable construction'
         )
         assert(
-            (await redeemable.totalSupply()).eq(mintInit),
-            `total supply was not ${mintInit} on redeemable construction`
+            (await redeemable.totalSupply()).eq(totalTokenSupply),
+            `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
             (await redeemable.unblockBlock()).eq(unblockBlock),
@@ -103,6 +103,7 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         const pool = await poolFactory.deploy(
+            redeemable.address,
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
@@ -110,7 +111,6 @@ describe("RedeemableERC20Pool", async function() {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-            redeemable.address,
             redeemInit,
         )
 
@@ -170,7 +170,7 @@ describe("RedeemableERC20Pool", async function() {
             await pool.poolAmounts(1)
         )
 
-        await pool.init({
+        await pool.init(signers[0].address, {
             gasLimit: 10000000
         })
 
@@ -216,7 +216,7 @@ describe("RedeemableERC20Pool", async function() {
 
     //     const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
     //     const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-    //     const mintInit = ethers.BigNumber.from('200000' + Util.eighteenZeros)
+    //     const totalTokenSupply = ethers.BigNumber.from('200000' + Util.eighteenZeros)
     //     const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
 
     //     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
@@ -236,7 +236,7 @@ describe("RedeemableERC20Pool", async function() {
     //             reserve: reserve.address,
     //             prestige: prestige.address,
     //             minimumStatus: minimumStatus,
-    //             mintInit: mintInit,
+    //             totalSupply: totalTokenSupply,
     //             unblockBlock: unblockBlock,
     //         }
     //     )
@@ -248,8 +248,8 @@ describe("RedeemableERC20Pool", async function() {
     //         'reserve was not 0 on redeemable construction'
     //     )
     //     assert(
-    //         (await redeemable.totalSupply()).eq(mintInit),
-    //         `total supply was not ${mintInit} on redeemable construction`
+    //         (await redeemable.totalSupply()).eq(totalTokenSupply),
+    //         `total supply was not ${totalTokenSupply} on redeemable construction`
     //     )
     //     assert(
     //         (await redeemable.unblockBlock()).eq(unblockBlock),
@@ -343,7 +343,7 @@ describe("RedeemableERC20Pool", async function() {
 
         const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
         const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-        const mintInit = ethers.BigNumber.from('200000' + Util.eighteenZeros)
+        const totalTokenSupply = ethers.BigNumber.from('200000' + Util.eighteenZeros)
         const minRaise = ethers.BigNumber.from('0' + Util.eighteenZeros)
 
         const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
@@ -363,7 +363,7 @@ describe("RedeemableERC20Pool", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
+                totalSupply: totalTokenSupply,
                 unblockBlock: unblockBlock,
             }
         )
@@ -375,8 +375,8 @@ describe("RedeemableERC20Pool", async function() {
             'reserve was not 0 on redeemable construction'
         )
         assert(
-            (await redeemable.totalSupply()).eq(mintInit),
-            `total supply was not ${mintInit} on redeemable construction`
+            (await redeemable.totalSupply()).eq(totalTokenSupply),
+            `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
             (await redeemable.unblockBlock()).eq(unblockBlock),
@@ -393,6 +393,7 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         const pool = await poolFactory.deploy(
+            redeemable.address,
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
@@ -400,7 +401,6 @@ describe("RedeemableERC20Pool", async function() {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-            redeemable.address,
             redeemInit,
         )
 
@@ -419,7 +419,7 @@ describe("RedeemableERC20Pool", async function() {
             await pool.poolAmounts(1)
         )
 
-        await pool.init({
+        await pool.init(signers[0].address, {
             gasLimit: 10000000
         })
 
@@ -465,7 +465,7 @@ describe("RedeemableERC20Pool", async function() {
 
         const reserveInit = ethers.BigNumber.from('0' + Util.eighteenZeros)
         const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-        const mintInit = ethers.BigNumber.from('200000' + Util.eighteenZeros)
+        const totalTokenSupply = ethers.BigNumber.from('200000' + Util.eighteenZeros)
         const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
 
         const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
@@ -485,7 +485,7 @@ describe("RedeemableERC20Pool", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
+                totalSupply: totalTokenSupply,
                 unblockBlock: unblockBlock,
             }
         )
@@ -497,8 +497,8 @@ describe("RedeemableERC20Pool", async function() {
             'reserve was not 0 on redeemable construction'
         )
         assert(
-            (await redeemable.totalSupply()).eq(mintInit),
-            `total supply was not ${mintInit} on redeemable construction`
+            (await redeemable.totalSupply()).eq(totalTokenSupply),
+            `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
             (await redeemable.unblockBlock()).eq(unblockBlock),
@@ -515,6 +515,7 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         const pool = poolFactory.deploy(
+            redeemable.address,
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
@@ -522,7 +523,6 @@ describe("RedeemableERC20Pool", async function() {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-            redeemable.address,
             redeemInit,
         )
 
@@ -554,7 +554,7 @@ describe("RedeemableERC20Pool", async function() {
 
         const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
         const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-        const mintInit = ethers.BigNumber.from('0' + Util.eighteenZeros)
+        const totalTokenSupply = ethers.BigNumber.from('0' + Util.eighteenZeros)
         const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
 
         const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
@@ -574,7 +574,7 @@ describe("RedeemableERC20Pool", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
+                totalSupply: totalTokenSupply,
                 unblockBlock: unblockBlock,
             }
         )
@@ -586,8 +586,8 @@ describe("RedeemableERC20Pool", async function() {
             'reserve was not 0 on redeemable construction'
         )
         assert(
-            (await redeemable.totalSupply()).eq(mintInit),
-            `total supply was not ${mintInit} on redeemable construction`
+            (await redeemable.totalSupply()).eq(totalTokenSupply),
+            `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
             (await redeemable.unblockBlock()).eq(unblockBlock),
@@ -604,6 +604,7 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         const pool = poolFactory.deploy(
+            redeemable.address,
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
@@ -611,7 +612,6 @@ describe("RedeemableERC20Pool", async function() {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-            redeemable.address,
             redeemInit,
         )
 
@@ -643,7 +643,7 @@ describe("RedeemableERC20Pool", async function() {
 
         const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
         const redeemInit = ethers.BigNumber.from('0' + Util.eighteenZeros)
-        const mintInit = ethers.BigNumber.from('200000' + Util.eighteenZeros)
+        const totalTokenSupply = ethers.BigNumber.from('200000' + Util.eighteenZeros)
         const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
 
         const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
@@ -663,7 +663,7 @@ describe("RedeemableERC20Pool", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
+                totalSupply: totalTokenSupply,
                 unblockBlock: unblockBlock,
             }
         )
@@ -675,8 +675,8 @@ describe("RedeemableERC20Pool", async function() {
             'reserve was not 0 on redeemable construction'
         )
         assert(
-            (await redeemable.totalSupply()).eq(mintInit),
-            `total supply was not ${mintInit} on redeemable construction`
+            (await redeemable.totalSupply()).eq(totalTokenSupply),
+            `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
             (await redeemable.unblockBlock()).eq(unblockBlock),
@@ -694,6 +694,7 @@ describe("RedeemableERC20Pool", async function() {
 
         Util.assertError(
             async () => await poolFactory.deploy(
+                redeemable.address,
                 {
                     crpFactory: crpFactory.address,
                     balancerFactory: bFactory.address,
@@ -701,7 +702,6 @@ describe("RedeemableERC20Pool", async function() {
                     initialValuation: initialValuation,
                     finalValuation: finalValuation,
                 },
-                redeemable.address,
                 redeemInit,
             ),
             'revert SafeMath: division by zero',

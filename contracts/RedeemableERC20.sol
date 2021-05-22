@@ -29,7 +29,7 @@ struct RedeemableERC20Config {
     IPrestige prestige;
     IPrestige.Status minimumStatus;
     // Number of redeemable tokens to mint.
-    uint256 mintInit;
+    uint256 totalSupply;
     uint256 unblockBlock;
 }
 
@@ -72,11 +72,9 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
     event Redeem(
         address _redeemer,
-        uint256 _redeemAmount,
-        uint256 _reserveRelease
+        // Redeemable amount burned, Reserve amount out
+        uint256[2]
     );
-
-    uint256 public mintInit;
 
     // This is the reserve token.
     // It is openly visible to the world so people can verify the reserve token has value.
@@ -96,7 +94,6 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         PrestigeByConstruction(_redeemableERC20Config.prestige)
     {
         reserve = _redeemableERC20Config.reserve;
-        mintInit = _redeemableERC20Config.mintInit;
         minimumPrestigeStatus = _redeemableERC20Config.minimumStatus;
 
         // Given that the owner can set unfreezables it makes no sense not to add them to the list.
@@ -104,14 +101,14 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // We bypass the method here because owner has not yet been set so onlyOwner will throw.
         unfreezables[msg.sender] = true;
         // Mint redeemable tokens according to the preset schedule.
-        _mint(msg.sender, mintInit);
+        _mint(msg.sender, _redeemableERC20Config.totalSupply);
 
         // Set the unblock schedule.
         setUnblockBlock(_redeemableERC20Config.unblockBlock);
     }
 
     function addUnfreezable(address _address)
-        public
+        external
         onlyOwner
         onlyBlocked
     {
@@ -132,7 +129,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
-    function redeem(uint256 _redeemAmount) public onlyUnblocked {
+    function redeem(uint256 _redeemAmount) external onlyUnblocked {
         // We have to allow direct transfers to address 0x0 in order for _burn to work.
         // This is NEVER a good thing though.
         // The user that sent to 0x0 will lose their funds without recourse.
@@ -149,13 +146,13 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
         // _burn reverts internally if needed (e.g. if burn exceeds balance); there is no return value.
-        super._burn(msg.sender, _redeemAmount);
+        _burn(msg.sender, _redeemAmount);
 
-        emit Redeem(msg.sender, _redeemAmount, _reserveRelease);
+        emit Redeem(msg.sender, [_redeemAmount, _reserveRelease]);
 
         // External function call last.
         // Send the reserve token to the redeemer.
-        IERC20(reserve).safeTransfer(msg.sender, _reserveRelease);
+        reserve.safeTransfer(msg.sender, _reserveRelease);
     }
 
 
@@ -182,7 +179,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // - All transfers are frozen (no trading, transferring, etc.) but redemption/burning is allowed
         // - Transfers TO the owner are allowed (notably the pool tokens can be used by the owner to exit the pool)
         // - Transfers FROM the owner are NOT allowed (the owner can only redeem like everyone else)
-        if (BlockBlockable.isUnblocked()) {
+        if (isUnblocked()) {
             // Redemption is unblocked.
             // Can burn.
             // Only owner and unfreezables can receive.
@@ -194,7 +191,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
             // Redemption is blocked.
             // All transfer actions allowed.
             require(
-                unfreezables[_receiver] || super.isStatus(_receiver, minimumPrestigeStatus),
+                unfreezables[_receiver] || isStatus(_receiver, minimumPrestigeStatus),
                 "ERR_MIN_STATUS"
             );
         }

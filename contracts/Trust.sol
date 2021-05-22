@@ -26,7 +26,13 @@ import { RedeemableERC20Config } from "./RedeemableERC20.sol";
 
 struct TrustConfig {
     address creator;
+    // Minimum amount to raise for the creator from the distribution period.
+    // The raise is only considered successful if enough NEW funds enter the system to cover BOTH the _redeemInit + _minRaise.
+    // If the raise is successful the _redeemInit is sent to token holders, otherwise the failed raise is refunded instead.
+    uint256 minCreatorRaise;
     address seeder;
+    // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
+    uint256 seederFee;
 }
 
 // Examples
@@ -83,8 +89,6 @@ contract Trust {
     TrustConfig public trustConfig;
 
     uint256 public redeemInit;
-    uint256 public minRaise;
-    uint256 public seedFee;
 
     using SafeERC20 for IERC20;
     RedeemableERC20 public token;
@@ -96,38 +100,33 @@ contract Trust {
         PoolConfig memory _poolConfig,
         // The amount of reserve to back the redemption initially after trading finishes.
         // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
-        uint256 _redeemInit,
-        // Minimum amount to raise from the distribution period.
-        // The raise is only considered successful if enough NEW funds enter the system to cover BOTH the _redeemInit + _minRaise.
-        // If the raise is successful the _redeemInit is sent to token holders, otherwise the failed raise is refunded instead.
-        uint256 _minRaise,
-        // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
-        uint256 _seedFee
+        uint256 _redeemInit
     ) public {
-        trustConfig = _trustConfig;
+        require(_poolConfig.finalValuation >= _redeemInit.add(_trustConfig.minCreatorRaise).add(_trustConfig.seederFee), "ERR_MIN_FINAL_VALUATION");
 
-        redeemInit = _redeemInit;
-        minRaise = _minRaise;
-        seedFee = _seedFee;
-
-        token = new RedeemableERC20(
+        RedeemableERC20 _token = new RedeemableERC20(
             _redeemableERC20Config
         );
-
-        require(_poolConfig.finalValuation >= _redeemInit.add(_minRaise).add(_seedFee), "ERR_MIN_FINAL_VALUATION");
-        pool = new RedeemableERC20Pool(
+        RedeemableERC20Pool _pool = new RedeemableERC20Pool(
+            _token,
             _poolConfig,
-            token,
-            redeemInit
+            _redeemInit
         );
-        token.approve(address(pool), token.totalSupply());
+
+        // Preapprove moving tokens into the pool.
+        // When the seed funds are raised this will happen in `startRaise`.
+        _token.approve(address(_pool), _redeemableERC20Config.totalSupply);
 
         // Need to make a few addresses unfreezable to facilitate exits.
-        token.addUnfreezable(address(pool.crp()));
-        token.addUnfreezable(address(_poolConfig.balancerFactory));
-        token.addUnfreezable(address(pool));
+        _token.addUnfreezable(address(_pool.crp()));
+        _token.addUnfreezable(address(_poolConfig.balancerFactory));
+        _token.addUnfreezable(address(_pool));
 
-        _redeemableERC20Config.reserve.approve(address(pool), pool.poolAmounts(0));
+        // Save some state for later.
+        trustConfig = _trustConfig;
+        redeemInit = _redeemInit;
+        token = _token;
+        pool = _pool;
     }
 
     // This function can be called by anyone!
@@ -136,27 +135,26 @@ contract Trust {
     // The only requirement is that the seeder can fund the pool.
     // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
-    function fund() external {
-        token.reserve().safeTransferFrom(
-            trustConfig.seeder,
-            address(this),
-            pool.reserveInit()
-        );
-
-        pool.init();
+    function startRaise() external {
+        pool.init(trustConfig.seeder);
     }
 
     // This function can be called by anyone!
     // It defers to the pool exit function (which is owned by the trust and has onlyOwner, onlyInit, onlyUnblocked).
     // If the minimum raise is reached then the trust owner receives the raise.
     // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
-    function exit() external {
-        pool.exit();
-        IERC20 _reserve = token.reserve();
-        uint256 _reserveInit = pool.reserveInit();
+    function endRaise() external {
+        RedeemableERC20Pool _pool = pool;
+        _pool.exit();
+
+        TrustConfig memory _trustConfig = trustConfig;
+        RedeemableERC20 _token = token;
+        IERC20 _reserve = _token.reserve();
+        uint256 _reserveInit = _pool.reserveInit();
+        uint256 _redeemInit = redeemInit;
 
         uint256 _finalBalance = _reserve.balanceOf(address(this));
-        uint256 _successBalance = _reserveInit.add(seedFee).add(redeemInit).add(minRaise);
+        uint256 _successBalance = _reserveInit.add(_trustConfig.seederFee).add(_redeemInit).add(_trustConfig.minCreatorRaise);
 
         // Base payments for each fundraiser.
         uint256 _seedPay = 0;
@@ -165,7 +163,7 @@ contract Trust {
         // Set aside the redemption and seed fee if we reached the minimum.
         if (_finalBalance >= _successBalance) {
             // The seeder gets the reserve + seed fee
-            _seedPay = _reserveInit.add(seedFee);
+            _seedPay = _reserveInit.add(_trustConfig.seederFee);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -180,7 +178,7 @@ contract Trust {
             //
             // Implied is the remainder of _finalBalance as redeemInit
             // This will be transferred to the token holders below.
-            _creatorPay = _finalBalance.sub(_seedPay.add(redeemInit));
+            _creatorPay = _finalBalance.sub(_seedPay.add(_redeemInit));
         }
         else {
             // If we did not reach the minimum the creator gets nothing.
@@ -194,13 +192,13 @@ contract Trust {
 
         if (_creatorPay > 0) {
             _reserve.safeTransfer(
-                trustConfig.creator,
+                _trustConfig.creator,
                 _creatorPay
             );
         }
 
         _reserve.safeTransfer(
-            trustConfig.seeder,
+            _trustConfig.seeder,
             _seedPay
         );
 
@@ -211,7 +209,7 @@ contract Trust {
         uint256 _remainder = _reserve.balanceOf(address(this));
         if (_remainder > 0) {
             _reserve.safeTransfer(
-                address(token),
+                address(_token),
                 _remainder
             );
         }

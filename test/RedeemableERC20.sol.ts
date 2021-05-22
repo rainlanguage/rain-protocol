@@ -40,7 +40,7 @@ describe("RedeemableERC20", async function() {
         )
         const tokenName = 'RedeemableERC20'
         const tokenSymbol = 'RDX'
-        const mintInit = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
 
         const now = await ethers.provider.getBlockNumber()
         const unblockBlock = now + 8
@@ -52,7 +52,7 @@ describe("RedeemableERC20", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
+                totalSupply: totalSupply,
                 unblockBlock: unblockBlock
             }
         )
@@ -67,8 +67,8 @@ describe("RedeemableERC20", async function() {
 
         // There are no redeemable tokens created on construction
         assert(
-            (await redeemableERC20.totalSupply()).eq(mintInit),
-            `total supply was not ${mintInit} on redeemable construction`
+            (await redeemableERC20.totalSupply()).eq(totalSupply),
+            `total supply was not ${totalSupply} on redeemable construction`
         )
 
         // The unblock block is not set (i.e. contract is blocked)
@@ -90,10 +90,6 @@ describe("RedeemableERC20", async function() {
         assert(
             (await redeemableERC20.owner()) === signers[0].address,
             'redeemable token not owned correctly'
-        )
-        assert(
-            (await redeemableERC20.mintInit()).eq(mintInit),
-            'redeemable token ratio not set'
         )
         assert(
             (await redeemableERC20.reserve()) === reserve.address,
@@ -161,7 +157,7 @@ describe("RedeemableERC20", async function() {
         const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
         const expectedReserveRedemption = ethers.BigNumber.from('10' + Util.eighteenZeros)
         let redeemEvent = new Promise(resolve => {
-            redeemableERC20.once('Redeem', (redeemer, redeem, reserve) => {
+            redeemableERC20.once('Redeem', (redeemer, [redeem, reserve]) => {
                 assert(redeemer === signers[0].address, 'wrong redeemer address in event')
                 assert(redeem.eq(redeemAmount), 'wrong redemption amount in event')
                 assert(reserve.eq(expectedReserveRedemption), 'wrong reserve amount in event')
@@ -216,7 +212,7 @@ describe("RedeemableERC20", async function() {
         while (i < 10) {
             console.log(`redemption check 1: ${i}`)
             let event = new Promise(resolve => {
-                redeemableERC20.once('Redeem', (redeemer, redeem, reserve) => {
+                redeemableERC20.once('Redeem', (redeemer, [redeem, reserve]) => {
                     assert(roughEqual(redeem, redeemAmount), `bad redemption ${redeem} ${redeemAmount}`)
                     assert(roughEqual(reserve, expectedReserveRedemption), `bad redemption reserve ${reserve} ${expectedReserveRedemption}`)
                     resolve(true)
@@ -236,7 +232,7 @@ describe("RedeemableERC20", async function() {
         while (i < 10) {
             console.log(`redemption check 2: ${2}`)
             let event = new Promise(resolve => {
-                redeemableERC20.once('Redeem', (redeemer, redeem, reserve) => {
+                redeemableERC20.once('Redeem', (redeemer, [redeem, reserve]) => {
                     assert(roughEqual(redeem, redeemAmount), `bad redemption ${redeem} ${redeemAmount}`)
                     assert(roughEqual(reserve, expectedReserveRedemption2), `bad redemption reserve 2 ${reserve} ${expectedReserveRedemption2}`)
                     resolve(true)
@@ -269,7 +265,7 @@ describe("RedeemableERC20", async function() {
         )
         const tokenName = 'RedeemableERC20'
         const tokenSymbol = 'RDX'
-        const mintInit = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
 
         const now = await ethers.provider.getBlockNumber()
         const unblockBlock = now + 8
@@ -281,7 +277,7 @@ describe("RedeemableERC20", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
+                totalSupply: totalSupply,
                 unblockBlock: unblockBlock
             }
         )
@@ -313,7 +309,7 @@ describe("RedeemableERC20", async function() {
         )
         const tokenName = 'RedeemableERC20'
         const tokenSymbol = 'RDX'
-        const mintInit = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
 
         const now = await ethers.provider.getBlockNumber()
         const unblockBlock = now + 8
@@ -330,7 +326,7 @@ describe("RedeemableERC20", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
+                totalSupply: totalSupply,
                 unblockBlock: unblockBlock
             }
         )

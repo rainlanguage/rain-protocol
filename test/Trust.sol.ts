@@ -46,20 +46,22 @@ describe("Trust", async function() {
 
     const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
-    const mintInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
-    const minRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     // @todo not a very interesting test
     const seeder = signers[0].address
-    const seedFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
     const now = await ethers.provider.getBlockNumber()
     const unblockBlock = now + 50
 
     const trust = await trustFactory.deploy(
       {
-        seeder: seeder,
         creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder: seeder,
+        seederFee: seederFee,
       },
       {
         name: tokenName,
@@ -67,7 +69,7 @@ describe("Trust", async function() {
         reserve: reserve.address,
         prestige: prestige.address,
         minimumStatus: minimumStatus,
-        mintInit: mintInit,
+        totalSupply: totalTokenSupply,
         unblockBlock: unblockBlock,
       },
       {
@@ -75,18 +77,16 @@ describe("Trust", async function() {
         balancerFactory: bFactory.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
-        finalValuation: redeemInit.add(minRaise).add(seedFee),
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
       },
       redeemInit,
-      minRaise,
-      seedFee
     )
 
     await trust.deployed()
 
-    await reserve.approve(trust.address, reserveInit)
+    await reserve.approve(await trust.pool(), reserveInit)
 
-    await trust.fund({
+    await trust.startRaise({
       gasLimit: 100000000
     })
 
@@ -168,7 +168,7 @@ describe("Trust", async function() {
     }
 
     const ownerBefore = await reserve.balanceOf(signers[0].address)
-    await trust.exit()
+    await trust.endRaise()
     const ownerAfter = await reserve.balanceOf(signers[0].address)
     const ownerDiff = ownerAfter.sub(ownerBefore)
 
@@ -237,19 +237,21 @@ describe("Trust", async function() {
 
     const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
-    const mintInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
-    const minRaise = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const seeder = signers[0].address
-    const seedFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
     const now = await ethers.provider.getBlockNumber()
     const unblockBlock = now + 15
 
     const trust = await trustFactory.deploy(
       {
-        seeder: seeder,
         creator: signers[0].address,
+        minCreatorRaise,
+        seeder: seeder,
+        seederFee,
       },
       {
         name: tokenName,
@@ -257,7 +259,7 @@ describe("Trust", async function() {
         reserve: reserve.address,
         prestige: prestige.address,
         minimumStatus: minimumStatus,
-        mintInit: mintInit,
+        totalSupply: totalTokenSupply,
         unblockBlock: unblockBlock,
       },
       {
@@ -265,18 +267,16 @@ describe("Trust", async function() {
         balancerFactory: bFactory.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
-        finalValuation: redeemInit.add(minRaise).add(seedFee),
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
       },
       redeemInit,
-      minRaise,
-      seedFee,
     )
 
     await trust.deployed()
 
-    await reserve.approve(trust.address, reserveInit)
+    await reserve.approve(await trust.pool(), reserveInit)
 
-    await trust.fund({
+    await trust.startRaise({
       gasLimit: 100000000
     })
 
@@ -344,7 +344,7 @@ describe("Trust", async function() {
       await reserve.transfer(signers[1].address, 1)
     }
 
-    await trust.exit()
+    await trust.endRaise()
 
     const token1 = new ethers.Contract(
       (await trust.token()),
@@ -405,19 +405,21 @@ describe("Trust", async function() {
 
     const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
-    const mintInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
-    const minRaise = ethers.BigNumber.from('0')
+    const minCreatorRaise = ethers.BigNumber.from('0')
     const seeder = signers[0].address
-    const seedFee = ethers.BigNumber.from('0')
+    const seederFee = ethers.BigNumber.from('0')
 
     const now = await ethers.provider.getBlockNumber()
     const unblockBlock = now + 10
 
     const trust = await trustFactory.deploy(
       {
-        seeder: seeder,
         creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder: seeder,
+        seederFee: seederFee,
       },
       {
         name: tokenName,
@@ -425,7 +427,7 @@ describe("Trust", async function() {
         reserve: reserve.address,
         prestige: prestige.address,
         minimumStatus: minimumStatus,
-        mintInit: mintInit,
+        totalSupply: totalTokenSupply,
         unblockBlock: unblockBlock,
       },
       {
@@ -433,18 +435,16 @@ describe("Trust", async function() {
         balancerFactory: bFactory.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
-        finalValuation: redeemInit.add(minRaise).add(seedFee),
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
       },
       redeemInit,
-      minRaise,
-      seedFee
     )
 
     await trust.deployed()
 
-    await reserve.approve(trust.address, reserveInit)
+    await reserve.approve(await trust.pool(), reserveInit)
 
-    await trust.fund({
+    await trust.startRaise({
       gasLimit: 100000000
     })
 
@@ -453,7 +453,7 @@ describe("Trust", async function() {
       await reserve.transfer(signers[1].address, 1)
     }
 
-    await trust.exit()
+    await trust.endRaise()
 
   })
 });
