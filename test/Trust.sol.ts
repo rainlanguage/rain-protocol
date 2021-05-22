@@ -59,7 +59,6 @@ describe("Trust", async function() {
     const trust = await trustFactory.deploy(
       {
         seeder: seeder,
-        reserveInit: reserveInit,
       },
       {
         name: tokenName,
@@ -69,6 +68,11 @@ describe("Trust", async function() {
         minimumStatus: minimumStatus,
         mintInit: mintInit,
         unblockBlock: unblockBlock,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserveInit: reserveInit,
       },
       initialValuation,
       redeemInit,
@@ -81,10 +85,6 @@ describe("Trust", async function() {
     await reserve.approve(trust.address, reserveInit)
 
     await trust.fund({
-      crpFactory: crpFactory.address,
-      balancerFactory: bFactory.address,
-    },
-    {
       gasLimit: 100000000
     })
 
@@ -247,7 +247,6 @@ describe("Trust", async function() {
     const trust = await trustFactory.deploy(
       {
         seeder: seeder,
-        reserveInit: reserveInit,
       },
       {
         name: tokenName,
@@ -257,6 +256,11 @@ describe("Trust", async function() {
         minimumStatus: minimumStatus,
         mintInit: mintInit,
         unblockBlock: unblockBlock,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserveInit: reserveInit,
       },
       initialValuation,
       redeemInit,
@@ -269,9 +273,6 @@ describe("Trust", async function() {
     await reserve.approve(trust.address, reserveInit)
 
     await trust.fund({
-      crpFactory: crpFactory.address,
-      balancerFactory: bFactory.address,
-    }, {
       gasLimit: 100000000
     })
 
@@ -412,7 +413,6 @@ describe("Trust", async function() {
     const trust = await trustFactory.deploy(
       {
         seeder: seeder,
-        reserveInit: reserveInit,
       },
       {
         name: tokenName,
@@ -422,6 +422,11 @@ describe("Trust", async function() {
         minimumStatus: minimumStatus,
         mintInit: mintInit,
         unblockBlock: unblockBlock,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserveInit: reserveInit,
       },
       initialValuation,
       redeemInit,
@@ -434,10 +439,6 @@ describe("Trust", async function() {
     await reserve.approve(trust.address, reserveInit)
 
     await trust.fund({
-      crpFactory: crpFactory.address,
-      balancerFactory: bFactory.address,
-    },
-    {
       gasLimit: 100000000
     })
 

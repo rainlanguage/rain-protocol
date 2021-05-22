@@ -23,9 +23,13 @@ import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/Con
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
 import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
-struct BalancerContracts {
+struct PoolConfig {
     CRPFactory crpFactory;
     BFactory balancerFactory;
+    // Amount of reserve token to initialize the pool.
+    // The starting/final weights are calculated against this.
+    // This amount will be refunded to the Trust owner regardless whether the minRaise is met.
+    uint256 reserveInit;
 }
 
 contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
@@ -75,9 +79,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     IBPool public pool;
 
     constructor (
-        BalancerContracts memory _balancerContracts,
+        PoolConfig memory _poolConfig,
         RedeemableERC20 _token,
-        uint256 _reserveInit,
         uint256 _redeemInit,
         uint256 _initialValuation,
         uint256 _finalValuation
@@ -85,7 +88,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         public
     {
         token = _token;
-        reserveInit = _reserveInit;
+        reserveInit = _poolConfig.reserveInit;
         redeemInit = _redeemInit;
         initialValuation = _initialValuation;
         finalValuation = _finalValuation;
@@ -94,9 +97,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // We build these here because their values are set during bootstrap then are immutable.
         constructPoolAmounts();
         constructPoolWeights();
-        constructCrp(_balancerContracts);
+        constructCrp(_poolConfig);
     }
-
 
     // The addresses in the RedeemableERC20Pool, as [reserve, token].
     function poolAddresses () public view returns (address[] memory) {
@@ -194,10 +196,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         return _rights;
     }
 
-    function constructCrp (BalancerContracts memory _balancerContracts) private {
+    function constructCrp (PoolConfig memory _poolConfig) private {
         // CRPFactory.
-        crp = _balancerContracts.crpFactory.newCrp(
-            address(_balancerContracts.balancerFactory),
+        crp = _poolConfig.crpFactory.newCrp(
+            address(_poolConfig.balancerFactory),
             ConfigurableRightsPool.PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",

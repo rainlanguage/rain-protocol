@@ -21,15 +21,11 @@ import { RedeemableERC20 } from "./RedeemableERC20.sol";
 import { RedeemableERC20Pool } from "./RedeemableERC20Pool.sol";
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
-import { BalancerContracts } from "./RedeemableERC20Pool.sol";
+import { PoolConfig } from "./RedeemableERC20Pool.sol";
 import { RedeemableERC20Config } from "./RedeemableERC20.sol";
 
 struct TrustConfig {
     address seeder;
-    // Amount of reserve token to initialize the pool.
-    // The starting/final weights are calculated against this.
-    // This amount will be refunded to the Trust owner regardless whether the minRaise is met.
-    uint256 reserveInit;
 }
 
 // Examples
@@ -78,7 +74,7 @@ struct TrustConfig {
 //
 // | TV hype to create premium  | TV cashes out premium and delivers goodies |
 // | Phase trading distribution | Phase goodies + stablecoin proxy           |
-contract Trust is Ownable, Initable {
+contract Trust is Ownable {
 
     using SafeMath for uint256;
     using Math for uint256;
@@ -97,6 +93,7 @@ contract Trust is Ownable, Initable {
     constructor (
         TrustConfig memory _trustConfig,
         RedeemableERC20Config memory _redeemableERC20Config,
+        PoolConfig memory _poolConfig,
         // Initial marketcap of the token according to the balancer pool denominated in reserve token.
         // Final market cap will be _redeemInit + _minRaise.
         uint256 _initialPoolValuation,
@@ -120,48 +117,51 @@ contract Trust is Ownable, Initable {
         token = new RedeemableERC20(
             _redeemableERC20Config
         );
-    }
-
-    // Fund the Trust.
-    // This is where the trust takes ownership of assets to begin the distribution phase.
-    function fund(BalancerContracts calldata balancerContracts) external onlyOwner withInit {
-        IERC20 _reserve = token.reserve();
-        _reserve.safeTransferFrom(
-            trustConfig.seeder,
-            address(this),
-            trustConfig.reserveInit
-        );
 
         pool = new RedeemableERC20Pool(
-            balancerContracts,
+            _poolConfig,
             token,
-            trustConfig.reserveInit,
             redeemInit,
             initialPoolValuation,
             minRaise.add(redeemInit)
         );
         token.approve(address(pool), token.totalSupply());
-        _reserve.approve(address(pool), pool.poolAmounts(0));
-
-        pool.init();
 
         // Need to make a few addresses unfreezable to facilitate exits.
         token.addUnfreezable(address(pool.crp()));
-        token.addUnfreezable(address(balancerContracts.balancerFactory));
+        token.addUnfreezable(address(_poolConfig.balancerFactory));
         token.addUnfreezable(address(pool));
+
+        _redeemableERC20Config.reserve.approve(address(pool), pool.poolAmounts(0));
     }
 
+    // This function can be called by anyone!
+    // Fund the Trust.
+    // This is where the trust takes ownership of assets to begin the distribution phase.
+    // The only requirement is that the seeder can fund the pool.
+    // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
+    // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
+    function fund() external {
+        token.reserve().safeTransferFrom(
+            trustConfig.seeder,
+            address(this),
+            pool.reserveInit()
+        );
+
+        pool.init();
+    }
 
     // This function can be called by anyone!
-    // It defers to the pool exit function (which is owned by the trust and has block blocking).
+    // It defers to the pool exit function (which is owned by the trust and has onlyOwner, onlyInit, onlyUnblocked).
     // If the minimum raise is reached then the trust owner receives the raise.
     // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
-    function exit() external onlyInit {
+    function exit() external {
         pool.exit();
         IERC20 _reserve = token.reserve();
+        uint256 _reserveInit = pool.reserveInit();
 
         uint256 _finalBalance = _reserve.balanceOf(address(this));
-        uint256 _successBalance = trustConfig.reserveInit.add(seedFee).add(redeemInit).add(minRaise);
+        uint256 _successBalance = _reserveInit.add(seedFee).add(redeemInit).add(minRaise);
 
         // Base payments for each fundraiser.
         uint256 _seedPay = 0;
@@ -170,7 +170,7 @@ contract Trust is Ownable, Initable {
         // Set aside the redemption and seed fee if we reached the minimum.
         if (_finalBalance >= _successBalance) {
             // The seeder gets the reserve + seed fee
-            _seedPay = trustConfig.reserveInit.add(seedFee);
+            _seedPay = _reserveInit.add(seedFee);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -194,7 +194,7 @@ contract Trust is Ownable, Initable {
             // If we don't take the min then we will attempt to transfer more than exists and brick the contract.
             //
             // Implied if _finalBalance > reserve_init is the remainder goes to token holders below.
-            _seedPay = trustConfig.reserveInit.min(_finalBalance);
+            _seedPay = _reserveInit.min(_finalBalance);
         }
 
         if (_creatorPay > 0) {
