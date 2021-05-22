@@ -292,7 +292,7 @@ describe("RedeemableERC20", async function() {
         assert((await redeemableERC20.unfreezables(signers[0].address)), "owner not made unfreezable during construction")
     })
 
-    it('should allow redemption only if redeemer meets minimum prestige level', async function() {
+    it('should allow transfer only if redeemer meets minimum prestige level', async function() {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -306,7 +306,7 @@ describe("RedeemableERC20", async function() {
         )
         const prestige = await prestigeFactory.deploy() as Prestige
 
-        const minimumStatus = COPPER
+        const minimumStatus = GOLD
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -317,6 +317,11 @@ describe("RedeemableERC20", async function() {
 
         const now = await ethers.provider.getBlockNumber()
         const unblockBlock = now + 8
+
+        // grant second signer GOLD status so they can receive transferred tokens
+        await prestige.setStatus(signers[1].address, GOLD, [])
+        // grant third signer SILVER status which is NOT enough to receive transfers
+        await prestige.setStatus(signers[2].address, SILVER, [])
 
         const redeemableERC20 = await redeemableERC20Factory.deploy(
             {
@@ -330,41 +335,33 @@ describe("RedeemableERC20", async function() {
             }
         )
 
-        // grant second signer COPPER status so they can receive transferred tokens
-        await prestige.setStatus(signers[1].address, COPPER, [])        
+        await redeemableERC20.deployed()
 
-        // ? Is this correct way to query prestige level of a given signer?
-        assert((await prestige.statusReport(signers[1].address)).eq(COPPER), "second signer not granted COPPER prestige")
+        const redeemableERC20_SILVER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
+        Util.assertError(
+            async () => await redeemableERC20.transfer(signers[2].address, 1),
+            "revert ERR_MIN_STATUS",
+            "user could receive transfers despite not meeting minimum status"
+        )
 
         // create a few blocks by sending some tokens around, after which redeeming now possible
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await redeemableERC20.transfer(signers[1].address, 1)
         }
-        
+
         // pool exits and reserve tokens sent to redeemable ERC20 address
         const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
         await reserve.transfer(redeemableERC20.address, reserveTotal)
 
-        const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
+        // GOLD signer can redeem.
+        await redeemableERC20.redeem(1)
 
-        // create new signer with COPPER prestige level
-        const prestige_COPPER = new ethers.Contract(prestige.address, prestige.interface, signers[2])
-        const redeemableERC20_COPPER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
-
-        // ? Is this correct way to query prestige level of a given signer?
-        assert((await prestige.statusReport(signers[2].address)).eq(NIL), 'signer not set to default prestige level NIL');
-
+        // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
         Util.assertError(
-            async () => await redeemableERC20_COPPER.redeem(redeemAmount), 
-            "revert ERR_MIN_STATUS", 
-            "user could redeem despite not meeting minimum status"
+            async () => await redeemableERC20_SILVER.redeem(1),
+            "revert ERC20: burn amount exceeds balance",
+            "user could transfer despite not meeting minimum status"
         )
-        
-        await prestige_COPPER.setStatus(signers[2].address, COPPER, [])
 
-        // ? Is this correct way to query prestige level of a given signer?
-        assert((await prestige.statusReport(signers[2].address)).eq(COPPER), 'signer not set to new prestige level COPPER');
-
-        await redeemableERC20_COPPER.redeem(redeemAmount)
     })
 })

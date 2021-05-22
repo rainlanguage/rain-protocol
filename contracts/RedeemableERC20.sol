@@ -99,6 +99,10 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         mintInit = _redeemableERC20Config.mintInit;
         minimumPrestigeStatus = _redeemableERC20Config.minimumStatus;
 
+        // Given that the owner can set unfreezables it makes no sense not to add them to the list.
+        // OK, so there is extra gas in doing this, but it means fewer state reads during transfers.
+        // We bypass the method here because owner has not yet been set so onlyOwner will throw.
+        unfreezables[msg.sender] = true;
         // Mint redeemable tokens according to the preset schedule.
         _mint(msg.sender, mintInit);
 
@@ -190,7 +194,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
             // Redemption is blocked.
             // All transfer actions allowed.
             require(
-                super.isStatus(_receiver, minimumPrestigeStatus),
+                unfreezables[_receiver] || super.isStatus(_receiver, minimumPrestigeStatus),
                 "ERR_MIN_STATUS"
             );
         }

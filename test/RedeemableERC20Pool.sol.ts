@@ -195,132 +195,132 @@ describe("RedeemableERC20Pool", async function() {
         await pool.exit()
     })
 
-    it('should be able to exit pool if creator fails to exit', async function() {
-        this.timeout(0)
+    // it('should be able to exit Trust if creator fails to exit', async function() {
+    //     this.timeout(0)
 
-        const signers = await ethers.getSigners()
+    //     const signers = await ethers.getSigners()
 
-        const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+    //     const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
 
-        const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    //     const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
 
-        const prestigeFactory = await ethers.getContractFactory(
-            'Prestige'
-        )
-        const prestige = await prestigeFactory.deploy() as Prestige
-        const minimumStatus = 0
+    //     const prestigeFactory = await ethers.getContractFactory(
+    //         'Prestige'
+    //     )
+    //     const prestige = await prestigeFactory.deploy() as Prestige
+    //     const minimumStatus = 0
 
-        const redeemableFactory = await ethers.getContractFactory(
-            'RedeemableERC20'
-        )
+    //     const redeemableFactory = await ethers.getContractFactory(
+    //         'RedeemableERC20'
+    //     )
 
-        const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-        const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-        const mintInit = ethers.BigNumber.from('200000' + Util.eighteenZeros)
-        const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+    //     const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+    //     const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+    //     const mintInit = ethers.BigNumber.from('200000' + Util.eighteenZeros)
+    //     const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
 
-        const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
-        // Same logic used by trust.
-        const finalValuation = minRaise.add(redeemInit)
+    //     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    //     // Same logic used by trust.
+    //     const finalValuation = minRaise.add(redeemInit)
 
-        const tokenName = 'RedeemableERC20'
-        const tokenSymbol = 'RDX'
+    //     const tokenName = 'RedeemableERC20'
+    //     const tokenSymbol = 'RDX'
 
-        const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 15
+    //     const now = await ethers.provider.getBlockNumber()
+    //     const unblockBlock = now + 15
 
-        const redeemable = await redeemableFactory.deploy(
-            {
-                name: tokenName,
-                symbol: tokenSymbol,
-                reserve: reserve.address,
-                prestige: prestige.address,
-                minimumStatus: minimumStatus,
-                mintInit: mintInit,
-                unblockBlock: unblockBlock,
-            }
-        )
+    //     const redeemable = await redeemableFactory.deploy(
+    //         {
+    //             name: tokenName,
+    //             symbol: tokenSymbol,
+    //             reserve: reserve.address,
+    //             prestige: prestige.address,
+    //             minimumStatus: minimumStatus,
+    //             mintInit: mintInit,
+    //             unblockBlock: unblockBlock,
+    //         }
+    //     )
 
-        await redeemable.deployed()
+    //     await redeemable.deployed()
 
-        assert(
-            (await reserve.balanceOf(redeemable.address)).eq(0),
-            'reserve was not 0 on redeemable construction'
-        )
-        assert(
-            (await redeemable.totalSupply()).eq(mintInit),
-            `total supply was not ${mintInit} on redeemable construction`
-        )
-        assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
-            `unblock block was not ${unblockBlock} in construction`
-        )
+    //     assert(
+    //         (await reserve.balanceOf(redeemable.address)).eq(0),
+    //         'reserve was not 0 on redeemable construction'
+    //     )
+    //     assert(
+    //         (await redeemable.totalSupply()).eq(mintInit),
+    //         `total supply was not ${mintInit} on redeemable construction`
+    //     )
+    //     assert(
+    //         (await redeemable.unblockBlock()).eq(unblockBlock),
+    //         `unblock block was not ${unblockBlock} in construction`
+    //     )
 
-        const poolFactory = await ethers.getContractFactory(
-            'RedeemableERC20Pool',
-            {
-                libraries: {
-                    'RightsManager': rightsManager.address
-                }
-            }
-        )
+    //     const poolFactory = await ethers.getContractFactory(
+    //         'RedeemableERC20Pool',
+    //         {
+    //             libraries: {
+    //                 'RightsManager': rightsManager.address
+    //             }
+    //         }
+    //     )
 
-        const pool = await poolFactory.deploy(
-            {
-                crpFactory: crpFactory.address,
-                balancerFactory: bFactory.address,
-            },
-            redeemable.address,
-            reserveInit,
-            redeemInit,
-            initialValuation,
-            finalValuation,
-        )
+    //     const pool = await poolFactory.deploy(
+    //         {
+    //             crpFactory: crpFactory.address,
+    //             balancerFactory: bFactory.address,
+    //         },
+    //         redeemable.address,
+    //         reserveInit,
+    //         redeemInit,
+    //         initialValuation,
+    //         finalValuation,
+    //     )
 
-        await pool.deployed()
+    //     await pool.deployed()
 
-        assert((await pool.token()) === redeemable.address, 'wrong token address')
-        assert(await pool.owner() === signers[0].address, 'wrong owner')
-        assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
+    //     assert((await pool.token()) === redeemable.address, 'wrong token address')
+    //     assert(await pool.owner() === signers[0].address, 'wrong owner')
+    //     assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
 
-        await reserve.approve(
-            pool.address,
-            await pool.poolAmounts(0)
-        )
-        await redeemable.approve(
-            pool.address,
-            await pool.poolAmounts(1)
-        )
+    //     await reserve.approve(
+    //         pool.address,
+    //         await pool.poolAmounts(0)
+    //     )
+    //     await redeemable.approve(
+    //         pool.address,
+    //         await pool.poolAmounts(1)
+    //     )
 
-        await pool.init({
-            gasLimit: 10000000
-        })
+    //     await pool.init({
+    //         gasLimit: 10000000
+    //     })
 
-        // The trust would do this internally but we need to do it here to test.
-        const crp = await pool.crp()
-        const bPool = await pool.pool()
-        await redeemable.addUnfreezable(crp)
-        await redeemable.addUnfreezable(bFactory.address)
-        await redeemable.addUnfreezable(pool.address)
+    //     // The trust would do this internally but we need to do it here to test.
+    //     const crp = await pool.crp()
+    //     const bPool = await pool.pool()
+    //     await redeemable.addUnfreezable(crp)
+    //     await redeemable.addUnfreezable(bFactory.address)
+    //     await redeemable.addUnfreezable(pool.address)
 
-        Util.assertError(
-            async () => await pool.exit(),
-            'revert ERR_ONLY_UNBLOCKED',
-            'failed to error on early exit'
-        )
+    //     Util.assertError(
+    //         async () => await pool.exit(),
+    //         'revert ERR_ONLY_UNBLOCKED',
+    //         'failed to error on early exit'
+    //     )
 
-        // create a few blocks by sending some tokens around
-        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
-            await reserve.transfer(signers[1].address, 1)
-        }
+    //     // create a few blocks by sending some tokens around
+    //     while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+    //         await reserve.transfer(signers[1].address, 1)
+    //     }
 
-        // owner 'rage quits' and fails to exit pool, locking everyone's tokens in limbo
-        // someone else can exit pool
-        const pool2 = new ethers.Contract(pool.address, pool.interface, signers[1]);
-        await pool2.exit();
+    //     // owner 'rage quits' and fails to exit pool, locking everyone's tokens in limbo
+    //     // someone else can exit pool
+    //     const pool2 = new ethers.Contract(pool.address, pool.interface, signers[1]);
+    //     await pool2.exit();
 
-        assert((await redeemable.balanceOf(pool.address)).eq(0), 'non-owner failed to close pool')
-    })
+    //     assert((await redeemable.balanceOf(pool.address)).eq(0), 'non-owner failed to close pool')
+    // })
 
     it('should construct pool and exit with 0 minimum raise', async function() {
         this.timeout(0)
