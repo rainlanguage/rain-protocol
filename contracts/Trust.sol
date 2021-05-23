@@ -119,9 +119,12 @@ contract Trust {
         );
 
         // Need to make a few addresses unfreezable to facilitate exits.
-        _token.addUnfreezable(address(_pool.crp()));
-        _token.addUnfreezable(address(_poolConfig.balancerFactory));
-        _token.addUnfreezable(address(_pool));
+        _token.ownerAddUnfreezable(address(_pool.crp()));
+        _token.ownerAddUnfreezable(address(_poolConfig.balancerFactory));
+        _token.ownerAddUnfreezable(address(_pool));
+
+        // The pool reserve must always be one of the redeemable assets.
+        _token.ownerAddRedeemable(_poolConfig.reserve);
 
         // Send all tokens to the pool immediately.
         // When the seed funds are raised `startRaise` will build a pool from these.
@@ -131,6 +134,11 @@ contract Trust {
         redeemInit = _redeemInit;
         token = _token;
         pool = _pool;
+    }
+
+    function creatorAddRedeemable(IERC20 _redeemable) external {
+        require(msg.sender == trustConfig.creator, "ERR_NOT_CREATOR");
+        token.ownerAddRedeemable(_redeemable);
     }
 
     // This function can be called by anyone!
@@ -156,7 +164,7 @@ contract Trust {
 
         TrustConfig memory _trustConfig = trustConfig;
         RedeemableERC20 _token = token;
-        IERC20 _reserve = _token.reserve();
+        IERC20 _reserve = pool.reserve();
         uint256 _reserveInit = _pool.reserveInit();
         uint256 _redeemInit = redeemInit;
 

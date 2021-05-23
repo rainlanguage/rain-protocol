@@ -66,7 +66,6 @@ describe("Trust", async function() {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        reserve: reserve.address,
         prestige: prestige.address,
         minimumStatus: minimumStatus,
         totalSupply: totalTokenSupply,
@@ -74,6 +73,7 @@ describe("Trust", async function() {
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
+        reserve: reserve.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
@@ -256,7 +256,6 @@ describe("Trust", async function() {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        reserve: reserve.address,
         prestige: prestige.address,
         minimumStatus: minimumStatus,
         totalSupply: totalTokenSupply,
@@ -264,6 +263,7 @@ describe("Trust", async function() {
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
+        reserve: reserve.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
@@ -423,7 +423,6 @@ describe("Trust", async function() {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        reserve: reserve.address,
         prestige: prestige.address,
         minimumStatus: minimumStatus,
         totalSupply: totalTokenSupply,
@@ -431,6 +430,7 @@ describe("Trust", async function() {
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
+        reserve: reserve.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),

@@ -21,11 +21,6 @@ struct RedeemableERC20Config {
     string name;
     // Symbol forwarded through to parent ERC20 contract.
     string symbol;
-    // Reserve can be any IERC20 token.
-    // IMPORTANT: It is up to the caller to define a reserve that will remain functional and outlive the RedeemableERC20.
-    // For example, USDC could freeze the tokens owned by the RedeemableERC20 contract or close their business.
-    // In either case the redeem function would be pointing at a dangling reserve balance.
-    IERC20 reserve;
     IPrestige prestige;
     IPrestige.Status minimumStatus;
     // Number of redeemable tokens to mint.
@@ -71,14 +66,18 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
     event Redeem(
         address _redeemer,
-        // Redeemable amount burned, Reserve amount out
-        uint256[2]
+        // Redeemable token burn amount.
+        uint256 _redeemAmount
     );
 
-    // This is the reserve token.
-    // It is openly visible to the world so people can verify the reserve token has value.
-    IERC20 public reserve;
+    event RedeemFail(
+        address _redeemer,
+        address _redeemable
+    );
+
     IPrestige.Status public minimumPrestigeStatus;
+
+    IERC20[] public redeemables;
 
     mapping(address => bool) public unfreezables;
 
@@ -92,23 +91,34 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         ERC20(_redeemableERC20Config.name, _redeemableERC20Config.symbol)
         PrestigeByConstruction(_redeemableERC20Config.prestige)
     {
-        reserve = _redeemableERC20Config.reserve;
         minimumPrestigeStatus = _redeemableERC20Config.minimumStatus;
 
         // Given that the owner can set unfreezables it makes no sense not to add them to the list.
         // OK, so there is extra gas in doing this, but it means fewer state reads during transfers.
         // We bypass the method here because owner has not yet been set so onlyOwner will throw.
         unfreezables[msg.sender] = true;
-        // Mint redeemable tokens according to the preset schedule.
+
         _mint(msg.sender, _redeemableERC20Config.totalSupply);
     }
 
-    function addUnfreezable(address _address)
+    function ownerAddUnfreezable(address _address)
         external
         onlyOwner
         onlyBlocked
     {
         unfreezables[_address] = true;
+    }
+
+    function ownerSetUnblockBlock(uint256 _unblockBlock) external onlyOwner {
+        setUnblockBlock(_unblockBlock);
+    }
+
+    function ownerAddRedeemable(IERC20 _redeemable) external onlyOwner {
+        // Somewhat arbitrary but we limit the length of redeemables to 8.
+        // 8 is actually a lot.
+        // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
+        require(redeemables.length < 8, "ERR_MAX_REDEEMABLES");
+        redeemables.push(_redeemable);
     }
 
     // Redeem tokens.
@@ -131,28 +141,44 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // The user that sent to 0x0 will lose their funds without recourse.
         // When super._burn() is called it correctly decreases the totalSupply.
         // When a user inadvertently or maliciously sends to 0x0 without burning we want to give more rewards to everyone else.
-        // We _could_ defensively call super._burn() here but it would open a griefing opportunity
+        // We _could_ defensively call _burn(address(0)) here but it would open a griefing opportunity
         // where someone can send dust to 0x0 and force the next redemption to pay for a burn.
         uint256 _circulatingSupply = totalSupply() - balanceOf(address(0));
 
-        // The fraction of the reserve we release is the fraction of the outstanding total supply passed in.
-        uint256 _reserveFraction = _redeemAmount.mul(Constants.ONE).div(_circulatingSupply);
-        uint256 _reserveRelease = reserve.balanceOf(address(this)).mul(_reserveFraction).div(Constants.ONE);
+        // The fraction of the redeemables we release is the fraction of the outstanding total supply passed in.
+        // Every redeemable is released in the same proportion.
+        uint256 _redeemFraction = _redeemAmount.mul(Constants.ONE).div(_circulatingSupply);
 
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
-        // _burn reverts internally if needed (e.g. if burn exceeds balance); there is no return value.
+        // _burn reverts internally if needed (e.g. if burn exceeds balance).
         _burn(msg.sender, _redeemAmount);
 
-        emit Redeem(msg.sender, [_redeemAmount, _reserveRelease]);
+        emit Redeem(msg.sender, _redeemAmount);
 
-        // External function call last.
-        // Send the reserve token to the redeemer.
-        reserve.safeTransfer(msg.sender, _reserveRelease);
-    }
+        // Clear the redeemables.
+        uint8 i;
+        uint256 len = redeemables.length;
+        IERC20 _redeemable;
+        uint256 _toRedeem;
+        for(i; i < len; i++) {
+            _redeemable = redeemables[i];
+            // Any one of the several redeemables may fail for some reason.
+            // Consider the case where a user needs to meet additional criteria (e.g. KYC) for some token.
+            // In this case _any_ of the redeemables may revert normally causing _all_ redeemables to revert.
+            // We use try/catch here to force all redemptions that may suceed for the user to continue.
+            try _redeemable.balanceOf(address(this)) returns (uint256 _redeemableBalance) {
+                _toRedeem = _redeemableBalance.mul(_redeemFraction).div(Constants.ONE);
+                try _redeemable.transfer(msg.sender, _toRedeem) {
 
-    function ownerSetUnblockBlock(uint256 _unblockBlock) external onlyOwner {
-        setUnblockBlock(_unblockBlock);
+                }
+                catch {
+                    emit RedeemFail(msg.sender, address(_redeemable));
+                }
+            } catch {
+                emit RedeemFail(msg.sender, address(_redeemable));
+            }
+        }
     }
 
     function _beforeTokenTransfer(
@@ -183,7 +209,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
             // Can burn.
             // Only owner and unfreezables can receive.
             require(
-                _receiver == address(0) || unfreezables[_receiver] == true,
+                _receiver == address(0) || unfreezables[_receiver],
                 "ERR_FROZEN"
             );
         } else {

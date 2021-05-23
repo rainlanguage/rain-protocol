@@ -26,6 +26,7 @@ import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol
 struct PoolConfig {
     CRPFactory crpFactory;
     BFactory balancerFactory;
+    IERC20 reserve;
     // Amount of reserve token to initialize the pool.
     // The starting/final weights are calculated against this.
     // This amount will be refunded to the Trust owner regardless whether the minRaise is met.
@@ -46,6 +47,10 @@ struct PoolConfig {
     // Final market cap must be at least _redeemInit + _minRaise + seedFee.
     // The Trust enforces this invariant to avoid final prices that are too low for the sale to succeed.
     uint256 finalValuation;
+    // Reserve can be any IERC20 token.
+    // IMPORTANT: It is up to the caller to define a reserve that will remain functional and outlive the RedeemableERC20.
+    // For example, USDC could freeze the tokens owned by the RedeemableERC20 contract or close their business.
+    // In either case the redeem function would be pointing at a dangling reserve balance.
 }
 
 contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
@@ -58,6 +63,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     // RedeemableERC20 token.
     RedeemableERC20 public token;
 
+    IERC20 public reserve;
     uint256 public reserveInit;
     uint256[] public targetWeights;
 
@@ -77,10 +83,11 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         ConfigurableRightsPool _crp = constructCrp(_token, _poolConfig, _poolAmounts, _startWeights);
 
         // Preapprove all tokens and reserve for the CRP.
-        _token.reserve().approve(address(_crp), _poolAmounts[0]);
-        _token.approve(address(_crp), _poolAmounts[1]);
+        _poolConfig.reserve.approve(address(_crp), _poolConfig.reserveInit);
+        _token.approve(address(_crp), _token.totalSupply());
 
         token = _token;
+        reserve = _poolConfig.reserve;
         reserveInit = _poolConfig.reserveInit;
         crp = _crp;
         targetWeights = _targetWeights;
@@ -158,7 +165,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     function constructCrp (RedeemableERC20 _token, PoolConfig memory _poolConfig, uint256[] memory _poolAmounts, uint256[] memory _startWeights) private returns (ConfigurableRightsPool) {
         // The addresses in the RedeemableERC20Pool, as [reserve, token].
         address[] memory _poolAddresses = new address[](2);
-        _poolAddresses[0] = address(_token.reserve());
+        _poolAddresses[0] = address(_poolConfig.reserve);
         _poolAddresses[1] = address(_token);
 
         return _poolConfig.crpFactory.newCrp(
@@ -184,7 +191,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     function init(address seeder) external withInit onlyOwner onlyBlocked {
         // Take reserves from seeder.
         // The Trust should already have sent all the tokens to the pool.
-        token.reserve().safeTransferFrom(
+        reserve.safeTransferFrom(
             seeder,
             address(this),
             reserveInit
@@ -212,9 +219,9 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         token.redeem(token.balanceOf(address(this)));
 
         // Send reserve back to owner (Trust) to be distributed to stakeholders.
-        token.reserve().safeTransfer(
+        reserve.safeTransfer(
             owner(),
-            token.reserve().balanceOf(address(this))
+            reserve.balanceOf(address(this))
         );
     }
 

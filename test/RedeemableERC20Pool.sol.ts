@@ -104,6 +104,7 @@ describe("RedeemableERC20Pool", async function() {
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
+                reserve: reserve.address,
                 reserveInit: reserveInit,
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
@@ -151,9 +152,9 @@ describe("RedeemableERC20Pool", async function() {
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
         const bPool = await pool.pool()
-        await redeemable.addUnfreezable(crp)
-        await redeemable.addUnfreezable(bFactory.address)
-        await redeemable.addUnfreezable(pool.address)
+        await redeemable.ownerAddUnfreezable(crp)
+        await redeemable.ownerAddUnfreezable(bFactory.address)
+        await redeemable.ownerAddUnfreezable(pool.address)
 
         Util.assertError(
             async () => await pool.exit(),
@@ -334,7 +335,6 @@ describe("RedeemableERC20Pool", async function() {
             {
                 name: tokenName,
                 symbol: tokenSymbol,
-                reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
@@ -371,6 +371,7 @@ describe("RedeemableERC20Pool", async function() {
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
+                reserve: reserve.address,
                 reserveInit: reserveInit,
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
@@ -404,9 +405,9 @@ describe("RedeemableERC20Pool", async function() {
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
         const bPool = await pool.pool()
-        await redeemable.addUnfreezable(crp)
-        await redeemable.addUnfreezable(bFactory.address)
-        await redeemable.addUnfreezable(pool.address)
+        await redeemable.ownerAddUnfreezable(crp)
+        await redeemable.ownerAddUnfreezable(bFactory.address)
+        await redeemable.ownerAddUnfreezable(pool.address)
 
         Util.assertError(
             async () => await pool.exit(),
@@ -460,7 +461,6 @@ describe("RedeemableERC20Pool", async function() {
             {
                 name: tokenName,
                 symbol: tokenSymbol,
-                reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
@@ -499,6 +499,7 @@ describe("RedeemableERC20Pool", async function() {
                     {
                         crpFactory: crpFactory.address,
                         balancerFactory: bFactory.address,
+                        reserve: reserve.address,
                         reserveInit: reserveInit,
                         initialValuation: initialValuation,
                         finalValuation: finalValuation,
@@ -550,7 +551,6 @@ describe("RedeemableERC20Pool", async function() {
             {
                 name: tokenName,
                 symbol: tokenSymbol,
-                reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
@@ -589,6 +589,7 @@ describe("RedeemableERC20Pool", async function() {
                     {
                         crpFactory: crpFactory.address,
                         balancerFactory: bFactory.address,
+                        reserve: reserve.address,
                         reserveInit: reserveInit,
                         initialValuation: initialValuation,
                         finalValuation: finalValuation,
@@ -640,7 +641,6 @@ describe("RedeemableERC20Pool", async function() {
             {
                 name: tokenName,
                 symbol: tokenSymbol,
-                reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
@@ -678,6 +678,7 @@ describe("RedeemableERC20Pool", async function() {
                 {
                     crpFactory: crpFactory.address,
                     balancerFactory: bFactory.address,
+                    reserve: reserve.address,
                     reserveInit: reserveInit,
                     initialValuation: initialValuation,
                     finalValuation: finalValuation,

@@ -58,6 +58,7 @@ describe("RedeemableERC20", async function() {
 
         await redeemableERC20.deployed()
         await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerAddRedeemable(reserve.address)
 
         // There are no reserve tokens in the redeemer on construction
         assert(
@@ -90,10 +91,6 @@ describe("RedeemableERC20", async function() {
         assert(
             (await redeemableERC20.owner()) === signers[0].address,
             'redeemable token not owned correctly'
-        )
-        assert(
-            (await redeemableERC20.reserve()) === reserve.address,
-            'redeemable token reserve not set'
         )
 
         // Redemption not allowed yet.
@@ -157,10 +154,9 @@ describe("RedeemableERC20", async function() {
         const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
         const expectedReserveRedemption = ethers.BigNumber.from('10' + Util.eighteenZeros)
         let redeemEvent = new Promise(resolve => {
-            redeemableERC20.once('Redeem', (redeemer, [redeem, reserve]) => {
+            redeemableERC20.once('Redeem', (redeemer, redeem) => {
                 assert(redeemer === signers[0].address, 'wrong redeemer address in event')
                 assert(redeem.eq(redeemAmount), 'wrong redemption amount in event')
-                assert(reserve.eq(expectedReserveRedemption), 'wrong reserve amount in event')
                 resolve(true)
             })
         })
@@ -212,9 +208,8 @@ describe("RedeemableERC20", async function() {
         while (i < 10) {
             console.log(`redemption check 1: ${i}`)
             let event = new Promise(resolve => {
-                redeemableERC20.once('Redeem', (redeemer, [redeem, reserve]) => {
+                redeemableERC20.once('Redeem', (redeemer, redeem) => {
                     assert(roughEqual(redeem, redeemAmount), `bad redemption ${redeem} ${redeemAmount}`)
-                    assert(roughEqual(reserve, expectedReserveRedemption), `bad redemption reserve ${reserve} ${expectedReserveRedemption}`)
                     resolve(true)
                 })
             })
@@ -232,9 +227,8 @@ describe("RedeemableERC20", async function() {
         while (i < 10) {
             console.log(`redemption check 2: ${2}`)
             let event = new Promise(resolve => {
-                redeemableERC20.once('Redeem', (redeemer, [redeem, reserve]) => {
+                redeemableERC20.once('Redeem', (redeemer, redeem) => {
                     assert(roughEqual(redeem, redeemAmount), `bad redemption ${redeem} ${redeemAmount}`)
-                    assert(roughEqual(reserve, expectedReserveRedemption2), `bad redemption reserve 2 ${reserve} ${expectedReserveRedemption2}`)
                     resolve(true)
                 })
             })
