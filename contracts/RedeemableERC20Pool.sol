@@ -202,7 +202,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // No time lock (we handle our own locks in the trust).
         ConfigurableRightsPool _crp = crp;
         _crp.createPool(BalancerConstants.MAX_POOL_SUPPLY, 0, 0);
-                // Calculate the CRP curve.
+        // Calculate the CRP curve.
         _crp.updateWeightsGradually(targetWeights, block.number, unblockBlock);
         pool = _crp.bPool();
     }
