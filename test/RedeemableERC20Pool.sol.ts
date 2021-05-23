@@ -4,6 +4,7 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ReserveToken } from '../typechain/ReserveToken'
 import type { Prestige } from '../typechain/Prestige'
+import { recoverAddress } from '@ethersproject/transactions'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -39,8 +40,6 @@ describe("RedeemableERC20Pool", async function() {
 
         const expectedRights = [false, false, true, true, false, false]
 
-        const expectedPoolAmounts = [reserveInit, totalTokenSupply]
-
         // Let's say we want to value the redeemable at 1 000 000 reserve
         // The pool has 50 000 reserve
         // So the weight needs to be 20:1
@@ -72,11 +71,11 @@ describe("RedeemableERC20Pool", async function() {
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
-                unblockBlock: unblockBlock,
             }
         )
 
         await redeemable.deployed()
+        await redeemable.ownerSetUnblockBlock(unblockBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -113,6 +112,7 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         await pool.deployed()
+        await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Trust normally does this internally.
         await redeemable.transfer(pool.address, await redeemable.totalSupply())
@@ -127,24 +127,6 @@ describe("RedeemableERC20Pool", async function() {
             assert(actualRight === expectedRight, `wrong right ${i} ${expectedRight} ${actualRight}`)
         }
 
-        let expectedPoolAmount;
-        for (let i = 0; expectedPoolAmount = expectedPoolAmounts[i]; i++) {
-            const actualPoolAmount = await pool.poolAmounts(i)
-            assert(
-                actualPoolAmount.eq(expectedPoolAmount),
-                `wrong pool amount ${i} ${expectedPoolAmount} ${actualPoolAmount}`
-            )
-        }
-
-        let expectedStartWeight;
-        for (let i = 0; expectedStartWeight = expectedStartWeights[i]; i++) {
-            const actualStartWeight = await pool.startWeights(i)
-            assert(
-                actualStartWeight.eq(expectedStartWeight),
-                `wrong start weight ${i} ${expectedStartWeight} ${actualStartWeight}`,
-            )
-        }
-
         let expectedTargetWeight;
         for (let i = 0; expectedTargetWeight = expectedTargetWeights[i]; i++) {
             const actualTargetWeight = await pool.targetWeights(i)
@@ -155,11 +137,11 @@ describe("RedeemableERC20Pool", async function() {
         }
         await reserve.approve(
             pool.address,
-            await pool.poolAmounts(0)
+            reserveInit
         )
         await redeemable.approve(
             pool.address,
-            await pool.poolAmounts(1)
+            totalTokenSupply
         )
 
         await pool.init(signers[0].address, {
@@ -356,11 +338,11 @@ describe("RedeemableERC20Pool", async function() {
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
-                unblockBlock: unblockBlock,
             }
         )
 
         await redeemable.deployed()
+        await redeemable.ownerSetUnblockBlock(unblockBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -397,6 +379,7 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         await pool.deployed()
+        await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Trust normally does this internally.
         await redeemable.transfer(pool.address, await redeemable.totalSupply())
@@ -407,11 +390,11 @@ describe("RedeemableERC20Pool", async function() {
 
         await reserve.approve(
             pool.address,
-            await pool.poolAmounts(0)
+            reserveInit
         )
         await redeemable.approve(
             pool.address,
-            await pool.poolAmounts(1)
+            totalTokenSupply
         )
 
         await pool.init(signers[0].address, {
@@ -481,11 +464,11 @@ describe("RedeemableERC20Pool", async function() {
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
-                unblockBlock: unblockBlock,
             }
         )
 
         await redeemable.deployed()
+        await redeemable.ownerSetUnblockBlock(unblockBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -571,11 +554,11 @@ describe("RedeemableERC20Pool", async function() {
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
-                unblockBlock: unblockBlock,
             }
         )
 
         await redeemable.deployed()
+        await redeemable.ownerSetUnblockBlock(unblockBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -661,11 +644,11 @@ describe("RedeemableERC20Pool", async function() {
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalTokenSupply,
-                unblockBlock: unblockBlock,
             }
         )
 
         await redeemable.deployed()
+        await redeemable.ownerSetUnblockBlock(unblockBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),

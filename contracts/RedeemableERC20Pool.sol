@@ -59,6 +59,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     RedeemableERC20 public token;
 
     uint256 public reserveInit;
+    uint256[] public targetWeights;
 
     ConfigurableRightsPool public crp;
     IBPool public pool;
@@ -79,12 +80,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         _token.reserve().approve(address(_crp), _poolAmounts[0]);
         _token.approve(address(_crp), _poolAmounts[1]);
 
-        // Calculate the CRP curve.
-        _crp.updateWeightsGradually(_targetWeights, block.number, unblockBlock);
-
         token = _token;
         reserveInit = _poolConfig.reserveInit;
         crp = _crp;
+        targetWeights = _targetWeights;
     }
 
     function poolAmounts (RedeemableERC20 _token, PoolConfig memory _poolConfig) private view returns (uint256[] memory) {
@@ -194,8 +193,11 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // Max pool tokens to minimise dust on exit.
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).
-        crp.createPool(BalancerConstants.MAX_POOL_SUPPLY, 0, 0);
-        pool = crp.bPool();
+        ConfigurableRightsPool _crp = crp;
+        _crp.createPool(BalancerConstants.MAX_POOL_SUPPLY, 0, 0);
+                // Calculate the CRP curve.
+        _crp.updateWeightsGradually(targetWeights, block.number, unblockBlock);
+        pool = _crp.bPool();
     }
 
     function exit() external onlyInit onlyOwner onlyUnblocked {

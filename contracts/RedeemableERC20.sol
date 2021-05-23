@@ -30,7 +30,6 @@ struct RedeemableERC20Config {
     IPrestige.Status minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
-    uint256 unblockBlock;
 }
 
 // RedeemableERC20 is an ERC20 issued in fixed ratio and redeemable for another ERC20 at a fixed block

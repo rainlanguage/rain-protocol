@@ -53,11 +53,11 @@ describe("RedeemableERC20", async function() {
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalSupply,
-                unblockBlock: unblockBlock
             }
         )
 
         await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
 
         // There are no reserve tokens in the redeemer on construction
         assert(
@@ -278,11 +278,11 @@ describe("RedeemableERC20", async function() {
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalSupply,
-                unblockBlock: unblockBlock
             }
         )
 
         await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
 
         // owner is made unfreezable during construction, so required token transfers can go ahead
         assert((await redeemableERC20.unfreezables(signers[0].address)), "owner not made unfreezable during construction")
@@ -327,11 +327,11 @@ describe("RedeemableERC20", async function() {
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalSupply,
-                unblockBlock: unblockBlock
             }
         )
 
         await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
 
         const redeemableERC20_SILVER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
         Util.assertError(

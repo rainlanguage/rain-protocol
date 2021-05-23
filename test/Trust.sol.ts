@@ -53,8 +53,7 @@ describe("Trust", async function() {
     const seeder = signers[0].address
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
-    const now = await ethers.provider.getBlockNumber()
-    const unblockBlock = now + 50
+    const raiseDuration = 50
 
     const trust = await trustFactory.deploy(
       {
@@ -62,6 +61,7 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder: seeder,
         seederFee: seederFee,
+        raiseDuration: raiseDuration,
       },
       {
         name: tokenName,
@@ -70,7 +70,6 @@ describe("Trust", async function() {
         prestige: prestige.address,
         minimumStatus: minimumStatus,
         totalSupply: totalTokenSupply,
-        unblockBlock: unblockBlock,
       },
       {
         crpFactory: crpFactory.address,
@@ -89,6 +88,7 @@ describe("Trust", async function() {
     await trust.startRaise({
       gasLimit: 100000000
     })
+    const startBlock = await ethers.provider.getBlockNumber()
 
     // users hit the minimum raise
     const spend1 = ethers.BigNumber.from('300' + Util.eighteenZeros)
@@ -163,7 +163,7 @@ describe("Trust", async function() {
       ethers.BigNumber.from('1000000' + Util.eighteenZeros)
     )
 
-    while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserve.transfer(signers[1].address, 1)
     }
 
@@ -187,7 +187,7 @@ describe("Trust", async function() {
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
     assert(
-      ethers.BigNumber.from('1804365142097232262011').eq(
+      ethers.BigNumber.from('1814826792606639364014').eq(
         reserveBalance1
       ),
       'wrong balance 1 after redemption: ' + reserveBalance1
@@ -201,7 +201,7 @@ describe("Trust", async function() {
     await token2.redeem(await token2.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
     assert(
-      ethers.BigNumber.from('195633608265583452440').eq(
+      ethers.BigNumber.from('185171905433423190443').eq(
         reserveBalance2
       ),
       'wrong balance 2 after redemption: ' + reserveBalance2
@@ -243,8 +243,7 @@ describe("Trust", async function() {
     const seeder = signers[0].address
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
-    const now = await ethers.provider.getBlockNumber()
-    const unblockBlock = now + 15
+    const raiseDuration = 15
 
     const trust = await trustFactory.deploy(
       {
@@ -252,6 +251,7 @@ describe("Trust", async function() {
         minCreatorRaise,
         seeder: seeder,
         seederFee,
+        raiseDuration: raiseDuration,
       },
       {
         name: tokenName,
@@ -260,7 +260,6 @@ describe("Trust", async function() {
         prestige: prestige.address,
         minimumStatus: minimumStatus,
         totalSupply: totalTokenSupply,
-        unblockBlock: unblockBlock,
       },
       {
         crpFactory: crpFactory.address,
@@ -279,6 +278,7 @@ describe("Trust", async function() {
     await trust.startRaise({
       gasLimit: 100000000
     })
+    const startBlock = await ethers.provider.getBlockNumber()
 
     // have a few signers buy some tokens
     await reserve.transfer(signers[1].address, ethers.BigNumber.from('1000' + Util.eighteenZeros))
@@ -340,7 +340,7 @@ describe("Trust", async function() {
     )
 
     // create a few blocks by sending some tokens around
-    while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserve.transfer(signers[1].address, 1)
     }
 
@@ -354,7 +354,7 @@ describe("Trust", async function() {
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
     assert(
-      ethers.BigNumber.from('759479979862994679088').eq(
+      ethers.BigNumber.from('814708998174540889153').eq(
         reserveBalance1
       ),
       'wrong balance 1 after redemption: ' + reserveBalance1
@@ -368,12 +368,11 @@ describe("Trust", async function() {
     await token2.redeem(await token1.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
     assert(
-      ethers.BigNumber.from('2240433654963901744119').eq(
+      ethers.BigNumber.from('2185199083413823513466').eq(
         reserveBalance2
       ),
       'wrong balance 2 after redemption: ' + reserveBalance2
     )
-
   })
 
   it("should create tokens", async function() {
@@ -411,8 +410,7 @@ describe("Trust", async function() {
     const seeder = signers[0].address
     const seederFee = ethers.BigNumber.from('0')
 
-    const now = await ethers.provider.getBlockNumber()
-    const unblockBlock = now + 10
+    const raiseDuration = 10
 
     const trust = await trustFactory.deploy(
       {
@@ -420,6 +418,7 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder: seeder,
         seederFee: seederFee,
+        raiseDuration: raiseDuration,
       },
       {
         name: tokenName,
@@ -428,7 +427,6 @@ describe("Trust", async function() {
         prestige: prestige.address,
         minimumStatus: minimumStatus,
         totalSupply: totalTokenSupply,
-        unblockBlock: unblockBlock,
       },
       {
         crpFactory: crpFactory.address,
@@ -447,9 +445,10 @@ describe("Trust", async function() {
     await trust.startRaise({
       gasLimit: 100000000
     })
+    const startBlock = await ethers.provider.getBlockNumber()
 
     // create a few blocks by sending some tokens around
-    while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserve.transfer(signers[1].address, 1)
     }
 
