@@ -165,35 +165,35 @@ contract Trust {
         TrustConfig memory _trustConfig = trustConfig;
         RedeemableERC20 _token = token;
         IERC20 _reserve = pool.reserve();
-        uint256 _reserveInit = _pool.reserveInit();
-        uint256 _redeemInit = redeemInit;
+        uint256 _seedInit = _pool.reserveInit();
+        uint256 _tokenPay = redeemInit;
 
         uint256 _finalBalance = _reserve.balanceOf(address(this));
-        uint256 _successBalance = _reserveInit.add(_trustConfig.seederFee).add(_redeemInit).add(_trustConfig.minCreatorRaise);
+        uint256 _successBalance = _seedInit.add(_trustConfig.seederFee).add(_tokenPay).add(_trustConfig.minCreatorRaise);
 
         // Base payments for each fundraiser.
-        uint256 _seedPay = 0;
+        uint256 _seederPay = 0;
         uint256 _creatorPay = 0;
 
         // Set aside the redemption and seed fee if we reached the minimum.
         if (_finalBalance >= _successBalance) {
             // The seeder gets the reserve + seed fee
-            _seedPay = _reserveInit.add(_trustConfig.seederFee);
+            _seederPay = _seedInit.add(_trustConfig.seederFee);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
             // Proof (assuming all positive integers):
             // final balance >= success balance
-            // AND seed pay = reserve init + seed fee
-            // AND success balance = reserve init + seed fee + redeem init + min raise
-            // SO success balance = seed pay + redeem init + min raise
-            // SO success balance >= seed pay + redeem init
-            // SO success balance - (seed pay + redeem init) >= 0
-            // SO final balance - (seed pay + redeem init) >= 0
+            // AND seed pay = seed init + seed fee
+            // AND success balance = seed init + seed fee + token pay + min raise
+            // SO success balance = seed pay + token pay + min raise
+            // SO success balance >= seed pay + token pay
+            // SO success balance - (seed pay + token pay) >= 0
+            // SO final balance - (seed pay + token pay) >= 0
             //
             // Implied is the remainder of _finalBalance as redeemInit
             // This will be transferred to the token holders below.
-            _creatorPay = _finalBalance.sub(_seedPay.add(_redeemInit));
+            _creatorPay = _finalBalance.sub(_seederPay.add(_tokenPay));
         }
         else {
             // If we did not reach the minimum the creator gets nothing.
@@ -202,7 +202,7 @@ contract Trust {
             // If we don't take the min then we will attempt to transfer more than exists and brick the contract.
             //
             // Implied if _finalBalance > reserve_init is the remainder goes to token holders below.
-            _seedPay = _reserveInit.min(_finalBalance);
+            _seederPay = _seedInit.min(_finalBalance);
         }
 
         if (_creatorPay > 0) {
@@ -214,7 +214,7 @@ contract Trust {
 
         _reserve.safeTransfer(
             _trustConfig.seeder,
-            _seedPay
+            _seederPay
         );
 
         // Send everything left to the token holders.

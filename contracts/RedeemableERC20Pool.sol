@@ -215,8 +215,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
             new uint256[](2)
         );
 
-        // Redeem/burn all unsold token inventory.
-        token.redeem(token.balanceOf(address(this)));
+        // Burn all unsold token inventory.
+        token.burn(token.balanceOf(address(this)));
 
         // Send reserve back to owner (Trust) to be distributed to stakeholders.
         reserve.safeTransfer(

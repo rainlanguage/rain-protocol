@@ -75,6 +75,11 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         address _redeemable
     );
 
+    event RedeemSuccess(
+        address _redeemer,
+        address _redeemable
+    );
+
     IPrestige.Status public minimumPrestigeStatus;
 
     IERC20[] public redeemables;
@@ -121,6 +126,10 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         redeemables.push(_redeemable);
     }
 
+    function burn(uint256 _burnAmount) external {
+        _burn(msg.sender, _burnAmount);
+    }
+
     // Redeem tokens.
     // Tokens can be _redeemed_ but NOT _transferred_ after the unblock block.
     //
@@ -136,18 +145,9 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
     function redeem(uint256 _redeemAmount) external onlyUnblocked {
-        // We have to allow direct transfers to address 0x0 in order for _burn to work.
-        // This is NEVER a good thing though.
-        // The user that sent to 0x0 will lose their funds without recourse.
-        // When super._burn() is called it correctly decreases the totalSupply.
-        // When a user inadvertently or maliciously sends to 0x0 without burning we want to give more rewards to everyone else.
-        // We _could_ defensively call _burn(address(0)) here but it would open a griefing opportunity
-        // where someone can send dust to 0x0 and force the next redemption to pay for a burn.
-        uint256 _circulatingSupply = totalSupply() - balanceOf(address(0));
-
         // The fraction of the redeemables we release is the fraction of the outstanding total supply passed in.
         // Every redeemable is released in the same proportion.
-        uint256 _redeemFraction = _redeemAmount.mul(Constants.ONE).div(_circulatingSupply);
+        uint256 _redeemFraction = _redeemAmount.mul(Constants.ONE).div(totalSupply());
 
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
@@ -170,7 +170,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
             try _redeemable.balanceOf(address(this)) returns (uint256 _redeemableBalance) {
                 _toRedeem = _redeemableBalance.mul(_redeemFraction).div(Constants.ONE);
                 try _redeemable.transfer(msg.sender, _toRedeem) {
-
+                    emit RedeemSuccess(msg.sender, address(_redeemable));
                 }
                 catch {
                     emit RedeemFail(msg.sender, address(_redeemable));
