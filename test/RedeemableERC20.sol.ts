@@ -606,4 +606,58 @@ describe("RedeemableERC20", async function() {
             "reserve 2 didn't transfer tokens to signer 1 upon redemption"
         );
     })
+
+    it('should prevent sending redeemable tokens to zero address', async function () {
+        this.timeout(0)
+
+        const TEN_TOKENS = ethers.BigNumber.from('10' + Util.eighteenZeros);
+
+        const signers = await ethers.getSigners()
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+
+        Util.assertError(
+            async () => await redeemableERC20.transfer(ethers.constants.AddressZero, TEN_TOKENS),
+            "revert ERC20: transfer to the zero address",
+            "owner sending redeemable tokens to zero address did not error"
+        )
+
+        await redeemableERC20.transfer(signers[1].address, TEN_TOKENS)
+
+        const redeemableERC20_1 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
+
+        Util.assertError(
+            async () => await redeemableERC20_1.transfer(ethers.constants.AddressZero, TEN_TOKENS),
+            "revert ERC20: transfer to the zero address",
+            "signer 1 sending redeemable tokens to zero address did not error"
+        )
+    })
 })
