@@ -17,6 +17,77 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
+  it('should enforce final valuation greater than fundraise success', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = 0
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    // does not account for `seedInit`/`reserveInit`, testing constructor only
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee) 
+
+    const raiseDuration = 50
+
+    Util.assertError(
+      async () => await trustFactory.deploy(
+        {
+          creator: signers[0].address,
+          minCreatorRaise: minCreatorRaise,
+          seeder: seeder,
+          seederFee: seederFee,
+          raiseDuration: raiseDuration,
+        },
+        {
+          name: tokenName,
+          symbol: tokenSymbol,
+          prestige: prestige.address,
+          minimumStatus: minimumStatus,
+          totalSupply: totalTokenSupply,
+        },
+        {
+          crpFactory: crpFactory.address,
+          balancerFactory: bFactory.address,
+          reserve: reserve.address,
+          reserveInit: reserveInit,
+          initialValuation: initialValuation,
+          finalValuation: successLevel.sub(1),
+        },
+        redeemInit,
+      ),
+      "revert ERR_MIN_FINAL_VALUATION",
+      "did not enforce restriction that final valuation larger than success level"
+    )
+  })
+
   it('should enforce minted tokens to be greater than liquidity', async function () {
     this.timeout(0)
 
