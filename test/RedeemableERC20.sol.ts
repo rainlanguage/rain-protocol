@@ -20,7 +20,7 @@ const JAWAD = 8;
 const statuses = [NIL, COPPER, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, CHAD, JAWAD]
 
 describe("RedeemableERC20", async function() {
-    xit("should lock tokens until redeemed", async function() {
+    it("should lock tokens until redeemed", async function() {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
