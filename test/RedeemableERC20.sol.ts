@@ -353,7 +353,7 @@ describe("RedeemableERC20", async function() {
 
     })
 
-    it('should return multiple redeemable assets upon redeeming, and failed redemptions should not prevent other redemptions', async function () {
+    it('should return multiple redeemable assets upon redeeming', async function () {
         this.timeout(0)
 
         const FIVE_TOKENS = ethers.BigNumber.from('5' + Util.eighteenZeros);
@@ -463,6 +463,7 @@ describe("RedeemableERC20", async function() {
                 resolve(true)
             })
         })
+
         await redeemableERC20_1.redeem(redeemAmount)
         await redeemEvent
 
@@ -511,27 +512,54 @@ describe("RedeemableERC20", async function() {
             (reserve2ContractBalanceBefore).sub(reserve2ContractBalanceAfter).eq(expectedReserve2Redemption),
             'wrong amount of reserve 2 at contract address'
         )
+    })
 
-        // TEST RESERVE BLACKLISTING ADDRESSES
+    it('should not prevent redeeming other redeemables when a redeemable transfer fails', async function () {
+        this.timeout(0)
+
+        const FIVE_TOKENS = ethers.BigNumber.from('5' + Util.eighteenZeros);
+        const TEN_TOKENS = ethers.BigNumber.from('10' + Util.eighteenZeros);
+        const TWENTY_TOKENS = ethers.BigNumber.from('20' + Util.eighteenZeros);
+
+        const signers = await ethers.getSigners()
+
+        const reserve1 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve2 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerAddRedeemable(reserve1.address)
+        await redeemableERC20.ownerAddRedeemable(reserve2.address)
 
         // reserve 1 blacklists signer 1. Signer 1 cannot receive reserve 1 upon redeeming contract tokens
         reserve1.ownerAddFreezable(signers[1].address)
-
-        // contract before blacklist redeem
-        const blacklistRedeemableContractTotalSupplyBefore = await redeemableERC20.totalSupply()
-        const blacklistReserve1ContractBalanceBefore = await reserve1.balanceOf(redeemableERC20.address)
-        const blacklistReserve2ContractBalanceBefore = await reserve2.balanceOf(redeemableERC20.address)
-
-        // Signer 1 before blacklist redeem 
-        const blacklistRedeemableSignerBalanceBefore = await redeemableERC20.balanceOf(signers[1].address)
-        const blacklistReserve1SignerBalanceBefore = await reserve1.balanceOf(signers[1].address)
-        const blacklistReserve2SignerBalanceBefore = await reserve2.balanceOf(signers[1].address)
-
-        const blacklistExpectedReserve1Redemption = 0;
-        const blacklistExpectedReserve2Redemption = 
-            redeemAmount
-            .mul(ethers.BigNumber.from(blacklistReserve2ContractBalanceBefore))
-            .div(ethers.BigNumber.from(blacklistRedeemableContractTotalSupplyBefore))
             
         const redeemFailEvent = new Promise(resolve => {
             redeemableERC20.once('RedeemFail', (redeemer, redeemable) => {
@@ -540,59 +568,42 @@ describe("RedeemableERC20", async function() {
                 resolve(true)
             })
         })
+
+        // signer 1
+        const redeemableERC20_1 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
+        // signer 2
+        const redeemableERC20_2 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
+
+        await redeemableERC20.transfer(signers[1].address, TEN_TOKENS)
+
+        // create a few blocks by sending some tokens around, after which redeeming now possible
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await redeemableERC20.transfer(signers[2].address, TEN_TOKENS)
+        }
+
+        const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(signers[1].address);
+
+        const redeemAmount = FIVE_TOKENS;
         
         // should succeed, despite emitting redeem fail event for one redeemable
         await redeemableERC20_1.redeem(redeemAmount) 
         await redeemFailEvent
+        
+        const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[1].address);
 
-        // contract after blacklist redeem
-        const blacklistRedeemableContractTotalSupplyAfter = await redeemableERC20.totalSupply()
-        const blacklistReserve1ContractBalanceAfter = await reserve1.balanceOf(redeemableERC20.address)
-        const blacklistReserve2ContractBalanceAfter = await reserve2.balanceOf(redeemableERC20.address)
-
-        // Signer 1 after blacklist redeem
-        const blacklistRedeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[1].address)
-        const blacklistReserve1SignerBalanceAfter = await reserve1.balanceOf(signers[1].address)
-        const blacklistReserve2SignerBalanceAfter = await reserve2.balanceOf(signers[1].address)
-
-        // signer 1 has redeemed all contract tokens (5 tokens and 5 tokens again)
-        // signer 1 should not receive reserve 1 tokens (blacklisted), but will receive reserve 2 tokens
-        assert((await redeemableERC20.balanceOf(signers[1].address)).eq(0))
-
-        // total supply of contract tokens should be 5 less
         assert(
-            (blacklistRedeemableContractTotalSupplyBefore).sub(blacklistRedeemableContractTotalSupplyAfter).eq(redeemAmount),
-            `wrong amount of total token supply after ${redeemAmount} were redeemed ${blacklistRedeemableContractTotalSupplyBefore} ${blacklistRedeemableContractTotalSupplyAfter}` 
+            redeemableSignerBalanceBefore.sub(redeemableSignerBalanceAfter).eq(redeemAmount), 
+            "wrong number of redeemable tokens redeemed"
         )
 
-        // signer should have redeemed other half of their redeemable tokens
         assert(
-            blacklistRedeemableSignerBalanceBefore.sub(blacklistRedeemableSignerBalanceAfter).eq(redeemAmount),
-            'wrong number of redeemable tokens redeemed'
-        )
+            (await reserve1.balanceOf(signers[1].address)).eq(0), 
+            "reserve 1 transferred tokens to signer 1 upon redemption, despite being blacklisted"
+        );
 
-        // signer should have gained no reserve 1 tokens
         assert(
-            blacklistReserve1SignerBalanceAfter.sub(blacklistReserve1SignerBalanceBefore).eq(blacklistExpectedReserve1Redemption),
-            `blacklisted address received reserve 1 tokens ${blacklistReserve1SignerBalanceBefore} ${blacklistReserve1SignerBalanceAfter}, expected ${blacklistExpectedReserve1Redemption}`
-        )
-
-        // signer should have gained fraction of reserve 2 tokens
-        assert(
-            blacklistReserve2SignerBalanceAfter.sub(blacklistReserve2SignerBalanceBefore).eq(blacklistExpectedReserve2Redemption),
-            `wrong number of reserve 2 tokens released ${blacklistReserve2SignerBalanceBefore} ${blacklistReserve2SignerBalanceAfter}, expected ${blacklistExpectedReserve2Redemption}`
-        )
-
-        // reserve 1 amount at contract address should not change
-        assert(
-            (blacklistReserve1ContractBalanceBefore).sub(blacklistReserve1ContractBalanceAfter).eq(blacklistExpectedReserve1Redemption), // 0
-            'wrong amount of reserve 1 at contract address'
-        )
-
-        // reserve 2 amount at contract address should reduce
-        assert(
-            (blacklistReserve2ContractBalanceBefore).sub(blacklistReserve2ContractBalanceAfter).eq(blacklistExpectedReserve2Redemption),
-            `wrong amount of reserve 2 at contract address ${blacklistReserve2ContractBalanceBefore} ${blacklistReserve2ContractBalanceAfter}`
-        )
+            !(await reserve2.balanceOf(signers[1].address)).eq(0), 
+            "reserve 2 didn't transfer tokens to signer 1 upon redemption"
+        );
     })
 })
