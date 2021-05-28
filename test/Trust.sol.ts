@@ -17,6 +17,108 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
+  it('should transfer correct value to seeder when claiming on failed raise', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = 0
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder: seeder,
+        seederFee: seederFee,
+        raiseDuration: raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus: minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit: reserveInit,
+        initialValuation: initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+    
+    await trust.deployed()
+
+    // seeder needs some cash, give some (0.5 billion USD) to seeder
+    await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
+
+    const seederReserveBeforeRaise = await reserve.balanceOf(seeder)
+    
+    // seeder must approve before pool init
+    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    
+    await trust.startRaise({ gasLimit: 100000000 })
+    
+    const startBlock = await ethers.provider.getBlockNumber()
+    
+    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      await reserve.transfer(signers[2].address, 1)
+    }
+    
+    const trustReserveBeforeEndRaise = await reserve.balanceOf(trust.address)
+    const seederReserveBeforeEndRaise = await reserve.balanceOf(seeder)
+    
+    await trust.endRaise()
+    
+    const seederReserveAfterEndRaise = await reserve.balanceOf(seeder)
+
+    // on failed raise, seeder gets final balance
+    assert(
+      seederReserveAfterEndRaise.eq(seederReserveBeforeEndRaise.add(trustReserveBeforeEndRaise)),
+      `wrong reserve amount transferred to seeder after raise ended 
+      ${seederReserveAfterEndRaise} = 
+      ${seederReserveBeforeEndRaise} + ${trustReserveBeforeEndRaise} 
+      (${seederReserveBeforeEndRaise.add(trustReserveBeforeEndRaise)})`
+    )
+  })
+
   it('should move all seeder funds to the pool', async function () {
     this.timeout(0)
 
@@ -85,11 +187,11 @@ describe("Trust", async function() {
     await trust.deployed()
 
     // seeder needs some cash, give everything (1 billion USD) to seeder
-    await reserve.transfer(signers[1].address, await reserve.balanceOf(signers[0].address))
+    await reserve.transfer(seeder, await reserve.balanceOf(signers[0].address))
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
 
-    const seederReserveBefore = await reserve.balanceOf(signers[1].address)
+    const seederReserveBeforeStart = await reserve.balanceOf(seeder)
     
     Util.assertError(async () => 
       await trust.startRaise({ gasLimit: 100000000 }),
@@ -102,11 +204,11 @@ describe("Trust", async function() {
     
     await trust.startRaise({ gasLimit: 100000000 })
 
-    const seederReserveAfter = await reserve.balanceOf(signers[1].address)
+    const seederReserveAfterStart = await reserve.balanceOf(seeder)
 
     assert(
-      seederReserveBefore.sub(seederReserveAfter).eq(reserveInit),
-      `wrong reserve amount moved to pool ${seederReserveBefore} ${seederReserveAfter}`
+      seederReserveBeforeStart.sub(seederReserveAfterStart).eq(reserveInit),
+      `wrong reserve amount moved to pool ${seederReserveBeforeStart} ${seederReserveAfterStart}`
     )
   })
 
