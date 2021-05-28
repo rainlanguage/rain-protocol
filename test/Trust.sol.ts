@@ -146,7 +146,7 @@ describe("Trust", async function() {
           reserve: reserve.address,
           reserveInit: totalTokenSupply.add(1),
           initialValuation: initialValuation,
-          finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
+          finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
         },
         redeemInit,
       ),
@@ -244,8 +244,8 @@ describe("Trust", async function() {
           balancerFactory: bFactory.address,
           reserve: reserve.address,
           reserveInit: reserveInit,
-          initialValuation: redeemInit.add(minCreatorRaise).add(seederFee).sub(1),
-          finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
+          initialValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit).sub(1),
+          finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
         },
         redeemInit,
       ),
@@ -312,7 +312,7 @@ describe("Trust", async function() {
         reserve: reserve.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
-        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
     )
@@ -413,7 +413,7 @@ describe("Trust", async function() {
         reserve: reserve.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
-        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
     )
@@ -524,7 +524,7 @@ describe("Trust", async function() {
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
     assert(
-      ethers.BigNumber.from('1814826792606639364014').eq(
+      ethers.BigNumber.from('1829852661873618766014').eq(
         reserveBalance1
       ),
       'wrong balance 1 after redemption: ' + reserveBalance1
@@ -538,7 +538,7 @@ describe("Trust", async function() {
     await token2.redeem(await token2.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
     assert(
-      ethers.BigNumber.from('185171905433423190443').eq(
+      ethers.BigNumber.from('170145949097001907750').eq(
         reserveBalance2
       ),
       'wrong balance 2 after redemption: ' + reserveBalance2
@@ -603,7 +603,7 @@ describe("Trust", async function() {
         reserve: reserve.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
-        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
     )
@@ -691,7 +691,7 @@ describe("Trust", async function() {
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
     assert(
-      ethers.BigNumber.from('814708998174540889153').eq(
+      ethers.BigNumber.from('841318037715972798048').eq(
         reserveBalance1
       ),
       'wrong balance 1 after redemption: ' + reserveBalance1
@@ -705,7 +705,7 @@ describe("Trust", async function() {
     await token2.redeem(await token1.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
     assert(
-      ethers.BigNumber.from('2185199083413823513466').eq(
+      ethers.BigNumber.from('2158587368352380585586').eq(
         reserveBalance2
       ),
       'wrong balance 2 after redemption: ' + reserveBalance2
@@ -770,7 +770,7 @@ describe("Trust", async function() {
         reserve: reserve.address,
         reserveInit: reserveInit,
         initialValuation: initialValuation,
-        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
     )
