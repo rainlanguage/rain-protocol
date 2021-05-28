@@ -8,6 +8,17 @@ import type { Prestige } from '../typechain/Prestige'
 chai.use(solidity)
 const { expect, assert } = chai
 
+const NIL = 0;
+const COPPER = 1;
+const BRONZE = 2;
+const SILVER = 3;
+const GOLD = 4;
+const PLATINUM = 5;
+const DIAMOND = 6;
+const CHAD = 7;
+const JAWAD = 8;
+const statuses = [NIL, COPPER, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, CHAD, JAWAD]
+
 describe("RedeemableERC20", async function() {
     it("should lock tokens until redeemed", async function() {
         this.timeout(0)
@@ -22,14 +33,14 @@ describe("RedeemableERC20", async function() {
             'Prestige'
         )
         const prestige = await prestigeFactory.deploy() as Prestige
-        const minimumStatus = 0
+        const minimumStatus = NIL
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
         )
         const tokenName = 'RedeemableERC20'
         const tokenSymbol = 'RDX'
-        const mintInit = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
 
         const now = await ethers.provider.getBlockNumber()
         const unblockBlock = now + 8
@@ -41,12 +52,13 @@ describe("RedeemableERC20", async function() {
                 reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
-                mintInit: mintInit,
-                unblockBlock: unblockBlock
+                totalSupply: totalSupply,
             }
         )
 
         await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerAddRedeemable(reserve.address)
 
         // There are no reserve tokens in the redeemer on construction
         assert(
@@ -56,8 +68,8 @@ describe("RedeemableERC20", async function() {
 
         // There are no redeemable tokens created on construction
         assert(
-            (await redeemableERC20.totalSupply()).eq(mintInit),
-            `total supply was not ${mintInit} on redeemable construction`
+            (await redeemableERC20.totalSupply()).eq(totalSupply),
+            `total supply was not ${totalSupply} on redeemable construction`
         )
 
         // The unblock block is not set (i.e. contract is blocked)
@@ -79,14 +91,6 @@ describe("RedeemableERC20", async function() {
         assert(
             (await redeemableERC20.owner()) === signers[0].address,
             'redeemable token not owned correctly'
-        )
-        assert(
-            (await redeemableERC20.mintInit()).eq(mintInit),
-            'redeemable token ratio not set'
-        )
-        assert(
-            (await redeemableERC20.reserve()) === reserve.address,
-            'redeemable token reserve not set'
         )
 
         // Redemption not allowed yet.
@@ -112,9 +116,6 @@ describe("RedeemableERC20", async function() {
             'self send was not blocked'
         )
 
-        // owner can unfreeze themselves (and others) _before_ unblocking.
-        await redeemableERC20.addUnfreezable(signers[0].address)
-
         // create a few blocks by sending some tokens around
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await redeemableERC20.transfer(signers[1].address, 1)
@@ -137,6 +138,8 @@ describe("RedeemableERC20", async function() {
             'revert ERR_FROZEN',
             'funds were not frozen 2'
         )
+
+        // pool exits and reserve tokens sent to redeemable ERC20 address
         const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
         await reserve.transfer(redeemableERC20.address, reserveTotal)
 
@@ -151,10 +154,9 @@ describe("RedeemableERC20", async function() {
         const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
         const expectedReserveRedemption = ethers.BigNumber.from('10' + Util.eighteenZeros)
         let redeemEvent = new Promise(resolve => {
-            redeemableERC20.once('Redeem', (redeemer, redeem, reserve) => {
+            redeemableERC20.once('Redeem', (redeemer, redeem) => {
                 assert(redeemer === signers[0].address, 'wrong redeemer address in event')
                 assert(redeem.eq(redeemAmount), 'wrong redemption amount in event')
-                assert(reserve.eq(expectedReserveRedemption), 'wrong reserve amount in event')
                 resolve(true)
             })
         })
@@ -206,9 +208,8 @@ describe("RedeemableERC20", async function() {
         while (i < 10) {
             console.log(`redemption check 1: ${i}`)
             let event = new Promise(resolve => {
-                redeemableERC20.once('Redeem', (redeemer, redeem, reserve) => {
+                redeemableERC20.once('Redeem', (redeemer, redeem) => {
                     assert(roughEqual(redeem, redeemAmount), `bad redemption ${redeem} ${redeemAmount}`)
-                    assert(roughEqual(reserve, expectedReserveRedemption), `bad redemption reserve ${reserve} ${expectedReserveRedemption}`)
                     resolve(true)
                 })
             })
@@ -226,9 +227,8 @@ describe("RedeemableERC20", async function() {
         while (i < 10) {
             console.log(`redemption check 2: ${2}`)
             let event = new Promise(resolve => {
-                redeemableERC20.once('Redeem', (redeemer, redeem, reserve) => {
+                redeemableERC20.once('Redeem', (redeemer, redeem) => {
                     assert(roughEqual(redeem, redeemAmount), `bad redemption ${redeem} ${redeemAmount}`)
-                    assert(roughEqual(reserve, expectedReserveRedemption2), `bad redemption reserve 2 ${reserve} ${expectedReserveRedemption2}`)
                     resolve(true)
                 })
             })
@@ -236,5 +236,122 @@ describe("RedeemableERC20", async function() {
             await event
             i++
         }
+    })
+
+    it('should allow token transfers in constructor regardless of owner prestige level', async function() {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const reserve = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = COPPER
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                reserve: reserve.address,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+
+        // owner is made unfreezable during construction, so required token transfers can go ahead
+        assert((await redeemableERC20.unfreezables(signers[0].address)), "owner not made unfreezable during construction")
+    })
+
+    it('should allow transfer only if redeemer meets minimum prestige level', async function() {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const reserve = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = GOLD
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        // grant second signer GOLD status so they can receive transferred tokens
+        await prestige.setStatus(signers[1].address, GOLD, [])
+        // grant third signer SILVER status which is NOT enough to receive transfers
+        await prestige.setStatus(signers[2].address, SILVER, [])
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                reserve: reserve.address,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+
+        const redeemableERC20_SILVER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
+        Util.assertError(
+            async () => await redeemableERC20.transfer(signers[2].address, 1),
+            "revert ERR_MIN_STATUS",
+            "user could receive transfers despite not meeting minimum status"
+        )
+
+        // create a few blocks by sending some tokens around, after which redeeming now possible
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await redeemableERC20.transfer(signers[1].address, 1)
+        }
+
+        // pool exits and reserve tokens sent to redeemable ERC20 address
+        const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
+        await reserve.transfer(redeemableERC20.address, reserveTotal)
+
+        // GOLD signer can redeem.
+        await redeemableERC20.redeem(1)
+
+        // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
+        Util.assertError(
+            async () => await redeemableERC20_SILVER.redeem(1),
+            "revert ERC20: burn amount exceeds balance",
+            "user could transfer despite not meeting minimum status"
+        )
+
     })
 })
