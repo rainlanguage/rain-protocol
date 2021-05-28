@@ -52,8 +52,7 @@ describe("Trust", async function() {
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
-    // does not account for `seedInit`/`reserveInit`, testing constructor only
-    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee) 
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
     const raiseDuration = 50
 

@@ -107,7 +107,7 @@ contract Trust {
         require(_redeemableERC20Config.totalSupply >= _poolConfig.reserveInit, "ERR_MIN_TOKEN_SUPPLY");
         require(_poolConfig.reserveInit > 0, "ERR_MIN_RESERVE");
         require(_poolConfig.initialValuation >= _poolConfig.finalValuation, "ERR_MIN_INITIAL_VALUTION");
-        require(_poolConfig.finalValuation >= _redeemInit.add(_trustConfig.minCreatorRaise).add(_trustConfig.seederFee), "ERR_MIN_FINAL_VALUATION");
+        require(_poolConfig.finalValuation >= _redeemInit.add(_trustConfig.minCreatorRaise).add(_trustConfig.seederFee).add(_poolConfig.reserveInit), "ERR_MIN_FINAL_VALUATION");
 
         RedeemableERC20 _token = new RedeemableERC20(
             _redeemableERC20Config
