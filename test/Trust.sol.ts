@@ -17,6 +17,106 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
+  it('should be able to exit trust if creator does not end raise', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = 0
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const raiseDuration = 50
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder: seeder,
+        seederFee: seederFee,
+        raiseDuration: raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus: minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit: reserveInit,
+        initialValuation: initialValuation,
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+
+    // seeder needs some cash, give everything (1 billion USD) to seeder
+    await reserve.transfer(signers[1].address, await reserve.balanceOf(signers[0].address))
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
+    await reserveSeeder.approve(await trust.pool(), reserveInit)
+
+    await trust.startRaise({
+      gasLimit: 100000000
+    })
+    
+    const startBlock = await ethers.provider.getBlockNumber()
+
+    const trust2 = new ethers.Contract(trust.address, trust.interface, signers[2])
+    // some other signer triggers trust to exit before unblock, should fail
+    Util.assertError(
+      async () => await trust2.endRaise(),
+      "revert ERR_ONLY_UNBLOCKED",
+      "trust exited before unblock"
+    )
+
+    // create a few blocks by sending some tokens around
+    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      await reserveSeeder.transfer(signers[1].address, 1)
+    }
+
+    // some other signer triggers trust to exit after unblock, should succeed
+    await trust2.endRaise()
+
+    // trust should no longer hold any reserve
+    assert(
+      (await reserve.balanceOf(trust.address)).eq(0), 
+      "trust still holds non-zero reserve balance"
+    )
+  })
+
   it('should NOT refund successful raise', async function() {
     this.timeout(0)
 

@@ -49,7 +49,6 @@ describe("RedeemableERC20", async function() {
             {
                 name: tokenName,
                 symbol: tokenSymbol,
-                reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalSupply,
@@ -153,7 +152,8 @@ describe("RedeemableERC20", async function() {
         // redemption should emit this
         const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
         const expectedReserveRedemption = ethers.BigNumber.from('10' + Util.eighteenZeros)
-        let redeemEvent = new Promise(resolve => {
+        // signer redeems all tokens they have for fraction of each redeemable asset
+        const redeemEvent = new Promise(resolve => {
             redeemableERC20.once('Redeem', (redeemer, redeem) => {
                 assert(redeemer === signers[0].address, 'wrong redeemer address in event')
                 assert(redeem.eq(redeemAmount), 'wrong redemption amount in event')
@@ -268,7 +268,6 @@ describe("RedeemableERC20", async function() {
             {
                 name: tokenName,
                 symbol: tokenSymbol,
-                reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalSupply,
@@ -317,7 +316,6 @@ describe("RedeemableERC20", async function() {
             {
                 name: tokenName,
                 symbol: tokenSymbol,
-                reserve: reserve.address,
                 prestige: prestige.address,
                 minimumStatus: minimumStatus,
                 totalSupply: totalSupply,
@@ -353,5 +351,315 @@ describe("RedeemableERC20", async function() {
             "user could transfer despite not meeting minimum status"
         )
 
+    })
+
+    it('should return multiple redeemable assets upon redeeming', async function () {
+        this.timeout(0)
+
+        const FIVE_TOKENS = ethers.BigNumber.from('5' + Util.eighteenZeros);
+        const TEN_TOKENS = ethers.BigNumber.from('10' + Util.eighteenZeros);
+        const TWENTY_TOKENS = ethers.BigNumber.from('20' + Util.eighteenZeros);
+
+        const signers = await ethers.getSigners()
+
+        const reserve1 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve2 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerAddRedeemable(reserve1.address)
+        await redeemableERC20.ownerAddRedeemable(reserve2.address)
+
+        // There are no reserve tokens in the redeemer on construction
+        assert(
+            (await reserve1.balanceOf(redeemableERC20.address)).eq(0) && (await reserve2.balanceOf(redeemableERC20.address)).eq(0),
+            'reserve was not 0 on redeemable construction',
+        )
+
+        await redeemableERC20.transfer(signers[1].address, TEN_TOKENS)
+        
+        // create a few blocks by sending some tokens around, after which redeeming now possible
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await redeemableERC20.transfer(signers[2].address, TEN_TOKENS)
+        }
+
+        // at this point signer[1] should have 10 tokens
+        assert((await redeemableERC20.balanceOf(signers[1].address)).eq(TEN_TOKENS), "signer[1] does not have a balance of 10 tokens")
+        // at this point signer[2] should have 20 tokens
+        assert((await redeemableERC20.balanceOf(signers[2].address)).eq(TWENTY_TOKENS), "signer[2] does not have a balance of 20 tokens")
+
+        // pool exits and reserve tokens sent to redeemable ERC20 address
+        const reserve1Total = ethers.BigNumber.from('1000' + Util.eighteenZeros)
+        const reserve2Total = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+
+        // move all reserve tokens, to become redeemables
+        await reserve1.transfer(redeemableERC20.address, reserve1Total)
+        await reserve2.transfer(redeemableERC20.address, reserve2Total)
+
+        // contract should hold correct redeemables
+        assert((await reserve1.balanceOf(redeemableERC20.address)).eq(reserve1Total), "contract does not hold correct amount of reserve 1 tokens")
+        assert((await reserve2.balanceOf(redeemableERC20.address)).eq(reserve2Total), "contract does not hold correct amount of reserve 2 tokens")
+
+        // signer 1
+        const redeemableERC20_1 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
+
+        // contract before
+        const redeemableContractTotalSupplyBefore = await redeemableERC20.totalSupply()
+        const reserve1ContractBalanceBefore = await reserve1.balanceOf(redeemableERC20.address)
+        const reserve2ContractBalanceBefore = await reserve2.balanceOf(redeemableERC20.address)
+
+        // Signer before
+        const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(signers[1].address)
+        const reserve1SignerBalanceBefore = await reserve1.balanceOf(signers[1].address)
+        const reserve2SignerBalanceBefore = await reserve2.balanceOf(signers[1].address)
+
+        // redeem half of signer 1 holding
+        const redeemAmount = FIVE_TOKENS;
+
+        // expect every redeemable released in the same proportion.
+        const expectedReserve1Redemption = 
+            redeemAmount
+            .mul(ethers.BigNumber.from(reserve1ContractBalanceBefore))
+            .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
+        const expectedReserve2Redemption = 
+            redeemAmount
+            .mul(ethers.BigNumber.from(reserve2ContractBalanceBefore))
+            .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
+
+        // signer redeems all tokens they have for fraction of each redeemable asset
+        const redeemEvent = new Promise(resolve => {
+            redeemableERC20.once('Redeem', (redeemer, redeem) => {
+                assert(redeemer === signers[1].address, 'wrong redeemer address in event')
+                assert(redeem.eq(redeemAmount), 'wrong redemption amount in event')
+                resolve(true)
+            })
+        })
+
+        await redeemableERC20_1.redeem(redeemAmount)
+        await redeemEvent
+
+        // contract after
+        const redeemableContractTotalSupplyAfter = await redeemableERC20.totalSupply()
+        const reserve1ContractBalanceAfter = await reserve1.balanceOf(redeemableERC20.address)
+        const reserve2ContractBalanceAfter = await reserve2.balanceOf(redeemableERC20.address)
+
+        // Signer after
+        const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[1].address)
+        const reserve1SignerBalanceAfter = await reserve1.balanceOf(signers[1].address)
+        const reserve2SignerBalanceAfter = await reserve2.balanceOf(signers[1].address)
+
+        // signer should have redeemed half of their redeemable tokens
+        assert(
+            redeemableSignerBalanceBefore.sub(redeemableSignerBalanceAfter).eq(redeemAmount),
+            'wrong number of redeemable tokens redeemed'
+        )
+
+        // signer should have gained fraction of reserve 1 tokens
+        assert(
+            reserve1SignerBalanceAfter.sub(reserve1SignerBalanceBefore).eq(expectedReserve1Redemption),
+            `wrong number of reserve 1 tokens released ${reserve1SignerBalanceBefore} ${reserve1SignerBalanceAfter}, expected ${expectedReserve1Redemption}`
+        )
+
+        // signer should have gained fraction of reserve 2 tokens
+        assert(
+            reserve2SignerBalanceAfter.sub(reserve2SignerBalanceBefore).eq(expectedReserve2Redemption),
+            `wrong number of reserve 2 tokens released ${reserve2SignerBalanceBefore} ${reserve2SignerBalanceAfter}, expected ${expectedReserve2Redemption}`
+        )
+
+        // total supply of contract tokens should be 5 less
+        assert(
+            (redeemableContractTotalSupplyBefore).sub(redeemableContractTotalSupplyAfter).eq(redeemAmount),
+            `wrong amount of total token supply after ${redeemAmount} were redeemed ${redeemableContractTotalSupplyBefore} ${redeemableContractTotalSupplyAfter}` 
+        )
+
+        // reserve 1 amount at contract address should reduce
+        assert(
+            (reserve1ContractBalanceBefore).sub(reserve1ContractBalanceAfter).eq(expectedReserve1Redemption),
+            'wrong amount of reserve 1 at contract address'
+        )
+
+        // reserve 2 amount at contract address should reduce
+        assert(
+            (reserve2ContractBalanceBefore).sub(reserve2ContractBalanceAfter).eq(expectedReserve2Redemption),
+            'wrong amount of reserve 2 at contract address'
+        )
+    })
+
+    it('should not prevent redeeming other redeemables when a redeemable transfer fails', async function () {
+        this.timeout(0)
+
+        const FIVE_TOKENS = ethers.BigNumber.from('5' + Util.eighteenZeros);
+        const TEN_TOKENS = ethers.BigNumber.from('10' + Util.eighteenZeros);
+        const TWENTY_TOKENS = ethers.BigNumber.from('20' + Util.eighteenZeros);
+
+        const signers = await ethers.getSigners()
+
+        const reserve1 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve2 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerAddRedeemable(reserve1.address)
+        await redeemableERC20.ownerAddRedeemable(reserve2.address)
+
+        await reserve2.transfer(redeemableERC20.address, await reserve2.totalSupply())
+
+        // reserve 1 blacklists signer 1. Signer 1 cannot receive reserve 1 upon redeeming contract tokens
+        reserve1.ownerAddFreezable(signers[1].address)
+
+        const redeemFailEvent = new Promise(resolve => {
+            redeemableERC20.once('RedeemFail', (redeemer, redeemable) => {
+                assert(redeemer === signers[1].address, 'wrong redeemer address in event')
+                assert(redeemable === reserve1.address, 'wrong reserve address in event')
+                resolve(true)
+            })
+        })
+
+        // signer 1
+        const redeemableERC20_1 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
+        // signer 2
+        const redeemableERC20_2 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
+
+        await redeemableERC20.transfer(signers[1].address, TEN_TOKENS)
+
+        // create a few blocks by sending some tokens around, after which redeeming now possible
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await redeemableERC20.transfer(signers[2].address, TEN_TOKENS)
+        }
+
+        const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(signers[1].address);
+
+        const redeemAmount = FIVE_TOKENS;
+
+        // should succeed, despite emitting redeem fail event for one redeemable
+        await redeemableERC20_1.redeem(redeemAmount)
+
+        const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[1].address);
+
+        assert(
+            redeemableSignerBalanceBefore.sub(redeemableSignerBalanceAfter).eq(redeemAmount),
+            "wrong number of redeemable tokens redeemed"
+        )
+
+        assert(
+            (await reserve1.balanceOf(signers[1].address)).eq(0),
+            "reserve 1 transferred tokens to signer 1 upon redemption, despite being blacklisted"
+        );
+
+        const reserve2Balance = await reserve2.balanceOf(signers[1].address)
+        assert(
+            !(reserve2Balance).eq(0),
+            `reserve 2 didn't transfer tokens to signer 1 upon redemption. Reserve 2: ${reserve2.address}, Signer: ${signers[1].address}, Balance: ${reserve2Balance}`
+        );
+    })
+
+    it('should prevent sending redeemable tokens to zero address', async function () {
+        this.timeout(0)
+
+        const TEN_TOKENS = ethers.BigNumber.from('10' + Util.eighteenZeros);
+
+        const signers = await ethers.getSigners()
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+
+        const minimumStatus = NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+
+        Util.assertError(
+            async () => await redeemableERC20.transfer(ethers.constants.AddressZero, TEN_TOKENS),
+            "revert ERC20: transfer to the zero address",
+            "owner sending redeemable tokens to zero address did not error"
+        )
+
+        await redeemableERC20.transfer(signers[1].address, TEN_TOKENS)
+
+        const redeemableERC20_1 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
+
+        Util.assertError(
+            async () => await redeemableERC20_1.transfer(ethers.constants.AddressZero, TEN_TOKENS),
+            "revert ERC20: transfer to the zero address",
+            "signer 1 sending redeemable tokens to zero address did not error"
+        )
     })
 })
