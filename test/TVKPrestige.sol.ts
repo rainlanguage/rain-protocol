@@ -186,7 +186,7 @@ describe("Account status", async function(){
     const balance = await tvkToken.balanceOf(address)
 
     // change the status to silver
-    tvkPrestige.setStatus(address, 2, [])
+    await tvkPrestige.setStatus(address, 2, [])
 
     // new balance should be old balance less amount for silver
     const levels = await tvkPrestige.levels()

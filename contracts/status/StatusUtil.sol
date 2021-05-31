@@ -2,9 +2,9 @@
 
 pragma solidity ^0.6.12;
 
-import { IPrestige } from "./IPrestige.sol";
+import { IStatus } from "./IStatus.sol";
 
-library PrestigeUtil {
+library StatusUtil {
 
     uint256 constant public UNINITIALIZED = uint256(-1);
 
@@ -19,18 +19,18 @@ library PrestigeUtil {
      * @param blockNumber The block number check the statuses against.
      * @return The highest status held since `blockNumber` according to `report`.
      */
-    function statusAtFromReport(
-        uint256 report,
-        uint256 blockNumber
+    function tierAtBlockFromReport(
+        uint256 _report,
+        uint256 _blockNumber
     )
-        internal pure returns (IPrestige.Status)
+        internal pure returns (IStatus.Tier)
     {
         for (uint256 i = 0; i < 8; i++) {
-            if (uint32(uint256(report >> (i*32))) > uint32(blockNumber)) {
-                return IPrestige.Status(i);
+            if (uint32(uint256(_report >> (i*32))) > uint32(_blockNumber)) {
+                return IStatus.Tier(i);
             }
         }
-        return IPrestige.Status(8);
+        return IStatus.Tier(8);
     }
 
     /**
@@ -41,39 +41,39 @@ library PrestigeUtil {
      * @param statusInt The status integer to read the block number for.
      * @return The block number this status has been held since.
      */
-    function statusBlock(uint256 report, uint256 statusInt)
+    function statusBlock(uint256 _report, uint256 _tierInt)
         internal
         pure
         returns (uint256)
     {
-        // NIL is a special case. Everyone has always been at least NIL, since block 0.
-        if (statusInt == 0) {
+        // ZERO is a special case. Everyone has always been at least ZERO, since block 0.
+        if (_tierInt == 0) {
             return 0;
         } else {
-            uint256 offset = (statusInt - 1) * 32;
+            uint256 _offset = (_tierInt - 1) * 32;
             return uint256(uint32(
                 uint256(
-                    report >> offset
+                    _report >> _offset
                 )
             ));
         }
     }
 
     /**
-     * Resets all the statuses above the reference status.
+     * Resets all the tiers above the reference tier.
      *
      * @param report Status report to truncate with high bit 1s.
      * @param statusInt Status int level to truncate above (exclusive).
      * @return uint256 the truncated report.
      */
-    function truncateStatusesAbove(uint256 report, uint256 statusInt)
+    function truncateTiersAbove(uint256 _statusReport, uint256 _tierInt)
         internal
         pure
         returns (uint256)
     {
-        uint256 _offset = statusInt * 32;
+        uint256 _offset = _tierInt * 32;
         uint256 _mask = (UNINITIALIZED >> _offset) << _offset;
-        return report | _mask;
+        return _statusReport | _mask;
     }
 
     /**
@@ -87,17 +87,17 @@ library PrestigeUtil {
      * @return The updated report.
      */
     function updateBlocksForStatusRange(
-        uint256 report,
-        uint256 startStatusInt,
-        uint256 endStatusInt,
-        uint256 blockNumber
+        uint256 _statusReport,
+        uint256 _startTierInt,
+        uint256 _endTierInt,
+        uint256 _blockNumber
     )
         internal pure returns (uint256)
     {
-        for (uint256 i = startStatusInt; i < endStatusInt; i++) {
-            report = (report & ~uint256(uint256(uint32(PrestigeUtil.UNINITIALIZED)) << i*32)) | uint256(blockNumber << (i*32));
+        for (uint256 i = _startTierInt; i < _endTierInt; i++) {
+            _statusReport = (_statusReport & ~uint256(uint256(uint32(StatusUtil.UNINITIALIZED)) << i*32)) | uint256(_blockNumber << (i*32));
         }
-        return report;
+        return _statusReport;
     }
 
     /**
@@ -115,27 +115,27 @@ library PrestigeUtil {
      * @return The updated report.
      */
     function updateReportWithStatusAtBlock(
-        uint256 report,
-        uint256 currentStatusInt,
-        uint256 newStatusInt,
-        uint256 blockNumber
+        uint256 _statusReport,
+        uint256 _currentTierInt,
+        uint256 _newTierInt,
+        uint256 _blockNumber
     )
         internal pure returns (uint256)
     {
         // Truncate above the new status if it is lower than the current one.
-        if (newStatusInt < currentStatusInt) {
-            report = truncateStatusesAbove(report, newStatusInt);
+        if (_newTierInt < _currentTierInt) {
+            _statusReport = truncateTiersAbove(_statusReport, _newTierInt);
         }
         // Otherwise fill the gap between current and new with the block number.
         else {
-            report = updateBlocksForStatusRange(
-                report,
-                currentStatusInt,
-                newStatusInt,
-                blockNumber
+            _statusReport = updateBlocksForStatusRange(
+                _statusReport,
+                _currentTierInt,
+                _newTierInt,
+                _blockNumber
             );
         }
-        return report;
+        return _statusReport;
     }
 
 }

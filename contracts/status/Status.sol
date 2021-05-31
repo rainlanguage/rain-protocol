@@ -2,27 +2,28 @@
 
 pragma solidity ^0.6.12;
 
-import { IPrestige } from "./IPrestige.sol";
-import { PrestigeUtil } from "./PrestigeUtil.sol";
+import { IStatus } from "./IStatus.sol";
+import { StatusUtil } from "./StatusUtil.sol";
 
-contract Prestige is IPrestige {
-    mapping(address => uint256) public statuses;
+contract Status is IStatus {
+    // id => account => statusReport
+    mapping(uint256 => mapping(address => uint256)) public statuses;
 
     /**
      * Implements IPrestige.
      *
      * Either fetch the report from storage or return UNINITIALIZED.
      */
-    function statusReport(address account)
+    function statusReport(uint256 _id, address _account)
         public
         virtual
         override
         view
         returns (uint256)
     {
-        uint256 report = statuses[account];
+        uint256 _report = statuses[_id][_account];
         // Inequality here to silence slither warnings.
-        return report > 0 ? report : PrestigeUtil.UNINITIALIZED;
+        return _report > 0 ? _report : PrestigeUtil.UNINITIALIZED;
     }
 
     /**
@@ -34,34 +35,35 @@ contract Prestige is IPrestige {
      * Emits `StatusChange` event.
      */
     function setStatus(
-        address account,
-        Status newStatus,
-        bytes memory data
+        uint256 _id,
+        address _account,
+        Tier _newTier,
+        bytes memory _data
     )
         external virtual override
     {
-        // The user must move to at least COPPER.
-        // The NIL status is reserved for users that have never interacted with the contract.
-        require(newStatus != Status.NIL, "ERR_NIL_STATUS");
+        // The user must move to at least ONE.
+        // The ZERO status is reserved for users that have never interacted with the contract.
+        require(_newTier != Tier.ZERO, "ERR_ZERO_STATUS");
 
-        uint256 report = statusReport(account);
+        uint256 _report = statusReport(account);
 
-        IPrestige.Status currentStatus = PrestigeUtil.statusAtFromReport(report, block.number);
+        IStatus.Tier _currentTier = StatusUtil.tierAtBlockFromReport(_report, block.number);
 
-        statuses[account] = PrestigeUtil.updateReportWithStatusAtBlock(
-            report,
-            uint256(currentStatus),
-            uint256(newStatus),
+        statuses[_id][_account] = StatusUtil.updateReportWithTierAtBlock(
+            _report,
+            uint256(_currentTier),
+            uint256(_newTier),
             block.number
         );
 
         // Last thing to do as checks-effects-interactions.
         // Call the _afterSetStatus hook to allow "real" prestige contracts to enforce requirements.
         // The prestige contract MUST require its needs to rollback the status change.
-        _afterSetStatus(account, currentStatus, newStatus, data);
+        _afterSetStatus(_account, _currentTier, _newTier, _data);
 
-        // Emit this event for IPrestige.
-        emit StatusChange(account, [currentStatus, newStatus]);
+        // Emit this event for IStatus
+        emit StatusChange(_id, _account, [_currentTier, _newTier]);
     }
 
     /**
@@ -77,10 +79,10 @@ contract Prestige is IPrestige {
      */
     //slither-disable-next-line dead-code
     function _afterSetStatus(
-        address account,
-        Status oldStatus,
-        Status newStatus,
-        bytes memory data
+        address _account,
+        Tier _oldTier,
+        Tier _newTier,
+        bytes memory _data
     )
         internal virtual
     { } // solhint-disable-line no-empty-blocks
