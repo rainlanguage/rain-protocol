@@ -17,6 +17,112 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
+  it('should transfer correct value to seeder when claiming after successful raise', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = 0
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder: seeder,
+        seederFee: seederFee,
+        raiseDuration: raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus: minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit: reserveInit,
+        initialValuation: initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+    
+    await trust.deployed()
+
+    // seeder needs some cash, give some (0.5 billion USD) to seeder
+    await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
+    const seederStartingReserveBalance = await reserve.balanceOf(seeder)
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
+    
+    // seeder must approve before pool init
+    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    
+    await trust.startRaise({ gasLimit: 100000000 })
+    
+    const startBlock = await ethers.provider.getBlockNumber()
+
+    // users hit the minimum raise
+    const spend1 = ethers.BigNumber.from('300' + Util.eighteenZeros)
+    const spend2 = ethers.BigNumber.from('300' + Util.eighteenZeros)
+    await reserve.transfer(signers[2].address, spend1.mul(10))
+    await reserve.transfer(signers[3].address, spend2)
+    
+    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      await reserve.transfer(signers[2].address, 1)
+    }
+
+    const pool = new ethers.Contract(trust.pool(), poolJson.abi, signers[0])
+    const bPool = new ethers.Contract((await pool.pool()), bPoolJson.abi, signers[0])
+
+    const balancerPoolReserveBalance = await reserve.balanceOf(await bPool.address)
+
+    assert(!balancerPoolReserveBalance.eq(0), `got zero reserve balance for pool/trust ${await bPool.address}`)
+    
+    await trust.endRaise()
+
+    // on successful raise, seeder gets reserve init + seeder fee
+    assert(
+      (await reserve.balanceOf(seeder)).eq(seederStartingReserveBalance.add(seederFee)),
+      `wrong reserve amount transferred to seeder after successful raise ended ${await reserve.balanceOf(seeder)} ${seederStartingReserveBalance.add(seederFee)}`
+    )
+  })
+
   it('should transfer correct value to seeder when claiming after failed raise', async function () {
     this.timeout(0)
 
@@ -102,17 +208,30 @@ describe("Trust", async function() {
     }
 
     const pool = new ethers.Contract(trust.pool(), poolJson.abi, signers[0])
+    const bPool = new ethers.Contract((await pool.pool()), bPoolJson.abi, signers[0])
 
-    const poolReserveBalance = await reserve.balanceOf(await pool.address)
+    const balancerPoolReserveBalance = await reserve.balanceOf(await bPool.address)
 
-    assert(!poolReserveBalance.eq(0), `got zero reserve balance for pool/trust ${await pool.address}`)
+    console.log('balancerPoolReserveBalance before endRaise');
+    console.log(balancerPoolReserveBalance); 
+    // 2000000000000000000000
+
+    assert(!balancerPoolReserveBalance.eq(0), `got zero reserve balance for pool/trust ${await bPool.address}`)
     
     await trust.endRaise()
 
-    // on failed raise, seeder gets final balance
+    console.log('expected seeder balance');
+    console.log(seederStartingReserveBalance.sub(reserveInit).add(balancerPoolReserveBalance));
+    // 500000000000000000000000000
+
+    console.log('got seeder balance');
+    console.log(await reserve.balanceOf(seeder));
+    // 499999999999799999999999999
+
+    // on failed raise, seeder gets final balance back
     assert(
-      (await reserve.balanceOf(seeder)).eq(seederStartingReserveBalance.sub(reserveInit).add(poolReserveBalance)),
-      `wrong reserve amount transferred to seeder after raise ended ${await reserve.balanceOf(seeder)} = ${seederStartingReserveBalance} - ${reserveInit} + ${poolReserveBalance}`
+      (await reserve.balanceOf(seeder)).eq(seederStartingReserveBalance.sub(reserveInit).add(balancerPoolReserveBalance)),
+      `wrong reserve amount transferred to seeder after failed raise ended ${await reserve.balanceOf(seeder)}`
     )
   })
 
