@@ -18,6 +18,85 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
+  it("should set reserve asset as first redeemable asset on token construction", async function() {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve2 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige',
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = 0
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('0')
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 10
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder,
+        seederFee,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+    
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
+
+    assert((await token.redeemables(0)) === reserve.address, 'reserve asset not set as first redeemable')
+    
+    await trust.creatorAddRedeemable(reserve2.address)
+    
+    assert((await token.redeemables(0)) === reserve.address, 'reserve asset no longer first redeemable, after adding 2nd redeemable')
+
+    assert((await token.redeemables(1)) === reserve2.address, '2nd redeemable was not reserve 2 which was added after reserve 1')
+  })
+
   it("should allow only token owner and creator to set redeemables", async function() {
     this.timeout(0)
 
