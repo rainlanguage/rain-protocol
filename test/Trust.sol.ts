@@ -10,6 +10,7 @@ import type { Prestige } from "../typechain/Prestige";
 chai.use(solidity);
 const { expect, assert } = chai;
 
+const trustJson = require('../artifacts/contracts/Trust.sol/Trust.json')
 const poolJson = require('../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json')
 const bPoolJson = require('../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json')
 const reserveJson = require('../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json')
@@ -17,6 +18,211 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
+  it("should allow only token owner and creator to set redeemables", async function() {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve2 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve3 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve4 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve5 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve6 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve7 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve8 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve9 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige',
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = 0
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('0')
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 10
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder,
+        seederFee,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+    
+    // creator can add redeemable via proxy method on trust contract
+    await trust.creatorAddRedeemable(reserve2.address)
+    
+    const trust2 = new ethers.Contract(trust.address, trustJson.abi, signers[2])
+    
+    // non-creator cannot add redeemable
+    Util.assertError(
+      async () => await trust2.creatorAddRedeemable(reserve3.address),
+      "revert ERR_NOT_CREATOR",
+      "non-creator added redeemable"
+    )
+
+    // adding same redeemable should revert
+    Util.assertError(
+      async () => await trust.creatorAddRedeemable(reserve2.address),
+      "revert ERR_DUPLICATE_REDEEMABLE",
+      "added redeemable that was previously added"
+    )
+
+    // can add up to 8 redeemables
+    await trust.creatorAddRedeemable(reserve3.address)
+    await trust.creatorAddRedeemable(reserve4.address)
+    await trust.creatorAddRedeemable(reserve5.address)
+    await trust.creatorAddRedeemable(reserve6.address)
+    await trust.creatorAddRedeemable(reserve7.address)
+    await trust.creatorAddRedeemable(reserve8.address)
+
+    Util.assertError(
+      async () => await trust.creatorAddRedeemable(reserve9.address),
+      "revert ERR_MAX_REDEEMABLES",
+      "number of added redeemables exceeds limit of 8"
+    )
+  })
+
+  it("should allow only token owner (Trust) to set unfreezables", async function() {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige',
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = 0
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('0')
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 10
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder,
+        seederFee,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
+    
+    // token owner is correct
+    assert((await token.owner()) === trust.address, 'token owner is not correct')
+
+    // creator cannot add unfreezable
+    Util.assertError(
+      async () => await token.ownerAddUnfreezable(signers[3].address),
+      "revert Ownable: caller is not the owner",
+      "creator added unfreezable, despite not being token owner"
+    )
+
+    const token1 = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[2]) 
+
+    // non-creator cannot add unfreezable, (no one but owner can add unfreezables)
+    Util.assertError(
+      async () => await token1.ownerAddUnfreezable(signers[3].address),
+      "revert Ownable: caller is not the owner",
+      "non-creator added unfreezable, despite not being token owner"
+    )
+    
+    // creator cannot add unfreezable via some hypothetical proxy method on trust contract
+    Util.assertError(
+      async () => await trust.creatorAddUnfreezable(signers[3].address),
+      "TypeError: trust.creatorAddUnfreezable is not a function",
+      "creator added unfreezable via trust proxy method"
+    )
+  })
+
   it('should correctly calculate duration of pool, denominated in blocks from the block that seed funds are claimed', async function () {
     this.timeout(0)
 
@@ -54,29 +260,29 @@ describe("Trust", async function() {
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     const trust = await trustFactory.deploy(
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: successLevel,
       },
       redeemInit,
@@ -147,28 +353,28 @@ describe("Trust", async function() {
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     const trustPromise = trustFactory.deploy(
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: successLevel,
       },
       redeemInit,
@@ -220,23 +426,23 @@ describe("Trust", async function() {
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: successLevel,
       },
       redeemInit,
@@ -398,29 +604,29 @@ describe("Trust", async function() {
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     const trust = await trustFactory.deploy(
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: successLevel,
       },
       redeemInit,
@@ -502,29 +708,29 @@ describe("Trust", async function() {
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     const trust = await trustFactory.deploy(
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: successLevel,
       },
       redeemInit,
@@ -595,29 +801,29 @@ describe("Trust", async function() {
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     const trust = await trustFactory.deploy(
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: successLevel,
       },
       redeemInit,
@@ -668,30 +874,30 @@ describe("Trust", async function() {
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     Util.assertError(
       async () => await trustFactory.deploy(
         {
           creator: signers[0].address,
           minCreatorRaise: minCreatorRaise,
-          seeder: seeder,
-          seederFee: seederFee,
-          raiseDuration: raiseDuration,
+          seeder,
+          seederFee,
+          raiseDuration,
         },
         {
           name: tokenName,
           symbol: tokenSymbol,
           prestige: prestige.address,
-          minimumStatus: minimumStatus,
+          minimumStatus,
           totalSupply: totalTokenSupply,
         },
         {
           crpFactory: crpFactory.address,
           balancerFactory: bFactory.address,
           reserve: reserve.address,
-          reserveInit: reserveInit,
-          initialValuation: initialValuation,
+          reserveInit,
+          initialValuation,
           finalValuation: successLevel.sub(1),
         },
         redeemInit,
@@ -736,22 +942,22 @@ describe("Trust", async function() {
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     Util.assertError(
       async () => await trustFactory.deploy(
         {
           creator: signers[0].address,
           minCreatorRaise: minCreatorRaise,
-          seeder: seeder,
-          seederFee: seederFee,
-          raiseDuration: raiseDuration,
+          seeder,
+          seederFee,
+          raiseDuration,
         },
         {
           name: tokenName,
           symbol: tokenSymbol,
           prestige: prestige.address,
-          minimumStatus: minimumStatus,
+          minimumStatus,
           totalSupply: totalTokenSupply,
         },
         {
@@ -759,7 +965,7 @@ describe("Trust", async function() {
           balancerFactory: bFactory.address,
           reserve: reserve.address,
           reserveInit: totalTokenSupply.add(1),
-          initialValuation: initialValuation,
+          initialValuation,
           finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
         },
         redeemInit,
@@ -804,30 +1010,30 @@ describe("Trust", async function() {
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     Util.assertError(
       async () => await trustFactory.deploy(
         {
           creator: signers[0].address,
           minCreatorRaise: minCreatorRaise,
-          seeder: seeder,
-          seederFee: seederFee,
-          raiseDuration: raiseDuration,
+          seeder,
+          seederFee,
+          raiseDuration,
         },
         {
           name: tokenName,
           symbol: tokenSymbol,
           prestige: prestige.address,
-          minimumStatus: minimumStatus,
+          minimumStatus,
           totalSupply: totalTokenSupply,
         },
         {
           crpFactory: crpFactory.address,
           balancerFactory: bFactory.address,
           reserve: reserve.address,
-          reserveInit: reserveInit,
-          initialValuation: initialValuation,
+          reserveInit,
+          initialValuation,
           // finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
           finalValuation: initialValuation.add(1),
         },
@@ -842,22 +1048,22 @@ describe("Trust", async function() {
         {
           creator: signers[0].address,
           minCreatorRaise: minCreatorRaise,
-          seeder: seeder,
-          seederFee: seederFee,
-          raiseDuration: raiseDuration,
+          seeder,
+          seederFee,
+          raiseDuration,
         },
         {
           name: tokenName,
           symbol: tokenSymbol,
           prestige: prestige.address,
-          minimumStatus: minimumStatus,
+          minimumStatus,
           totalSupply: totalTokenSupply,
         },
         {
           crpFactory: crpFactory.address,
           balancerFactory: bFactory.address,
           reserve: reserve.address,
-          reserveInit: reserveInit,
+          reserveInit,
           initialValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit).sub(1),
           finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
         },
@@ -903,29 +1109,29 @@ describe("Trust", async function() {
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
-    const raiseDuration = 50
+    const raiseDuration = 10
 
     const trust = await trustFactory.deploy(
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
@@ -1010,23 +1216,23 @@ describe("Trust", async function() {
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
@@ -1200,23 +1406,23 @@ describe("Trust", async function() {
       {
         creator: signers[0].address,
         minCreatorRaise,
-        seeder: seeder,
+        seeder,
         seederFee,
-        raiseDuration: raiseDuration,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
@@ -1367,23 +1573,23 @@ describe("Trust", async function() {
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
@@ -1404,6 +1610,5 @@ describe("Trust", async function() {
     }
 
     await trust.endRaise()
-
   })
 });
