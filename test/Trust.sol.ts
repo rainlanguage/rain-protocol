@@ -17,7 +17,7 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
-  it('should transfer correct value to seeder when claiming on failed raise', async function () {
+  it('should transfer correct value to seeder when claiming after failed raise', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -86,10 +86,9 @@ describe("Trust", async function() {
 
     // seeder needs some cash, give some (0.5 billion USD) to seeder
     await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
+    const seederStartingReserveBalance = await reserve.balanceOf(seeder)
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
-
-    const seederReserveBeforeRaise = await reserve.balanceOf(seeder)
     
     // seeder must approve before pool init
     await reserveSeeder.approve(await trust.pool(), reserveInit)
@@ -101,21 +100,19 @@ describe("Trust", async function() {
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserve.transfer(signers[2].address, 1)
     }
-    
-    const trustReserveBeforeEndRaise = await reserve.balanceOf(trust.address)
-    const seederReserveBeforeEndRaise = await reserve.balanceOf(seeder)
+
+    const pool = new ethers.Contract(trust.pool(), poolJson.abi, signers[0])
+
+    const poolReserveBalance = await reserve.balanceOf(await pool.address)
+
+    assert(!poolReserveBalance.eq(0), `got zero reserve balance for pool/trust ${await pool.address}`)
     
     await trust.endRaise()
-    
-    const seederReserveAfterEndRaise = await reserve.balanceOf(seeder)
 
     // on failed raise, seeder gets final balance
     assert(
-      seederReserveAfterEndRaise.eq(seederReserveBeforeEndRaise.add(trustReserveBeforeEndRaise)),
-      `wrong reserve amount transferred to seeder after raise ended 
-      ${seederReserveAfterEndRaise} = 
-      ${seederReserveBeforeEndRaise} + ${trustReserveBeforeEndRaise} 
-      (${seederReserveBeforeEndRaise.add(trustReserveBeforeEndRaise)})`
+      (await reserve.balanceOf(seeder)).eq(seederStartingReserveBalance.sub(reserveInit).add(poolReserveBalance)),
+      `wrong reserve amount transferred to seeder after raise ended ${await reserve.balanceOf(seeder)} = ${seederStartingReserveBalance} - ${reserveInit} + ${poolReserveBalance}`
     )
   })
 
