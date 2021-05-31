@@ -17,7 +17,7 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
-  it('should calculate duration of pools denominated in blocks from the block that seed funds are claimed', async function () {
+  it('should correctly calculate duration of pool, denominated in blocks from the block that seed funds are claimed', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -99,7 +99,7 @@ describe("Trust", async function() {
     const blockAfterRaiseSetup = await ethers.provider.getBlockNumber()
     const blocksDuringRaiseSetup = blockAfterRaiseSetup - blockBeforeRaiseSetup
     
-    blockCount += blocksDuringRaiseSetup;
+    blockCount += blocksDuringRaiseSetup; // 1
 
     // move some blocks around
     while ((await ethers.provider.getBlockNumber()) !== expectedUnblockBlock) {
