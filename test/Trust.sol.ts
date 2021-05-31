@@ -91,7 +91,7 @@ describe("Trust", async function() {
     await reserveSeeder.approve(await trust.pool(), reserveInit)
     
     const blockBeforeRaiseSetup = await ethers.provider.getBlockNumber()
-    const expectedUnblockBlock = blockBeforeRaiseSetup + 50;
+    const expectedUnblockBlock = blockBeforeRaiseSetup + raiseDuration;
     let blockCount = 0;
 
     await trust.startRaise({ gasLimit: 100000000 })
