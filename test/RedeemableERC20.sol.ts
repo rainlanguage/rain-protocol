@@ -558,9 +558,11 @@ describe("RedeemableERC20", async function() {
         await redeemableERC20.ownerAddRedeemable(reserve1.address)
         await redeemableERC20.ownerAddRedeemable(reserve2.address)
 
+        await reserve2.transfer(redeemableERC20.address, await reserve2.totalSupply())
+
         // reserve 1 blacklists signer 1. Signer 1 cannot receive reserve 1 upon redeeming contract tokens
         reserve1.ownerAddFreezable(signers[1].address)
-            
+
         const redeemFailEvent = new Promise(resolve => {
             redeemableERC20.once('RedeemFail', (redeemer, redeemable) => {
                 assert(redeemer === signers[1].address, 'wrong redeemer address in event')
@@ -584,26 +586,26 @@ describe("RedeemableERC20", async function() {
         const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(signers[1].address);
 
         const redeemAmount = FIVE_TOKENS;
-        
+
         // should succeed, despite emitting redeem fail event for one redeemable
-        await redeemableERC20_1.redeem(redeemAmount) 
-        await redeemFailEvent
-        
+        await redeemableERC20_1.redeem(redeemAmount)
+
         const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[1].address);
 
         assert(
-            redeemableSignerBalanceBefore.sub(redeemableSignerBalanceAfter).eq(redeemAmount), 
+            redeemableSignerBalanceBefore.sub(redeemableSignerBalanceAfter).eq(redeemAmount),
             "wrong number of redeemable tokens redeemed"
         )
 
         assert(
-            (await reserve1.balanceOf(signers[1].address)).eq(0), 
+            (await reserve1.balanceOf(signers[1].address)).eq(0),
             "reserve 1 transferred tokens to signer 1 upon redemption, despite being blacklisted"
         );
 
+        const reserve2Balance = await reserve2.balanceOf(signers[1].address)
         assert(
-            !(await reserve2.balanceOf(signers[1].address)).eq(0), 
-            "reserve 2 didn't transfer tokens to signer 1 upon redemption"
+            !(reserve2Balance).eq(0),
+            `reserve 2 didn't transfer tokens to signer 1 upon redemption. Reserve 2: ${reserve2.address}, Signer: ${signers[1].address}, Balance: ${reserve2Balance}`
         );
     })
 

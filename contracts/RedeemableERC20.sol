@@ -169,13 +169,14 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
             // We use try/catch here to force all redemptions that may suceed for the user to continue.
             try _redeemable.balanceOf(address(this)) returns (uint256 _redeemableBalance) {
                 _toRedeem = _redeemableBalance.mul(_redeemFraction).div(Constants.ONE);
-                try _redeemable.transfer(msg.sender, _toRedeem) {
-                    emit RedeemSuccess(msg.sender, address(_redeemable));
-                }
-                catch {
-                    emit RedeemFail(msg.sender, address(_redeemable));
-                }
             } catch {
+                emit RedeemFail(msg.sender, address(_redeemable));
+            }
+
+            try _redeemable.transfer(msg.sender, _toRedeem) {
+                emit RedeemSuccess(msg.sender, address(_redeemable));
+            }
+            catch {
                 emit RedeemFail(msg.sender, address(_redeemable));
             }
         }
