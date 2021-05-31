@@ -17,6 +17,99 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("Trust", async function() {
+  it('should calculate duration of pools denominated in blocks from the block that seed funds are claimed', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = 0
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder: seeder,
+        seederFee: seederFee,
+        raiseDuration: raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus: minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit: reserveInit,
+        initialValuation: initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+
+    // seeder needs some cash, give some (0.5 billion USD) to seeder
+    await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
+    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    
+    const blockBeforeRaiseSetup = await ethers.provider.getBlockNumber()
+    const expectedUnblockBlock = blockBeforeRaiseSetup + 50;
+    let blockCount = 0;
+
+    await trust.startRaise({ gasLimit: 100000000 })
+
+    const blockAfterRaiseSetup = await ethers.provider.getBlockNumber()
+    const blocksDuringRaiseSetup = blockAfterRaiseSetup - blockBeforeRaiseSetup
+    
+    blockCount += blocksDuringRaiseSetup;
+
+    // move some blocks around
+    while ((await ethers.provider.getBlockNumber()) !== expectedUnblockBlock) {
+      await reserve.transfer(signers[2].address, 1)
+      blockCount++
+    }
+
+    assert(raiseDuration === blockCount, `wrong raise duration, expected ${raiseDuration} got ${blockCount}`)
+  })
+
   it('should not initialize without seeder', async function () {
     this.timeout(0)
 
