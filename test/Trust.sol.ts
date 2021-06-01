@@ -17,8 +17,20 @@ const reserveJson = require('../artifacts/contracts/test/ReserveToken.sol/Reserv
 const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json')
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
+enum Status {
+  NIL = 0,
+  COPPER = 1,
+  BRONZE = 2,
+  SILVER = 3,
+  GOLD = 4,
+  PLATINUM = 5,
+  DIAMOND = 6,
+  CHAD = 7,
+  JAWAD = 8,
+}
+
 describe("Trust", async function() {
-  it("should set reserve asset as first redeemable asset on token construction", async function() {
+  it("should configure prestige correctly", async function() {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -26,13 +38,12 @@ describe("Trust", async function() {
     const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
 
     const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
-    const reserve2 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
 
     const prestigeFactory = await ethers.getContractFactory(
       'Prestige',
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.GOLD
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -50,7 +61,158 @@ describe("Trust", async function() {
     const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
-    const minCreatorRaise = ethers.BigNumber.from('0')
+    const minCreatorRaise = ethers.BigNumber.from('100')
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 10
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder,
+        seederFee,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+    
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
+
+    assert(
+      (await token.minimumPrestigeStatus()) === minimumStatus,
+      "wrong prestige level set on token"
+    )
+  })
+
+  it("should mint the correct amount of tokens on construction", async function() {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige',
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100')
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 10
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder,
+        seederFee,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+    
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
+
+    assert(
+      (await token.totalSupply()).eq(totalTokenSupply),
+      "wrong amount of tokens minted"
+    )
+  })
+
+  it("should set reserve asset as first redeemable asset on token construction", async function() {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserve2 = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige',
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
@@ -118,7 +280,7 @@ describe("Trust", async function() {
       'Prestige',
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -136,7 +298,7 @@ describe("Trust", async function() {
     const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
-    const minCreatorRaise = ethers.BigNumber.from('0')
+    const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
@@ -219,7 +381,7 @@ describe("Trust", async function() {
       'Prestige',
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -237,7 +399,7 @@ describe("Trust", async function() {
     const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
-    const minCreatorRaise = ethers.BigNumber.from('0')
+    const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
@@ -315,7 +477,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -408,7 +570,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -475,7 +637,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -659,7 +821,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -763,7 +925,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -856,7 +1018,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -929,7 +1091,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -999,7 +1161,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -1067,7 +1229,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -1166,7 +1328,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -1266,7 +1428,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',
@@ -1457,7 +1619,7 @@ describe("Trust", async function() {
       'Prestige'
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory (
       'Trust',
@@ -1624,7 +1786,7 @@ describe("Trust", async function() {
       'Prestige',
     )
     const prestige = await prestigeFactory.deploy() as Prestige
-    const minimumStatus = 0
+    const minimumStatus = Status.NIL
 
     const trustFactory = await ethers.getContractFactory(
       'Trust',

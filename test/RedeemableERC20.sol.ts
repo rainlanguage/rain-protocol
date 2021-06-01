@@ -8,16 +8,17 @@ import type { Prestige } from '../typechain/Prestige'
 chai.use(solidity)
 const { expect, assert } = chai
 
-const NIL = 0;
-const COPPER = 1;
-const BRONZE = 2;
-const SILVER = 3;
-const GOLD = 4;
-const PLATINUM = 5;
-const DIAMOND = 6;
-const CHAD = 7;
-const JAWAD = 8;
-const statuses = [NIL, COPPER, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, CHAD, JAWAD]
+enum Status {
+    NIL = 0,
+    COPPER = 1,
+    BRONZE = 2,
+    SILVER = 3,
+    GOLD = 4,
+    PLATINUM = 5,
+    DIAMOND = 6,
+    CHAD = 7,
+    JAWAD = 8,
+}
 
 describe("RedeemableERC20", async function() {
     it("should lock tokens until redeemed", async function() {
@@ -33,7 +34,7 @@ describe("RedeemableERC20", async function() {
             'Prestige'
         )
         const prestige = await prestigeFactory.deploy() as Prestige
-        const minimumStatus = NIL
+        const minimumStatus = Status.NIL
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -252,7 +253,10 @@ describe("RedeemableERC20", async function() {
         )
         const prestige = await prestigeFactory.deploy() as Prestige
 
-        const minimumStatus = COPPER
+        // Set owner to COPPER status, lower than minimum status of DIAMOND
+        await prestige.setStatus(signers[0].address, Status.COPPER, [])
+
+        const minimumStatus = Status.DIAMOND
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -279,6 +283,8 @@ describe("RedeemableERC20", async function() {
 
         // owner is made unfreezable during construction, so required token transfers can go ahead
         assert((await redeemableERC20.unfreezables(signers[0].address)), "owner not made unfreezable during construction")
+
+        await reserve.transfer(redeemableERC20.address, 1)
     })
 
     it('should allow transfer only if redeemer meets minimum prestige level', async function() {
@@ -295,7 +301,7 @@ describe("RedeemableERC20", async function() {
         )
         const prestige = await prestigeFactory.deploy() as Prestige
 
-        const minimumStatus = GOLD
+        const minimumStatus = Status.GOLD
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -308,9 +314,9 @@ describe("RedeemableERC20", async function() {
         const unblockBlock = now + 8
 
         // grant second signer GOLD status so they can receive transferred tokens
-        await prestige.setStatus(signers[1].address, GOLD, [])
+        await prestige.setStatus(signers[1].address, Status.GOLD, [])
         // grant third signer SILVER status which is NOT enough to receive transfers
-        await prestige.setStatus(signers[2].address, SILVER, [])
+        await prestige.setStatus(signers[2].address, Status.SILVER, [])
 
         const redeemableERC20 = await redeemableERC20Factory.deploy(
             {
@@ -372,7 +378,7 @@ describe("RedeemableERC20", async function() {
         )
         const prestige = await prestigeFactory.deploy() as Prestige
 
-        const minimumStatus = NIL
+        const minimumStatus = Status.NIL
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -531,7 +537,7 @@ describe("RedeemableERC20", async function() {
         )
         const prestige = await prestigeFactory.deploy() as Prestige
 
-        const minimumStatus = NIL
+        const minimumStatus = Status.NIL
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -621,7 +627,7 @@ describe("RedeemableERC20", async function() {
         )
         const prestige = await prestigeFactory.deploy() as Prestige
 
-        const minimumStatus = NIL
+        const minimumStatus = Status.NIL
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
