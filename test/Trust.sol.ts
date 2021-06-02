@@ -30,6 +30,188 @@ enum Status {
 }
 
 describe("Trust", async function() {
+  it("should allow anyone to start raise when seeder has approved with sufficient reserve liquidity", async function() {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige',
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100')
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 10
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder,
+        seederFee,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+    
+    // seeder needs some cash, give some (0.5 billion USD) to seeder
+    await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
+
+    // seeder approves insufficient reserve liquidity
+    await reserveSeeder.approve(await trust.pool(), reserveInit.sub(1))
+
+    // 'anyone'
+    const trust2 = new ethers.Contract(trust.address, trustJson.abi, signers[2])
+
+    Util.assertError(
+      async () => await trust2.startRaise({ gasLimit: 100000000 }),
+      "revert ERC20: transfer amount exceeds allowance",
+      "raise wrongly started by someone with insufficent seed reserve liquidity"
+    )
+
+    // seeder approves sufficient reserve liquidity
+    await reserveSeeder.approve(await trust.pool(), reserveInit)
+
+    await trust2.startRaise({ gasLimit: 100000000 })
+  })
+
+  it("should only allow endRaise to be called after unblocked", async function() {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige',
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('100000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100')
+    const seeder = signers[1].address // seeder is not creator/owner
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 10
+
+    const trust = await trustFactory.deploy(
+      {
+        creator: signers[0].address,
+        minCreatorRaise: minCreatorRaise,
+        seeder,
+        seederFee,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+    
+    // seeder needs some cash, give some (0.5 billion USD) to seeder
+    await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
+    await reserveSeeder.approve(await trust.pool(), reserveInit)
+
+    await trust.startRaise({ gasLimit: 100000000 })
+
+    // creator attempts to immediately end raise
+    Util.assertError(
+      async () => await trust.endRaise(),
+      "revert ERR_ONLY_UNBLOCKED",
+      "creator ended raise before unblock block"
+    )
+
+    const trust2 = new ethers.Contract(trust.address, trustJson.abi, signers[2])
+
+    // other user attempts to immediately end raise
+    Util.assertError(
+      async () => await trust2.endRaise(),
+      "revert ERR_ONLY_UNBLOCKED",
+      "other user ended raise before unblock block"
+    )
+  })
+
   it("should configure prestige correctly", async function() {
     this.timeout(0)
 
@@ -624,10 +806,12 @@ describe("Trust", async function() {
     Util.assertError(async () => await trustPromise, 'Error: invalid ENS name', 'initialized without seeder')
   })
 
-  it('should transfer correct value to seeder when claiming after successful raise', async function () {
+  it('should transfer correct value to all stakeholders after successful raise', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
+    const hodler1 = signers[2]
+    const hodler2 = signers[3]
 
     const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
 
@@ -656,6 +840,7 @@ describe("Trust", async function() {
     const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const creator = signers[0].address
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
@@ -665,7 +850,7 @@ describe("Trust", async function() {
 
     const trust = await trustFactory.deploy(
       {
-        creator: signers[0].address,
+        creator,
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
@@ -691,25 +876,32 @@ describe("Trust", async function() {
     
     await trust.deployed()
 
-    // seeder needs some cash, give some (0.5 billion USD) to seeder
-    await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder, reserveInit)
     const seederStartingReserveBalance = await reserve.balanceOf(seeder)
+
+    assert(seederStartingReserveBalance.eq(reserveInit), "wrong starting balance for seeder")
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
     
     // seeder must approve before pool init
     await reserveSeeder.approve(await trust.pool(), reserveInit)
     
+    // give holders some reserve
+    const spend1 = ethers.BigNumber.from('300' + Util.eighteenZeros)
+    const spend2 = ethers.BigNumber.from('300' + Util.eighteenZeros)
+    await reserve.transfer(hodler1.address, spend1.mul(10))
+    await reserve.transfer(hodler2.address, spend2)
+
     await trust.startRaise({ gasLimit: 100000000 })
     
     const startBlock = await ethers.provider.getBlockNumber()
 
+    const creatorStartingReserveBalance = await reserve.balanceOf(creator)
+
     // BEGIN: users hit the minimum raise
 
-    const spend1 = ethers.BigNumber.from('300' + Util.eighteenZeros)
-    const spend2 = ethers.BigNumber.from('300' + Util.eighteenZeros)
-    await reserve.transfer(signers[2].address, spend1.mul(10))
-    await reserve.transfer(signers[3].address, spend2)
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
 
     const trustPool = new ethers.Contract(
       (await trust.pool()),
@@ -720,50 +912,58 @@ describe("Trust", async function() {
     const bPool1 = new ethers.Contract(
       (await trustPool.pool()),
       bPoolJson.abi,
-      signers[1]
+      hodler1
     )
     const reserve1 = new ethers.Contract(
       reserve.address,
       reserveJson.abi,
-      signers[1]
+      hodler1
     )
 
     const crp1 = new ethers.Contract(
       (await trustPool.crp()),
       crpJson.abi,
-      signers[1]
+      hodler1
+    )
+
+    let i = 0;
+    while (i < 10) {
+      await crp1.pokeWeights() // user pokes weights to get best deal for the current block
+      await reserve1.approve(bPool1.address, spend1) // approves pool swap amount
+      await bPool1.swapExactAmountIn(
+        reserve.address,
+        spend1,
+        (await trust.token()),
+        ethers.BigNumber.from('1'), // minimum out, otherwise revert
+        ethers.BigNumber.from('1000000' + Util.eighteenZeros) // max price, otherwise revert
       )
 
-      let i = 0;
-      while (i < 10) {
-        await crp1.pokeWeights()
-        await reserve1.approve(bPool1.address, spend1)
-        await bPool1.swapExactAmountIn(
-          reserve.address,
-          spend1,
-          (await trust.token()),
-          ethers.BigNumber.from('1'),
-          ethers.BigNumber.from('1000000' + Util.eighteenZeros)
-        )
-        i++
-      }
+      // ? do we need to check whether swap amounts are correct?
+
+      i++
+    }
+
+    const hodler1TokenBalance = await token.balanceOf(hodler1.address)
+    
+    // hodler 1 transferred all reserve to token contract
+    assert((await reserve.balanceOf(hodler1.address)).eq(0), "balancer pool not swapping correct spend1 amount in")
 
     const crp2 = new ethers.Contract(
       (await trustPool.crp()),
       crpJson.abi,
-      signers[2]
+      hodler2
     )
     await crp2.pokeWeights()
 
     const bPool2 = new ethers.Contract(
       (await trustPool.pool()),
       bPoolJson.abi,
-      signers[2]
+      hodler2
     )
     const reserve2 = new ethers.Contract(
       reserve.address,
       reserveJson.abi,
-      signers[2]
+      hodler2
     )
     await reserve2.approve(
       bPool2.address,
@@ -778,10 +978,18 @@ describe("Trust", async function() {
       ethers.BigNumber.from('1000000' + Util.eighteenZeros)
     )
 
+    const hodler2TokenBalance = await token.balanceOf(hodler2.address)
+
+    // hodler 2 transferred all reserve to token contract
+    assert((await reserve.balanceOf(hodler2.address)).eq(0), "balancer pool not swapping correct spend2 amount in")
+
     // END: users hit the minimum raise
     
+    let countTransfersToTriggerUnblock = 0;
+    // create a few blocks by sending some tokens around
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
-      await reserve.transfer(signers[2].address, 1)
+      await reserve.transfer(signers[9].address, 1)
+      countTransfersToTriggerUnblock++
     }
 
     const pool = new ethers.Contract(trust.pool(), poolJson.abi, signers[0])
@@ -792,13 +1000,52 @@ describe("Trust", async function() {
     assert(!balancerPoolReserveBalance.eq(0), `got zero reserve balance for pool/trust ${await bPool.address}`)
 
     const seederReserveBalanceBeforeEndRaise = await reserve.balanceOf(seeder)
+
+    const finalBalance = await reserve.balanceOf(bPool.address)
+    const seederPay = reserveInit.add(seederFee)
+    const tokenPay = redeemInit
     
     await trust.endRaise()
-        
+
+    // finalBalance * 10^-7 = 530000000000000
+    const dust = ethers.BigNumber.from("530000000000000")
+
+    const creatorEndingReserveBalance = await reserve.balanceOf(creator)
+
+    // Creator has correct final balance
+
+    // creatorPay = finalBalance - (seederPay + tokenPay)
+    assert(
+      creatorEndingReserveBalance
+        .eq(
+          creatorStartingReserveBalance
+          .add(finalBalance)
+          .sub(seederPay.add(tokenPay))
+          .sub(dust)
+          .sub(1) // dust rounding error
+          .sub(countTransfersToTriggerUnblock) // creator loses some reserve when moving blocks
+        ),
+      `wrong reserve balance for creator after raise ended. 
+      start ${creatorStartingReserveBalance} 
+      end ${creatorEndingReserveBalance}
+      finalBalance ${finalBalance}
+      seederPay ${seederPay}
+      tokenPay ${tokenPay}
+      dust ${dust}
+      dustRoundingError 1
+      countTransfers ${countTransfersToTriggerUnblock}
+      `
+    )
+
+    // creator has no tokens
+    assert((await token.balanceOf(creator)).eq(0), "creator wrongly given tokens")
+    
+    // Seeder has correct final balance
+    
     // on successful raise, seeder gets reserve init + seeder fee
     const seederEndExpected = seederReserveBalanceBeforeEndRaise.add(reserveInit).add(seederFee)
     const seederEndActual = await reserve.balanceOf(seeder)
-
+    
     assert(
       (seederEndActual).eq(seederEndExpected),
       `wrong reserve amount transferred to seeder after successful raise ended. 
@@ -806,12 +1053,33 @@ describe("Trust", async function() {
       Expected ${seederEndExpected} 
       Difference ${seederEndActual.sub(seederEndExpected)}`
     )
+
+    assert((await token.balanceOf(seeder)).eq(0), "seeder wrongly given tokens")
+
+    // Token holders have correct final balance of reserve and tokens
+    
+    // correct reserve
+    assert((await reserve.balanceOf(hodler1.address)).eq(0), "hodler 1 wrongly given reserve when raise ended")
+    assert((await reserve.balanceOf(hodler2.address)).eq(0), "hodler 2 wrongly given reserve when raise ended")
+
+    const hodler1EndingTokenBalance = await token.balanceOf(hodler1.address)
+    const hodler2EndingTokenBalance = await token.balanceOf(hodler2.address)
+
+    // Should remain unchanged from amounts during pool phase
+    const hodler1ExpectedEndingTokenBalance = hodler1TokenBalance
+    const hodler2ExpectedEndingTokenBalance = hodler2TokenBalance
+
+    // correct tokens
+    assert(hodler1EndingTokenBalance.eq(hodler1ExpectedEndingTokenBalance), "wrong final token balance for hodler 1")
+    assert(hodler2EndingTokenBalance.eq(hodler2ExpectedEndingTokenBalance), "wrong final token balance for hodler 2")
   })
 
-  it('should transfer correct value to seeder when claiming after failed raise', async function () {
+  it('should transfer correct value to all stakeholders after failed raise', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
+    const hodler1 = signers[2]
+    const hodler2 = signers[3]
 
     const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
 
@@ -839,17 +1107,18 @@ describe("Trust", async function() {
     const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
-    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('10000' + Util.eighteenZeros)
+    const creator = signers[0].address
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
-    const raiseDuration = 10
+    const raiseDuration = 50
 
     const trust = await trustFactory.deploy(
       {
-        creator: signers[0].address,
+        creator,
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
@@ -875,40 +1144,184 @@ describe("Trust", async function() {
     
     await trust.deployed()
 
-    // seeder needs some cash, give some (0.5 billion USD) to seeder
-    await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder, reserveInit)
     const seederStartingReserveBalance = await reserve.balanceOf(seeder)
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
     
     // seeder must approve before pool init
     await reserveSeeder.approve(await trust.pool(), reserveInit)
+
+    // give holders some reserve (not enough for successful raise)
+    const spend1 = ethers.BigNumber.from("300" + Util.eighteenZeros)
+    const spend2 = ethers.BigNumber.from("300" + Util.eighteenZeros)
+    await reserve.transfer(hodler1.address, spend1.mul(10))
+    await reserve.transfer(hodler2.address, spend2)
     
     await trust.startRaise({ gasLimit: 100000000 })
     
     const startBlock = await ethers.provider.getBlockNumber()
+
+    const creatorStartingReserveBalance = await reserve.balanceOf(creator)
+
+    // BEGIN: users FAIL to hit the minimum raise
+
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
+
+    const trustPool = new ethers.Contract(
+      (await trust.pool()),
+      poolJson.abi,
+      signers[0]
+    )
+
+    const bPool1 = new ethers.Contract(
+      (await trustPool.pool()),
+      bPoolJson.abi,
+      hodler1
+    )
+    const reserve1 = new ethers.Contract(
+      reserve.address,
+      reserveJson.abi,
+      hodler1
+    )
+
+    const crp1 = new ethers.Contract(
+      (await trustPool.crp()),
+      crpJson.abi,
+      hodler1
+    )
+
+    let i = 0;
+    while (i < 10) {
+      await crp1.pokeWeights() // user pokes weights to get best deal for the current block
+      await reserve1.approve(bPool1.address, spend1) // approves pool swap amount
+      await bPool1.swapExactAmountIn(
+        reserve.address,
+        spend1,
+        (await trust.token()),
+        ethers.BigNumber.from('1'), // minimum out, otherwise revert
+        ethers.BigNumber.from('1000000' + Util.eighteenZeros) // max price, otherwise revert
+      )
+      i++
+    }
+
+    const hodler1TokenBalance = await token.balanceOf(hodler1.address)
     
+    // hodler 1 transferred all reserve to token contract
+    assert((await reserve.balanceOf(hodler1.address)).eq(0), "balancer pool not swapping correct spend1 amount in")
+
+    const crp2 = new ethers.Contract(
+      (await trustPool.crp()),
+      crpJson.abi,
+      hodler2
+    )
+    await crp2.pokeWeights()
+
+    const bPool2 = new ethers.Contract(
+      (await trustPool.pool()),
+      bPoolJson.abi,
+      hodler2
+    )
+    const reserve2 = new ethers.Contract(
+      reserve.address,
+      reserveJson.abi,
+      hodler2
+    )
+    await reserve2.approve(
+      bPool2.address,
+      spend2
+    )
+
+    await bPool2.swapExactAmountIn(
+      reserve.address,
+      spend2,
+      (await trust.token()),
+      ethers.BigNumber.from('1'),
+      ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+    )
+
+    const hodler2TokenBalance = await token.balanceOf(hodler2.address)
+
+    // hodler 2 transferred all reserve to token contract
+    assert((await reserve.balanceOf(hodler2.address)).eq(0), "balancer pool not swapping correct spend2 amount in")
+
+    // END: users hit the minimum raise
+    
+    let countTransfersToTriggerUnblock = 0;
+    // create a few blocks by sending some tokens around
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
-      await reserve.transfer(signers[2].address, 1)
+      await reserve.transfer(signers[9].address, 1)
+      countTransfersToTriggerUnblock++
     }
 
     const pool = new ethers.Contract(trust.pool(), poolJson.abi, signers[0])
     const bPool = new ethers.Contract((await pool.pool()), bPoolJson.abi, signers[0])
 
-    const balancerPoolReserveBalance = await reserve.balanceOf(await bPool.address)
-    const seederReserveBalanceBeforeEnd = await reserve.balanceOf(seeder);
+    const finalBalance = await reserve.balanceOf(await bPool.address)
 
-    assert(!balancerPoolReserveBalance.eq(0), `got zero reserve balance for balancer pool before endRaise ${await bPool.address}`)
+    // raise should fail 
+    assert(finalBalance.lt(successLevel), `raise was successful
+    final ${finalBalance}
+    success ${successLevel}`)
+
+    assert(!finalBalance.eq(0), `got zero final balance ${await bPool.address}`)
     
     await trust.endRaise()
 
-    // balancerPoolReserveBalance * 10^-7 = 200000000000000
-    const dust = ethers.BigNumber.from("200000000000000")
+    const creatorEndingReserveBalance = await reserve.balanceOf(creator)
 
-    // on failed raise, seeder gets final balance back    
+    // Creator has correct final balance
+
+    // on failed raise, creator gets nothing
+    assert(creatorEndingReserveBalance.eq(creatorStartingReserveBalance.sub(countTransfersToTriggerUnblock)), 
+      `creator balance changed after failed raise
+      ending balance ${creatorEndingReserveBalance}
+      starting balance ${creatorStartingReserveBalance}
+      countTransfers ${countTransfersToTriggerUnblock}
+      expectedBalance ${creatorStartingReserveBalance.sub(countTransfersToTriggerUnblock)}
+    `)
+
+    // Seeder has correct final balance
+
+    // on failed raise, seeder gets reserveInit or final balance back, depending on whatever is smaller
+    // in this case, reserve init is smaller
+    assert(reserveInit.lt(finalBalance), "reserve init wasn't smaller than final balance")
+
+    const seederEndExpected = seederStartingReserveBalance.sub(reserveInit).add(reserveInit)
+    const seederEndActual = await reserve.balanceOf(seeder)
+
     assert(
-      (await reserve.balanceOf(seeder)).eq(seederStartingReserveBalance.sub(reserveInit).add(balancerPoolReserveBalance).sub(dust).sub(1)),
-      `wrong reserve amount transferred to seeder after failed raise ended ${await reserve.balanceOf(seeder)} ${seederStartingReserveBalance.sub(reserveInit).add(balancerPoolReserveBalance).sub(dust).sub(1)}`
+      seederEndActual.eq(seederEndExpected),
+      `wrong reserve amount transferred to seeder after failed raise ended ${seederEndActual} ${seederEndExpected}`
+    )
+
+    // Token holders have correct final balance of reserve and tokens
+
+    // correct reserve
+    assert((await reserve.balanceOf(hodler1.address)).eq(0), "hodler 1 wrongly given reserve when raise ended")
+    assert((await reserve.balanceOf(hodler2.address)).eq(0), "hodler 2 wrongly given reserve when raise ended")
+
+    const hodler1EndingTokenBalance = await token.balanceOf(hodler1.address)
+    const hodler2EndingTokenBalance = await token.balanceOf(hodler2.address)
+
+    // Should remain unchanged from amounts during pool phase
+    const hodler1ExpectedEndingTokenBalance = hodler1TokenBalance
+    const hodler2ExpectedEndingTokenBalance = hodler2TokenBalance
+
+    // correct tokens
+    assert(hodler1EndingTokenBalance.eq(hodler1ExpectedEndingTokenBalance), "wrong final token balance for hodler 1")
+    assert(hodler2EndingTokenBalance.eq(hodler2ExpectedEndingTokenBalance), "wrong final token balance for hodler 2")
+
+    // finalBalance * 10^-7 = 530000000000000
+    const dust = ethers.BigNumber.from("530000000000000")
+
+    // Token contract holds correct reserve balance
+    const remainderReserveBalance = finalBalance.sub(reserveInit).sub(dust).sub(1)
+
+    assert(
+      (await reserve.balanceOf(token.address)).eq(remainderReserveBalance),
+      "token contract did not receive remainder"
     )
   })
 
