@@ -239,7 +239,7 @@ describe("RedeemableERC20", async function() {
         }
     })
 
-    it("should set owner as unfreezable on construction", async function() {
+    it("should only allow owner to set unblock block", async function() {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -258,6 +258,50 @@ describe("RedeemableERC20", async function() {
         const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
 
         const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        
+        assert((await redeemableERC20.unblockBlock()).isZero(), "unblock block was wrongly set")
+
+        const redeemableERC201 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
+
+        Util.assertError(
+            async () => await redeemableERC201.ownerSetUnblockBlock(unblockBlock),
+            "revert Ownable: caller is not the owner",
+            "non-owner was wrongly able to set token unblock block"
+        )
+
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+    })
+
+    it("should set owner as unfreezable on construction", async function() {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = Status.NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
 
         const redeemableERC20 = await redeemableERC20Factory.deploy(
             {
