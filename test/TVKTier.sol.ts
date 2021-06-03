@@ -1,8 +1,8 @@
 import chai from 'chai'
-import { assertError, tvkReport } from '../utils/status-report'
+import { assertError, tvkReport } from '../utils/report'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import type { TVKTier } from '../typechain/TVKTier'
+import type { TVKTransferTier } from '../typechain/TVKTransferTier'
 import hre from 'hardhat'
 import { erc20ABI } from './erc20-abi'
 
@@ -22,9 +22,9 @@ describe("Levels", async function(){
   before(async () => {
     // deploy contract
     const tvkTierFactory = await ethers.getContractFactory(
-      'TVKTier'
+      'TVKTransferTier'
     );
-    tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    tvkTier = await tvkTierFactory.deploy() as TVKTransferTier;
     await tvkTier.deployed()
   });
 
@@ -136,11 +136,11 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKTier
+    // deploy TVKTransferTier
     const tvkTierFactory = await ethers.getContractFactory(
-        'TVKTier'
+        'TVKTransferTier'
     );
-    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    const tvkTier = await tvkTierFactory.deploy() as TVKTransferTier;
     let deployedTvkPrestige = await tvkTier.deployed()
 
     // impersonate the TVK treasury
@@ -167,14 +167,14 @@ describe("Account status", async function(){
     // get balance of TVK
     const balance = await tvkToken.balanceOf(address)
 
-    // change the status to silver
+    // change the status to two
     await tvkTier.setTier(address, 2, [])
 
-    // new balance should be old balance less amount for silver
+    // new balance should be old balance less amount for two
     const levels = await tvkTier.levels()
-    const silver = levels[2]
+    const two = levels[2]
     const newBalance = await tvkToken.balanceOf(address)
-    expect(newBalance).to.equal(balance.sub(silver), "new balance after status change is incorrect")
+    expect(newBalance).to.equal(balance.sub(two), "new balance after status change is incorrect")
   });
 
   it("will refund the correct amount of TVK when the new tier is lower", async function(){
@@ -193,11 +193,11 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKTier
+    // deploy TVKTransferTier
     const tvkTierFactory = await ethers.getContractFactory(
-        'TVKTier'
+        'TVKTransferTier'
     );
-    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    const tvkTier = await tvkTierFactory.deploy() as TVKTransferTier;
     await tvkTier.deployed()
 
     // impersonate the TVK treasury
@@ -253,11 +253,11 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKTier
+    // deploy TVKTransferTier
     const tvkTierFactory = await ethers.getContractFactory(
-        'TVKTier'
+        'TVKTransferTier'
     );
-    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    const tvkTier = await tvkTierFactory.deploy() as TVKTransferTier;
     await tvkTier.deployed()
 
     // impersonate the TVK treasury
@@ -300,11 +300,11 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKTier
+    // deploy TVKTransferTier
     const tvkTierFactory = await ethers.getContractFactory(
-        'TVKTier'
+        'TVKTransferTier'
     );
-    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    const tvkTier = await tvkTierFactory.deploy() as TVKTransferTier;
     await tvkTier.deployed()
 
     // impersonate the TVK treasury
@@ -340,11 +340,11 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKTier
+    // deploy TVKTransferTier
     const tvkTierFactory = await ethers.getContractFactory(
-        'TVKTier'
+        'TVKTransferTier'
     );
-    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    const tvkTier = await tvkTierFactory.deploy() as TVKTransferTier;
     await tvkTier.deployed()
 
     // impersonate the TVK treasury

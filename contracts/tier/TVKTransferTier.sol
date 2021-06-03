@@ -7,7 +7,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "./ReadWriteTier.sol";
 
-contract TVKTier is ReadWriteTier {
+contract TVKTransferTier is ReadWriteTier {
     using SafeERC20 for IERC20;
 
     // Hardcoded as a constant to make auditing easier and lower storage requirements a bit.

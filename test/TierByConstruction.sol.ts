@@ -4,7 +4,7 @@ import { ethers } from 'hardhat'
 import type { ReadWriteTier } from '../typechain/ReadWriteTier'
 import type { TierByConstructionTest } from '../typechain/TierByConstructionTest'
 import type { TierByConstructionClaimTest } from '../typechain/TierByConstructionClaimTest'
-import { assertError } from '../utils/status-report'
+import { assertError } from '../utils/report'
 
 
 chai.use(solidity)
