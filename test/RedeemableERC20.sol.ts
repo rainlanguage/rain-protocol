@@ -239,6 +239,41 @@ describe("RedeemableERC20", async function() {
         }
     })
 
+    it("should set owner as unfreezable on construction", async function() {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = Status.NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        
+        assert(await redeemableERC20.unfreezables(signers[0].address), "owner not set as unfreezable on token construction")
+    })
+
     it('should allow token transfers in constructor regardless of owner prestige level', async function() {
         this.timeout(0)
 
