@@ -51,9 +51,9 @@ nix-shell --run security-check
 
 Inside the nix-shell you can just run `security-check` directly.
 
-## IPrestige
+## ITier
 
-`IPrestige` is a simple interface that contracts can implement to provide membership lists for other contracts.
+`ITier` is a simple interface that contracts can implement to provide membership lists for other contracts.
 
 ### Use cases
 
@@ -72,7 +72,7 @@ Etc.
 
 Users can set their own status by calling `setStatus`.
 
-The contract that implements `IPrestige` is responsible for checking eligibility and/or taking actions required to set the status.
+The contract that implements `ITier` is responsible for checking eligibility and/or taking actions required to set the status.
 
 For example, the contract must take/refund any tokens relevant to changing the status.
 
@@ -88,9 +88,9 @@ With the old/new statuses as `[old, new]` in the `Status[2]`.
 
 The `setStatus` function includes arbitrary data as the third parameter. This can be used to disambiguate in the case that there may be many possible options for a user to achieve some status.
 
-For example, consider the case where `GOLD` can be achieved by EITHER locking 1x rare NFT or 3x uncommon NFTs. A user with both could use `data` to explicitly state their intent.
+For example, consider the case where `THREE` can be achieved by EITHER locking 1x rare NFT or 3x uncommon NFTs. A user with both could use `data` to explicitly state their intent.
 
-The `data` parameter can also be ignored by the contract implementing `IPrestige`. For example, ERC20 tokens are fungible so only the balance approved by the user is relevant to a status change.
+The `data` parameter can also be ignored by the contract implementing `ITier`. For example, ERC20 tokens are fungible so only the balance approved by the user is relevant to a status change.
 
 The `setStatus` function SHOULD prevent users from reassigning `NIL` to themselves.
 The `NIL` status represents never having any status.
@@ -119,9 +119,9 @@ GUIs are encouraged to make this dynamic very clear for users as round-tripping 
 
 The intent is that downstream code can provide additional benefits for members who have maintained a certain tier for/since a long time. These benefits can be provided by inspecting the status report, and by on-chain contracts directly, rather than needing to work with snapshots etc.
 
-## PrestigeUtil
+## TierUtil
 
-`PrestigeUtil` implements several pure functions that can be used to interface with status reports.
+`TierUtil` implements several pure functions that can be used to interface with status reports.
 
 - `statusAtFromReport`: Returns the highest status achieved relative to a block number and status report.
 - `statusBlock`: Returns the block that a given status has been held since according to a status report.
@@ -139,20 +139,20 @@ It calls an `_afterSetStatus` hook that inheriting contracts can override to enf
 
 ## TVKPrestige
 
-`TVKPrestige` is the first contract inheriting from `Prestige`.
+`TVKPrestige` is the first contract inheriting from `Tier`.
 
 In addition to the standard accounting it requires that users lock `TVK` tokens to achieve a status.
 
-It has 8 hardcoded TVK levels for each non-NIL status:
+It has 8 hardcoded TVK levels for each non-ZERO status:
 
-- `COPPER`: 0 TVK
-- `BRONZE`: 1000 TVK
-- `SILVER`: 5000 TVK
-- `GOLD`: 10 000 TVK
-- `PLATINUM`: 25 000 TVK
-- `DIAMOND`: 100 000 TVK
-- `CHAD`: 250 000 TVK
-- `JAWAD`: 1 000 000 TVK
+- `ONE`: 0 TVK
+- `TWO`: 1000 TVK
+- `THREE`: 5000 TVK
+- `FOUR`: 10 000 TVK
+- `FIVE`: 25 000 TVK
+- `SIX`: 100 000 TVK
+- `SEVEN`: 250 000 TVK
+- `EIGHT`: 1 000 000 TVK
 
 The contract address for TVK is also hardcoded into `TVKPrestige`.
 
@@ -167,16 +167,16 @@ THIS CONTRACT KEEPS NO RECORD OF USER TRANSFERS.
 
 __ANY TOKENS SEND DIRECTLY TO THE CONTRACT WITHOUT CALLING `setStatus` ARE LOST FOREVER.__
 
-## PrestigeByConstruction
+## TierByConstruction
 
-`PrestigeByConstruction` is a base contracts that other contracts are expected to inherit.
+`TierByConstruction` is a base contracts that other contracts are expected to inherit.
 
-It provides a check `isStatus` and modifier `onlyStatus` to enforce status levels.
+It provides a check `isTier` and modifier `onlyTier` to enforce tiers.
 
-The `IPrestige` contract and reference block is set during construction.
+The `ITier` contract and reference block is set during construction.
 
-For an account to have a status it must have had the status at least one block BEFORE the `PrestigeByConstruction` contract was constructed and then held the status through to the CURRENT result of `statusReport` as per the `IPrestige`.
+For an account to have a status it must have had the status at least one block BEFORE the `TierByConstruction` contract was constructed and then held the status through to the CURRENT result of `statusReport` as per the `ITier`.
 
 The construction block is referenced against the current status as a simple guard against things like flash loans that can be used to temporarily gain priviledges for a very short period of time at little or no cost.
 
-Technically the `IPrestige` could re-enter the `PrestigeByConstruction` so the `onlyStatus` modifier runs AFTER the modified function.
+Technically the `ITier` could re-enter the `TierByConstruction` so the `onlyTier` modifier runs AFTER the modified function.

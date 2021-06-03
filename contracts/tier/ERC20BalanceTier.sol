@@ -5,10 +5,10 @@ pragma solidity ^0.6.12;
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import { PrestigeUtil } from "./PrestigeUtil.sol";
-import "./Tier.sol";
+import { TierUtil } from "./TierUtil.sol";
+import "./ReadOnlyTier.sol";
 
-contract ERC20BalancePrestige is Status {
+contract ERC20BalanceTier is ReadOnlyTier {
     using SafeERC20 for IERC20;
 
     IERC20 public token;
@@ -19,9 +19,9 @@ contract ERC20BalancePrestige is Status {
         levels = _levels;
     }
 
-    function statusReport(address account) public override view returns (uint256) {
+    function report(address account) public view override returns (uint256) {
         uint256 _accountBalance = token.balanceOf(account);
-        uint256 _statusReport;
+        uint256 _report;
         uint256[9] memory _levels = levels;
         uint256 i;
         for (i; i < _levels.length; i++) {
@@ -29,6 +29,6 @@ contract ERC20BalancePrestige is Status {
                 break;
             }
         }
-        return PrestigeUtil.truncateStatusesAbove(_statusReport, i);
+        return TierUtil.truncateTiersAbove(_report, i);
     }
 }

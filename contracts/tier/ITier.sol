@@ -2,11 +2,11 @@
 
 pragma solidity ^0.6.12;
 
-interface IStatus {
+interface ITier {
     /**
     * 9 Possible tiers.
     * Fits nicely as uint32 in uint256 which is helpful for internal storage concerns.
-    * 8 tiers can be achieved, ZERO is the status when no tier has been achieved.
+    * 8 tiers can be achieved, ZERO is the tier when no tier has been achieved.
     **/
     enum Tier {
         ZERO,
@@ -21,22 +21,23 @@ interface IStatus {
     }
 
     /**
-    * Every time a status changes we log before and after as a Tier[2] against the account.
+    * Every time a tier changes we log before and after as a Tier[2] against the account and id.
     **/
-    event StatusChange(uint256 id, address account, Tier[2] change);
+    event TierChange(address account, Tier[2] change);
 
     /**
-    * Updates the status of an account to a given tier.
-    * The implementing contract is responsible for taking any actions required to set the status.
+    * Updates the tier of an account.
+    * The implementing contract is responsible for taking any additional actions required to set the tier.
     * For example, taking/refunding funds/NFTs etc.
     *
-    * @param id Arbitrary ID to support multi-status contracts.
-    * @param account Account to change the status for.
+    * Contracts may disallow directly setting tiers, preferring to derive reports from other onchain data.
+    * In this case they should `revert("ERR_SET_TIER");`.
+    *
+    * @param account Account to change the tier for.
     * @param newTier New tier after the status change.
     * @param data Arbitrary input to disambiguate ownership (e.g. NFTs to lock).
     **/
-    function setStatus(
-        uint256 id,
+    function setTier(
         address account,
         Tier newTier,
         bytes memory data
@@ -50,9 +51,8 @@ interface IStatus {
     * The low bits represent low tiers and high bits the high tiers.
     * Implementing contracts should return 0xFFFFFFFF for lost & never-held tiers.
     *
-    * @param id Arbitrary ID to support multi-status contracts.
     * @param account Account to get the report for.
-    * @return The status report blocks encoded as a uint256.
+    * @return The report blocks encoded as a uint256.
     **/
-    function statusReport(uint256 id, address account) external view returns (uint256);
+    function report(address account) external view returns (uint256);
 }

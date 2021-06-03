@@ -2,9 +2,9 @@
 
 pragma solidity ^0.6.12;
 
-import { IStatus } from "./IStatus.sol";
+import { ITier } from "./ITier.sol";
 
-library StatusUtil {
+library TierUtil {
 
     uint256 constant public UNINITIALIZED = uint256(-1);
 
@@ -15,33 +15,33 @@ library StatusUtil {
      * When the `statusReport` comes from a later block than the `blockNumber` this means
      * the user must have held the status continuously from `blockNumber` _through_ to the report block.
      * I.e. NOT a snapshot.
-     * @param report A status report as per IPrestige
-     * @param blockNumber The block number check the statuses against.
+     * @param _statusReport A status report as per ITier
+     * @param _blockNumber The block number check the statuses against.
      * @return The highest status held since `blockNumber` according to `report`.
      */
     function tierAtBlockFromReport(
-        uint256 _report,
+        uint256 _statusReport,
         uint256 _blockNumber
     )
-        internal pure returns (IStatus.Tier)
+        internal pure returns (ITier.Tier)
     {
         for (uint256 i = 0; i < 8; i++) {
-            if (uint32(uint256(_report >> (i*32))) > uint32(_blockNumber)) {
-                return IStatus.Tier(i);
+            if (uint32(uint256(_statusReport >> (i*32))) > uint32(_blockNumber)) {
+                return ITier.Tier(i);
             }
         }
-        return IStatus.Tier(8);
+        return ITier.Tier(8);
     }
 
     /**
      * Returns the block that a given status has been held since according to a status report.
      *
      * The status report SHOULD encode "never" as 0xFFFFFFFF
-     * @param report The status report to read a block number from.
-     * @param statusInt The status integer to read the block number for.
+     * @param _report The status report to read a block number from.
+     * @param _tierInt The status integer to read the block number for.
      * @return The block number this status has been held since.
      */
-    function statusBlock(uint256 _report, uint256 _tierInt)
+    function tierBlock(uint256 _report, uint256 _tierInt)
         internal
         pure
         returns (uint256)
@@ -62,8 +62,8 @@ library StatusUtil {
     /**
      * Resets all the tiers above the reference tier.
      *
-     * @param report Status report to truncate with high bit 1s.
-     * @param statusInt Status int level to truncate above (exclusive).
+     * @param _statusReport Status report to truncate with high bit 1s.
+     * @param _tierInt Status int level to truncate above (exclusive).
      * @return uint256 the truncated report.
      */
     function truncateTiersAbove(uint256 _statusReport, uint256 _tierInt)
@@ -80,13 +80,13 @@ library StatusUtil {
      * Updates a report with a block number for every status integer in a range.
      *
      * Does nothing if the end status is equal or less than the start status.
-     * @param report The report to update.
-     * @param startStatusInt The statusInt at the start of the range (exclusive).
-     * @param endStatusInt The statusInt at the end of the range (inclusive).
-     * @param blockNumber The block number to set for every status in the range.
+     * @param _statusReport The report to update.
+     * @param _startTierInt The _tierInt at the start of the range (exclusive).
+     * @param _endTierInt The _tierInt at the end of the range (inclusive).
+     * @param _blockNumber The block number to set for every status in the range.
      * @return The updated report.
      */
-    function updateBlocksForStatusRange(
+    function updateBlocksForTierRange(
         uint256 _statusReport,
         uint256 _startTierInt,
         uint256 _endTierInt,
@@ -95,7 +95,7 @@ library StatusUtil {
         internal pure returns (uint256)
     {
         for (uint256 i = _startTierInt; i < _endTierInt; i++) {
-            _statusReport = (_statusReport & ~uint256(uint256(uint32(StatusUtil.UNINITIALIZED)) << i*32)) | uint256(_blockNumber << (i*32));
+            _statusReport = (_statusReport & ~uint256(uint256(uint32(UNINITIALIZED)) << i*32)) | uint256(_blockNumber << (i*32));
         }
         return _statusReport;
     }
@@ -105,16 +105,16 @@ library StatusUtil {
      *
      * Internally dispatches to `truncateStatusesAbove` and `updateBlocksForStatuRange`.
      * The dispatch is based on whether the new status is above or below the current status.
-     * The `currentStatusInt` MUST match the result of `statusAtFromReport`.
+     * The `current_tierInt` MUST match the result of `statusAtFromReport`.
      * It is expected the caller will know the current status when calling this function
      * and need to do other things in the calling scope with it.
-     * @param report The report to update.
-     * @param currentStatusInt The current status int according to the report.
-     * @param newStatusInt The new status for the report.
-     * @param blockNumber The block number to update the status at.
+     * @param _statusReport The report to update.
+     * @param _currentTierInt The current status int according to the report.
+     * @param _newTierInt The new status for the report.
+     * @param _blockNumber The block number to update the status at.
      * @return The updated report.
      */
-    function updateReportWithStatusAtBlock(
+    function updateReportWithTierAtBlock(
         uint256 _statusReport,
         uint256 _currentTierInt,
         uint256 _newTierInt,
@@ -128,7 +128,7 @@ library StatusUtil {
         }
         // Otherwise fill the gap between current and new with the block number.
         else {
-            _statusReport = updateBlocksForStatusRange(
+            _statusReport = updateBlocksForTierRange(
                 _statusReport,
                 _currentTierInt,
                 _newTierInt,

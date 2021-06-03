@@ -1,79 +1,78 @@
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import type { Prestige } from '../typechain/Prestige'
-import type { PrestigeByConstructionTest } from '../typechain/PrestigeByConstructionTest'
-import type { PrestigeByConstructionClaimTest } from '../typechain/PrestigeByConstructionClaimTest'
+import type { Tier } from '../typechain/Tier'
+import type { TierByConstructionTest } from '../typechain/TierByConstructionTest'
+import type { TierByConstructionClaimTest } from '../typechain/TierByConstructionClaimTest'
 import { assertError } from '../utils/status-report'
 
 
 chai.use(solidity)
 const { expect, assert } = chai
 
-describe("PrestigeByConstruction", async function() {
+describe("TierByConstruction", async function() {
     let owner: any;
     let prestigeByConstructionFactory: any;
-    let prestige: Prestige;
-    let prestigeByConstruction: PrestigeByConstructionTest;
-
+    let tier: Tier;
+    let tierByConstruction: TierByConstructionTest;
 
     before(async () => {
         [owner] = await ethers.getSigners()
 
-        const prestigeFactory = await ethers.getContractFactory(
-            'Prestige'
+        const tierFactory = await ethers.getContractFactory(
+            'tier'
         )
-        prestige = await prestigeFactory.deploy() as Prestige
-        await prestige.deployed()
+        tier = await tierFactory.deploy() as Tier
+        await tier.deployed()
 
-        prestigeByConstructionFactory = await ethers.getContractFactory(
-            'PrestigeByConstructionTest'
+        const tierByConstructionFactory = await ethers.getContractFactory(
+            'TierByConstructionTest'
         )
-        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
-        await prestigeByConstruction.deployed()
+        tierByConstruction = await tierByConstructionFactory.deploy(tier.address) as TierByConstructionTest
+        await tierByConstruction.deployed()
     });
 
 
     it("should return the parameters entered in the constructor", async function() {
         const now = await ethers.provider.getBlockNumber()
-        const constructionBlock = await prestigeByConstruction.constructionBlock();
+        const constructionBlock = await tierByConstruction.constructionBlock();
 
         assert(
             constructionBlock.eq(now)
         )
 
         assert(
-            prestige.address === await prestigeByConstruction.prestige()
+            tier.address === await tierByConstruction.tier()
         )
     });
 
 
     it ("should return false if isStatus is queried with a wrong status than the current status", async function() {
         assert(
-            !(await prestigeByConstruction.isStatus(owner.address, 4))
+            !(await tierByConstruction.isStatus(owner.address, 4))
         )
     });
 
 
     it("should be able to use unlimited access functions in any status", async function() {
-        assert(await prestigeByConstruction.isStatus(owner.address, 0))
+        assert(await tierByConstruction.isStatus(owner.address, 0))
 
-        await prestigeByConstruction.unlimited()
+        await tierByConstruction.unlimited()
     });
 
 
     it("should enter a function restricted to Nil status if the status has never been updated", async function() {
-        assert(await prestigeByConstruction.isStatus(owner.address, 0))
+        assert(await tierByConstruction.isStatus(owner.address, 0))
 
-        await prestigeByConstruction.ifNil()
+        await tierByConstruction.ifNil()
     });
 
 
     it("should fail if you try to enter a function of a specific status if it has never been updated", async function() {
-        assert(await prestigeByConstruction.isStatus(owner.address, 0))
+        assert(await tierByConstruction.isStatus(owner.address, 0))
 
         assertError(
-            async () => await prestigeByConstruction.ifGold(),
+            async () => await tierByConstruction.ifGold(),
             'revert ERR_MIN_STATUS',
             'did not make a mistake when the user entered gold when he did not have it'
         )
@@ -81,15 +80,15 @@ describe("PrestigeByConstruction", async function() {
 
 
     it("shouldn't you set to use a function of the new status after construction", async function() {
-        await prestige.setStatus(owner.address, 1, [])
+        await tier.setStatus(owner.address, 1, [])
 
-        await prestigeByConstruction.unlimited()
+        await tierByConstruction.unlimited()
 
-        await prestigeByConstruction.ifNil()
+        await tierByConstruction.ifNil()
 
         // Setting the status AFTER construction doesn't help.
         assertError(
-            async () => await prestigeByConstruction.ifCopper(),
+            async () => await tierByConstruction.ifCopper(),
             'revert ERR_MIN_STATUS',
             'did not make a mistake when the user upgraded the copper after construction'
         )
@@ -97,21 +96,21 @@ describe("PrestigeByConstruction", async function() {
 
 
     it("should be able to use unlimited functions and lower status than the upgraded one", async function() {
-        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
+        tierByConstruction = await tierByConstructionFactory.deploy(tier.address) as TierByConstructionTest
 
-        await prestigeByConstruction.deployed()
+        await tierByConstruction.deployed()
 
-        await prestigeByConstruction.unlimited()
+        await tierByConstruction.unlimited()
 
-        await prestigeByConstruction.ifNil()
+        await tierByConstruction.ifNil()
 
-        await prestigeByConstruction.ifCopper()
+        await tierByConstruction.ifCopper()
     });
 
 
     it("should not be able to use a function for a status if you do not have that status", async function() {
         assertError(
-            async () => await prestigeByConstruction.ifBronze(),
+            async () => await tierByConstruction.ifBronze(),
             'revert ERR_MIN_STATUS',
             'did not make a mistake when the user entered bronze when he did not have it.'
         )
@@ -119,57 +118,57 @@ describe("PrestigeByConstruction", async function() {
 
 
     it("should be possible to use all functions restricted to the lower status of the highest status", async function () {
-        await prestige.setStatus(owner.address, 8, [])
+        await tier.setStatus(owner.address, 8, [])
 
-        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
+        tierByConstruction = await tierByConstructionFactory.deploy(tier.address) as TierByConstructionTest
 
-        await prestigeByConstruction.deployed()
+        await tierByConstruction.deployed()
 
-        await prestigeByConstruction.unlimited()
+        await tierByConstruction.unlimited()
 
-        await prestigeByConstruction.ifNil()
+        await tierByConstruction.ifNil()
 
-        await prestigeByConstruction.ifCopper()
+        await tierByConstruction.ifCopper()
 
-        await prestigeByConstruction.ifBronze()
+        await tierByConstruction.ifBronze()
 
-        await prestigeByConstruction.ifJawad()
+        await tierByConstruction.ifJawad()
     });
 
 
     it("should enter the functions of the previous state when downgrading after construction", async function () {
-        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
-        await prestigeByConstruction.deployed()
+        tierByConstruction = await tierByConstructionFactory.deploy(tier.address) as TierByConstructionTest
+        await tierByConstruction.deployed()
 
-        await prestige.setStatus(owner.address, 6, [])
+        await tier.setStatus(owner.address, 6, [])
 
-        await prestigeByConstruction.unlimited()
+        await tierByConstruction.unlimited()
 
-        await prestigeByConstruction.ifNil()
+        await tierByConstruction.ifNil()
 
-        await prestigeByConstruction.ifCopper()
+        await tierByConstruction.ifCopper()
 
-        await prestigeByConstruction.ifBronze()
+        await tierByConstruction.ifBronze()
 
-        await prestigeByConstruction.ifDiamond()
+        await tierByConstruction.ifDiamond()
 
     });
 
 
     it("Should not enter the functions of the former state when downgrading after construction", async function () {
-        prestigeByConstruction = await prestigeByConstructionFactory.deploy(prestige.address) as PrestigeByConstructionTest
-        await prestigeByConstruction.deployed()
+        tierByConstruction = await tierByConstructionFactory.deploy(tier.address) as TierByConstructionTest
+        await tierByConstruction.deployed()
 
-        await prestige.setStatus(owner.address, 3, [])
+        await tier.setStatus(owner.address, 3, [])
 
-        await prestigeByConstruction.unlimited()
+        await tierByConstruction.unlimited()
 
-        await prestigeByConstruction.ifNil()
+        await tierByConstruction.ifNil()
 
-        await prestigeByConstruction.ifCopper()
+        await tierByConstruction.ifCopper()
 
         assertError(
-            async () => await prestigeByConstruction.ifDiamond(),
+            async () => await tierByConstruction.ifDiamond(),
             'revert ERR_MIN_STATUS',
             'did not make a mistake when the user entered dimond when he did not have it.'
         )
@@ -177,35 +176,35 @@ describe("PrestigeByConstruction", async function() {
 });
 
 
-describe("PrestigeByConstructionClaim", async function() {
+describe("TierByConstructionClaim", async function() {
     let owner: any;
-    let prestige: Prestige;
-    let prestigeByConstructionClaim: PrestigeByConstructionClaimTest;
-    let prestigeByConstructionClaimFactory: any;
+    let tier: Tier;
+    let tierByConstructionClaim: TierByConstructionClaimTest;
+    let tierByConstructionClaimFactory: any;
 
 
     before(async () => {
         [owner] = await ethers.getSigners()
 
-        const prestigeFactory = await ethers.getContractFactory(
-            'Prestige'
+        const tierFactory = await ethers.getContractFactory(
+            'tier'
         )
-        prestige = await prestigeFactory.deploy() as Prestige
-        await prestige.deployed()
+        tier = await tierFactory.deploy() as tier
+        await tier.deployed()
 
-        prestigeByConstructionClaimFactory = await ethers.getContractFactory(
-            'PrestigeByConstructionClaimTest'
+        tierByConstructionClaimFactory = await ethers.getContractFactory(
+            'TierByConstructionClaimTest'
         )
-        prestigeByConstructionClaim = await prestigeByConstructionClaimFactory.deploy(prestige.address) as PrestigeByConstructionClaimTest
-        await prestigeByConstructionClaim.deployed()
+        tierByConstructionClaim = await tierByConstructionClaimFactory.deploy(tier.address) as TierByConstructionClaimTest
+        await tierByConstructionClaim.deployed()
     });
 
 
     it("shouldn't you set to use a function of the new status after construction", async function() {
-        await prestige.setStatus(owner.address, 4, [])
+        await tier.setStatus(owner.address, 4, [])
 
         assertError(
-            async () => await prestigeByConstructionClaim.claim(owner.address),
+            async () => await tierByConstructionClaim.claim(owner.address),
             'revert ERR_MIN_STATUS',
             'did not make a mistake when the user upgraded the gold after construction'
         )
@@ -213,18 +212,18 @@ describe("PrestigeByConstructionClaim", async function() {
 
 
     it("should enter the function and mint 100 tokens", async function() {
-        prestigeByConstructionClaim = await prestigeByConstructionClaimFactory.deploy(prestige.address) as PrestigeByConstructionClaimTest
-        await prestigeByConstructionClaim.deployed()
+        tierByConstructionClaim = await tierByConstructionClaimFactory.deploy(tier.address) as TierByConstructionClaimTest
+        await tierByConstructionClaim.deployed()
 
-        await prestigeByConstructionClaim.claim(owner.address)
+        await tierByConstructionClaim.claim(owner.address)
 
         assert(
-            (await prestigeByConstructionClaim.claims(owner.address)),
+            (await tierByConstructionClaim.claims(owner.address)),
             "did not enter correctly to the function"
         )
 
         assert(
-            Number(await prestigeByConstructionClaim.balanceOf(owner.address)) === 100,
+            Number(await tierByConstructionClaim.balanceOf(owner.address)) === 100,
             "did not enter correctly to the function"
         )
     });
@@ -232,7 +231,7 @@ describe("PrestigeByConstructionClaim", async function() {
 
     it("should not allow multiple minting", async function() {
         assertError(
-            async() => await prestigeByConstructionClaim.claim(owner.address),
+            async() => await tierByConstructionClaim.claim(owner.address),
             'revert ERR_MULTI_MINT',
             'function does not correctly restrict multiple mints'
         )
