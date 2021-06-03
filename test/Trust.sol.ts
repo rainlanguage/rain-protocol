@@ -1267,6 +1267,77 @@ describe("Trust", async function() {
     // correct tokens
     assert(hodler1EndingTokenBalance.eq(hodler1ExpectedEndingTokenBalance), "wrong final token balance for hodler 1")
     assert(hodler2EndingTokenBalance.eq(hodler2ExpectedEndingTokenBalance), "wrong final token balance for hodler 2")
+
+    assert(
+      (await token.totalSupply())
+        .eq(hodler1EndingTokenBalance
+          .add(hodler2EndingTokenBalance)
+          .add(await token.balanceOf(bPool.address))), // token dust
+      `wrong total token supply after successful raise 
+      initial supply      ${totalTokenSupply}
+      total supply        ${await token.totalSupply()}
+      balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
+      balanceOf token     ${await token.balanceOf(token.address)}
+      balanceOf pool      ${await token.balanceOf(pool.address)}
+      balanceOf bPool     ${await token.balanceOf(bPool.address)}
+      balanceOf trust     ${await token.balanceOf(trust.address)}
+      balanceOf creator   ${await token.balanceOf(creator)}
+      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf hodler 1  ${hodler1EndingTokenBalance}
+      balanceOf hodler 2  ${hodler2EndingTokenBalance}
+      `
+    )
+
+    // token supply is burned correctly on redemption
+
+    const token1 = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[2])
+    const token2 = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[3])
+
+    // redeem all
+    await token1.redeem(hodler1EndingTokenBalance)
+
+    assert(
+      (await token.totalSupply())
+        .eq(hodler2EndingTokenBalance
+          .add(await token.balanceOf(bPool.address))), // token dust
+      `wrong total token supply after hodler 1 redemption 
+      initial supply      ${totalTokenSupply}
+      total supply        ${await token.totalSupply()}
+      balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
+      balanceOf token     ${await token.balanceOf(token.address)}
+      balanceOf pool      ${await token.balanceOf(pool.address)}
+      balanceOf bPool     ${await token.balanceOf(bPool.address)}
+      balanceOf trust     ${await token.balanceOf(trust.address)}
+      balanceOf creator   ${await token.balanceOf(creator)}
+      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf hodler 1  ${await token.balanceOf(hodler1.address)}
+      balanceOf hodler 2  ${await token.balanceOf(hodler2.address)}
+      `
+    )
+
+    const smallTokenAmount = ethers.BigNumber.from('1' + Util.eighteenZeros)
+
+    // redeem almost all tokens
+    await token2.redeem(hodler2EndingTokenBalance.sub(smallTokenAmount))
+
+    assert(
+      (await token.totalSupply())
+        .eq(smallTokenAmount
+          .add(await token.balanceOf(bPool.address))), // token dust
+      `wrong total token supply after hodler 2 redemption 
+      initial supply      ${totalTokenSupply}
+      total supply        ${await token.totalSupply()}
+      balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
+      balanceOf token     ${await token.balanceOf(token.address)}
+      balanceOf pool      ${await token.balanceOf(pool.address)}
+      balanceOf bPool     ${await token.balanceOf(bPool.address)}
+      balanceOf trust     ${await token.balanceOf(trust.address)}
+      balanceOf creator   ${await token.balanceOf(creator)}
+      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf hodler 1  ${await token.balanceOf(hodler1.address)}
+      balanceOf hodler 2  ${await token.balanceOf(hodler2.address)}
+      `
+    )
   })
 
   it('should transfer correct value to all stakeholders after failed raise', async function () {
@@ -1517,6 +1588,77 @@ describe("Trust", async function() {
     assert(
       (await reserve.balanceOf(token.address)).eq(remainderReserveBalance),
       "token contract did not receive remainder"
+    )
+
+    assert(
+      (await token.totalSupply())
+        .eq(hodler1EndingTokenBalance
+          .add(hodler2EndingTokenBalance)
+          .add(await token.balanceOf(bPool.address))), // token dust
+      `wrong total token supply after failed raise 
+      initial supply      ${totalTokenSupply}
+      total supply        ${await token.totalSupply()}
+      balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
+      balanceOf token     ${await token.balanceOf(token.address)}
+      balanceOf pool      ${await token.balanceOf(pool.address)}
+      balanceOf bPool     ${await token.balanceOf(bPool.address)}
+      balanceOf trust     ${await token.balanceOf(trust.address)}
+      balanceOf creator   ${await token.balanceOf(creator)}
+      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf hodler 1  ${hodler1EndingTokenBalance}
+      balanceOf hodler 2  ${hodler2EndingTokenBalance}
+      `
+    )
+
+    // token supply is burned correctly on redemption
+
+    const token1 = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[2])
+    const token2 = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[3])
+
+    // redeem all
+    await token1.redeem(hodler1EndingTokenBalance)
+
+    assert(
+      (await token.totalSupply())
+        .eq(hodler2EndingTokenBalance
+          .add(await token.balanceOf(bPool.address))), // token dust
+      `wrong total token supply after hodler 1 redemption 
+      initial supply      ${totalTokenSupply}
+      total supply        ${await token.totalSupply()}
+      balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
+      balanceOf token     ${await token.balanceOf(token.address)}
+      balanceOf pool      ${await token.balanceOf(pool.address)}
+      balanceOf bPool     ${await token.balanceOf(bPool.address)}
+      balanceOf trust     ${await token.balanceOf(trust.address)}
+      balanceOf creator   ${await token.balanceOf(creator)}
+      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf hodler 1  ${await token.balanceOf(hodler1.address)}
+      balanceOf hodler 2  ${await token.balanceOf(hodler2.address)}
+      `
+    )
+
+    const smallTokenAmount = ethers.BigNumber.from('1' + Util.eighteenZeros)
+
+    // redeem almost all tokens
+    await token2.redeem(hodler2EndingTokenBalance.sub(smallTokenAmount))
+
+    assert(
+      (await token.totalSupply())
+        .eq(smallTokenAmount
+          .add(await token.balanceOf(bPool.address))), // token dust
+      `wrong total token supply after hodler 2 redemption 
+      initial supply      ${totalTokenSupply}
+      total supply        ${await token.totalSupply()}
+      balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
+      balanceOf token     ${await token.balanceOf(token.address)}
+      balanceOf pool      ${await token.balanceOf(pool.address)}
+      balanceOf bPool     ${await token.balanceOf(bPool.address)}
+      balanceOf trust     ${await token.balanceOf(trust.address)}
+      balanceOf creator   ${await token.balanceOf(creator)}
+      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf hodler 1  ${await token.balanceOf(hodler1.address)}
+      balanceOf hodler 2  ${await token.balanceOf(hodler2.address)}
+      `
     )
   })
 
