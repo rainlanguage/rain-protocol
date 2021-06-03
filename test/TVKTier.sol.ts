@@ -1,8 +1,8 @@
 import chai from 'chai'
-import { assertError, tvkStatusReport } from '../utils/status-report'
+import { assertError, tvkReport } from '../utils/status-report'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import type { TVKPrestige } from '../typechain/TVKPrestige'
+import type { TVKTier } from '../typechain/TVKTier'
 import hre from 'hardhat'
 import { erc20ABI } from './erc20-abi'
 
@@ -16,120 +16,102 @@ const TVK_TREASURY_ADDRESS = '0x197d188218dCF572A1e5175CCdaC783ee0E6734A'
 
 // check status levels
 describe("Levels", async function(){
-  let tvkPrestige : any;
+  let tvkTier : any;
 
 
   before(async () => {
     // deploy contract
-    const tvkprestigeFactory = await ethers.getContractFactory(
-      'TVKPrestige'
+    const tvkTierFactory = await ethers.getContractFactory(
+      'TVKTier'
     );
-    tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    await tvkPrestige.deployed()
+    tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    await tvkTier.deployed()
   });
 
-  it('will return the nil status level', async function() {
-    // the expected nil level
-    const nil = ethers.BigNumber.from(0)
+  it('will return zero tier', async function() {
+    const zero = ethers.BigNumber.from(0)
 
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[0]).to.equal(nil)
+    expect(levels[0]).to.equal(zero)
   })
 
 
-  it("will return the copper status level", async function(){
-    // the expected copper level
-    const copper = ethers.BigNumber.from(0)
+  it("will return tier one", async function(){
+    const one = ethers.BigNumber.from(0)
 
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[1]).to.equal(copper);
+    expect(levels[1]).to.equal(one);
   });
 
 
-  it("will return the bronze status level", async function(){
-    // the expected bronze level
-    const bronze = ethers.BigNumber.from('1000' + eighteenZeros)
+  it("will return tier two", async function(){
+    const two = ethers.BigNumber.from('1000' + eighteenZeros)
 
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[2]).to.equal(bronze);
+    expect(levels[2]).to.equal(two);
   });
 
 
-  it("will return the silver status level", async function(){
-    // the expected silver level
-    const silver = ethers.BigNumber.from('5000' + eighteenZeros)
+  it("will return tier three", async function(){
+    const three = ethers.BigNumber.from('5000' + eighteenZeros)
 
     // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[3]).to.equal(silver);
+    expect(levels[3]).to.equal(three);
   });
 
 
-  it("will return the gold status level", async function(){
-    // the expected gold level
-    const gold = ethers.BigNumber.from('10000' + eighteenZeros)
+  it("will return tier four", async function(){
+    const four = ethers.BigNumber.from('10000' + eighteenZeros)
 
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[4]).to.equal(gold);
+    expect(levels[4]).to.equal(four);
   });
 
 
-  it("will return the platinum status level", async function(){
-    // the expected platinum level
-    const platinum = ethers.BigNumber.from('25000' + eighteenZeros)
+  it("will return tier five", async function(){
+    const five = ethers.BigNumber.from('25000' + eighteenZeros)
 
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[5]).to.equal(platinum);
+    expect(levels[5]).to.equal(five);
   });
 
 
-  it("will return the diamond status level", async function(){
-    // the expected diamond level
-    const diamond = ethers.BigNumber.from('100000' + eighteenZeros)
+  it("will return tier six", async function(){
+    const six = ethers.BigNumber.from('100000' + eighteenZeros)
 
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[6]).to.equal(diamond);
+    expect(levels[6]).to.equal(six);
   });
 
 
-  it("will return the chad status level", async function(){
-    // the expected chad level
-    const chad = ethers.BigNumber.from('250000' + eighteenZeros)
+  it("will return tier seven", async function(){
+    const seven = ethers.BigNumber.from('250000' + eighteenZeros)
 
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[7]).to.equal(chad);
+    expect(levels[7]).to.equal(seven);
   });
 
 
-  it("will return the jawad status level", async function(){
-    // the expected jawad level
-    const jawad = ethers.BigNumber.from('1000000' + eighteenZeros)
+  it("will return tier eight", async function(){
+    const eight = ethers.BigNumber.from('1000000' + eighteenZeros)
 
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
-    expect(levels[8]).to.equal(jawad);
+    expect(levels[8]).to.equal(eight);
   });
 
 
   it("will return undefined if a non-existent level is obtained", async function(){
-    // get the levels
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
 
     expect(levels[9]).to.equal(undefined);
   });
@@ -138,7 +120,7 @@ describe("Levels", async function(){
 
 describe("Account status", async function(){
 
-  it("will take ownership of the correct amount of TVK when the new status is higher", async function(){
+  it("will take ownership of the correct amount of TVK when the new tier is higher", async function(){
     // reset the fork
     await hre.network.provider.request({
       method: "hardhat_reset",
@@ -154,12 +136,12 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
+    // deploy TVKTier
+    const tvkTierFactory = await ethers.getContractFactory(
+        'TVKTier'
     );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
+    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    let deployedTvkPrestige = await tvkTier.deployed()
 
     // impersonate the TVK treasury
     await hre.network.provider.request({
@@ -186,16 +168,16 @@ describe("Account status", async function(){
     const balance = await tvkToken.balanceOf(address)
 
     // change the status to silver
-    await tvkPrestige.setStatus(address, 2, [])
+    await tvkTier.setTier(address, 2, [])
 
     // new balance should be old balance less amount for silver
-    const levels = await tvkPrestige.levels()
+    const levels = await tvkTier.levels()
     const silver = levels[2]
     const newBalance = await tvkToken.balanceOf(address)
     expect(newBalance).to.equal(balance.sub(silver), "new balance after status change is incorrect")
   });
 
-  it("will refund the correct amount of TVK when the new status is lower", async function(){
+  it("will refund the correct amount of TVK when the new tier is lower", async function(){
     // reset the fork
     await hre.network.provider.request({
       method: "hardhat_reset",
@@ -211,12 +193,12 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
+    // deploy TVKTier
+    const tvkTierFactory = await ethers.getContractFactory(
+        'TVKTier'
     );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
+    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    await tvkTier.deployed()
 
     // impersonate the TVK treasury
     await hre.network.provider.request({
@@ -237,25 +219,25 @@ describe("Account status", async function(){
 
     // get the TVK token contract and set allowance for TVK prestige contract
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '35000' + eighteenZeros)
+    await tvkToken.approve(tvkTier.address, '35000' + eighteenZeros)
 
     // get balance of TVK
     const balance = await tvkToken.balanceOf(address)
 
-    // change the status to platinum
-    tvkPrestige.setStatus(address, 4, [])
+    // change the tier to FOUR
+    tvkTier.setTier(address, 4, [])
 
-    // change the status to bronze
-    tvkPrestige.setStatus(address, 1, [])
+    // change the status to ONE
+    tvkTier.setTier(address, 1, [])
 
-    // new balance should be the bronze level
-    const levels = await tvkPrestige.levels()
-    const bronze_level = levels[1]
+    // new balance should be ONE
+    const levels = await tvkTier.levels()
+    const one = levels[1]
     const newBalance = await tvkToken.balanceOf(address)
-    expect(newBalance).to.equal(balance.sub(bronze_level), "new balance after status change is incorrect")
+    expect(newBalance).to.equal(balance.sub(one), "new balance after tier change is incorrect")
   });
 
-  it("will revert if not enough TVK for higher status", async function(){
+  it("will revert if not enough TVK for higher tier", async function(){
     // reset the fork
     await hre.network.provider.request({
       method: "hardhat_reset",
@@ -271,12 +253,12 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
+    // deploy TVKTier
+    const tvkTierFactory = await ethers.getContractFactory(
+        'TVKTier'
     );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
+    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    await tvkTier.deployed()
 
     // impersonate the TVK treasury
     await hre.network.provider.request({
@@ -297,9 +279,9 @@ describe("Account status", async function(){
 
     // get the TVK token contract and set allowance for TVK prestige contract
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
+    await tvkToken.approve(tvkTier.address, '10000' + eighteenZeros)
 
-    await expect(tvkPrestige.setStatus(address, 3, [])).to.be.revertedWith("revert ERC20: transfer amount exceeds balance")
+    await expect(tvkTier.setTier(address, 3, [])).to.be.revertedWith("revert ERC20: transfer amount exceeds balance")
   })
 
   it("will return new status invalid", async function(){
@@ -318,12 +300,12 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
+    // deploy TVKTier
+    const tvkTierFactory = await ethers.getContractFactory(
+        'TVKTier'
     );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
+    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    await tvkTier.deployed()
 
     // impersonate the TVK treasury
     await hre.network.provider.request({
@@ -344,10 +326,10 @@ describe("Account status", async function(){
 
     // get the TVK token contract and set allowance for TVK prestige contract
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
+    await tvkToken.approve(tvkTier.address, '10000' + eighteenZeros)
 
     assertError(
-      async () => await tvkPrestige.setStatus(address, 100, []),
+      async () => await tvkTier.setTier(address, 100, []),
       "VM Exception while processing transaction: invalid opcode",
       "failed to error for invalid status"
     )
@@ -358,12 +340,12 @@ describe("Account status", async function(){
     const signers = await ethers.getSigners()
     const address = signers[0].address;
 
-    // deploy TVKPrestige
-    const tvkprestigeFactory = await ethers.getContractFactory(
-        'TVKPrestige'
+    // deploy TVKTier
+    const tvkTierFactory = await ethers.getContractFactory(
+        'TVKTier'
     );
-    const tvkPrestige = await tvkprestigeFactory.deploy() as TVKPrestige;
-    let deployedTvkPrestige = await tvkPrestige.deployed()
+    const tvkTier = await tvkTierFactory.deploy() as TVKTier;
+    await tvkTier.deployed()
 
     // impersonate the TVK treasury
     await hre.network.provider.request({
@@ -382,11 +364,10 @@ describe("Account status", async function(){
       params: ["0x197d188218dCF572A1e5175CCdaC783ee0E6734A"]}
     )
 
-    // get the TVK token contract and set allowance for TVK prestige contract
+    // get the TVK token contract and set allowance for TVK tier contract
     const tvkToken = new ethers.Contract(TVK_CONTRACT_ADDRESS, erc20ABI, signers[0])
-    await tvkToken.approve(deployedTvkPrestige.address, '10000' + eighteenZeros)
+    await tvkToken.approve(tvkTier.address, '10000' + eighteenZeros)
 
-
-    await expect(tvkPrestige.setStatus(address, 8, [])).to.be.reverted
+    await expect(tvkTier.setTier(address, 8, [])).to.be.reverted
   })
 });
