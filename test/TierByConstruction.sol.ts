@@ -90,7 +90,7 @@ describe("TierByConstruction", async function() {
         assertError(
             async () => await tierByConstruction.ifOne(),
             'revert ERR_MINIMUM_TIER',
-            'did not make a mistake when the user upgraded the copper after construction'
+            'did not make a mistake when the user upgraded the ONE after construction'
         )
     });
 
