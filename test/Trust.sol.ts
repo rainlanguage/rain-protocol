@@ -30,6 +30,88 @@ enum Status {
 }
 
 describe("Trust", async function() {
+  it('should allow third party to deploy trust, independently of creator and seeder', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const creator = signers[0].address
+    const seeder = signers[1].address // seeder is not creator/owner
+    const deployer = signers[2] // deployer is not creator
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    const trust = await trustFactory1.deploy(
+      {
+        creator,
+        minCreatorRaise,
+        seeder,
+        seederFee,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+    
+    await trust.deployed()
+
+    const trustConfig = await trust.trustConfig()
+    const contractRedeemInit = await trust.redeemInit()
+
+    assert(trustConfig.creator === creator, "wrong creator")
+    assert(trustConfig.seeder === seeder, "wrong seeder")
+    assert(trustConfig.minCreatorRaise.eq(minCreatorRaise), "wrong minimum raise amount")
+    assert(trustConfig.seederFee.eq(seederFee), "wrong seeder fee")
+    assert(trustConfig.raiseDuration.eq(raiseDuration), "wrong raise duration")
+    assert(contractRedeemInit.eq(redeemInit), "wrong redeem init")
+  })
+
   it('should unblock token only when raise end has been triggered', async function () {
     this.timeout(0)
 
