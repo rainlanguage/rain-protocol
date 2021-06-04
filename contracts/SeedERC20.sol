@@ -30,6 +30,8 @@ contract SeedERC20 is Ownable, ERC20, Initable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    event Seeded();
+
     IERC20 public reserve;
     address public recipient;
     uint256 public seedPrice;
@@ -78,6 +80,7 @@ contract SeedERC20 is Ownable, ERC20, Initable {
         if (balanceOf(address(this)) == units) {
             seeded = true;
             reserve.approve(recipient, uint256(-1));
+            emit Seeded();
         }
         unseedLocks[msg.sender] = block.number + unseedDelay;
 

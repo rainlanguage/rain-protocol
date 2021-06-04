@@ -51,6 +51,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0
+    const unseedDelay = 0
 
     const raiseDuration = 50
 
@@ -58,23 +60,25 @@ describe("Trust", async function() {
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
         crpFactory: crpFactory.address,
         balancerFactory: bFactory.address,
         reserve: reserve.address,
-        reserveInit: reserveInit,
-        initialValuation: initialValuation,
+        reserveInit,
+        initialValuation,
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
       },
       redeemInit,
@@ -91,7 +95,7 @@ describe("Trust", async function() {
     await trust.startRaise({
       gasLimit: 100000000
     })
-    
+
     const startBlock = await ethers.provider.getBlockNumber()
 
     const trust2 = new ethers.Contract(trust.address, trust.interface, signers[2])
@@ -112,7 +116,7 @@ describe("Trust", async function() {
 
     // trust should no longer hold any reserve
     assert(
-      (await reserve.balanceOf(trust.address)).eq(0), 
+      (await reserve.balanceOf(trust.address)).eq(0),
       "trust still holds non-zero reserve balance"
     )
   })
@@ -152,6 +156,8 @@ describe("Trust", async function() {
     // @todo not a very interesting test
     const seeder = signers[0].address
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0
+    const unseedDelay = 0
 
     const raiseDuration = 50
 
@@ -159,15 +165,17 @@ describe("Trust", async function() {
       {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        seeder,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
@@ -342,6 +350,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const seeder = signers[0].address
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0
+    const unseedDelay = 0
 
     const raiseDuration = 15
 
@@ -349,15 +359,17 @@ describe("Trust", async function() {
       {
         creator: signers[0].address,
         minCreatorRaise,
-        seeder: seeder,
+        seeder,
         seederFee,
-        raiseDuration: raiseDuration,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
       },
       {
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
-        minimumStatus: minimumStatus,
+        minimumStatus,
         totalSupply: totalTokenSupply,
       },
       {
@@ -509,16 +521,20 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('0')
     const seeder = signers[0].address
     const seederFee = ethers.BigNumber.from('0')
+    const seederUnits = 0
+    const unseedDelay = 0
 
     const raiseDuration = 10
 
     const trust = await trustFactory.deploy(
       {
         creator: signers[0].address,
-        minCreatorRaise: minCreatorRaise,
-        seeder: seeder,
-        seederFee: seederFee,
-        raiseDuration: raiseDuration,
+        minCreatorRaise,
+        seeder,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
       },
       {
         name: tokenName,
