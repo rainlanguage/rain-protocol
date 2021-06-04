@@ -149,7 +149,6 @@ contract Trust {
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function startRaise() external {
         uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
-        token.ownerSetUnblockBlock(_unblockBlock);
         pool.ownerSetUnblockBlock(_unblockBlock);
         pool.init(trustConfig.seeder);
     }
@@ -160,6 +159,7 @@ contract Trust {
     // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
     function endRaise() external {
         RedeemableERC20Pool _pool = pool;
+        token.ownerSetUnblockBlock(block.number);
         _pool.exit();
 
         TrustConfig memory _trustConfig = trustConfig;

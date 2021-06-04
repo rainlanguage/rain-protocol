@@ -193,7 +193,7 @@ describe("Trust", async function() {
       },
       redeemInit,
     )
-    
+
     await trust.deployed()
 
     const trustConfig = await trust.trustConfig()
@@ -476,7 +476,7 @@ describe("Trust", async function() {
     )
 
     await trust.deployed()
-    
+
     // seeder needs some cash, give some (0.5 billion USD) to seeder
     await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
 
@@ -568,7 +568,7 @@ describe("Trust", async function() {
     )
 
     await trust.deployed()
-    
+
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
 
     assert(
