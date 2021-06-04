@@ -4,6 +4,8 @@ pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
+
 import { Initable } from "./libraries/Initable.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
