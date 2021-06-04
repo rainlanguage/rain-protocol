@@ -23,6 +23,7 @@ import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
 import { PoolConfig } from "./RedeemableERC20Pool.sol";
 import { RedeemableERC20Config } from "./RedeemableERC20.sol";
+import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
 struct TrustConfig {
     address creator;
@@ -33,6 +34,8 @@ struct TrustConfig {
     address seeder;
     // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
     uint256 seederFee;
+    uint256 seederUnits;
+    uint256 unseedDelay;
     uint256 raiseDuration;
 }
 
@@ -117,6 +120,21 @@ contract Trust {
             _poolConfig,
             _redeemInit
         );
+
+        if (_trustConfig.seeder == address(0)) {
+            require(_poolConfig.reserveInit.mod(_trustConfig.seederUnits) == 0, "ERR_SEED_PRICE_MULTIPLIER");
+            uint256 _seedPrice = _poolConfig.reserveInit.div(_trustConfig.seederUnits);
+            SeedERC20 _seedERC20 = new SeedERC20(SeedERC20Config(
+                _poolConfig.reserve,
+                _seedPrice,
+                _trustConfig.seederUnits,
+                _trustConfig.unseedDelay,
+                "",
+                ""
+            ));
+            _seedERC20.init(address(this));
+            _trustConfig.seeder = address(_seedERC20);
+        }
 
         // Need to make a few addresses unfreezable to facilitate exits.
         _token.ownerAddUnfreezable(address(_pool.crp()));
