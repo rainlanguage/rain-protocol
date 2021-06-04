@@ -119,10 +119,15 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     }
 
     function ownerAddRedeemable(IERC20 _redeemable) external onlyOwner {
+        uint256 _redeemablesLength = redeemables.length;
+        uint256 _i;
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
-        require(redeemables.length < 8, "ERR_MAX_REDEEMABLES");
+        require(_redeemablesLength < 8, "ERR_MAX_REDEEMABLES");
+        for (_i; _i<_redeemablesLength;_i++) {
+            require(redeemables[_i] != _redeemable, "ERR_DUPLICATE_REDEEMABLE");
+        }
         redeemables.push(_redeemable);
     }
 
