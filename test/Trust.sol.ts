@@ -817,6 +817,21 @@ describe("Trust", async function() {
       "revert ERR_NOT_CREATOR",
       "non-creator added redeemable"
     )
+    
+    const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, signers[0])
+    const token2 = new ethers.Contract(trust.token(), redeemableTokenJson.abi, signers[2])
+    
+    // cannot add redeemables directly to token when trust is owner
+    Util.assertError(
+      async () => await token.ownerAddRedeemable(reserve3.address),
+      "revert Ownable: caller is not the owner",
+      "creator added redeemable directly to token when trust was owner"
+    )  
+    Util.assertError(
+      async () => await token2.ownerAddRedeemable(reserve3.address),
+      "revert Ownable: caller is not the owner",
+      "non-creator added redeemable directly to token when trust was owner"
+    )  
 
     // adding same redeemable should revert
     Util.assertError(
