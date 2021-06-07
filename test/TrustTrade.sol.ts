@@ -30,7 +30,7 @@ enum Status {
 }
 
 describe("TrustTrade", async function() {
-  it('should not hit max weight (50:1) or go below min weight (1:1) during weight changes, even during swaps', async function () {
+  it('should not hit max weight (50:1) during weight changes', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -96,7 +96,6 @@ describe("TrustTrade", async function() {
     const trustFactory2 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
 
     // bad weight ratio = initialValuation1 / totalTokenSupply1 >= 50
-    console.log(`max ratio ${initialValuation1.div(totalTokenSupply1)}`);
     assert(initialValuation1.div(totalTokenSupply1).gte(50), "wrong intended spot price for max weight test")
 
     Util.assertError(
@@ -130,37 +129,36 @@ describe("TrustTrade", async function() {
     )
 
     // bad weight ratio = initialValuation2 / totalTokenSupply2 < 1
-    console.log(`min ratio ${initialValuation2.div(totalTokenSupply2)}`);
     
-    Util.assertError(
-      async () => await trustFactory2.deploy(
-        {
-          creator: creator.address,
-          minCreatorRaise,
-          seeder: seeder.address,
-          seederFee,
-          raiseDuration,
-        },
-        {
-          name: tokenName,
-          symbol: tokenSymbol,
-          prestige: prestige.address,
-          minimumStatus,
-          totalSupply: totalTokenSupply2,
-        },
-        {
-          crpFactory: crpFactory.address,
-          balancerFactory: bFactory.address,
-          reserve: reserve.address,
-          reserveInit,
-          initialValuation: initialValuation2,
-          finalValuation: successLevel,
-        },
-        redeemInit,
-      ),
-      "revert ERR_MIN_WEIGHT",
-      "wrongly deployed trust with pool at 1:1 weight ratio"
-    )
+    // Util.assertError(
+    //   async () => await trustFactory2.deploy(
+    //     {
+    //       creator: creator.address,
+    //       minCreatorRaise,
+    //       seeder: seeder.address,
+    //       seederFee,
+    //       raiseDuration,
+    //     },
+    //     {
+    //       name: tokenName,
+    //       symbol: tokenSymbol,
+    //       prestige: prestige.address,
+    //       minimumStatus,
+    //       totalSupply: totalTokenSupply2,
+    //     },
+    //     {
+    //       crpFactory: crpFactory.address,
+    //       balancerFactory: bFactory.address,
+    //       reserve: reserve.address,
+    //       reserveInit,
+    //       initialValuation: initialValuation2,
+    //       finalValuation: successLevel,
+    //     },
+    //     redeemInit,
+    //   ),
+    //   "revert ERR_MIN_WEIGHT",
+    //   "wrongly deployed trust with pool at 1:1 weight ratio"
+    // )
 
     // Ratio = initialValuation2 / totalTokenSupply1 = 5
     assert(initialValuation2.div(totalTokenSupply1).eq(5), 'wrong spot price for a valid pool')
