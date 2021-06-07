@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
+import "hardhat/console.sol";
+
 // Needed to handle structures externally
 pragma experimental ABIEncoderV2;
 
@@ -107,7 +109,7 @@ contract Trust {
         require(_redeemableERC20Config.totalSupply >= _poolConfig.reserveInit, "ERR_MIN_TOKEN_SUPPLY");
         require(_poolConfig.reserveInit > 0, "ERR_MIN_RESERVE");
         require(_poolConfig.initialValuation >= _poolConfig.finalValuation, "ERR_MIN_INITIAL_VALUTION");
-        require(_poolConfig.finalValuation >= _redeemInit.add(_trustConfig.minCreatorRaise).add(_trustConfig.seederFee), "ERR_MIN_FINAL_VALUATION");
+        require(_poolConfig.finalValuation >= _redeemInit.add(_trustConfig.minCreatorRaise).add(_trustConfig.seederFee).add(_poolConfig.reserveInit), "ERR_MIN_FINAL_VALUATION");
 
         RedeemableERC20 _token = new RedeemableERC20(
             _redeemableERC20Config
@@ -149,7 +151,6 @@ contract Trust {
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function startRaise() external {
         uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
-        token.ownerSetUnblockBlock(_unblockBlock);
         pool.ownerSetUnblockBlock(_unblockBlock);
         pool.init(trustConfig.seeder);
     }
@@ -160,6 +161,7 @@ contract Trust {
     // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
     function endRaise() external {
         RedeemableERC20Pool _pool = pool;
+        token.ownerSetUnblockBlock(block.number);
         _pool.exit();
 
         TrustConfig memory _trustConfig = trustConfig;
