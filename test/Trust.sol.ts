@@ -66,6 +66,8 @@ describe("Trust", async function() {
     const seeder = signers[1].address // seeder is not creator/owner
     const deployer = signers[2] // deployer is not creator
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -79,6 +81,8 @@ describe("Trust", async function() {
         minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -161,6 +165,8 @@ describe("Trust", async function() {
     const seeder = signers[1].address // seeder is not creator/owner
     const deployer = signers[2] // deployer is not creator
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -174,6 +180,8 @@ describe("Trust", async function() {
         minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -242,6 +250,8 @@ describe("Trust", async function() {
     const creator = signers[0].address
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -253,6 +263,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -354,6 +366,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -365,6 +379,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -444,6 +460,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -455,6 +473,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -536,6 +556,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -547,6 +569,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -611,6 +635,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -622,6 +648,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -687,6 +715,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -698,6 +728,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -773,6 +805,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -784,6 +818,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -874,6 +910,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100')
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -885,6 +923,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -970,6 +1010,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -981,6 +1023,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -1063,6 +1107,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -1073,6 +1119,8 @@ describe("Trust", async function() {
         creator: signers[0].address,
         minCreatorRaise: minCreatorRaise,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -1133,6 +1181,8 @@ describe("Trust", async function() {
     const creator = signers[0].address
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -1144,6 +1194,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -1472,6 +1524,8 @@ describe("Trust", async function() {
     const creator = signers[0].address
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -1483,6 +1537,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -1791,6 +1847,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -1802,6 +1860,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -1884,6 +1944,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -1895,6 +1957,8 @@ describe("Trust", async function() {
         minCreatorRaise: minCreatorRaise,
         seeder,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -1957,6 +2021,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -1969,6 +2035,8 @@ describe("Trust", async function() {
           minCreatorRaise: minCreatorRaise,
           seeder,
           seederFee,
+          seederUnits,
+          unseedDelay,
           raiseDuration,
         },
         {
@@ -2027,6 +2095,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const raiseDuration = 10
 
@@ -2037,6 +2107,8 @@ describe("Trust", async function() {
           minCreatorRaise: minCreatorRaise,
           seeder,
           seederFee,
+          seederUnits,
+          unseedDelay,
           raiseDuration,
         },
         {
@@ -2095,6 +2167,8 @@ describe("Trust", async function() {
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seeder = signers[1].address // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const raiseDuration = 10
 
@@ -2105,6 +2179,8 @@ describe("Trust", async function() {
           minCreatorRaise: minCreatorRaise,
           seeder,
           seederFee,
+          seederUnits,
+          unseedDelay,
           raiseDuration,
         },
         {
@@ -2136,6 +2212,8 @@ describe("Trust", async function() {
           minCreatorRaise: minCreatorRaise,
           seeder,
           seederFee,
+          seederUnits,
+          unseedDelay,
           raiseDuration,
         },
         {
@@ -2222,7 +2300,7 @@ describe("Trust", async function() {
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee),
+        finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
     )
@@ -2253,7 +2331,7 @@ describe("Trust", async function() {
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserveSeeder.transfer(signers[1].address, 1)
     }
-
+        
     // some other signer triggers trust to exit after unblock, should succeed
     await trust2.endRaise()
 
