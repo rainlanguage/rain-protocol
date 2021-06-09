@@ -30,6 +30,166 @@ enum Status {
 }
 
 describe("TrustTrade", async function() {
+  it('should set minimum prestige level for pool, where only members with prestige level or higher can transact in pool', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.GOLD
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('10000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator
+    const deployer = signers[2] // deployer is not creator
+    const hodlerSilver = signers[3]
+    const hodlerGold = signers[4]
+    const hodlerPlatinum = signers[5]
+
+    // Set prestige levels
+    await prestige.setStatus(hodlerSilver.address, Status.SILVER, [])
+    await prestige.setStatus(hodlerGold.address, Status.GOLD, [])
+    await prestige.setStatus(hodlerPlatinum.address, Status.PLATINUM, [])
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactoryDeployer = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    const trust = await trustFactoryDeployer.deploy(
+      {
+        creator: creator.address,
+        minCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation: initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+    
+    await trust.deployed()
+
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
+
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder.address, reserveInit)
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
+    
+    // seeder must approve before pool init
+    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    
+    await trust.startRaise({ gasLimit: 100000000 })
+
+    const bPoolSilver = new ethers.Contract(await pool.pool(), bPoolJson.abi, hodlerSilver)
+    const reserveSilver = new ethers.Contract(reserve.address, reserve.interface, hodlerSilver)
+    const crpSilver = new ethers.Contract(
+      (await pool.crp()),
+      crpJson.abi,
+      hodlerSilver
+    )
+
+    const bPoolGold = new ethers.Contract(await pool.pool(), bPoolJson.abi, hodlerGold)
+    const reserveGold = new ethers.Contract(reserve.address, reserve.interface, hodlerGold)
+    const crpGold = new ethers.Contract(
+      (await pool.crp()),
+      crpJson.abi,
+      hodlerGold
+    )
+
+    const bPoolPlatinum = new ethers.Contract(await pool.pool(), bPoolJson.abi, hodlerPlatinum)
+    const reservePlatinum = new ethers.Contract(reserve.address, reserve.interface, hodlerPlatinum)
+    const crpPlatinum = new ethers.Contract(
+      (await pool.crp()),
+      crpJson.abi,
+      hodlerPlatinum
+    )
+
+    const startBlock = await ethers.provider.getBlockNumber()
+
+    // hodler 1 needs some reserve
+    await reserve.transfer(hodlerSilver.address, ethers.BigNumber.from('100000' + Util.eighteenZeros))
+
+    const reserveSpend = ethers.BigNumber.from('10' + Util.eighteenZeros)
+
+    const swapReserveForTokens = async (account, spend, crp, reserve, bPool) => {
+      await crp.pokeWeights()
+      await reserve.approve(account.address, spend)
+      await bPool.swapExactAmountIn(
+        reserve.address,
+        spend,
+        token.address,
+        ethers.BigNumber.from('1'),
+        ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+      )
+    }
+
+    // silver hodler get some redeemable tokens
+    Util.assertError(
+      async () => await swapReserveForTokens(hodlerSilver, reserveSpend, crpSilver, reserveSilver, bPoolSilver),
+      "revert ERR_MIN_STATUS",
+      "Silver hodler swapped reserve for tokens, despite being below min status of Gold"
+    )
+
+    // gold hodler get some redeemable tokens
+    await swapReserveForTokens(hodlerGold, reserveSpend, crpGold, reserveGold, bPoolGold)
+
+    // platinum hodler get some redeemable tokens
+    await swapReserveForTokens(hodlerPlatinum, reserveSpend, crpPlatinum, reservePlatinum, bPoolPlatinum)
+
+    console.log(`hodler silver token balance ${(await token.balanceOf(hodlerSilver.address))}`);
+    console.log(`hodler gold token balance ${(await token.balanceOf(hodlerGold.address))}`);
+    console.log(`hodler platinum token balance ${(await token.balanceOf(hodlerPlatinum.address))}`);
+  })
+
   it('should not hit max weight (50:1) during weight changes', async function () {
     this.timeout(0)
 
@@ -65,7 +225,7 @@ describe("TrustTrade", async function() {
     const initialValuation2 = ethers.BigNumber.from('10000' + Util.eighteenZeros)
     
     const totalTokenSupply1 = ethers.BigNumber.from('2000' + Util.eighteenZeros)
-    const totalTokenSupply2 = ethers.BigNumber.from('10000' + Util.eighteenZeros)
+    const totalTokenSupply2 = ethers.BigNumber.from('20000' + Util.eighteenZeros)
     
     // Token spot price = initial valuation / total token    
     // const spotInit = initialValuation.div(totalTokenSupply)
@@ -83,6 +243,8 @@ describe("TrustTrade", async function() {
 
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
 
     const creator = signers[0]
     const seeder = signers[1] // seeder is not creator
@@ -105,6 +267,8 @@ describe("TrustTrade", async function() {
           minCreatorRaise,
           seeder: seeder.address,
           seederFee,
+          seederUnits,
+          unseedDelay,
           raiseDuration,
         },
         {
@@ -129,36 +293,39 @@ describe("TrustTrade", async function() {
     )
 
     // bad weight ratio = initialValuation2 / totalTokenSupply2 < 1
+    // console.log(`${initialValuation2.div(totalTokenSupply2)}`); // 0
     
-    // Util.assertError(
-    //   async () => await trustFactory2.deploy(
-    //     {
-    //       creator: creator.address,
-    //       minCreatorRaise,
-    //       seeder: seeder.address,
-    //       seederFee,
-    //       raiseDuration,
-    //     },
-    //     {
-    //       name: tokenName,
-    //       symbol: tokenSymbol,
-    //       prestige: prestige.address,
-    //       minimumStatus,
-    //       totalSupply: totalTokenSupply2,
-    //     },
-    //     {
-    //       crpFactory: crpFactory.address,
-    //       balancerFactory: bFactory.address,
-    //       reserve: reserve.address,
-    //       reserveInit,
-    //       initialValuation: initialValuation2,
-    //       finalValuation: successLevel,
-    //     },
-    //     redeemInit,
-    //   ),
-    //   "revert ERR_MIN_WEIGHT",
-    //   "wrongly deployed trust with pool at 1:1 weight ratio"
-    // )
+    Util.assertError(
+      async () => await trustFactory2.deploy(
+        {
+          creator: creator.address,
+          minCreatorRaise,
+          seeder: seeder.address,
+          seederFee,
+          seederUnits,
+          unseedDelay,
+          raiseDuration,
+        },
+        {
+          name: tokenName,
+          symbol: tokenSymbol,
+          prestige: prestige.address,
+          minimumStatus,
+          totalSupply: totalTokenSupply2,
+        },
+        {
+          crpFactory: crpFactory.address,
+          balancerFactory: bFactory.address,
+          reserve: reserve.address,
+          reserveInit,
+          initialValuation: initialValuation2,
+          finalValuation: successLevel,
+        },
+        redeemInit,
+      ),
+      "revert ERR_MIN_WEIGHT",
+      "wrongly deployed trust with pool at 1:2 weight ratio"
+    )
 
     // Ratio = initialValuation2 / totalTokenSupply1 = 5
     assert(initialValuation2.div(totalTokenSupply1).eq(5), 'wrong spot price for a valid pool')
@@ -169,6 +336,8 @@ describe("TrustTrade", async function() {
         minCreatorRaise,
         seeder: seeder.address,
         seederFee,
+        seederUnits,
+        unseedDelay,
         raiseDuration,
       },
       {
@@ -220,6 +389,7 @@ describe("TrustTrade", async function() {
     const spend = ethers.BigNumber.from('1' + Util.eighteenZeros)
 
     // do some swaps
+    // TODO: Fuzz testing
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await crp1.pokeWeights()
       await reserve1.approve(bPool1.address, spend)
