@@ -125,10 +125,8 @@ describe("TrustTrade", async function() {
     const reserveAmountStart = await reserve.balanceOf(await pool.pool())
     const tokenAmountStart = await token.balanceOf(await pool.pool())
 
-    console.log(`
-      reserveAmountStart ${reserveAmountStart}
-      tokenAmountStart   ${tokenAmountStart}
-    `);
+    assert(reserveAmountStart.eq(reserveInit), 'wrong starting reserve')
+    assert(tokenAmountStart.eq(redeemInit), 'wrong starting token supply')
     
     const startBlock = await ethers.provider.getBlockNumber()
 
@@ -140,18 +138,11 @@ describe("TrustTrade", async function() {
     const reserveAmountFinal = await reserve.balanceOf(await pool.pool())
     const tokenAmountFinal = await token.balanceOf(await pool.pool())
 
-    console.log(`
-      reserveAmountFinal ${reserveAmountFinal}
-      tokenAmountFinal   ${tokenAmountFinal}
-    `);
+    assert(reserveAmountFinal.eq(reserveAmountStart), 'reserve amount changed with no trading')
+    assert(tokenAmountFinal.eq(tokenAmountStart), 'token amount changed with no trading')
 
     const reserveWeightFinal = await pool.targetWeights(0)
     const tokenWeightFinal = await pool.targetWeights(1)
-
-    console.log(`
-      reserveWeightFinal  ${reserveWeightFinal}
-      tokenWeightFinal    ${tokenWeightFinal}
-    `);
 
     // Spot = ( Br / Wr ) / ( Bt / Wt )
     // Spot = ( Br / Wr ) * ( Wt / Bt )
@@ -164,12 +155,6 @@ describe("TrustTrade", async function() {
 
     const actualFinalValuation = finalSpotPrice.mul(tokenAmountFinal)
       .div(Util.ONE)
-
-    console.log(`
-      finalSpotPrice  ${finalSpotPrice}
-      finalValuation  ${actualFinalValuation}
-      expectedFinalV  ${finalValuation}
-    `);
 
     assert(actualFinalValuation.eq(finalValuation), 'wrong final valuation with no trading')
   })
