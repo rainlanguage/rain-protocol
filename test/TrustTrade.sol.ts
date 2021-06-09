@@ -7,6 +7,8 @@ import * as Util from './Util'
 import { utils } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 
+import { linearRegression, linearRegressionLine, rSquared } from "simple-statistics"
+
 chai.use(solidity);
 const { expect, assert } = chai;
 
@@ -30,7 +32,7 @@ enum Status {
 }
 
 describe("TrustTrade", async function() {
-  it('should achieve correct start/final valuations when zero trading occurs', async function () {
+  it('should achieve correct spot price curve during trading period (without trading)', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -108,10 +110,6 @@ describe("TrustTrade", async function() {
     
     await trust.deployed()
 
-    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
-
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
-
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder.address, reserveInit)
 
@@ -122,16 +120,82 @@ describe("TrustTrade", async function() {
     
     await trust.startRaise({ gasLimit: 100000000 })
 
+    const startBlock = await ethers.provider.getBlockNumber()
+
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+    const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, creator)
+    const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator)
+
     const reserveAmountStart = await reserve.balanceOf(await pool.pool())
     const tokenAmountStart = await token.balanceOf(await pool.pool())
 
     assert(reserveAmountStart.eq(reserveInit), 'wrong starting reserve')
     assert(tokenAmountStart.eq(redeemInit), 'wrong starting token supply')
-    
-    const startBlock = await ethers.provider.getBlockNumber()
 
-    // perform empty transactions to play out raise
-    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+    const block25Percent = startBlock + raiseDuration / 4
+    const block50Percent = startBlock + raiseDuration / 2
+    const block75Percent = startBlock + raiseDuration * 3 / 4
+
+    await crp.pokeWeights()
+
+    const spotPriceInit = await bPool.getSpotPriceSansFee(reserve.address, token.address)
+    let spotPrices = [spotPriceInit]
+    const spotBlocks = [startBlock]
+
+    // 25% through raise duration
+    while ((await ethers.provider.getBlockNumber()) < (block25Percent - 1)) {
+      await reserve.transfer(signers[3].address, 0)
+    }
+
+    const reserveAmount25 = await reserve.balanceOf(await pool.pool())
+    const tokenAmount25 = await token.balanceOf(await pool.pool())
+
+    assert(reserveAmount25.eq(reserveAmountStart), 'reserve amount changed with no trading')
+    assert(tokenAmount25.eq(tokenAmountStart), 'token amount changed with no trading')
+
+    await crp.pokeWeights()
+
+    const spotPrice25 = await bPool.getSpotPriceSansFee(reserve.address, token.address)
+    spotPrices.push(spotPrice25)
+    spotBlocks.push(await ethers.provider.getBlockNumber())
+
+    // 50% through raise duration
+    while ((await ethers.provider.getBlockNumber()) < (block50Percent - 1)) {
+      await reserve.transfer(signers[3].address, 0)
+    }
+
+    const reserveAmount50 = await reserve.balanceOf(await pool.pool())
+    const tokenAmount50 = await token.balanceOf(await pool.pool())
+
+    assert(reserveAmount50.eq(reserveAmountStart), 'reserve amount changed with no trading')
+    assert(tokenAmount50.eq(tokenAmountStart), 'token amount changed with no trading')
+
+    await crp.pokeWeights()
+
+    const spotPrice50 = await bPool.getSpotPriceSansFee(reserve.address, token.address)
+    spotPrices.push(spotPrice50)
+    spotBlocks.push(await ethers.provider.getBlockNumber())
+
+    // 75% through raise duration
+    while ((await ethers.provider.getBlockNumber()) < (block75Percent - 1)) {
+      await reserve.transfer(signers[3].address, 0)
+    }
+
+    const reserveAmount75 = await reserve.balanceOf(await pool.pool())
+    const tokenAmount75 = await token.balanceOf(await pool.pool())
+
+    assert(reserveAmount75.eq(reserveAmountStart), 'reserve amount changed with no trading')
+    assert(tokenAmount75.eq(tokenAmountStart), 'token amount changed with no trading')
+
+    await crp.pokeWeights()
+
+    const spotPrice75 = await bPool.getSpotPriceSansFee(reserve.address, token.address)
+    spotPrices.push(spotPrice75)
+    spotBlocks.push(await ethers.provider.getBlockNumber())
+
+    // 100% through raise duration
+    while ((await ethers.provider.getBlockNumber()) < (raiseDuration - 1)) {
       await reserve.transfer(signers[3].address, 0)
     }
 
@@ -141,19 +205,32 @@ describe("TrustTrade", async function() {
     assert(reserveAmountFinal.eq(reserveAmountStart), 'reserve amount changed with no trading')
     assert(tokenAmountFinal.eq(tokenAmountStart), 'token amount changed with no trading')
 
+    await crp.pokeWeights()
+
+    const spotPriceFinal = await bPool.getSpotPriceSansFee(reserve.address, token.address)
+    spotPrices.push(spotPriceFinal)
+    spotBlocks.push(await ethers.provider.getBlockNumber())
+
+    spotPrices = spotPrices.map(spotPrice => Number(spotPrice.div('100000000000000'))) // reduce scale
+
+    // check linearity
+    const regression = linearRegression([spotBlocks, spotPrices])
+    const regressionLine = linearRegressionLine(regression);
+    const rSqrd = rSquared([spotBlocks, spotPrices], regressionLine); // = 1 this line is a perfect fit
+
+    assert(rSqrd === 1, "weights curve was not linear")
+
     const reserveWeightFinal = await pool.targetWeights(0)
     const tokenWeightFinal = await pool.targetWeights(1)
 
-    // Spot = ( Br / Wr ) / ( Bt / Wt )
-    // Spot = ( Br / Wr ) * ( Wt / Bt )
-    const finalSpotPrice = 
+    const expectedFinalSpotPrice = 
       (
         reserveAmountFinal.mul(Util.ONE).div(reserveWeightFinal)
         .mul(tokenWeightFinal.mul(Util.ONE).div(tokenAmountFinal))
       )
       .div(Util.ONE)
 
-    const actualFinalValuation = finalSpotPrice.mul(tokenAmountFinal)
+    const actualFinalValuation = expectedFinalSpotPrice.mul(tokenAmountFinal)
       .div(Util.ONE)
 
     assert(actualFinalValuation.eq(finalValuation), 'wrong final valuation with no trading')
