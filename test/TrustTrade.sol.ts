@@ -30,6 +30,150 @@ enum Status {
 }
 
 describe("TrustTrade", async function() {
+  it('should achieve correct start/final valuations when zero trading occurs', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('10000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator
+    const deployer = signers[2] // deployer is not creator
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+    const finalValuation = successLevel
+
+    const raiseDuration = 50
+
+    const trustFactoryDeployer = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    const trust = await trustFactoryDeployer.deploy(
+      {
+        creator: creator.address,
+        minCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation,
+      },
+      redeemInit,
+    )
+    
+    await trust.deployed()
+
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
+
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder.address, reserveInit)
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
+    
+    // seeder must approve before pool init
+    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    
+    await trust.startRaise({ gasLimit: 100000000 })
+
+    const reserveAmountStart = await reserve.balanceOf(await pool.pool())
+    const tokenAmountStart = await token.balanceOf(await pool.pool())
+
+    console.log(`
+      reserveAmountStart ${reserveAmountStart}
+      tokenAmountStart   ${tokenAmountStart}
+    `);
+    
+    const startBlock = await ethers.provider.getBlockNumber()
+
+    // perform empty transactions to play out raise
+    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      await reserve.transfer(signers[3].address, 0)
+    }
+
+    const reserveAmountFinal = await reserve.balanceOf(await pool.pool())
+    const tokenAmountFinal = await token.balanceOf(await pool.pool())
+
+    console.log(`
+      reserveAmountFinal ${reserveAmountFinal}
+      tokenAmountFinal   ${tokenAmountFinal}
+    `);
+
+    const reserveWeightFinal = await pool.targetWeights(0)
+    const tokenWeightFinal = await pool.targetWeights(1)
+
+    console.log(`
+      reserveWeightFinal  ${reserveWeightFinal}
+      tokenWeightFinal    ${tokenWeightFinal}
+    `);
+
+    // Spot = ( Br / Wr ) / ( Bt / Wt )
+    // Spot = ( Br / Wr ) * ( Wt / Bt )
+    const finalSpotPrice = 
+      (
+        reserveAmountFinal.mul(Util.ONE).div(reserveWeightFinal)
+        .mul(tokenWeightFinal.mul(Util.ONE).div(tokenAmountFinal))
+      )
+      .div(Util.ONE)
+
+    const actualFinalValuation = finalSpotPrice.mul(tokenAmountFinal)
+      .div(Util.ONE)
+
+    console.log(`
+      finalSpotPrice  ${finalSpotPrice}
+      finalValuation  ${actualFinalValuation}
+      expectedFinalV  ${finalValuation}
+    `);
+
+    assert(actualFinalValuation.eq(finalValuation), 'wrong final valuation with no trading')
+  })
+
   it('should set minimum prestige level for pool, where only members with prestige level or higher can transact in pool', async function () {
     this.timeout(0)
 
@@ -258,7 +402,9 @@ describe("TrustTrade", async function() {
     const trustFactory2 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
 
     // bad weight ratio = initialValuation1 / totalTokenSupply1 >= 50
-    assert(initialValuation1.div(totalTokenSupply1).gte(50), "wrong intended spot price for max weight test")
+    // console.log(`${initialValuation1.mul(Util.ONE).div(totalTokenSupply1)}`);
+  
+    assert(initialValuation1.mul(Util.ONE).div(totalTokenSupply1).gte(ethers.BigNumber.from('50' + Util.eighteenZeros)), "wrong intended spot price for max weight test")
 
     Util.assertError(
       async () => await trustFactory2.deploy(
@@ -293,7 +439,9 @@ describe("TrustTrade", async function() {
     )
 
     // bad weight ratio = initialValuation2 / totalTokenSupply2 < 1
-    // console.log(`${initialValuation2.div(totalTokenSupply2)}`); // 0
+    // console.log(`${initialValuation2.mul(Util.ONE).div(totalTokenSupply2)}`);
+
+    assert(initialValuation2.mul(Util.ONE).div(totalTokenSupply2).lte(Util.ONE), "wrong intended spot price for min weight test")
     
     Util.assertError(
       async () => await trustFactory2.deploy(
