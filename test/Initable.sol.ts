@@ -35,7 +35,7 @@ describe("Initable", async function() {
         try {
             await initable.afterInit()
         } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_INIT'), 'after init succeeded before init')
+            assert(e.toString().includes('revert ONLY_INIT'), 'after init succeeded before init')
             afterInitBeforeDidError = true
         }
         assert(afterInitBeforeDidError)
@@ -54,7 +54,7 @@ describe("Initable", async function() {
         try {
             await initable.beforeInit()
         } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_NOT_INIT'), 'before init succeeded after init')
+            assert(e.toString().includes('revert ONLY_NOT_INIT'), 'before init succeeded after init')
             beforeInitAfterDidError = true
         }
         assert(beforeInitAfterDidError)
@@ -70,7 +70,7 @@ describe("Initable", async function() {
         try {
             await initable.init()
         } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_NOT_INIT'), 'init twice')
+            assert(e.toString().includes('revert ONLY_NOT_INIT'), 'init twice')
             initAgainDidError = true
         }
         assert(initAgainDidError)

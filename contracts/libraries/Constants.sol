@@ -2,7 +2,7 @@
 pragma solidity 0.6.12;
 
 /**
- * @author Terra Virtua
+ * @author Beehive
  * @title Put all the constants in one place
  */
 

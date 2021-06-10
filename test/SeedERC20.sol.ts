@@ -69,7 +69,7 @@ describe("SeedERC20", async function () {
         )
 
         assert(
-            await seedERC20.seeded() == false,
+            (await seedERC20.getUnblockBlock()).eq(0),
             `seeded true too early`
         )
 
@@ -104,7 +104,9 @@ describe("SeedERC20", async function () {
         await carolReserve.approve(seedERC20.address, carolUnits * seedPrice)
         await carolSeed.seed(carolUnits)
 
-        assert(await seedERC20.seeded(), `failed to set seeded`)
+        const seededBlock = await ethers.provider.getBlockNumber()
+
+        assert((await seedERC20.getUnblockBlock()).eq(seededBlock), `failed to set seeded`)
 
         // Dave takes out his reserve.
 

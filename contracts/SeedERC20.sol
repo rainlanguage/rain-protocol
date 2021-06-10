@@ -11,7 +11,7 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { BlockBlockable } from "./libraries/BlockBlockable.sol";
 
-struct SeedERC20Config {
+struct Config {
     IERC20 reserve;
     uint256 seedPrice;
     // Total seed units to be mint and sold.
@@ -37,14 +37,14 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     mapping (address => uint256) public unseedLocks;
 
     constructor (
-        SeedERC20Config memory _seedERC20Config
-    ) public ERC20(_seedERC20Config.name, _seedERC20Config.symbol) {
-        require(_seedERC20Config.seedPrice > 0, "ERR_ZERO_PRICE");
-        require(_seedERC20Config.seedUnits > 0, "ERR_ZERO_UNITS");
-        seedPrice = _seedERC20Config.seedPrice;
-        unseedDelay = _seedERC20Config.unseedDelay;
-        reserve = _seedERC20Config.reserve;
-        _mint(address(this), _seedERC20Config.seedUnits);
+        Config memory _config
+    ) public ERC20(_config.name, _config.symbol) {
+        require(_config.seedPrice > 0, "0_PRICE");
+        require(_config.seedUnits > 0, "0_UNITS");
+        seedPrice = _config.seedPrice;
+        unseedDelay = _config.unseedDelay;
+        reserve = _config.reserve;
+        _mint(address(this), _config.seedUnits);
     }
 
     // The init is to break a chicken/egg between the seeder and recipient.
@@ -59,7 +59,7 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     // The recipient can only be set by the owner during init.
     // The recipient cannot be changed as this would risk seeder funds.
     function init(address _recipient) external onlyOwner withInit {
-        require(_recipient != address(0), "ERR_RECIPIENT_ZERO");
+        require(_recipient != address(0), "0_RECIPIENT");
         recipient = _recipient;
     }
 
@@ -92,7 +92,7 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     // Once this function is disabled seeders are expected to call redeem at a later time.
     function unseed(uint256 units) external onlyInit onlyBlocked {
         // Prevent users from griefing contract with rapid seed/unseed cycles.
-        require(unseedLocks[msg.sender] <= block.number, "ERR_UNSEED_LOCKED");
+        require(unseedLocks[msg.sender] <= block.number, "UNSEED_LOCKED");
 
         _transfer(msg.sender, address(this), units);
         reserve.safeTransfer(msg.sender, seedPrice.mul(units));
@@ -109,7 +109,7 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     function redeem(uint256 units) external onlyInit onlyUnblocked {
         uint256 _currentReserveBalance = reserve.balanceOf(address(this));
         // Guard against someone accidentally calling redeem before any reserve has been returned.
-        require(_currentReserveBalance > 0, "ERR_RESERVE_BALANCE");
+        require(_currentReserveBalance > 0, "RESERVE_BALANCE");
 
         reserve.safeTransfer(
             msg.sender,

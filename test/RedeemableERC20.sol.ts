@@ -74,7 +74,7 @@ describe("RedeemableERC20", async function() {
 
         // The unblock block is not set (i.e. contract is blocked)
         assert(
-            (await redeemableERC20.unblockBlock()).eq(unblockBlock),
+            (await redeemableERC20.getUnblockBlock()).eq(unblockBlock),
             `unblock block was not ${unblockBlock} in construction`
         )
 
@@ -94,9 +94,9 @@ describe("RedeemableERC20", async function() {
         )
 
         // Redemption not allowed yet.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.redeem(100),
-            'revert ERR_ONLY_UNBLOCKED',
+            'revert ONLY_UNBLOCKED',
             'redeem did not error'
         )
 
@@ -105,14 +105,14 @@ describe("RedeemableERC20", async function() {
             'reserve balance in redeemer is wrong'
         )
         assert(
-            (await redeemableERC20.unblockBlock()).eq(unblockBlock),
+            (await redeemableERC20.getUnblockBlock()).eq(unblockBlock),
             'unblock block not set correctly'
         )
 
         // We cannot send to the token address.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(redeemableERC20.address, 10),
-            'revert ERR_TOKEN_SEND_SELF',
+            'revert SEND_SELF',
             'self send was not blocked'
         )
 
@@ -122,9 +122,9 @@ describe("RedeemableERC20", async function() {
         }
 
         // Funds need to be frozen once redemption unblocks.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(signers[1].address, 1),
-            'revert ERR_FROZEN',
+            'revert FROZEN',
             'funds were not frozen'
         )
 
@@ -133,9 +133,9 @@ describe("RedeemableERC20", async function() {
         await redeemableERC202.transfer(signers[0].address, 1)
 
         // but not to anyone else.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(signers[2].address, 1),
-            'revert ERR_FROZEN',
+            'revert FROZEN',
             'funds were not frozen 2'
         )
 
@@ -194,7 +194,7 @@ describe("RedeemableERC20", async function() {
         )
 
         // signer cannot redeem more tokens than they have
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.redeem(ethers.BigNumber.from('10000' + Util.eighteenZeros)),
             'revert ERC20: burn amount exceeds balance',
             'failed to stop greedy redeem',
@@ -271,12 +271,12 @@ describe("RedeemableERC20", async function() {
         )
 
         await redeemableERC20.deployed()
-        
-        assert((await redeemableERC20.unblockBlock()).isZero(), "unblock block was wrongly set")
+
+        assert((await redeemableERC20.getUnblockBlock()).isZero(), "unblock block was wrongly set")
 
         const redeemableERC201 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
 
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC201.ownerSetUnblockBlock(unblockBlock),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to set token unblock block"
@@ -314,7 +314,7 @@ describe("RedeemableERC20", async function() {
         )
 
         await redeemableERC20.deployed()
-        
+
         assert(await redeemableERC20.unfreezables(signers[0].address), "owner not set as unfreezable on token construction")
     })
 
@@ -411,9 +411,9 @@ describe("RedeemableERC20", async function() {
         await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
 
         const redeemableERC20_SILVER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(signers[2].address, 1),
-            "revert ERR_MIN_STATUS",
+            "revert MIN_STATUS",
             "user could receive transfers despite not meeting minimum status"
         )
 
@@ -430,7 +430,7 @@ describe("RedeemableERC20", async function() {
         await redeemableERC20.redeem(1)
 
         // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20_SILVER.redeem(1),
             "revert ERC20: burn amount exceeds balance",
             "user could transfer despite not meeting minimum status"
@@ -491,7 +491,7 @@ describe("RedeemableERC20", async function() {
         )
 
         await redeemableERC20.transfer(signers[1].address, TEN_TOKENS)
-        
+
         // create a few blocks by sending some tokens around, after which redeeming now possible
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await redeemableERC20.transfer(signers[2].address, TEN_TOKENS)
@@ -531,11 +531,11 @@ describe("RedeemableERC20", async function() {
         const redeemAmount = FIVE_TOKENS;
 
         // expect every redeemable released in the same proportion.
-        const expectedReserve1Redemption = 
+        const expectedReserve1Redemption =
             redeemAmount
             .mul(ethers.BigNumber.from(reserve1ContractBalanceBefore))
             .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
-        const expectedReserve2Redemption = 
+        const expectedReserve2Redemption =
             redeemAmount
             .mul(ethers.BigNumber.from(reserve2ContractBalanceBefore))
             .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
@@ -583,7 +583,7 @@ describe("RedeemableERC20", async function() {
         // total supply of contract tokens should be 5 less
         assert(
             (redeemableContractTotalSupplyBefore).sub(redeemableContractTotalSupplyAfter).eq(redeemAmount),
-            `wrong amount of total token supply after ${redeemAmount} were redeemed ${redeemableContractTotalSupplyBefore} ${redeemableContractTotalSupplyAfter}` 
+            `wrong amount of total token supply after ${redeemAmount} were redeemed ${redeemableContractTotalSupplyBefore} ${redeemableContractTotalSupplyAfter}`
         )
 
         // reserve 1 amount at contract address should reduce
@@ -731,7 +731,7 @@ describe("RedeemableERC20", async function() {
         await redeemableERC20.deployed()
         await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
 
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(ethers.constants.AddressZero, TEN_TOKENS),
             "revert ERC20: transfer to the zero address",
             "owner sending redeemable tokens to zero address did not error"
@@ -741,7 +741,7 @@ describe("RedeemableERC20", async function() {
 
         const redeemableERC20_1 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
 
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20_1.transfer(ethers.constants.AddressZero, TEN_TOKENS),
             "revert ERC20: transfer to the zero address",
             "signer 1 sending redeemable tokens to zero address did not error"

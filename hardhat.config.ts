@@ -2,6 +2,7 @@ import type { HardhatUserConfig }  from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 import {removeConsoleLog} from 'hardhat-preprocessor';
+import "hardhat-contract-sizer"
 
 const config: HardhatUserConfig = {
   networks: {
@@ -18,6 +19,12 @@ const config: HardhatUserConfig = {
       { version: "0.6.12", settings: {} },
       { version: "0.7.3", settings: {} }
     ],
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      }
+    }
   },
 };
 export default config;

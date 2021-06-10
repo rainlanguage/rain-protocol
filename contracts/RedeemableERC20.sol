@@ -15,7 +15,9 @@ import { BlockBlockable } from "./libraries/BlockBlockable.sol";
 import { PrestigeByConstruction } from "./tv-prestige/contracts/PrestigeByConstruction.sol";
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
-struct RedeemableERC20Config {
+struct Config {
+    // Address that supply is minted for.
+    address mintee;
     // Name forwarded through to parent ERC20 contract.
     string name;
     // Symbol forwarded through to parent ERC20 contract.
@@ -89,20 +91,20 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     // There are no token transfers, mints or locks.
     // Redemption is not possible until after init()
     constructor (
-        RedeemableERC20Config memory _redeemableERC20Config
+        Config memory _config
     )
         public
-        ERC20(_redeemableERC20Config.name, _redeemableERC20Config.symbol)
-        PrestigeByConstruction(_redeemableERC20Config.prestige)
+        ERC20(_config.name, _config.symbol)
+        PrestigeByConstruction(_config.prestige)
     {
-        minimumPrestigeStatus = _redeemableERC20Config.minimumStatus;
+        minimumPrestigeStatus = _config.minimumStatus;
 
         // Given that the owner can set unfreezables it makes no sense not to add them to the list.
         // OK, so there is extra gas in doing this, but it means fewer state reads during transfers.
         // We bypass the method here because owner has not yet been set so onlyOwner will throw.
-        unfreezables[msg.sender] = true;
+        unfreezables[_config.mintee] = true;
 
-        _mint(msg.sender, _redeemableERC20Config.totalSupply);
+        _mint(_config.mintee, _config.totalSupply);
     }
 
     function ownerAddUnfreezable(address _address)
@@ -118,14 +120,13 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     }
 
     function ownerAddRedeemable(IERC20 _redeemable) external onlyOwner {
-        uint256 _redeemablesLength = redeemables.length;
         uint256 _i;
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
-        require(_redeemablesLength < 8, "ERR_MAX_REDEEMABLES");
-        for (_i; _i<_redeemablesLength;_i++) {
-            require(redeemables[_i] != _redeemable, "ERR_DUPLICATE_REDEEMABLE");
+        require(redeemables.length < 8, "MAX_REDEEMABLES");
+        for (_i; _i < redeemables.length;_i++) {
+            require(redeemables[_i] != _redeemable, "DUPLICATE_REDEEMABLE");
         }
         redeemables.push(_redeemable);
     }
@@ -162,10 +163,9 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
         // Clear the redeemables.
         uint8 i;
-        uint256 len = redeemables.length;
         IERC20 _redeemable;
         uint256 _toRedeem;
-        for(i; i < len; i++) {
+        for(i; i < redeemables.length; i++) {
             _redeemable = redeemables[i];
             // Any one of the several redeemables may fail for some reason.
             // Consider the case where a user needs to meet additional criteria (e.g. KYC) for some token.
@@ -198,7 +198,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // In this case we do not want concerns such as prestige causing errors.
         if (_amount > 0) {
             // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
-            require(_receiver != address(this), "ERR_TOKEN_SEND_SELF");
+            require(_receiver != address(this), "SEND_SELF");
 
             // There are two clear phases:
             //
@@ -218,14 +218,14 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
                 // Only owner and unfreezables can receive.
                 require(
                     _receiver == address(0) || unfreezables[_receiver],
-                    "ERR_FROZEN"
+                    "FROZEN"
                 );
             } else {
                 // Redemption is blocked.
                 // All transfer actions allowed.
                 require(
                     unfreezables[_receiver] || isStatus(_receiver, minimumPrestigeStatus),
-                    "ERR_MIN_STATUS"
+                    "MIN_STATUS"
                 );
             }
         }

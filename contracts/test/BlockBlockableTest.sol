@@ -12,11 +12,10 @@ contract BlockBlockableTest is BlockBlockable {
     function unblockable() public view {}
 
     // solhint-disable-next-line no-empty-blocks
-    function whileBlocked() public view onlyBlocked {}
+    function whileBlocked() public view onlyBlocked { }
 
     // solhint-disable-next-line no-empty-blocks
-    function blockable() public view onlyUnblocked {}
-
+    function blockable() public view onlyUnblocked { }
 
     function trySetUnblockBlock(uint256 _unblockBlock) public {
         BlockBlockable.setUnblockBlock(_unblockBlock);

@@ -68,16 +68,16 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         const pool = await poolFactory.deploy(
-            redeemable.address,
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
+                token: redeemable.address,
                 reserve: reserve.address,
-                reserveInit: reserveInit,
-                initialValuation: initialValuation,
-                finalValuation: finalValuation,
+                reserveInit,
+                initialValuation,
+                finalValuation,
+                redeemInit,
             },
-            redeemInit,
         )
 
         await pool.deployed()
@@ -85,21 +85,19 @@ describe("RedeemableERC20Pool", async function() {
         const pool1 = new ethers.Contract(pool.address, pool.interface, signers[1])
 
         // Before init
-        
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
-            "revert ERR_ONLY_INIT",
+            "revert ONLY_INIT",
             "owner was wrongly able to exit pool before initialized"
         )
 
         // Set unblock block
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool1.ownerSetUnblockBlock(unblockBlock),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to set pool unblock block"
         )
-        
         await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Init pool
@@ -118,7 +116,7 @@ describe("RedeemableERC20Pool", async function() {
             reserveInit
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool1.init(signers[1].address, { gasLimit: 10000000 }),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to init pool"
@@ -130,15 +128,15 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         await pool.init(signers[0].address, { gasLimit: 10000000 })
-        
+
         await reserve.approve(
             pool.address,
             reserveInit
         )
 
-        Util.assertError(async () => 
+        await Util.assertError(async () =>
             await pool.init(signers[0].address, { gasLimit: 10000000 }),
-            "revert ERR_ONLY_NOT_INIT",
+            "revert ONLY_NOT_INIT",
             "pool wrongly initialized twice by owner"
         )
 
@@ -152,9 +150,9 @@ describe("RedeemableERC20Pool", async function() {
 
 
         // Before unblock block
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
-            "revert ERR_ONLY_UNBLOCKED",
+            "revert ONLY_UNBLOCKED",
             "owner was wrongly able to exit pool before unblock block"
         )
 
@@ -162,8 +160,8 @@ describe("RedeemableERC20Pool", async function() {
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await reserve.transfer(signers[2].address, 1)
         }
-        
-        Util.assertError(
+
+        await Util.assertError(
             async () => await pool1.exit(),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to exit pool"
@@ -248,7 +246,7 @@ describe("RedeemableERC20Pool", async function() {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
+            (await redeemable.getUnblockBlock()).eq(unblockBlock),
             `unblock block was not ${unblockBlock} in construction`
         )
 
@@ -262,16 +260,16 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         const pool = await poolFactory.deploy(
-            redeemable.address,
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
                 reserve: reserve.address,
-                reserveInit: reserveInit,
-                initialValuation: initialValuation,
-                finalValuation: finalValuation,
+                token: redeemable.address,
+                reserveInit,
+                initialValuation,
+                finalValuation,
+                redeemInit,
             },
-            redeemInit,
         )
 
         await pool.deployed()
@@ -318,9 +316,9 @@ describe("RedeemableERC20Pool", async function() {
         await redeemable.ownerAddUnfreezable(bFactory.address)
         await redeemable.ownerAddUnfreezable(pool.address)
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
-            'revert ERR_ONLY_UNBLOCKED',
+            'revert ONLY_UNBLOCKED',
             'failed to error on early exit'
         )
 
@@ -389,7 +387,7 @@ describe("RedeemableERC20Pool", async function() {
     //         `total supply was not ${totalTokenSupply} on redeemable construction`
     //     )
     //     assert(
-    //         (await redeemable.unblockBlock()).eq(unblockBlock),
+    //         (await redeemable.getUnblockBlock()).eq(unblockBlock),
     //         `unblock block was not ${unblockBlock} in construction`
     //     )
 
@@ -442,7 +440,7 @@ describe("RedeemableERC20Pool", async function() {
 
     //     Util.assertError(
     //         async () => await pool.exit(),
-    //         'revert ERR_ONLY_UNBLOCKED',
+    //         'revert ONLY_UNBLOCKED',
     //         'failed to error on early exit'
     //     )
 
@@ -515,7 +513,7 @@ describe("RedeemableERC20Pool", async function() {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
+            (await redeemable.getUnblockBlock()).eq(unblockBlock),
             `unblock block was not ${unblockBlock} in construction`
         )
 
@@ -529,16 +527,16 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         const pool = await poolFactory.deploy(
-            redeemable.address,
             {
                 crpFactory: crpFactory.address,
                 balancerFactory: bFactory.address,
                 reserve: reserve.address,
-                reserveInit: reserveInit,
-                initialValuation: initialValuation,
-                finalValuation: finalValuation,
+                token: redeemable.address,
+                reserveInit,
+                initialValuation,
+                finalValuation,
+                redeemInit,
             },
-            redeemInit,
         )
 
         await pool.deployed()
@@ -571,9 +569,9 @@ describe("RedeemableERC20Pool", async function() {
         await redeemable.ownerAddUnfreezable(bFactory.address)
         await redeemable.ownerAddUnfreezable(pool.address)
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
-            'revert ERR_ONLY_UNBLOCKED',
+            'revert ONLY_UNBLOCKED',
             'failed to error on early exit'
         )
 
@@ -641,7 +639,7 @@ describe("RedeemableERC20Pool", async function() {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
+            (await redeemable.getUnblockBlock()).eq(unblockBlock),
             `unblock block was not ${unblockBlock} in construction`
         )
 
@@ -654,19 +652,19 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => {
                 const pool = await poolFactory.deploy(
-                    redeemable.address,
                     {
                         crpFactory: crpFactory.address,
                         balancerFactory: bFactory.address,
                         reserve: reserve.address,
-                        reserveInit: reserveInit,
-                        initialValuation: initialValuation,
-                        finalValuation: finalValuation,
+                        token: redeemable.address,
+                        reserveInit,
+                        initialValuation,
+                        finalValuation,
+                        redeemInit,
                     },
-                    redeemInit,
                 )
                 await pool.deployed()
             },
@@ -731,7 +729,7 @@ describe("RedeemableERC20Pool", async function() {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
+            (await redeemable.getUnblockBlock()).eq(unblockBlock),
             `unblock block was not ${unblockBlock} in construction`
         )
 
@@ -744,19 +742,19 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => {
                 const pool = await poolFactory.deploy(
-                    redeemable.address,
                     {
                         crpFactory: crpFactory.address,
                         balancerFactory: bFactory.address,
                         reserve: reserve.address,
-                        reserveInit: reserveInit,
-                        initialValuation: initialValuation,
-                        finalValuation: finalValuation,
+                        token: redeemable.address,
+                        reserveInit,
+                        initialValuation,
+                        finalValuation,
+                        redeemInit,
                     },
-                    redeemInit,
                 )
                 await pool.deployed()
             },
@@ -821,7 +819,7 @@ describe("RedeemableERC20Pool", async function() {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
+            (await redeemable.getUnblockBlock()).eq(unblockBlock),
             `unblock block was not ${unblockBlock} in construction`
         )
 
@@ -834,18 +832,18 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => await poolFactory.deploy(
-                redeemable.address,
                 {
                     crpFactory: crpFactory.address,
                     balancerFactory: bFactory.address,
                     reserve: reserve.address,
-                    reserveInit: reserveInit,
-                    initialValuation: initialValuation,
-                    finalValuation: finalValuation,
+                    token: redeemable.address,
+                    reserveInit,
+                    initialValuation,
+                    finalValuation,
+                    redeemInit,
                 },
-                redeemInit,
             ),
             'revert SafeMath: division by zero',
             'initial redeemable token amount of 0 was accepted at construction'

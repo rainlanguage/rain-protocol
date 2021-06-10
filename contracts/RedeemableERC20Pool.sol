@@ -25,14 +25,16 @@ import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/Con
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
 import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
-struct PoolConfig {
+struct Config {
     CRPFactory crpFactory;
     BFactory balancerFactory;
     IERC20 reserve;
+    RedeemableERC20 token;
     // Amount of reserve token to initialize the pool.
     // The starting/final weights are calculated against this.
     // This amount will be refunded to the Trust owner regardless whether the minRaise is met.
     uint256 reserveInit;
+    uint256 redeemInit;
     // Initial marketcap of the token according to the balancer pool denominated in reserve token.
     // The spot price of a balancer pool token is a function of both the amounts of each token and their weights.
     // This differs to e.g. a uniswap pool where the weights are always 1:1.
@@ -73,50 +75,48 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     IBPool public pool;
 
     constructor (
-        RedeemableERC20 _token,
-        PoolConfig memory _poolConfig,
-        uint256 _redeemInit
+        Config memory _config
     )
         public
     {
         // Calculate all the config for balancer.
-        uint256[] memory _poolAmounts = poolAmounts(_token, _poolConfig);
-        (uint256[] memory _startWeights, uint256[] memory _targetWeights) = poolWeights(_poolConfig, _redeemInit, _poolAmounts);
-        ConfigurableRightsPool _crp = constructCrp(_token, _poolConfig, _poolAmounts, _startWeights);
+        uint256[] memory _poolAmounts = poolAmounts(_config);
+        (uint256[] memory _startWeights, uint256[] memory _targetWeights) = poolWeights(_config, _poolAmounts);
+        ConfigurableRightsPool _crp = constructCrp(_config, _poolAmounts, _startWeights);
 
         // Preapprove all tokens and reserve for the CRP.
-        _poolConfig.reserve.approve(address(_crp), _poolConfig.reserveInit);
-        _token.approve(address(_crp), _token.totalSupply());
+        _config.reserve.approve(address(_crp), _config.reserveInit);
+        _config.token.approve(address(_crp), _config.token.totalSupply());
 
-        token = _token;
-        reserve = _poolConfig.reserve;
-        reserveInit = _poolConfig.reserveInit;
+        token = _config.token;
+        reserve = _config.reserve;
+        reserveInit = _config.reserveInit;
         crp = _crp;
         targetWeights = _targetWeights;
     }
 
-    function poolAmounts (RedeemableERC20 _token, PoolConfig memory _poolConfig) private view returns (uint256[] memory) {
+    function poolAmounts (Config memory _config) private view returns (uint256[] memory) {
         uint256[] memory _poolAmounts = new uint256[](2);
-        _poolAmounts[0] = _poolConfig.reserveInit;
-        _poolAmounts[1] = _token.totalSupply();
+        _poolAmounts[0] = _config.reserveInit;
+        _poolAmounts[1] = _config.token.totalSupply();
         return _poolAmounts;
     }
 
-    function poolWeights (PoolConfig memory _poolConfig, uint256 _redeemInit, uint256[] memory _poolAmounts) private pure returns (uint256[] memory, uint256[] memory) {
+    function poolWeights (Config memory _config, uint256[] memory _poolAmounts) private pure returns (uint256[] memory, uint256[] memory) {
         // Spot = ( Br / Wr ) / ( Bt / Wt )
         // https://balancer.finance/whitepaper/
         // => ( Bt / Wt ) = ( Br / Wr ) / Spot
         // => Wt = ( Spot x Bt ) / ( Br / Wr )
         uint256 _reserveWeight = BalancerConstants.MIN_WEIGHT;
-        uint256 _targetSpot = _poolConfig.initialValuation.mul(Constants.ONE).div(_poolAmounts[1]);
+        uint256 _targetSpot = _config.initialValuation.mul(Constants.ONE).div(_poolAmounts[1]);
         uint256 _tokenWeight = _targetSpot.mul(_poolAmounts[1]).mul(Constants.ONE).div(
             _poolAmounts[0].mul(BalancerConstants.MIN_WEIGHT)
         );
 
-        require(_tokenWeight >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
+        require(_tokenWeight >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT");
         require(
             BalancerConstants.MAX_WEIGHT.sub(Constants.POOL_HEADROOM) >= _tokenWeight.add(_reserveWeight),
-            "ERR_MAX_WEIGHT"
+            "MAX_WEIGHT"
         );
 
         uint256[] memory _startWeights = new uint256[](2);
@@ -127,15 +127,15 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // Since the pool starts with the full token supply this is the maximum possible dump.
         // We set the weight to the market cap of the redeem value.s
         uint256 _reserveWeightFinal = BalancerConstants.MIN_WEIGHT;
-        uint256 _targetSpotFinal = _poolConfig.finalValuation.mul(Constants.ONE).div(_poolAmounts[1]);
+        uint256 _targetSpotFinal = _config.finalValuation.mul(Constants.ONE).div(_poolAmounts[1]);
         uint256 _tokenWeightFinal = _targetSpotFinal.mul(_poolAmounts[1]).mul(Constants.ONE).div(
-                _redeemInit.mul(BalancerConstants.MIN_WEIGHT)
+                _config.redeemInit.mul(BalancerConstants.MIN_WEIGHT)
         );
 
-        require(_tokenWeightFinal >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT_FINAL");
+        require(_tokenWeightFinal >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_FINAL");
         require(
             BalancerConstants.MAX_WEIGHT.sub(Constants.POOL_HEADROOM) >= _tokenWeightFinal.add(_reserveWeightFinal),
-            "ERR_MAX_WEIGHT_FINAL"
+            "MAX_WEIGHT_FINAL"
         );
 
         uint256[] memory _targetWeights = new uint256[](2);
@@ -164,14 +164,14 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         return _rights;
     }
 
-    function constructCrp (RedeemableERC20 _token, PoolConfig memory _poolConfig, uint256[] memory _poolAmounts, uint256[] memory _startWeights) private returns (ConfigurableRightsPool) {
+    function constructCrp (Config memory _config, uint256[] memory _poolAmounts, uint256[] memory _startWeights) private returns (ConfigurableRightsPool) {
         // The addresses in the RedeemableERC20Pool, as [reserve, token].
         address[] memory _poolAddresses = new address[](2);
-        _poolAddresses[0] = address(_poolConfig.reserve);
-        _poolAddresses[1] = address(_token);
+        _poolAddresses[0] = address(_config.reserve);
+        _poolAddresses[1] = address(_config.token);
 
-        return _poolConfig.crpFactory.newCrp(
-            address(_poolConfig.balancerFactory),
+        return _config.crpFactory.newCrp(
+            address(_config.balancerFactory),
             ConfigurableRightsPool.PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",
@@ -205,7 +205,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         ConfigurableRightsPool _crp = crp;
         _crp.createPool(BalancerConstants.MAX_POOL_SUPPLY, 0, 0);
         // Calculate the CRP curve.
-        _crp.updateWeightsGradually(targetWeights, block.number, unblockBlock);
+        _crp.updateWeightsGradually(targetWeights, block.number, getUnblockBlock());
         pool = _crp.bPool();
     }
 

@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
-import "hardhat/console.sol";
-
 // Needed to handle structures externally
 pragma experimental ABIEncoderV2;
 
@@ -23,11 +21,13 @@ import { RedeemableERC20 } from "./RedeemableERC20.sol";
 import { RedeemableERC20Pool } from "./RedeemableERC20Pool.sol";
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
-import { PoolConfig } from "./RedeemableERC20Pool.sol";
-import { RedeemableERC20Config } from "./RedeemableERC20.sol";
-import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
+import { Config as RedeemableERC20PoolConfig } from "./RedeemableERC20Pool.sol";
+import { RedeemableERC20Factory, Config as RedeemableERC20FactoryConfig } from "./RedeemableERC20Factory.sol";
+import { RedeemableERC20PoolFactory } from "./RedeemableERC20PoolFactory.sol";
 
-struct TrustConfig {
+struct Config {
+    RedeemableERC20Factory redeemableERC20Factory;
+    RedeemableERC20PoolFactory redeemableERC20PoolFactory;
     address creator;
     // Minimum amount to raise for the creator from the distribution period.
     // The raise is only considered successful if enough NEW funds enter the system to cover BOTH the _redeemInit + _minRaise.
@@ -36,9 +36,19 @@ struct TrustConfig {
     address seeder;
     // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
     uint256 seederFee;
-    uint256 seederUnits;
-    uint256 unseedDelay;
     uint256 raiseDuration;
+    // The amount of reserve to back the redemption initially after trading finishes.
+    // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
+    uint256 redeemInit;
+}
+
+struct PoolConfig {
+    CRPFactory crpFactory;
+    BFactory balancerFactory;
+    IERC20 reserve;
+    uint256 reserveInit;
+    uint256 initialValuation;
+    uint256 finalValuation;
 }
 
 // Examples
@@ -92,9 +102,7 @@ contract Trust {
     using SafeMath for uint256;
     using Math for uint256;
 
-    TrustConfig public trustConfig;
-
-    uint256 public redeemInit;
+    Config public config;
 
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
@@ -102,41 +110,26 @@ contract Trust {
     RedeemableERC20Pool public pool;
 
     constructor (
-        TrustConfig memory _trustConfig,
-        RedeemableERC20Config memory _redeemableERC20Config,
-        PoolConfig memory _poolConfig,
-        // The amount of reserve to back the redemption initially after trading finishes.
-        // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
-        uint256 _redeemInit
+        Config memory _config,
+        RedeemableERC20FactoryConfig memory _redeemableERC20FactoryConfig,
+        PoolConfig memory _poolConfig
     ) public {
-        require(_redeemableERC20Config.totalSupply >= _poolConfig.reserveInit, "ERR_MIN_TOKEN_SUPPLY");
-        require(_poolConfig.reserveInit > 0, "ERR_MIN_RESERVE");
-        require(_poolConfig.initialValuation >= _poolConfig.finalValuation, "ERR_MIN_INITIAL_VALUTION");
-        require(_poolConfig.finalValuation >= _redeemInit.add(_trustConfig.minCreatorRaise).add(_trustConfig.seederFee).add(_poolConfig.reserveInit), "ERR_MIN_FINAL_VALUATION");
+        require(_redeemableERC20FactoryConfig.totalSupply >= _poolConfig.reserveInit, "MIN_TOKEN_SUPPLY");
+        require(_poolConfig.reserveInit > 0, "MIN_RESERVE");
+        require(_poolConfig.initialValuation >= _poolConfig.finalValuation, "MIN_INITIAL_VALUTION");
+        require(_poolConfig.finalValuation >= _config.redeemInit.add(_config.minCreatorRaise).add(_config.seederFee).add(_poolConfig.reserveInit), "MIN_FINAL_VALUATION");
 
-        RedeemableERC20 _token = new RedeemableERC20(
-            _redeemableERC20Config
-        );
-        RedeemableERC20Pool _pool = new RedeemableERC20Pool(
+        RedeemableERC20 _token = _config.redeemableERC20Factory.newContract(_redeemableERC20FactoryConfig);
+        RedeemableERC20Pool _pool = _config.redeemableERC20PoolFactory.newContract(RedeemableERC20PoolConfig(
+            _poolConfig.crpFactory,
+            _poolConfig.balancerFactory,
+            _poolConfig.reserve,
             _token,
-            _poolConfig,
-            _redeemInit
-        );
-
-        if (_trustConfig.seeder == address(0)) {
-            require(_poolConfig.reserveInit.mod(_trustConfig.seederUnits) == 0, "ERR_SEED_PRICE_MULTIPLIER");
-            uint256 _seedPrice = _poolConfig.reserveInit.div(_trustConfig.seederUnits);
-            SeedERC20 _seedERC20 = new SeedERC20(SeedERC20Config(
-                _poolConfig.reserve,
-                _seedPrice,
-                _trustConfig.seederUnits,
-                _trustConfig.unseedDelay,
-                "",
-                ""
-            ));
-            _seedERC20.init(address(this));
-            _trustConfig.seeder = address(_seedERC20);
-        }
+            _poolConfig.reserveInit,
+            _config.redeemInit,
+            _poolConfig.initialValuation,
+            _poolConfig.finalValuation
+        ));
 
         // Need to make a few addresses unfreezable to facilitate exits.
         _token.ownerAddUnfreezable(address(_pool.crp()));
@@ -148,16 +141,15 @@ contract Trust {
 
         // Send all tokens to the pool immediately.
         // When the seed funds are raised `startRaise` will build a pool from these.
-        _token.safeTransfer(address(_pool), _redeemableERC20Config.totalSupply);
+        _token.safeTransfer(address(_pool), _redeemableERC20FactoryConfig.totalSupply);
 
-        trustConfig = _trustConfig;
-        redeemInit = _redeemInit;
+        config = _config;
         token = _token;
         pool = _pool;
     }
 
     function creatorAddRedeemable(IERC20 _redeemable) external {
-        require(msg.sender == trustConfig.creator, "ERR_NOT_CREATOR");
+        require(msg.sender == config.creator, "NOT_CREATOR");
         token.ownerAddRedeemable(_redeemable);
     }
 
@@ -168,9 +160,9 @@ contract Trust {
     // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function startRaise() external {
-        uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
+        uint256 _unblockBlock = block.number + config.raiseDuration;
         pool.ownerSetUnblockBlock(_unblockBlock);
-        pool.init(trustConfig.seeder);
+        pool.init(config.seeder);
     }
 
     // This function can be called by anyone!
@@ -178,18 +170,15 @@ contract Trust {
     // If the minimum raise is reached then the trust owner receives the raise.
     // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
     function endRaise() external {
-        RedeemableERC20Pool _pool = pool;
         token.ownerSetUnblockBlock(block.number);
-        _pool.exit();
+        pool.exit();
 
-        TrustConfig memory _trustConfig = trustConfig;
-        RedeemableERC20 _token = token;
         IERC20 _reserve = pool.reserve();
-        uint256 _seedInit = _pool.reserveInit();
-        uint256 _tokenPay = redeemInit;
+        uint256 _seedInit = pool.reserveInit();
+        uint256 _tokenPay = config.redeemInit;
 
         uint256 _finalBalance = _reserve.balanceOf(address(this));
-        uint256 _successBalance = _seedInit.add(_trustConfig.seederFee).add(_tokenPay).add(_trustConfig.minCreatorRaise);
+        uint256 _successBalance = _seedInit.add(config.seederFee).add(_tokenPay).add(config.minCreatorRaise);
 
         // Base payments for each fundraiser.
         uint256 _seederPay = 0;
@@ -198,7 +187,7 @@ contract Trust {
         // Set aside the redemption and seed fee if we reached the minimum.
         if (_finalBalance >= _successBalance) {
             // The seeder gets the reserve + seed fee
-            _seederPay = _seedInit.add(_trustConfig.seederFee);
+            _seederPay = _seedInit.add(config.seederFee);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -227,13 +216,13 @@ contract Trust {
 
         if (_creatorPay > 0) {
             _reserve.safeTransfer(
-                _trustConfig.creator,
+                config.creator,
                 _creatorPay
             );
         }
 
         _reserve.safeTransfer(
-            _trustConfig.seeder,
+            config.seeder,
             _seederPay
         );
 
@@ -244,7 +233,7 @@ contract Trust {
         uint256 _remainder = _reserve.balanceOf(address(this));
         if (_remainder > 0) {
             _reserve.safeTransfer(
-                address(_token),
+                address(token),
                 _remainder
             );
         }

@@ -33,7 +33,7 @@ contract ReserveToken is ERC20 {
     ) internal override {
         require(
             _receiver == address(0) || !(freezables[_receiver]),
-            "ERR_FROZEN"
+            "FROZEN"
         );
     }
 }
