@@ -118,10 +118,15 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     }
 
     function ownerAddRedeemable(IERC20 _redeemable) external onlyOwner {
+        uint256 _redeemablesLength = redeemables.length;
+        uint256 _i;
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
-        require(redeemables.length < 8, "ERR_MAX_REDEEMABLES");
+        require(_redeemablesLength < 8, "ERR_MAX_REDEEMABLES");
+        for (_i; _i<_redeemablesLength;_i++) {
+            require(redeemables[_i] != _redeemable, "ERR_DUPLICATE_REDEEMABLE");
+        }
         redeemables.push(_redeemable);
     }
 
@@ -184,41 +189,45 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     function _beforeTokenTransfer(
         address,
         address _receiver,
-        uint256
+        uint256 _amount
     )
         internal
         override
     {
-        // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
-        require(_receiver != address(this), "ERR_TOKEN_SEND_SELF");
+        // Some contracts may attempt a preflight (e.g. Balancer) of a 0 amount transfer.
+        // In this case we do not want concerns such as prestige causing errors.
+        if (_amount > 0) {
+            // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
+            require(_receiver != address(this), "ERR_TOKEN_SEND_SELF");
 
-        // There are two clear phases:
-        //
-        // ## Before redemption is unblocked
-        //
-        // - All transfers other than minting (see above) are allowed (trading, transferring, etc.)
-        // - Redemption is NOT allowed
-        //
-        // ## After redemption is unblocked
-        //
-        // - All transfers are frozen (no trading, transferring, etc.) but redemption/burning is allowed
-        // - Transfers TO the owner are allowed (notably the pool tokens can be used by the owner to exit the pool)
-        // - Transfers FROM the owner are NOT allowed (the owner can only redeem like everyone else)
-        if (isUnblocked()) {
-            // Redemption is unblocked.
-            // Can burn.
-            // Only owner and unfreezables can receive.
-            require(
-                _receiver == address(0) || unfreezables[_receiver],
-                "ERR_FROZEN"
-            );
-        } else {
-            // Redemption is blocked.
-            // All transfer actions allowed.
-            require(
-                unfreezables[_receiver] || isStatus(_receiver, minimumPrestigeStatus),
-                "ERR_MIN_STATUS"
-            );
+            // There are two clear phases:
+            //
+            // ## Before redemption is unblocked
+            //
+            // - All transfers other than minting (see above) are allowed (trading, transferring, etc.)
+            // - Redemption is NOT allowed
+            //
+            // ## After redemption is unblocked
+            //
+            // - All transfers are frozen (no trading, transferring, etc.) but redemption/burning is allowed
+            // - Transfers TO the owner are allowed (notably the pool tokens can be used by the owner to exit the pool)
+            // - Transfers FROM the owner are NOT allowed (the owner can only redeem like everyone else)
+            if (isUnblocked()) {
+                // Redemption is unblocked.
+                // Can burn.
+                // Only owner and unfreezables can receive.
+                require(
+                    _receiver == address(0) || unfreezables[_receiver],
+                    "ERR_FROZEN"
+                );
+            } else {
+                // Redemption is blocked.
+                // All transfer actions allowed.
+                require(
+                    unfreezables[_receiver] || isStatus(_receiver, minimumPrestigeStatus),
+                    "ERR_MIN_STATUS"
+                );
+            }
         }
     }
 }
