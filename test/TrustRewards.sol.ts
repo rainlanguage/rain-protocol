@@ -153,7 +153,7 @@ describe("TrustRewards", async function () {
 
     const token1 = token.connect(hodler1)
 
-    Util.assertError(
+    await Util.assertError(
       async () => await token1.redeem(await token1.balanceOf(hodler1.address)),
       "revert ERR_ONLY_UNBLOCKED",
       "hodler1 redeemed tokens before token unblocked (before pool unblock)"
@@ -168,7 +168,7 @@ describe("TrustRewards", async function () {
 
     const hodler1TokenBalanceBeforeRed = await token1.balanceOf(hodler1.address)
 
-    Util.assertError(
+    await Util.assertError(
       async () => await token1.redeem(hodler1TokenBalanceBeforeRed),
       "revert ERR_ONLY_UNBLOCKED",
       `hodler1 redeemed tokens before token unblocked (after pool unblock)
@@ -319,7 +319,7 @@ describe("TrustRewards", async function () {
 
     assert((await token.balanceOf(hodler1.address)).isZero(), "hodler1 failed to burn all of their own tokens")
 
-    Util.assertError(
+    await Util.assertError(
       async () => await token1._burn(hodler2.address, await token1.balanceOf(hodler2.address)),
       "TypeError: token1._burn is not a function", // internal
       "hodler1 burned hodler2's tokens"
@@ -412,7 +412,7 @@ describe("TrustRewards", async function () {
     const trustDeployer = trust.connect(deployer)
     const trustHodler1 = trust.connect(hodler1)
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trustDeployer.creatorAddRedeemable(reserve2.address),
       'revert ERR_NOT_CREATOR',
       'trust deployer wrongly added new redeemable'
@@ -420,7 +420,7 @@ describe("TrustRewards", async function () {
 
     await trustCreator.creatorAddRedeemable(reserve2.address)
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trustHodler1.creatorAddRedeemable(reserve3.address),
       'revert ERR_NOT_CREATOR',
       'hodler wrongly added new redeemable'

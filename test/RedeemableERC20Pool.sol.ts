@@ -242,7 +242,7 @@ describe("RedeemableERC20Pool", async function () {
 
         // Before init
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
             "revert ERR_ONLY_INIT",
             "owner was wrongly able to exit pool before initialized"
@@ -250,7 +250,7 @@ describe("RedeemableERC20Pool", async function () {
 
         // Set unblock block
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool1.ownerSetUnblockBlock(unblockBlock),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to set pool unblock block"
@@ -274,7 +274,7 @@ describe("RedeemableERC20Pool", async function () {
             reserveInit
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool1.init(signers[1].address, { gasLimit: 10000000 }),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to init pool"
@@ -292,7 +292,7 @@ describe("RedeemableERC20Pool", async function () {
             reserveInit
         )
 
-        Util.assertError(async () =>
+        await Util.assertError(async () =>
             await pool.init(signers[0].address, { gasLimit: 10000000 }),
             "revert ERR_ONLY_NOT_INIT",
             "pool wrongly initialized twice by owner"
@@ -308,7 +308,7 @@ describe("RedeemableERC20Pool", async function () {
 
 
         // Before unblock block
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
             "revert ERR_ONLY_UNBLOCKED",
             "owner was wrongly able to exit pool before unblock block"
@@ -319,7 +319,7 @@ describe("RedeemableERC20Pool", async function () {
             await reserve.transfer(signers[2].address, 1)
         }
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool1.exit(),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to exit pool"
@@ -474,7 +474,7 @@ describe("RedeemableERC20Pool", async function () {
         await redeemable.ownerAddUnfreezable(bFactory.address)
         await redeemable.ownerAddUnfreezable(pool.address)
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
             'revert ERR_ONLY_UNBLOCKED',
             'failed to error on early exit'
@@ -596,7 +596,7 @@ describe("RedeemableERC20Pool", async function () {
     //     await redeemable.addUnfreezable(bFactory.address)
     //     await redeemable.addUnfreezable(pool.address)
 
-    //     Util.assertError(
+    //     await Util.assertError(
     //         async () => await pool.exit(),
     //         'revert ERR_ONLY_UNBLOCKED',
     //         'failed to error on early exit'
@@ -727,7 +727,7 @@ describe("RedeemableERC20Pool", async function () {
         await redeemable.ownerAddUnfreezable(bFactory.address)
         await redeemable.ownerAddUnfreezable(pool.address)
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
             'revert ERR_ONLY_UNBLOCKED',
             'failed to error on early exit'
@@ -810,7 +810,7 @@ describe("RedeemableERC20Pool", async function () {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => {
                 const pool = await poolFactory.deploy(
                     redeemable.address,
@@ -900,7 +900,7 @@ describe("RedeemableERC20Pool", async function () {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => {
                 const pool = await poolFactory.deploy(
                     redeemable.address,
@@ -990,7 +990,7 @@ describe("RedeemableERC20Pool", async function () {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => await poolFactory.deploy(
                 redeemable.address,
                 {
