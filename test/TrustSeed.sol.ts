@@ -157,11 +157,12 @@ describe("TrustSeed", async function () {
 
       await seederContract2.seed(seeder2Units)
 
-      // seeder can unseed when seedContract fully seeded (no longer locks funds in seederContract)
-      await seederContract1.unseed(seeder1Units)
-
-      // reseed
-      await seederContract1.seed(seeder1Units)
+      // seeder cannot unseed after all units seeded
+      Util.assertError(
+        async () => await seederContract1.unseed(seeder1Units),
+        "revert ERR_ONLY_BLOCKED",
+        "seeder1 unseeded despite all units being seeded"
+      )
 
       assert((await reserve.balanceOf(seederContract.address)).eq(reserveInit), `seeder contract has insufficient reserve
         required  ${reserveInit}
