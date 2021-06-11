@@ -9,7 +9,7 @@ chai.use(solidity)
 const { expect, assert } = chai
 
 describe("SeedERC20", async function () {
-    it("should work on the happy path", async function() {
+    it("should work on the happy path", async function () {
         const signers = await ethers.getSigners()
         const alice = signers[0]
         const bob = signers[1]
@@ -68,11 +68,6 @@ describe("SeedERC20", async function () {
             `seed total supply is wrong`
         )
 
-        assert(
-            await seedERC20.seeded() == false,
-            `seeded true too early`
-        )
-
         await seedERC20.init(dave.address)
 
         assert(
@@ -103,8 +98,6 @@ describe("SeedERC20", async function () {
 
         await carolReserve.approve(seedERC20.address, carolUnits * seedPrice)
         await carolSeed.seed(carolUnits)
-
-        assert(await seedERC20.seeded(), `failed to set seeded`)
 
         // Dave takes out his reserve.
 

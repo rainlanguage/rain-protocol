@@ -149,8 +149,6 @@ describe("TrustSeed", async function () {
       // seeders send reserve to seeder contract
       await seederContract1.seed(seeder1Units)
 
-      assert(!(await seederContract1.seeded()), `should not be fully seeded yet`)
-
       Util.assertError(
         async () => await trust.startRaise({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
@@ -159,18 +157,16 @@ describe("TrustSeed", async function () {
 
       await seederContract2.seed(seeder2Units)
 
-      Util.assertError(
-        async () => await seederContract1.unseed(seeder1Units),
-        "revert ERR_SEEDED",
-        "seeder retrieved funds despite contract being fully seeded"
-      )
+      // seeder can unseed when seedContract fully seeded (no longer locks funds in seederContract)
+      await seederContract1.unseed(seeder1Units)
+
+      // reseed
+      await seederContract1.seed(seeder1Units)
 
       assert((await reserve.balanceOf(seederContract.address)).eq(reserveInit), `seeder contract has insufficient reserve
         required  ${reserveInit}
         actual    ${await reserve.balanceOf(seederContract.address)}
       `)
-
-      assert(await seederContract1.seeded(), `failed to set seeded`)
 
       await trust.startRaise({ gasLimit: 100000000 })
 
@@ -347,8 +343,6 @@ describe("TrustSeed", async function () {
       // seeders send reserve to seeder contract
       await seederContract1.seed(seeder1Units)
 
-      assert(!(await seederContract1.seeded()), `should not be fully seeded yet`)
-
       Util.assertError(
         async () => await trust.startRaise({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
@@ -357,18 +351,10 @@ describe("TrustSeed", async function () {
 
       await seederContract2.seed(seeder2Units)
 
-      Util.assertError(
-        async () => await seederContract1.unseed(seeder1Units),
-        "revert ERR_SEEDED",
-        "seeder retrieved funds despite contract being fully seeded"
-      )
-
       assert((await reserve.balanceOf(seederContract.address)).eq(reserveInit), `seeder contract has insufficient reserve
         required  ${reserveInit}
         actual    ${await reserve.balanceOf(seederContract.address)}
       `)
-
-      assert(await seederContract1.seeded(), `failed to set seeded`)
 
       await trust.startRaise({ gasLimit: 100000000 })
 
