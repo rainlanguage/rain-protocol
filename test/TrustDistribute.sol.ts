@@ -110,6 +110,8 @@ describe("TrustDistribute", async function () {
 
       await trust.deployed()
 
+      assert(await trust.raiseStatus() === 0, `raise status not pending`)
+
       // seeder needs some cash, give enough to seeder
       await reserve.transfer(seeder.address, reserveInit)
 
@@ -118,11 +120,9 @@ describe("TrustDistribute", async function () {
       // seeder must approve before pool init
       await reserveSeeder.approve(await trust.pool(), reserveInit)
 
-      assert((await trust.raiseStatus()).isZero(), "raise status was not set to 0 before endRaise and before startRaise")
-
       await trust.startRaise({ gasLimit: 100000000 })
 
-      assert((await trust.raiseStatus()).isZero(), "raise status was not set to 0 before endRaise and after startRaise")
+      assert(await trust.raiseStatus() === 1, `raise status not open`)
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -164,7 +164,7 @@ describe("TrustDistribute", async function () {
 
       await trust.endRaise()
 
-      assert((await trust.raiseStatus()).eq(1), "raise status was not 1 which indicates successful raise")
+      assert(await trust.raiseStatus() === 2, "raise status was not 2 which indicates successful raise")
     })
 
     it('on failed raise', async function () {
@@ -253,11 +253,11 @@ describe("TrustDistribute", async function () {
       // seeder must approve before pool init
       await reserveSeeder.approve(await trust.pool(), reserveInit)
 
-      assert((await trust.raiseStatus()).isZero(), "raise status was not set to 0 before endRaise and before startRaise")
+      assert(await trust.raiseStatus() === 0, "raise status was not set to 0 before endRaise and before startRaise")
 
       await trust.startRaise({ gasLimit: 100000000 })
 
-      assert((await trust.raiseStatus()).isZero(), "raise status was not set to 0 before endRaise and after startRaise")
+      assert(await trust.raiseStatus() === 1, "raise status was not set to 1 before endRaise and after startRaise")
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -268,7 +268,7 @@ describe("TrustDistribute", async function () {
 
       await trust.endRaise()
 
-      assert((await trust.raiseStatus()).eq(2), "raise status was not 2 which indicates failed raise")
+      assert(await trust.raiseStatus() === 3, "raise status was not 2 which indicates failed raise")
     })
   })
 

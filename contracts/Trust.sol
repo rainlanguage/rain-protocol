@@ -27,6 +27,13 @@ import { PoolConfig } from "./RedeemableERC20Pool.sol";
 import { RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
+enum RaiseStatus {
+    Pending,
+    Open,
+    Success,
+    Fail
+}
+
 struct TrustConfig {
     address creator;
     // Minimum amount to raise for the creator from the distribution period.
@@ -94,6 +101,7 @@ contract Trust {
 
     TrustConfig public trustConfig;
 
+    RaiseStatus public raiseStatus;
     uint256 public redeemInit;
 
     using SafeERC20 for IERC20;
@@ -168,6 +176,7 @@ contract Trust {
     // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function startRaise() external {
+        raiseStatus = RaiseStatus.Open;
         uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
         pool.ownerSetUnblockBlock(_unblockBlock);
         pool.init(trustConfig.seeder);
@@ -197,6 +206,7 @@ contract Trust {
 
         // Set aside the redemption and seed fee if we reached the minimum.
         if (_finalBalance >= _successBalance) {
+            raiseStatus = RaiseStatus.Success;
             // The seeder gets the reserve + seed fee
             _seederPay = _seedInit.add(_trustConfig.seederFee);
 
@@ -216,6 +226,7 @@ contract Trust {
             _creatorPay = _finalBalance.sub(_seederPay.add(_tokenPay));
         }
         else {
+            raiseStatus = RaiseStatus.Fail;
             // If we did not reach the minimum the creator gets nothing.
             // Refund what we can to other participants.
             // Due to pool dust it is possible the final balance is less than the reserve init.
