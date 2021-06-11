@@ -157,7 +157,7 @@ describe("TrustTrade", async function () {
     }
 
     // bronze hodler attempts swap for tokens
-    Util.assertError(
+    await Util.assertError(
       async () => await swapReserveForTokens(hodlerBronze, reserveSpend),
       "revert ERR_MIN_STATUS",
       "bronze hodler swapped reserve for tokens, despite being below min status of gold"
@@ -676,7 +676,7 @@ describe("TrustTrade", async function () {
     const totalTokenSupply1 = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const totalTokenSupply2 = ethers.BigNumber.from('20000' + Util.eighteenZeros)
 
-    // Token spot price = initial valuation / total token    
+    // Token spot price = initial valuation / total token
     // const spotInit = initialValuation.div(totalTokenSupply)
 
     // Weight ratio

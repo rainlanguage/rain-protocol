@@ -1076,7 +1076,7 @@ describe("Trust", async function () {
 
     // creator cannot add unfreezable
     Util.assertError(
-      async () => await token.ownerAddUnfreezable(signers[3].address),
+      async () => await token.ownerAddReceiver(signers[3].address),
       "revert Ownable: caller is not the owner",
       "creator added unfreezable, despite not being token owner"
     )
@@ -1085,15 +1085,15 @@ describe("Trust", async function () {
 
     // non-creator cannot add unfreezable, (no one but owner can add unfreezables)
     Util.assertError(
-      async () => await token1.ownerAddUnfreezable(signers[3].address),
+      async () => await token1.ownerAddReceiver(signers[3].address),
       "revert Ownable: caller is not the owner",
       "non-creator added unfreezable, despite not being token owner"
     )
 
     // creator cannot add unfreezable via some hypothetical proxy method on trust contract
     Util.assertError(
-      async () => await trust.creatorAddUnfreezable(signers[3].address),
-      "TypeError: trust.creatorAddUnfreezable is not a function",
+      async () => await trust.creatorAddReceiver(signers[3].address),
+      "TypeError: trust.creatorAddReceiver is not a function",
       "creator added unfreezable via trust proxy method"
     )
   })
@@ -1489,8 +1489,8 @@ describe("Trust", async function () {
             .sub(1) // dust rounding error
             .sub(countTransfersToTriggerUnblock) // creator loses some reserve when moving blocks
         ),
-      `wrong reserve balance for creator after raise ended. 
-      start ${creatorStartingReserveBalance} 
+      `wrong reserve balance for creator after raise ended.
+      start ${creatorStartingReserveBalance}
       end ${creatorEndingReserveBalance}
       finalBalance ${finalBalance}
       seederPay ${seederPay}
@@ -1512,9 +1512,9 @@ describe("Trust", async function () {
 
     assert(
       (seederEndActual).eq(seederEndExpected),
-      `wrong reserve amount transferred to seeder after successful raise ended. 
-      Actual ${seederEndActual} 
-      Expected ${seederEndExpected} 
+      `wrong reserve amount transferred to seeder after successful raise ended.
+      Actual ${seederEndActual}
+      Expected ${seederEndExpected}
       Difference ${seederEndActual.sub(seederEndExpected)}`
     )
 
@@ -1542,7 +1542,7 @@ describe("Trust", async function () {
         .eq(hodler1EndingTokenBalance
           .add(hodler2EndingTokenBalance)
           .add(await token.balanceOf(bPool.address))), // token dust
-      `wrong total token supply after successful raise 
+      `wrong total token supply after successful raise
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -1569,7 +1569,7 @@ describe("Trust", async function () {
       (await token.totalSupply())
         .eq(hodler2EndingTokenBalance
           .add(await token.balanceOf(bPool.address))), // token dust
-      `wrong total token supply after hodler 1 redemption 
+      `wrong total token supply after hodler 1 redemption
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -1593,7 +1593,7 @@ describe("Trust", async function () {
       (await token.totalSupply())
         .eq(smallTokenAmount
           .add(await token.balanceOf(bPool.address))), // token dust
-      `wrong total token supply after hodler 2 redemption 
+      `wrong total token supply after hodler 2 redemption
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -1799,7 +1799,7 @@ describe("Trust", async function () {
 
     const finalBalance = await reserve.balanceOf(await bPool.address)
 
-    // raise should fail 
+    // raise should fail
     assert(finalBalance.lt(successLevel), `raise was successful
     final ${finalBalance}
     success ${successLevel}`)
@@ -1868,7 +1868,7 @@ describe("Trust", async function () {
         .eq(hodler1EndingTokenBalance
           .add(hodler2EndingTokenBalance)
           .add(await token.balanceOf(bPool.address))), // token dust
-      `wrong total token supply after failed raise 
+      `wrong total token supply after failed raise
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -1895,7 +1895,7 @@ describe("Trust", async function () {
       (await token.totalSupply())
         .eq(hodler2EndingTokenBalance
           .add(await token.balanceOf(bPool.address))), // token dust
-      `wrong total token supply after hodler 1 redemption 
+      `wrong total token supply after hodler 1 redemption
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -1919,7 +1919,7 @@ describe("Trust", async function () {
       (await token.totalSupply())
         .eq(smallTokenAmount
           .add(await token.balanceOf(bPool.address))), // token dust
-      `wrong total token supply after hodler 2 redemption 
+      `wrong total token supply after hodler 2 redemption
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}

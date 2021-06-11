@@ -109,9 +109,10 @@ describe("RedeemableERC20Pool", async function () {
         // The trust would do this internally but we need to do it here to test.
         const crp = new ethers.Contract(await pool.crp(), crpJson.abi, signers[0])
         const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, signers[0])
-        await redeemable.ownerAddUnfreezable(crp.address)
-        await redeemable.ownerAddUnfreezable(bFactory.address)
-        await redeemable.ownerAddUnfreezable(pool.address)
+        await redeemable.ownerAddReceiver(crp.address)
+        await redeemable.ownerAddSender(crp.address)
+        await redeemable.ownerAddReceiver(bFactory.address)
+        await redeemable.ownerAddReceiver(pool.address)
 
         // raise some funds
         const swapReserveForTokens = async (hodler, spend) => {
@@ -302,9 +303,10 @@ describe("RedeemableERC20Pool", async function () {
 
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
-        await redeemable.ownerAddUnfreezable(crp)
-        await redeemable.ownerAddUnfreezable(bFactory.address)
-        await redeemable.ownerAddUnfreezable(pool.address)
+        await redeemable.ownerAddSender(crp)
+        await redeemable.ownerAddReceiver(crp)
+        await redeemable.ownerAddReceiver(bFactory.address)
+        await redeemable.ownerAddReceiver(pool.address)
 
 
         // Before unblock block
@@ -470,9 +472,10 @@ describe("RedeemableERC20Pool", async function () {
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
         const bPool = await pool.pool()
-        await redeemable.ownerAddUnfreezable(crp)
-        await redeemable.ownerAddUnfreezable(bFactory.address)
-        await redeemable.ownerAddUnfreezable(pool.address)
+        await redeemable.ownerAddSender(crp)
+        await redeemable.ownerAddReceiver(crp)
+        await redeemable.ownerAddReceiver(bFactory.address)
+        await redeemable.ownerAddReceiver(pool.address)
 
         Util.assertError(
             async () => await pool.exit(),
@@ -723,9 +726,10 @@ describe("RedeemableERC20Pool", async function () {
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
         const bPool = await pool.pool()
-        await redeemable.ownerAddUnfreezable(crp)
-        await redeemable.ownerAddUnfreezable(bFactory.address)
-        await redeemable.ownerAddUnfreezable(pool.address)
+        await redeemable.ownerAddSender(crp)
+        await redeemable.ownerAddReceiver(crp)
+        await redeemable.ownerAddReceiver(bFactory.address)
+        await redeemable.ownerAddReceiver(pool.address)
 
         Util.assertError(
             async () => await pool.exit(),

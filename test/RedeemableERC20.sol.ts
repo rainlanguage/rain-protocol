@@ -94,7 +94,7 @@ describe("RedeemableERC20", async function () {
         )
 
         // Redemption not allowed yet.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.redeem(100),
             'revert ERR_ONLY_UNBLOCKED',
             'redeem did not error'
@@ -110,7 +110,7 @@ describe("RedeemableERC20", async function () {
         )
 
         // We cannot send to the token address.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(redeemableERC20.address, 10),
             'revert ERR_TOKEN_SEND_SELF',
             'self send was not blocked'
@@ -122,7 +122,7 @@ describe("RedeemableERC20", async function () {
         }
 
         // Funds need to be frozen once redemption unblocks.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(signers[1].address, 1),
             'revert ERR_FROZEN',
             'funds were not frozen'
@@ -133,7 +133,7 @@ describe("RedeemableERC20", async function () {
         await redeemableERC202.transfer(signers[0].address, 1)
 
         // but not to anyone else.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(signers[2].address, 1),
             'revert ERR_FROZEN',
             'funds were not frozen 2'
@@ -194,7 +194,7 @@ describe("RedeemableERC20", async function () {
         )
 
         // signer cannot redeem more tokens than they have
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.redeem(ethers.BigNumber.from('10000' + Util.eighteenZeros)),
             'revert ERC20: burn amount exceeds balance',
             'failed to stop greedy redeem',
@@ -276,7 +276,7 @@ describe("RedeemableERC20", async function () {
 
         const redeemableERC201 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
 
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC201.ownerSetUnblockBlock(unblockBlock),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to set token unblock block"
@@ -411,7 +411,7 @@ describe("RedeemableERC20", async function () {
         await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
 
         const redeemableERC20_SILVER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(signers[2].address, 1),
             "revert ERR_MIN_STATUS",
             "user could receive transfers despite not meeting minimum status"
@@ -430,7 +430,7 @@ describe("RedeemableERC20", async function () {
         await redeemableERC20.redeem(1)
 
         // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20_SILVER.redeem(1),
             "revert ERC20: burn amount exceeds balance",
             "user could transfer despite not meeting minimum status"
@@ -731,7 +731,7 @@ describe("RedeemableERC20", async function () {
         await redeemableERC20.deployed()
         await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
 
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20.transfer(ethers.constants.AddressZero, TEN_TOKENS),
             "revert ERC20: transfer to the zero address",
             "owner sending redeemable tokens to zero address did not error"
@@ -741,7 +741,7 @@ describe("RedeemableERC20", async function () {
 
         const redeemableERC20_1 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
 
-        Util.assertError(
+        await Util.assertError(
             async () => await redeemableERC20_1.transfer(ethers.constants.AddressZero, TEN_TOKENS),
             "revert ERC20: transfer to the zero address",
             "signer 1 sending redeemable tokens to zero address did not error"
