@@ -16,7 +16,7 @@ const reserveJson = require('../artifacts/contracts/test/ReserveToken.sol/Reserv
 const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json')
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
-describe("RedeemableERC20Pool", async function() {
+describe("RedeemableERC20Pool", async function () {
     it('should transfer all raised funds to owner on pool exit', async () => {
         this.timeout(0)
 
@@ -117,11 +117,11 @@ describe("RedeemableERC20Pool", async function() {
         const swapReserveForTokens = async (hodler, spend) => {
             // give hodler some reserve
             await reserve.transfer(hodler.address, spend)
-        
+
             const reserveHodler = reserve.connect(hodler)
             const crpHodler = crp.connect(hodler)
             const bPoolHodler = bPool.connect(hodler)
-            
+
             await crpHodler.pokeWeights()
             await reserveHodler.approve(bPool.address, spend)
             await bPoolHodler.swapExactAmountIn(
@@ -153,14 +153,14 @@ describe("RedeemableERC20Pool", async function() {
             .mul(Util.ONE).div(1e7).div(Util.ONE)
             .add(1) // rounding error
 
-        assert(bPoolReserveAfterExit.eq(reserveDust), 
-        `wrong reserve left in balancer pool
+        assert(bPoolReserveAfterExit.eq(reserveDust),
+            `wrong reserve left in balancer pool
             actual      ${bPoolReserveAfterExit}
             expected    ${reserveDust}
         `)
 
-        assert(ownerReserveAfterExit.eq(ownerReserveBeforeExit.add(bPoolReserveBeforeExit.sub(reserveDust))), 
-        `wrong owner reserve balance
+        assert(ownerReserveAfterExit.eq(ownerReserveBeforeExit.add(bPoolReserveBeforeExit.sub(reserveDust))),
+            `wrong owner reserve balance
             actual      ${ownerReserveAfterExit}
             expected    ${ownerReserveBeforeExit.add(bPoolReserveBeforeExit.sub(reserveDust))}
         `)
@@ -241,7 +241,7 @@ describe("RedeemableERC20Pool", async function() {
         const pool1 = new ethers.Contract(pool.address, pool.interface, signers[1])
 
         // Before init
-        
+
         Util.assertError(
             async () => await pool.exit(),
             "revert ERR_ONLY_INIT",
@@ -255,7 +255,7 @@ describe("RedeemableERC20Pool", async function() {
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to set pool unblock block"
         )
-        
+
         await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Init pool
@@ -286,13 +286,13 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         await pool.init(signers[0].address, { gasLimit: 10000000 })
-        
+
         await reserve.approve(
             pool.address,
             reserveInit
         )
 
-        Util.assertError(async () => 
+        Util.assertError(async () =>
             await pool.init(signers[0].address, { gasLimit: 10000000 }),
             "revert ERR_ONLY_NOT_INIT",
             "pool wrongly initialized twice by owner"
@@ -318,7 +318,7 @@ describe("RedeemableERC20Pool", async function() {
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await reserve.transfer(signers[2].address, 1)
         }
-        
+
         Util.assertError(
             async () => await pool1.exit(),
             "revert Ownable: caller is not the owner",
@@ -328,7 +328,7 @@ describe("RedeemableERC20Pool", async function() {
         await pool.exit()
     })
 
-    it("should construct a pool", async function() {
+    it("should construct a pool", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -615,7 +615,7 @@ describe("RedeemableERC20Pool", async function() {
     //     assert((await redeemable.balanceOf(pool.address)).eq(0), 'non-owner failed to close pool')
     // })
 
-    it('should construct pool and exit with 0 minimum raise', async function() {
+    it('should construct pool and exit with 0 minimum raise', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -741,7 +741,7 @@ describe("RedeemableERC20Pool", async function() {
         await pool.exit()
     })
 
-    it('should fail to construct pool if initial reserve amount is zero', async function() {
+    it('should fail to construct pool if initial reserve amount is zero', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -831,7 +831,7 @@ describe("RedeemableERC20Pool", async function() {
         )
     })
 
-    it('should fail to construct pool if zero minted tokens', async function() {
+    it('should fail to construct pool if zero minted tokens', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -921,7 +921,7 @@ describe("RedeemableERC20Pool", async function() {
         )
     })
 
-    it("should fail to construct pool if initial redeemable amount is zero", async function() {
+    it("should fail to construct pool if initial redeemable amount is zero", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()

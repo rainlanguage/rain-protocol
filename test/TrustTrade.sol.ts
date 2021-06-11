@@ -31,7 +31,7 @@ enum Status {
   JAWAD = 8,
 }
 
-describe("TrustTrade", async function() {
+describe("TrustTrade", async function () {
   it('should allow token transfers before redemption phase if and only if receiver has the minimum prestige level set OR the receiver does NOT have the status but is unfreezable', async function () {
     this.timeout(0)
 
@@ -117,17 +117,17 @@ describe("TrustTrade", async function() {
       },
       redeemInit,
     )
-    
+
     await trust.deployed()
 
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder.address, reserveInit)
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
-    
+
     // seeder must approve before pool init
     await reserveSeeder.approve(await trust.pool(), reserveInit)
-    
+
     await trust.startRaise({ gasLimit: 100000000 })
 
     const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
@@ -145,7 +145,7 @@ describe("TrustTrade", async function() {
       const crpHodler = crp.connect(hodler)
       const bPoolHodler = bPool.connect(hodler)
 
-      await reserveHodler.approve(hodler.address, spend)
+      await reserveHodler.approve(bPool.address, spend)
       await crpHodler.pokeWeights()
       await bPoolHodler.swapExactAmountIn(
         reserve.address,
@@ -243,17 +243,17 @@ describe("TrustTrade", async function() {
       },
       redeemInit,
     )
-    
+
     await trust.deployed()
 
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder.address, reserveInit)
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
-    
+
     // seeder must approve before pool init
     await reserveSeeder.approve(await trust.pool(), reserveInit)
-    
+
     await trust.startRaise({ gasLimit: 100000000 })
 
     const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
@@ -263,14 +263,14 @@ describe("TrustTrade", async function() {
 
     let expectedRightPool;
     for (let i = 0; expectedRightPool = expectedRights[i]; i++) {
-        const actualRight = await pool.rights(i)
-        assert(actualRight === expectedRightPool, `wrong right ${i} ${expectedRightPool} ${actualRight}`)
+      const actualRight = await pool.rights(i)
+      assert(actualRight === expectedRightPool, `wrong right ${i} ${expectedRightPool} ${actualRight}`)
     }
-    
+
     let expectedRightCrp;
     for (let i = 0; expectedRightCrp = expectedRights[i]; i++) {
-        const actualRight = await crp.rights(i)
-        assert(actualRight === expectedRightCrp, `wrong right ${i} ${expectedRightCrp} ${actualRight}`)
+      const actualRight = await crp.rights(i)
+      assert(actualRight === expectedRightCrp, `wrong right ${i} ${expectedRightCrp} ${actualRight}`)
     }
   })
 
@@ -349,17 +349,17 @@ describe("TrustTrade", async function() {
       },
       redeemInit,
     )
-    
+
     await trust.deployed()
 
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder.address, reserveInit)
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
-    
+
     // seeder must approve before pool init
     await reserveSeeder.approve(await trust.pool(), reserveInit)
-    
+
     await trust.startRaise({ gasLimit: 100000000 })
 
     const startBlock = await ethers.provider.getBlockNumber()
@@ -465,12 +465,12 @@ describe("TrustTrade", async function() {
     const reserveWeightFinal = await pool.targetWeights(0)
     const tokenWeightFinal = await pool.targetWeights(1)
 
-    const expectedFinalSpotPrice = 
+    const expectedFinalSpotPrice =
       (
         reserveAmountFinal.mul(Util.ONE).div(reserveWeightFinal)
-        .mul(tokenWeightFinal.mul(Util.ONE).div(tokenAmountFinal))
+          .mul(tokenWeightFinal.mul(Util.ONE).div(tokenAmountFinal))
       )
-      .div(Util.ONE)
+        .div(Util.ONE)
 
     const actualFinalValuation = expectedFinalSpotPrice.mul(tokenAmountFinal)
       .div(Util.ONE)
@@ -561,7 +561,7 @@ describe("TrustTrade", async function() {
       },
       redeemInit,
     )
-    
+
     await trust.deployed()
 
     const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
@@ -572,10 +572,10 @@ describe("TrustTrade", async function() {
     await reserve.transfer(seeder.address, reserveInit)
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
-    
+
     // seeder must approve before pool init
     await reserveSeeder.approve(await trust.pool(), reserveInit)
-    
+
     await trust.startRaise({ gasLimit: 100000000 })
 
     const bPoolSilver = new ethers.Contract(await pool.pool(), bPoolJson.abi, hodlerSilver)
@@ -669,19 +669,19 @@ describe("TrustTrade", async function() {
     // initial reserve and token supply 1:1 for simplicity
     const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
-    
+
     const initialValuation1 = ethers.BigNumber.from('100000' + Util.eighteenZeros)
     const initialValuation2 = ethers.BigNumber.from('10000' + Util.eighteenZeros)
-    
+
     const totalTokenSupply1 = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const totalTokenSupply2 = ethers.BigNumber.from('20000' + Util.eighteenZeros)
-    
+
     // Token spot price = initial valuation / total token    
     // const spotInit = initialValuation.div(totalTokenSupply)
-    
+
     // Weight ratio
     // Wt / Wr = Spot * Bt / Br
-    
+
     // Bt / Br = 1 (in our case)
     // Hence, Wt / Wr = Spot
 
@@ -708,7 +708,7 @@ describe("TrustTrade", async function() {
 
     // bad weight ratio = initialValuation1 / totalTokenSupply1 >= 50
     // console.log(`${initialValuation1.mul(Util.ONE).div(totalTokenSupply1)}`);
-  
+
     assert(initialValuation1.mul(Util.ONE).div(totalTokenSupply1).gte(ethers.BigNumber.from('50' + Util.eighteenZeros)), "wrong intended spot price for max weight test")
 
     Util.assertError(
@@ -747,7 +747,7 @@ describe("TrustTrade", async function() {
     // console.log(`${initialValuation2.mul(Util.ONE).div(totalTokenSupply2)}`);
 
     assert(initialValuation2.mul(Util.ONE).div(totalTokenSupply2).lte(Util.ONE), "wrong intended spot price for min weight test")
-    
+
     Util.assertError(
       async () => await trustFactory2.deploy(
         {
@@ -810,7 +810,7 @@ describe("TrustTrade", async function() {
       },
       redeemInit,
     )
-    
+
     await trust.deployed()
 
     const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
@@ -819,10 +819,10 @@ describe("TrustTrade", async function() {
     await reserve.transfer(seeder.address, reserveInit)
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
-    
+
     // seeder must approve before pool init
     await reserveSeeder.approve(await trust.pool(), reserveInit)
-    
+
     await trust.startRaise({ gasLimit: 100000000 })
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)

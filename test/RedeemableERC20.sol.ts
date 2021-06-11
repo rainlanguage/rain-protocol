@@ -20,8 +20,8 @@ enum Status {
     JAWAD = 8,
 }
 
-describe("RedeemableERC20", async function() {
-    it("should lock tokens until redeemed", async function() {
+describe("RedeemableERC20", async function () {
+    it("should lock tokens until redeemed", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -239,7 +239,7 @@ describe("RedeemableERC20", async function() {
         }
     })
 
-    it("should only allow owner to set unblock block", async function() {
+    it("should only allow owner to set unblock block", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -271,7 +271,7 @@ describe("RedeemableERC20", async function() {
         )
 
         await redeemableERC20.deployed()
-        
+
         assert((await redeemableERC20.unblockBlock()).isZero(), "unblock block was wrongly set")
 
         const redeemableERC201 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
@@ -285,7 +285,7 @@ describe("RedeemableERC20", async function() {
         await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
     })
 
-    it("should set owner as unfreezable on construction", async function() {
+    it("should set owner as unfreezable on construction", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -314,11 +314,11 @@ describe("RedeemableERC20", async function() {
         )
 
         await redeemableERC20.deployed()
-        
+
         assert(await redeemableERC20.unfreezables(signers[0].address), "owner not set as unfreezable on token construction")
     })
 
-    it('should allow token transfers in constructor regardless of owner prestige level', async function() {
+    it('should allow token transfers in constructor regardless of owner prestige level', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -366,7 +366,7 @@ describe("RedeemableERC20", async function() {
         await reserve.transfer(redeemableERC20.address, 1)
     })
 
-    it('should allow transfer only if redeemer meets minimum prestige level', async function() {
+    it('should allow transfer only if redeemer meets minimum prestige level', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -491,7 +491,7 @@ describe("RedeemableERC20", async function() {
         )
 
         await redeemableERC20.transfer(signers[1].address, TEN_TOKENS)
-        
+
         // create a few blocks by sending some tokens around, after which redeeming now possible
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await redeemableERC20.transfer(signers[2].address, TEN_TOKENS)
@@ -531,14 +531,14 @@ describe("RedeemableERC20", async function() {
         const redeemAmount = FIVE_TOKENS;
 
         // expect every redeemable released in the same proportion.
-        const expectedReserve1Redemption = 
+        const expectedReserve1Redemption =
             redeemAmount
-            .mul(ethers.BigNumber.from(reserve1ContractBalanceBefore))
-            .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
-        const expectedReserve2Redemption = 
+                .mul(ethers.BigNumber.from(reserve1ContractBalanceBefore))
+                .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
+        const expectedReserve2Redemption =
             redeemAmount
-            .mul(ethers.BigNumber.from(reserve2ContractBalanceBefore))
-            .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
+                .mul(ethers.BigNumber.from(reserve2ContractBalanceBefore))
+                .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
 
         // signer redeems all tokens they have for fraction of each redeemable asset
         const redeemEvent = new Promise(resolve => {
@@ -583,7 +583,7 @@ describe("RedeemableERC20", async function() {
         // total supply of contract tokens should be 5 less
         assert(
             (redeemableContractTotalSupplyBefore).sub(redeemableContractTotalSupplyAfter).eq(redeemAmount),
-            `wrong amount of total token supply after ${redeemAmount} were redeemed ${redeemableContractTotalSupplyBefore} ${redeemableContractTotalSupplyAfter}` 
+            `wrong amount of total token supply after ${redeemAmount} were redeemed ${redeemableContractTotalSupplyBefore} ${redeemableContractTotalSupplyAfter}`
         )
 
         // reserve 1 amount at contract address should reduce
