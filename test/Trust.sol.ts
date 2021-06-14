@@ -521,7 +521,7 @@ describe("Trust", async function () {
     // 'anyone'
     const trust2 = new ethers.Contract(trust.address, trustJson.abi, signers[2])
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trust2.startRaise({ gasLimit: 100000000 }),
       "revert ERC20: transfer amount exceeds allowance",
       "raise wrongly started by someone with insufficent seed reserve liquidity"
@@ -613,7 +613,7 @@ describe("Trust", async function () {
     await trust.startRaise({ gasLimit: 100000000 })
 
     // creator attempts to immediately end raise
-    Util.assertError(
+    await Util.assertError(
       async () => await trust.endRaise(),
       "revert ERR_ONLY_UNBLOCKED",
       "creator ended raise before pool unblock block"
@@ -622,7 +622,7 @@ describe("Trust", async function () {
     const trust2 = new ethers.Contract(trust.address, trustJson.abi, signers[2])
 
     // other user attempts to immediately end raise
-    Util.assertError(
+    await Util.assertError(
       async () => await trust2.endRaise(),
       "revert ERR_ONLY_UNBLOCKED",
       "other user ended raise before pool unblock block"
@@ -955,7 +955,7 @@ describe("Trust", async function () {
     const trust2 = new ethers.Contract(trust.address, trustJson.abi, signers[2])
 
     // non-creator cannot add redeemable
-    Util.assertError(
+    await Util.assertError(
       async () => await trust2.creatorAddRedeemable(reserve3.address),
       "revert ERR_NOT_CREATOR",
       "non-creator added redeemable"
@@ -965,19 +965,19 @@ describe("Trust", async function () {
     const token2 = new ethers.Contract(trust.token(), redeemableTokenJson.abi, signers[2])
 
     // cannot add redeemables directly to token when trust is owner
-    Util.assertError(
+    await Util.assertError(
       async () => await token.ownerAddRedeemable(reserve3.address),
       "revert Ownable: caller is not the owner",
       "creator added redeemable directly to token when trust was owner"
     )
-    Util.assertError(
+    await Util.assertError(
       async () => await token2.ownerAddRedeemable(reserve3.address),
       "revert Ownable: caller is not the owner",
       "non-creator added redeemable directly to token when trust was owner"
     )
 
     // adding same redeemable should revert
-    Util.assertError(
+    await Util.assertError(
       async () => await trust.creatorAddRedeemable(reserve2.address),
       "revert ERR_DUPLICATE_REDEEMABLE",
       "added redeemable that was previously added"
@@ -991,7 +991,7 @@ describe("Trust", async function () {
     await trust.creatorAddRedeemable(reserve7.address)
     await trust.creatorAddRedeemable(reserve8.address)
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trust.creatorAddRedeemable(reserve9.address),
       "revert ERR_MAX_REDEEMABLES",
       "number of added redeemables exceeds limit of 8"
@@ -1075,7 +1075,7 @@ describe("Trust", async function () {
     assert((await token.owner()) === trust.address, 'token owner is not correct')
 
     // creator cannot add unfreezable
-    Util.assertError(
+    await Util.assertError(
       async () => await token.ownerAddReceiver(signers[3].address),
       "revert Ownable: caller is not the owner",
       "creator added unfreezable, despite not being token owner"
@@ -1084,14 +1084,14 @@ describe("Trust", async function () {
     const token1 = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[2])
 
     // non-creator cannot add unfreezable, (no one but owner can add unfreezables)
-    Util.assertError(
+    await Util.assertError(
       async () => await token1.ownerAddReceiver(signers[3].address),
       "revert Ownable: caller is not the owner",
       "non-creator added unfreezable, despite not being token owner"
     )
 
     // creator cannot add unfreezable via some hypothetical proxy method on trust contract
-    Util.assertError(
+    await Util.assertError(
       async () => await trust.creatorAddReceiver(signers[3].address),
       "TypeError: trust.creatorAddReceiver is not a function",
       "creator added unfreezable via trust proxy method"
@@ -1263,7 +1263,7 @@ describe("Trust", async function () {
       redeemInit,
     )
 
-    Util.assertError(async () => await trustPromise, 'Error: invalid ENS name', 'initialized without seeder')
+    await Util.assertError(async () => await trustPromise, 'Error: invalid ENS name', 'initialized without seeder')
   })
 
   it('should transfer correct value to all stakeholders after successful raise', async function () {
@@ -2013,7 +2013,7 @@ describe("Trust", async function () {
 
     const seederReserveBeforeStart = await reserve.balanceOf(seeder)
 
-    Util.assertError(async () =>
+    await Util.assertError(async () =>
       await trust.startRaise({ gasLimit: 100000000 }),
       "revert ERC20: transfer amount exceeds allowance",
       "initiated raise before seeder approved reserve token transfer"
@@ -2150,7 +2150,7 @@ describe("Trust", async function () {
 
     const raiseDuration = 10
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trustFactory.deploy(
         {
           creator: signers[0].address,
@@ -2222,7 +2222,7 @@ describe("Trust", async function () {
 
     const raiseDuration = 10
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trustFactory.deploy(
         {
           creator: signers[0].address,
@@ -2294,7 +2294,7 @@ describe("Trust", async function () {
 
     const raiseDuration = 10
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trustFactory.deploy(
         {
           creator: signers[0].address,
@@ -2327,7 +2327,7 @@ describe("Trust", async function () {
       "did not enforce valuation difference restriction (example 1)"
     )
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trustFactory.deploy(
         {
           creator: signers[0].address,
@@ -2443,7 +2443,7 @@ describe("Trust", async function () {
 
     const trust2 = new ethers.Contract(trust.address, trust.interface, signers[2])
     // some other signer triggers trust to exit before unblock, should fail
-    Util.assertError(
+    await Util.assertError(
       async () => await trust2.endRaise(),
       "revert ERR_ONLY_UNBLOCKED",
       "trust exited before unblock"

@@ -714,7 +714,7 @@ describe("TrustTrade", async function () {
 
     assert(initialValuation1.mul(Util.ONE).div(totalTokenSupply1).gte(ethers.BigNumber.from('50' + Util.eighteenZeros)), "wrong intended spot price for max weight test")
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trustFactory2.deploy(
         {
           creator: creator.address,
@@ -751,7 +751,7 @@ describe("TrustTrade", async function () {
 
     assert(initialValuation2.mul(Util.ONE).div(totalTokenSupply2).lte(Util.ONE), "wrong intended spot price for min weight test")
 
-    Util.assertError(
+    await Util.assertError(
       async () => await trustFactory2.deploy(
         {
           creator: creator.address,

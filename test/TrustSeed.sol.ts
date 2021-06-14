@@ -149,7 +149,7 @@ describe("TrustSeed", async function () {
       // seeders send reserve to seeder contract
       await seederContract1.seed(seeder1Units)
 
-      Util.assertError(
+      await Util.assertError(
         async () => await trust.startRaise({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
@@ -158,7 +158,7 @@ describe("TrustSeed", async function () {
       await seederContract2.seed(seeder2Units)
 
       // seeder cannot unseed after all units seeded
-      Util.assertError(
+      await Util.assertError(
         async () => await seederContract1.unseed(seeder1Units),
         "revert ERR_ONLY_BLOCKED",
         "seeder1 unseeded despite all units being seeded"
@@ -344,7 +344,7 @@ describe("TrustSeed", async function () {
       // seeders send reserve to seeder contract
       await seederContract1.seed(seeder1Units)
 
-      Util.assertError(
+      await Util.assertError(
         async () => await trust.startRaise({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
