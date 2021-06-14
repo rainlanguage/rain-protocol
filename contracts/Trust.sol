@@ -142,7 +142,7 @@ contract Trust {
                 "",
                 ""
             ));
-            _seedERC20.init(address(this));
+            _seedERC20.init(address(_pool));
             _trustConfig.seeder = address(_seedERC20);
         }
 
