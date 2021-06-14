@@ -609,7 +609,10 @@ describe("TrustTrade", async function () {
 
     const reserveSpend = ethers.BigNumber.from('10' + Util.eighteenZeros)
 
-    const swapReserveForTokens = async (account, spend, crp, reserve, bPool) => {
+    await reserve.transfer(hodlerGold.address, reserveSpend)
+    await reserve.transfer(hodlerPlatinum.address, reserveSpend)
+
+    const swapReserveForTokens = async (spend, crp, reserve, bPool) => {
       await crp.pokeWeights()
       await reserve.approve(bPool.address, spend)
       await bPool.swapExactAmountIn(
@@ -622,17 +625,17 @@ describe("TrustTrade", async function () {
     }
 
     // silver hodler get some redeemable tokens
-    Util.assertError(
-      async () => await swapReserveForTokens(hodlerSilver, reserveSpend, crpSilver, reserveSilver, bPoolSilver),
+    await Util.assertError(
+      async () => await swapReserveForTokens(reserveSpend, crpSilver, reserveSilver, bPoolSilver),
       "revert ERR_MIN_STATUS",
       "Silver hodler swapped reserve for tokens, despite being below min status of Gold"
     )
 
     // gold hodler get some redeemable tokens
-    await swapReserveForTokens(hodlerGold, reserveSpend, crpGold, reserveGold, bPoolGold)
+    await swapReserveForTokens(reserveSpend, crpGold, reserveGold, bPoolGold)
 
     // platinum hodler get some redeemable tokens
-    await swapReserveForTokens(hodlerPlatinum, reserveSpend, crpPlatinum, reservePlatinum, bPoolPlatinum)
+    await swapReserveForTokens(reserveSpend, crpPlatinum, reservePlatinum, bPoolPlatinum)
 
     console.log(`hodler silver token balance ${(await token.balanceOf(hodlerSilver.address))}`);
     console.log(`hodler gold token balance ${(await token.balanceOf(hodlerGold.address))}`);
