@@ -565,14 +565,6 @@ describe("TrustSeed", async function () {
         initialValuation,
         finalValuation,
       },
-      {
-        reserve: reserve.address,
-        seedPrice,
-        seedUnits,
-        unseedDelay,
-        name: "seed",
-        symbol: "SD"
-      },
       redeemInit,
     )
 
