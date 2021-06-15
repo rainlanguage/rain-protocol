@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
-import "hardhat/console.sol";
-
 // Needed to handle structures externally
 pragma experimental ABIEncoderV2;
 
@@ -147,9 +145,11 @@ contract Trust {
         }
 
         // Need to make a few addresses unfreezable to facilitate exits.
-        _token.ownerAddUnfreezable(address(_pool.crp()));
-        _token.ownerAddUnfreezable(address(_poolConfig.balancerFactory));
-        _token.ownerAddUnfreezable(address(_pool));
+        address _crp = address(_pool.crp());
+        _token.ownerAddReceiver(_crp);
+        _token.ownerAddSender(_crp);
+        _token.ownerAddReceiver(address(_poolConfig.balancerFactory));
+        _token.ownerAddReceiver(address(_pool));
 
         // The pool reserve must always be one of the redeemable assets.
         _token.ownerAddRedeemable(_poolConfig.reserve);
