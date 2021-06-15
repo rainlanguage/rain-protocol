@@ -743,43 +743,6 @@ describe("TrustTrade", async function () {
       "wrongly deployed trust with pool at 50:1 weight ratio"
     )
 
-    // bad weight ratio = initialValuation2 / totalTokenSupply2 < 1
-    // console.log(`${initialValuation2.mul(Util.ONE).div(totalTokenSupply2)}`);
-
-    assert(initialValuation2.mul(Util.ONE).div(totalTokenSupply2).lte(Util.ONE), "wrong intended spot price for min weight test")
-
-    await Util.assertError(
-      async () => await trustFactory2.deploy(
-        {
-          creator: creator.address,
-          minCreatorRaise,
-          seeder: seeder.address,
-          seederFee,
-          seederUnits,
-          unseedDelay,
-          raiseDuration,
-        },
-        {
-          name: tokenName,
-          symbol: tokenSymbol,
-          prestige: prestige.address,
-          minimumStatus,
-          totalSupply: totalTokenSupply2,
-        },
-        {
-          crpFactory: crpFactory.address,
-          balancerFactory: bFactory.address,
-          reserve: reserve.address,
-          reserveInit,
-          initialValuation: initialValuation2,
-          finalValuation: successLevel,
-        },
-        redeemInit,
-      ),
-      "revert ERR_MIN_WEIGHT",
-      "wrongly deployed trust with pool at 1:2 weight ratio"
-    )
-
     // Ratio = initialValuation2 / totalTokenSupply1 = 5
     assert(initialValuation2.div(totalTokenSupply1).eq(5), 'wrong spot price for a valid pool')
 

@@ -73,7 +73,7 @@ describe("TrustSeed", async function () {
 
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seedUnits = 10
-    const unseedDelay = 3
+    const unseedDelay = 5
     const seedPrice = reserveInit.div(10)
 
     const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
@@ -130,11 +130,10 @@ describe("TrustSeed", async function () {
     await seederContract.init(await trust.pool())
 
     const seeder1Units = 4;
-    const seeder2Units = 6;
 
     // seeders needs some cash, give enough each for seeding
     await reserve.transfer(seeder1.address, seedPrice.mul(seeder1Units))
-    await reserve.transfer(seeder2.address, seedPrice.mul(seeder2Units))
+    await reserve.transfer(seeder2.address, seedPrice.mul(1))
 
     const seederContract1 = seederContract.connect(seeder1)
     const seederContract2 = seederContract.connect(seeder2)
@@ -142,39 +141,56 @@ describe("TrustSeed", async function () {
     const reserve2 = reserve.connect(seeder2)
 
     await reserve1.approve(seederContract.address, seedPrice.mul(seeder1Units))
-    await reserve2.approve(seederContract.address, seedPrice.mul(seeder2Units))
+    await reserve2.approve(seederContract.address, seedPrice.mul(1))
 
     // seeder1 sends reserve to seeder contract
     await seederContract1.seed(seeder1Units)
+    const seed1Block = await ethers.provider.getBlockNumber()
+    const delay1UnlockBlock = seed1Block + unseedDelay
+
+    let seed2Block
+    let delay2UnlockBlock
 
     // make blocks until delay period over
-    for (let i = 0; i < unseedDelay + 1; i++) {
+    for (let i = 0; delay1UnlockBlock > await ethers.provider.getBlockNumber() + 1; i++) {
       await Util.assertError(
-        async () => await seederContract1.unseed(seeder1Units),
+        async () => await seederContract1.unseed(1),
         "revert ERR_UNSEED_LOCKED",
         `seeder1 unseeded before their delay period ended
-        i ${i}`
+        lastBlock   ${await ethers.provider.getBlockNumber()}
+        unlockBlock ${delay1UnlockBlock}`
       )
-      await reserve.transfer(signers[9].address, 0)
 
-      // seeder2 seeds
-      if (i === 2) {
+      if (i === 1) {
+        // seeder2 sends 1 unit to seeder contract
         await seederContract2.seed(1)
+        console.log('seeder2 seeded contract');
+
+        seed2Block = await ethers.provider.getBlockNumber()
+        delay2UnlockBlock = seed2Block + unseedDelay
+      } else {
+        // create a block
+        await reserve.transfer(signers[9].address, 0)
       }
     }
 
-    // now can unseed
+    // now seeder1 can unseed
     await seederContract1.unseed(seeder1Units)
 
-    for (let i = 0; i < unseedDelay + 1; i++) {
+    // unseed delay should be on a per-seeder basis
+    for (let i = 0; delay2UnlockBlock > await ethers.provider.getBlockNumber() + 1; i++) {
       await Util.assertError(
         async () => await seederContract2.unseed(1),
         "revert ERR_UNSEED_LOCKED",
         `seeder2 unseeded before their delay period ended
-        i ${i}`
+        lastBlock   ${await ethers.provider.getBlockNumber()}
+        unlockBlock ${delay2UnlockBlock}`
       )
       await reserve.transfer(signers[9].address, 0)
     }
+
+    // now seeder2 can unseed
+    await seederContract2.unseed(1)
   })
 
   it('should initialize with non-zero recipient', async function () {
@@ -770,7 +786,37 @@ describe("TrustSeed", async function () {
 
       // seeders redeem funds
       await seederContract1.redeem(seeder1Units)
+
+      // correct amount of units should have been redeemed
+      assert((await seederContract.totalSupply()).eq(seeder2Units), "wrong total seeder units supply")
+
+      const expectedReturn1 = reserveInit.add(seederFee).mul(seeder1Units).div(seedUnits)
+
+      // correct amount of reserve should have been returned
+      assert((await reserve.balanceOf(seeder1.address)).eq(expectedReturn1), `wrong reserve returned to seeder1 after redeeming
+      expected  ${expectedReturn1}
+      actual    ${await reserve.balanceOf(seeder1.address)}
+      `)
+
       await seederContract2.redeem(seeder2Units)
+
+      // correct amount of units should have been redeemed
+      assert((await seederContract.totalSupply()).isZero(), "wrong total seeder units supply")
+
+      const expectedReturn2 = reserveInit.add(seederFee).mul(seeder2Units).div(seedUnits)
+
+      // correct amount of reserve should have been returned
+      assert((await reserve.balanceOf(seeder2.address)).eq(expectedReturn2), `wrong reserve returned to seeder2 after redeeming
+      expected  ${expectedReturn2}
+      actual    ${await reserve.balanceOf(seeder2.address)}
+      `)
+
+      // fails if not enough reserve balance
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "revert ERR_RESERVE_BALANCE",
+        "seeder1 redeemed when there wasn't enough reserve balance"
+      )
     })
 
     it('failed raise', async function () {
@@ -818,7 +864,7 @@ describe("TrustSeed", async function () {
       const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
       const seedUnits = 10
       const unseedDelay = 0
-      const seedPrice = reserveInit.div(10)
+      const seedPrice = reserveInit.div(seedUnits)
 
       const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
 
@@ -896,6 +942,13 @@ describe("TrustSeed", async function () {
         "raise begun with insufficient seed reserve"
       )
 
+      // redeem fails before seeding is complete
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "revert ERR_ONLY_UNBLOCKED",
+        "redeemed before seeding is complete"
+      )
+
       await seederContract2.seed(seeder2Units)
 
       assert((await reserve.balanceOf(seederContract.address)).eq(reserveInit), `seeder contract has insufficient reserve
@@ -935,7 +988,37 @@ describe("TrustSeed", async function () {
 
       // seeders redeem funds
       await seederContract1.redeem(seeder1Units)
+
+      // correct amount of units should have been redeemed
+      assert((await seederContract.totalSupply()).eq(seeder2Units), "wrong total seeder units supply")
+
+      const expectedReturn1 = trustFinalBalance.mul(seeder1Units).div(seedUnits)
+
+      // correct amount of reserve should have been returned
+      assert((await reserve.balanceOf(seeder1.address)).eq(expectedReturn1), `wrong reserve returned to seeder1 after redeeming
+      expected  ${expectedReturn1}
+      actual    ${await reserve.balanceOf(seeder1.address)}
+      `)
+
       await seederContract2.redeem(seeder2Units)
+
+      // correct amount of units should have been redeemed
+      assert((await seederContract.totalSupply()).isZero(), "wrong total seeder units supply")
+
+      const expectedReturn2 = trustFinalBalance.mul(seeder2Units).div(seedUnits).add(1)
+
+      // correct amount of reserve should have been returned
+      assert((await reserve.balanceOf(seeder2.address)).eq(expectedReturn2), `wrong reserve returned to seeder2 after redeeming
+      expected  ${expectedReturn2}
+      actual    ${await reserve.balanceOf(seeder2.address)}
+      `)
+
+      // fails if not enough reserve balance
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "revert ERR_RESERVE_BALANCE",
+        "seeder1 redeemed when there wasn't enough reserve balance"
+      )
     })
   })
 })
