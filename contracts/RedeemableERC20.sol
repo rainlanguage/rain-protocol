@@ -119,13 +119,12 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     }
 
     function ownerAddRedeemable(IERC20 _redeemable) external onlyOwner {
-        uint256 _redeemablesLength = redeemables.length;
-        uint256 _i;
+        uint256 _i = 0;
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
-        require(_redeemablesLength < 8, "ERR_MAX_REDEEMABLES");
-        for (_i; _i<_redeemablesLength;_i++) {
+        require(redeemables.length < 8, "ERR_MAX_REDEEMABLES");
+        for (_i; _i<redeemables.length;_i++) {
             require(redeemables[_i] != _redeemable, "ERR_DUPLICATE_REDEEMABLE");
         }
         redeemables.push(_redeemable);
@@ -152,7 +151,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     function redeem(uint256 _redeemAmount) external onlyUnblocked {
         // The fraction of the redeemables we release is the fraction of the outstanding total supply passed in.
         // Every redeemable is released in the same proportion.
-        uint256 _redeemFraction = _redeemAmount.mul(Constants.ONE).div(totalSupply());
+        uint256 _supplyBeforeBurn = totalSupply();
 
         // Redeem __burns__ tokens which reduces the total supply and requires no approval.
         // Because the total supply changes, we need to do this __after__ the reserve handling.
@@ -162,24 +161,30 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         emit Redeem(msg.sender, _redeemAmount);
 
         // Clear the redeemables.
-        uint8 i;
-        uint256 len = redeemables.length;
-        IERC20 _redeemable;
-        uint256 _toRedeem;
-        for(i; i < len; i++) {
-            _redeemable = redeemables[i];
+        uint256 _toRedeem = 0;
+        uint256 i = 0;
+        for(i; i < redeemables.length; i++) {
+            IERC20 _redeemable = redeemables[i];
+
             // Any one of the several redeemables may fail for some reason.
             // Consider the case where a user needs to meet additional criteria (e.g. KYC) for some token.
             // In this case _any_ of the redeemables may revert normally causing _all_ redeemables to revert.
-            // We use try/catch here to force all redemptions that may suceed for the user to continue.
+            // We use try/catch here to force all redemptions that may succeed for the user to continue.
             try _redeemable.balanceOf(address(this)) returns (uint256 _redeemableBalance) {
-                _toRedeem = _redeemableBalance.mul(_redeemFraction).div(Constants.ONE);
+                _toRedeem = _redeemAmount.mul(_redeemableBalance).div(_supplyBeforeBurn);
             } catch {
                 emit RedeemFail(msg.sender, address(_redeemable));
             }
 
-            try _redeemable.transfer(msg.sender, _toRedeem) {
-                emit RedeemSuccess(msg.sender, address(_redeemable));
+            // Reentrant call to transfer.
+            // Note the events emitted _after_ possible reentrancy.
+            try _redeemable.transfer(msg.sender, _toRedeem) returns (bool _success) {
+                if (_success) {
+                    emit RedeemSuccess(msg.sender, address(_redeemable));
+                }
+                else {
+                    emit RedeemFail(msg.sender, address(_redeemable));
+                }
             }
             catch {
                 emit RedeemFail(msg.sender, address(_redeemable));

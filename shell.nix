@@ -22,15 +22,11 @@ let
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''
- rm -rf venv
- rm -rf artifacts
- rm -rf cache
- rm -rf node_modules
- npm install
- python3 -m venv venv
- source ./venv/bin/activate
+ export td=$(mktemp -d)
+ python3 -m venv ''${td}/venv
+ source ''${td}/venv/bin/activate
  pip install slither-analyzer
- slither .
+ slither . --npx-disable --filter-paths=contracts/configurable-rights-pool
  '';
 
  ci-test = pkgs.writeShellScriptBin "ci-test" ''

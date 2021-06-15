@@ -85,8 +85,8 @@ describe("RedeemableERC20Pool", async function() {
         const pool1 = new ethers.Contract(pool.address, pool.interface, signers[1])
 
         // Before init
-        
-        Util.assertError(
+
+        await Util.assertError(
             async () => await pool.exit(),
             "revert ERR_ONLY_INIT",
             "owner was wrongly able to exit pool before initialized"
@@ -94,12 +94,12 @@ describe("RedeemableERC20Pool", async function() {
 
         // Set unblock block
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool1.ownerSetUnblockBlock(unblockBlock),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to set pool unblock block"
         )
-        
+
         await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Init pool
@@ -113,12 +113,12 @@ describe("RedeemableERC20Pool", async function() {
 
         await reserve.transfer(signers[1].address, reserveInit)
 
-        await reserve1.approve(
+        await reserve1.transfer(
             pool.address,
             reserveInit
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool1.init(signers[1].address, { gasLimit: 10000000 }),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to init pool"
@@ -130,13 +130,13 @@ describe("RedeemableERC20Pool", async function() {
         )
 
         await pool.init(signers[0].address, { gasLimit: 10000000 })
-        
+
         await reserve.approve(
             pool.address,
             reserveInit
         )
 
-        Util.assertError(async () => 
+        await Util.assertError(async () =>
             await pool.init(signers[0].address, { gasLimit: 10000000 }),
             "revert ERR_ONLY_NOT_INIT",
             "pool wrongly initialized twice by owner"
@@ -152,7 +152,7 @@ describe("RedeemableERC20Pool", async function() {
 
 
         // Before unblock block
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
             "revert ERR_ONLY_UNBLOCKED",
             "owner was wrongly able to exit pool before unblock block"
@@ -162,8 +162,8 @@ describe("RedeemableERC20Pool", async function() {
         while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
             await reserve.transfer(signers[2].address, 1)
         }
-        
-        Util.assertError(
+
+        await Util.assertError(
             async () => await pool1.exit(),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to exit pool"
@@ -298,7 +298,7 @@ describe("RedeemableERC20Pool", async function() {
                 `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
             )
         }
-        await reserve.approve(
+        await reserve.transfer(
             pool.address,
             reserveInit
         )
@@ -318,7 +318,7 @@ describe("RedeemableERC20Pool", async function() {
         await redeemable.ownerAddUnfreezable(bFactory.address)
         await redeemable.ownerAddUnfreezable(pool.address)
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
             'revert ERR_ONLY_UNBLOCKED',
             'failed to error on early exit'
@@ -551,7 +551,7 @@ describe("RedeemableERC20Pool", async function() {
         assert(await pool.owner() === signers[0].address, 'wrong owner')
         assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
 
-        await reserve.approve(
+        await reserve.transfer(
             pool.address,
             reserveInit
         )
@@ -571,7 +571,7 @@ describe("RedeemableERC20Pool", async function() {
         await redeemable.ownerAddUnfreezable(bFactory.address)
         await redeemable.ownerAddUnfreezable(pool.address)
 
-        Util.assertError(
+        await Util.assertError(
             async () => await pool.exit(),
             'revert ERR_ONLY_UNBLOCKED',
             'failed to error on early exit'
@@ -654,7 +654,7 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => {
                 const pool = await poolFactory.deploy(
                     redeemable.address,
@@ -670,7 +670,7 @@ describe("RedeemableERC20Pool", async function() {
                 )
                 await pool.deployed()
             },
-            'revert SafeMath: division by zero',
+            'revert RESERVE_INIT_0',
             'failed to error when reserve is 0 at construction',
         )
     })
@@ -744,7 +744,7 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => {
                 const pool = await poolFactory.deploy(
                     redeemable.address,
@@ -760,7 +760,7 @@ describe("RedeemableERC20Pool", async function() {
                 )
                 await pool.deployed()
             },
-            'revert SafeMath: division by zero',
+            'revert TOKEN_INIT_0',
             'failed to error when constructed with 0 total supply'
         )
     })
@@ -834,7 +834,7 @@ describe("RedeemableERC20Pool", async function() {
             }
         )
 
-        Util.assertError(
+        await Util.assertError(
             async () => await poolFactory.deploy(
                 redeemable.address,
                 {

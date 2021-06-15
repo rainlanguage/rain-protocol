@@ -4,8 +4,6 @@ pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
-import "hardhat/console.sol";
-
 import { Initable } from "./libraries/Initable.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -21,7 +19,7 @@ import { IBPool } from "./configurable-rights-pool/contracts/IBFactory.sol";
 import { BPool } from "./configurable-rights-pool/contracts/test/BPool.sol";
 import { RightsManager } from "./configurable-rights-pool/libraries/RightsManager.sol";
 import { BalancerConstants } from "./configurable-rights-pool/libraries/BalancerConstants.sol";
-import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
+import { ConfigurableRightsPool, PoolParams } from "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
 import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
@@ -85,8 +83,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         ConfigurableRightsPool _crp = constructCrp(_token, _poolConfig, _poolAmounts, _startWeights);
 
         // Preapprove all tokens and reserve for the CRP.
-        _poolConfig.reserve.approve(address(_crp), _poolConfig.reserveInit);
-        _token.approve(address(_crp), _token.totalSupply());
+        require(_poolConfig.reserve.approve(address(_crp), _poolConfig.reserveInit), "RESERVE_APPROVE");
+        require(_token.approve(address(_crp), _token.totalSupply()), "TOKEN_APPROVE");
 
         token = _token;
         reserve = _poolConfig.reserve;
@@ -97,8 +95,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
     function poolAmounts (RedeemableERC20 _token, PoolConfig memory _poolConfig) private view returns (uint256[] memory) {
         uint256[] memory _poolAmounts = new uint256[](2);
+        require(_poolConfig.reserveInit > 0, "RESERVE_INIT_0");
         _poolAmounts[0] = _poolConfig.reserveInit;
         _poolAmounts[1] = _token.totalSupply();
+        require(_poolAmounts[1] > 0, "TOKEN_INIT_0");
         return _poolAmounts;
     }
 
@@ -108,9 +108,10 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // => ( Bt / Wt ) = ( Br / Wr ) / Spot
         // => Wt = ( Spot x Bt ) / ( Br / Wr )
         uint256 _reserveWeight = BalancerConstants.MIN_WEIGHT;
-        uint256 _targetSpot = _poolConfig.initialValuation.mul(Constants.ONE).div(_poolAmounts[1]);
-        uint256 _tokenWeight = _targetSpot.mul(_poolAmounts[1]).mul(Constants.ONE).div(
-            _poolAmounts[0].mul(BalancerConstants.MIN_WEIGHT)
+        uint256 _tokenWeight = _poolConfig.initialValuation.mul(Constants.ONE).div(
+            // MIN_WEIGHT is ONE so it is implied here.
+            // Just imagine we are multiplying by BalancerConstants.MIN_WEIGHT.
+            _poolAmounts[0]
         );
 
         require(_tokenWeight >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
@@ -127,9 +128,12 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // Since the pool starts with the full token supply this is the maximum possible dump.
         // We set the weight to the market cap of the redeem value.s
         uint256 _reserveWeightFinal = BalancerConstants.MIN_WEIGHT;
-        uint256 _targetSpotFinal = _poolConfig.finalValuation.mul(Constants.ONE).div(_poolAmounts[1]);
-        uint256 _tokenWeightFinal = _targetSpotFinal.mul(_poolAmounts[1]).mul(Constants.ONE).div(
-                _redeemInit.mul(BalancerConstants.MIN_WEIGHT)
+        uint256 _targetSpotFinal = _poolConfig.finalValuation.mul(Constants.ONE);
+        uint256 _tokenWeightFinal = _targetSpotFinal.div(
+            // As above.
+            // MIN_WEIGHT is ONE so it is implied here.
+            // Just imagine we are multiplying by BalancerConstants.MIN_WEIGHT.
+            _redeemInit
         );
 
         require(_tokenWeightFinal >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT_FINAL");
@@ -172,7 +176,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
         return _poolConfig.crpFactory.newCrp(
             address(_poolConfig.balancerFactory),
-            ConfigurableRightsPool.PoolParams(
+            PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",
                 _poolAddresses,
@@ -191,14 +195,6 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     }
 
     function init(address seeder) external withInit onlyOwner onlyBlocked {
-        // Take reserves from seeder.
-        // The Trust should already have sent all the tokens to the pool.
-        reserve.safeTransferFrom(
-            seeder,
-            address(this),
-            reserveInit
-        );
-
         // Max pool tokens to minimise dust on exit.
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).
