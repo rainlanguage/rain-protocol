@@ -19,7 +19,7 @@ import { IBPool } from "./configurable-rights-pool/contracts/IBFactory.sol";
 import { BPool } from "./configurable-rights-pool/contracts/test/BPool.sol";
 import { RightsManager } from "./configurable-rights-pool/libraries/RightsManager.sol";
 import { BalancerConstants } from "./configurable-rights-pool/libraries/BalancerConstants.sol";
-import { ConfigurableRightsPool, PoolParams } from "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
+import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
 import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
@@ -176,7 +176,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
         return _poolConfig.crpFactory.newCrp(
             address(_poolConfig.balancerFactory),
-            PoolParams(
+            ConfigurableRightsPool.PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",
                 _poolAddresses,
