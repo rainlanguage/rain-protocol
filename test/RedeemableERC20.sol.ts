@@ -9,15 +9,15 @@ chai.use(solidity)
 const { expect, assert } = chai
 
 enum Status {
-    NIL = 0,
-    COPPER = 1,
-    BRONZE = 2,
-    SILVER = 3,
-    GOLD = 4,
-    PLATINUM = 5,
-    DIAMOND = 6,
-    CHAD = 7,
-    JAWAD = 8,
+    NIL,
+    COPPER,
+    BRONZE,
+    SILVER,
+    GOLD,
+    PLATINUM,
+    DIAMOND,
+    CHAD,
+    JAWAD,
 }
 
 describe("RedeemableERC20", async function () {

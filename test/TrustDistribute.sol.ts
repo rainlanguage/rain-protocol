@@ -18,15 +18,22 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 enum Status {
-  NIL = 0,
-  COPPER = 1,
-  BRONZE = 2,
-  SILVER = 3,
-  GOLD = 4,
-  PLATINUM = 5,
-  DIAMOND = 6,
-  CHAD = 7,
-  JAWAD = 8,
+  NIL,
+  COPPER,
+  BRONZE,
+  SILVER,
+  GOLD,
+  PLATINUM,
+  DIAMOND,
+  CHAD,
+  JAWAD,
+}
+
+enum RaiseStatus {
+  PENDING,
+  OPEN,
+  SUCCESS,
+  FAIL
 }
 
 describe("TrustDistribute", async function () {
@@ -110,7 +117,7 @@ describe("TrustDistribute", async function () {
 
       await trust.deployed()
 
-      assert(await trust.raiseStatus() === 0, `raise status not pending`)
+      assert(await trust.raiseStatus() === RaiseStatus.PENDING, `raise status not pending`)
 
       // seeder needs some cash, give enough to seeder
       await reserve.transfer(seeder.address, reserveInit)
@@ -122,7 +129,7 @@ describe("TrustDistribute", async function () {
 
       await trust.startRaise({ gasLimit: 100000000 })
 
-      assert(await trust.raiseStatus() === 1, `raise status not open`)
+      assert(await trust.raiseStatus() === RaiseStatus.OPEN, `raise status not open`)
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -164,7 +171,7 @@ describe("TrustDistribute", async function () {
 
       await trust.endRaise()
 
-      assert(await trust.raiseStatus() === 2, "raise status was not 2 which indicates successful raise")
+      assert(await trust.raiseStatus() === RaiseStatus.SUCCESS, "raise status was not 2 which indicates successful raise")
     })
 
     it('on failed raise', async function () {
@@ -253,11 +260,11 @@ describe("TrustDistribute", async function () {
       // seeder must approve before pool init
       await reserveSeeder.approve(await trust.pool(), reserveInit)
 
-      assert(await trust.raiseStatus() === 0, "raise status was not set to 0 before endRaise and before startRaise")
+      assert(await trust.raiseStatus() === RaiseStatus.PENDING, "raise status was not set to 0 before endRaise and before startRaise")
 
       await trust.startRaise({ gasLimit: 100000000 })
 
-      assert(await trust.raiseStatus() === 1, "raise status was not set to 1 before endRaise and after startRaise")
+      assert(await trust.raiseStatus() === RaiseStatus.OPEN, "raise status was not set to 1 before endRaise and after startRaise")
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -268,7 +275,7 @@ describe("TrustDistribute", async function () {
 
       await trust.endRaise()
 
-      assert(await trust.raiseStatus() === 3, "raise status was not 2 which indicates failed raise")
+      assert(await trust.raiseStatus() === RaiseStatus.FAIL, "raise status was not 2 which indicates failed raise")
     })
   })
 

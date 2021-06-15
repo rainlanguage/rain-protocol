@@ -20,15 +20,15 @@ const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/
 const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 enum Status {
-  NIL = 0,
-  COPPER = 1,
-  BRONZE = 2,
-  SILVER = 3,
-  GOLD = 4,
-  PLATINUM = 5,
-  DIAMOND = 6,
-  CHAD = 7,
-  JAWAD = 8,
+  NIL,
+  COPPER,
+  BRONZE,
+  SILVER,
+  GOLD,
+  PLATINUM,
+  DIAMOND,
+  CHAD,
+  JAWAD,
 }
 
 describe("TrustTrade", async function () {
