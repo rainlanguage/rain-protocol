@@ -6,8 +6,8 @@ import type { InitableTest } from '../typechain/InitableTest'
 chai.use(solidity)
 const { expect, assert } = chai
 
-describe("Initable", async function() {
-    it("should init once", async function() {
+describe("Initable", async function () {
+    it("should init once", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()

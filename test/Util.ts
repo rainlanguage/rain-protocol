@@ -37,6 +37,8 @@ export const balancerDeploy = async () => {
 
 export const eighteenZeros = '000000000000000000'
 
+export const ONE = ethers.BigNumber.from('1' + eighteenZeros)
+
 export const assertError = async (f:Function, s:string, e:string) => {
   let didError = false
   try {

@@ -7,8 +7,8 @@ import type { BlockBlockableTest } from '../typechain/BlockBlockableTest'
 chai.use(solidity)
 const { expect, assert } = chai
 
-describe("BlockBlockable", async function() {
-    it("should be (un)blockable", async function() {
+describe("BlockBlockable", async function () {
+    it("should be (un)blockable", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()

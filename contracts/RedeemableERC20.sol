@@ -1,4 +1,3 @@
-// contracts/GLDToken.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
@@ -84,7 +83,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
     IERC20[] public redeemables;
 
-    mapping(address => bool) public unfreezables;
+    mapping(address => uint8) public unfreezables;
 
     // In the constructor we set everything that configures the contract but it stateless.
     // There are no token transfers, mints or locks.
@@ -101,17 +100,33 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // Given that the owner can set unfreezables it makes no sense not to add them to the list.
         // OK, so there is extra gas in doing this, but it means fewer state reads during transfers.
         // We bypass the method here because owner has not yet been set so onlyOwner will throw.
-        unfreezables[msg.sender] = true;
+        unfreezables[msg.sender] = 0x0002;
 
         _mint(msg.sender, _redeemableERC20Config.totalSupply);
     }
 
-    function ownerAddUnfreezable(address _address)
+    function ownerAddSender(address _address)
         external
         onlyOwner
         onlyBlocked
     {
-        unfreezables[_address] = true;
+        unfreezables[_address] = unfreezables[_address] | 0x01;
+    }
+
+    function isSender(address _address) public view returns (bool) {
+        return (unfreezables[_address] & 0x01) == 0x01;
+    }
+
+    function ownerAddReceiver(address _address)
+        external
+        onlyOwner
+        onlyBlocked
+        {
+            unfreezables[_address] = unfreezables[_address] | 0x02;
+        }
+
+    function isReceiver(address _address) public view returns (bool) {
+        return (unfreezables[_address] & 0x02) == 0x02;
     }
 
     function ownerSetUnblockBlock(uint256 _unblockBlock) external onlyOwner {
@@ -188,7 +203,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     }
 
     function _beforeTokenTransfer(
-        address,
+        address _sender,
         address _receiver,
         uint256 _amount
     )
@@ -218,14 +233,14 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
                 // Can burn.
                 // Only owner and unfreezables can receive.
                 require(
-                    _receiver == address(0) || unfreezables[_receiver],
+                    _receiver == address(0) || isReceiver(_receiver) || isSender(_sender),
                     "ERR_FROZEN"
                 );
             } else {
                 // Redemption is blocked.
                 // All transfer actions allowed.
                 require(
-                    unfreezables[_receiver] || isStatus(_receiver, minimumPrestigeStatus),
+                    isReceiver(_receiver) || isSender(_sender) || isStatus(_receiver, minimumPrestigeStatus),
                     "ERR_MIN_STATUS"
                 );
             }
