@@ -81,7 +81,10 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
     IPrestige.Status public minimumPrestigeStatus;
 
-    IERC20[] public redeemables;
+    // Somewhat arbitrary but we limit the length of redeemables to 8.
+    // 8 is actually a lot.
+    // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
+    IERC20[8] private redeemables;
 
     mapping(address => uint8) public unfreezables;
 
@@ -135,14 +138,17 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
     function ownerAddRedeemable(IERC20 _redeemable) external onlyOwner {
         uint256 _i = 0;
-        // Somewhat arbitrary but we limit the length of redeemables to 8.
-        // 8 is actually a lot.
-        // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
-        require(redeemables.length < 8, "ERR_MAX_REDEEMABLES");
-        for (_i; _i<redeemables.length;_i++) {
+        for (_i; _i<8;_i++) {
             require(redeemables[_i] != _redeemable, "ERR_DUPLICATE_REDEEMABLE");
+            if (address(redeemables[_i]) == address(0)) {
+                break;
+            }
         }
-        redeemables.push(_redeemable);
+        redeemables[_i] = _redeemable;
+    }
+
+    function getRedeemables() external view returns (IERC20[8] memory) {
+        return redeemables;
     }
 
     function burn(uint256 _burnAmount) external {
@@ -178,8 +184,11 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // Clear the redeemables.
         uint256 _toRedeem = 0;
         uint256 i = 0;
-        for(i; i < redeemables.length; i++) {
+        for(i; i < 8; i++) {
             IERC20 _redeemable = redeemables[i];
+            if (address(_redeemable) == address(0)) {
+                break;
+            }
 
             // Any one of the several redeemables may fail for some reason.
             // Consider the case where a user needs to meet additional criteria (e.g. KYC) for some token.

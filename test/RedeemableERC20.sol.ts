@@ -72,6 +72,19 @@ describe("RedeemableERC20", async function () {
             `total supply was not ${totalSupply} on redeemable construction`
         )
 
+        const expectedRedeemables = [reserve.address, Util.zeroAddress, Util.zeroAddress, Util.zeroAddress, Util.zeroAddress, Util.zeroAddress, Util.zeroAddress, Util.zeroAddress]
+        const redeemables = await redeemableERC20.getRedeemables()
+        {
+            let i = 0
+            while(i < expectedRedeemables.length) {
+                assert.equal(
+                    redeemables[i],
+                    expectedRedeemables[i],
+                )
+                i++
+            }
+        }
+
         // The unblock block is not set (i.e. contract is blocked)
         assert(
             (await redeemableERC20.unblockBlock()).eq(unblockBlock),

@@ -35,6 +35,7 @@ export const balancerDeploy = async () => {
   return [rightsManager, crpFactory, bFactory]
 }
 
+export const zeroAddress = '0x0000000000000000000000000000000000000000'
 export const eighteenZeros = '000000000000000000'
 
 export const ONE = ethers.BigNumber.from('1' + eighteenZeros)

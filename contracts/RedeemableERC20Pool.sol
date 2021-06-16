@@ -194,7 +194,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         setUnblockBlock(_unblockBlock);
     }
 
-    function init(address seeder) external withInit onlyOwner onlyBlocked {
+    function init() external withInit onlyOwner onlyBlocked {
         // Max pool tokens to minimise dust on exit.
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).

@@ -179,7 +179,7 @@ contract Trust {
         raiseStatus = RaiseStatus.Open;
         uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
         pool.ownerSetUnblockBlock(_unblockBlock);
-        pool.init(trustConfig.seeder);
+        pool.init();
     }
 
     // This function can be called by anyone!
