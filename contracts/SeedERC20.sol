@@ -101,7 +101,7 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
         require(unseedLocks[msg.sender] <= block.number, "ERR_UNSEED_LOCKED");
 
         _transfer(msg.sender, address(this), units);
-
+        
         // Reentrant reserve transfer.
         reserve.safeTransfer(msg.sender, seedPrice.mul(units));
     }
@@ -130,5 +130,4 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
                 .div(_supplyBeforeBurn)
         );
     }
-
 }

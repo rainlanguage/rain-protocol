@@ -2,6 +2,7 @@ import type { HardhatUserConfig }  from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 import {removeConsoleLog} from 'hardhat-preprocessor';
+import "hardhat-gas-reporter"
 
 const config: HardhatUserConfig = {
   networks: {
@@ -15,8 +16,11 @@ const config: HardhatUserConfig = {
   },
   solidity: {
     compilers: [
-      { version: "0.6.12", settings: {} },
-      { version: "0.7.3", settings: {} }
+      { version: "0.6.12", settings: {
+        optimizer: {
+          enabled: true
+        }
+      } },
     ],
   },
 };

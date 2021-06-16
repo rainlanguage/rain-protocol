@@ -9,7 +9,164 @@ import { recoverAddress } from '@ethersproject/transactions'
 chai.use(solidity)
 const { expect, assert } = chai
 
-describe("RedeemableERC20Pool", async function() {
+const trustJson = require('../artifacts/contracts/Trust.sol/Trust.json')
+const poolJson = require('../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json')
+const bPoolJson = require('../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json')
+const reserveJson = require('../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json')
+const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json')
+const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
+
+describe("RedeemableERC20Pool", async function () {
+    it('should transfer all raised funds to owner on pool exit', async () => {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+        const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = 0
+
+        const redeemableFactory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+
+        const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+        const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+        const totalTokenSupply = ethers.BigNumber.from('200000' + Util.eighteenZeros)
+        const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+
+        const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+        // Same logic used by trust.
+        const finalValuation = minRaise.add(redeemInit)
+
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 50
+
+        const redeemable = await redeemableFactory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                reserve: reserve.address,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalTokenSupply,
+            }
+        )
+
+        await redeemable.deployed()
+        await redeemable.ownerSetUnblockBlock(unblockBlock)
+
+        const poolFactory = await ethers.getContractFactory(
+            'RedeemableERC20Pool',
+            {
+                libraries: {
+                    'RightsManager': rightsManager.address
+                }
+            }
+        )
+
+        const pool = await poolFactory.deploy(
+            redeemable.address,
+            {
+                crpFactory: crpFactory.address,
+                balancerFactory: bFactory.address,
+                reserve: reserve.address,
+                reserveInit: reserveInit,
+                initialValuation: initialValuation,
+                finalValuation: finalValuation,
+            },
+            redeemInit,
+        )
+
+        await pool.deployed()
+        await pool.ownerSetUnblockBlock(unblockBlock)
+
+        // Trust normally does this internally.
+        await redeemable.transfer(pool.address, await redeemable.totalSupply())
+
+        await reserve.approve(
+            pool.address,
+            reserveInit
+        )
+        await redeemable.approve(
+            pool.address,
+            totalTokenSupply
+        )
+
+        await pool.init(signers[0].address, {
+            gasLimit: 10000000
+        })
+
+        // The trust would do this internally but we need to do it here to test.
+        const crp = new ethers.Contract(await pool.crp(), crpJson.abi, signers[0])
+        const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, signers[0])
+        await redeemable.ownerAddReceiver(crp.address)
+        await redeemable.ownerAddSender(crp.address)
+        await redeemable.ownerAddReceiver(bFactory.address)
+        await redeemable.ownerAddReceiver(pool.address)
+
+        // raise some funds
+        const swapReserveForTokens = async (hodler, spend) => {
+            // give hodler some reserve
+            await reserve.transfer(hodler.address, spend)
+
+            const reserveHodler = reserve.connect(hodler)
+            const crpHodler = crp.connect(hodler)
+            const bPoolHodler = bPool.connect(hodler)
+
+            await crpHodler.pokeWeights()
+            await reserveHodler.approve(bPool.address, spend)
+            await bPoolHodler.swapExactAmountIn(
+                reserve.address,
+                spend,
+                redeemable.address,
+                ethers.BigNumber.from('1'),
+                ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+            )
+        }
+
+        const reserveSpend = finalValuation.div(10) // 10% of target raise amount
+        await swapReserveForTokens(signers[3], reserveSpend)
+
+        // create a few blocks by sending some tokens around
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await reserve.transfer(signers[1].address, 1)
+        }
+
+        const bPoolReserveBeforeExit = await reserve.balanceOf(bPool.address)
+        const ownerReserveBeforeExit = await reserve.balanceOf(signers[0].address)
+
+        await pool.exit()
+
+        const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address)
+        const ownerReserveAfterExit = await reserve.balanceOf(signers[0].address)
+
+        const reserveDust = bPoolReserveBeforeExit
+            .mul(Util.ONE).div(1e7).div(Util.ONE)
+            .add(1) // rounding error
+
+        assert(bPoolReserveAfterExit.eq(reserveDust),
+            `wrong reserve left in balancer pool
+            actual      ${bPoolReserveAfterExit}
+            expected    ${reserveDust}
+        `)
+
+        assert(ownerReserveAfterExit.eq(ownerReserveBeforeExit.add(bPoolReserveBeforeExit.sub(reserveDust))),
+            `wrong owner reserve balance
+            actual      ${ownerReserveAfterExit}
+            expected    ${ownerReserveBeforeExit.add(bPoolReserveBeforeExit.sub(reserveDust))}
+        `)
+    })
+
     it('should only allow owner to set pool unblock block and initialize pool', async function () {
         this.timeout(0)
 
@@ -146,9 +303,10 @@ describe("RedeemableERC20Pool", async function() {
 
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
-        await redeemable.ownerAddUnfreezable(crp)
-        await redeemable.ownerAddUnfreezable(bFactory.address)
-        await redeemable.ownerAddUnfreezable(pool.address)
+        await redeemable.ownerAddSender(crp)
+        await redeemable.ownerAddReceiver(crp)
+        await redeemable.ownerAddReceiver(bFactory.address)
+        await redeemable.ownerAddReceiver(pool.address)
 
 
         // Before unblock block
@@ -172,7 +330,7 @@ describe("RedeemableERC20Pool", async function() {
         await pool.exit()
     })
 
-    it("should construct a pool", async function() {
+    it("should construct a pool", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -314,9 +472,10 @@ describe("RedeemableERC20Pool", async function() {
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
         const bPool = await pool.pool()
-        await redeemable.ownerAddUnfreezable(crp)
-        await redeemable.ownerAddUnfreezable(bFactory.address)
-        await redeemable.ownerAddUnfreezable(pool.address)
+        await redeemable.ownerAddSender(crp)
+        await redeemable.ownerAddReceiver(crp)
+        await redeemable.ownerAddReceiver(bFactory.address)
+        await redeemable.ownerAddReceiver(pool.address)
 
         await Util.assertError(
             async () => await pool.exit(),
@@ -440,7 +599,7 @@ describe("RedeemableERC20Pool", async function() {
     //     await redeemable.addUnfreezable(bFactory.address)
     //     await redeemable.addUnfreezable(pool.address)
 
-    //     Util.assertError(
+    //     await Util.assertError(
     //         async () => await pool.exit(),
     //         'revert ERR_ONLY_UNBLOCKED',
     //         'failed to error on early exit'
@@ -459,7 +618,7 @@ describe("RedeemableERC20Pool", async function() {
     //     assert((await redeemable.balanceOf(pool.address)).eq(0), 'non-owner failed to close pool')
     // })
 
-    it('should construct pool and exit with 0 minimum raise', async function() {
+    it('should construct pool and exit with 0 minimum raise', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -567,9 +726,10 @@ describe("RedeemableERC20Pool", async function() {
         // The trust would do this internally but we need to do it here to test.
         const crp = await pool.crp()
         const bPool = await pool.pool()
-        await redeemable.ownerAddUnfreezable(crp)
-        await redeemable.ownerAddUnfreezable(bFactory.address)
-        await redeemable.ownerAddUnfreezable(pool.address)
+        await redeemable.ownerAddSender(crp)
+        await redeemable.ownerAddReceiver(crp)
+        await redeemable.ownerAddReceiver(bFactory.address)
+        await redeemable.ownerAddReceiver(pool.address)
 
         await Util.assertError(
             async () => await pool.exit(),
@@ -585,7 +745,7 @@ describe("RedeemableERC20Pool", async function() {
         await pool.exit()
     })
 
-    it('should fail to construct pool if initial reserve amount is zero', async function() {
+    it('should fail to construct pool if initial reserve amount is zero', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -675,7 +835,7 @@ describe("RedeemableERC20Pool", async function() {
         )
     })
 
-    it('should fail to construct pool if zero minted tokens', async function() {
+    it('should fail to construct pool if zero minted tokens', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -765,7 +925,7 @@ describe("RedeemableERC20Pool", async function() {
         )
     })
 
-    it("should fail to construct pool if initial redeemable amount is zero", async function() {
+    it("should fail to construct pool if initial redeemable amount is zero", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()

@@ -23,6 +23,14 @@ import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
 import { PoolConfig } from "./RedeemableERC20Pool.sol";
 import { RedeemableERC20Config } from "./RedeemableERC20.sol";
+import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
+
+enum RaiseStatus {
+    Pending,
+    Open,
+    Success,
+    Fail
+}
 
 struct TrustConfig {
     address creator;
@@ -33,6 +41,8 @@ struct TrustConfig {
     address seeder;
     // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
     uint256 seederFee;
+    uint256 seederUnits;
+    uint256 unseedDelay;
     uint256 raiseDuration;
 }
 
@@ -89,6 +99,7 @@ contract Trust {
 
     TrustConfig public trustConfig;
 
+    RaiseStatus public raiseStatus;
     uint256 public redeemInit;
 
     using SafeERC20 for IERC20;
@@ -118,10 +129,27 @@ contract Trust {
             _redeemInit
         );
 
+        if (_trustConfig.seeder == address(0)) {
+            require(_poolConfig.reserveInit.mod(_trustConfig.seederUnits) == 0, "ERR_SEED_PRICE_MULTIPLIER");
+            uint256 _seedPrice = _poolConfig.reserveInit.div(_trustConfig.seederUnits);
+            SeedERC20 _seedERC20 = new SeedERC20(SeedERC20Config(
+                _poolConfig.reserve,
+                _seedPrice,
+                _trustConfig.seederUnits,
+                _trustConfig.unseedDelay,
+                "",
+                ""
+            ));
+            _seedERC20.init(address(_pool));
+            _trustConfig.seeder = address(_seedERC20);
+        }
+
         // Need to make a few addresses unfreezable to facilitate exits.
-        _token.ownerAddUnfreezable(address(_pool.crp()));
-        _token.ownerAddUnfreezable(address(_poolConfig.balancerFactory));
-        _token.ownerAddUnfreezable(address(_pool));
+        address _crp = address(_pool.crp());
+        _token.ownerAddReceiver(_crp);
+        _token.ownerAddSender(_crp);
+        _token.ownerAddReceiver(address(_poolConfig.balancerFactory));
+        _token.ownerAddReceiver(address(_pool));
 
         // The pool reserve must always be one of the redeemable assets.
         _token.ownerAddRedeemable(_poolConfig.reserve);
@@ -148,6 +176,7 @@ contract Trust {
     // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function startRaise() external {
+        raiseStatus = RaiseStatus.Open;
         uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
         pool.ownerSetUnblockBlock(_unblockBlock);
         pool.init(trustConfig.seeder);
@@ -177,6 +206,7 @@ contract Trust {
 
         // Set aside the redemption and seed fee if we reached the minimum.
         if (_finalBalance >= _successBalance) {
+            raiseStatus = RaiseStatus.Success;
             // The seeder gets the reserve + seed fee
             _seederPay = _seedInit.add(_trustConfig.seederFee);
 
@@ -196,6 +226,7 @@ contract Trust {
             _creatorPay = _finalBalance.sub(_seederPay.add(_tokenPay));
         }
         else {
+            raiseStatus = RaiseStatus.Fail;
             // If we did not reach the minimum the creator gets nothing.
             // Refund what we can to other participants.
             // Due to pool dust it is possible the final balance is less than the reserve init.
