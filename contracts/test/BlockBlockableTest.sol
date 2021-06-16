@@ -9,21 +9,19 @@ contract BlockBlockableTest is BlockBlockable {
     constructor() public {}
 
     // solhint-disable-next-line no-empty-blocks
-    function unblockable() public view {}
+    function unblockable() external view {}
 
     // solhint-disable-next-line no-empty-blocks
-    function whileBlocked() public view onlyBlocked {}
+    function whileBlocked() external view onlyBlocked {}
 
     // solhint-disable-next-line no-empty-blocks
-    function blockable() public view onlyUnblocked {}
+    function blockable() external view onlyUnblocked {}
 
-
-    function trySetUnblockBlock(uint256 _unblockBlock) public {
+    function trySetUnblockBlock(uint256 _unblockBlock) external {
         BlockBlockable.setUnblockBlock(_unblockBlock);
     }
 
-
     // Do nothing just to bump a new block.
     // solhint-disable-next-line no-empty-blocks
-    function noop() public {}
+    function noop() external {}
 }

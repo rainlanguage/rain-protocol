@@ -73,15 +73,21 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     //
     // Can only be called after init so that all callers are guaranteed to know the recipient.
     function seed(uint256 units) external onlyInit onlyBlocked {
+        unseedLocks[msg.sender] = block.number + unseedDelay;
         // If balanceOf is less than units then the transfer below will fail and rollback anyway.
         if (balanceOf(address(this)) == units) {
             setUnblockBlock(block.number);
-            reserve.approve(recipient, uint256(-1));
         }
-        unseedLocks[msg.sender] = block.number + unseedDelay;
-
         _transfer(address(this), msg.sender, units);
-        reserve.transferFrom(msg.sender, address(this), seedPrice.mul(units));
+
+        // Reentrant reserve transfers.
+        reserve.safeTransferFrom(msg.sender, address(this), seedPrice.mul(units));
+        // Immediately transfer to the recipient.
+        // The transfer is immediate rather than only approving for the recipient.
+        // This avoids the situation where a seeder immediately redeems their units before the recipient can withdraw.
+        if (isUnblocked()) {
+            reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
+        }
     }
 
     // Send reserve back to seeder as units * seedPrice
@@ -95,6 +101,8 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
         require(unseedLocks[msg.sender] <= block.number, "ERR_UNSEED_LOCKED");
 
         _transfer(msg.sender, address(this), units);
+        
+        // Reentrant reserve transfer.
         reserve.safeTransfer(msg.sender, seedPrice.mul(units));
     }
 
@@ -107,17 +115,19 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     //
     // For example, if `SeedERC20` is used as a seeder for a `Trust` contract (in this repo) it will receive a refund or refund + fee.
     function redeem(uint256 units) external onlyInit onlyUnblocked {
+        uint256 _supplyBeforeBurn = totalSupply();
+        _burn(msg.sender, units);
+
         uint256 _currentReserveBalance = reserve.balanceOf(address(this));
         // Guard against someone accidentally calling redeem before any reserve has been returned.
         require(_currentReserveBalance > 0, "ERR_RESERVE_BALANCE");
 
+        // Reentrant reserve transfer.
         reserve.safeTransfer(
             msg.sender,
             units
                 .mul(_currentReserveBalance)
-                .div(totalSupply())
+                .div(_supplyBeforeBurn)
         );
-        _burn(msg.sender, units);
     }
-
 }

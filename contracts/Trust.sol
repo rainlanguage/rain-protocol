@@ -259,7 +259,5 @@ contract Trust {
                 _remainder
             );
         }
-
-        assert(_reserve.balanceOf(address(this)) == 0);
     }
 }

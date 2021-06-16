@@ -93,7 +93,7 @@ describe("RedeemableERC20Pool", async function () {
         // Trust normally does this internally.
         await redeemable.transfer(pool.address, await redeemable.totalSupply())
 
-        await reserve.approve(
+        await reserve.transfer(
             pool.address,
             reserveInit
         )
@@ -270,7 +270,7 @@ describe("RedeemableERC20Pool", async function () {
 
         await reserve.transfer(signers[1].address, reserveInit)
 
-        await reserve1.approve(
+        await reserve1.transfer(
             pool.address,
             reserveInit
         )
@@ -456,7 +456,7 @@ describe("RedeemableERC20Pool", async function () {
                 `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
             )
         }
-        await reserve.approve(
+        await reserve.transfer(
             pool.address,
             reserveInit
         )
@@ -710,7 +710,7 @@ describe("RedeemableERC20Pool", async function () {
         assert(await pool.owner() === signers[0].address, 'wrong owner')
         assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
 
-        await reserve.approve(
+        await reserve.transfer(
             pool.address,
             reserveInit
         )
@@ -830,7 +830,7 @@ describe("RedeemableERC20Pool", async function () {
                 )
                 await pool.deployed()
             },
-            'revert SafeMath: division by zero',
+            'revert RESERVE_INIT_0',
             'failed to error when reserve is 0 at construction',
         )
     })
@@ -920,7 +920,7 @@ describe("RedeemableERC20Pool", async function () {
                 )
                 await pool.deployed()
             },
-            'revert SafeMath: division by zero',
+            'revert TOKEN_INIT_0',
             'failed to error when constructed with 0 total supply'
         )
     })

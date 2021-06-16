@@ -114,8 +114,8 @@ describe("Trust", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer funds to pool
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({ gasLimit: 100000000 })
 
@@ -221,8 +221,8 @@ describe("Trust", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer before pool init
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({ gasLimit: 100000000 })
 
@@ -402,8 +402,8 @@ describe("Trust", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer before pool init
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({ gasLimit: 100000000 })
 
@@ -439,7 +439,7 @@ describe("Trust", async function () {
     )
   })
 
-  it("should allow anyone to start raise when seeder has approved with sufficient reserve liquidity", async function () {
+  it("should allow anyone to start raise when seeder has transferred sufficient reserve liquidity", async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -515,20 +515,20 @@ describe("Trust", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
 
-    // seeder approves insufficient reserve liquidity
-    await reserveSeeder.approve(await trust.pool(), reserveInit.sub(1))
+    // seeder transfers insufficient reserve liquidity
+    await reserveSeeder.transfer(await trust.pool(), reserveInit.sub(1))
 
     // 'anyone'
     const trust2 = new ethers.Contract(trust.address, trustJson.abi, signers[2])
 
     await Util.assertError(
       async () => await trust2.startRaise({ gasLimit: 100000000 }),
-      "revert ERC20: transfer amount exceeds allowance",
+      "revert ERC20: transfer amount exceeds balance",
       "raise wrongly started by someone with insufficent seed reserve liquidity"
     )
 
     // seeder approves sufficient reserve liquidity
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    await reserveSeeder.transfer(await trust.pool(), 1)
 
     await trust2.startRaise({ gasLimit: 100000000 })
   })
@@ -608,7 +608,7 @@ describe("Trust", async function () {
     await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({ gasLimit: 100000000 })
 
@@ -1173,7 +1173,7 @@ describe("Trust", async function () {
     await reserve.transfer(seeder, (await reserve.balanceOf(signers[0].address)).div(2))
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     const blockBeforeRaiseSetup = await ethers.provider.getBlockNumber()
     const expectedUnblockBlock = blockBeforeRaiseSetup + raiseDuration;
@@ -1348,8 +1348,8 @@ describe("Trust", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer before pool init
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     // give holders some reserve
     const spend1 = ethers.BigNumber.from('300' + Util.eighteenZeros)
@@ -1689,8 +1689,8 @@ describe("Trust", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer before pool init
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     // give holders some reserve (not enough for successful raise)
     const spend1 = ethers.BigNumber.from("300" + Util.eighteenZeros)
@@ -2015,12 +2015,12 @@ describe("Trust", async function () {
 
     await Util.assertError(async () =>
       await trust.startRaise({ gasLimit: 100000000 }),
-      "revert ERC20: transfer amount exceeds allowance",
-      "initiated raise before seeder approved reserve token transfer"
+      "revert ERC20: transfer amount exceeds balance",
+      "initiated raise before seeder transferred reserve token"
     )
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer before pool init
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({ gasLimit: 100000000 })
 
@@ -2433,7 +2433,7 @@ describe("Trust", async function () {
     await reserve.transfer(signers[1].address, await reserve.balanceOf(signers[0].address))
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({
       gasLimit: 100000000
@@ -2534,7 +2534,7 @@ describe("Trust", async function () {
 
     await trust.deployed()
 
-    await reserve.approve(await trust.pool(), reserveInit)
+    await reserve.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({
       gasLimit: 100000000
@@ -2637,11 +2637,12 @@ describe("Trust", async function () {
     )
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
+    const expectedBalance1 = '1829852661873618767641'
     assert(
-      ethers.BigNumber.from('1829852661873618766014').eq(
+      ethers.BigNumber.from(expectedBalance1).eq(
         reserveBalance1
       ),
-      'wrong balance 1 after redemption: ' + reserveBalance1
+      `wrong balance 1 after redemption: ${reserveBalance1} ${expectedBalance1}`
     )
 
     const token2 = new ethers.Contract(
@@ -2651,11 +2652,12 @@ describe("Trust", async function () {
     )
     await token2.redeem(await token2.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
+    const expectedBalance2 = '170145949097001906142'
     assert(
-      ethers.BigNumber.from('170145949097001907750').eq(
+      ethers.BigNumber.from(expectedBalance2).eq(
         reserveBalance2
       ),
-      'wrong balance 2 after redemption: ' + reserveBalance2
+      `wrong balance 2 after redemption: ${reserveBalance2} ${expectedBalance2}`
     )
   })
 
@@ -2728,7 +2730,7 @@ describe("Trust", async function () {
 
     await trust.deployed()
 
-    await reserve.approve(await trust.pool(), reserveInit)
+    await reserve.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({
       gasLimit: 100000000
@@ -2808,11 +2810,12 @@ describe("Trust", async function () {
     )
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
+    const expectedBalance1 = '841318037715972800622'
     assert(
-      ethers.BigNumber.from('841318037715972798048').eq(
+      ethers.BigNumber.from(expectedBalance1).eq(
         reserveBalance1
       ),
-      'wrong balance 1 after redemption: ' + reserveBalance1
+      `wrong balance 1 after redemption: ${reserveBalance1} ${expectedBalance1}`
     )
 
     const token2 = new ethers.Contract(
@@ -2822,11 +2825,12 @@ describe("Trust", async function () {
     )
     await token2.redeem(await token1.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
+    const expectedBalance2 = '2158587368352380583720'
     assert(
-      ethers.BigNumber.from('2158587368352380585586').eq(
+      ethers.BigNumber.from(expectedBalance2).eq(
         reserveBalance2
       ),
-      'wrong balance 2 after redemption: ' + reserveBalance2
+      `wrong balance 2 after redemption: ${reserveBalance2} ${expectedBalance2}`
     )
   })
 
@@ -2899,7 +2903,7 @@ describe("Trust", async function () {
 
     await trust.deployed()
 
-    await reserve.approve(await trust.pool(), reserveInit)
+    await reserve.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({
       gasLimit: 100000000

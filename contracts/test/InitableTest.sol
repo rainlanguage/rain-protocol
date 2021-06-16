@@ -9,14 +9,14 @@ contract InitableTest is Initable {
     constructor() public {}
 
     // solhint-disable-next-line no-empty-blocks
-    function init() public withInit {}
+    function init() external withInit {}
 
     // solhint-disable-next-line no-empty-blocks
-    function beforeInit() public view onlyNotInit {}
+    function beforeInit() external view onlyNotInit {}
 
     // solhint-disable-next-line no-empty-blocks
-    function afterInit() public view onlyInit {}
+    function afterInit() external view onlyInit {}
 
     // solhint-disable-next-line no-empty-blocks
-    function whenever() public view {}
+    function whenever() external view {}
 }

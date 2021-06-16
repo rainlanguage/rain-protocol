@@ -704,6 +704,9 @@ describe("TrustSeed", async function () {
 
       await trust.deployed()
 
+      const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
+      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+
       const recipient = await trust.pool()
 
       await seederContract.init(recipient)
@@ -746,26 +749,24 @@ describe("TrustSeed", async function () {
 
       const max_uint256 = ethers.BigNumber.from('115792089237316195423570985008687907853269984665640564039457584007913129639935')
 
-      assert(recipientAllowance.eq(max_uint256), `
-        recipient doesn't have infinite approval
-        allowance ${recipientAllowance}
+      assert((await reserve.balanceOf(seederContract.address)).isZero(), `seeder contract should have transferred all funds to recipient
+        expected  0
+        actual    ${await reserve.balanceOf(seederContract.address)}
       `)
 
-      assert((await reserve.balanceOf(seederContract.address)).eq(reserveInit), `seeder contract has insufficient reserve
-        required  ${reserveInit}
-        actual    ${await reserve.balanceOf(seederContract.address)}
+      assert((await reserve.balanceOf(pool.address)).eq(reserveInit), `pool should have received all funds from seeder contract
+        expected  ${reserveInit}
+        actual    ${await reserve.balanceOf(pool.address)}
       `)
 
       await trust.startRaise({ gasLimit: 100000000 })
 
+      const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, creator)
+      const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator)
+
       const startBlock = await ethers.provider.getBlockNumber()
 
       assert((await reserve.balanceOf(seederContract.address)).isZero(), `seeder contract wrongly holding reserve after raise started`)
-
-      const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
-      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
-      const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, creator)
-      const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator)
 
       const reserveSpend = finalValuation.div(10)
 
@@ -800,6 +801,13 @@ describe("TrustSeed", async function () {
 
       // on successful raise, seeder gets reserveInit + seederFee
       const expectedSeederPay = reserveInit.add(seederFee)
+
+      // seeder redeeming fails if no reserve balance (raise hasn't ended)
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "revert ERR_RESERVE_BALANCE",
+        "seeder1 redeemed when seeder contract had zero reserve balance"
+      )
 
       // seeder1 ends raise
       await trust.connect(seeder1).endRaise()
@@ -836,11 +844,11 @@ describe("TrustSeed", async function () {
       actual    ${await reserve.balanceOf(seeder2.address)}
       `)
 
-      // fails if not enough reserve balance
+      // fails if they don't have seed units
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERR_RESERVE_BALANCE",
-        "seeder1 redeemed when there wasn't enough reserve balance"
+        "revert ERC20: burn amount exceeds balance",
+        "seeder1 redeemed when they had no seed units to redeem"
       )
     })
 
@@ -941,6 +949,8 @@ describe("TrustSeed", async function () {
 
       await trust.deployed()
 
+      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+
       await seederContract.init(await trust.pool())
 
       const seeder1Units = 4;
@@ -976,12 +986,19 @@ describe("TrustSeed", async function () {
 
       await seederContract2.seed(seeder2Units)
 
-      assert((await reserve.balanceOf(seederContract.address)).eq(reserveInit), `seeder contract has insufficient reserve
-        required  ${reserveInit}
+      assert((await reserve.balanceOf(seederContract.address)).isZero(), `seeder contract should have transferred all funds to recipient
+        expected  0
         actual    ${await reserve.balanceOf(seederContract.address)}
       `)
 
+      assert((await reserve.balanceOf(pool.address)).eq(reserveInit), `pool should have received all funds from seeder contract
+        expected  ${reserveInit}
+        actual    ${await reserve.balanceOf(pool.address)}
+      `)
+
       await trust.startRaise({ gasLimit: 100000000 })
+
+      const bPoolAddress = await pool.pool()
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -992,9 +1009,6 @@ describe("TrustSeed", async function () {
         await reserve.transfer(signers[9].address, 0)
       }
 
-      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
-      const bPoolAddress = await pool.pool()
-
       const bPoolFinalBalance = await reserve.balanceOf(bPoolAddress)
       const bPoolReserveDust = bPoolFinalBalance.mul(Util.ONE).div(1e7).div(Util.ONE)
         .add(1) // rounding error
@@ -1002,6 +1016,13 @@ describe("TrustSeed", async function () {
       const trustFinalBalance = bPoolFinalBalance.sub(bPoolReserveDust)
 
       const expectedSeederPay = reserveInit.lte(trustFinalBalance) ? reserveInit : trustFinalBalance
+
+      // seeder redeeming fails if no reserve balance (raise hasn't ended)
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "revert ERR_RESERVE_BALANCE",
+        "seeder1 redeemed when seeder contract had zero reserve balance"
+      )
 
       // seeder1 ends raise
       await trust.connect(seeder1).endRaise()
@@ -1038,11 +1059,11 @@ describe("TrustSeed", async function () {
       actual    ${await reserve.balanceOf(seeder2.address)}
       `)
 
-      // fails if not enough reserve balance
+      // fails if they don't have seed units
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERR_RESERVE_BALANCE",
-        "seeder1 redeemed when there wasn't enough reserve balance"
+        "revert ERC20: burn amount exceeds balance",
+        "seeder1 redeemed when they had no seed units to redeem"
       )
     })
   })

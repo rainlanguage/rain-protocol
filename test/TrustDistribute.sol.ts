@@ -124,8 +124,8 @@ describe("TrustDistribute", async function () {
 
       const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
 
-      // seeder must approve before pool init
-      await reserveSeeder.approve(await trust.pool(), reserveInit)
+      // seeder must transfer seed funds before pool init
+      await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
       await trust.startRaise({ gasLimit: 100000000 })
 
@@ -257,8 +257,8 @@ describe("TrustDistribute", async function () {
 
       const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
 
-      // seeder must approve before pool init
-      await reserveSeeder.approve(await trust.pool(), reserveInit)
+      // seeder must transfer seed funds before pool init
+      await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
       assert(await trust.raiseStatus() === RaiseStatus.PENDING, "raise status was not set to 0 before endRaise and before startRaise")
 
@@ -363,8 +363,8 @@ describe("TrustDistribute", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer funds before pool can init
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({ gasLimit: 100000000 })
 
@@ -509,8 +509,8 @@ describe("TrustDistribute", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer seed funds before pool can init
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({ gasLimit: 100000000 })
 
@@ -627,8 +627,8 @@ describe("TrustDistribute", async function () {
 
         const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
 
-        // seeder must approve before pool init
-        await reserveSeeder.approve(await trust.pool(), reserveInit)
+        // seeder must transfer seed funds before pool init
+        await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
         await trust.startRaise({ gasLimit: 100000000 })
 
@@ -763,8 +763,8 @@ describe("TrustDistribute", async function () {
 
         const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
 
-        // seeder must approve before pool init
-        await reserveSeeder.approve(await trust.pool(), reserveInit)
+        // seeder must transfer seed funds before pool init
+        await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
         await trust.startRaise({ gasLimit: 100000000 })
 
