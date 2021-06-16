@@ -93,7 +93,7 @@ describe("RedeemableERC20Pool", async function () {
         // Trust normally does this internally.
         await redeemable.transfer(pool.address, await redeemable.totalSupply())
 
-        await reserve.approve(
+        await reserve.transfer(
             pool.address,
             reserveInit
         )

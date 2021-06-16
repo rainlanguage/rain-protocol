@@ -99,9 +99,15 @@ describe("SeedERC20", async function () {
         await carolReserve.approve(seedERC20.address, carolUnits * seedPrice)
         await carolSeed.seed(carolUnits)
 
-        // Dave takes out his reserve.
-
-        await daveReserve.transferFrom(seedERC20.address, dave.address, seedUnits * seedPrice)
+        // seed contract automatically transfers to recipient on successful seed
+        assert(
+            (await reserve.balanceOf(seedERC20.address)).isZero(),
+            `seed contract did not transfer reserve to recipient`
+        )
+        assert(
+            (await reserve.balanceOf(dave.address)).eq(seedPrice * seedUnits),
+            `recipient did not receive transferred funds`
+        )
 
         // Dave gets 10% extra reserve from somewhere.
 

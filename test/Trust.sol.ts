@@ -114,8 +114,8 @@ describe("Trust", async function () {
 
     const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
 
-    // seeder must approve before pool init
-    await reserveSeeder.approve(await trust.pool(), reserveInit)
+    // seeder must transfer funds to pool
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
     await trust.startRaise({ gasLimit: 100000000 })
 
@@ -439,7 +439,7 @@ describe("Trust", async function () {
     )
   })
 
-  it("should allow anyone to start raise when seeder has approved with sufficient reserve liquidity", async function () {
+  it("should allow anyone to start raise when seeder has transferred sufficient reserve liquidity", async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -2016,7 +2016,7 @@ describe("Trust", async function () {
     await Util.assertError(async () =>
       await trust.startRaise({ gasLimit: 100000000 }),
       "revert ERC20: transfer amount exceeds balance",
-      "initiated raise before seeder approved reserve token transfer"
+      "initiated raise before seeder transferred reserve token"
     )
 
     // seeder must transfer before pool init
