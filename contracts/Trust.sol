@@ -27,7 +27,9 @@ import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
 enum RaiseStatus {
     Pending,
-    Open,
+    Seeded,
+    Trading,
+    TradingCanEnd,
     Success,
     Fail
 }
@@ -99,7 +101,7 @@ contract Trust {
 
     TrustConfig public trustConfig;
 
-    RaiseStatus public raiseStatus;
+    RaiseStatus private raiseStatus;
     uint256 public redeemInit;
 
     using SafeERC20 for IERC20;
@@ -164,6 +166,19 @@ contract Trust {
         pool = _pool;
     }
 
+    function getRaiseStatus() external view returns (RaiseStatus) {
+        RaiseStatus _baseStatus = raiseStatus;
+        if (_baseStatus == RaiseStatus.Pending && pool.reserve().balanceOf(address(this)) >= pool.reserveInit()) {
+            return RaiseStatus.Seeded;
+        }
+
+        if (_baseStatus == RaiseStatus.Trading && pool.isUnblocked()) {
+            return RaiseStatus.TradingCanEnd;
+        }
+
+        return _baseStatus;
+    }
+
     function creatorAddRedeemable(IERC20 _redeemable) external {
         require(msg.sender == trustConfig.creator, "ERR_NOT_CREATOR");
         token.ownerAddRedeemable(_redeemable);
@@ -176,10 +191,10 @@ contract Trust {
     // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function startRaise() external {
-        raiseStatus = RaiseStatus.Open;
+        raiseStatus = RaiseStatus.Trading;
         uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
         pool.ownerSetUnblockBlock(_unblockBlock);
-        pool.init(trustConfig.seeder);
+        pool.init();
     }
 
     // This function can be called by anyone!
