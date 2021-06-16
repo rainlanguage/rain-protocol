@@ -81,9 +81,6 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
     IPrestige.Status public minimumPrestigeStatus;
 
-    // Somewhat arbitrary but we limit the length of redeemables to 8.
-    // 8 is actually a lot.
-    // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
     IERC20[] private redeemables;
 
     mapping(address => uint8) public unfreezables;
@@ -137,6 +134,9 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     }
 
     function ownerAddRedeemable(IERC20 _redeemable) external onlyOwner {
+        // Somewhat arbitrary but we limit the length of redeemables to 8.
+        // 8 is actually a lot.
+        // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
         uint256 _i = 0;
         require(redeemables.length<8, "ERR_MAX_REDEEMABLES");
         for (_i; _i<redeemables.length;_i++) {
