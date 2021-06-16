@@ -23,6 +23,7 @@ enum Status {
 
 const trustJson = require('../artifacts/contracts/Trust.sol/Trust.json')
 const poolJson = require('../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json')
+const seedERC20Json = require('../artifacts/contracts/SeedERC20.sol/SeedERC20.json')
 const bPoolJson = require('../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json')
 const reserveJson = require('../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json')
 const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json')
@@ -492,7 +493,7 @@ describe("TrustSeed", async function () {
     assert((await seederContract.unblockBlock()).eq(await ethers.provider.getBlockNumber()), `unblock block wasn't set when fully seeded`)
   })
 
-  it('should allow trust to build SeedERC20 on construction', async function () {
+  it('should allow trust to build SeedERC20 on construction and begin raise with sufficient funds', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -527,6 +528,8 @@ describe("TrustSeed", async function () {
 
     const creator = signers[0]
     const deployer = signers[1] // deployer is not creator
+    const seeder1 = signers[2]
+    const seeder2 = signers[3]
 
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seedUnits = 10
@@ -565,18 +568,40 @@ describe("TrustSeed", async function () {
         initialValuation,
         finalValuation,
       },
-      {
-        reserve: reserve.address,
-        seedPrice,
-        seedUnits,
-        unseedDelay,
-        name: "seed",
-        symbol: "SD"
-      },
       redeemInit,
     )
 
     await trust.deployed()
+
+    const seederContract = new ethers.Contract((await trust.trustConfig()).seeder, seedERC20Json.abi, signers[0])
+
+    const seeder1Units = 4;
+    const seeder2Units = 6;
+
+    // seeders needs some cash, give enough each for seeding
+    await reserve.transfer(seeder1.address, seedPrice.mul(seeder1Units))
+    await reserve.transfer(seeder2.address, seedPrice.mul(seeder2Units))
+
+    const seederContract1 = seederContract.connect(seeder1)
+    const seederContract2 = seederContract.connect(seeder2)
+    const reserve1 = reserve.connect(seeder1)
+    const reserve2 = reserve.connect(seeder2)
+
+    await reserve1.approve(seederContract.address, seedPrice.mul(seeder1Units))
+    await reserve2.approve(seederContract.address, seedPrice.mul(seeder2Units))
+
+    // seeders send reserve to seeder contract
+    await seederContract1.seed(seeder1Units)
+
+    await Util.assertError(
+      async () => await trust.startRaise({ gasLimit: 100000000 }),
+      "revert ERC20: transfer amount exceeds balance",
+      "raise begun with insufficient seed reserve"
+    )
+
+    await seederContract2.seed(seeder2Units)
+
+    await trust.startRaise({ gasLimit: 100000000 })
   })
 
   describe('should allow many seeders to seed trust', async function () {
