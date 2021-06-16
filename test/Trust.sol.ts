@@ -861,13 +861,13 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
 
-    assert((await token.redeemables(0)) === reserve.address, 'reserve asset not set as first redeemable')
+    assert((await token.getRedeemables())[0] === reserve.address, 'reserve asset not set as first redeemable')
 
     await trust.creatorAddRedeemable(reserve2.address)
 
-    assert((await token.redeemables(0)) === reserve.address, 'reserve asset no longer first redeemable, after adding 2nd redeemable')
+    assert((await token.getRedeemables())[0] === reserve.address, 'reserve asset no longer first redeemable, after adding 2nd redeemable')
 
-    assert((await token.redeemables(1)) === reserve2.address, '2nd redeemable was not reserve 2 which was added after reserve 1')
+    assert((await token.getRedeemables())[1] === reserve2.address, '2nd redeemable was not reserve 2 which was added after reserve 1')
   })
 
   it("should allow only token owner and creator to set redeemables", async function () {
