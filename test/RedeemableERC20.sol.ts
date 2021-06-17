@@ -21,6 +21,62 @@ enum Status {
 }
 
 describe("RedeemableERC20", async function () {
+    it("should prevent tokens being sent to self (when user should be redeeming)", async function () {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const reserve = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = Status.NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerAddRedeemable(reserve.address)
+
+        // create a few blocks by sending some tokens around
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await redeemableERC20.transfer(signers[1].address, 1)
+        }
+
+        // pool exits and reserve tokens sent to redeemable ERC20 address
+        const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
+        await reserve.transfer(redeemableERC20.address, reserveTotal)
+
+        // user attempts to wrongly 'redeem' by sending all of their redeemable tokens directly to contract address
+        await Util.assertError(
+            async () => await redeemableERC20.transfer(redeemableERC20.address, await redeemableERC20.balanceOf(signers[0].address)),
+            "revert ERR_TOKEN_SEND_SELF",
+            "user successfully transferred all their redeemables tokens to token contract"
+        )
+    })
+
     it("should lock tokens until redeemed", async function () {
         this.timeout(0)
 
