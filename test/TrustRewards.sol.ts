@@ -37,7 +37,7 @@ enum RaiseStatus {
 }
 
 describe("TrustRewards", async function () {
-  it('should provide function to get list of redeemables on token', async function () {
+  it('should provide function to get list of redeemables on token in single call', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -120,14 +120,16 @@ describe("TrustRewards", async function () {
 
     await trust.connect(creator).creatorAddRedeemable(reserveB.address)
 
-    assert(await token.redeemables(0) === reserveA.address, "wrong redeemable in token redeemables list")
-    assert(await token.redeemables(1) === reserveB.address, "wrong redeemable in token redeemables list")
+    const redeemables1 = await token.getRedeemables()
+    assert(redeemables1[0] === reserveA.address, "wrong redeemable in token redeemables list")
+    assert(redeemables1[1] === reserveB.address, "wrong redeemable in token redeemables list")
 
     await trust.connect(creator).creatorAddRedeemable(reserveC.address)
 
-    assert(await token.redeemables(0) === reserveA.address, "wrong redeemable in token redeemables list")
-    assert(await token.redeemables(1) === reserveB.address, "wrong redeemable in token redeemables list")
-    assert(await token.redeemables(2) === reserveC.address, "wrong redeemable in token redeemables list")
+    const redeemables2 = await token.getRedeemables()
+    assert(redeemables2[0] === reserveA.address, "wrong redeemable in token redeemables list")
+    assert(redeemables2[1] === reserveB.address, "wrong redeemable in token redeemables list")
+    assert(redeemables2[2] === reserveC.address, "wrong redeemable in token redeemables list")
   })
 
   it('should emit RedeemSuccess and RedeemFail events when redemptions occur', async function () {
