@@ -370,24 +370,88 @@ describe("TrustRewards", async function () {
       got       ${tokenReserveA}
     `)
 
-    const totalSupply = await token.totalSupply()
-    const hodler1TokenSupply = await token.balanceOf(hodler1.address)
+    const tokenSupply = await token.totalSupply()
 
-    console.log(`total supply   ${totalSupply}`);
-    console.log(`supply dust    ${totalSupply.mul(Util.ONE).div(1e7).div(Util.ONE)}`);
-    console.log(`hodler1 supply ${hodler1TokenSupply}`);
+    // hodler1 redeems tokens equal to 10% of total supply
+    await token.connect(hodler1).redeem(tokenSupply.div(10))
 
-    // hodler redeems some tokens
-    await token.connect(hodler1).redeem(hodler1TokenSupply.div(10))
+    // holder1 should get 10% of each reserve 
+    // (some rounding errors fixed manually)
+    assert(
+      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserveA.div(10).sub(4)), `
+      reserveA
+        expected  ${tokenReserveA.div(10).sub(4)}
+        got       ${await reserveA.balanceOf(hodler1.address)}`
+    )
+    assert(
+      (await reserveB.balanceOf(hodler1.address)).eq(tokenReserveB.div(10).sub(1)), `
+      reserveB
+        expected  ${tokenReserveB.div(10).sub(1)}
+        got       ${await reserveB.balanceOf(hodler1.address)}`
+    )
+    assert(
+      (await reserveC.balanceOf(hodler1.address)).eq(tokenReserveC.div(10).sub(2)), `
+      reserveC
+        expected  ${tokenReserveC.div(10).sub(2)}
+        got       ${await reserveC.balanceOf(hodler1.address)}`
+    )
+    assert(
+      (await reserveD.balanceOf(hodler1.address)).eq(tokenReserveD.div(10).sub(2)), `
+      reserveD
+        expected  ${tokenReserveD.div(10).sub(2)}
+        got       ${await reserveD.balanceOf(hodler1.address)}`
+    )
 
-    // check hodler1 balance
-    console.log(`
-      hodler1 reserve balance
-      reserveA  ${await reserveA.balanceOf(hodler1.address)}
-      reserveB  ${await reserveB.balanceOf(hodler1.address)}
-      reserveC  ${await reserveC.balanceOf(hodler1.address)}
-      reserveD  ${await reserveD.balanceOf(hodler1.address)}
-    `);
+    // for simplicity, burn hodler1 reserve tokens
+    await reserveA.connect(hodler1).purge()
+    await reserveB.connect(hodler1).purge()
+    await reserveC.connect(hodler1).purge()
+    await reserveD.connect(hodler1).purge()
+
+    // Now again, 10% of new total supply
+
+    const tokenSupply2nd = await token.totalSupply()
+    const tokenReserve2ndA = await reserveA.balanceOf(token.address)
+    const tokenReserve2ndB = await reserveB.balanceOf(token.address)
+    const tokenReserve2ndC = await reserveC.balanceOf(token.address)
+    const tokenReserve2ndD = await reserveD.balanceOf(token.address)
+
+    // 9/10ths remaining
+    assert(tokenSupply2nd.eq(tokenSupply.mul(9).div(10).add(1)), `
+    wrong new total token supply
+      expected  ${tokenSupply.mul(9).div(10).add(1)}  
+      got       ${tokenSupply2nd}
+    `)
+
+    // hodler1 redeems tokens equal to 10% of new total supply
+    await token.connect(hodler1).redeem(tokenSupply2nd.div(10))
+
+    // holder1 should get 10% of each reserve
+    // (some rounding errors fixed manually)
+    assert(
+      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserve2ndA.div(10).sub(2)), `
+      reserveA 2nd
+        expected  ${tokenReserve2ndA.div(10).sub(2)}
+        got       ${await reserveA.balanceOf(hodler1.address)}`
+    )
+    assert(
+      (await reserveB.balanceOf(hodler1.address)).eq(tokenReserve2ndB.div(10).sub(1)), `
+      reserveB 2nd
+        expected  ${tokenReserve2ndB.div(10).sub(1)}
+        got       ${await reserveB.balanceOf(hodler1.address)}`
+    )
+    assert(
+      (await reserveC.balanceOf(hodler1.address)).eq(tokenReserve2ndC.div(10).sub(1)), `
+      reserveC 2nd
+        expected  ${tokenReserve2ndC.div(10).sub(1)}
+        got       ${await reserveC.balanceOf(hodler1.address)}`
+    )
+    assert(
+      (await reserveD.balanceOf(hodler1.address)).eq(tokenReserve2ndD.div(10).sub(1)), `
+      reserveD 2nd
+        expected  ${tokenReserve2ndD.div(10).sub(1)}
+        got       ${await reserveD.balanceOf(hodler1.address)}`
+    )
   })
 
   it('should allow redemption only after token unblocked', async function () {
