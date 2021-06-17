@@ -21,6 +21,142 @@ enum Status {
 }
 
 describe("RedeemableERC20", async function () {
+    it('should allow receiver/send to always receive/send tokens if added via ownerAddReceiver/ownerAddSender, bypassing BlockBlockable restrictions', async function () {
+        const TEN_TOKENS = ethers.BigNumber.from('10' + Util.eighteenZeros);
+
+        const signers = await ethers.getSigners()
+
+        const owner = signers[0]
+        const sender = signers[1]
+        const receiver = signers[2]
+
+        const reserve = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = Status.GOLD
+
+        await prestige.setStatus(sender.address, Status.COPPER, [])
+        await prestige.setStatus(receiver.address, Status.COPPER, [])
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 10
+
+        const token = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await token.deployed()
+        await token.ownerSetUnblockBlock(unblockBlock)
+
+        // try sending/receiving, both with insufficient prestige
+        await Util.assertError(
+            async () => await token.connect(sender).transfer(receiver.address, 1),
+            "revert ERR_MIN_STATUS",
+            "sender/receiver sent/received tokens despite insufficient prestige status"
+        )
+
+        // remove BlockBlockable restrictions for sender and receiver
+        await token.ownerAddSender(sender.address)
+        assert((await token.isSender(sender.address)), "sender status was wrong")
+
+        await token.ownerAddReceiver(receiver.address)
+        assert((await token.isReceiver(receiver.address)), "receiver status was wrong")
+
+        // sender needs tokens (actually needs permission to receive these tokens anyway)
+        await token.ownerAddReceiver(sender.address)
+        assert((await token.isSender(sender.address)), "sender did not remain sender after also becoming receiver")
+
+        // give some tokens
+        await token.transfer(sender.address, TEN_TOKENS)
+
+        // should work now
+        await token.connect(sender).transfer(receiver.address, 1)
+
+        let i = 0;
+        while ((await ethers.provider.getBlockNumber() < unblockBlock)) {
+            await reserve.transfer(signers[9].address, 0)
+            i++;
+        }
+        console.log(`created ${i} empty blocks`);
+
+        // sender and receiver should be unrestricted after unblock block
+        await token.connect(sender).transfer(receiver.address, 1)
+    })
+
+    it("should prevent tokens being sent to self (when user should be redeeming)", async function () {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const reserve = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = Status.NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerAddRedeemable(reserve.address)
+
+        // create a few blocks by sending some tokens around
+        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+            await redeemableERC20.transfer(signers[1].address, 1)
+        }
+
+        // pool exits and reserve tokens sent to redeemable ERC20 address
+        const reserveTotal = ethers.BigNumber.from('1000' + Util.eighteenZeros)
+        await reserve.transfer(redeemableERC20.address, reserveTotal)
+
+        // user attempts to wrongly 'redeem' by sending all of their redeemable tokens directly to contract address
+        await Util.assertError(
+            async () => await redeemableERC20.transfer(redeemableERC20.address, await redeemableERC20.balanceOf(signers[0].address)),
+            "revert ERR_TOKEN_SEND_SELF",
+            "user successfully transferred all their redeemables tokens to token contract"
+        )
+    })
+
     it("should lock tokens until redeemed", async function () {
         this.timeout(0)
 
