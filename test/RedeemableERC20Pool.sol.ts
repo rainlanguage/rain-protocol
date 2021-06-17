@@ -102,7 +102,7 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init(signers[0].address, {
+        await pool.init({
             gasLimit: 10000000
         })
 
@@ -276,7 +276,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await Util.assertError(
-            async () => await pool1.init(signers[1].address, { gasLimit: 10000000 }),
+            async () => await pool1.init({ gasLimit: 10000000 }),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to init pool"
         )
@@ -286,7 +286,7 @@ describe("RedeemableERC20Pool", async function () {
             reserveInit
         )
 
-        await pool.init(signers[0].address, { gasLimit: 10000000 })
+        await pool.init({ gasLimit: 10000000 })
 
         await reserve.approve(
             pool.address,
@@ -294,7 +294,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await Util.assertError(async () =>
-            await pool.init(signers[0].address, { gasLimit: 10000000 }),
+            await pool.init({ gasLimit: 10000000 }),
             "revert ERR_ONLY_NOT_INIT",
             "pool wrongly initialized twice by owner"
         )
@@ -465,7 +465,7 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init(signers[0].address, {
+        await pool.init({
             gasLimit: 10000000
         })
 
@@ -719,7 +719,7 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init(signers[0].address, {
+        await pool.init({
             gasLimit: 10000000
         })
 

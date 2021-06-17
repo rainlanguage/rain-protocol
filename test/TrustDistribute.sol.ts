@@ -31,7 +31,9 @@ enum Status {
 
 enum RaiseStatus {
   PENDING,
-  OPEN,
+  SEEDED,
+  TRADING,
+  TRADINGCANEND,
   SUCCESS,
   FAIL
 }
@@ -117,7 +119,7 @@ describe("TrustDistribute", async function () {
 
       await trust.deployed()
 
-      assert(await trust.raiseStatus() === RaiseStatus.PENDING, `raise status not pending`)
+      assert(await trust.getRaiseStatus() === RaiseStatus.PENDING, `raise status not pending`)
 
       // seeder needs some cash, give enough to seeder
       await reserve.transfer(seeder.address, reserveInit)
@@ -127,9 +129,11 @@ describe("TrustDistribute", async function () {
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
+      assert(await trust.getRaiseStatus() === RaiseStatus.SEEDED, `raise status not seeded`)
+
       await trust.startRaise({ gasLimit: 100000000 })
 
-      assert(await trust.raiseStatus() === RaiseStatus.OPEN, `raise status not open`)
+      assert(await trust.getRaiseStatus() === RaiseStatus.TRADING, `raise status not trading`)
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -169,9 +173,11 @@ describe("TrustDistribute", async function () {
         await reserve.transfer(signers[9].address, 0)
       }
 
+      assert(await trust.getRaiseStatus() === RaiseStatus.TRADINGCANEND, `raise status not trading can end`)
+
       await trust.endRaise()
 
-      assert(await trust.raiseStatus() === RaiseStatus.SUCCESS, "raise status was not 2 which indicates successful raise")
+      assert(await trust.getRaiseStatus() === RaiseStatus.SUCCESS, "raise status not successful raise")
     })
 
     it('on failed raise', async function () {
@@ -252,6 +258,8 @@ describe("TrustDistribute", async function () {
 
       await trust.deployed()
 
+      assert(await trust.getRaiseStatus() === RaiseStatus.PENDING, "raise status was not set to pending")
+
       // seeder needs some cash, give enough to seeder
       await reserve.transfer(seeder.address, reserveInit)
 
@@ -260,11 +268,11 @@ describe("TrustDistribute", async function () {
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-      assert(await trust.raiseStatus() === RaiseStatus.PENDING, "raise status was not set to 0 before endRaise and before startRaise")
+      assert(await trust.getRaiseStatus() === RaiseStatus.SEEDED, `raise status not set to seeded`)
 
       await trust.startRaise({ gasLimit: 100000000 })
 
-      assert(await trust.raiseStatus() === RaiseStatus.OPEN, "raise status was not set to 1 before endRaise and after startRaise")
+      assert(await trust.getRaiseStatus() === RaiseStatus.TRADING, "raise status was not set to trading")
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -273,9 +281,11 @@ describe("TrustDistribute", async function () {
         await reserve.transfer(signers[9].address, 0)
       }
 
+      assert(await trust.getRaiseStatus() === RaiseStatus.TRADINGCANEND, `raise status not trading can end`)
+
       await trust.endRaise()
 
-      assert(await trust.raiseStatus() === RaiseStatus.FAIL, "raise status was not 2 which indicates failed raise")
+      assert(await trust.getRaiseStatus() === RaiseStatus.FAIL, "raise status was failed")
     })
   })
 
