@@ -26,6 +26,11 @@ contract ReserveToken is ERC20 {
         freezables[_address] = false;
     }
 
+    // burns all tokens
+    function purge() external {
+        _burn(msg.sender, balanceOf(msg.sender));
+    }
+
     function _beforeTokenTransfer(
         address,
         address _receiver,
