@@ -21,6 +21,66 @@ enum Status {
 }
 
 describe("RedeemableERC20", async function () {
+    it('should allow receiver/send to always receive/send tokens if added via ownerAddReceiver/ownerAddSender, bypassing BlockBlockable restrictions', async function () {
+        const TEN_TOKENS = ethers.BigNumber.from('10' + Util.eighteenZeros);
+
+        const signers = await ethers.getSigners()
+
+        const sender = signers[1]
+        const receiver = signers[2]
+
+        const reserve = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = Status.NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 10
+
+        const token = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await token.deployed()
+        await token.ownerSetUnblockBlock(unblockBlock)
+        await token.ownerAddRedeemable(reserve.address)
+
+        // sender needs tokens
+        await token.transfer(sender.address, TEN_TOKENS)
+
+        // remove BlockBlockable restrictions for sender and receiver
+        await token.ownerAddSender(sender.address)
+        await token.ownerAddReceiver(receiver.address)
+
+        let i = 0;
+        while ((await ethers.provider.getBlockNumber() < unblockBlock)) {
+            await reserve.transfer(signers[9].address, 0)
+            i++;
+        }
+        console.log(`created ${i} empty blocks`);
+
+        // sender and receiver should be unrestricted after unblock block
+        await token.connect(sender).transfer(receiver.address, 1)
+    })
+
     it("should prevent tokens being sent to self (when user should be redeeming)", async function () {
         this.timeout(0)
 
