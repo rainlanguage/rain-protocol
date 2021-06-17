@@ -168,7 +168,7 @@ contract Trust {
 
     function getRaiseStatus() external view returns (RaiseStatus) {
         RaiseStatus _baseStatus = raiseStatus;
-        if (_baseStatus == RaiseStatus.Pending && pool.reserve().balanceOf(address(this)) >= pool.reserveInit()) {
+        if (_baseStatus == RaiseStatus.Pending && pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()) {
             return RaiseStatus.Seeded;
         }
 
