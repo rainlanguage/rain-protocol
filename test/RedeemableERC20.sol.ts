@@ -26,6 +26,7 @@ describe("RedeemableERC20", async function () {
 
         const signers = await ethers.getSigners()
 
+        const owner = signers[0]
         const sender = signers[1]
         const receiver = signers[2]
 
@@ -37,7 +38,10 @@ describe("RedeemableERC20", async function () {
             'Prestige'
         )
         const prestige = await prestigeFactory.deploy() as Prestige
-        const minimumStatus = Status.NIL
+        const minimumStatus = Status.GOLD
+
+        await prestige.setStatus(sender.address, Status.COPPER, [])
+        await prestige.setStatus(receiver.address, Status.COPPER, [])
 
         const redeemableERC20Factory = await ethers.getContractFactory(
             'RedeemableERC20'
@@ -61,14 +65,24 @@ describe("RedeemableERC20", async function () {
 
         await token.deployed()
         await token.ownerSetUnblockBlock(unblockBlock)
-        await token.ownerAddRedeemable(reserve.address)
 
-        // sender needs tokens
-        await token.transfer(sender.address, TEN_TOKENS)
+        // try sending/receiving, both with insufficient prestige
+        await Util.assertError(
+            async () => await token.connect(sender).transfer(receiver.address, 1),
+            "revert ERR_MIN_STATUS",
+            "sender/receiver sent/received tokens despite insufficient prestige status"
+        )
 
         // remove BlockBlockable restrictions for sender and receiver
         await token.ownerAddSender(sender.address)
         await token.ownerAddReceiver(receiver.address)
+
+        // sender needs tokens (actually needs permission to receive these tokens anyway)
+        await token.ownerAddReceiver(sender.address)
+        await token.transfer(sender.address, TEN_TOKENS)
+
+        // should work now
+        await token.connect(sender).transfer(receiver.address, 1)
 
         let i = 0;
         while ((await ethers.provider.getBlockNumber() < unblockBlock)) {
