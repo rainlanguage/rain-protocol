@@ -30,6 +30,101 @@ enum Status {
 }
 
 describe("TrustRewards", async function () {
+  it('should provide function to get list of redeemables on token in single call', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserveA = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserveB = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+    const reserveC = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator/owner
+    const deployer = signers[2] // deployer is not creator
+
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    const trust = await trustFactory1.deploy(
+      {
+        creator: creator.address,
+        minCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserveA.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+
+    const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
+
+    await trust.connect(creator).creatorAddRedeemable(reserveB.address)
+
+    const redeemables1 = await token.getRedeemables()
+    assert(redeemables1[0] === reserveA.address, "wrong redeemable in token redeemables list")
+    assert(redeemables1[1] === reserveB.address, "wrong redeemable in token redeemables list")
+
+    await trust.connect(creator).creatorAddRedeemable(reserveC.address)
+
+    const redeemables2 = await token.getRedeemables()
+    assert(redeemables2[0] === reserveA.address, "wrong redeemable in token redeemables list")
+    assert(redeemables2[1] === reserveB.address, "wrong redeemable in token redeemables list")
+    assert(redeemables2[2] === reserveC.address, "wrong redeemable in token redeemables list")
+  })
+
   it('should allow redemption only after token unblocked', async function () {
     this.timeout(0)
 
