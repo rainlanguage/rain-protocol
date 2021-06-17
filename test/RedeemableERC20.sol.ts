@@ -75,10 +75,16 @@ describe("RedeemableERC20", async function () {
 
         // remove BlockBlockable restrictions for sender and receiver
         await token.ownerAddSender(sender.address)
+        assert((await token.isSender(sender.address)), "sender status was wrong")
+
         await token.ownerAddReceiver(receiver.address)
+        assert((await token.isReceiver(receiver.address)), "receiver status was wrong")
 
         // sender needs tokens (actually needs permission to receive these tokens anyway)
         await token.ownerAddReceiver(sender.address)
+        assert((await token.isSender(sender.address)), "sender did not remain sender after also becoming receiver")
+
+        // give some tokens
         await token.transfer(sender.address, TEN_TOKENS)
 
         // should work now
