@@ -208,6 +208,11 @@ describe("RedeemableERC20", async function () {
             `total supply was not ${totalSupply} on redeemable construction`
         )
 
+        assert(
+            (await redeemableERC20.getRedeemables())[0] == reserve.address,
+            `reserve address not set as redeemable`
+        )
+
         // The unblock block is not set (i.e. contract is blocked)
         assert(
             (await redeemableERC20.unblockBlock()).eq(unblockBlock),
