@@ -43,6 +43,14 @@ describe("ERC20TransferTier", async function () {
     await erc20TransferTier.deployed()
   });
 
+  it('should restrict setting ZERO tier', async () => {
+    await assertError(
+      async () => await erc20TransferTier.connect(alice).setTier(alice.address, Tier.ZERO, []),
+      "revert ERR_ZERO_TIER",
+      "alice directly set to tier ZERO"
+    )
+  })
+
   it("should require transferring ERC20 tokens to set tier directly", async function () {
     // attempt setting tier with zero ERC20 token balance
     assert((await reserve.balanceOf(alice.address)).isZero(), "alice doesn't have 0 ERC20 tokens")
