@@ -169,7 +169,7 @@ describe("TrustDistribute", async function () {
       }
 
       // create empty transfer blocks until reaching unblock block, so raise can end
-      while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration)) {
         await reserve.transfer(signers[9].address, 0)
       }
 
@@ -277,7 +277,7 @@ describe("TrustDistribute", async function () {
       const startBlock = await ethers.provider.getBlockNumber()
 
       // create empty transfer blocks until reaching unblock block, so raise can end
-      while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration)) {
         await reserve.transfer(signers[9].address, 0)
       }
 
