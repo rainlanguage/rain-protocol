@@ -118,7 +118,6 @@ contract Trust {
         require(_redeemableERC20Config.totalSupply >= _poolConfig.reserveInit, "ERR_MIN_TOKEN_SUPPLY");
         require(_poolConfig.reserveInit > 0, "ERR_MIN_RESERVE");
         require(_poolConfig.initialValuation >= _poolConfig.finalValuation, "ERR_MIN_INITIAL_VALUTION");
-        require(_poolConfig.finalValuation >= _redeemInit.add(_trustConfig.minCreatorRaise).add(_trustConfig.seederFee).add(_poolConfig.reserveInit), "ERR_MIN_FINAL_VALUATION");
 
         RedeemableERC20 _token = new RedeemableERC20(
             _redeemableERC20Config
@@ -162,6 +161,12 @@ contract Trust {
         redeemInit = _redeemInit;
         token = _token;
         pool = _pool;
+
+        require(_poolConfig.finalValuation >= successBalance(), "ERR_MIN_FINAL_VALUATION");
+    }
+
+    function successBalance() public view returns(uint256) {
+        return pool.reserveInit().add(trustConfig.seederFee).add(redeemInit).add(trustConfig.minCreatorRaise);
     }
 
     function creatorAddRedeemable(IERC20 _redeemable) external {
@@ -198,14 +203,13 @@ contract Trust {
         uint256 _tokenPay = redeemInit;
 
         uint256 _finalBalance = _reserve.balanceOf(address(this));
-        uint256 _successBalance = _seedInit.add(_trustConfig.seederFee).add(_tokenPay).add(_trustConfig.minCreatorRaise);
 
         // Base payments for each fundraiser.
         uint256 _seederPay = 0;
         uint256 _creatorPay = 0;
 
         // Set aside the redemption and seed fee if we reached the minimum.
-        if (_finalBalance >= _successBalance) {
+        if (_finalBalance >= successBalance()) {
             raiseStatus = RaiseStatus.Success;
             // The seeder gets the reserve + seed fee
             _seederPay = _seedInit.add(_trustConfig.seederFee);
