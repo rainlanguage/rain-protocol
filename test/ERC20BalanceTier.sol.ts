@@ -56,7 +56,7 @@ describe("ERC20BalanceTier", async function () {
     const expectedReport0 = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
     assert(
       ethers.BigNumber.from(expectedReport0).eq(tier0),
-      `expected ${expectedReport0} got ${tier0}`
+      `expected ${expectedReport0} got ${tier0.toHexString()}`
     )
 
     await reserve.transfer(alice.address, LEVEL_SIZE_LINEAR)
@@ -65,7 +65,7 @@ describe("ERC20BalanceTier", async function () {
     const expectedReport1 = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000"
     assert(
       ethers.BigNumber.from(expectedReport1).eq(tier1),
-      `expected ${expectedReport1} got ${tier1}`
+      `expected ${expectedReport1} got ${tier1.toHexString()}`
     )
 
     await reserve.transfer(alice.address, LEVEL_SIZE_LINEAR)
@@ -74,7 +74,7 @@ describe("ERC20BalanceTier", async function () {
     const expectedReport2 = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000"
     assert(
       ethers.BigNumber.from(expectedReport2).eq(tier2),
-      `expected ${expectedReport2} got ${tier2}`
+      `expected ${expectedReport2} got ${tier2.toHexString()}`
     )
 
     await reserve.transfer(alice.address, LEVEL_SIZE_LINEAR)
@@ -83,7 +83,7 @@ describe("ERC20BalanceTier", async function () {
     const expectedReport3 = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000"
     assert(
       ethers.BigNumber.from(expectedReport3).eq(tier3),
-      `expected ${expectedReport3} got ${tier3}`
+      `expected ${expectedReport3} got ${tier3.toHexString()}`
     )
 
     await reserve.transfer(alice.address, LEVEL_SIZE_LINEAR)
@@ -92,7 +92,7 @@ describe("ERC20BalanceTier", async function () {
     const expectedReport4 = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000"
     assert(
       ethers.BigNumber.from(expectedReport4).eq(tier4),
-      `expected ${expectedReport4} got ${tier4}`
+      `expected ${expectedReport4} got ${tier4.toHexString()}`
     )
 
     await reserve.transfer(alice.address, LEVEL_SIZE_LINEAR)
@@ -101,7 +101,7 @@ describe("ERC20BalanceTier", async function () {
     const expectedReport5 = "0xFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000"
     assert(
       ethers.BigNumber.from(expectedReport5).eq(tier5),
-      `expected ${expectedReport5} got ${tier5}`
+      `expected ${expectedReport5} got ${tier5.toHexString()}`
     )
 
     await reserve.transfer(alice.address, LEVEL_SIZE_LINEAR)
@@ -109,8 +109,8 @@ describe("ERC20BalanceTier", async function () {
     const tier6 = await erc20BalanceTier.report(alice.address)
     const expectedReport6 = "0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000"
     assert(
-      ethers.BigNumber.from("0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000").eq(tier6),
-      `expected ${expectedReport6} got ${tier6}`
+      ethers.BigNumber.from(expectedReport6).eq(tier6),
+      `expected ${expectedReport6} got ${tier6.toHexString()}`
     )
 
     await reserve.transfer(alice.address, LEVEL_SIZE_LINEAR)
@@ -119,7 +119,7 @@ describe("ERC20BalanceTier", async function () {
     const expectedReport7 = "0xFFFFFFFF00000000000000000000000000000000000000000000000000000000"
     assert(
       ethers.BigNumber.from(expectedReport7).eq(tier7),
-      `expected ${expectedReport7} got ${tier7}`
+      `expected ${expectedReport7} got ${tier7.toHexString()}`
     )
 
     await reserve.transfer(alice.address, LEVEL_SIZE_LINEAR)
@@ -128,7 +128,7 @@ describe("ERC20BalanceTier", async function () {
     const expectedReport8 = "0x0"
     assert(
       ethers.BigNumber.from(expectedReport8).eq(tier8),
-      `expected ${expectedReport8} got ${tier8}`
+      `expected ${expectedReport8} got ${tier8.toHexString()}`
     )
   });
 });
