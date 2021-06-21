@@ -29,6 +29,11 @@ contract ERC20BalanceTier is ReadOnlyTier {
                 break;
             }
         }
-        return TierUtil.truncateTiersAbove(_report, i);
+        if (i > 0) {
+            return TierUtil.truncateTiersAbove(_report, i);
+        }
+        else {
+            return TierUtil.UNINITIALIZED;
+        }
     }
 }
