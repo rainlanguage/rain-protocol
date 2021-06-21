@@ -21,7 +21,19 @@ const seven = 7;
 const eight = 8;
 const tiers = [zero, one, two, three, four, five, six, seven, eight]
 
-const setup = async ():Promise<[SignerWithAddress[], ReadWriteTier]> => {
+enum Tier {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT
+}
+
+const setup = async (): Promise<[SignerWithAddress[], ReadWriteTier]> => {
     const signers = await ethers.getSigners();
     const readWriteTierFactory = await ethers.getContractFactory(
         'ReadWriteTier'
@@ -31,9 +43,35 @@ const setup = async ():Promise<[SignerWithAddress[], ReadWriteTier]> => {
     return [signers, readWriteTier]
 }
 
-describe('Account tier', async function() {
+describe('Account tier', async function () {
+    it('should support setting tier directly', async () => {
+        const [signers, readWriteTier] = await setup()
 
-    it('will return uninitialized report if nothing set', async function() {
+        const report0 = await readWriteTier.report(signers[1].address);
+        const expectedReport0 = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+        assert(
+            report0.eq(expectedReport0),
+            `signer 1 was not tier ZERO
+            expected  ${expectedReport0}
+            got       ${report0.toHexString()}`
+        )
+
+        await readWriteTier.connect(signers[1]).setTier(signers[1].address, Tier.ONE, [])
+
+        const report1 = await readWriteTier.report(signers[1].address);
+        const currentBlockHex1 = ethers.BigNumber.from(await ethers.provider.getBlockNumber()).toHexString().slice(2)
+        const history1 = "0".repeat(8 - currentBlockHex1.length) + currentBlockHex1
+        const expectedReport1 = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff" + history1
+
+        assert(
+            report1.eq(expectedReport1),
+            `signer 1 was not tier ONE
+            expected  ${expectedReport1}
+            got       ${report1.toHexString()}`
+        )
+    })
+
+    it('will return uninitialized report if nothing set', async function () {
         const [signers, readWriteTier] = await setup()
         for (let signer of signers) {
             const status = await readWriteTier.report(signer.address)
@@ -41,7 +79,7 @@ describe('Account tier', async function() {
         }
     })
 
-    it('will error if attempting to set tier to ZERO', async function() {
+    it('will error if attempting to set tier to ZERO', async function () {
         const [signers, readWriteTier] = await setup()
         await assertError(
             async () => { await readWriteTier.setTier(signers[0].address, zero, []) },
@@ -50,7 +88,7 @@ describe('Account tier', async function() {
         )
     })
 
-    it('will return tier if set', async function() {
+    it('will return tier if set', async function () {
         const [signers, readWriteTier] = await setup()
         let expected = tvkReport(uninitializedReport)
         let expectedReport = blockNumbersToReport(expected);
@@ -67,7 +105,7 @@ describe('Account tier', async function() {
         }
     })
 
-    it('will fill multiple tiers at a time', async function() {
+    it('will fill multiple tiers at a time', async function () {
         const [signers, readWriteTier] = await setup()
         let expected = tvkReport(uninitializedReport)
         let expectedReport = blockNumbersToReport(expected)
@@ -77,7 +115,7 @@ describe('Account tier', async function() {
             n = Math.max(1, Math.min(o + Math.floor(Math.random() * tiers.length), tiers.length - 1))
             await readWriteTier.setTier(signers[0].address, n, [])
             let block = await ethers.provider.getBlockNumber()
-            expected = expected.map((item:number, index:number) => n - 1 >= index && index > o - 1 && n != o ? block : item)
+            expected = expected.map((item: number, index: number) => n - 1 >= index && index > o - 1 && n != o ? block : item)
             expectedReport = blockNumbersToReport(expected)
             if (expectedReport == uninitializedReport) {
                 expected[0] = block
@@ -91,15 +129,15 @@ describe('Account tier', async function() {
         }
     })
 
-    it("will emit the tier to which it was upgraded if it is upgraded for the first time", async function(){
+    it("will emit the tier to which it was upgraded if it is upgraded for the first time", async function () {
         const [signers, readWriteTier] = await setup()
         // change the status to two and check if event emitted
         await expect(readWriteTier.setTier(signers[0].address, 2, []))
-        .to.emit(readWriteTier, 'TierChange')
-        .withArgs(signers[0].address, [0, 2])
-      });
+            .to.emit(readWriteTier, 'TierChange')
+            .withArgs(signers[0].address, [0, 2])
+    });
 
-    it("will return the current block number from level 0 to the new account tier if updated for the first time", async function(){
+    it("will return the current block number from level 0 to the new account tier if updated for the first time", async function () {
         const [signers, readWriteTier] = await setup()
         // change the status to three
         await readWriteTier.setTier(signers[0].address, 3, []);
@@ -112,17 +150,17 @@ describe('Account tier', async function() {
         expect(report[2]).to.equal(currentBlock)
     });
 
-    it("will output the previous tier and the new updated tier", async function(){
+    it("will output the previous tier and the new updated tier", async function () {
         const [signers, readWriteTier] = await setup()
         // change the status to one
         await readWriteTier.setTier(signers[0].address, 1, []);
         // change the status to three
         await expect(readWriteTier.setTier(signers[0].address, 3, []))
-        .to.emit(readWriteTier, 'TierChange')
-        .withArgs(signers[0].address, [1, 3])
+            .to.emit(readWriteTier, 'TierChange')
+            .withArgs(signers[0].address, [1, 3])
     });
 
-    it("will return the previous block number at the lower tier if it is updated to a higher tier", async function(){
+    it("will return the previous block number at the lower tier if it is updated to a higher tier", async function () {
         const [signers, readWriteTier] = await setup()
         // change the status to one
         const tx = await readWriteTier.setTier(signers[0].address, 1, []);
@@ -135,17 +173,17 @@ describe('Account tier', async function() {
         expect(report[0]).to.equal(previousBlock)
     });
 
-    it("will change the tier from higher to lower", async function(){
+    it("will change the tier from higher to lower", async function () {
         const [signers, readWriteTier] = await setup()
         // change the tier to three
         await readWriteTier.setTier(signers[0].address, 3, []);
         // change the tier to one
         await expect(readWriteTier.setTier(signers[0].address, 1, []))
-        .to.emit(readWriteTier, 'TierChange')
-        .withArgs(signers[0].address, [3, 1])
+            .to.emit(readWriteTier, 'TierChange')
+            .withArgs(signers[0].address, [3, 1])
     });
 
-    it("will return the previous block number at the current level if updating from a higher to a lower tier", async function(){
+    it("will return the previous block number at the current level if updating from a higher to a lower tier", async function () {
         const [signers, readWriteTier] = await setup()
         // change the tier to three
         const tx = await readWriteTier.setTier(signers[0].address, 3, []);
@@ -158,10 +196,10 @@ describe('Account tier', async function() {
         expect(report[0]).to.equal(previousBlock)
     });
 
-    it("will be possible to know the previous tier from the current tier", async function(){
+    it("will be possible to know the previous tier from the current tier", async function () {
         const [signers, readWriteTier] = await setup()
         // change the tier to one
-        await readWriteTier.setTier(signers[0].address,  1, []);
+        await readWriteTier.setTier(signers[0].address, 1, []);
         const previousBlock = await readWriteTier.provider.getBlockNumber();
         // change the tier to three
         await readWriteTier.setTier(signers[0].address, 3, []);
@@ -171,10 +209,10 @@ describe('Account tier', async function() {
         expect(report[0]).to.equal(previousBlock)
     });
 
-    it("will return the original block number if tier 1 is called again", async function(){
+    it("will return the original block number if tier 1 is called again", async function () {
         const [signers, readWriteTier] = await setup()
         // change the tier to anything
-        await readWriteTier.setTier(signers[0].address,  Math.max(1, Math.floor(Math.random() * tiers.length)), []);
+        await readWriteTier.setTier(signers[0].address, Math.max(1, Math.floor(Math.random() * tiers.length)), []);
         const originalBlock = await readWriteTier.provider.getBlockNumber();
         // change the tier to one
         await readWriteTier.setTier(signers[0].address, 1, []);
@@ -184,10 +222,10 @@ describe('Account tier', async function() {
         expect(report[0]).to.equal(originalBlock)
     });
 
-    it("will return original block number at current tier and the rest at uninitializedStatusAsNum after two continuous decrements", async function(){
+    it("will return original block number at current tier and the rest at uninitializedStatusAsNum after two continuous decrements", async function () {
         const [signers, readWriteTier] = await setup()
         // change the tier to three
-        await readWriteTier.setTier(signers[0].address,  3, []);
+        await readWriteTier.setTier(signers[0].address, 3, []);
         const originalBlock = await readWriteTier.provider.getBlockNumber();
 
         // change the tier to two
@@ -203,10 +241,10 @@ describe('Account tier', async function() {
         expect(report[0]).to.equal(originalBlock)
     });
 
-    it("will return two different block numbers if two consecutive increments occur, the high bits will be uninitializedStatusAsNum", async function(){
+    it("will return two different block numbers if two consecutive increments occur, the high bits will be uninitializedStatusAsNum", async function () {
         const [signers, readWriteTier] = await setup()
         // change the tier to two
-        await readWriteTier.setTier(signers[0].address,  2, []);
+        await readWriteTier.setTier(signers[0].address, 2, []);
 
         // change the tier to four
         await readWriteTier.setTier(signers[0].address, 4, []);

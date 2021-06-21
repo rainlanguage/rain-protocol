@@ -10,7 +10,7 @@ import { assertError } from '../utils/report'
 chai.use(solidity)
 const { expect, assert } = chai
 
-describe("TierByConstruction", async function() {
+describe("TierByConstruction", async function () {
     let owner: any;
     let tierByConstructionFactory: any;
     let readWriteTier: ReadWriteTier;
@@ -33,7 +33,25 @@ describe("TierByConstruction", async function() {
     });
 
 
-    it("should return the parameters entered in the constructor", async function() {
+    it('should enforce the account has held the tier according to isTier, as a modifier', async () => {
+        assert(await tierByConstruction.ifZero())
+
+        await assertError(
+            async () => await tierByConstruction.ifOne(),
+            "revert ERR_MINIMUM_TIER",
+            "onlyTier modifier did not restrict access to ifOne function which should have failed minimum tier requirement"
+        )
+    })
+
+
+    it('should return true only if the account has held the minimum tier continuously since the construction block until the current tier report ', async () => {
+        assert(
+            (await tierByConstruction.isTier(owner.address, 0))
+        )
+    })
+
+
+    it("should return the parameters entered in the constructor", async function () {
         const now = await ethers.provider.getBlockNumber()
         const constructionBlock = await tierByConstruction.constructionBlock();
 
@@ -47,28 +65,28 @@ describe("TierByConstruction", async function() {
     });
 
 
-    it ("should return false if isTier is queried with a wrong tier than the current tier", async function() {
+    it("should return false if isTier is queried with a wrong tier than the current tier", async function () {
         assert(
             !(await tierByConstruction.isTier(owner.address, 4))
         )
     });
 
 
-    it("should be able to use unlimited access functions in any tier", async function() {
+    it("should be able to use unlimited access functions in any tier", async function () {
         assert(await tierByConstruction.isTier(owner.address, 0))
 
         await tierByConstruction.unlimited()
     });
 
 
-    it("should enter a function restricted to Zero status if the tier has never been set", async function() {
+    it("should enter a function restricted to Zero status if the tier has never been set", async function () {
         assert(await tierByConstruction.isTier(owner.address, 0))
 
         await tierByConstruction.ifZero()
     });
 
 
-    it("should fail if you try to enter a function of a specific tier if it has never been set", async function() {
+    it("should fail if you try to enter a function of a specific tier if it has never been set", async function () {
         assert(await tierByConstruction.isTier(owner.address, 0))
 
         assertError(
@@ -79,7 +97,7 @@ describe("TierByConstruction", async function() {
     });
 
 
-    it("shouldn't you set to use a function of the new tier after construction", async function() {
+    it("shouldn't you set to use a function of the new tier after construction", async function () {
         await readWriteTier.setTier(owner.address, 1, [])
 
         await tierByConstruction.unlimited()
@@ -95,7 +113,7 @@ describe("TierByConstruction", async function() {
     });
 
 
-    it("should be able to use unlimited functions and lower tier than the upgraded one", async function() {
+    it("should be able to use unlimited functions and lower tier than the upgraded one", async function () {
         tierByConstruction = await tierByConstructionFactory.deploy(readWriteTier.address) as TierByConstructionTest
 
         await tierByConstruction.deployed()
@@ -108,7 +126,7 @@ describe("TierByConstruction", async function() {
     });
 
 
-    it("should not be able to use a function for a tier if you do not have that tier", async function() {
+    it("should not be able to use a function for a tier if you do not have that tier", async function () {
         assertError(
             async () => await tierByConstruction.ifTwo(),
             'revert ERR_MINIMUM_TIER',
@@ -176,7 +194,7 @@ describe("TierByConstruction", async function() {
 });
 
 
-describe("TierByConstructionClaim", async function() {
+describe("TierByConstructionClaim", async function () {
     let owner: any;
     let readWriteTier: ReadWriteTier;
     let tierByConstructionClaim: TierByConstructionClaimTest;
@@ -200,7 +218,7 @@ describe("TierByConstructionClaim", async function() {
     });
 
 
-    it("shouldn't you set to use a function of the new tier after construction", async function() {
+    it("shouldn't you set to use a function of the new tier after construction", async function () {
         await readWriteTier.setTier(owner.address, 4, [])
 
         assertError(
@@ -211,7 +229,7 @@ describe("TierByConstructionClaim", async function() {
     });
 
 
-    it("should enter the function and mint 100 tokens", async function() {
+    it("should enter the function and mint 100 tokens", async function () {
         tierByConstructionClaim = await tierByConstructionClaimFactory.deploy(readWriteTier.address) as TierByConstructionClaimTest
         await tierByConstructionClaim.deployed()
 
@@ -229,9 +247,9 @@ describe("TierByConstructionClaim", async function() {
     });
 
 
-    it("should not allow multiple minting", async function() {
+    it("should not allow multiple minting", async function () {
         assertError(
-            async() => await tierByConstructionClaim.claim(owner.address),
+            async () => await tierByConstructionClaim.claim(owner.address),
             'revert ERR_MULTI_MINT',
             'function does not correctly restrict multiple mints'
         )
