@@ -50,7 +50,7 @@ contract TierByConstructionClaimTest is ERC20, TierByConstruction {
         external
         onlyTier(account, ITier.Tier.FOUR)
     {
-        require(!claims[account], "ERR_MULTI_MINT");
+        require(!claims[account], "MULTI_MINT");
         claims[account] = true;
         super._mint(account, 100);
     }
