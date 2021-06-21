@@ -30,6 +30,8 @@ contract TierByConstructionClaim is TierByConstruction {
     ITier.Tier public minimumTier;
     mapping(address => bool) public claims;
 
+    event Claim(address account);
+
     /**
      * Nothing special needs to happen in the constructor.
      * Simply forward/set the desired ITier in the TierByConstruction constructor.
@@ -54,11 +56,12 @@ contract TierByConstructionClaim is TierByConstruction {
         require(!claims[_account], "ERR_DUPLICATE_CLAIM");
         claims[_account] = true;
         _afterClaim(_account, tierContract.report(_account), _data);
+        emit Claim(_account);
     }
 
     function _afterClaim(
         address _account,
-        uint256 _statusReport,
+        uint256 _report,
         bytes memory _data
     )
         internal virtual

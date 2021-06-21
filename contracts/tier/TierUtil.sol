@@ -15,18 +15,18 @@ library TierUtil {
      * When the `statusReport` comes from a later block than the `blockNumber` this means
      * the user must have held the status continuously from `blockNumber` _through_ to the report block.
      * I.e. NOT a snapshot.
-     * @param _statusReport A status report as per ITier
+     * @param _report A status report as per ITier
      * @param _blockNumber The block number check the statuses against.
      * @return The highest status held since `blockNumber` according to `report`.
      */
     function tierAtBlockFromReport(
-        uint256 _statusReport,
+        uint256 _report,
         uint256 _blockNumber
     )
         internal pure returns (ITier.Tier)
     {
         for (uint256 i = 0; i < 8; i++) {
-            if (uint32(uint256(_statusReport >> (i*32))) > uint32(_blockNumber)) {
+            if (uint32(uint256(_report >> (i*32))) > uint32(_blockNumber)) {
                 return ITier.Tier(i);
             }
         }
@@ -62,32 +62,32 @@ library TierUtil {
     /**
      * Resets all the tiers above the reference tier.
      *
-     * @param _statusReport Status report to truncate with high bit 1s.
+     * @param _report Status report to truncate with high bit 1s.
      * @param _tierInt Status int level to truncate above (exclusive).
      * @return uint256 the truncated report.
      */
-    function truncateTiersAbove(uint256 _statusReport, uint256 _tierInt)
+    function truncateTiersAbove(uint256 _report, uint256 _tierInt)
         internal
         pure
         returns (uint256)
     {
         uint256 _offset = _tierInt * 32;
         uint256 _mask = (UNINITIALIZED >> _offset) << _offset;
-        return _statusReport | _mask;
+        return _report | _mask;
     }
 
     /**
      * Updates a report with a block number for every status integer in a range.
      *
      * Does nothing if the end status is equal or less than the start status.
-     * @param _statusReport The report to update.
+     * @param _report The report to update.
      * @param _startTierInt The _tierInt at the start of the range (exclusive).
      * @param _endTierInt The _tierInt at the end of the range (inclusive).
      * @param _blockNumber The block number to set for every status in the range.
      * @return The updated report.
      */
     function updateBlocksForTierRange(
-        uint256 _statusReport,
+        uint256 _report,
         uint256 _startTierInt,
         uint256 _endTierInt,
         uint256 _blockNumber
@@ -95,9 +95,9 @@ library TierUtil {
         internal pure returns (uint256)
     {
         for (uint256 i = _startTierInt; i < _endTierInt; i++) {
-            _statusReport = (_statusReport & ~uint256(uint256(uint32(UNINITIALIZED)) << i*32)) | uint256(_blockNumber << (i*32));
+            _report = (_report & ~uint256(uint256(uint32(UNINITIALIZED)) << i*32)) | uint256(_blockNumber << (i*32));
         }
-        return _statusReport;
+        return _report;
     }
 
     /**
@@ -108,14 +108,14 @@ library TierUtil {
      * The `current_tierInt` MUST match the result of `statusAtFromReport`.
      * It is expected the caller will know the current status when calling this function
      * and need to do other things in the calling scope with it.
-     * @param _statusReport The report to update.
+     * @param _report The report to update.
      * @param _currentTierInt The current status int according to the report.
      * @param _newTierInt The new status for the report.
      * @param _blockNumber The block number to update the status at.
      * @return The updated report.
      */
     function updateReportWithTierAtBlock(
-        uint256 _statusReport,
+        uint256 _report,
         uint256 _currentTierInt,
         uint256 _newTierInt,
         uint256 _blockNumber
@@ -124,18 +124,18 @@ library TierUtil {
     {
         // Truncate above the new status if it is lower than the current one.
         if (_newTierInt < _currentTierInt) {
-            _statusReport = truncateTiersAbove(_statusReport, _newTierInt);
+            _report = truncateTiersAbove(_report, _newTierInt);
         }
         // Otherwise fill the gap between current and new with the block number.
         else {
-            _statusReport = updateBlocksForTierRange(
-                _statusReport,
+            _report = updateBlocksForTierRange(
+                _report,
                 _currentTierInt,
                 _newTierInt,
                 _blockNumber
             );
         }
-        return _statusReport;
+        return _report;
     }
 
 }
