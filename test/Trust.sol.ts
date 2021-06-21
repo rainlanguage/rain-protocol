@@ -29,7 +29,154 @@ enum Status {
   JAWAD,
 }
 
+enum RaiseStatus {
+  PENDING,
+  OPEN,
+  SUCCESS,
+  FAIL
+}
+
 describe("Trust", async function () {
+  it('should be blocked if minimum raise hit exactly due to dust', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator/owner
+    const deployer = signers[2] // deployer is not creator
+    const hodler1 = signers[3]
+
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    const trust = await trustFactory1.deploy(
+      {
+        creator: creator.address,
+        minCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder.address, reserveInit)
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, signers[1])
+
+    // seeder must transfer funds to pool
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
+
+    await trust.startRaise({ gasLimit: 100000000 })
+
+    const startBlock = await ethers.provider.getBlockNumber()
+
+    const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
+    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator)
+    const bPool = new ethers.Contract(pool.pool(), bPoolJson.abi, creator)
+    const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+
+    const swapReserveForTokens = async (hodler, spend) => {
+      // give hodler some reserve
+      await reserve.transfer(hodler.address, spend)
+
+      const reserveHodler = reserve.connect(hodler)
+      const crpHodler = crp.connect(hodler)
+      const bPoolHodler = bPool.connect(hodler)
+
+      await reserveHodler.approve(bPool.address, spend)
+      await crpHodler.pokeWeights()
+      await bPoolHodler.swapExactAmountIn(
+        reserve.address,
+        spend,
+        token.address,
+        ethers.BigNumber.from('1'),
+        ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+      )
+    }
+
+    const bPoolBalance = await reserve.balanceOf(bPool.address)
+
+    const swapUnits = 4;
+
+    for (let i = 0; i < swapUnits; i++) {
+      await swapReserveForTokens(
+        hodler1,
+        (successLevel.sub(bPoolBalance)).mul(Util.ONE).div(swapUnits).div(Util.ONE)
+      )
+
+      console.log(`bPool balance  ${await reserve.balanceOf(bPool.address)}`);
+    }
+
+    const finalBPoolBalance = await reserve.balanceOf(bPool.address)
+
+    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      await reserve.transfer(signers[3].address, 0)
+    }
+
+    await trust.endRaise()
+
+    assert((await trust.raiseStatus()) === RaiseStatus.FAIL, `should have failed due to dust
+    finalBPoolBalance ${finalBPoolBalance}
+    successLevel      ${successLevel}`)
+  })
+
   it('should return raise success balance', async function () {
     this.timeout(0)
 
