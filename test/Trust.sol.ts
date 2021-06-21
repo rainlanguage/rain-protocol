@@ -31,7 +31,9 @@ enum Status {
 
 enum RaiseStatus {
   PENDING,
-  OPEN,
+  SEEDED,
+  TRADING,
+  TRADINGCANEND,
   SUCCESS,
   FAIL
 }
@@ -172,7 +174,7 @@ describe("Trust", async function () {
 
     await trust.endRaise()
 
-    assert((await trust.raiseStatus()) === RaiseStatus.FAIL, `should have failed due to dust
+    assert((await trust.getRaiseStatus()) === RaiseStatus.FAIL, `should have failed due to dust
     finalBPoolBalance ${finalBPoolBalance}
     successLevel      ${successLevel}`)
   })
