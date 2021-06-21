@@ -7,18 +7,18 @@ import chai from 'chai'
 const { expect, assert } = chai
 
 export const basicDeploy = async (name, libs) => {
-    const factory = await ethers.getContractFactory(
-      name,
-      {
-        libraries: libs
-      },
-    )
+  const factory = await ethers.getContractFactory(
+    name,
+    {
+      libraries: libs
+    },
+  )
 
-    const contract = (await factory.deploy())
+  const contract = (await factory.deploy())
 
-    await contract.deployed()
+  await contract.deployed()
 
-    return contract
+  return contract
 }
 
 export const balancerDeploy = async () => {
@@ -26,9 +26,9 @@ export const balancerDeploy = async () => {
   const balancerSafeMath = (await basicDeploy('BalancerSafeMath', {}))
   const smartPoolManager = (await basicDeploy('SmartPoolManager', {}))
   const crpFactory = (await basicDeploy('CRPFactory', {
-      'RightsManager': rightsManager.address,
-      'BalancerSafeMath': balancerSafeMath.address,
-      'SmartPoolManager': smartPoolManager.address,
+    'RightsManager': rightsManager.address,
+    'BalancerSafeMath': balancerSafeMath.address,
+    'SmartPoolManager': smartPoolManager.address,
   })) as CRPFactory
   const bFactory = (await basicDeploy('BFactory', {})) as BFactory
 
@@ -40,13 +40,13 @@ export const eighteenZeros = '000000000000000000'
 
 export const ONE = ethers.BigNumber.from('1' + eighteenZeros)
 
-export const assertError = async (f:Function, s:string, e:string) => {
+export const assertError = async (f: Function, s: string, e: string) => {
   let didError = false
   try {
-      await f()
+    await f()
   } catch (e) {
-      assert(e.toString().includes(s), `error string ${e} does not include ${s}`)
-      didError = true
+    assert(e.toString().includes(s), `error string ${e} does not include ${s}`)
+    didError = true
   }
   assert(didError, e)
 }
