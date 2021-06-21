@@ -16,7 +16,7 @@ describe("TierByConstruction", async function () {
     let readWriteTier: ReadWriteTier;
     let tierByConstruction: TierByConstructionTest;
 
-    before(async () => {
+    beforeEach(async () => {
         [owner] = await ethers.getSigners()
 
         const tierFactory = await ethers.getContractFactory(
@@ -201,7 +201,7 @@ describe("TierByConstructionClaim", async function () {
     let tierByConstructionClaimFactory: any;
 
 
-    before(async () => {
+    beforeEach(async () => {
         [owner] = await ethers.getSigners()
 
         const tierFactory = await ethers.getContractFactory(

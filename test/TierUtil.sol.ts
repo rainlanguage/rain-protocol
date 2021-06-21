@@ -28,7 +28,7 @@ describe("TierUtil", async function () {
   let reserve: ReserveToken;
   let tierUtil: TierUtilTest;
 
-  before(async () => {
+  beforeEach(async () => {
     [owner, signer1] = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
@@ -83,7 +83,7 @@ describe("TierUtil", async function () {
       reserve.transfer(signer1.address, 0); // create empty block
     }
 
-    // set status ONE
+    // set status TWO
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
     const expectedTier2Block = await ethers.provider.getBlockNumber();
 

@@ -6,53 +6,44 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { TierUtil } from "./TierUtil.sol";
+import { ValueTier } from "./ValueTier.sol";
 import "./ReadWriteTier.sol";
 
-contract ERC20TransferTier is ReadWriteTier {
+contract ERC20TransferTier is ReadWriteTier, ValueTier {
     using SafeERC20 for IERC20;
 
     IERC20 public erc20;
-    uint256[8] public levels;
 
-    constructor(IERC20 _erc20, uint256[8] memory _levels) public {
+    constructor(IERC20 _erc20, uint256[8] memory _tierValues) public ValueTier(_tierValues) {
         erc20 = _erc20;
-        levels = _levels;
-    }
-
-    function tierValue(Tier _tier) view private returns(uint256) {
-        if (uint256(_tier) > 0) {
-            return levels[uint256(_tier)];
-        } else {
-            return 0;
-        }
     }
 
     function _afterSetTier(
         address _account,
-        ITier.Tier _oldTier,
-        ITier.Tier _newTier,
+        ITier.Tier _startTier,
+        ITier.Tier _endTier,
         bytes memory
     )
         internal
         override
     {
         // Handle the ERC20 transfer.
-        // Convert the current tier to an ERC20 amount.
-        uint256 _oldTierValue = tierValue(_oldTier);
-        // Convert the new tier to an ERC20 amount.
-        uint256 _newTierValue = tierValue(_newTier);
+        // Convert the start tier to an ERC20 amount.
+        uint256 _startValue = tierToValue(_startTier);
+        // Convert the end tier to an ERC20 amount.
+        uint256 _endValue = tierToValue(_endTier);
 
-        if (_newTierValue >= _oldTierValue) {
+        if (_endValue >= _startValue) {
             // Going up, take ownership of TVK.
             erc20.safeTransferFrom(_account, address(this), SafeMath.sub(
-                _newTierValue,
-                _oldTierValue
+                _endValue,
+                _startValue
             ));
         } else {
             // Going down, process a refund.
             erc20.safeTransfer(_account, SafeMath.sub(
-                _oldTierValue,
-                _newTierValue
+                _startValue,
+                _endValue
             ));
         }
     }

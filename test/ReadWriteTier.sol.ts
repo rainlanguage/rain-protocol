@@ -83,7 +83,7 @@ describe('Account tier', async function () {
         const [signers, readWriteTier] = await setup()
         await assertError(
             async () => { await readWriteTier.setTier(signers[0].address, zero, []) },
-            'revert ERR_ZERO_TIER',
+            'revert SET_ZERO_TIER',
             'failed to error due to setting ZERO tier'
         )
     })
@@ -134,7 +134,7 @@ describe('Account tier', async function () {
         // change the status to two and check if event emitted
         await expect(readWriteTier.setTier(signers[0].address, 2, []))
             .to.emit(readWriteTier, 'TierChange')
-            .withArgs(signers[0].address, [0, 2])
+            .withArgs(signers[0].address, 0, 2)
     });
 
     it("will return the current block number from level 0 to the new account tier if updated for the first time", async function () {
@@ -157,7 +157,7 @@ describe('Account tier', async function () {
         // change the status to three
         await expect(readWriteTier.setTier(signers[0].address, 3, []))
             .to.emit(readWriteTier, 'TierChange')
-            .withArgs(signers[0].address, [1, 3])
+            .withArgs(signers[0].address, 1, 3)
     });
 
     it("will return the previous block number at the lower tier if it is updated to a higher tier", async function () {
@@ -180,7 +180,7 @@ describe('Account tier', async function () {
         // change the tier to one
         await expect(readWriteTier.setTier(signers[0].address, 1, []))
             .to.emit(readWriteTier, 'TierChange')
-            .withArgs(signers[0].address, [3, 1])
+            .withArgs(signers[0].address, 3, 1)
     });
 
     it("will return the previous block number at the current level if updating from a higher to a lower tier", async function () {

@@ -19,7 +19,7 @@ describe("Levels", async function(){
   let tvkTier : any;
 
 
-  before(async () => {
+  beforeEach(async () => {
     // deploy contract
     const tvkTierFactory = await ethers.getContractFactory(
       'TVKTransferTier'

@@ -20,7 +20,7 @@ enum Tier {
   EIGHT
 }
 
-const LEVELS = Array.from(Array(9).keys()).map(value => ethers.BigNumber.from(value + eighteenZeros));
+const LEVELS = Array.from(Array(8).keys()).map(value => ethers.BigNumber.from(++value + eighteenZeros));
 const LEVEL_SIZE_LINEAR = ethers.BigNumber.from(1 + eighteenZeros)
 
 describe("ERC20TransferTier", async function () {
@@ -29,7 +29,7 @@ describe("ERC20TransferTier", async function () {
   let erc20TransferTier: ERC20TransferTier;
   let reserve: ReserveToken;
 
-  before(async () => {
+  beforeEach(async () => {
     [owner, alice] = await ethers.getSigners()
 
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken
@@ -46,7 +46,7 @@ describe("ERC20TransferTier", async function () {
   it('should restrict setting ZERO tier', async () => {
     await assertError(
       async () => await erc20TransferTier.connect(alice).setTier(alice.address, Tier.ZERO, []),
-      "revert ERR_ZERO_TIER",
+      "revert SET_ZERO_TIER",
       "alice directly set to tier ZERO"
     )
   })
@@ -72,7 +72,7 @@ describe("ERC20TransferTier", async function () {
     )
 
     // alice needs ERC20 balance equal to difference between current tier and desired tier
-    const requiredForTier1 = LEVELS[1].sub(LEVELS[0]);
+    const requiredForTier1 = LEVELS[0]
 
     // give alice enough reserve
     await reserve.transfer(alice.address, requiredForTier1)
@@ -82,7 +82,7 @@ describe("ERC20TransferTier", async function () {
     await reserve.connect(alice).approve(erc20TransferTier.address, requiredForTier1)
     const setTier1Promise = erc20TransferTier.connect(alice).setTier(alice.address, Tier.ONE, [])
 
-    await expect(setTier1Promise).to.emit(erc20TransferTier, "TierChange").withArgs(alice.address, [Tier.ZERO, Tier.ONE])
+    await expect(setTier1Promise).to.emit(erc20TransferTier, "TierChange").withArgs(alice.address, Tier.ZERO, Tier.ONE)
 
     await setTier1Promise;
 
@@ -110,7 +110,7 @@ describe("ERC20TransferTier", async function () {
     await reserve.connect(alice).approve(erc20TransferTier.address, requiredForTier2)
     const setTier2Promise = erc20TransferTier.connect(alice).setTier(alice.address, Tier.TWO, [])
 
-    await expect(setTier2Promise).to.emit(erc20TransferTier, "TierChange").withArgs(alice.address, [Tier.ONE, Tier.TWO])
+    await expect(setTier2Promise).to.emit(erc20TransferTier, "TierChange").withArgs(alice.address, Tier.ONE, Tier.TWO)
 
     await setTier2Promise;
 

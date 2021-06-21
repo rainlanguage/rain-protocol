@@ -6,14 +6,11 @@ import { ITier } from "./ITier.sol";
 import { TierUtil } from "./TierUtil.sol";
 
 contract ReadWriteTier is ITier {
-    // account => reports
+    /// account => reports
     mapping(address => uint256) public reports;
 
-    /**
-     * Implements ITier.
-     *
-     * Either fetch the report from storage or return UNINITIALIZED.
-     */
+    /// Either fetch the report from storage or return UNINITIALIZED.
+    /// @inheritdoc ITier
     function report(address _account)
         public
         virtual
@@ -26,14 +23,11 @@ contract ReadWriteTier is ITier {
         return _report > 0 ? _report : TierUtil.UNINITIALIZED;
     }
 
-    /**
-     * Implements ITier.
-     *
-     * Errors if the user attempts to return to the NIL tier.
-     * Updates the report from `report` using default `TierUtil` logic.
-     * Calls `_afterSetTier` that inheriting contracts SHOULD override to enforce status requirements.
-     * Emits `TierChange` event.
-     */
+    /// Errors if the user attempts to return to the NIL tier.
+    /// Updates the report from `report` using default `TierUtil` logic.
+    /// Calls `_afterSetTier` that inheriting contracts SHOULD override to enforce status requirements.
+    /// Emits `TierChange` event.
+    /// @inheritdoc ITier
     function setTier(
         address _account,
         Tier _newTier,
@@ -43,7 +37,7 @@ contract ReadWriteTier is ITier {
     {
         // The user must move to at least ONE.
         // The ZERO status is reserved for users that have never interacted with the contract.
-        require(_newTier != Tier.ZERO, "ERR_ZERO_TIER");
+        require(_newTier != Tier.ZERO, "SET_ZERO_TIER");
 
         uint256 _report = report(_account);
 
@@ -62,20 +56,18 @@ contract ReadWriteTier is ITier {
         _afterSetTier(_account, _currentTier, _newTier, _data);
 
         // Emit this event for ITier
-        emit TierChange(_account, [_currentTier, _newTier]);
+        emit TierChange(_account, _currentTier, _newTier);
     }
 
-    /**
-     * Inheriting contracts SHOULD override this to enforce requirements.
-     *
-     * All the internal accounting and state changes are complete at this point.
-     * Use `require` to enforce additional requirements for tier changes.
-     *
-     * @param _account The account with the new tier.
-     * @param _oldTier The tier the account had before this update.
-     * @param _newTier The tier the account will have after this update.
-     * @param _data Additional arbitrary data to inform update requirements.
-     */
+    /// Inheriting contracts SHOULD override this to enforce requirements.
+    ///
+    /// All the internal accounting and state changes are complete at this point.
+    /// Use `require` to enforce additional requirements for tier changes.
+    ///
+    /// @param _account The account with the new tier.
+    /// @param _oldTier The tier the account had before this update.
+    /// @param _newTier The tier the account will have after this update.
+    /// @param _data Additional arbitrary data to inform update requirements.
     //slither-disable-next-line dead-code
     function _afterSetTier(
         address _account,

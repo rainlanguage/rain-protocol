@@ -21,6 +21,6 @@ abstract contract ReadOnlyTier is ITier {
     )
         external override
     {
-        revert("ERR_READ_ONLY_TIER");
+        revert("SET_TIER");
     }
 }

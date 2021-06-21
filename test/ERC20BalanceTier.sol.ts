@@ -20,7 +20,7 @@ enum Tier {
   EIGHT
 }
 
-const LEVELS = Array.from(Array(9).keys()).map(value => ethers.BigNumber.from(value + eighteenZeros));
+const LEVELS = Array.from(Array(8).keys()).map(value => ethers.BigNumber.from(++value + eighteenZeros));
 const LEVEL_SIZE_LINEAR = ethers.BigNumber.from(1 + eighteenZeros)
 
 describe("ERC20BalanceTier", async function () {
@@ -29,7 +29,7 @@ describe("ERC20BalanceTier", async function () {
   let erc20BalanceTier: ERC20BalanceTier;
   let reserve: ReserveToken;
 
-  before(async () => {
+  beforeEach(async () => {
     [owner, alice] = await ethers.getSigners()
 
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken
@@ -37,7 +37,6 @@ describe("ERC20BalanceTier", async function () {
     const erc20BalanceTierFactory = await ethers.getContractFactory(
       'ERC20BalanceTier'
     );
-
     erc20BalanceTier = await erc20BalanceTierFactory.deploy(reserve.address, LEVELS) as ERC20BalanceTier
 
     await erc20BalanceTier.deployed()
@@ -46,7 +45,7 @@ describe("ERC20BalanceTier", async function () {
   it("should not be possible to set tier directly", async function () {
     await assertError(
       async () => await erc20BalanceTier.setTier(owner.address, Tier.ONE, []),
-      "revert ERR_READ_ONLY_TIER",
+      "revert SET_TIER",
       "tier was wrongly set directly"
     )
   });

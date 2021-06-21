@@ -24,7 +24,7 @@ describe("AlwaysTier", async function () {
   let owner: any;
   let alwaysTier: any;
 
-  before(async () => {
+  beforeEach(async () => {
     [owner] = await ethers.getSigners()
 
     const alwaysTierFactory = await ethers.getContractFactory(
@@ -45,7 +45,7 @@ describe("AlwaysTier", async function () {
   it("should not be possible to set tier directly", async function () {
     await assertError(
       async () => await alwaysTier.setTier(owner.address, Tier.ONE, []),
-      "revert ERR_READ_ONLY_TIER",
+      "revert SET_TIER",
       "tier was wrongly set directly"
     )
   });
@@ -55,7 +55,7 @@ describe("NeverTier", async function () {
   let owner: any;
   let neverTier: any;
 
-  before(async () => {
+  beforeEach(async () => {
     [owner] = await ethers.getSigners()
 
     const neverTierFactory = await ethers.getContractFactory(
@@ -78,7 +78,7 @@ describe("NeverTier", async function () {
   it("should not be possible to set tier directly", async function () {
     await assertError(
       async () => await neverTier.setTier(owner.address, Tier.ONE, []),
-      "revert ERR_READ_ONLY_TIER",
+      "revert SET_TIER",
       "tier was wrongly set directly"
     )
   });

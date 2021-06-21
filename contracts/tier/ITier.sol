@@ -22,7 +22,7 @@ pragma solidity ^0.6.12;
 ///   - If the historical block information is not available the report MAY return `0x00000000` for all held tiers.
 ///   - Tiers that are lost or have never been held MUST return `0xFFFFFFFF`.
 /// - SHOULD implement `setTier`.
-///   - Contracts SHOULD revert with a meaningful error if they cannot meaningfully set a tier directly.
+///   - Contracts SHOULD revert with `SET_TIER` error if they cannot meaningfully set a tier directly.
 ///     For example a contract that can only derive a membership tier by reading the state of an external contract cannot set tiers.
 /// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
 ///   - Contracts that cannot meaningfully set a tier are exempt.
@@ -42,15 +42,21 @@ interface ITier {
         EIGHT
     }
 
-    /// Every time a tier changes we log before and after as a Tier[2] against the account and id.
-    event TierChange(address account, Tier[2] change);
+    /// Every time a Tier changes we log start and end Tier against the account.
+    /// This MAY NOT be emitted if reports are being read from the state of an external contract.
+    event TierChange(
+        address indexed account,
+        Tier indexed startTier,
+        Tier indexed endTier
+    );
 
     /// Updates the tier of an account.
+    ///
     /// The implementing contract is responsible for taking any additional actions required to set the tier.
     /// For example, taking/refunding funds/NFTs etc.
     ///
     /// Contracts may disallow directly setting tiers, preferring to derive reports from other onchain data.
-    /// In this case they should `revert("ERR_SET_TIER");`.
+    /// In this case they should `revert("SET_TIER");`.
     ///
     /// @param account Account to change the tier for.
     /// @param newTier New tier after the status change.
