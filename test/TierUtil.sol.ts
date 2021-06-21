@@ -100,18 +100,93 @@ describe("TierUtil", async function () {
     const tierBlock2 = await tierUtil.tierBlock(report, Tier.TWO);
     const tierBlock3 = await tierUtil.tierBlock(report, Tier.THREE);
 
-    assert(tierBlock0.isZero(), "did not return block 0")
+    assert(tierBlock0.isZero(), "did not return block 0");
 
-    assert(tierBlock1.eq(expectedTier1Block), `wrong tier ONE status block
+    assert(
+      tierBlock1.eq(expectedTier1Block),
+      `wrong tier ONE status block
     report    ${report.toHexString()}
     expected  ${expectedTier1Block}
-    got       ${tierBlock1}`)
+    got       ${tierBlock1}`
+    );
 
-    assert(tierBlock2.eq(expectedTier2Block), `wrong tier TWO status block
+    assert(
+      tierBlock2.eq(expectedTier2Block),
+      `wrong tier TWO status block
     report    ${report.toHexString()}
     expected  ${expectedTier2Block}
-    got       ${tierBlock2}`)
+    got       ${tierBlock2}`
+    );
 
-    assert(ethers.BigNumber.from("0xFFFFFFFF").eq(tierBlock3.toHexString()), "reported block for tier THREE despite signer never having tier THREE status")
+    assert(
+      ethers.BigNumber.from("0xFFFFFFFF").eq(tierBlock3.toHexString()),
+      "reported block for tier THREE despite signer never having tier THREE status"
+    );
+  });
+
+  it("should clear (set to 0xFF) all tiers above the given tier in the given report", async () => {
+    await readWriteTier
+      .connect(signer1)
+      .setTier(signer1.address, Tier.THREE, []);
+
+    const report = await readWriteTier.report(signer1.address);
+
+    const truncatedReport = await tierUtil.truncateTiersAbove(report, Tier.ONE);
+
+    const expectedTruncatedReport =
+      "0x" + "f".repeat(7 * 8) + report.toHexString().slice(-8);
+
+    assert(
+      truncatedReport.eq(expectedTruncatedReport),
+      `did not truncate report correctly
+    expected  ${expectedTruncatedReport}
+    got       ${truncatedReport.toHexString()}`
+    );
+  });
+
+  it("should set all tiers within a min/max tier range to the specified block number in a given report", async () => {
+    const initialBlock = await ethers.provider.getBlockNumber();
+
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
+
+    const report = await readWriteTier.report(signer1.address);
+
+    const targetBlock = initialBlock + 1000;
+
+    const updatedReportBadRange = await tierUtil.updateBlocksForTierRange(
+      report,
+      Tier.SEVEN,
+      Tier.SIX,
+      targetBlock
+    );
+
+    // bad range should return original report
+    assert(updatedReportBadRange.eq(report), "changed report with bad range");
+
+    const updatedReport = await tierUtil.updateBlocksForTierRange(
+      report,
+      Tier.SIX, // smaller number first
+      Tier.SEVEN,
+      targetBlock
+    );
+
+    const initialBlockHex = ethers.BigNumber.from(targetBlock)
+      .toHexString()
+      .slice(2);
+
+    const initialBlockHexFormatted =
+      "0".repeat(8 - initialBlockHex.length) + initialBlockHex;
+
+    const expectedUpdatedReport =
+      report.toHexString().slice(0, 2 + 8) +
+      initialBlockHexFormatted +
+      report.toHexString().slice(18);
+
+    assert(
+      updatedReport.eq(expectedUpdatedReport),
+      `got wrong updated report
+    expected  ${expectedUpdatedReport}
+    got       ${updatedReport.toHexString()}`
+    );
   });
 });
