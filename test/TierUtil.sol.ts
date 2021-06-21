@@ -103,10 +103,12 @@ describe("TierUtil", async function () {
     assert(tierBlock0.isZero(), "did not return block 0")
 
     assert(tierBlock1.eq(expectedTier1Block), `wrong tier ONE status block
+    report    ${report.toHexString()}
     expected  ${expectedTier1Block}
     got       ${tierBlock1}`)
 
     assert(tierBlock2.eq(expectedTier2Block), `wrong tier TWO status block
+    report    ${report.toHexString()}
     expected  ${expectedTier2Block}
     got       ${tierBlock2}`)
 
