@@ -31,7 +31,9 @@ enum Status {
 
 enum RaiseStatus {
   PENDING,
-  OPEN,
+  SEEDED,
+  TRADING,
+  TRADINGCANEND,
   SUCCESS,
   FAIL
 }
@@ -265,7 +267,7 @@ describe("TrustRewards", async function () {
 
     // should be successful raise
     assert(
-      await trust.raiseStatus() === RaiseStatus.SUCCESS,
+      await trust.getRaiseStatus() === RaiseStatus.SUCCESS,
       "raise wasn't successful"
     )
 
@@ -434,7 +436,7 @@ describe("TrustRewards", async function () {
 
     // should be successful raise
     assert(
-      await trust.raiseStatus() === RaiseStatus.SUCCESS,
+      await trust.getRaiseStatus() === RaiseStatus.SUCCESS,
       "raise wasn't successful"
     )
 
