@@ -15,9 +15,12 @@ pragma solidity ^0.6.12;
 /// The high level requirements for a contract implementing ITier:
 /// - MUST represent held tiers with the `Tier` enum.
 /// - MUST implement `report`.
-///   - The report is a `uint256` that represents the block each tier was has been continuously held since encoded as `uint32`.
+///   - The report is a `uint256` that SHOULD represent the block each tier was has been continuously held since encoded as `uint32`.
 ///   - The encoded tiers start at ONE and ZERO is implied if no tier has ever been held.
+///   - Tier ZERO is NOT encoded in the report, it is simply the fallback value.
 ///   - If a tier is lost the block data is erased for that tier and will be reset if/when the tier is regained to that new block.
+///   - If the historical block information is not available the report MAY return `0x00000000` for all held tiers.
+///   - Tiers that are lost or have never been held MUST return `0xFFFFFFFF`.
 /// - SHOULD implement `setTier`.
 ///   - Contracts SHOULD revert with a meaningful error if they cannot meaningfully set a tier directly.
 ///     For example a contract that can only derive a membership tier by reading the state of an external contract cannot set tiers.

@@ -5,13 +5,15 @@ pragma solidity ^0.6.12;
 import { ITier } from "./ITier.sol";
 import { TierUtil } from "./TierUtil.sol";
 
-// ReadOnlyTier is abstract because it does not implement `report`.
+/// @title ReadOnlyTier
+///
+/// A contract inheriting `ReadOnlyTier` cannot call `setTier`.
+///
+/// `ReadOnlyTier` is abstract because it does not implement `report`.
+/// The expectation is that `report` will derive tiers from some external data source.
 abstract contract ReadOnlyTier is ITier {
-    /**
-     * Implements ITier.
-     *
-     * Always reverts because it is not possible to set a read only tier.
-     */
+    /// Always reverts because it is not possible to set a read only tier.
+    /// @inheritdoc ITier
     function setTier(
         address,
         Tier,
