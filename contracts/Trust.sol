@@ -213,7 +213,10 @@ contract Trust {
         IERC20 _reserve = pool.reserve();
         uint256 _seedInit = pool.reserveInit();
 
-        uint256 _finalBalance = _reserve.balanceOf(address(this));
+        // Balancer traps a tiny amount of reserve in the pool when it exits.
+        uint256 _poolDust = _reserve.balanceOf(address(pool.pool()));
+        uint256 _distributableBalance = _reserve.balanceOf(address(this));
+        uint256 _finalBalance = _distributableBalance + _poolDust;
 
         // Base payments for each fundraiser.
         uint256 _seederPay;
@@ -238,7 +241,15 @@ contract Trust {
             //
             // Implied is the remainder of _finalBalance as redeemInit
             // This will be transferred to the token holders below.
-            _creatorPay = _finalBalance.sub(_seederPay.add(redeemInit));
+            if (redeemInit >= _poolDust) {
+                _creatorPay = _finalBalance.sub(_seederPay.add(redeemInit));
+            }
+            // In any case where redeemInit is less than dust we just split everything we have between the creator and seeder.
+            // If this fails that means the seeder pay is bigger than the distributable balance, which is an extreme edge case.
+            // If that happens then someone needs to send some reserve dust to the trust and call `endRaise` again.
+            else {
+                _creatorPay = _distributableBalance.sub(_seederPay);
+            }
         }
         else {
             raiseStatus = RaiseStatus.Fail;
