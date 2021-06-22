@@ -149,10 +149,10 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // Need a fixed length to avoid unpredictable gas issues.
         address[8] memory _returnRedeemables;
         for(uint256 i = 0;i<8;i++) {
-            _returnRedeemables[i] = address(redeemables[i]);
-            if (_returnRedeemables[i] == address(0)) {
+            if (i == redeemables.length) {
                 break;
             }
+            _returnRedeemables[i] = address(redeemables[i]);
         }
         return _returnRedeemables;
     }
