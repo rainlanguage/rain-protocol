@@ -39,7 +39,7 @@ enum RaiseStatus {
 }
 
 describe("Trust", async function () {
-  it('should be blocked if minimum raise hit exactly due to dust', async function () {
+  it("should succeed if minimum raise hit exactly (i.e. dust left in pool doesn't cause issues)", async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -168,15 +168,22 @@ describe("Trust", async function () {
 
     const finalBPoolBalance = await reserve.balanceOf(bPool.address)
 
+    assert(finalBPoolBalance.eq(successLevel), `pool balance not exactly equal to success level (important for this test)
+    finalBPoolBalance ${finalBPoolBalance}
+    successLevel      ${successLevel}`)
+
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserve.transfer(signers[3].address, 0)
     }
 
     await trust.endRaise()
 
-    assert((await trust.getRaiseStatus()) === RaiseStatus.FAIL, `should have failed due to dust
+    const bPoolDust = finalBPoolBalance.mul(Util.ONE).div(1e7).div(Util.ONE)
+
+    assert((await trust.getRaiseStatus()) === RaiseStatus.SUCCESS, `raise should have succeeded when hitting minimum raise exactly
     finalBPoolBalance ${finalBPoolBalance}
-    successLevel      ${successLevel}`)
+    successLevel      ${successLevel}
+    bPoolDust         ${bPoolDust}`)
   })
 
   it('should return raise success balance', async function () {
