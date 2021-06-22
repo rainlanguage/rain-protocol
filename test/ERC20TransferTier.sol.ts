@@ -106,7 +106,7 @@ describe("ERC20TransferTier", async function () {
     await reserve.transfer(alice.address, requiredForTier2)
     assert((await reserve.balanceOf(alice.address)).eq(requiredForTier2), "alice has wrong required reserve balance")
 
-    // alice sets their tier to ONE
+    // alice sets their tier to TWO
     await reserve.connect(alice).approve(erc20TransferTier.address, requiredForTier2)
     const setTier2Promise = erc20TransferTier.connect(alice).setTier(alice.address, Tier.TWO, [])
 
