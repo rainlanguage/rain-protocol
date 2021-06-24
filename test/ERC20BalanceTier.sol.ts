@@ -20,7 +20,7 @@ enum Tier {
   EIGHT
 }
 
-const LEVELS = Array.from(Array(8).keys()).map(value => ethers.BigNumber.from(++value + eighteenZeros));
+const LEVELS = Array.from(Array(8).keys()).map(value => ethers.BigNumber.from(++value + eighteenZeros)); // [1,2,3,4,5,6,7,8]
 const LEVEL_SIZE_LINEAR = ethers.BigNumber.from(1 + eighteenZeros)
 
 describe("ERC20BalanceTier", async function () {

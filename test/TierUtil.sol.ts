@@ -189,4 +189,74 @@ describe("TierUtil", async function () {
     got       ${updatedReport.toHexString()}`
     );
   });
+
+  it("should correctly set new blocks based on whether the new tier is higher or lower than the current one", async () => {
+    const initialBlock = await ethers.provider.getBlockNumber();
+    const initialBlockHex = ethers.BigNumber.from(initialBlock)
+      .toHexString()
+      .slice(2);
+
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.THREE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.FIVE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.SIX, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.SEVEN, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.EIGHT, []);
+
+    const report = await readWriteTier.report(signer1.address);
+
+    const block1 = await ethers.provider.getBlockNumber();
+
+    const updatedReportTruncated = await tierUtil.updateReportWithTierAtBlock(
+      report,
+      Tier.EIGHT,
+      Tier.FOUR,
+      block1
+    );
+
+    const updatedReportTruncatedLeftHalf = updatedReportTruncated
+      .toHexString()
+      .slice(2, 34);
+
+    for (let i = 0; i < updatedReportTruncatedLeftHalf.length; i++) {
+      assert(
+        updatedReportTruncatedLeftHalf.charAt(i) === "f",
+        `hex character wasn't truncated at position ${i}`
+      );
+    }
+
+    // set tier FIVE block to initialBlock
+    const updatedReportSetBlock = await tierUtil.updateReportWithTierAtBlock(
+      report,
+      Tier.FOUR,
+      Tier.FIVE,
+      initialBlock
+    );
+
+    assert(
+      updatedReportSetBlock.toHexString().slice(0, 24) ===
+      report.toHexString().slice(0, 24),
+      `first section of updated report (set block) is wrong
+      expected  ${report.toHexString().slice(0, 24)}
+      got       ${updatedReportSetBlock.toHexString().slice(0, 24)}`
+    );
+
+    assert(
+      updatedReportSetBlock.toHexString().slice(24, 24 + 8) ===
+      "0".repeat(8 - initialBlockHex.length) + initialBlockHex,
+      `set block was wrong
+      expected  ${"0".repeat(8 - initialBlockHex.length) + initialBlockHex}
+      got       ${updatedReportSetBlock.toHexString().slice(24, 24 + 8)}`
+    );
+
+    assert(
+      updatedReportSetBlock.toHexString().slice(24 + 8) ===
+      report.toHexString().slice(24 + 8),
+      `last section of updated report (set block) is wrong
+      expected  ${report.toHexString().slice(24 + 8)}
+      got       ${updatedReportSetBlock.toHexString().slice(24 + 8)}`
+    );
+  });
 });
