@@ -36,7 +36,7 @@ let
  python3 -m venv venv
  source ./venv/bin/activate
  pip install slither-analyzer
- slither .
+ slither . --npx-disable --exclude-dependencies
  '';
 in
 pkgs.stdenv.mkDerivation {

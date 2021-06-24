@@ -10,12 +10,13 @@ import "../libraries/BalancerConstants.sol";
 // An example token that can be used as a reserve asset.
 // On mainnet this would likely be some brand of stablecoin but can be anything.
 contract ReserveToken is ERC20 {
+    uint256 public constant INITIAL_MINT = 10 ** 9;
     // blacklist
     mapping(address => bool) public freezables;
 
     constructor() public ERC20("USD Classic", "USDCC") {
         // One _billion_ dollars 👷😈
-        _mint(msg.sender, SafeMath.mul(1000000000, BalancerConstants.BONE));
+        _mint(msg.sender, SafeMath.mul(INITIAL_MINT, BalancerConstants.BONE));
     }
 
     function ownerAddFreezable(address _address) external {
