@@ -35,9 +35,9 @@ contract TierByConstructionClaimTest is ERC20, TierByConstruction {
      * Simply forward/set the desired ITier in the TierByConstruction constructor.
      * The ERC20 constructor is as per Open Zeppelin.
      */
-    constructor(ITier _tier)
+    constructor(ITier tier_)
         public
-        TierByConstruction(_tier)
+        TierByConstruction(tier_)
         ERC20("goldTkn", "GTKN")
     { } // solhint-disable-line no-empty-blocks
 
@@ -46,12 +46,12 @@ contract TierByConstructionClaimTest is ERC20, TierByConstruction {
      * The ITier contract decides for itself whether the claimant is FOUR as at the current block.number
      * The claim can only be done once per account.
      */
-    function claim(address account)
+    function claim(address account_)
         external
-        onlyTier(account, ITier.Tier.FOUR)
+        onlyTier(account_, ITier.Tier.FOUR)
     {
-        require(!claims[account], "MULTI_MINT");
-        claims[account] = true;
-        super._mint(account, 100);
+        require(!claims[account_], "MULTI_MINT");
+        claims[account_] = true;
+        super._mint(account_, 100);
     }
 }

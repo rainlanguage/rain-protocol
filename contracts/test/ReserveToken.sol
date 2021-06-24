@@ -4,8 +4,6 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "../libraries/BalancerConstants.sol";
-
 /// An example token that can be used as a reserve asset.
 /// On mainnet this would likely be some brand of stablecoin but can be anything.
 contract ReserveToken is ERC20 {
@@ -15,7 +13,7 @@ contract ReserveToken is ERC20 {
 
     constructor() public ERC20("USD Classic", "USDCC") {
         // One _billion_ dollars 👷😈
-        _mint(msg.sender, SafeMath.mul(INITIAL_MINT, BalancerConstants.BONE));
+        _mint(msg.sender, SafeMath.mul(INITIAL_MINT, 10 ** 18));
     }
 
     function ownerAddFreezable(address address_) external {

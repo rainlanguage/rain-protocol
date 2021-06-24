@@ -11,7 +11,7 @@ import { TierByConstruction } from "../tier/TierByConstruction.sol";
 contract TierByConstructionTest is TierByConstruction {
 
 
-    constructor(ITier _tier) public TierByConstruction(_tier) { } // solhint-disable-line no-empty-blocks
+    constructor(ITier tier_) public TierByConstruction(tier_) { } // solhint-disable-line no-empty-blocks
 
 
     function unlimited() external view { } // solhint-disable-line no-empty-blocks

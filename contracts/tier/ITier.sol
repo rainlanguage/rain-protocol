@@ -59,11 +59,11 @@ interface ITier {
     /// In this case they should `revert("SET_TIER");`.
     ///
     /// @param account Account to change the tier for.
-    /// @param newTier New tier after the status change.
+    /// @param endTier Tier after the change.
     /// @param data Arbitrary input to disambiguate ownership (e.g. NFTs to lock).
     function setTier(
         address account,
-        Tier newTier,
+        Tier endTier,
         bytes memory data
     )
         external;

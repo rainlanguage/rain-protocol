@@ -3,7 +3,7 @@
 pragma solidity 0.6.12;
 
 import { ITier } from "./ITier.sol";
-import { TierUtil } from "./TierUtil.sol";
+import { TierUtil } from "../libraries/TierUtil.sol";
 
 /// @title ReadOnlyTier
 ///

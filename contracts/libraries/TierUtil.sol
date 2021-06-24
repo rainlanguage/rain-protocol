@@ -2,7 +2,7 @@
 
 pragma solidity 0.6.12;
 
-import { ITier } from "./ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 /// Utilities to consistently read, write and manipulate tiers in reports.
 /// The low-level bit shifting can be difficult to get right so this factors that out.
@@ -61,14 +61,14 @@ library TierUtil {
     /// Resets all the tiers above the reference tier to 0xFFFFFFFF.
     ///
     /// @param report_ Report to truncate with high bit 1s.
-    /// @param tierInt_ Tier int level to truncate above (exclusive).
+    /// @param tier_ Tier to truncate above (exclusive).
     /// @return Truncated report.
-    function truncateTiersAbove(uint256 report_, uint256 tierInt_)
+    function truncateTiersAbove(uint256 report_, ITier.Tier tier_)
         internal
         pure
         returns (uint256)
     {
-        uint256 _offset = tierInt_ * 32;
+        uint256 _offset = uint256(tier_) * 32;
         uint256 _mask = (UNINITIALIZED >> _offset) << _offset;
         return report_ | _mask;
     }
@@ -77,19 +77,19 @@ library TierUtil {
     ///
     /// Does nothing if the end status is equal or less than the start status.
     /// @param report_ The report to update.
-    /// @param startTierInt_ The tierInt_ at the start of the range (exclusive).
-    /// @param endTierInt_ The tierInt_ at the end of the range (inclusive).
+    /// @param startTier_ The tierInt_ at the start of the range (exclusive).
+    /// @param endTier_ The tierInt_ at the end of the range (inclusive).
     /// @param blockNumber_ The block number to set for every status in the range.
     /// @return The updated report.
     function updateBlocksForTierRange(
         uint256 report_,
-        uint256 startTierInt_,
-        uint256 endTierInt_,
+        ITier.Tier startTier_,
+        ITier.Tier endTier_,
         uint256 blockNumber_
     )
         internal pure returns (uint256)
     {
-        for (uint256 i = startTierInt_; i < endTierInt_; i++) {
+        for (uint256 i = uint256(startTier_); i < uint256(endTier_); i++) {
             report_ = (report_ & ~uint256(uint256(uint32(UNINITIALIZED)) << i*32)) | uint256(blockNumber_ << (i*32));
         }
         return report_;
@@ -103,28 +103,28 @@ library TierUtil {
     /// It is expected the caller will know the current status when calling this function
     /// and need to do other things in the calling scope with it.
     /// @param report_ The report to update.
-    /// @param currentTierInt_ The current status int according to the report.
-    /// @param newTierInt_ The new status for the report.
+    /// @param startTier_ The current status int according to the report.
+    /// @param endTier_ The new status for the report.
     /// @param blockNumber_ The block number to update the status at.
     /// @return The updated report.
     function updateReportWithTierAtBlock(
         uint256 report_,
-        uint256 currentTierInt_,
-        uint256 newTierInt_,
+        ITier.Tier startTier_,
+        ITier.Tier endTier_,
         uint256 blockNumber_
     )
         internal pure returns (uint256)
     {
         // Truncate above the new status if it is lower than the current one.
-        if (newTierInt_ < currentTierInt_) {
-            return truncateTiersAbove(report_, newTierInt_);
+        if (endTier_ < startTier_) {
+            return truncateTiersAbove(report_, endTier_);
         }
         // Otherwise fill the gap between current and new with the block number.
         else {
             return updateBlocksForTierRange(
                 report_,
-                currentTierInt_,
-                newTierInt_,
+                startTier_,
+                endTier_,
                 blockNumber_
             );
         }

@@ -2,7 +2,7 @@
 
 pragma solidity 0.6.12;
 
-import { TierUtil } from "./TierUtil.sol";
+import { TierUtil } from "../libraries/TierUtil.sol";
 import { ITier } from "./ITier.sol";
 
 /// Enforces tiers held by contract contruction block.

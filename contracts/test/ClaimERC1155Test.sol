@@ -12,11 +12,11 @@ contract ClaimERC1155Test is ERC20BalanceTier, TierByConstructionClaim, ERC1155 
     uint256 public constant ART = 0;
     uint256 public constant GOOD_ART = 1;
 
-    constructor(IERC20 _redeemableToken, uint256[8] memory tierValues_)
+    constructor(IERC20 redeemableToken_, uint256[8] memory tierValues_)
         public
         ERC1155("https://example.com/{id}.json")
         TierByConstructionClaim(this, ITier.Tier.THREE)
-        ERC20BalanceTier(_redeemableToken, tierValues_) { } // solhint-disable-line no-empty-blocks
+        ERC20BalanceTier(redeemableToken_, tierValues_) { } // solhint-disable-line no-empty-blocks
 
     function _afterClaim(
         address account_,
