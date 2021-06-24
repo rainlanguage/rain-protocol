@@ -36,7 +36,7 @@ let
  python3 -m venv venv
  source ./venv/bin/activate
  pip install slither-analyzer
- slither . --npx-disable --exclude-dependencies
+ slither . --npx-disable --exclude-dependencies --filter-paths=openzeppelin
  '';
 in
 pkgs.stdenv.mkDerivation {

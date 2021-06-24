@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity 0.6.12;
 
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -14,7 +14,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
 
     IERC20 public erc20;
 
-    constructor(IERC20 _erc20, uint256[8] memory _tierValues) public ValueTier(_tierValues) {
+    constructor(IERC20 _erc20, uint256[8] memory tierValues_) public ValueTier(tierValues_) {
         erc20 = _erc20;
     }
 

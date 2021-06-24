@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity 0.6.12;
 
 import { ITier } from "./ITier.sol";
 
@@ -12,21 +12,21 @@ import { ITier } from "./ITier.sol";
 contract ValueTier {
     uint256[8] public tierValues;
 
-    constructor(uint256[8] memory _tierValues) public {
-        tierValues = _tierValues;
+    constructor(uint256[8] memory tierValues_) public {
+        tierValues = tierValues_;
     }
 
-    function tierToValue(ITier.Tier _tier) internal view returns(uint256) {
-        if (uint256(_tier) > 0) {
-            return tierValues[uint256(_tier) - 1];
+    function tierToValue(ITier.Tier tier_) internal view returns(uint256) {
+        if (uint256(tier_) > 0) {
+            return tierValues[uint256(tier_) - 1];
         } else {
             return 0;
         }
     }
 
-    function valueToTier(uint256 _value) internal view returns(ITier.Tier) {
+    function valueToTier(uint256 value_) internal view returns(ITier.Tier) {
         for (uint256 i = 0; i < 8; i++) {
-            if (_value < tierValues[i]) {
+            if (value_ < tierValues[i]) {
                 return ITier.Tier(i);
             }
         }

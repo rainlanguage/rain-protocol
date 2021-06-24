@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity 0.6.12;
 
 import { ITier } from "../tier/ITier.sol";
 import { TierByConstruction } from "../tier/TierByConstruction.sol";

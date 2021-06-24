@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity 0.6.12;
 
 import { TierUtil } from "./TierUtil.sol";
 import { ITier } from "./ITier.sol";
@@ -12,8 +12,8 @@ contract TierByConstruction {
     ITier public tierContract;
     uint256 public constructionBlock;
 
-    constructor(ITier _tierContract) public {
-        tierContract = _tierContract;
+    constructor(ITier tierContract_) public {
+        tierContract = tierContract_;
         constructionBlock = block.number;
     }
 
@@ -22,16 +22,16 @@ contract TierByConstruction {
     /// Note that `report` PROBABLY is current as at the block this function is called but MAYBE NOT.
     /// The `ITier` contract is free to manage reports however makes sense to it.
     ///
-    /// @param _account Account to check status of.
-    /// @param _minimumTier Minimum tier for the account.
+    /// @param account_ Account to check status of.
+    /// @param minimumTier_ Minimum tier for the account.
     /// @return True if the status is currently held.
-    function isTier(address _account, ITier.Tier _minimumTier)
+    function isTier(address account_, ITier.Tier minimumTier_)
         public
         view
         returns (bool)
     {
-        uint256 _report = tierContract.report(_account);
-        uint256 _minimumTierBlock = TierUtil.tierBlock(_report, uint256(_minimumTier));
+        uint256 _report = tierContract.report(account_);
+        uint256 _minimumTierBlock = TierUtil.tierBlock(_report, uint256(minimumTier_));
         return _minimumTierBlock < constructionBlock;
     }
 
@@ -45,12 +45,12 @@ contract TierByConstruction {
     /// Do NOT use this to guard setting the tier on an ITier contract.
     /// The initial tier would be checked AFTER it has already been modified which is unsafe.
     ///
-    /// @param _account Account to enforce tier of.
-    /// @param _minimumTier Minimum tier for the account.
-    modifier onlyTier(address _account, ITier.Tier _minimumTier) {
+    /// @param account_ Account to enforce tier of.
+    /// @param minimumTier_ Minimum tier for the account.
+    modifier onlyTier(address account_, ITier.Tier minimumTier_) {
         _;
         require(
-            isTier(_account, _minimumTier),
+            isTier(account_, minimumTier_),
             "ERR_MINIMUM_TIER"
         );
     }

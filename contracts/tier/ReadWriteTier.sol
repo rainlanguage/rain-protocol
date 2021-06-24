@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity 0.6.12;
 
 import { ITier } from "./ITier.sol";
 import { TierUtil } from "./TierUtil.sol";
@@ -11,16 +11,16 @@ contract ReadWriteTier is ITier {
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITier
-    function report(address _account)
+    function report(address account_)
         public
         virtual
         override
         view
         returns (uint256)
     {
-        uint256 _report = reports[_account];
+        uint256 report_ = reports[account_];
         // Inequality here to silence slither warnings.
-        return _report > 0 ? _report : TierUtil.UNINITIALIZED;
+        return report_ > 0 ? report_ : TierUtil.UNINITIALIZED;
     }
 
     /// Errors if the user attempts to return to the NIL tier.
@@ -29,34 +29,34 @@ contract ReadWriteTier is ITier {
     /// Emits `TierChange` event.
     /// @inheritdoc ITier
     function setTier(
-        address _account,
-        Tier _newTier,
-        bytes memory _data
+        address account_,
+        Tier newTier_,
+        bytes memory data_
     )
         external virtual override
     {
         // The user must move to at least ONE.
         // The ZERO status is reserved for users that have never interacted with the contract.
-        require(_newTier != Tier.ZERO, "SET_ZERO_TIER");
+        require(newTier_ != Tier.ZERO, "SET_ZERO_TIER");
 
-        uint256 _report = report(_account);
+        uint256 _report = report(account_);
 
         ITier.Tier _currentTier = TierUtil.tierAtBlockFromReport(_report, block.number);
 
-        reports[_account] = TierUtil.updateReportWithTierAtBlock(
+        reports[account_] = TierUtil.updateReportWithTierAtBlock(
             _report,
             uint256(_currentTier),
-            uint256(_newTier),
+            uint256(newTier_),
             block.number
         );
 
         // Last thing to do as checks-effects-interactions.
         // Call the _afterSetTier hook to allow inheriting contracts to enforce requirements.
         // The inheriting contract MUST require its needs to rollback the status change.
-        _afterSetTier(_account, _currentTier, _newTier, _data);
+        _afterSetTier(account_, _currentTier, newTier_, data_);
 
         // Emit this event for ITier
-        emit TierChange(_account, _currentTier, _newTier);
+        emit TierChange(account_, _currentTier, newTier_);
     }
 
     /// Inheriting contracts SHOULD override this to enforce requirements.
@@ -68,7 +68,6 @@ contract ReadWriteTier is ITier {
     /// @param _oldTier The tier the account had before this update.
     /// @param _newTier The tier the account will have after this update.
     /// @param _data Additional arbitrary data to inform update requirements.
-    //slither-disable-next-line dead-code
     function _afterSetTier(
         address _account,
         Tier _oldTier,

@@ -1,62 +1,62 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity 0.6.12;
 
 import {ITier} from "../tier/ITier.sol";
 import {TierUtil} from "../tier/TierUtil.sol";
 
 contract TierUtilTest {
-    function tierAtBlockFromReport(uint256 _statusReport, uint256 _blockNumber)
+    function tierAtBlockFromReport(uint256 statusReport_, uint256 blockNumber_)
         external
         pure
         returns (ITier.Tier)
     {
-        return TierUtil.tierAtBlockFromReport(_statusReport, _blockNumber);
+        return TierUtil.tierAtBlockFromReport(statusReport_, blockNumber_);
     }
 
-    function tierBlock(uint256 _report, uint256 _tierInt)
+    function tierBlock(uint256 report_, uint256 tierInt_)
         external
         pure
         returns (uint256)
     {
-        return TierUtil.tierBlock(_report, _tierInt);
+        return TierUtil.tierBlock(report_, tierInt_);
     }
 
-    function truncateTiersAbove(uint256 _statusReport, uint256 _tierInt)
+    function truncateTiersAbove(uint256 statusReport_, uint256 tierInt_)
         external
         pure
         returns (uint256)
     {
-        return TierUtil.truncateTiersAbove(_statusReport, _tierInt);
+        return TierUtil.truncateTiersAbove(statusReport_, tierInt_);
     }
 
     function updateBlocksForTierRange(
-        uint256 _statusReport,
-        uint256 _startTierInt,
-        uint256 _endTierInt,
-        uint256 _blockNumber
+        uint256 statusReport_,
+        uint256 startTierInt_,
+        uint256 endTierInt_,
+        uint256 blockNumber_
     ) external pure returns (uint256) {
         return
             TierUtil.updateBlocksForTierRange(
-                _statusReport,
-                _startTierInt,
-                _endTierInt,
-                _blockNumber
+                statusReport_,
+                startTierInt_,
+                endTierInt_,
+                blockNumber_
             );
     }
 
     function updateReportWithTierAtBlock(
-        uint256 _statusReport,
-        uint256 _currentTierInt,
-        uint256 _newTierInt,
-        uint256 _blockNumber
+        uint256 statusReport_,
+        uint256 currentTierInt_,
+        uint256 newTierInt_,
+        uint256 blockNumber_
     ) external pure returns (uint256) {
         return
             TierUtil.updateReportWithTierAtBlock(
-                _statusReport,
-                _currentTierInt,
-                _newTierInt,
-                _blockNumber
+                statusReport_,
+                currentTierInt_,
+                newTierInt_,
+                blockNumber_
             );
     }
 }

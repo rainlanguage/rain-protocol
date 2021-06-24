@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity 0.6.12;
 
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -10,34 +10,34 @@ import "./ReadWriteTier.sol";
 contract TVKTransferTier is ReadWriteTier {
     using SafeERC20 for IERC20;
 
-    // Hardcoded as a constant to make auditing easier and lower storage requirements a bit.
+    /// Hardcoded as a constant to make auditing easier and lower storage requirements a bit.
     IERC20 public constant TVK = IERC20(
         0xd084B83C305daFD76AE3E1b4E1F1fe2eCcCb3988
     );
 
-    // Everyone who has NEVER interacted with the contract.
+    /// Everyone who has NEVER interacted with the contract.
     uint256 public constant ZERO = uint256(0);
-    // Nothing, this is anyone who interacted with the contract.
+    /// Nothing, this is anyone who interacted with the contract.
     uint256 public constant ONE = uint256(0);
-    // 1000 TVK
+    /// 1000 TVK
     uint256 public constant TWO = uint256(10 ** (18+3));
-    // 5000 TVK
+    /// 5000 TVK
     uint256 public constant THREE = uint256(5*10 ** (18+3));
-    // 10 000 TVK
+    /// 10 000 TVK
     uint256 public constant FOUR = uint256(10 ** (18+4));
-    // 25 000 TVK
+    /// 25 000 TVK
     uint256 public constant FIVE = uint256(25*10 ** (18+3));
-    // 100 000 TVK
+    /// 100 000 TVK
     uint256 public constant SIX = uint256(10 ** (18+5));
-    // 250 000 TVK
+    /// 250 000 TVK
     uint256 public constant SEVEN = uint256(25*10 ** (18+4));
-    // 1 000 000 TVK
+    /// 1 000 000 TVK
     uint256 public constant EIGHT = uint256(10 ** (18+6));
 
-    // Implements `_afterSetTier` from `ReadWriteTier`.
-    //
-    // Transfers TVK from the owner on increased tier.
-    // Transfers TVK to the owner on decreased tier.
+    /// Implements `_afterSetTier` from `ReadWriteTier`.
+    ///
+    /// Transfers TVK from the owner on increased tier.
+    /// Transfers TVK to the owner on decreased tier.
     function _afterSetTier(
         address _account,
         ITier.Tier _oldTier,
