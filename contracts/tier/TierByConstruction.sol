@@ -31,7 +31,7 @@ contract TierByConstruction {
         returns (bool)
     {
         uint256 _report = tierContract.report(account_);
-        uint256 _minimumTierBlock = TierUtil.tierBlock(_report, uint256(minimumTier_));
+        uint256 _minimumTierBlock = TierUtil.tierBlock(_report, minimumTier_);
         return _minimumTierBlock < constructionBlock;
     }
 

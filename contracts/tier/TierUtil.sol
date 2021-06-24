@@ -4,19 +4,22 @@ pragma solidity 0.6.12;
 
 import { ITier } from "./ITier.sol";
 
+/// Utilities to consistently read, write and manipulate tiers in reports.
+/// The low-level bit shifting can be difficult to get right so this factors that out.
 library TierUtil {
 
+    /// UNINITIALIZED report is 0xFF.. as no tier has been held.
     uint256 constant public UNINITIALIZED = uint256(-1);
 
-    /// Returns the highest status achieved relative to a block number and status report.
+    /// Returns the highest tier achieved relative to a block number and report.
     ///
-    /// Note that typically the statusReport will be from the _current_ contract state.
-    /// When the `statusReport` comes from a later block than the `blockNumber` this means
-    /// the user must have held the status continuously from `blockNumber` _through_ to the report block.
+    /// Note that typically the report will be from the _current_ contract state.
+    /// When the `report` comes from a later block than the `blockNumber` this means
+    /// the user must have held the tier continuously from `blockNumber` _through_ to the report block.
     /// I.e. NOT a snapshot.
-    /// @param report_ A status report as per ITier
-    /// @param blockNumber_ The block number check the statuses against.
-    /// @return The highest status held since `blockNumber` according to `report`.
+    /// @param report_ A report as per `ITier`.
+    /// @param blockNumber_ The block number to check the tiers against.
+    /// @return The highest tier held since `blockNumber` according to `report`.
     function tierAtBlockFromReport(
         uint256 report_,
         uint256 blockNumber_
@@ -31,22 +34,22 @@ library TierUtil {
         return ITier.Tier(8);
     }
 
-    /// Returns the block that a given status has been held since according to a status report.
+    /// Returns the block that a given tier has been held since according to a report.
     ///
-    /// The status report SHOULD encode "never" as 0xFFFFFFFF
-    /// @param report_ The status report to read a block number from.
-    /// @param tierInt_ The status integer to read the block number for.
-    /// @return The block number this status has been held since.
-    function tierBlock(uint256 report_, uint256 tierInt_)
+    /// The report SHOULD encode "never" as 0xFFFFFFFF.
+    /// @param report_ The report to read a block number from.
+    /// @param tier_ The Tier to read the block number for.
+    /// @return The block number this has been held since.
+    function tierBlock(uint256 report_, ITier.Tier tier_)
         internal
         pure
         returns (uint256)
     {
         // ZERO is a special case. Everyone has always been at least ZERO, since block 0.
-        if (tierInt_ == 0) {
+        if (tier_ == ITier.Tier.ZERO) {
             return 0;
         } else {
-            uint256 _offset = (tierInt_ - 1) * 32;
+            uint256 _offset = (uint256(tier_) - 1) * 32;
             return uint256(uint32(
                 uint256(
                     report_ >> _offset
@@ -55,11 +58,11 @@ library TierUtil {
         }
     }
 
-    /// Resets all the tiers above the reference tier.
+    /// Resets all the tiers above the reference tier to 0xFFFFFFFF.
     ///
-    /// @param report_ Status report to truncate with high bit 1s.
-    /// @param tierInt_ Status int level to truncate above (exclusive).
-    /// @return uint256 the truncated report.
+    /// @param report_ Report to truncate with high bit 1s.
+    /// @param tierInt_ Tier int level to truncate above (exclusive).
+    /// @return Truncated report.
     function truncateTiersAbove(uint256 report_, uint256 tierInt_)
         internal
         pure

@@ -6,19 +6,19 @@ pragma solidity 0.6.12;
 /// Standard interface to a tiered membership.
 ///
 /// A "membership" can represent many things:
-/// - Exclusive access
-/// - Participation in some event or process
-/// - KYC completion
-/// - Combination of sub-memberships
+/// - Exclusive access.
+/// - Participation in some event or process.
+/// - KYC completion.
+/// - Combination of sub-memberships.
 /// - Etc.
 ///
 /// The high level requirements for a contract implementing ITier:
 /// - MUST represent held tiers with the `Tier` enum.
 /// - MUST implement `report`.
-///   - The report is a `uint256` that SHOULD represent the block each tier was has been continuously held since encoded as `uint32`.
-///   - The encoded tiers start at ONE and ZERO is implied if no tier has ever been held.
+///   - The report is a `uint256` that SHOULD represent the block each tier has been continuously held since encoded as `uint32`.
+///   - The encoded tiers start at ONE; ZERO is implied if no tier has ever been held.
 ///   - Tier ZERO is NOT encoded in the report, it is simply the fallback value.
-///   - If a tier is lost the block data is erased for that tier and will be reset if/when the tier is regained to that new block.
+///   - If a tier is lost the block data is erased for that tier and will be set if/when the tier is regained to the new block.
 ///   - If the historical block information is not available the report MAY return `0x00000000` for all held tiers.
 ///   - Tiers that are lost or have never been held MUST return `0xFFFFFFFF`.
 /// - SHOULD implement `setTier`.
@@ -52,7 +52,7 @@ interface ITier {
 
     /// Updates the tier of an account.
     ///
-    /// The implementing contract is responsible for taking any additional actions required to set the tier.
+    /// The implementing contract is responsible for all checks and state changes required to set the tier.
     /// For example, taking/refunding funds/NFTs etc.
     ///
     /// Contracts may disallow directly setting tiers, preferring to derive reports from other onchain data.

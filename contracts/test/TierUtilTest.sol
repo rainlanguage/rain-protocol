@@ -14,12 +14,12 @@ contract TierUtilTest {
         return TierUtil.tierAtBlockFromReport(statusReport_, blockNumber_);
     }
 
-    function tierBlock(uint256 report_, uint256 tierInt_)
+    function tierBlock(uint256 report_, ITier.Tier tier_)
         external
         pure
         returns (uint256)
     {
-        return TierUtil.tierBlock(report_, tierInt_);
+        return TierUtil.tierBlock(report_, tier_);
     }
 
     function truncateTiersAbove(uint256 statusReport_, uint256 tierInt_)
