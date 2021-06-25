@@ -3,7 +3,7 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import { ReadWriteTier } from '../typechain/ReadWriteTier'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { tvkReport, blockNumbersToReport, assertError } from '../utils/report'
+import { tierReport, blockNumbersToReport, assertError } from '../utils/report'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -90,7 +90,7 @@ describe('Account tier', async function () {
 
     it('will return tier if set', async function () {
         const [signers, readWriteTier] = await setup()
-        let expected = tvkReport(uninitializedReport)
+        let expected = tierReport(uninitializedReport)
         let expectedReport = blockNumbersToReport(expected);
         let i = 0;
         for (let tier of tiers) {
@@ -107,7 +107,7 @@ describe('Account tier', async function () {
 
     it('will fill multiple tiers at a time', async function () {
         const [signers, readWriteTier] = await setup()
-        let expected = tvkReport(uninitializedReport)
+        let expected = tierReport(uninitializedReport)
         let expectedReport = blockNumbersToReport(expected)
         let o = 0
         let n = 0
@@ -143,7 +143,7 @@ describe('Account tier', async function () {
         await readWriteTier.setTier(signers[0].address, 3, []);
         // check with the contract
         const status = await readWriteTier.report(signers[0].address)
-        const report = tvkReport(status.toString())
+        const report = tierReport(status.toString())
         const currentBlock = await readWriteTier.provider.getBlockNumber()
         expect(report[0]).to.equal(currentBlock)
         expect(report[1]).to.equal(currentBlock)
@@ -169,7 +169,7 @@ describe('Account tier', async function () {
         await readWriteTier.setTier(signers[0].address, 3, []);
         // check with the contract
         const status = await readWriteTier.report(signers[0].address)
-        const report = tvkReport(status.toString())
+        const report = tierReport(status.toString())
         expect(report[0]).to.equal(previousBlock)
     });
 
@@ -192,7 +192,7 @@ describe('Account tier', async function () {
         await readWriteTier.setTier(signers[0].address, 1, []);
         // check with the contract
         const status = await readWriteTier.report(signers[0].address)
-        const report = tvkReport(status.toString())
+        const report = tierReport(status.toString())
         expect(report[0]).to.equal(previousBlock)
     });
 
@@ -205,7 +205,7 @@ describe('Account tier', async function () {
         await readWriteTier.setTier(signers[0].address, 3, []);
         // check with the contract
         const status = await readWriteTier.report(signers[0].address)
-        const report = tvkReport(status.toString())
+        const report = tierReport(status.toString())
         expect(report[0]).to.equal(previousBlock)
     });
 
@@ -218,7 +218,7 @@ describe('Account tier', async function () {
         await readWriteTier.setTier(signers[0].address, 1, []);
         // check with the contract
         const status = await readWriteTier.report(signers[0].address)
-        const report = tvkReport(status.toString())
+        const report = tierReport(status.toString())
         expect(report[0]).to.equal(originalBlock)
     });
 
@@ -235,7 +235,7 @@ describe('Account tier', async function () {
 
         // check with the contract
         const status = await readWriteTier.report(signers[0].address)
-        const report = tvkReport(status.toString())
+        const report = tierReport(status.toString())
         expect(report[2]).to.equal(uninitializedStatusAsNum)
         expect(report[1]).to.equal(uninitializedStatusAsNum)
         expect(report[0]).to.equal(originalBlock)
@@ -251,7 +251,7 @@ describe('Account tier', async function () {
 
         // check with the contract
         const status = await readWriteTier.report(signers[0].address);
-        const report = tvkReport(status.toString());
+        const report = tierReport(status.toString());
         assert(report[0] === report[1]);
         assert(report[1] < report[2]);
         assert(report[2] === report[3]);
