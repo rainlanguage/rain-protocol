@@ -116,19 +116,7 @@ library TierUtil {
     )
         internal pure returns (uint256)
     {
-        // Truncate above the new tier if it is lower than the current one.
-        if (endTier_ < startTier_) {
-            return truncateTiersAbove(report_, endTier_);
-        }
-        // Otherwise fill the gap between start and end with the block number.
-        else {
-            return updateBlocksForTierRange(
-                report_,
-                startTier_,
-                endTier_,
-                blockNumber_
-            );
-        }
+        return endTier_ < startTier_ ? truncateTiersAbove(report_, endTier_) : updateBlocksForTierRange(report_, startTier_, endTier_, blockNumber_);
     }
 
 }
