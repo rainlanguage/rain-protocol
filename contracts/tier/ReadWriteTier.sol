@@ -23,9 +23,8 @@ contract ReadWriteTier is ITier {
         view
         returns (uint256)
     {
-        uint256 report_ = reports[account_];
         // Inequality here to silence slither warnings.
-        return report_ > 0 ? report_ : TierUtil.UNINITIALIZED;
+        return reports[account_] > 0 ? reports[account_] : TierUtil.UNINITIALIZED;
     }
 
     /// Errors if the user attempts to return to the ZERO tier.

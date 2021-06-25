@@ -8,6 +8,13 @@ import { ERC20BalanceTier } from "../tier/ERC20BalanceTier.sol";
 import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
 import { ITier } from "../tier/ITier.sol";
 
+/// @title ClaimERC1155Test
+/// Contract that implements claiming an erc1155 contingent on tiers for testing and demonstration purposes.
+/// The contract is `ERC20BalanceTier`, `TierByConstructionClaim` and `ERC1155` from open zeppelin:
+/// - The balance tier compares the current holdings of an erc20 against preset values.
+/// - The tier by construction ensures the claim is restricted to anyone tier THREE and above.
+/// - The tier by construction also exposes `isTier` to provide further goodies to tier FIVE and above.
+/// - The ERC1155 enables and tracks minted NFTs.
 contract ClaimERC1155Test is ERC20BalanceTier, TierByConstructionClaim, ERC1155 {
     uint256 public constant ART = 0;
     uint256 public constant GOOD_ART = 1;
@@ -23,7 +30,7 @@ contract ClaimERC1155Test is ERC20BalanceTier, TierByConstructionClaim, ERC1155 
         uint256,
         bytes memory
     ) internal override {
-        // Anyone above tier 5 gets more art and some good art.
+        // Anyone above tier FIVE gets more art and some good art.
         bool isFive_ = isTier(account_, Tier.FIVE);
 
         uint256[] memory ids_ = new uint256[](2);

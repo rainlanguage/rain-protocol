@@ -24,6 +24,7 @@ pragma solidity 0.6.12;
 /// - SHOULD implement `setTier`.
 ///   - Contracts SHOULD revert with `SET_TIER` error if they cannot meaningfully set a tier directly.
 ///     For example a contract that can only derive a membership tier by reading the state of an external contract cannot set tiers.
+///   - Contracts implementing `setTier` SHOULD error with `SET_ZERO_TIER` if `Tier.ZERO` is being set.
 /// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
 ///   - Contracts that cannot meaningfully set a tier are exempt.
 interface ITier {

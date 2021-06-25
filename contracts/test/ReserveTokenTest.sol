@@ -4,31 +4,39 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+/// @title ReserveToken
 /// An example token that can be used as a reserve asset.
 /// On mainnet this would likely be some brand of stablecoin but can be anything.
-contract ReserveToken is ERC20 {
+contract ReserveTokenTest is ERC20 {
+    /// How many tokens to mint initially.
+    // One _billion_ dollars 👷😈
     uint256 public constant INITIAL_MINT = 10 ** 9;
-    // blacklist
+
+    /// Test against frozen assets, for example USDC can do this.
     mapping(address => bool) public freezables;
 
     constructor() public ERC20("USD Classic", "USDCC") {
-        // One _billion_ dollars 👷😈
         _mint(msg.sender, SafeMath.mul(INITIAL_MINT, 10 ** 18));
     }
 
-    function ownerAddFreezable(address address_) external {
+    /// Anyone in the world can freeze any address on our test asset.
+    /// @param address_ The address to freeze.
+    function addFreezable(address address_) external {
         freezables[address_] = true;
     }
 
-    function ownerRemoveFreezable(address address_) external {
+    /// Anyone in the world can unfreeze any address on our test asset.
+    /// @param address_ The address to unfreeze.
+    function removeFreezable(address address_) external {
         freezables[address_] = false;
     }
 
-    // burns all tokens
+    /// Burns all tokens held by the sender.
     function purge() external {
         _burn(msg.sender, balanceOf(msg.sender));
     }
 
+    /// Enforces the freeze list.
     function _beforeTokenTransfer(
         address,
         address receiver_,
@@ -36,7 +44,7 @@ contract ReserveToken is ERC20 {
     ) internal override {
         require(
             receiver_ == address(0) || !(freezables[receiver_]),
-            "ERR_FROZEN"
+            "FROZEN"
         );
     }
 }

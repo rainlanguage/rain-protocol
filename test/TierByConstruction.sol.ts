@@ -41,7 +41,7 @@ describe("TierByConstruction", async function () {
 
         await assertError(
             async () => await tierByConstruction.ifOne(),
-            "revert ERR_MINIMUM_TIER",
+            "revert MINIMUM_TIER",
             "onlyTier modifier did not restrict access to ifOne function which should have failed minimum tier requirement"
         )
     })
@@ -93,7 +93,7 @@ describe("TierByConstruction", async function () {
 
         await assertError(
             async () => await tierByConstruction.ifFour(),
-            'revert ERR_MINIMUM_TIER',
+            'revert MINIMUM_TIER',
             'did not make a mistake when the user entered FOUR when he did not have it'
         )
     });
@@ -109,7 +109,7 @@ describe("TierByConstruction", async function () {
         // Setting the status AFTER construction doesn't help.
         await assertError(
             async () => await tierByConstruction.ifOne(),
-            'revert ERR_MINIMUM_TIER',
+            'revert MINIMUM_TIER',
             'did not make a mistake when the user upgraded the ONE after construction'
         )
     });
@@ -132,7 +132,7 @@ describe("TierByConstruction", async function () {
     it("should not be able to use a function for a tier if you do not have that tier", async function () {
         await assertError(
             async () => await tierByConstruction.ifTwo(),
-            'revert ERR_MINIMUM_TIER',
+            'revert MINIMUM_TIER',
             'did not make a mistake when the user entered TWO when he did not have it.'
         )
     });
@@ -190,7 +190,7 @@ describe("TierByConstruction", async function () {
 
         await assertError(
             async () => await tierByConstruction.ifSix(),
-            'revert ERR_MINIMUM_TIER',
+            'revert MINIMUM_TIER',
             'did not make a mistake when the user entered dimond when he did not have it.'
         )
     });
@@ -225,8 +225,8 @@ describe("TierByConstructionClaim", async function () {
         await readWriteTier.setTier(owner.address, 4, [])
 
         await assertError(
-            async () => await tierByConstructionClaim.claim(owner.address),
-            'revert ERR_MINIMUM_TIER',
+            async () => await tierByConstructionClaim.claim(owner.address, []),
+            'revert MINIMUM_TIER',
             'did not make a mistake when the user upgraded the FOUR after construction'
         )
     });
@@ -236,7 +236,7 @@ describe("TierByConstructionClaim", async function () {
         tierByConstructionClaim = await tierByConstructionClaimFactory.deploy(readWriteTier.address) as TierByConstructionClaimTest
         await tierByConstructionClaim.deployed()
 
-        await tierByConstructionClaim.claim(owner.address)
+        await tierByConstructionClaim.claim(owner.address, [])
 
         assert(
             Number(await tierByConstructionClaim.balanceOf(owner.address)) === 100,
@@ -247,8 +247,8 @@ describe("TierByConstructionClaim", async function () {
 
     it("should not allow multiple minting", async function () {
         await assertError(
-            async () => await tierByConstructionClaim.claim(owner.address),
-            'revert MULTI_MINT',
+            async () => await tierByConstructionClaim.claim(owner.address, []),
+            'revert DUPLICATE_CLAIM',
             'function does not correctly restrict multiple mints'
         )
     });

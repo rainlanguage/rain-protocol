@@ -3,7 +3,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../typechain/ReadWriteTier";
 import type { TierUtilTest } from "../typechain/TierUtilTest";
-import type { ReserveToken } from "../typechain/ReserveToken";
+import type { ReserveTokenTest } from "../typechain/ReserveTokenTest";
 import { assertError, basicDeploy } from "./Util";
 
 chai.use(solidity);
@@ -25,7 +25,7 @@ describe("TierUtil", async function () {
   let owner: any;
   let signer1: any;
   let readWriteTier: ReadWriteTier;
-  let reserve: ReserveToken;
+  let reserve: ReserveTokenTest;
   let tierUtil: TierUtilTest;
 
   beforeEach(async () => {
@@ -37,7 +37,7 @@ describe("TierUtil", async function () {
 
     tierUtil = (await basicDeploy("TierUtilTest", {})) as TierUtilTest;
 
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest;
   });
 
   it("should correctly return the highest achieved tier relative to a given report and block number", async () => {

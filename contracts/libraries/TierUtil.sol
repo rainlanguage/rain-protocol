@@ -4,6 +4,7 @@ pragma solidity 0.6.12;
 
 import { ITier } from "../tier/ITier.sol";
 
+/// @title TierUtil
 /// Utilities to consistently read, write and manipulate tiers in reports.
 /// The low-level bit shifting can be difficult to get right so this factors that out.
 library TierUtil {
@@ -26,9 +27,9 @@ library TierUtil {
     )
         internal pure returns (ITier.Tier)
     {
-        for (uint256 i = 0; i < 8; i++) {
-            if (uint32(uint256(report_ >> (i*32))) > uint32(blockNumber_)) {
-                return ITier.Tier(i);
+        for (uint256 i_ = 0; i_ < 8; i_++) {
+            if (uint32(uint256(report_ >> (i_*32))) > uint32(blockNumber_)) {
+                return ITier.Tier(i_);
             }
         }
         return ITier.Tier(8);
@@ -46,16 +47,14 @@ library TierUtil {
         returns (uint256)
     {
         // ZERO is a special case. Everyone has always been at least ZERO, since block 0.
-        if (tier_ == ITier.Tier.ZERO) {
-            return 0;
-        } else {
-            uint256 _offset = (uint256(tier_) - 1) * 32;
-            return uint256(uint32(
-                uint256(
-                    report_ >> _offset
-                )
-            ));
-        }
+        if (tier_ == ITier.Tier.ZERO) { return 0; }
+
+        uint256 offset_ = (uint256(tier_) - 1) * 32;
+        return uint256(uint32(
+            uint256(
+                report_ >> offset_
+            )
+        ));
     }
 
     /// Resets all the tiers above the reference tier to 0xFFFFFFFF.
@@ -68,9 +67,9 @@ library TierUtil {
         pure
         returns (uint256)
     {
-        uint256 _offset = uint256(tier_) * 32;
-        uint256 _mask = (UNINITIALIZED >> _offset) << _offset;
-        return report_ | _mask;
+        uint256 offset_ = uint256(tier_) * 32;
+        uint256 mask_ = (UNINITIALIZED >> offset_) << offset_;
+        return report_ | mask_;
     }
 
     /// Updates a report with a block number for every status integer in a range.
@@ -89,23 +88,25 @@ library TierUtil {
     )
         internal pure returns (uint256)
     {
-        for (uint256 i = uint256(startTier_); i < uint256(endTier_); i++) {
-            report_ = (report_ & ~uint256(uint256(uint32(UNINITIALIZED)) << i*32)) | uint256(blockNumber_ << (i*32));
+        uint256 offset_;
+        for (uint256 i_ = uint256(startTier_); i_ < uint256(endTier_); i_++) {
+            offset_ = i_ * 32;
+            report_ = (report_ & ~uint256(uint256(uint32(UNINITIALIZED)) << offset_)) | uint256(blockNumber_ << offset_);
         }
         return report_;
     }
 
     /// Updates a report to a new status.
     ///
-    /// Internally dispatches to `truncateStatusesAbove` and `updateBlocksForStatuRange`.
-    /// The dispatch is based on whether the new status is above or below the current status.
-    /// The `current_tierInt` MUST match the result of `statusAtFromReport`.
-    /// It is expected the caller will know the current status when calling this function
+    /// Internally dispatches to `truncateTiersAbove` and `updateBlocksForTierRange`.
+    /// The dispatch is based on whether the new tier is above or below the current tier.
+    /// The `startTier_` MUST match the result of `tierAtBlockFromReport`.
+    /// It is expected the caller will know the current tier when calling this function
     /// and need to do other things in the calling scope with it.
     /// @param report_ The report to update.
-    /// @param startTier_ The current status int according to the report.
-    /// @param endTier_ The new status for the report.
-    /// @param blockNumber_ The block number to update the status at.
+    /// @param startTier_ The current tier according to the report.
+    /// @param endTier_ The new tier for the report.
+    /// @param blockNumber_ The block number to update the tier at.
     /// @return The updated report.
     function updateReportWithTierAtBlock(
         uint256 report_,
@@ -115,11 +116,11 @@ library TierUtil {
     )
         internal pure returns (uint256)
     {
-        // Truncate above the new status if it is lower than the current one.
+        // Truncate above the new tier if it is lower than the current one.
         if (endTier_ < startTier_) {
             return truncateTiersAbove(report_, endTier_);
         }
-        // Otherwise fill the gap between current and new with the block number.
+        // Otherwise fill the gap between start and end with the block number.
         else {
             return updateBlocksForTierRange(
                 report_,

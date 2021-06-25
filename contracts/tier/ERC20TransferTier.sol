@@ -26,10 +26,15 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
 
     IERC20 public erc20;
 
+    /// @param erc20_ The erc20 token contract to transfer balances from/to during `setTier`.
+    /// @param tierValues_ 8 values corresponding to minimum erc20 balances for tiers ONE through EIGHT.
     constructor(IERC20 erc20_, uint256[8] memory tierValues_) public ValueTier(tierValues_) {
         erc20 = erc20_;
     }
 
+    /// Transfers balances of erc20 from/to the teired account according to the difference in values.
+    /// Any failure to transfer in/out will rollback the tier change.
+    /// The tiered account must ensure sufficient approvals before attempting to set a new tier.
     /// @inheritdoc ReadWriteTier
     function _afterSetTier(
         address account_,

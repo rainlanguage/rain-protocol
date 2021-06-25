@@ -28,12 +28,9 @@ contract ValueTier {
     }
 
     /// Converts a Tier to the minimum value it requires.
+    /// Tier ZERO is always value 0 as it is the fallback.
     function tierToValue(ITier.Tier tier_) internal view returns(uint256) {
-        if (uint256(tier_) > 0) {
-            return tierValues[uint256(tier_) - 1];
-        } else {
-            return 0;
-        }
+        return tier_ == ITier.Tier.ZERO ? 0 : tierValues[uint256(tier_) - 1];
     }
 
     /// Converts a value to the maximum Tier it qualifies for.

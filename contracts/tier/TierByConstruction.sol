@@ -30,9 +30,10 @@ contract TierByConstruction {
         view
         returns (bool)
     {
-        uint256 _report = tierContract.report(account_);
-        uint256 _minimumTierBlock = TierUtil.tierBlock(_report, minimumTier_);
-        return _minimumTierBlock < constructionBlock;
+        return constructionBlock >= TierUtil.tierBlock(
+            tierContract.report(account_),
+            minimumTier_
+        );
     }
 
     /// Modifier that restricts access to functions depending on the tier required by the function.
@@ -51,7 +52,7 @@ contract TierByConstruction {
         _;
         require(
             isTier(account_, minimumTier_),
-            "ERR_MINIMUM_TIER"
+            "MINIMUM_TIER"
         );
     }
 }
