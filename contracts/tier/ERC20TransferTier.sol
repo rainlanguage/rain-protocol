@@ -45,6 +45,12 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
         internal
         override
     {
+        // As _anyone_ can call `setTier` we require that `msg.sender` and `account_` are the same if the end tier is lower.
+        // Anyone can increase anyone else's tier provided the recipient has approved sufficient balance.
+        if (endTier_ < startTier_) {
+            require(msg.sender == account_, "DELEGATED_TIER_LOSS");
+        }
+
         // Handle the erc20 transfer.
         // Convert the start tier to an erc20 amount.
         uint256 startValue_ = tierToValue(startTier_);

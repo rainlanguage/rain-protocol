@@ -23,14 +23,14 @@ contract ValueTier {
     /// Complements the default solidity accessor for `tierValues`.
     /// Returns all the values in a list rather than requiring an index be specified.
     /// @return The immutable `tierValues`.
-    function getTierValues() public view returns(uint256[8] memory) {
+    function getTierValues() external view returns(uint256[8] memory) {
         return tierValues;
     }
 
     /// Converts a Tier to the minimum value it requires.
     /// Tier ZERO is always value 0 as it is the fallback.
     function tierToValue(ITier.Tier tier_) internal view returns(uint256) {
-        return tier_ == ITier.Tier.ZERO ? 0 : tierValues[uint256(tier_) - 1];
+        return tier_ > ITier.Tier.ZERO ? tierValues[uint256(tier_) - 1] : 0;
     }
 
     /// Converts a value to the maximum Tier it qualifies for.
