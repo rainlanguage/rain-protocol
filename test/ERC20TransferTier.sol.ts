@@ -26,11 +26,12 @@ const LEVEL_SIZE_LINEAR = ethers.BigNumber.from(1 + eighteenZeros)
 describe("ERC20TransferTier", async function () {
   let owner: any;
   let alice: any;
+  let bob: any;
   let erc20TransferTier: ERC20TransferTier;
   let reserve: ReserveTokenTest;
 
   beforeEach(async () => {
-    [owner, alice] = await ethers.getSigners()
+    [owner, alice, bob] = await ethers.getSigners()
 
     reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest
 
@@ -42,6 +43,36 @@ describe("ERC20TransferTier", async function () {
 
     await erc20TransferTier.deployed()
   });
+
+  it('should allow delegating tier upgrades', async () => {
+    const requiredForTier2 = LEVELS[1]
+
+    await reserve.transfer(bob.address, requiredForTier2)
+
+    // bob intends to cover the cost of upgrading alice
+    await reserve.connect(bob).approve(erc20TransferTier.address, requiredForTier2)
+    
+    // bob sets alice's tier to TWO
+    await erc20TransferTier.connect(bob).setTier(alice.address, Tier.TWO, [])
+  })
+
+  it('should prevent delegating tier downgrades, sender must much target', async () => {
+    const requiredForTier2 = LEVELS[1]
+
+    await reserve.transfer(alice.address, requiredForTier2)
+
+    // alice sets their tier to TWO
+    await reserve.connect(alice).approve(erc20TransferTier.address, requiredForTier2)
+    await erc20TransferTier.connect(alice).setTier(alice.address, Tier.TWO, [])
+
+    await assertError(
+      async () => await erc20TransferTier.connect(bob).setTier(alice.address, Tier.ONE, []),
+      "revert DELEGATED_TIER_LOSS",
+      "bob downgraded alice's tier"
+    )
+
+    await erc20TransferTier.connect(alice).setTier(alice.address, Tier.ONE, [])
+  })
 
   it('should restrict setting ZERO tier', async () => {
     await assertError(
