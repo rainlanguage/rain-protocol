@@ -78,7 +78,7 @@ describe("ValueTierTest", async function () {
     const tierValues = await valueTier.getTierValues()
 
     assert(
-      tierValues.every((value, index) => value.eq(LEVELS[index])),
+      tierValues.every((value:any, index:any) => value.eq(LEVELS[index])),
       `did not return the correct tierValue list
       expected  ${LEVELS}
       got       ${tierValues}`
@@ -100,7 +100,7 @@ describe("ValueTierTest", async function () {
   it('should convert a value to the maximum Tier it qualifies for', async () => {
     assert((await valueTier.wrappedValueToTier(0)) === Tier.ZERO)
     assert((await valueTier.wrappedValueToTier(LEVELS[0])) === Tier.ONE)
-    
+
     assert((await valueTier.wrappedValueToTier(LEVELS[1])) === Tier.TWO)
     assert((await valueTier.wrappedValueToTier(LEVELS[1].add(1))) === Tier.TWO)
     assert((await valueTier.wrappedValueToTier(LEVELS[1].sub(1))) === Tier.ONE)

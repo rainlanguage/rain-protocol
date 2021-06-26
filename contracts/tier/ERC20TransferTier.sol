@@ -32,9 +32,11 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
         erc20 = erc20_;
     }
 
-    /// Transfers balances of erc20 from/to the teired account according to the difference in values.
+    /// Transfers balances of erc20 from/to the tiered account according to the difference in values.
     /// Any failure to transfer in/out will rollback the tier change.
     /// The tiered account must ensure sufficient approvals before attempting to set a new tier.
+    /// The `msg.sender` is responsible for paying the token cost of a tier increase.
+    /// The tiered account is always the recipient of a refund on a tier decrease.
     /// @inheritdoc ReadWriteTier
     function _afterSetTier(
         address account_,
@@ -46,7 +48,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
         override
     {
         // As _anyone_ can call `setTier` we require that `msg.sender` and `account_` are the same if the end tier is lower.
-        // Anyone can increase anyone else's tier provided the recipient has approved sufficient balance.
+        // Anyone can increase anyone else's tier provided the `msg.sender` has approved sufficient balance.
         if (endTier_ < startTier_) {
             require(msg.sender == account_, "DELEGATED_TIER_LOSS");
         }
@@ -63,7 +65,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
         }
         if (endValue_ > startValue_) {
             // Going up, take ownership of erc20.
-            erc20.safeTransferFrom(account_, address(this), SafeMath.sub(
+            erc20.safeTransferFrom(msg.sender, address(this), SafeMath.sub(
                 endValue_,
                 startValue_
             ));

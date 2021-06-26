@@ -152,7 +152,7 @@ In addition to the standard accounting it requires that users transfer erc20 tok
 
 Data is ignored, the only requirement is that the user has approved sufficient balance to gain the next tier.
 
-To avoid griefing attacks where accounts remove tiers from arbitrary third parties, we `require(msg.sender == account_);` when a tier is removed.
+To avoid griefing attacks where accounts remove tiers from arbitrary third parties, we `require(msg.sender == account_);` when a tier is removed. When a tier is added the `msg.sender` is responsible for payment.
 
 The 8 values for gainable tiers and erc20 contract must be set upon construction and are immutable.
 
