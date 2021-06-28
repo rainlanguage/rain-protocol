@@ -359,7 +359,7 @@ describe("Trust", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber()
 
-    assert((await token.unblockBlock()).isZero(), "token unblock block was set in trust startRaise")
+    assert((await token.unblockBlock()).isZero(), "token unblock block was wrongly set in trust startRaise")
 
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserve.transfer(signers[3].address, 1)
