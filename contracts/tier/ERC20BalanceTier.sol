@@ -17,7 +17,7 @@ import "./ReadOnlyTier.sol";
 /// `setTier` will error as this contract has no ability to write to the erc20 contract state.
 ///
 /// Balance tiers are useful for:
-/// - Claim contracts that don't require backdated tier holding.
+/// - Claim contracts that don't require backdated tier holding (be wary of griefing!).
 /// - Assets that cannot be transferred, so are not eligible for `ERC20TransferTier`.
 /// - Lightweight, realtime checks that encumber the tiered address as little as possible.
 contract ERC20BalanceTier is ReadOnlyTier, ValueTier {

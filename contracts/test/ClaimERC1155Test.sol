@@ -14,7 +14,7 @@ import { ITier } from "../tier/ITier.sol";
 /// - The balance tier compares the current holdings of an erc20 against preset values.
 /// - The tier by construction ensures the claim is restricted to anyone tier THREE and above.
 /// - The tier by construction also exposes `isTier` to provide further goodies to tier FIVE and above.
-/// - The ERC1155 enables and tracks minted NFTs.
+/// - The erc1155 enables and tracks minted NFTs.
 contract ClaimERC1155Test is ERC20BalanceTier, TierByConstructionClaim, ERC1155 {
     uint256 public constant ART = 0;
     uint256 public constant GOOD_ART = 1;

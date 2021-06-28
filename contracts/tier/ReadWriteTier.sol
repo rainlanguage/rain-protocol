@@ -58,7 +58,7 @@ contract ReadWriteTier is ITier {
         emit TierChange(account_, startTier_, endTier_);
 
         // Call the _afterSetTier hook to allow inheriting contracts to enforce requirements.
-        // The inheriting contract MUST require its needs to rollback the status change.
+        // The inheriting contract MUST `require` or otherwise enforce its needs to rollback a bad status change.
         _afterSetTier(account_, startTier_, endTier_, data_);
     }
 
