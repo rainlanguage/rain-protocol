@@ -5,6 +5,7 @@ import type { Trust } from "../typechain/Trust"
 import type { ReserveToken } from "../typechain/ReserveToken"
 import * as Util from './Util'
 import { utils } from "ethers";
+import type { BigNumber } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 
 chai.use(solidity);
@@ -38,7 +39,229 @@ enum RaiseStatus {
   FAIL
 }
 
+interface RaiseProgress {
+  raiseStatus: RaiseStatus;
+  poolReserveBalance: BigNumber;
+  poolTokenBalance: BigNumber;
+  reserveInit: BigNumber;
+  minCreatorRaise: BigNumber;
+  seederFee: BigNumber;
+  redeemInit: BigNumber;
+}
+
 describe("Trust", async function () {
+  it('should include correct values when calling getRaiseProgress', async () => {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator/owner
+    const deployer = signers[2] // deployer is not creator
+    const hodler1 = signers[3]
+
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    const trust = await trustFactory1.deploy(
+      {
+        creator: creator.address,
+        minCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+
+    const raiseProgressDeployed: RaiseProgress = await trust.getRaiseProgress()
+    
+    assert(raiseProgressDeployed.raiseStatus === RaiseStatus.PENDING, `did not get correct value for RaiseProgress.raiseStatus on deploy
+    expected  ${RaiseStatus.PENDING}
+    got       ${raiseProgressDeployed.raiseStatus}
+    `)
+
+    assert(raiseProgressDeployed.poolReserveBalance.isZero(), `did not get correct value for poolReserveBalance on deploy
+    expected  ${0}
+    got       ${raiseProgressDeployed.poolReserveBalance}
+    `)
+
+    assert(raiseProgressDeployed.poolTokenBalance.isZero(), `did not get correct value for poolTokenBalance on deploy
+    expected  ${0}
+    got       ${raiseProgressDeployed.poolTokenBalance}
+    `)
+
+    assert(raiseProgressDeployed.reserveInit.eq(reserveInit), `did not get correct value for reserveInit on deploy
+    expected  ${reserveInit}
+    got       ${raiseProgressDeployed.reserveInit}
+    `)
+
+    assert(raiseProgressDeployed.minCreatorRaise.eq(minCreatorRaise), `did not get correct value for minCreatorRaise on deploy
+    expected  ${minCreatorRaise}
+    got       ${raiseProgressDeployed.minCreatorRaise}
+    `)
+
+    assert(raiseProgressDeployed.seederFee.eq(seederFee), `did not get correct value for seederFee on deploy
+    expected  ${seederFee}
+    got       ${raiseProgressDeployed.seederFee}
+    `)
+
+    assert(raiseProgressDeployed.redeemInit.eq(redeemInit), `did not get correct value for redeemInit on deploy
+    expected  ${redeemInit}
+    got       ${raiseProgressDeployed.redeemInit}
+    `)
+
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder.address, reserveInit)
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
+
+    // seeder must transfer funds to pool
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
+
+    const raiseProgressSeeded: RaiseProgress = await trust.getRaiseProgress()
+
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+
+    assert(raiseProgressSeeded.raiseStatus === RaiseStatus.SEEDED, `did not get correct value for RaiseProgress.raiseStatus on seeding pool
+    expected  ${RaiseStatus.SEEDED}
+    got       ${raiseProgressSeeded.raiseStatus}
+    `)
+
+    // poolReserveBalance is actually the bPool balance, but bPool doesn't exist
+    // since raise hasn't started yet, this value is actually zero
+    assert(raiseProgressSeeded.poolReserveBalance.isZero())
+
+    assert(raiseProgressSeeded.poolTokenBalance.isZero(), `did not get correct value for poolTokenBalance on seeding pool
+    expected  ${0} (token not constructed yet)
+    got       ${raiseProgressSeeded.poolTokenBalance}
+    `)
+
+    await trust.startRaise({ gasLimit: 100000000 })
+
+    const raiseProgressTrading: RaiseProgress = await trust.getRaiseProgress()
+
+    const startBlock = await ethers.provider.getBlockNumber()
+
+    const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
+    const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, creator)
+    const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+
+    assert(raiseProgressTrading.raiseStatus === RaiseStatus.TRADING, `did not get correct value for RaiseProgress.raiseStatus on starting raise
+    expected  ${RaiseStatus.TRADING}
+    got       ${raiseProgressTrading.raiseStatus}
+    `)
+
+    assert(raiseProgressTrading.poolReserveBalance.eq(reserveInit), `did not get correct value for poolReserveBalance on starting raise
+    expected  ${reserveInit}
+    got       ${raiseProgressTrading.poolReserveBalance}
+    `)
+
+    assert(raiseProgressTrading.poolTokenBalance.eq(await token.balanceOf(bPool.address)), `did not get correct value for poolTokenBalance on starting raise
+    expected    ${await token.balanceOf(bPool.address)}
+    got         ${raiseProgressTrading.poolTokenBalance}
+    `)
+    assert(raiseProgressTrading.poolTokenBalance.eq(totalTokenSupply))
+
+    const swapReserveForTokens = async (hodler, spend) => {
+      // give hodler some reserve
+      await reserve.transfer(hodler.address, spend)
+
+      const reserveHodler = reserve.connect(hodler)
+      const crpHodler = crp.connect(hodler)
+      const bPoolHodler = bPool.connect(hodler)
+
+      await reserveHodler.approve(bPool.address, spend)
+      await crpHodler.pokeWeights()
+      await bPoolHodler.swapExactAmountIn(
+        reserve.address,
+        spend,
+        token.address,
+        ethers.BigNumber.from('1'),
+        ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+      )
+    }
+
+    const spend = ethers.BigNumber.from('10' + Util.eighteenZeros)
+
+    await swapReserveForTokens(
+      hodler1,
+      spend
+    )
+
+    const raiseProgressSwap: RaiseProgress = await trust.getRaiseProgress()
+
+    assert(raiseProgressSwap.raiseStatus === RaiseStatus.TRADING, `did not get correct value for RaiseProgress.raiseStatus after a swap
+    expected  ${RaiseStatus.TRADING}
+    got       ${raiseProgressSwap.raiseStatus}
+    `)
+
+    assert(raiseProgressSwap.poolReserveBalance.eq(reserveInit.add(spend)), `did not get correct value for poolReserveBalance after a swap
+    expected  ${reserveInit.add(spend)}
+    got       ${raiseProgressSwap.poolReserveBalance}
+    `)
+
+    assert(raiseProgressSwap.poolTokenBalance.eq(await token.balanceOf(bPool.address)), `did not get correct value for poolTokenBalance after a swap
+    expected    ${await token.balanceOf(bPool.address)}
+    got         ${raiseProgressSwap.poolTokenBalance}
+    `)
+    assert(raiseProgressSwap.poolTokenBalance.lt(totalTokenSupply))
+  })
+
   it('should be blocked if minimum raise hit exactly due to dust', async function () {
     this.timeout(0)
 
