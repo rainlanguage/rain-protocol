@@ -2,7 +2,9 @@
   "name": "hardhat-project",
   "dependencies": {
     "@openzeppelin/contracts": "^3.4.1",
-    "hardhat-typechain": "^0.3.5"
+    "hardhat-typechain": "^0.3.5",
+    "underscore": ">=1.12.1",
+    "ws": ">=7.4.6"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
