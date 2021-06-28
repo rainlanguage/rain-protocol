@@ -21,8 +21,8 @@ contract TierByConstructionClaim is TierByConstruction {
     event Claim(address indexed account, bytes data_);
 
     /// Nothing special needs to happen in the constructor.
-    /// Simply forward/set the desired ITier in the TierByConstruction constructor.
-    /// The ERC20 constructor is as per Open Zeppelin.
+    /// Simply forwards the desired ITier contract in the TierByConstruction constructor.
+    /// The minimum tier is set for later reference.
     constructor(ITier tierContract_, ITier.Tier minimumTier_)
         public
         TierByConstruction(tierContract_)
@@ -35,6 +35,7 @@ contract TierByConstructionClaim is TierByConstruction {
     /// The claim can only be done once per account.
     ///
     /// NOTE: This function is callable by anyone and can only be called once per account.
+    /// The `_afterClaim` function can and SHOULD enforce additional restrictions on when/how a claim is valid.
     /// Be very careful to manage griefing attacks when the `msg.sender` is not `account_`, for example:
     /// - An `ERC20BalanceTier` has no historical information so anyone can claim for anyone else based on their balance at any time.
     /// - `data_` may be set arbitrarily by `msg.sender` so could be consumed frivilously at the expense of `account_`.

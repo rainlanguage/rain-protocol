@@ -7,7 +7,7 @@ import { ITier } from "../tier/ITier.sol";
 import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
 
 /// @title TierByConstructionClaimTest
-/// A simple example showing how TierByConstruction can be used to gate a claim on an ERC20.
+/// A simple example showing how TierByConstruction can be used to gate a claim on an erc20.
 ///
 /// In this example users can mint 100 tokens for themselves if:
 ///
@@ -28,7 +28,7 @@ import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
 contract TierByConstructionClaimTest is ERC20, TierByConstructionClaim {
     /// Nothing special needs to happen in the constructor.
     /// Simply forward/set the desired ITier in the TierByConstruction constructor.
-    /// The ERC20 constructor is as per Open Zeppelin.
+    /// The erc20 constructor is as per Open Zeppelin.
     /// @param tier_ The tier contract to mediate the validity of claims.
     constructor(ITier tier_)
         public

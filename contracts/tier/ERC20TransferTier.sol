@@ -11,7 +11,9 @@ import "./ReadWriteTier.sol";
 
 /// @title ERC20TransferTier
 ///
-/// The `ERC20TransferTier` takes ownership of an erc20 balance by transferring it from the tiered address to itself.
+/// The `ERC20TransferTier` takes ownership of an erc20 balance by transferring erc20 token to itself.
+/// The `msg.sender` of `setTier` must pay the difference on upgrade, the tiered address receives refunds on downgrade.
+/// This allows users to "gift" tiers to each other.
 /// As the transfer is a state changing event we can track historical block times.
 /// As the tiered address moves up/down tiers it sends/receives the value difference between its current tier only.
 ///
@@ -48,7 +50,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
         override
     {
         // As _anyone_ can call `setTier` we require that `msg.sender` and `account_` are the same if the end tier is lower.
-        // Anyone can increase anyone else's tier provided the `msg.sender` has approved sufficient balance.
+        // Anyone can increase anyone else's tier as the `msg.sender` is responsible to pay the difference.
         if (endTier_ < startTier_) {
             require(msg.sender == account_, "DELEGATED_TIER_LOSS");
         }
@@ -64,13 +66,13 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
             return;
         }
         if (endValue_ > startValue_) {
-            // Going up, take ownership of erc20.
+            // Going up, take ownership of erc20 from the `msg.sender`.
             erc20.safeTransferFrom(msg.sender, address(this), SafeMath.sub(
                 endValue_,
                 startValue_
             ));
         } else {
-            // Going down, process a refund.
+            // Going down, process a refund for the tiered account.
             erc20.safeTransfer(account_, SafeMath.sub(
                 startValue_,
                 endValue_

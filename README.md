@@ -17,7 +17,7 @@ curl -L https://nixos.org/nix/install | sh
 Drop into a nix-shell.
 
 ```
-cd tv-balancer
+cd tv-tier
 nix-shell
 ```
 
@@ -174,13 +174,13 @@ There is no historical information so each tier will either be `0x00000000` or `
 
 `AlwaysTier` inherits from `ReadOnlyTier`.
 
-Always returns every tier, i.e. `0x00000000` for every address.
+Always returns every tier, i.e. `0x00000000` for every address and tier.
 
 ## NeverTier
 
 `NeverTier` inherits from `ReadOnlyTier`.
 
-Never returns any tier, i.e. `0xFFFFFFFF` for every address.
+Never returns any tier, i.e. `0xFFFFFFFF` for every address and tier.
 
 ## TierByConstruction
 
