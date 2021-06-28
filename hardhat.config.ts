@@ -1,6 +1,8 @@
 import type { HardhatUserConfig }  from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
+import "hardhat-gas-reporter"
+
 const config: HardhatUserConfig = {
   networks: {
     /*
@@ -17,7 +19,12 @@ const config: HardhatUserConfig = {
     }
   },
   solidity: {
-    compilers: [{ version: "0.6.12", settings: {} }],
+    compilers: [{ version: "0.6.12", settings: {
+      optimizer:{
+        enabled: true,
+        runs: 100000
+      }
+    } }],
   },
 };
 export default config;
