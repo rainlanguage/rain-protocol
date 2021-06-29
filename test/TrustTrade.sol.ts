@@ -742,7 +742,7 @@ describe("TrustTrade", async function () {
         },
         redeemInit,
       ),
-      "revert ERR_MAX_WEIGHT",
+      "revert MAX_WEIGHT_INITIAL",
       "wrongly deployed trust with pool at 50:1 weight ratio"
     )
 
