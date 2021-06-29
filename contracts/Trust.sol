@@ -215,6 +215,9 @@ contract Trust {
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
         uint256 _poolDust = _reserve.balanceOf(address(pool.pool()));
+        // The dust is included in the final balance for UX reasons.
+        // We don't want to fail the raise due to dust, even if technically it was a failure.
+        // To ensure a good UX for creators and token holders we subtract the dust from the seeder.
         uint256 _finalBalance = _reserve.balanceOf(address(this)) + _poolDust;
 
         // Base payments for each fundraiser.
@@ -222,8 +225,6 @@ contract Trust {
         uint256 _creatorPay;
 
         // Set aside the redemption and seed fee if we reached the minimum.
-        // The dust is included for UX reasons.
-        // We don't want to fail the raise due to dust, even if technically it was a failure.
         if (_finalBalance >= successBalance()) {
             raiseStatus = RaiseStatus.Success;
             // The seeder gets the reserve + seed fee - dust
