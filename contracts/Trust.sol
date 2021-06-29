@@ -34,6 +34,16 @@ enum RaiseStatus {
     Fail
 }
 
+struct RaiseProgress {
+    RaiseStatus raiseStatus;
+    uint256 poolReserveBalance;
+    uint256 poolTokenBalance;
+    uint256 reserveInit;
+    uint256 minCreatorRaise;
+    uint256 seederFee;
+    uint256 redeemInit;
+}
+
 struct TrustConfig {
     address creator;
     // Minimum amount to raise for the creator from the distribution period.
@@ -171,7 +181,27 @@ contract Trust {
         return pool.reserveInit().add(trustConfig.seederFee).add(redeemInit).add(trustConfig.minCreatorRaise);
     }
 
-    function getRaiseStatus() external view returns (RaiseStatus) {
+    function getRaiseProgress() external view returns(RaiseProgress memory) {
+        address _balancerPool = address(pool.pool());
+        uint256 _poolReserveBalance;
+        uint256 _poolTokenBalance;
+        if (_balancerPool != address(0)) {
+            _poolReserveBalance = pool.reserve().balanceOf(_balancerPool);
+            _poolTokenBalance = token.balanceOf(_balancerPool);
+        }
+
+        return RaiseProgress(
+            getRaiseStatus(),
+            _poolReserveBalance,
+            _poolTokenBalance,
+            pool.reserveInit(),
+            trustConfig.minCreatorRaise,
+            trustConfig.seederFee,
+            redeemInit
+        );
+    }
+
+    function getRaiseStatus() public view returns (RaiseStatus) {
         RaiseStatus _baseStatus = raiseStatus;
         if (_baseStatus == RaiseStatus.Pending && pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()) {
             return RaiseStatus.Seeded;
