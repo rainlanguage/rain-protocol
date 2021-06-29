@@ -428,11 +428,13 @@ describe("TrustRewards", async function () {
     }
 
     const finalBalance = await reserveA.balanceOf(bPool.address)
-    // on successful raise
-    const seederPay = reserveInit.add(seederFee)
-    const creatorPay = finalBalance.sub(seederPay.add(redeemInit))
 
     await trust.endRaise()
+
+    // on successful raise
+    const poolDustA = await reserveA.balanceOf(bPool.address)
+    const seederPay = reserveInit.add(seederFee).sub(poolDustA)
+    const creatorPay = finalBalance.sub(seederPay.add(redeemInit))
 
     // should be successful raise
     assert(
@@ -455,7 +457,7 @@ describe("TrustRewards", async function () {
       "added duplicate redeemable"
     )
 
-    const expectedRemainder = finalBalance.sub(creatorPay).sub(seederPay)
+    const expectedRemainder = finalBalance.sub(poolDustA).sub(creatorPay).sub(seederPay)
 
     const tokenReserveA = await reserveA.balanceOf(token.address)
     const tokenReserveB = await reserveB.balanceOf(token.address)
@@ -472,10 +474,10 @@ describe("TrustRewards", async function () {
     // hodler1 redeems tokens equal to 10% of total supply
     await token.connect(hodler1).redeem(tokenSupply.div(10))
 
-    // holder1 should get 10% of each reserve 
+    // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     assert(
-      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserveA.div(10).sub(4)), `
+      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserveA.div(10).sub(3)), `
       reserveA
         expected  ${tokenReserveA.div(10).sub(4)}
         got       ${await reserveA.balanceOf(hodler1.address)}`
@@ -516,7 +518,7 @@ describe("TrustRewards", async function () {
     // 9/10ths remaining
     assert(tokenSupply2nd.eq(tokenSupply.mul(9).div(10).add(1)), `
     wrong new total token supply
-      expected  ${tokenSupply.mul(9).div(10).add(1)}  
+      expected  ${tokenSupply.mul(9).div(10).add(1)}
       got       ${tokenSupply2nd}
     `)
 
@@ -526,7 +528,7 @@ describe("TrustRewards", async function () {
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     assert(
-      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserve2ndA.div(10).sub(2)), `
+      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserve2ndA.div(10).sub(3)), `
       reserveA 2nd
         expected  ${tokenReserve2ndA.div(10).sub(2)}
         got       ${await reserveA.balanceOf(hodler1.address)}`
