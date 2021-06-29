@@ -799,9 +799,6 @@ describe("TrustSeed", async function () {
         await reserve.transfer(signers[9].address, 0)
       }
 
-      // on successful raise, seeder gets reserveInit + seederFee
-      const expectedSeederPay = reserveInit.add(seederFee)
-
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
@@ -811,6 +808,11 @@ describe("TrustSeed", async function () {
 
       // seeder1 ends raise
       await trust.connect(seeder1).endRaise()
+
+      const poolDust = await reserve.balanceOf(bPool.address)
+
+      // on successful raise, seeder gets reserveInit + seederFee - dust
+      const expectedSeederPay = reserveInit.add(seederFee).sub(poolDust)
 
       // seederContract should now hold reserve equal to final balance
       assert((await reserve.balanceOf(seederContract.address)).eq(expectedSeederPay), `seeder contract has wrong reserve amount after failed raise ended
@@ -823,7 +825,7 @@ describe("TrustSeed", async function () {
       // correct amount of units should have been redeemed
       assert((await seederContract.totalSupply()).eq(seeder2Units), "wrong total seeder units supply")
 
-      const expectedReturn1 = reserveInit.add(seederFee).mul(seeder1Units).div(seedUnits)
+      const expectedReturn1 = expectedSeederPay.mul(seeder1Units).div(seedUnits)
 
       // correct amount of reserve should have been returned
       assert((await reserve.balanceOf(seeder1.address)).eq(expectedReturn1), `wrong reserve returned to seeder1 after redeeming
@@ -836,12 +838,14 @@ describe("TrustSeed", async function () {
       // correct amount of units should have been redeemed
       assert((await seederContract.totalSupply()).isZero(), "wrong total seeder units supply")
 
-      const expectedReturn2 = reserveInit.add(seederFee).mul(seeder2Units).div(seedUnits)
+      // add 1 to offset rounding error
+      const expectedReturn2 = expectedSeederPay.mul(seeder2Units).div(seedUnits).add(1)
+      const return2 = await reserve.balanceOf(seeder2.address)
 
       // correct amount of reserve should have been returned
-      assert((await reserve.balanceOf(seeder2.address)).eq(expectedReturn2), `wrong reserve returned to seeder2 after redeeming
+      assert(return2.eq(expectedReturn2), `wrong reserve returned to seeder2 after redeeming
       expected  ${expectedReturn2}
-      actual    ${await reserve.balanceOf(seeder2.address)}
+      actual    ${return2}
       `)
 
       // fails if they don't have seed units

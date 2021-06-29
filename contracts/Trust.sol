@@ -243,7 +243,12 @@ contract Trust {
         IERC20 _reserve = pool.reserve();
         uint256 _seedInit = pool.reserveInit();
 
-        uint256 _finalBalance = _reserve.balanceOf(address(this));
+        // Balancer traps a tiny amount of reserve in the pool when it exits.
+        uint256 _poolDust = _reserve.balanceOf(address(pool.pool()));
+        // The dust is included in the final balance for UX reasons.
+        // We don't want to fail the raise due to dust, even if technically it was a failure.
+        // To ensure a good UX for creators and token holders we subtract the dust from the seeder.
+        uint256 _finalBalance = _reserve.balanceOf(address(this)) + _poolDust;
 
         // Base payments for each fundraiser.
         uint256 _seederPay;
@@ -252,8 +257,8 @@ contract Trust {
         // Set aside the redemption and seed fee if we reached the minimum.
         if (_finalBalance >= successBalance()) {
             raiseStatus = RaiseStatus.Success;
-            // The seeder gets the reserve + seed fee
-            _seederPay = _seedInit.add(trustConfig.seederFee);
+            // The seeder gets the reserve + seed fee - dust
+            _seederPay = _seedInit.add(trustConfig.seederFee).sub(_poolDust);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -278,7 +283,7 @@ contract Trust {
             // If we don't take the min then we will attempt to transfer more than exists and brick the contract.
             //
             // Implied if _finalBalance > reserve_init is the remainder goes to token holders below.
-            _seederPay = _seedInit.min(_finalBalance);
+            _seederPay = _seedInit.sub(_poolDust);
         }
 
         if (_creatorPay > 0) {
