@@ -215,18 +215,19 @@ contract Trust {
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
         uint256 _poolDust = _reserve.balanceOf(address(pool.pool()));
-        uint256 _distributableBalance = _reserve.balanceOf(address(this));
-        uint256 _finalBalance = _distributableBalance + _poolDust;
+        uint256 _finalBalance = _reserve.balanceOf(address(this)) + _poolDust;
 
         // Base payments for each fundraiser.
         uint256 _seederPay;
         uint256 _creatorPay;
 
         // Set aside the redemption and seed fee if we reached the minimum.
+        // The dust is included for UX reasons.
+        // We don't want to fail the raise due to dust, even if technically it was a failure.
         if (_finalBalance >= successBalance()) {
             raiseStatus = RaiseStatus.Success;
-            // The seeder gets the reserve + seed fee
-            _seederPay = _seedInit.add(trustConfig.seederFee);
+            // The seeder gets the reserve + seed fee - dust
+            _seederPay = _seedInit.add(trustConfig.seederFee).sub(_poolDust);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -238,18 +239,7 @@ contract Trust {
             // SO success balance >= seed pay + token pay
             // SO success balance - (seed pay + token pay) >= 0
             // SO final balance - (seed pay + token pay) >= 0
-            //
-            // Implied is the remainder of _distributableBalance as redeemInit
-            // This will be transferred to the token holders below.
-            if (redeemInit >= _poolDust) {
-                _creatorPay = _distributableBalance.sub(_seederPay.add(redeemInit));
-            }
-            // In any case where redeemInit is less than dust we just split everything we have between the creator and seeder.
-            // If this fails that means the seeder pay is bigger than the distributable balance, which is an extreme edge case.
-            // If that happens then someone needs to send some reserve dust to the trust and call `endRaise` again.
-            else {
-                _creatorPay = _distributableBalance.sub(_seederPay);
-            }
+            _creatorPay = _finalBalance.sub(_seederPay.add(redeemInit));
         }
         else {
             raiseStatus = RaiseStatus.Fail;
@@ -259,7 +249,7 @@ contract Trust {
             // If we don't take the min then we will attempt to transfer more than exists and brick the contract.
             //
             // Implied if _distributableBalance > reserve_init is the remainder goes to token holders below.
-            _seederPay = _seedInit.min(_distributableBalance);
+            _seederPay = _seedInit.sub(_poolDust);
         }
 
         if (_creatorPay > 0) {
