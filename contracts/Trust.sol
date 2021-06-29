@@ -239,6 +239,9 @@ contract Trust {
             // SO success balance >= seed pay + token pay
             // SO success balance - (seed pay + token pay) >= 0
             // SO final balance - (seed pay + token pay) >= 0
+            //
+            // Implied is the remainder of _finalBalance as redeemInit
+            // This will be transferred to the token holders below.
             _creatorPay = _finalBalance.sub(_seederPay.add(redeemInit));
         }
         else {
@@ -248,7 +251,7 @@ contract Trust {
             // Due to pool dust it is possible the final balance is less than the reserve init.
             // If we don't take the min then we will attempt to transfer more than exists and brick the contract.
             //
-            // Implied if _distributableBalance > reserve_init is the remainder goes to token holders below.
+            // Implied if _finalBalance > reserve_init is the remainder goes to token holders below.
             _seederPay = _seedInit.sub(_poolDust);
         }
 
