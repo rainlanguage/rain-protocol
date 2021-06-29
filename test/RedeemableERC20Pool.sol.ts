@@ -84,7 +84,6 @@ describe("RedeemableERC20Pool", async function () {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-            redeemInit,
         )
 
         await pool.deployed()
@@ -234,7 +233,6 @@ describe("RedeemableERC20Pool", async function () {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-            redeemInit,
         )
 
         await pool.deployed()
@@ -429,7 +427,6 @@ describe("RedeemableERC20Pool", async function () {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-            redeemInit,
         )
 
         await pool.deployed()
@@ -697,7 +694,6 @@ describe("RedeemableERC20Pool", async function () {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-            redeemInit,
         )
 
         await pool.deployed()
@@ -826,7 +822,6 @@ describe("RedeemableERC20Pool", async function () {
                         initialValuation: initialValuation,
                         finalValuation: finalValuation,
                     },
-                    redeemInit,
                 )
                 await pool.deployed()
             },
@@ -916,7 +911,6 @@ describe("RedeemableERC20Pool", async function () {
                         initialValuation: initialValuation,
                         finalValuation: finalValuation,
                     },
-                    redeemInit,
                 )
                 await pool.deployed()
             },
@@ -994,21 +988,16 @@ describe("RedeemableERC20Pool", async function () {
             }
         )
 
-        await Util.assertError(
-            async () => await poolFactory.deploy(
-                redeemable.address,
-                {
-                    crpFactory: crpFactory.address,
-                    balancerFactory: bFactory.address,
-                    reserve: reserve.address,
-                    reserveInit: reserveInit,
-                    initialValuation: initialValuation,
-                    finalValuation: finalValuation,
-                },
-                redeemInit,
-            ),
-            'revert SafeMath: division by zero',
-            'initial redeemable token amount of 0 was accepted at construction'
+        await poolFactory.deploy(
+            redeemable.address,
+            {
+                crpFactory: crpFactory.address,
+                balancerFactory: bFactory.address,
+                reserve: reserve.address,
+                reserveInit: reserveInit,
+                initialValuation: initialValuation,
+                finalValuation: finalValuation,
+            },
         )
     })
 })

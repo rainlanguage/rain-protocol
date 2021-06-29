@@ -72,14 +72,13 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
     constructor (
         RedeemableERC20 _token,
-        PoolConfig memory _poolConfig,
-        uint256 _redeemInit
+        PoolConfig memory _poolConfig
     )
         public
     {
         // Calculate all the config for balancer.
         uint256[] memory _poolAmounts = poolAmounts(_token, _poolConfig);
-        (uint256[] memory _startWeights, uint256[] memory _targetWeights) = poolWeights(_poolConfig, _redeemInit, _poolAmounts);
+        (uint256[] memory _startWeights, uint256[] memory _targetWeights) = poolWeights(_poolConfig);
         ConfigurableRightsPool _crp = constructCrp(_token, _poolConfig, _poolAmounts, _startWeights);
 
         // Preapprove all tokens and reserve for the CRP.
@@ -102,17 +101,28 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         return _poolAmounts;
     }
 
-    function poolWeights (PoolConfig memory _poolConfig, uint256 _redeemInit, uint256[] memory _poolAmounts) private pure returns (uint256[] memory, uint256[] memory) {
-        // Spot = ( Br / Wr ) / ( Bt / Wt )
+    function poolWeights (PoolConfig memory _poolConfig) private pure returns (uint256[] memory, uint256[] memory) {
         // https://balancer.finance/whitepaper/
+        // Spot = ( Br / Wr ) / ( Bt / Wt )
         // => ( Bt / Wt ) = ( Br / Wr ) / Spot
         // => Wt = ( Spot x Bt ) / ( Br / Wr )
+        //
+        // Initial Valuation = Spot * Token supply
+        // IV / Supply = Spot
+        // => Wt = ( ( IV / Supply ) x Bt ) / ( Br / Wr )
+        //
+        // Bt = Total supply
+        // => Wt = ( ( IV / Bt) x Bt ) / ( Br / Wr )
+        // => Wt = IV / ( Br / Wr )
+        //
+        // Wr = Min weight = 1
+        // Wr = 1
+        // => Wt = IV / Br
+        //
+        // Br = reserve init
+        // => Wt = IV / reserve init
         uint256 _reserveWeight = BalancerConstants.MIN_WEIGHT;
-        uint256 _tokenWeight = _poolConfig.initialValuation.mul(Constants.ONE).div(
-            // MIN_WEIGHT is ONE so it is implied here.
-            // Just imagine we are multiplying by BalancerConstants.MIN_WEIGHT.
-            _poolAmounts[0]
-        );
+        uint256 _tokenWeight = _poolConfig.initialValuation.mul(Constants.ONE).div(_poolConfig.reserveInit);
 
         require(_tokenWeight >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT");
         require(
@@ -121,29 +131,27 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         );
 
         uint256[] memory _startWeights = new uint256[](2);
-        _startWeights[0] = _reserveWeight;
+        _startWeights[0] = BalancerConstants.MIN_WEIGHT;
         _startWeights[1] = _tokenWeight;
 
         // Target weights are the theoretical endpoint of updating gradually.
         // Since the pool starts with the full token supply this is the maximum possible dump.
-        // We set the weight to the market cap of the redeem value.s
-        uint256 _reserveWeightFinal = BalancerConstants.MIN_WEIGHT;
-        uint256 _targetSpotFinal = _poolConfig.finalValuation.mul(Constants.ONE);
-        uint256 _tokenWeightFinal = _targetSpotFinal.div(
-            // As above.
-            // MIN_WEIGHT is ONE so it is implied here.
-            // Just imagine we are multiplying by BalancerConstants.MIN_WEIGHT.
-            _redeemInit
-        );
+        // As we are guarding against the worst case (zero participation):
+        // Bt = total supply
+        // Br = reserve init
+        // Wr = same as the start
+        //
+        // Everything is as above but with the final valuation instead of the initial valuation.
+        uint256 _tokenWeightFinal = _poolConfig.finalValuation.mul(Constants.ONE).div(_poolConfig.reserveInit);
 
         require(_tokenWeightFinal >= BalancerConstants.MIN_WEIGHT, "ERR_MIN_WEIGHT_FINAL");
         require(
-            BalancerConstants.MAX_WEIGHT.sub(Constants.POOL_HEADROOM) >= _tokenWeightFinal.add(_reserveWeightFinal),
+            BalancerConstants.MAX_WEIGHT.sub(Constants.POOL_HEADROOM) >= _tokenWeightFinal.add(_reserveWeight),
             "ERR_MAX_WEIGHT_FINAL"
         );
 
         uint256[] memory _targetWeights = new uint256[](2);
-        _targetWeights[0] = _reserveWeightFinal;
+        _targetWeights[0] = _reserveWeight;
         _targetWeights[1] = _tokenWeightFinal;
 
         return (_startWeights, _targetWeights);
