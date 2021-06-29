@@ -50,6 +50,247 @@ interface RaiseProgress {
 }
 
 describe("Trust", async function () {
+  it('should error if totalTokenSupply is zero', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('0' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator/owner
+    const deployer = signers[2] // deployer is not creator
+    const hodler1 = signers[3]
+
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    await Util.assertError(
+      async () => await trustFactory1.deploy(
+        {
+          creator: creator.address,
+          minCreatorRaise,
+          seeder: seeder.address,
+          seederFee,
+          seederUnits,
+          unseedDelay,
+          raiseDuration,
+        },
+        {
+          name: tokenName,
+          symbol: tokenSymbol,
+          prestige: prestige.address,
+          minimumStatus,
+          totalSupply: totalTokenSupply,
+        },
+        {
+          crpFactory: crpFactory.address,
+          balancerFactory: bFactory.address,
+          reserve: reserve.address,
+          reserveInit,
+          initialValuation,
+          finalValuation: successLevel,
+        },
+        redeemInit,
+      ),
+      "revert ERR_MIN_TOKEN_SUPPLY",
+      "setting totalTokenSupply to zero did not error"
+    )
+  })
+
+  it('should error if reserveInit is zero', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('0' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator/owner
+    const deployer = signers[2] // deployer is not creator
+    const hodler1 = signers[3]
+
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    await Util.assertError(
+      async () => await trustFactory1.deploy(
+        {
+          creator: creator.address,
+          minCreatorRaise,
+          seeder: seeder.address,
+          seederFee,
+          seederUnits,
+          unseedDelay,
+          raiseDuration,
+        },
+        {
+          name: tokenName,
+          symbol: tokenSymbol,
+          prestige: prestige.address,
+          minimumStatus,
+          totalSupply: totalTokenSupply,
+        },
+        {
+          crpFactory: crpFactory.address,
+          balancerFactory: bFactory.address,
+          reserve: reserve.address,
+          reserveInit,
+          initialValuation,
+          finalValuation: successLevel,
+        },
+        redeemInit,
+      ),
+      "revert ERR_MIN_RESERVE",
+      "setting reserveInit to zero did not error"
+    )
+  })
+
+  it('should allow redeemInit to be zero', async function () {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('0' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator/owner
+    const deployer = signers[2] // deployer is not creator
+    const hodler1 = signers[3]
+
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    // a redeemInit value of zero causes division by zero in following pool calculation
+    // i.e. _tokenWeightFinal = _targetSpotFinal / redeemInit
+    await trustFactory1.deploy(
+      {
+        creator: creator.address,
+        minCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+  })
+
   it('should include correct values when calling getRaiseProgress', async () => {
     this.timeout(0)
 
@@ -129,7 +370,7 @@ describe("Trust", async function () {
     await trust.deployed()
 
     const raiseProgressDeployed: RaiseProgress = await trust.getRaiseProgress()
-    
+
     assert(raiseProgressDeployed.raiseStatus === RaiseStatus.PENDING, `did not get correct value for RaiseProgress.raiseStatus on deploy
     expected  ${RaiseStatus.PENDING}
     got       ${raiseProgressDeployed.raiseStatus}
