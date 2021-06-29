@@ -121,11 +121,9 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         //
         // Br = reserve init
         // => Wt = IV / reserve init
-        uint256 _tokenWeight = _poolConfig.initialValuation.mul(Constants.ONE).div(_poolConfig.reserveInit);
-
         uint256[] memory _initialWeights = new uint256[](2);
         _initialWeights[0] = BalancerConstants.MIN_WEIGHT;
-        _initialWeights[1] = _tokenWeight;
+        _initialWeights[1] = _poolConfig.initialValuation.mul(Constants.ONE).div(_poolConfig.reserveInit);
 
         require(_initialWeights[1] >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_INITIAL");
         require(BalancerConstants.MAX_WEIGHT >= _initialWeights[0].add(_initialWeights[1]).add(Constants.POOL_HEADROOM), "MAX_WEIGHT_INITIAL");
@@ -138,11 +136,9 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // Wr = same as the start
         //
         // Everything is as above but with the final valuation instead of the initial valuation.
-        uint256 _tokenWeightFinal = _poolConfig.finalValuation.mul(Constants.ONE).div(_poolConfig.reserveInit);
-
         uint256[] memory _finalWeights = new uint256[](2);
         _finalWeights[0] = BalancerConstants.MIN_WEIGHT;
-        _finalWeights[1] = _tokenWeightFinal;
+        _finalWeights[1] = _poolConfig.finalValuation.mul(Constants.ONE).div(_poolConfig.reserveInit);
 
         require(_finalWeights[1] >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_FINAL");
         require(BalancerConstants.MAX_WEIGHT >= _finalWeights[0].add(_finalWeights[1]).add(Constants.POOL_HEADROOM), "MAX_WEIGHT_FINAL");
