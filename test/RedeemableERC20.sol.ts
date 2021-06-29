@@ -157,6 +157,103 @@ describe("RedeemableERC20", async function () {
         )
     })
 
+    it('should allow filling all slots in redeemables array', async function () {
+        this.timeout(0)
+
+        const reserve0 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve1 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve2 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve3 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve4 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve5 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve6 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+        const reserve7 = await Util.basicDeploy("ReserveToken", {}) as ReserveToken
+
+        const reserves = [reserve0, reserve1, reserve2, reserve3, reserve4, reserve5, reserve6, reserve7]
+
+        // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = Status.NIL
+
+        const redeemableERC20Factory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+        const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 8
+
+        const redeemableERC20 = await redeemableERC20Factory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalSupply,
+            }
+        )
+
+        await redeemableERC20.deployed()
+        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerAddRedeemable(reserve0.address)
+        await redeemableERC20.ownerAddRedeemable(reserve1.address)
+        await redeemableERC20.ownerAddRedeemable(reserve2.address)
+        await redeemableERC20.ownerAddRedeemable(reserve3.address)
+        await redeemableERC20.ownerAddRedeemable(reserve4.address)
+        await redeemableERC20.ownerAddRedeemable(reserve5.address)
+        await redeemableERC20.ownerAddRedeemable(reserve6.address)
+        await redeemableERC20.ownerAddRedeemable(reserve7.address)
+
+        assert(
+            (await redeemableERC20.getRedeemables())[0] == reserve0.address,
+            `reserve address not set as redeemable in slot 0`
+        )
+        assert(
+            (await redeemableERC20.getRedeemables())[1] == reserve1.address,
+            `reserve address not set as redeemable in slot 1`
+        )
+        assert(
+            (await redeemableERC20.getRedeemables())[2] == reserve2.address,
+            `reserve address not set as redeemable in slot 2`
+        )
+        assert(
+            (await redeemableERC20.getRedeemables())[3] == reserve3.address,
+            `reserve address not set as redeemable in slot 3`
+        )
+        assert(
+            (await redeemableERC20.getRedeemables())[4] == reserve4.address,
+            `reserve address not set as redeemable in slot 4`
+        )
+        assert(
+            (await redeemableERC20.getRedeemables())[5] == reserve5.address,
+            `reserve address not set as redeemable in slot 5`
+        )
+        assert(
+            (await redeemableERC20.getRedeemables())[6] == reserve6.address,
+            `reserve address not set as redeemable in slot 6`
+        )
+        assert(
+            (await redeemableERC20.getRedeemables())[7] == reserve7.address,
+            `reserve address not set as redeemable in slot 7`
+        )
+
+        const getRedeemablesResult = await redeemableERC20.getRedeemables()
+
+        getRedeemablesResult.every((redeemable, index) => {
+            assert(
+                redeemable == reserves[index].address,
+                `reserve address not set as redeemable in slot ${index} (getRedeemables)`
+            )
+        })
+    })
+    
+
     it("should lock tokens until redeemed", async function () {
         this.timeout(0)
 
