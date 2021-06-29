@@ -39,7 +39,7 @@ enum RaiseStatus {
 }
 
 describe("Trust", async function () {
-  it('should be blocked if minimum raise hit exactly due to dust', async function () {
+  it("should succeed if minimum raise hit exactly (i.e. dust left in pool doesn't cause issues)", async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -168,15 +168,22 @@ describe("Trust", async function () {
 
     const finalBPoolBalance = await reserve.balanceOf(bPool.address)
 
+    assert(finalBPoolBalance.eq(successLevel), `pool balance not exactly equal to success level (important for this test)
+    finalBPoolBalance ${finalBPoolBalance}
+    successLevel      ${successLevel}`)
+
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserve.transfer(signers[3].address, 0)
     }
 
     await trust.endRaise()
 
-    assert((await trust.getRaiseStatus()) === RaiseStatus.FAIL, `should have failed due to dust
+    const bPoolDust = finalBPoolBalance.mul(Util.ONE).div(1e7).div(Util.ONE)
+
+    assert((await trust.getRaiseStatus()) === RaiseStatus.SUCCESS, `raise should have succeeded when hitting minimum raise exactly
     finalBPoolBalance ${finalBPoolBalance}
-    successLevel      ${successLevel}`)
+    successLevel      ${successLevel}
+    bPoolDust         ${bPoolDust}`)
   })
 
   it('should return raise success balance', async function () {
@@ -352,7 +359,7 @@ describe("Trust", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber()
 
-    assert((await token.unblockBlock()).isZero(), "token unblock block was set in trust startRaise")
+    assert((await token.unblockBlock()).isZero(), "token unblock block was wrongly set in trust startRaise")
 
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
       await reserve.transfer(signers[3].address, 1)
@@ -1697,13 +1704,12 @@ describe("Trust", async function () {
     const seederReserveBalanceBeforeEndRaise = await reserve.balanceOf(seeder)
 
     const finalBalance = await reserve.balanceOf(bPool.address)
-    const seederPay = reserveInit.add(seederFee)
     const tokenPay = redeemInit
 
     await trust.endRaise()
 
-    // finalBalance * 10^-7 = 530000000000000
-    const dust = ethers.BigNumber.from("530000000000000")
+    const poolDust = await reserve.balanceOf(bPool.address)
+    const seederPay = reserveInit.add(seederFee).sub(poolDust)
 
     const creatorEndingReserveBalance = await reserve.balanceOf(creator)
 
@@ -1716,8 +1722,6 @@ describe("Trust", async function () {
           creatorStartingReserveBalance
             .add(finalBalance)
             .sub(seederPay.add(tokenPay))
-            .sub(dust)
-            .sub(1) // dust rounding error
             .sub(countTransfersToTriggerUnblock) // creator loses some reserve when moving blocks
         ),
       `wrong reserve balance for creator after raise ended.
@@ -1726,8 +1730,7 @@ describe("Trust", async function () {
       finalBalance ${finalBalance}
       seederPay ${seederPay}
       tokenPay ${tokenPay}
-      dust ${dust}
-      dustRoundingError 1
+      poolDust ${poolDust}
       countTransfers ${countTransfersToTriggerUnblock}
       `
     )
@@ -1738,7 +1741,7 @@ describe("Trust", async function () {
     // Seeder has correct final balance
 
     // on successful raise, seeder gets reserve init + seeder fee
-    const seederEndExpected = seederReserveBalanceBeforeEndRaise.add(reserveInit).add(seederFee)
+    const seederEndExpected = seederReserveBalanceBeforeEndRaise.add(reserveInit).add(seederFee).sub(poolDust)
     const seederEndActual = await reserve.balanceOf(seeder)
 
     assert(
@@ -2058,7 +2061,8 @@ describe("Trust", async function () {
     // in this case, reserve init is smaller
     assert(reserveInit.lt(finalBalance), "reserve init wasn't smaller than final balance")
 
-    const seederEndExpected = seederStartingReserveBalance.sub(reserveInit).add(reserveInit)
+    const poolDust = await reserve.balanceOf(bPool.address)
+    const seederEndExpected = seederStartingReserveBalance.sub(poolDust)
     const seederEndActual = await reserve.balanceOf(seeder)
 
     assert(
@@ -2083,15 +2087,13 @@ describe("Trust", async function () {
     assert(hodler1EndingTokenBalance.eq(hodler1ExpectedEndingTokenBalance), "wrong final token balance for hodler 1")
     assert(hodler2EndingTokenBalance.eq(hodler2ExpectedEndingTokenBalance), "wrong final token balance for hodler 2")
 
-    // finalBalance * 10^-7 = 530000000000000
-    const dust = ethers.BigNumber.from("530000000000000")
-
     // Token contract holds correct reserve balance
-    const remainderReserveBalance = finalBalance.sub(reserveInit).sub(dust).sub(1)
+    const expectedRemainderReserveBalance = finalBalance.sub(reserveInit)
+    const remainderReserveBalance = await reserve.balanceOf(token.address)
 
     assert(
-      (await reserve.balanceOf(token.address)).eq(remainderReserveBalance),
-      "token contract did not receive remainder"
+      remainderReserveBalance.eq(expectedRemainderReserveBalance),
+      `token contract did not receive remainder ${expectedRemainderReserveBalance} ${remainderReserveBalance}`
     )
 
     assert(
@@ -2853,12 +2855,11 @@ describe("Trust", async function () {
     await trust.endRaise()
     const ownerAfter = await reserve.balanceOf(signers[0].address)
     const ownerDiff = ownerAfter.sub(ownerBefore)
+    const expectedOwnerDiff = ethers.BigNumber.from('3300000000000000000000')
 
     assert(
-      ethers.BigNumber.from('3299999469999999999999').eq(
-        ownerDiff
-      ),
-      'wrong owner diff: ' + ownerDiff
+      expectedOwnerDiff.eq(ownerDiff),
+      `wrong owner diff ${expectedOwnerDiff} ${ownerDiff}`
     )
 
     const token1 = new ethers.Contract(
@@ -2868,7 +2869,7 @@ describe("Trust", async function () {
     )
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
-    const expectedBalance1 = '1829852661873618767641'
+    const expectedBalance1 = '1829852176962663371131'
     assert(
       ethers.BigNumber.from(expectedBalance1).eq(
         reserveBalance1
@@ -2883,7 +2884,7 @@ describe("Trust", async function () {
     )
     await token2.redeem(await token2.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
-    const expectedBalance2 = '170145949097001906142'
+    const expectedBalance2 = '170145904008325395437'
     assert(
       ethers.BigNumber.from(expectedBalance2).eq(
         reserveBalance2
@@ -3041,7 +3042,7 @@ describe("Trust", async function () {
     )
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
-    const expectedBalance1 = '841318037715972800622'
+    const expectedBalance1 = '841320926251152929581'
     assert(
       ethers.BigNumber.from(expectedBalance1).eq(
         reserveBalance1
@@ -3056,7 +3057,7 @@ describe("Trust", async function () {
     )
     await token2.redeem(await token1.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
-    const expectedBalance2 = '2158587368352380583720'
+    const expectedBalance2 = '2158594779527790295800'
     assert(
       ethers.BigNumber.from(expectedBalance2).eq(
         reserveBalance2
