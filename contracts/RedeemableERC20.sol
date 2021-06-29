@@ -145,8 +145,13 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         redeemables.push(_redeemable);
     }
 
-    function getRedeemables() external view returns (IERC20[] memory) {
-        return redeemables;
+    function getRedeemables() external view returns (address[8] memory) {
+        // Need a fixed length to avoid unpredictable gas issues.
+        address[8] memory _returnRedeemables;
+        for(uint256 i = 0;i<redeemables.length;i++) {
+            _returnRedeemables[i] = address(redeemables[i]);
+        }
+        return _returnRedeemables;
     }
 
     function burn(uint256 _burnAmount) external {
