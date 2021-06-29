@@ -209,6 +209,11 @@ describe("RedeemableERC20", async function () {
         )
 
         assert(
+            (await redeemableERC20.getRedeemables()).length === 8, 
+            'redeemables length not fixed'
+        )
+
+        assert(
             (await redeemableERC20.getRedeemables())[0] == reserve.address,
             `reserve address not set as redeemable`
         )
