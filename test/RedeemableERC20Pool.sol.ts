@@ -347,22 +347,9 @@ describe("RedeemableERC20Pool", async function () {
 
         const expectedRights = [false, false, true, true, false, false]
 
-        // Let's say we want to value the redeemable at 1 000 000 reserve
-        // The pool has 50 000 reserve
-        // So the weight needs to be 20:1
-        // Whatever the total tokens on the other side of the reserve is, that will be valued at
-        // 20x the reserve value, measured in terms of the reserve value.
-        const expectedStartWeights = [
-            ethers.BigNumber.from('1' + Util.eighteenZeros),
-            ethers.BigNumber.from('20' + Util.eighteenZeros),
-        ]
-
         // The final valuation of redeemable should be 100 000 as this is the redemption value.
         // Reserve init has value of 50 000 so ratio is 2:1.
-        const expectedTargetWeights = [
-            ethers.BigNumber.from('1' + Util.eighteenZeros),
-            ethers.BigNumber.from('2' + Util.eighteenZeros),
-        ]
+        const expectedFinalWeight = ethers.BigNumber.from('2' + Util.eighteenZeros)
 
         const tokenName = 'RedeemableERC20'
         const tokenSymbol = 'RDX'
@@ -433,14 +420,6 @@ describe("RedeemableERC20Pool", async function () {
             assert(actualRight === expectedRight, `wrong right ${i} ${expectedRight} ${actualRight}`)
         }
 
-        let expectedTargetWeight;
-        for (let i = 0; expectedTargetWeight = expectedTargetWeights[i]; i++) {
-            const actualTargetWeight = await pool.targetWeights(i)
-            assert(
-                actualTargetWeight.eq(expectedTargetWeight),
-                `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
-            )
-        }
         await reserve.transfer(
             pool.address,
             reserveInit
