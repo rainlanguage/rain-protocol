@@ -20,12 +20,12 @@ contract ReserveToken is ERC20 {
         _mint(msg.sender, TOTAL_SUPPLY);
     }
 
-    function ownerAddFreezable(address _address) external {
-        freezables[_address] = true;
+    function ownerAddFreezable(address account_) external {
+        freezables[account_] = true;
     }
 
-    function ownerRemoveFreezable(address _address) external {
-        freezables[_address] = false;
+    function ownerRemoveFreezable(address account_) external {
+        freezables[account_] = false;
     }
 
     // burns all tokens
@@ -35,11 +35,11 @@ contract ReserveToken is ERC20 {
 
     function _beforeTokenTransfer(
         address,
-        address _receiver,
+        address receiver_,
         uint256
     ) internal override {
         require(
-            _receiver == address(0) || !(freezables[_receiver]),
+            receiver_ == address(0) || !(freezables[receiver_]),
             "ERR_FROZEN"
         );
     }

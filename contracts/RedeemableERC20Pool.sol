@@ -71,37 +71,37 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     IBPool public pool;
 
     constructor (
-        RedeemableERC20 _token,
-        PoolConfig memory _poolConfig
+        RedeemableERC20 token_,
+        PoolConfig memory poolConfig_
     )
         public
     {
         // Calculate all the config for balancer.
-        uint256[] memory _poolAmounts = poolAmounts(_token, _poolConfig);
-        (uint256[] memory _startWeights, uint256[] memory _targetWeights) = poolWeights(_poolConfig);
-        ConfigurableRightsPool _crp = constructCrp(_token, _poolConfig, _poolAmounts, _startWeights);
+        uint256[] memory poolAmounts_ = poolAmounts(token_, poolConfig_);
+        (uint256[] memory startWeights_, uint256[] memory targetWeights_) = poolWeights(poolConfig_);
+        ConfigurableRightsPool crp_ = constructCrp(token_, poolConfig_, poolAmounts_, startWeights_);
 
         // Preapprove all tokens and reserve for the CRP.
-        require(_poolConfig.reserve.approve(address(_crp), _poolConfig.reserveInit), "RESERVE_APPROVE");
-        require(_token.approve(address(_crp), _token.totalSupply()), "TOKEN_APPROVE");
+        require(poolConfig_.reserve.approve(address(crp_), poolConfig_.reserveInit), "RESERVE_APPROVE");
+        require(token_.approve(address(crp_), token_.totalSupply()), "TOKEN_APPROVE");
 
-        token = _token;
-        reserve = _poolConfig.reserve;
-        reserveInit = _poolConfig.reserveInit;
-        crp = _crp;
-        targetWeights = _targetWeights;
+        token = token_;
+        reserve = poolConfig_.reserve;
+        reserveInit = poolConfig_.reserveInit;
+        crp = crp_;
+        targetWeights = targetWeights_;
     }
 
-    function poolAmounts (RedeemableERC20 _token, PoolConfig memory _poolConfig) private view returns (uint256[] memory) {
-        uint256[] memory _poolAmounts = new uint256[](2);
-        require(_poolConfig.reserveInit > 0, "RESERVE_INIT_0");
-        _poolAmounts[0] = _poolConfig.reserveInit;
-        _poolAmounts[1] = _token.totalSupply();
-        require(_poolAmounts[1] > 0, "TOKEN_INIT_0");
-        return _poolAmounts;
+    function poolAmounts (RedeemableERC20 token_, PoolConfig memory poolConfig_) private view returns (uint256[] memory) {
+        uint256[] memory poolAmounts_ = new uint256[](2);
+        require(poolConfig_.reserveInit > 0, "RESERVE_INIT_0");
+        poolAmounts_[0] = poolConfig_.reserveInit;
+        poolAmounts_[1] = token_.totalSupply();
+        require(poolAmounts_[1] > 0, "TOKEN_INIT_0");
+        return poolAmounts_;
     }
 
-    function poolWeights (PoolConfig memory _poolConfig) private pure returns (uint256[] memory, uint256[] memory) {
+    function poolWeights (PoolConfig memory poolConfig_) private pure returns (uint256[] memory, uint256[] memory) {
         // https://balancer.finance/whitepaper/
         // Spot = ( Br / Wr ) / ( Bt / Wt )
         // => ( Bt / Wt ) = ( Br / Wr ) / Spot
@@ -121,12 +121,12 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         //
         // Br = reserve init
         // => Wt = IV / reserve init
-        uint256[] memory _initialWeights = new uint256[](2);
-        _initialWeights[0] = BalancerConstants.MIN_WEIGHT;
-        _initialWeights[1] = _poolConfig.initialValuation.mul(Constants.ONE).div(_poolConfig.reserveInit);
+        uint256[] memory initialWeights_ = new uint256[](2);
+        initialWeights_[0] = BalancerConstants.MIN_WEIGHT;
+        initialWeights_[1] = poolConfig_.initialValuation.mul(Constants.ONE).div(poolConfig_.reserveInit);
 
-        require(_initialWeights[1] >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_INITIAL");
-        require(BalancerConstants.MAX_WEIGHT >= _initialWeights[0].add(_initialWeights[1]).add(Constants.POOL_HEADROOM), "MAX_WEIGHT_INITIAL");
+        require(initialWeights_[1] >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_INITIAL");
+        require(BalancerConstants.MAX_WEIGHT >= initialWeights_[0].add(initialWeights_[1]).add(Constants.POOL_HEADROOM), "MAX_WEIGHT_INITIAL");
 
         // Target weights are the theoretical endpoint of updating gradually.
         // Since the pool starts with the full token supply this is the maximum possible dump.
@@ -136,14 +136,14 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // Wr = same as the start
         //
         // Everything is as above but with the final valuation instead of the initial valuation.
-        uint256[] memory _finalWeights = new uint256[](2);
-        _finalWeights[0] = BalancerConstants.MIN_WEIGHT;
-        _finalWeights[1] = _poolConfig.finalValuation.mul(Constants.ONE).div(_poolConfig.reserveInit);
+        uint256[] memory finalWeights_ = new uint256[](2);
+        finalWeights_[0] = BalancerConstants.MIN_WEIGHT;
+        finalWeights_[1] = poolConfig_.finalValuation.mul(Constants.ONE).div(poolConfig_.reserveInit);
 
-        require(_finalWeights[1] >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_FINAL");
-        require(BalancerConstants.MAX_WEIGHT >= _finalWeights[0].add(_finalWeights[1]).add(Constants.POOL_HEADROOM), "MAX_WEIGHT_FINAL");
+        require(finalWeights_[1] >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_FINAL");
+        require(BalancerConstants.MAX_WEIGHT >= finalWeights_[0].add(finalWeights_[1]).add(Constants.POOL_HEADROOM), "MAX_WEIGHT_FINAL");
 
-        return (_initialWeights, _finalWeights);
+        return (initialWeights_, finalWeights_);
     }
 
     // Construct the rights that will be used by the CRP.
@@ -155,30 +155,30 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // 3. Add/remove tokens (limited by this contract to the owner after unblock)
         // 4. Whitelist LPs (@todo limited by Trust?)
         // 5. Change cap
-        bool[] memory _rights = new bool[](6);
-        _rights[0] = false;
-        _rights[1] = false;
-        _rights[2] = true;
-        _rights[3] = true;
-        _rights[4] = false;
-        _rights[5] = false;
-        return _rights;
+        bool[] memory rights_ = new bool[](6);
+        rights_[0] = false;
+        rights_[1] = false;
+        rights_[2] = true;
+        rights_[3] = true;
+        rights_[4] = false;
+        rights_[5] = false;
+        return rights_;
     }
 
-    function constructCrp (RedeemableERC20 _token, PoolConfig memory _poolConfig, uint256[] memory _poolAmounts, uint256[] memory _startWeights) private returns (ConfigurableRightsPool) {
+    function constructCrp (RedeemableERC20 token_, PoolConfig memory poolConfig_, uint256[] memory poolAmounts_, uint256[] memory startWeights_) private returns (ConfigurableRightsPool) {
         // The addresses in the RedeemableERC20Pool, as [reserve, token].
-        address[] memory _poolAddresses = new address[](2);
-        _poolAddresses[0] = address(_poolConfig.reserve);
-        _poolAddresses[1] = address(_token);
+        address[] memory poolAddresses_ = new address[](2);
+        poolAddresses_[0] = address(poolConfig_.reserve);
+        poolAddresses_[1] = address(token_);
 
-        return _poolConfig.crpFactory.newCrp(
-            address(_poolConfig.balancerFactory),
+        return poolConfig_.crpFactory.newCrp(
+            address(poolConfig_.balancerFactory),
             ConfigurableRightsPool.PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",
-                _poolAddresses,
-                _poolAmounts,
-                _startWeights,
+                poolAddresses_,
+                poolAmounts_,
+                startWeights_,
                 // Fees do not make sense for us.
                 // We exit and distribute fees via. the Trust NOT AMM mechanics.
                 BalancerConstants.MIN_FEE
@@ -187,8 +187,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         );
     }
 
-    function ownerSetUnblockBlock(uint256 _unblockBlock) external onlyOwner {
-        setUnblockBlock(_unblockBlock);
+    function ownerSetUnblockBlock(uint256 unblockBlock_) external onlyOwner {
+        setUnblockBlock(unblockBlock_);
     }
 
     function init() external withInit onlyOwner onlyBlocked {
