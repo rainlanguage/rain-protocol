@@ -26,7 +26,7 @@ let
  python3 -m venv ''${td}/venv
  source ''${td}/venv/bin/activate
  pip install slither-analyzer
- slither . --npx-disable --filter-paths=contracts/configurable-rights-pool
+ slither . --npx-disable --filter-paths=contracts/configurable-rights-pool --exclude-dependencies
  '';
 
  ci-test = pkgs.writeShellScriptBin "ci-test" ''
