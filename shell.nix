@@ -22,13 +22,15 @@ let
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''
- patch -p1 < slither-hack.diff
+ patch -p1 < slither-hack-balancer.patch
+ patch -p1 < slither-hack-local.patch
  export td=$(mktemp -d)
  python3 -m venv ''${td}/venv
  source ''${td}/venv/bin/activate
  pip install slither-analyzer
  slither . --npx-disable --filter-paths="contracts/configurable-rights-pool|openzeppelin" --exclude-dependencies
- patch -R -p1 < slither-hack.diff
+ patch -R -p1 < slither-hack-balancer.patch
+ patch -R -p1 < slither-hack-local.patch
  '';
 
  ci-test = pkgs.writeShellScriptBin "ci-test" ''
