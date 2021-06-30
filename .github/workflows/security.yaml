@@ -12,4 +12,4 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - run: patch -p1 < slither-hack.diff
-    - run: nix-shell --run ci-test
+    - run: nix-shell --run security-check
