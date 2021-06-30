@@ -157,19 +157,20 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     }
 
     function init(uint256 unblockBlock_) external withInit onlyOwner onlyBlocked {
+        // Set the first possible `exit` block.
         setUnblockBlock(unblockBlock_);
+
+        // Define the weight curve.
+        uint256[] memory finalWeights_ = new uint256[](2);
+        finalWeights_[0] = BalancerConstants.MIN_WEIGHT;
+        finalWeights_[1] = finalWeight;
+        delete finalWeight;
 
         // Max pool tokens to minimise dust on exit.
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).
         crp.createPool(BalancerConstants.MAX_POOL_SUPPLY, 0, 0);
-
-        // Calculate the CRP curve.
-        uint256[] memory finalWeights_ = new uint256[](2);
-        finalWeights_[0] = BalancerConstants.MIN_WEIGHT;
-        finalWeights_[1] = finalWeight;
         crp.updateWeightsGradually(finalWeights_, block.number, unblockBlock_);
-        delete finalWeight;
     }
 
     function exit() external onlyInit onlyOwner onlyUnblocked {
