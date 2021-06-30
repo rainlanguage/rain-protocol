@@ -51,6 +51,7 @@ index e3df626..e98f5c7 100644
 +
  
      // State variables
+
 diff --git a/contracts/configurable-rights-pool/contracts/templates/ESPFactory.sol b/contracts/configurable-rights-pool/contracts/templates/ESPFactory.sol
 index 6fe5b44..8a3fa1e 100644
 --- a/contracts/configurable-rights-pool/contracts/templates/ESPFactory.sol
