@@ -136,8 +136,7 @@ contract Trust {
         );
         RedeemableERC20Pool _pool = new RedeemableERC20Pool(
             _token,
-            _poolConfig,
-            _redeemInit
+            _poolConfig
         );
 
         if (_trustConfig.seeder == address(0)) {
