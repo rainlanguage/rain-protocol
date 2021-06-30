@@ -49,7 +49,150 @@ interface RaiseProgress {
   redeemInit: BigNumber;
 }
 
+interface TrustContracts {
+  reserveERC20: string;
+  redeemableERC20: string;
+  redeemableERC20Pool: string;
+  seeder: string;
+  prestige: string;
+  crp: string;
+  pool: string;
+}
+
 describe("Trust", async function () {
+  it('should include correct values when calling getContracts', async () => {
+    this.timeout(0)
+
+    const signers = await ethers.getSigners()
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+    const prestigeFactory = await ethers.getContractFactory(
+      'Prestige'
+    )
+    const prestige = await prestigeFactory.deploy() as Prestige
+    const minimumStatus = Status.NIL
+
+    const trustFactory = await ethers.getContractFactory(
+      'Trust',
+      {
+        libraries: {
+          'RightsManager': rightsManager.address
+        }
+      }
+    )
+
+    const tokenName = 'Token'
+    const tokenSymbol = 'TKN'
+
+    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const redeemInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
+    const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
+    const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
+
+    const creator = signers[0]
+    const seeder = signers[1] // seeder is not creator/owner
+    const deployer = signers[2] // deployer is not creator
+    const hodler1 = signers[3]
+
+    const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
+    const seederUnits = 0;
+    const unseedDelay = 0;
+
+    const successLevel = redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit)
+
+    const raiseDuration = 50
+
+    const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
+
+    const trust = await trustFactory1.deploy(
+      {
+        creator: creator.address,
+        minCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        unseedDelay,
+        raiseDuration,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      redeemInit,
+    )
+
+    await trust.deployed()
+
+    const getContractsDeployed: TrustContracts = await trust.getContracts()
+
+    const token = await trust.token()
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+    const crp = await pool.crp()
+
+    assert(
+      getContractsDeployed.reserveERC20 === reserve.address,
+      'wrong reserve contract address'
+    )
+    assert(
+      getContractsDeployed.redeemableERC20 === token,
+      'wrong token contract address'
+    )
+    assert(
+      getContractsDeployed.redeemableERC20Pool === pool.address,
+      'wrong pool contract address'
+    )
+    assert(
+      getContractsDeployed.seeder === seeder.address,
+      'wrong seeder address'
+    )
+    assert(
+      getContractsDeployed.prestige === prestige.address,
+      'wrong prestige address'
+    )
+    assert(
+      getContractsDeployed.crp === crp,
+      'wrong configurable rights pool address'
+    )
+    assert(
+      getContractsDeployed.pool === Util.zeroAddress,
+      'balancer pool should not be defined yet'
+    )
+
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder.address, reserveInit)
+
+    const reserveSeeder = new ethers.Contract(reserve.address, reserve.interface, seeder)
+
+    // seeder must transfer funds to pool
+    await reserveSeeder.transfer(await trust.pool(), reserveInit)
+
+    await trust.startRaise({ gasLimit: 100000000 })
+
+    const getContractsTrading: TrustContracts = await trust.getContracts()
+
+    const bPool = await pool.pool()
+    
+    assert(
+      getContractsTrading.pool === bPool,
+      'wrong balancer pool address'
+    )
+  })
+
   it('should include correct values when calling getRaiseProgress', async () => {
     this.timeout(0)
 
