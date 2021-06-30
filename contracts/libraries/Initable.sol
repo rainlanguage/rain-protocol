@@ -32,7 +32,7 @@ abstract contract Initable {
     // Mofified function can only be called _after_ initialization.
     // All functions that reference finalized initialization state MUST use this modifier.
     modifier onlyInit() {
-        require(initialized, "ERR_ONLY_INIT");
+        require(initialized, "ONLY_INIT");
         _;
     }
 
@@ -40,7 +40,7 @@ abstract contract Initable {
     // Modified function can only be called _before_ initialization.
     // Functions MAY use this to facilitate initialization then disable themselves.
     modifier onlyNotInit() {
-        require(!initialized, "ERR_ONLY_NOT_INIT");
+        require(!initialized, "ONLY_NOT_INIT");
         _;
     }
 
@@ -49,7 +49,7 @@ abstract contract Initable {
     // MUST only be called once.
     // Sets initialized to true after initialization completes without reverting.
     modifier withInit() {
-        require(!initialized, "ERR_ONLY_NOT_INIT");
+        require(!initialized, "ONLY_NOT_INIT");
         _;
         initialized = true;
         emit Initialized();

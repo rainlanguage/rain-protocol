@@ -8,6 +8,7 @@ import { utils } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 
 import { linearRegression, linearRegressionLine, rSquared } from "simple-statistics"
+import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -131,9 +132,8 @@ describe("TrustTrade", async function () {
     await trust.startRaise({ gasLimit: 100000000 })
 
     const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
-    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator)
-    const bPool = new ethers.Contract(pool.pool(), bPoolJson.abi, creator)
-    const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
     const reserveSpend = ethers.BigNumber.from('10' + Util.eighteenZeros)
 
@@ -365,12 +365,11 @@ describe("TrustTrade", async function () {
     const startBlock = await ethers.provider.getBlockNumber()
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
-    const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, creator)
-    const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator)
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
-    const reserveAmountStart = await reserve.balanceOf(await pool.pool())
-    const tokenAmountStart = await token.balanceOf(await pool.pool())
+    const reserveAmountStart = await reserve.balanceOf(bPool.address)
+    const tokenAmountStart = await token.balanceOf(bPool.address)
 
     assert(reserveAmountStart.eq(reserveInit), 'wrong starting reserve')
     assert(tokenAmountStart.eq(redeemInit), 'wrong starting token supply')
@@ -390,8 +389,8 @@ describe("TrustTrade", async function () {
       await reserve.transfer(signers[3].address, 0)
     }
 
-    const reserveAmount25 = await reserve.balanceOf(await pool.pool())
-    const tokenAmount25 = await token.balanceOf(await pool.pool())
+    const reserveAmount25 = await reserve.balanceOf(bPool.address)
+    const tokenAmount25 = await token.balanceOf(bPool.address)
 
     assert(reserveAmount25.eq(reserveAmountStart), 'reserve amount changed with no trading')
     assert(tokenAmount25.eq(tokenAmountStart), 'token amount changed with no trading')
@@ -407,8 +406,8 @@ describe("TrustTrade", async function () {
       await reserve.transfer(signers[3].address, 0)
     }
 
-    const reserveAmount50 = await reserve.balanceOf(await pool.pool())
-    const tokenAmount50 = await token.balanceOf(await pool.pool())
+    const reserveAmount50 = await reserve.balanceOf(bPool.address)
+    const tokenAmount50 = await token.balanceOf(bPool.address)
 
     assert(reserveAmount50.eq(reserveAmountStart), 'reserve amount changed with no trading')
     assert(tokenAmount50.eq(tokenAmountStart), 'token amount changed with no trading')
@@ -424,8 +423,8 @@ describe("TrustTrade", async function () {
       await reserve.transfer(signers[3].address, 0)
     }
 
-    const reserveAmount75 = await reserve.balanceOf(await pool.pool())
-    const tokenAmount75 = await token.balanceOf(await pool.pool())
+    const reserveAmount75 = await reserve.balanceOf(bPool.address)
+    const tokenAmount75 = await token.balanceOf(bPool.address)
 
     assert(reserveAmount75.eq(reserveAmountStart), 'reserve amount changed with no trading')
     assert(tokenAmount75.eq(tokenAmountStart), 'token amount changed with no trading')
@@ -441,8 +440,8 @@ describe("TrustTrade", async function () {
       await reserve.transfer(signers[3].address, 0)
     }
 
-    const reserveAmountFinal = await reserve.balanceOf(await pool.pool())
-    const tokenAmountFinal = await token.balanceOf(await pool.pool())
+    const reserveAmountFinal = await reserve.balanceOf(bPool.address)
+    const tokenAmountFinal = await token.balanceOf(bPool.address)
 
     assert(reserveAmountFinal.eq(reserveAmountStart), 'reserve amount changed with no trading')
     assert(tokenAmountFinal.eq(tokenAmountStart), 'token amount changed with no trading')
@@ -453,12 +452,12 @@ describe("TrustTrade", async function () {
     spotPrices.push(spotPriceFinal)
     spotBlocks.push(await ethers.provider.getBlockNumber())
 
-    spotPrices = spotPrices.map(spotPrice => Number(spotPrice.div('100000000000000'))) // reduce scale
+    spotPrices = spotPrices.map(spotPrice => spotPrice.div('100000000000000')) // reduce scale
 
     // check linearity
-    const regression = linearRegression([spotBlocks, spotPrices])
+    const regression = linearRegression([spotBlocks, spotPrices.map(Number)])
     const regressionLine = linearRegressionLine(regression);
-    const rSqrd = rSquared([spotBlocks, spotPrices], regressionLine); // = 1 this line is a perfect fit
+    const rSqrd = rSquared([spotBlocks, spotPrices.map(Number)], regressionLine); // = 1 this line is a perfect fit
 
     assert(rSqrd === 1, "weights curve was not linear")
 
@@ -564,7 +563,7 @@ describe("TrustTrade", async function () {
 
     await trust.deployed()
 
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
 
@@ -578,29 +577,19 @@ describe("TrustTrade", async function () {
 
     await trust.startRaise({ gasLimit: 100000000 })
 
-    const bPoolSilver = new ethers.Contract(await pool.pool(), bPoolJson.abi, hodlerSilver)
-    const reserveSilver = new ethers.Contract(reserve.address, reserve.interface, hodlerSilver)
-    const crpSilver = new ethers.Contract(
-      (await pool.crp()),
-      crpJson.abi,
-      hodlerSilver
-    )
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
-    const bPoolGold = new ethers.Contract(await pool.pool(), bPoolJson.abi, hodlerGold)
-    const reserveGold = new ethers.Contract(reserve.address, reserve.interface, hodlerGold)
-    const crpGold = new ethers.Contract(
-      (await pool.crp()),
-      crpJson.abi,
-      hodlerGold
-    )
+    const bPoolSilver = bPool.connect(hodlerSilver)
+    const reserveSilver = reserve.connect(hodlerSilver)
+    const crpSilver = crp.connect(hodlerSilver)
 
-    const bPoolPlatinum = new ethers.Contract(await pool.pool(), bPoolJson.abi, hodlerPlatinum)
-    const reservePlatinum = new ethers.Contract(reserve.address, reserve.interface, hodlerPlatinum)
-    const crpPlatinum = new ethers.Contract(
-      (await pool.crp()),
-      crpJson.abi,
-      hodlerPlatinum
-    )
+    const bPoolGold = bPool.connect(hodlerGold)
+    const reserveGold = reserve.connect(hodlerGold)
+    const crpGold = crp.connect(hodlerGold)
+
+    const bPoolPlatinum = bPool.connect(hodlerPlatinum)
+    const reservePlatinum = reserve.connect(hodlerPlatinum)
+    const crpPlatinum = crp.connect(hodlerPlatinum)
 
     const startBlock = await ethers.provider.getBlockNumber()
 
@@ -779,7 +768,7 @@ describe("TrustTrade", async function () {
 
     await trust.deployed()
 
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
 
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder.address, reserveInit)
@@ -792,13 +781,11 @@ describe("TrustTrade", async function () {
     await trust.startRaise({ gasLimit: 100000000 })
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
-    const bPool1 = new ethers.Contract(await pool.pool(), bPoolJson.abi, hodler1)
-    const reserve1 = new ethers.Contract(reserve.address, reserve.interface, hodler1)
-    const crp1 = new ethers.Contract(
-      (await pool.crp()),
-      crpJson.abi,
-      hodler1
-    )
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
+
+    const bPool1 = bPool.connect(hodler1)
+    const reserve1 = reserve.connect(hodler1)
+    const crp1 = crp.connect(hodler1)
 
     const startBlock = await ethers.provider.getBlockNumber()
 

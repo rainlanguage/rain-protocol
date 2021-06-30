@@ -130,60 +130,60 @@ contract Trust {
     RedeemableERC20Pool public pool;
 
     constructor (
-        TrustConfig memory _trustConfig,
-        RedeemableERC20Config memory _redeemableERC20Config,
-        PoolConfig memory _poolConfig,
+        TrustConfig memory trustConfig_,
+        RedeemableERC20Config memory redeemableERC20Config_,
+        PoolConfig memory poolConfig_,
         // The amount of reserve to back the redemption initially after trading finishes.
         // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
-        uint256 _redeemInit
+        uint256 redeemInit_
     ) public {
-        require(_redeemableERC20Config.totalSupply >= _poolConfig.reserveInit, "ERR_MIN_TOKEN_SUPPLY");
-        require(_poolConfig.reserveInit > 0, "ERR_MIN_RESERVE");
-        require(_poolConfig.initialValuation >= _poolConfig.finalValuation, "ERR_MIN_INITIAL_VALUTION");
+        require(redeemableERC20Config_.totalSupply >= poolConfig_.reserveInit, "MIN_TOKEN_SUPPLY");
+        require(poolConfig_.reserveInit > 0, "MIN_RESERVE");
+        require(poolConfig_.initialValuation >= poolConfig_.finalValuation, "MIN_INITIAL_VALUTION");
 
-        RedeemableERC20 _token = new RedeemableERC20(
-            _redeemableERC20Config
+        RedeemableERC20 token_ = new RedeemableERC20(
+            redeemableERC20Config_
         );
-        RedeemableERC20Pool _pool = new RedeemableERC20Pool(
-            _token,
-            _poolConfig
+        RedeemableERC20Pool pool_ = new RedeemableERC20Pool(
+            token_,
+            poolConfig_
         );
 
-        if (_trustConfig.seeder == address(0)) {
-            require(_poolConfig.reserveInit.mod(_trustConfig.seederUnits) == 0, "ERR_SEED_PRICE_MULTIPLIER");
-            uint256 _seedPrice = _poolConfig.reserveInit.div(_trustConfig.seederUnits);
+        if (trustConfig_.seeder == address(0)) {
+            require(poolConfig_.reserveInit.mod(trustConfig_.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
+            uint256 _seedPrice = poolConfig_.reserveInit.div(trustConfig_.seederUnits);
             SeedERC20 _seedERC20 = new SeedERC20(SeedERC20Config(
-                _poolConfig.reserve,
+                poolConfig_.reserve,
                 _seedPrice,
-                _trustConfig.seederUnits,
-                _trustConfig.unseedDelay,
+                trustConfig_.seederUnits,
+                trustConfig_.unseedDelay,
                 "",
                 ""
             ));
-            _seedERC20.init(address(_pool));
-            _trustConfig.seeder = address(_seedERC20);
+            _seedERC20.init(address(pool_));
+            trustConfig_.seeder = address(_seedERC20);
         }
 
         // Need to make a few addresses unfreezable to facilitate exits.
-        address _crp = address(_pool.crp());
-        _token.ownerAddReceiver(_crp);
-        _token.ownerAddSender(_crp);
-        _token.ownerAddReceiver(address(_poolConfig.balancerFactory));
-        _token.ownerAddReceiver(address(_pool));
+        address _crp = address(pool_.crp());
+        token_.ownerAddReceiver(_crp);
+        token_.ownerAddSender(_crp);
+        token_.ownerAddReceiver(address(poolConfig_.balancerFactory));
+        token_.ownerAddReceiver(address(pool_));
 
         // The pool reserve must always be one of the redeemable assets.
-        _token.ownerAddRedeemable(_poolConfig.reserve);
+        token_.ownerAddRedeemable(poolConfig_.reserve);
 
         // Send all tokens to the pool immediately.
         // When the seed funds are raised `startRaise` will build a pool from these.
-        _token.safeTransfer(address(_pool), _redeemableERC20Config.totalSupply);
+        token_.safeTransfer(address(pool_), redeemableERC20Config_.totalSupply);
 
-        trustConfig = _trustConfig;
-        redeemInit = _redeemInit;
-        token = _token;
-        pool = _pool;
+        trustConfig = trustConfig_;
+        redeemInit = redeemInit_;
+        token = token_;
+        pool = pool_;
 
-        require(_poolConfig.finalValuation >= successBalance(), "ERR_MIN_FINAL_VALUATION");
+        require(poolConfig_.finalValuation >= successBalance(), "MIN_FINAL_VALUATION");
     }
 
     function successBalance() public view returns(uint256) {
@@ -198,23 +198,23 @@ contract Trust {
             address(trustConfig.seeder),
             address(token.prestige()),
             address(pool.crp()),
-            address(pool.pool())
+            address(pool.crp().bPool())
         );
     }
 
     function getRaiseProgress() external view returns(RaiseProgress memory) {
-        address _balancerPool = address(pool.pool());
-        uint256 _poolReserveBalance;
-        uint256 _poolTokenBalance;
-        if (_balancerPool != address(0)) {
-            _poolReserveBalance = pool.reserve().balanceOf(_balancerPool);
-            _poolTokenBalance = token.balanceOf(_balancerPool);
+        address balancerPool_ = address(pool.crp().bPool());
+        uint256 poolReserveBalance_;
+        uint256 poolTokenBalance_;
+        if (balancerPool_ != address(0)) {
+            poolReserveBalance_ = pool.reserve().balanceOf(balancerPool_);
+            poolTokenBalance_ = token.balanceOf(balancerPool_);
         }
 
         return RaiseProgress(
             getRaiseStatus(),
-            _poolReserveBalance,
-            _poolTokenBalance,
+            poolReserveBalance_,
+            poolTokenBalance_,
             pool.reserveInit(),
             trustConfig.minCreatorRaise,
             trustConfig.seederFee,
@@ -223,21 +223,21 @@ contract Trust {
     }
 
     function getRaiseStatus() public view returns (RaiseStatus) {
-        RaiseStatus _baseStatus = raiseStatus;
-        if (_baseStatus == RaiseStatus.Pending && pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()) {
+        RaiseStatus baseStatus_ = raiseStatus;
+        if (baseStatus_ == RaiseStatus.Pending && pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()) {
             return RaiseStatus.Seeded;
         }
 
-        if (_baseStatus == RaiseStatus.Trading && pool.isUnblocked()) {
+        if (baseStatus_ == RaiseStatus.Trading && pool.isUnblocked()) {
             return RaiseStatus.TradingCanEnd;
         }
 
-        return _baseStatus;
+        return baseStatus_;
     }
 
-    function creatorAddRedeemable(IERC20 _redeemable) external {
+    function creatorAddRedeemable(IERC20 redeemable_) external {
         require(msg.sender == trustConfig.creator, "ERR_NOT_CREATOR");
-        token.ownerAddRedeemable(_redeemable);
+        token.ownerAddRedeemable(redeemable_);
     }
 
     // This function can be called by anyone!
@@ -248,9 +248,7 @@ contract Trust {
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function startRaise() external {
         raiseStatus = RaiseStatus.Trading;
-        uint256 _unblockBlock = block.number + trustConfig.raiseDuration;
-        pool.ownerSetUnblockBlock(_unblockBlock);
-        pool.init();
+        pool.init(block.number + trustConfig.raiseDuration);
     }
 
     // This function can be called by anyone!
@@ -261,25 +259,25 @@ contract Trust {
         token.ownerSetUnblockBlock(block.number);
         pool.exit();
 
-        IERC20 _reserve = pool.reserve();
-        uint256 _seedInit = pool.reserveInit();
+        IERC20 reserve_ = pool.reserve();
+        uint256 seedInit_ = pool.reserveInit();
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
-        uint256 _poolDust = _reserve.balanceOf(address(pool.pool()));
+        uint256 poolDust_ = reserve_.balanceOf(address(pool.crp().bPool()));
         // The dust is included in the final balance for UX reasons.
         // We don't want to fail the raise due to dust, even if technically it was a failure.
         // To ensure a good UX for creators and token holders we subtract the dust from the seeder.
-        uint256 _finalBalance = _reserve.balanceOf(address(this)) + _poolDust;
+        uint256 finalBalance_ = reserve_.balanceOf(address(this)) + poolDust_;
 
         // Base payments for each fundraiser.
-        uint256 _seederPay;
-        uint256 _creatorPay;
+        uint256 seederPay_;
+        uint256 creatorPay_;
 
         // Set aside the redemption and seed fee if we reached the minimum.
-        if (_finalBalance >= successBalance()) {
+        if (finalBalance_ >= successBalance()) {
             raiseStatus = RaiseStatus.Success;
             // The seeder gets the reserve + seed fee - dust
-            _seederPay = _seedInit.add(trustConfig.seederFee).sub(_poolDust);
+            seederPay_ = seedInit_.add(trustConfig.seederFee).sub(poolDust_);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -292,9 +290,9 @@ contract Trust {
             // SO success balance - (seed pay + token pay) >= 0
             // SO final balance - (seed pay + token pay) >= 0
             //
-            // Implied is the remainder of _finalBalance as redeemInit
+            // Implied is the remainder of finalBalance_ as redeemInit
             // This will be transferred to the token holders below.
-            _creatorPay = _finalBalance.sub(_seederPay.add(redeemInit));
+            creatorPay_ = finalBalance_.sub(seederPay_.add(redeemInit));
         }
         else {
             raiseStatus = RaiseStatus.Fail;
@@ -303,31 +301,31 @@ contract Trust {
             // Due to pool dust it is possible the final balance is less than the reserve init.
             // If we don't take the min then we will attempt to transfer more than exists and brick the contract.
             //
-            // Implied if _finalBalance > reserve_init is the remainder goes to token holders below.
-            _seederPay = _seedInit.sub(_poolDust);
+            // Implied if finalBalance_ > reserve_init is the remainder goes to token holders below.
+            seederPay_ = seedInit_.sub(poolDust_);
         }
 
-        if (_creatorPay > 0) {
-            _reserve.safeTransfer(
+        if (creatorPay_ > 0) {
+            reserve_.safeTransfer(
                 trustConfig.creator,
-                _creatorPay
+                creatorPay_
             );
         }
 
-        _reserve.safeTransfer(
+        reserve_.safeTransfer(
             trustConfig.seeder,
-            _seederPay
+            seederPay_
         );
 
         // Send everything left to the token holders.
-        // Implicitly the remainder of the _finalBalance is:
+        // Implicitly the remainder of the finalBalance_ is:
         // - the redeem init if successful
         // - whatever users deposited in the AMM if unsuccessful
-        uint256 _remainder = _reserve.balanceOf(address(this));
-        if (_remainder > 0) {
-            _reserve.safeTransfer(
+        uint256 remainder_ = reserve_.balanceOf(address(this));
+        if (remainder_ > 0) {
+            reserve_.safeTransfer(
                 address(token),
-                _remainder
+                remainder_
             );
         }
     }

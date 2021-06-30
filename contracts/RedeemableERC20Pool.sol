@@ -68,7 +68,6 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     uint256[] public targetWeights;
 
     ConfigurableRightsPool public crp;
-    IBPool public pool;
 
     constructor (
         RedeemableERC20 token_,
@@ -77,9 +76,8 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         public
     {
         // Calculate all the config for balancer.
-        uint256[] memory poolAmounts_ = poolAmounts(token_, poolConfig_);
         (uint256[] memory startWeights_, uint256[] memory targetWeights_) = poolWeights(poolConfig_);
-        ConfigurableRightsPool crp_ = constructCrp(token_, poolConfig_, poolAmounts_, startWeights_);
+        ConfigurableRightsPool crp_ = constructCrp(token_, poolConfig_, startWeights_);
 
         // Preapprove all tokens and reserve for the CRP.
         require(poolConfig_.reserve.approve(address(crp_), poolConfig_.reserveInit), "RESERVE_APPROVE");
@@ -156,20 +154,17 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // 4. Whitelist LPs (@todo limited by Trust?)
         // 5. Change cap
         bool[] memory rights_ = new bool[](6);
-        rights_[0] = false;
-        rights_[1] = false;
         rights_[2] = true;
-        rights_[3] = true;
-        rights_[4] = false;
-        rights_[5] = false;
         return rights_;
     }
 
-    function constructCrp (RedeemableERC20 token_, PoolConfig memory poolConfig_, uint256[] memory poolAmounts_, uint256[] memory startWeights_) private returns (ConfigurableRightsPool) {
+    function constructCrp (RedeemableERC20 token_, PoolConfig memory poolConfig_, uint256[] memory startWeights_) private returns (ConfigurableRightsPool) {
         // The addresses in the RedeemableERC20Pool, as [reserve, token].
         address[] memory poolAddresses_ = new address[](2);
         poolAddresses_[0] = address(poolConfig_.reserve);
         poolAddresses_[1] = address(token_);
+
+        uint256[] memory poolAmounts_ = poolAmounts(token_, poolConfig_);
 
         return poolConfig_.crpFactory.newCrp(
             address(poolConfig_.balancerFactory),
@@ -187,18 +182,15 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         );
     }
 
-    function ownerSetUnblockBlock(uint256 unblockBlock_) external onlyOwner {
+    function init(uint256 unblockBlock_) external withInit onlyOwner onlyBlocked {
         setUnblockBlock(unblockBlock_);
-    }
 
-    function init() external withInit onlyOwner onlyBlocked {
         // Max pool tokens to minimise dust on exit.
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).
         crp.createPool(BalancerConstants.MAX_POOL_SUPPLY, 0, 0);
         // Calculate the CRP curve.
-        crp.updateWeightsGradually(targetWeights, block.number, unblockBlock);
-        pool = crp.bPool();
+        crp.updateWeightsGradually(targetWeights, block.number, unblockBlock_);
     }
 
     function exit() external onlyInit onlyOwner onlyUnblocked {

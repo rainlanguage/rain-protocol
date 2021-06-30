@@ -5,6 +5,7 @@ import { ethers } from 'hardhat'
 import type { ReserveToken } from '../typechain/ReserveToken'
 import type { SeedERC20 } from '../typechain/SeedERC20'
 import type { Prestige } from "../typechain/Prestige";
+import type { RedeemableERC20Pool } from '../typechain/RedeemableERC20Pool'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -236,17 +237,17 @@ describe("TrustSeed", async function () {
     // functions other than 'init' cannot be called until successful init
     await Util.assertError(
       async () => await seederContract.seed(1),
-      "revert ERR_ONLY_INIT",
+      "revert ONLY_INIT",
       "non-init function called before init"
     )
     await Util.assertError(
       async () => await seederContract.unseed(1),
-      "revert ERR_ONLY_INIT",
+      "revert ONLY_INIT",
       "non-init function called before init"
     )
     await Util.assertError(
       async () => await seederContract.redeem(1),
-      "revert ERR_ONLY_INIT",
+      "revert ONLY_INIT",
       "non-init function called before init"
     )
 
@@ -255,7 +256,7 @@ describe("TrustSeed", async function () {
 
     await Util.assertError(
       async () => await seederContract.init(signers[5].address),
-      "revert ERR_ONLY_NOT_INIT",
+      "revert ONLY_NOT_INIT",
       "init was called twice"
     )
 
@@ -705,7 +706,7 @@ describe("TrustSeed", async function () {
       await trust.deployed()
 
       const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
-      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
 
       const recipient = await trust.pool()
 
@@ -761,8 +762,7 @@ describe("TrustSeed", async function () {
 
       await trust.startRaise({ gasLimit: 100000000 })
 
-      const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, creator)
-      const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator)
+      let [crp, bPool] = await Util.poolContracts(signers, pool)
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -953,7 +953,7 @@ describe("TrustSeed", async function () {
 
       await trust.deployed()
 
-      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
 
       await seederContract.init(await trust.pool())
 
@@ -1002,7 +1002,7 @@ describe("TrustSeed", async function () {
 
       await trust.startRaise({ gasLimit: 100000000 })
 
-      const bPoolAddress = await pool.pool()
+      let [crp, bPool] = await Util.poolContracts(signers, pool)
 
       const startBlock = await ethers.provider.getBlockNumber()
 
@@ -1013,7 +1013,7 @@ describe("TrustSeed", async function () {
         await reserve.transfer(signers[9].address, 0)
       }
 
-      const bPoolFinalBalance = await reserve.balanceOf(bPoolAddress)
+      const bPoolFinalBalance = await reserve.balanceOf(bPool.address)
       const bPoolReserveDust = bPoolFinalBalance.mul(Util.ONE).div(1e7).div(Util.ONE)
         .add(1) // rounding error
 
