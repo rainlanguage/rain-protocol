@@ -37,14 +37,14 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     mapping (address => uint256) public unseedLocks;
 
     constructor (
-        SeedERC20Config memory _seedERC20Config
-    ) public ERC20(_seedERC20Config.name, _seedERC20Config.symbol) {
-        require(_seedERC20Config.seedPrice > 0, "ERR_ZERO_PRICE");
-        require(_seedERC20Config.seedUnits > 0, "ERR_ZERO_UNITS");
-        seedPrice = _seedERC20Config.seedPrice;
-        unseedDelay = _seedERC20Config.unseedDelay;
-        reserve = _seedERC20Config.reserve;
-        _mint(address(this), _seedERC20Config.seedUnits);
+        SeedERC20Config memory seedERC20Config_
+    ) public ERC20(seedERC20Config_.name, seedERC20Config_.symbol) {
+        require(seedERC20Config_.seedPrice > 0, "ERR_ZERO_PRICE");
+        require(seedERC20Config_.seedUnits > 0, "ERR_ZERO_UNITS");
+        seedPrice = seedERC20Config_.seedPrice;
+        unseedDelay = seedERC20Config_.unseedDelay;
+        reserve = seedERC20Config_.reserve;
+        _mint(address(this), seedERC20Config_.seedUnits);
     }
 
     // The init is to break a chicken/egg between the seeder and recipient.
@@ -58,9 +58,9 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     //
     // The recipient can only be set by the owner during init.
     // The recipient cannot be changed as this would risk seeder funds.
-    function init(address _recipient) external onlyOwner withInit {
-        require(_recipient != address(0), "ERR_RECIPIENT_ZERO");
-        recipient = _recipient;
+    function init(address recipient_) external onlyOwner withInit {
+        require(recipient_ != address(0), "ERR_RECIPIENT_ZERO");
+        recipient = recipient_;
     }
 
     // Take reserve from seeder as units * seedPrice.
@@ -72,16 +72,16 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     // - approves infinite reserve transfers for the recipient
     //
     // Can only be called after init so that all callers are guaranteed to know the recipient.
-    function seed(uint256 units) external onlyInit onlyBlocked {
+    function seed(uint256 units_) external onlyInit onlyBlocked {
         unseedLocks[msg.sender] = block.number + unseedDelay;
         // If balanceOf is less than units then the transfer below will fail and rollback anyway.
-        if (balanceOf(address(this)) == units) {
+        if (balanceOf(address(this)) == units_) {
             setUnblockBlock(block.number);
         }
-        _transfer(address(this), msg.sender, units);
+        _transfer(address(this), msg.sender, units_);
 
         // Reentrant reserve transfers.
-        reserve.safeTransferFrom(msg.sender, address(this), seedPrice.mul(units));
+        reserve.safeTransferFrom(msg.sender, address(this), seedPrice.mul(units_));
         // Immediately transfer to the recipient.
         // The transfer is immediate rather than only approving for the recipient.
         // This avoids the situation where a seeder immediately redeems their units before the recipient can withdraw.
@@ -96,14 +96,14 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     //
     // Once the contract is seeded this function is disabled.
     // Once this function is disabled seeders are expected to call redeem at a later time.
-    function unseed(uint256 units) external onlyInit onlyBlocked {
+    function unseed(uint256 units_) external onlyInit onlyBlocked {
         // Prevent users from griefing contract with rapid seed/unseed cycles.
         require(unseedLocks[msg.sender] <= block.number, "ERR_UNSEED_LOCKED");
 
-        _transfer(msg.sender, address(this), units);
-        
+        _transfer(msg.sender, address(this), units_);
+
         // Reentrant reserve transfer.
-        reserve.safeTransfer(msg.sender, seedPrice.mul(units));
+        reserve.safeTransfer(msg.sender, seedPrice.mul(units_));
     }
 
     // Send reserve back to seeder as *pro-rata*
@@ -114,9 +114,9 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     // Once funds are returned back to this contract it makes sense for token holders to redeem their portion.
     //
     // For example, if `SeedERC20` is used as a seeder for a `Trust` contract (in this repo) it will receive a refund or refund + fee.
-    function redeem(uint256 units) external onlyInit onlyUnblocked {
+    function redeem(uint256 units_) external onlyInit onlyUnblocked {
         uint256 _supplyBeforeBurn = totalSupply();
-        _burn(msg.sender, units);
+        _burn(msg.sender, units_);
 
         uint256 _currentReserveBalance = reserve.balanceOf(address(this));
         // Guard against someone accidentally calling redeem before any reserve has been returned.
@@ -125,7 +125,7 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
         // Reentrant reserve transfer.
         reserve.safeTransfer(
             msg.sender,
-            units
+            units_
                 .mul(_currentReserveBalance)
                 .div(_supplyBeforeBurn)
         );
