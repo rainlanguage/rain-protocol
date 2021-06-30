@@ -1958,7 +1958,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () => await trust.creatorAddRedeemable(reserve9.address),
-      "revert ERR_MAX_REDEEMABLES",
+      "revert MAX_REDEEMABLES",
       "number of added redeemables exceeds limit of 8"
     )
   })

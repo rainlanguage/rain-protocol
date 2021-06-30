@@ -740,7 +740,7 @@ describe("TrustSeed", async function () {
       // seeder cannot unseed after all units seeded
       await Util.assertError(
         async () => await seederContract1.unseed(seeder1Units),
-        "revert ERR_ONLY_BLOCKED",
+        "revert ONLY_BLOCKED",
         "seeder1 unseeded despite all units being seeded"
       )
 
