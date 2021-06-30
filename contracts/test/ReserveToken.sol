@@ -13,9 +13,11 @@ contract ReserveToken is ERC20 {
     // blacklist
     mapping(address => bool) public freezables;
 
+    // One _billion_ dollars 👷😈
+    uint256 public constant TOTAL_SUPPLY = 10 ** (18 + 9);
+
     constructor() public ERC20("USD Classic", "USDCC") {
-        // One _billion_ dollars 👷😈
-        _mint(msg.sender, SafeMath.mul(1000000000, BalancerConstants.BONE));
+        _mint(msg.sender, TOTAL_SUPPLY);
     }
 
     function ownerAddFreezable(address _address) external {
