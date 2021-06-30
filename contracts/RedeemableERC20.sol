@@ -133,16 +133,16 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         setUnblockBlock(_unblockBlock);
     }
 
-    function ownerAddRedeemable(IERC20 _redeemable) external onlyOwner {
+    function ownerAddRedeemable(IERC20 newRedeemable_) external onlyOwner {
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
         uint256 _i = 0;
-        require(redeemables.length<8, "ERR_MAX_REDEEMABLES");
+        require(redeemables.length<8, "MAX_REDEEMABLES");
         for (_i; _i<redeemables.length;_i++) {
-            require(redeemables[_i] != _redeemable, "ERR_DUPLICATE_REDEEMABLE");
+            require(redeemables[_i] != newRedeemable_, "DUPLICATE_REDEEMABLE");
         }
-        redeemables.push(_redeemable);
+        redeemables.push(newRedeemable_);
     }
 
     function getRedeemables() external view returns (address[8] memory) {
@@ -188,30 +188,30 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         uint256 _toRedeem = 0;
         uint256 i = 0;
         for(i; i < redeemables.length; i++) {
-            IERC20 _redeemable = redeemables[i];
+            IERC20 ithRedeemable_ = redeemables[i];
 
             // Any one of the several redeemables may fail for some reason.
             // Consider the case where a user needs to meet additional criteria (e.g. KYC) for some token.
             // In this case _any_ of the redeemables may revert normally causing _all_ redeemables to revert.
             // We use try/catch here to force all redemptions that may succeed for the user to continue.
-            try _redeemable.balanceOf(address(this)) returns (uint256 _redeemableBalance) {
+            try ithRedeemable_.balanceOf(address(this)) returns (uint256 _redeemableBalance) {
                 _toRedeem = _redeemAmount.mul(_redeemableBalance).div(_supplyBeforeBurn);
             } catch {
-                emit RedeemFail(msg.sender, address(_redeemable));
+                emit RedeemFail(msg.sender, address(ithRedeemable_));
             }
 
             // Reentrant call to transfer.
             // Note the events emitted _after_ possible reentrancy.
-            try _redeemable.transfer(msg.sender, _toRedeem) returns (bool _success) {
+            try ithRedeemable_.transfer(msg.sender, _toRedeem) returns (bool _success) {
                 if (_success) {
-                    emit RedeemSuccess(msg.sender, address(_redeemable));
+                    emit RedeemSuccess(msg.sender, address(ithRedeemable_));
                 }
                 else {
-                    emit RedeemFail(msg.sender, address(_redeemable));
+                    emit RedeemFail(msg.sender, address(ithRedeemable_));
                 }
             }
             catch {
-                emit RedeemFail(msg.sender, address(_redeemable));
+                emit RedeemFail(msg.sender, address(ithRedeemable_));
             }
         }
     }
