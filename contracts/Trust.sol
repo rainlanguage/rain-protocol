@@ -25,6 +25,16 @@ import { PoolConfig } from "./RedeemableERC20Pool.sol";
 import { RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
+struct TrustContracts {
+    address reserveERC20;
+    address redeemableERC20;
+    address redeemableERC20Pool;
+    address seeder;
+    address prestige;
+    address crp;
+    address pool;
+}
+
 enum RaiseStatus {
     Pending,
     Seeded,
@@ -178,6 +188,18 @@ contract Trust {
 
     function successBalance() public view returns(uint256) {
         return pool.reserveInit().add(trustConfig.seederFee).add(redeemInit).add(trustConfig.minCreatorRaise);
+    }
+
+    function getContracts() external view returns(TrustContracts memory) {
+        return TrustContracts(
+            address(pool.reserve()),
+            address(token),
+            address(pool),
+            address(trustConfig.seeder),
+            address(token.prestige()),
+            address(pool.crp()),
+            address(pool.pool())
+        );
     }
 
     function getRaiseProgress() external view returns(RaiseProgress memory) {
