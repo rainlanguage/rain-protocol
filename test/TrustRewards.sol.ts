@@ -453,7 +453,7 @@ describe("TrustRewards", async function () {
 
     await Util.assertError(
       async () => await trust.connect(creator).creatorAddRedeemable(reserveA.address),
-      "revert ERR_DUPLICATE_REDEEMABLE",
+      "revert DUPLICATE_REDEEMABLE",
       "added duplicate redeemable"
     )
 
@@ -678,7 +678,7 @@ describe("TrustRewards", async function () {
 
     await Util.assertError(
       async () => await token1.redeem(await token1.balanceOf(hodler1.address)),
-      "revert ERR_ONLY_UNBLOCKED",
+      "revert ONLY_UNBLOCKED",
       "hodler1 redeemed tokens before token unblocked (before pool unblock)"
     )
 
@@ -693,7 +693,7 @@ describe("TrustRewards", async function () {
 
     await Util.assertError(
       async () => await token1.redeem(hodler1TokenBalanceBeforeRed),
-      "revert ERR_ONLY_UNBLOCKED",
+      "revert ONLY_UNBLOCKED",
       `hodler1 redeemed tokens before token unblocked (after pool unblock)
       currentBlock      ${await ethers.provider.getBlockNumber()}
       tokenUnblockBlock ${await token.unblockBlock()}`

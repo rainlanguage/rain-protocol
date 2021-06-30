@@ -984,7 +984,7 @@ describe("TrustSeed", async function () {
       // redeem fails before seeding is complete
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERR_ONLY_UNBLOCKED",
+        "revert ONLY_UNBLOCKED",
         "redeemed before seeding is complete"
       )
 

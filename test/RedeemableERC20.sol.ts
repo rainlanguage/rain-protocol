@@ -252,7 +252,7 @@ describe("RedeemableERC20", async function () {
             )
         })
     })
-    
+
 
     it("should lock tokens until redeemed", async function () {
         this.timeout(0)
@@ -306,7 +306,7 @@ describe("RedeemableERC20", async function () {
         )
 
         assert(
-            (await redeemableERC20.getRedeemables()).length === 8, 
+            (await redeemableERC20.getRedeemables()).length === 8,
             'redeemables length not fixed'
         )
 
@@ -339,7 +339,7 @@ describe("RedeemableERC20", async function () {
         // Redemption not allowed yet.
         await Util.assertError(
             async () => await redeemableERC20.redeem(100),
-            'revert ERR_ONLY_UNBLOCKED',
+            'revert ONLY_UNBLOCKED',
             'redeem did not error'
         )
 

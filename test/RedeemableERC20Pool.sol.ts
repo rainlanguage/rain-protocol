@@ -310,7 +310,7 @@ describe("RedeemableERC20Pool", async function () {
         // Before unblock block
         await Util.assertError(
             async () => await pool.exit(),
-            "revert ERR_ONLY_UNBLOCKED",
+            "revert ONLY_UNBLOCKED",
             "owner was wrongly able to exit pool before unblock block"
         )
 
@@ -476,7 +476,7 @@ describe("RedeemableERC20Pool", async function () {
 
         await Util.assertError(
             async () => await pool.exit(),
-            'revert ERR_ONLY_UNBLOCKED',
+            'revert ONLY_UNBLOCKED',
             'failed to error on early exit'
         )
 
@@ -598,7 +598,7 @@ describe("RedeemableERC20Pool", async function () {
 
     //     await Util.assertError(
     //         async () => await pool.exit(),
-    //         'revert ERR_ONLY_UNBLOCKED',
+    //         'revert ONLY_UNBLOCKED',
     //         'failed to error on early exit'
     //     )
 
@@ -729,7 +729,7 @@ describe("RedeemableERC20Pool", async function () {
 
         await Util.assertError(
             async () => await pool.exit(),
-            'revert ERR_ONLY_UNBLOCKED',
+            'revert ONLY_UNBLOCKED',
             'failed to error on early exit'
         )
 

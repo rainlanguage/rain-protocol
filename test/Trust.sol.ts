@@ -1580,7 +1580,7 @@ describe("Trust", async function () {
     // creator attempts to immediately end raise
     await Util.assertError(
       async () => await trust.endRaise(),
-      "revert ERR_ONLY_UNBLOCKED",
+      "revert ONLY_UNBLOCKED",
       "creator ended raise before pool unblock block"
     )
 
@@ -1589,7 +1589,7 @@ describe("Trust", async function () {
     // other user attempts to immediately end raise
     await Util.assertError(
       async () => await trust2.endRaise(),
-      "revert ERR_ONLY_UNBLOCKED",
+      "revert ONLY_UNBLOCKED",
       "other user ended raise before pool unblock block"
     )
   })
@@ -1944,7 +1944,7 @@ describe("Trust", async function () {
     // adding same redeemable should revert
     await Util.assertError(
       async () => await trust.creatorAddRedeemable(reserve2.address),
-      "revert ERR_DUPLICATE_REDEEMABLE",
+      "revert DUPLICATE_REDEEMABLE",
       "added redeemable that was previously added"
     )
 
@@ -3405,7 +3405,7 @@ describe("Trust", async function () {
     // some other signer triggers trust to exit before unblock, should fail
     await Util.assertError(
       async () => await trust2.endRaise(),
-      "revert ERR_ONLY_UNBLOCKED",
+      "revert ONLY_UNBLOCKED",
       "trust exited before unblock"
     )
 

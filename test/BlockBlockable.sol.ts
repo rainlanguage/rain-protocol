@@ -1,5 +1,5 @@
 import * as Util from './Util'
-import chai from 'chai'
+import chai, { util } from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { BlockBlockableTest } from '../typechain/BlockBlockableTest'
@@ -29,22 +29,19 @@ describe("BlockBlockable", async function () {
         // can call blocked at the start
         await blockable.whileBlocked()
 
-        let blockableDidError = false
-        try {
-            await blockable.blockable()
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_UNBLOCKED'), e)
-            blockableDidError = true
-        }
-        assert(blockableDidError, 'blockable did not error')
+        await Util.assertError(
+            async () => await blockable.blockable(),
+            `revert ONLY_UNBLOCKED`,
+            `blockable did not error`,
+        )
 
         const nowBlock = await ethers.provider.getBlockNumber()
 
         assert(nowBlock > 0, 'blocked at block 0')
 
         const unblockPromise = new Promise(resolve => {
-            blockable.once('UnblockSet', (unblockBlock) => {
-                assert(unblockBlock.eq(nowBlock), 'UnblockSet error has wrong unblock block')
+            blockable.once('UnblockBlockSet', (unblockBlock) => {
+                assert(unblockBlock.eq(nowBlock), 'UnblockBlockSet error has wrong unblock block')
                 resolve(true)
             })
         })
@@ -56,24 +53,18 @@ describe("BlockBlockable", async function () {
         await blockable.blockable()
 
         // except the blocked
-        let whileBlockedDidError = false
-        try {
-            await blockable.whileBlocked()
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_BLOCKED'))
-            whileBlockedDidError = true
-        }
-        assert(whileBlockedDidError, 'only blocked did not error when unblocked')
+        await Util.assertError(
+            async () => await blockable.whileBlocked(),
+            `revert ONLY_BLOCKED`,
+            `only blocked did not error when unblocked`,
+        )
 
         // except changing the unblock block
-        let changeUnblockDidError = false
-        try {
-            await blockable.trySetUnblockBlock(nowBlock + 10)
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_BLOCK_ONCE'))
-            changeUnblockDidError = true
-        }
-        assert(changeUnblockDidError, 'changing the unblock did not error')
+        await Util.assertError(
+            async () => await blockable.trySetUnblockBlock(nowBlock + 10),
+            `revert BLOCK_ONCE`,
+            `changing the unblock did not error`,
+        )
 
         // test some other cases
         const moreBlockable = await blockableFactory.deploy() as BlockBlockableTest
@@ -84,23 +75,17 @@ describe("BlockBlockable", async function () {
 
         await moreBlockable.unblockable()
 
-        let blockableDidZeroError = false
-        try {
-            await moreBlockable.trySetUnblockBlock(0)
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_BLOCK_ZERO'))
-            blockableDidZeroError = true
-        }
-        assert(blockableDidZeroError, 'the unblock block zeroed')
+        await Util.assertError(
+            async () => await moreBlockable.trySetUnblockBlock(0),
+            `revert BLOCK_ZERO`,
+            `the unblock block zeroed`,
+        )
 
-        let moreBlockableDidError = false
-        try {
-            await moreBlockable.blockable()
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_UNBLOCKED'))
-            moreBlockableDidError = true
-        }
-        assert(moreBlockableDidError, 'moreBlockable did not block')
+        await Util.assertError(
+            async () => await moreBlockable.blockable(),
+            `revert ONLY_UNBLOCKED`,
+            `moreBlockable did not block`,
+        )
 
         const nowerBlock = await ethers.provider.getBlockNumber()
 
@@ -109,14 +94,11 @@ describe("BlockBlockable", async function () {
 
         await moreBlockable.unblockable()
 
-        let moreBlockableDidErrorAgain = false
-        try {
-            await moreBlockable.blockable()
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_UNBLOCKED'))
-            moreBlockableDidErrorAgain = true
-        }
-        assert(moreBlockableDidErrorAgain, 'moreBlockable did not block again')
+        await Util.assertError(
+            async () => await moreBlockable.blockable(),
+            `revert ONLY_UNBLOCKED`,
+            `moreBlockable did not block again`,
+        )
 
         // bump a block
         moreBlockable.noop()
