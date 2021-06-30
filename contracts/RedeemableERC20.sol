@@ -79,6 +79,11 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         address _redeemable
     );
 
+    /// The maximum number of redeemables that can be set.
+    /// Attempting to add more redeemables than this will fail with an error.
+    /// This prevents a very large loop in the `redeem` function.
+    uint8 public constant MAX_REDEEMABLES = 8;
+
     IPrestige.Status public minimumPrestigeStatus;
 
     IERC20[] private redeemables;
@@ -137,10 +142,9 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
-        uint256 _i = 0;
-        require(redeemables.length<8, "MAX_REDEEMABLES");
-        for (_i; _i<redeemables.length;_i++) {
-            require(redeemables[_i] != newRedeemable_, "DUPLICATE_REDEEMABLE");
+        require(redeemables.length<MAX_REDEEMABLES, "MAX_REDEEMABLES");
+        for (uint256 i_ = 0; i_<redeemables.length;i_++) {
+            require(redeemables[i_] != newRedeemable_, "DUPLICATE_REDEEMABLE");
         }
         redeemables.push(newRedeemable_);
     }
@@ -186,9 +190,8 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
 
         // Clear the redeemables.
         uint256 _toRedeem = 0;
-        uint256 i = 0;
-        for(i; i < redeemables.length; i++) {
-            IERC20 ithRedeemable_ = redeemables[i];
+        for(uint256 i_ = 0; i_ < redeemables.length; i_++) {
+            IERC20 ithRedeemable_ = redeemables[i_];
 
             // Any one of the several redeemables may fail for some reason.
             // Consider the case where a user needs to meet additional criteria (e.g. KYC) for some token.
