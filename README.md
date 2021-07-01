@@ -44,31 +44,9 @@ Inside the nix-shell you can just run `hardhat test` as normal.
 
 Inside the nix-shell run `security-check`.
 
-__IMPORTANT: Slither fails to analyze anything that touches Balancer contracts!!!__
+__IMPORTANT: `security-check` applies and removes several patches to balancer to get slither compiling__
 
-Slither throws these errors.
-
-```
-ERROR:ContractSolcParsing:Missing inheritance <slither.solc_parsing.declarations.contract.ContractSolc object at 0x7f8310f360d0>
-ERROR:ContractSolcParsing:Missing inheritance <slither.solc_parsing.declarations.contract.ContractSolc object at 0x7f8310d615e0>
-ERROR:ContractSolcParsing:Missing inheritance <slither.solc_parsing.declarations.contract.ContractSolc object at 0x7f8310aae1c0>
-ERROR:ConvertToIR:Function not found createPool
-ERROR:ContractSolcParsing:Impossible to generate IR for RedeemableERC20Pool.init
-ERROR:ConvertToIR:Function not found exitPool
-ERROR:ContractSolcParsing:Impossible to generate IR for RedeemableERC20Pool.exit
-ERROR:ConvertToIR:Function not found bPool
-ERROR:ContractSolcParsing:Impossible to generate IR for Trust.getContracts
-ERROR:ConvertToIR:Function not found bPool
-ERROR:ContractSolcParsing:Impossible to generate IR for Trust.getRaiseProgress
-ERROR:ConvertToIR:Function not found bPool
-ERROR:ContractSolcParsing:Impossible to generate IR for Trust.endRaise
-ERROR:ConvertToIR:Function not found setController
-ERROR:ContractSolcParsing:Impossible to generate IR for BFactory.newBPool
-```
-
-This leads to a lot of false positives and negatives.
-
-In the future we will need to use a newer set of Balancer contracts and/or create our own auction mechanism to avoid this.
+If you cancel the security check before it is finished your repository may be left in a dirty state.
 
 ## Why a token??
 

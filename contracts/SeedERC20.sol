@@ -39,8 +39,8 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     constructor (
         SeedERC20Config memory seedERC20Config_
     ) public ERC20(seedERC20Config_.name, seedERC20Config_.symbol) {
-        require(seedERC20Config_.seedPrice > 0, "ERR_ZERO_PRICE");
-        require(seedERC20Config_.seedUnits > 0, "ERR_ZERO_UNITS");
+        require(seedERC20Config_.seedPrice > 0, "ZERO_PRICE");
+        require(seedERC20Config_.seedUnits > 0, "ZERO_UNITS");
         seedPrice = seedERC20Config_.seedPrice;
         unseedDelay = seedERC20Config_.unseedDelay;
         reserve = seedERC20Config_.reserve;
@@ -59,7 +59,7 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     // The recipient can only be set by the owner during init.
     // The recipient cannot be changed as this would risk seeder funds.
     function init(address recipient_) external onlyOwner withInit {
-        require(recipient_ != address(0), "ERR_RECIPIENT_ZERO");
+        require(recipient_ != address(0), "RECIPIENT_ZERO");
         recipient = recipient_;
     }
 
@@ -98,7 +98,7 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     // Once this function is disabled seeders are expected to call redeem at a later time.
     function unseed(uint256 units_) external onlyInit onlyBlocked {
         // Prevent users from griefing contract with rapid seed/unseed cycles.
-        require(unseedLocks[msg.sender] <= block.number, "ERR_UNSEED_LOCKED");
+        require(unseedLocks[msg.sender] <= block.number, "UNSEED_LOCKED");
 
         _transfer(msg.sender, address(this), units_);
 
@@ -120,7 +120,7 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
 
         uint256 _currentReserveBalance = reserve.balanceOf(address(this));
         // Guard against someone accidentally calling redeem before any reserve has been returned.
-        require(_currentReserveBalance > 0, "ERR_RESERVE_BALANCE");
+        require(_currentReserveBalance > 0, "RESERVE_BALANCE");
 
         // Reentrant reserve transfer.
         reserve.safeTransfer(

@@ -4,8 +4,9 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ReserveToken } from '../typechain/ReserveToken'
 import type { SeedERC20 } from '../typechain/SeedERC20'
-import type { Prestige } from "../typechain/Prestige";
+import type { Prestige } from "../typechain/Prestige"
 import type { RedeemableERC20Pool } from '../typechain/RedeemableERC20Pool'
+import type { Trust } from '../typechain/Trust'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -157,7 +158,7 @@ describe("TrustSeed", async function () {
     for (let i = 0; delay1UnlockBlock > await ethers.provider.getBlockNumber() + 1; i++) {
       await Util.assertError(
         async () => await seederContract1.unseed(1),
-        "revert ERR_UNSEED_LOCKED",
+        "revert UNSEED_LOCKED",
         `seeder1 unseeded before their delay period ended
         lastBlock   ${await ethers.provider.getBlockNumber()}
         unlockBlock ${delay1UnlockBlock}`
@@ -183,7 +184,7 @@ describe("TrustSeed", async function () {
     for (let i = 0; delay2UnlockBlock > await ethers.provider.getBlockNumber() + 1; i++) {
       await Util.assertError(
         async () => await seederContract2.unseed(1),
-        "revert ERR_UNSEED_LOCKED",
+        "revert UNSEED_LOCKED",
         `seeder2 unseeded before their delay period ended
         lastBlock   ${await ethers.provider.getBlockNumber()}
         unlockBlock ${delay2UnlockBlock}`
@@ -230,7 +231,7 @@ describe("TrustSeed", async function () {
 
     await Util.assertError(
       async () => await seederContract.init(ethers.constants.AddressZero),
-      "revert ERR_RECIPIENT_ZERO",
+      "revert RECIPIENT_ZERO",
       "seeder contract was initialized with zero address recipient"
     )
 
@@ -332,7 +333,7 @@ describe("TrustSeed", async function () {
           name: "seed",
           symbol: "SD"
         }) as SeedERC20,
-        "revert ERR_ZERO_UNITS",
+        "revert ZERO_UNITS",
         "seeder contract was wrongly constructed with seedUnits set to 0"
       )
     })
@@ -366,7 +367,7 @@ describe("TrustSeed", async function () {
           name: "seed",
           symbol: "SD"
         }) as SeedERC20,
-        "revert ERR_ZERO_PRICE",
+        "revert ZERO_PRICE",
         "seeder contract was wrongly constructed with seedPrice set to 0"
       )
     })
@@ -570,7 +571,7 @@ describe("TrustSeed", async function () {
         finalValuation,
       },
       redeemInit,
-    )
+    ) as Trust
 
     await trust.deployed()
 
@@ -802,7 +803,7 @@ describe("TrustSeed", async function () {
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERR_RESERVE_BALANCE",
+        "revert RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       )
 
@@ -1024,7 +1025,7 @@ describe("TrustSeed", async function () {
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERR_RESERVE_BALANCE",
+        "revert RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       )
 

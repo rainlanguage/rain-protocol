@@ -153,19 +153,19 @@ contract Trust is ReentrancyGuard {
             poolConfig_
         );
 
-        if (trustConfig_.seeder == address(0)) {
-            require(poolConfig_.reserveInit.mod(trustConfig_.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
-            uint256 _seedPrice = poolConfig_.reserveInit.div(trustConfig_.seederUnits);
+        if (trustConfig.seeder == address(0)) {
+            require(poolConfig_.reserveInit.mod(trustConfig.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
+            uint256 _seedPrice = poolConfig_.reserveInit.div(trustConfig.seederUnits);
             SeedERC20 _seedERC20 = new SeedERC20(SeedERC20Config(
                 poolConfig_.reserve,
                 _seedPrice,
-                trustConfig_.seederUnits,
-                trustConfig_.unseedDelay,
+                trustConfig.seederUnits,
+                trustConfig.unseedDelay,
                 "",
                 ""
             ));
             _seedERC20.init(address(pool));
-            trustConfig_.seeder = address(_seedERC20);
+            trustConfig.seeder = address(_seedERC20);
         }
 
         // Need to make a few addresses unfreezable to facilitate exits.
@@ -239,7 +239,7 @@ contract Trust is ReentrancyGuard {
     }
 
     function creatorAddRedeemable(IERC20 redeemable_) external {
-        require(msg.sender == trustConfig.creator, "ERR_NOT_CREATOR");
+        require(msg.sender == trustConfig.creator, "NOT_CREATOR");
         token.ownerAddRedeemable(redeemable_);
     }
 

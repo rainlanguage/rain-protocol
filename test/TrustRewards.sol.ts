@@ -788,7 +788,7 @@ describe("TrustRewards", async function () {
 
     await Util.assertError(
       async () => await trustDeployer.creatorAddRedeemable(reserve2.address),
-      'revert ERR_NOT_CREATOR',
+      'revert NOT_CREATOR',
       'trust deployer wrongly added new redeemable'
     )
 
@@ -796,7 +796,7 @@ describe("TrustRewards", async function () {
 
     await Util.assertError(
       async () => await trustHodler1.creatorAddRedeemable(reserve3.address),
-      'revert ERR_NOT_CREATOR',
+      'revert NOT_CREATOR',
       'hodler wrongly added new redeemable'
     )
   })
