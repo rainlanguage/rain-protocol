@@ -159,7 +159,7 @@ describe("TrustTrade", async function () {
     // bronze hodler attempts swap for tokens
     await Util.assertError(
       async () => await swapReserveForTokens(hodlerBronze, reserveSpend),
-      "revert ERR_MIN_STATUS",
+      "revert MIN_STATUS",
       "bronze hodler swapped reserve for tokens, despite being below min status of gold"
     )
 
@@ -609,7 +609,7 @@ describe("TrustTrade", async function () {
     // silver hodler get some redeemable tokens
     await Util.assertError(
       async () => await swapReserveForTokens(reserveSpend, crpSilver, reserveSilver, bPoolSilver),
-      "revert ERR_MIN_STATUS",
+      "revert MIN_STATUS",
       "Silver hodler swapped reserve for tokens, despite being below min status of Gold"
     )
 
