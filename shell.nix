@@ -22,23 +22,36 @@ let
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''
- patch -p1 < slither-hack-balancer-pool-params.patch
+ # Slither does not like there being two IERC20.
+ # One is from Balancer the other is from Open Zeppelin.
+ # This patch swaps all the Balancer IERC20 imports with an Open Zeppelin IERC20 import.
  patch -p1 < slither-hack-balancer-ierc20.patch
- patch -p1 < slither-hack-local.patch
 
+ # Balancer has PoolParams struct defined inside a contract which slither does not like.
+ # This patch moves PoolParams outside the contract and upates import references to it.
+ patch -p1 < slither-hack-balancer-pool-params.patch
+ patch -p1 < slither-hack-local-pool-params.patch
+
+ # Workaround a slither bug due to stale compiled artifacts.
  # https://github.com/crytic/slither/issues/860
  rm -rf artifacts
  rm -rf typechain
  rm -rf cache
 
+ # Install slither to a fresh tmp dir to workaround nix-shell immutability.
  export td=$(mktemp -d)
  python3 -m venv ''${td}/venv
  source ''${td}/venv/bin/activate
  pip install slither-analyzer
+
+ # Run slither against all our contracts.
+ # Disable npx as nix-shell already handles availability of what we nee.
  slither . --npx-disable --filter-paths="contracts/configurable-rights-pool|openzeppelin" --exclude-dependencies
+
+ # Rollback all the slither specific patches.
  patch -R -p1 < slither-hack-balancer-pool-params.patch
+ patch -R -p1 < slither-hack-local-pool-params.patch
  patch -R -p1 < slither-hack-balancer-ierc20.patch
- patch -R -p1 < slither-hack-local.patch
  '';
 
  ci-test = pkgs.writeShellScriptBin "ci-test" ''
