@@ -69,7 +69,7 @@ describe("RedeemableERC20", async function () {
         // try sending/receiving, both with insufficient prestige
         await Util.assertError(
             async () => await token.connect(sender).transfer(receiver.address, 1),
-            "revert ERR_MIN_STATUS",
+            "revert MIN_STATUS",
             "sender/receiver sent/received tokens despite insufficient prestige status"
         )
 
@@ -152,7 +152,7 @@ describe("RedeemableERC20", async function () {
         // user attempts to wrongly 'redeem' by sending all of their redeemable tokens directly to contract address
         await Util.assertError(
             async () => await redeemableERC20.transfer(redeemableERC20.address, await redeemableERC20.balanceOf(signers[0].address)),
-            "revert ERR_TOKEN_SEND_SELF",
+            "revert TOKEN_SEND_SELF",
             "user successfully transferred all their redeemables tokens to token contract"
         )
     })
@@ -355,7 +355,7 @@ describe("RedeemableERC20", async function () {
         // We cannot send to the token address.
         await Util.assertError(
             async () => await redeemableERC20.transfer(redeemableERC20.address, 10),
-            'revert ERR_TOKEN_SEND_SELF',
+            'revert TOKEN_SEND_SELF',
             'self send was not blocked'
         )
 
@@ -367,7 +367,7 @@ describe("RedeemableERC20", async function () {
         // Funds need to be frozen once redemption unblocks.
         await Util.assertError(
             async () => await redeemableERC20.transfer(signers[1].address, 1),
-            'revert ERR_FROZEN',
+            'revert FROZEN',
             'funds were not frozen'
         )
 
@@ -378,7 +378,7 @@ describe("RedeemableERC20", async function () {
         // but not to anyone else.
         await Util.assertError(
             async () => await redeemableERC20.transfer(signers[2].address, 1),
-            'revert ERR_FROZEN',
+            'revert FROZEN',
             'funds were not frozen 2'
         )
 
@@ -397,15 +397,7 @@ describe("RedeemableERC20", async function () {
         const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
         const expectedReserveRedemption = ethers.BigNumber.from('10' + Util.eighteenZeros)
         // signer redeems all tokens they have for fraction of each redeemable asset
-        const redeemEvent = new Promise(resolve => {
-            redeemableERC20.once('Redeem', (redeemer, redeem) => {
-                assert(redeemer === signers[0].address, 'wrong redeemer address in event')
-                assert(redeem.eq(redeemAmount), 'wrong redemption amount in event')
-                resolve(true)
-            })
-        })
-        await redeemableERC20.redeem(redeemAmount)
-        await redeemEvent
+        await expect(redeemableERC20.redeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
 
         const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[0].address)
         const redeemableContractTotalSupplyAfter = await redeemableERC20.totalSupply()
@@ -444,41 +436,36 @@ describe("RedeemableERC20", async function () {
         )
 
         // check math for more redemptions
-        let i = 0
-        // we can lose a few decimals of precision due to division logic in solidity
-        const roughEqual = (a, b) => {
-            return a.div(1000).sub(b.div(1000)) < 2
-        }
-        while (i < 10) {
-            console.log(`redemption check 1: ${i}`)
-            let event = new Promise(resolve => {
-                redeemableERC20.once('Redeem', (redeemer, redeem) => {
-                    assert(roughEqual(redeem, redeemAmount), `bad redemption ${redeem} ${redeemAmount}`)
-                    resolve(true)
-                })
-            })
-            await redeemableERC20.redeem(redeemAmount)
-            await event
-            i++
+        {
+            let i = 0
+            const expectedDiff = '10000000000000000000'
+            while (i < 3) {
+                console.log(`redemption check 1: ${i}`)
+                const balanceBefore = await reserve.balanceOf(signers[0].address)
+                await expect(redeemableERC20.redeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
+                const balanceAfter = await reserve.balanceOf(signers[0].address)
+                const diff = balanceAfter.sub(balanceBefore)
+                assert(diff.eq(expectedDiff), `wrong diff ${i} ${expectedDiff} ${diff} ${balanceBefore} ${balanceAfter}`)
+                i++
+            }
         }
 
-        // Things dynamically recalculate if we dump more reserve back in the token contract
-        await reserve.transfer(redeemableERC20.address, ethers.BigNumber.from('20' + Util.eighteenZeros))
+        {
+            // Things dynamically recalculate if we dump more reserve back in the token contract
+            await reserve.transfer(redeemableERC20.address, ethers.BigNumber.from('20' + Util.eighteenZeros))
 
-        // This is the new redemption amount to expect.
-        const expectedReserveRedemption2 = ethers.BigNumber.from('10224719101123595288')
-        i = 0
-        while (i < 10) {
-            console.log(`redemption check 2: ${2}`)
-            let event = new Promise(resolve => {
-                redeemableERC20.once('Redeem', (redeemer, redeem) => {
-                    assert(roughEqual(redeem, redeemAmount), `bad redemption ${redeem} ${redeemAmount}`)
-                    resolve(true)
-                })
-            })
-            await redeemableERC20.redeem(redeemAmount)
-            await event
-            i++
+            let i = 0
+            const expectedDiff = '10208333333333333333'
+
+            while (i < 3) {
+                console.log(`redemption check 2: ${i}`)
+                const balanceBefore = await reserve.balanceOf(signers[0].address)
+                await expect(redeemableERC20.redeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
+                const balanceAfter = await reserve.balanceOf(signers[0].address)
+                const diff = balanceAfter.sub(balanceBefore)
+                assert(diff.eq(expectedDiff), `wrong diff ${i} ${expectedDiff} ${diff} ${balanceBefore} ${balanceAfter}`)
+                i++
+            }
         }
     })
 
@@ -656,7 +643,7 @@ describe("RedeemableERC20", async function () {
         const redeemableERC20_SILVER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
         await Util.assertError(
             async () => await redeemableERC20.transfer(signers[2].address, 1),
-            "revert ERR_MIN_STATUS",
+            "revert MIN_STATUS",
             "user could receive transfers despite not meeting minimum status"
         )
 
@@ -784,16 +771,7 @@ describe("RedeemableERC20", async function () {
                 .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
 
         // signer redeems all tokens they have for fraction of each redeemable asset
-        const redeemEvent = new Promise(resolve => {
-            redeemableERC20.once('Redeem', (redeemer, redeem) => {
-                assert(redeemer === signers[1].address, 'wrong redeemer address in event')
-                assert(redeem.eq(redeemAmount), 'wrong redemption amount in event')
-                resolve(true)
-            })
-        })
-
-        await redeemableERC20_1.redeem(redeemAmount)
-        await redeemEvent
+        await expect(redeemableERC20_1.redeem(redeemAmount)).to.emit(redeemableERC20_1, 'Redeem').withArgs(signers[1].address, reserve1.address, redeemAmount)
 
         // contract after
         const redeemableContractTotalSupplyAfter = await redeemableERC20.totalSupply()
@@ -842,7 +820,7 @@ describe("RedeemableERC20", async function () {
         )
     })
 
-    it('should not prevent redeeming other redeemables when a redeemable transfer fails', async function () {
+    it('should allow specific redeeming of other redeemables when a redeemable transfer fails', async function () {
         this.timeout(0)
 
         const FIVE_TOKENS = ethers.BigNumber.from('5' + Util.eighteenZeros);
@@ -891,14 +869,6 @@ describe("RedeemableERC20", async function () {
         // reserve 1 blacklists signer 1. Signer 1 cannot receive reserve 1 upon redeeming contract tokens
         reserve1.ownerAddFreezable(signers[1].address)
 
-        const redeemFailEvent = new Promise(resolve => {
-            redeemableERC20.once('RedeemFail', (redeemer, redeemable) => {
-                assert(redeemer === signers[1].address, 'wrong redeemer address in event')
-                assert(redeemable === reserve1.address, 'wrong reserve address in event')
-                resolve(true)
-            })
-        })
-
         // signer 1
         const redeemableERC20_1 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
         // signer 2
@@ -916,7 +886,13 @@ describe("RedeemableERC20", async function () {
         const redeemAmount = FIVE_TOKENS;
 
         // should succeed, despite emitting redeem fail event for one redeemable
-        await redeemableERC20_1.redeem(redeemAmount)
+        await Util.assertError(
+            async () => await redeemableERC20_1.redeem(redeemAmount),
+            `revert FROZEN`,
+            `failed to error when reserve is frozen`,
+        )
+
+        await redeemableERC20_1.redeemSpecific([reserve2.address], redeemAmount)
 
         const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[1].address);
 

@@ -8,6 +8,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import { Constants } from "./libraries/Constants.sol";
 import { Initable } from "./libraries/Initable.sol";
@@ -58,7 +59,7 @@ struct RedeemableERC20Config {
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
 //
 // A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserveRelease)`.
-contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC20 {
+contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC20, ReentrancyGuard {
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -66,17 +67,8 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     /// Redeemable token burn amount.
     event Redeem(
         address indexed redeemer,
+        address indexed redeemable,
         uint256 indexed redeemAmount
-    );
-
-    event RedeemFail(
-        address indexed _redeemer,
-        address indexed _redeemable
-    );
-
-    event RedeemSuccess(
-        address indexed _redeemer,
-        address indexed _redeemable
     );
 
     /// The maximum number of redeemables that can be set.
@@ -178,7 +170,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
-    function redeem(uint256 redeemAmount_) external onlyUnblocked {
+    function redeemSpecific(IERC20[] memory specificRedeemables_, uint256 redeemAmount_) public onlyUnblocked nonReentrant {
         // The fraction of the redeemables we release is the fraction of the outstanding total supply passed in.
         // Every redeemable is released in the same proportion.
         uint256 supplyBeforeBurn_ = totalSupply();
@@ -188,37 +180,18 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // _burn reverts internally if needed (e.g. if burn exceeds balance).
         _burn(msg.sender, redeemAmount_);
 
-        emit Redeem(msg.sender, redeemAmount_);
-
-        // Clear the redeemables.
-        uint256 toRedeem_ = 0;
-        for(uint256 i_ = 0; i_ < redeemables.length; i_++) {
-            IERC20 ithRedeemable_ = redeemables[i_];
-
-            // Any one of the several redeemables may fail for some reason.
-            // Consider the case where a user needs to meet additional criteria (e.g. KYC) for some token.
-            // In this case _any_ of the redeemables may revert normally causing _all_ redeemables to revert.
-            // We use try/catch here to force all redemptions that may succeed for the user to continue.
-            try ithRedeemable_.balanceOf(address(this)) returns (uint256 redeemableBalance_) {
-                toRedeem_ = redeemAmount_.mul(redeemableBalance_).div(supplyBeforeBurn_);
-            } catch {
-                emit RedeemFail(msg.sender, address(ithRedeemable_));
-            }
-
-            // Reentrant call to transfer.
-            // Note the events emitted _after_ possible reentrancy.
-            try ithRedeemable_.transfer(msg.sender, toRedeem_) returns (bool success_) {
-                if (success_) {
-                    emit RedeemSuccess(msg.sender, address(ithRedeemable_));
-                }
-                else {
-                    emit RedeemFail(msg.sender, address(ithRedeemable_));
-                }
-            }
-            catch {
-                emit RedeemFail(msg.sender, address(ithRedeemable_));
-            }
+        for(uint256 i_ = 0; i_ < specificRedeemables_.length; i_++) {
+            IERC20 ithRedeemable_ = specificRedeemables_[i_];
+            emit Redeem(msg.sender, address(ithRedeemable_), redeemAmount_);
+            ithRedeemable_.safeTransfer(
+                msg.sender,
+                ithRedeemable_.balanceOf(address(this)).mul(redeemAmount_).div(supplyBeforeBurn_)
+            );
         }
+    }
+
+    function redeem(uint256 redeemAmount_) external {
+        redeemSpecific(redeemables, redeemAmount_);
     }
 
     function _beforeTokenTransfer(
@@ -233,7 +206,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         // In this case we do not want concerns such as prestige causing errors.
         if (amount_ > 0) {
             // Sending tokens to this contract (e.g. instead of redeeming) is always an error.
-            require(receiver_ != address(this), "ERR_TOKEN_SEND_SELF");
+            require(receiver_ != address(this), "TOKEN_SEND_SELF");
 
             // There are two clear phases:
             //
@@ -253,14 +226,14 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
                 // Only owner and unfreezables can receive.
                 require(
                     receiver_ == address(0) || isReceiver(receiver_) || isSender(sender_),
-                    "ERR_FROZEN"
+                    "FROZEN"
                 );
             } else {
                 // Redemption is blocked.
                 // All transfer actions allowed.
                 require(
                     isReceiver(receiver_) || isSender(sender_) || isStatus(receiver_, minimumPrestigeStatus),
-                    "ERR_MIN_STATUS"
+                    "MIN_STATUS"
                 );
             }
         }

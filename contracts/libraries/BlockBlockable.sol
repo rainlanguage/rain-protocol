@@ -59,7 +59,7 @@ abstract contract BlockBlockable {
         require(0 < newUnblockBlock_, "BLOCK_ZERO");
 
         // unblockBlock can only be set once.
-        require(0 == unblockBlock, "BLOCK_ONCE");
+        require(unblockBlock < 1, "BLOCK_ONCE");
 
         // Set the unblock block.
         unblockBlock = newUnblockBlock_;
