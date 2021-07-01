@@ -22,7 +22,8 @@ let
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''
- patch -p1 < slither-hack-balancer.patch
+ patch -p1 < slither-hack-balancer-pool-params.patch
+ patch -p1 < slither-hack-balancer-ierc20.patch
  patch -p1 < slither-hack-local.patch
 
  # https://github.com/crytic/slither/issues/860
@@ -35,7 +36,8 @@ let
  source ''${td}/venv/bin/activate
  pip install slither-analyzer
  slither . --npx-disable --filter-paths="contracts/configurable-rights-pool|openzeppelin" --exclude-dependencies
- patch -R -p1 < slither-hack-balancer.patch
+ patch -R -p1 < slither-hack-balancer-pool-params.patch
+ patch -R -p1 < slither-hack-balancer-ierc20.patch
  patch -R -p1 < slither-hack-local.patch
  '';
 
