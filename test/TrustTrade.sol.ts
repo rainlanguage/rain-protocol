@@ -363,6 +363,7 @@ describe("TrustTrade", async function () {
     await trust.startRaise({ gasLimit: 100000000 })
 
     const startBlock = await ethers.provider.getBlockNumber()
+    const unblockBlock = startBlock + raiseDuration
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
     const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
@@ -377,6 +378,7 @@ describe("TrustTrade", async function () {
     const block25Percent = startBlock + raiseDuration / 4
     const block50Percent = startBlock + raiseDuration / 2
     const block75Percent = startBlock + raiseDuration * 3 / 4
+    const block100Percent = unblockBlock
 
     await crp.pokeWeights()
 
@@ -436,7 +438,7 @@ describe("TrustTrade", async function () {
     spotBlocks.push(await ethers.provider.getBlockNumber())
 
     // 100% through raise duration
-    while ((await ethers.provider.getBlockNumber()) < (raiseDuration - 1)) {
+    while ((await ethers.provider.getBlockNumber()) < (block100Percent - 1)) {
       await reserve.transfer(signers[3].address, 0)
     }
 
@@ -454,6 +456,9 @@ describe("TrustTrade", async function () {
 
     spotPrices = spotPrices.map(spotPrice => spotPrice.div('100000000000000')) // reduce scale
 
+    // end raise to confirm raise is finished.
+    await trust.endRaise()
+
     // check linearity
     const regression = linearRegression([spotBlocks, spotPrices.map(Number)])
     const regressionLine = linearRegressionLine(regression);
@@ -461,20 +466,8 @@ describe("TrustTrade", async function () {
 
     assert(rSqrd === 1, "weights curve was not linear")
 
-    const reserveWeightFinal = await pool.targetWeights(0)
-    const tokenWeightFinal = await pool.targetWeights(1)
-
-    const expectedFinalSpotPrice =
-      (
-        reserveAmountFinal.mul(Util.ONE).div(reserveWeightFinal)
-          .mul(tokenWeightFinal.mul(Util.ONE).div(tokenAmountFinal))
-      )
-        .div(Util.ONE)
-
-    const actualFinalValuation = expectedFinalSpotPrice.mul(tokenAmountFinal)
-      .div(Util.ONE)
-
-    assert(actualFinalValuation.eq(finalValuation), 'wrong final valuation with no trading')
+    const expectedFinalSpotPrice = finalValuation.mul(Util.ONE).div(totalTokenSupply)
+    assert(spotPriceFinal.eq(expectedFinalSpotPrice), `wrong final valuation with no trading ${expectedFinalSpotPrice} ${spotPriceFinal}`)
   })
 
   it('should set minimum prestige level for pool, where only members with prestige level or higher can transact in pool', async function () {
@@ -731,7 +724,7 @@ describe("TrustTrade", async function () {
         },
         redeemInit,
       ),
-      "revert MAX_WEIGHT_INITIAL",
+      "revert MAX_WEIGHT_VALUATION",
       "wrongly deployed trust with pool at 50:1 weight ratio"
     )
 
