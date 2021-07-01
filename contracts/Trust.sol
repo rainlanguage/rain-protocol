@@ -9,6 +9,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
@@ -114,7 +116,7 @@ struct TrustConfig {
 //
 // | TV hype to create premium  | TV cashes out premium and delivers goodies |
 // | Phase trading distribution | Phase goodies + stablecoin proxy           |
-contract Trust {
+contract Trust is ReentrancyGuard {
 
     using SafeMath for uint256;
     using Math for uint256;
@@ -259,29 +261,33 @@ contract Trust {
     // It defers to the pool exit function (which is owned by the trust and has onlyOwner, onlyInit, onlyUnblocked).
     // If the minimum raise is reached then the trust owner receives the raise.
     // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
-    function endRaise() external {
+    function endRaise() external nonReentrant {
+        uint256 finalBalance_ = pool.reserve().balanceOf(address(pool.crp().bPool()));
+        if (finalBalance_ >= successBalance()) {
+            raiseStatus = RaiseStatus.Success;
+        }
+        else {
+            raiseStatus = RaiseStatus.Fail;
+        }
+
         token.ownerSetUnblockBlock(block.number);
         pool.exit();
 
-        IERC20 reserve_ = pool.reserve();
-        uint256 seedInit_ = pool.reserveInit();
-
         // Balancer traps a tiny amount of reserve in the pool when it exits.
-        uint256 poolDust_ = reserve_.balanceOf(address(pool.crp().bPool()));
+        uint256 poolDust_ = pool.reserve().balanceOf(address(pool.crp().bPool()));
         // The dust is included in the final balance for UX reasons.
         // We don't want to fail the raise due to dust, even if technically it was a failure.
         // To ensure a good UX for creators and token holders we subtract the dust from the seeder.
-        uint256 finalBalance_ = reserve_.balanceOf(address(this)) + poolDust_;
+        uint256 availableBalance_ = pool.reserve().balanceOf(address(this));
 
         // Base payments for each fundraiser.
-        uint256 seederPay_;
-        uint256 creatorPay_;
+        uint256 seederPay_ = pool.reserveInit().sub(poolDust_);
+        uint256 creatorPay_ = 0;
 
         // Set aside the redemption and seed fee if we reached the minimum.
-        if (finalBalance_ >= successBalance()) {
-            raiseStatus = RaiseStatus.Success;
-            // The seeder gets the reserve + seed fee - dust
-            seederPay_ = seedInit_.add(trustConfig.seederFee).sub(poolDust_);
+        if (raiseStatus == RaiseStatus.Success) {
+            // The seeder gets an additional fee on success.
+            seederPay_ = seederPay_.add(trustConfig.seederFee);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -296,29 +302,17 @@ contract Trust {
             //
             // Implied is the remainder of finalBalance_ as redeemInit
             // This will be transferred to the token holders below.
-            creatorPay_ = finalBalance_.sub(seederPay_.add(redeemInit));
-        }
-        else {
-            raiseStatus = RaiseStatus.Fail;
-            // If we did not reach the minimum the creator gets nothing.
-            // Refund what we can to other participants.
-            // Due to pool dust it is possible the final balance is less than the reserve init.
-            // If we don't take the min then we will attempt to transfer more than exists and brick the contract.
-            //
-            // Implied if finalBalance_ > reserve_init is the remainder goes to token holders below.
-            seederPay_ = seedInit_.sub(poolDust_);
-
-            creatorPay_ = 0;
+            creatorPay_ = availableBalance_.sub(seederPay_.add(redeemInit));
         }
 
         if (creatorPay_ > 0) {
-            reserve_.safeTransfer(
+            pool.reserve().safeTransfer(
                 trustConfig.creator,
                 creatorPay_
             );
         }
 
-        reserve_.safeTransfer(
+        pool.reserve().safeTransfer(
             trustConfig.seeder,
             seederPay_
         );
@@ -327,9 +321,9 @@ contract Trust {
         // Implicitly the remainder of the finalBalance_ is:
         // - the redeem init if successful
         // - whatever users deposited in the AMM if unsuccessful
-        uint256 remainder_ = reserve_.balanceOf(address(this));
+        uint256 remainder_ = pool.reserve().balanceOf(address(this));
         if (remainder_ > 0) {
-            reserve_.safeTransfer(
+            pool.reserve().safeTransfer(
                 address(token),
                 remainder_
             );

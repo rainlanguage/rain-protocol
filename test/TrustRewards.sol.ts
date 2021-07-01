@@ -294,7 +294,7 @@ describe("TrustRewards", async function () {
       "added duplicate redeemable"
     )
 
-    const expectedRemainder = finalBalance.sub(poolDustA).sub(creatorPay).sub(seederPay)
+    const expectedRemainder = finalBalance.sub(creatorPay).sub(seederPay)
 
     const tokenReserveA = await reserveA.balanceOf(token.address)
     const tokenReserveB = await reserveB.balanceOf(token.address)
@@ -313,29 +313,37 @@ describe("TrustRewards", async function () {
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
+    const balanceA = await reserveA.balanceOf(hodler1.address)
+    const expectedBalanceA = tokenReserveA.div(10).sub(4)
     assert(
-      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserveA.div(10).sub(3)), `
+      balanceA.eq(expectedBalanceA), `
       reserveA
-        expected  ${tokenReserveA.div(10).sub(4)}
-        got       ${await reserveA.balanceOf(hodler1.address)}`
+        expected  ${expectedBalanceA}
+        got       ${balanceA}`
     )
+    const balanceB = await reserveB.balanceOf(hodler1.address)
+    const expectedBalanceB = tokenReserveB.div(10).sub(1)
     assert(
-      (await reserveB.balanceOf(hodler1.address)).eq(tokenReserveB.div(10).sub(1)), `
+      balanceB.eq(expectedBalanceB), `
       reserveB
-        expected  ${tokenReserveB.div(10).sub(1)}
-        got       ${await reserveB.balanceOf(hodler1.address)}`
+        expected  ${expectedBalanceB}
+        got       ${balanceB}`
     )
+    const balanceC = await reserveC.balanceOf(hodler1.address)
+    const expectedBalanceC = tokenReserveC.div(10).sub(2)
     assert(
-      (await reserveC.balanceOf(hodler1.address)).eq(tokenReserveC.div(10).sub(2)), `
+      balanceC.eq(expectedBalanceC), `
       reserveC
-        expected  ${tokenReserveC.div(10).sub(2)}
-        got       ${await reserveC.balanceOf(hodler1.address)}`
+        expected  ${expectedBalanceC}
+        got       ${balanceC}`
     )
+    const balanceD = await reserveD.balanceOf(hodler1.address)
+    const expectedBalanceD = tokenReserveD.div(10).sub(2)
     assert(
-      (await reserveD.balanceOf(hodler1.address)).eq(tokenReserveD.div(10).sub(2)), `
+      balanceD.eq(expectedBalanceD), `
       reserveD
-        expected  ${tokenReserveD.div(10).sub(2)}
-        got       ${await reserveD.balanceOf(hodler1.address)}`
+        expected  ${expectedBalanceD}
+        got       ${balanceD}`
     )
 
     // for simplicity, burn hodler1 reserve tokens
@@ -346,47 +354,55 @@ describe("TrustRewards", async function () {
 
     // Now again, 10% of new total supply
 
-    const tokenSupply2nd = await token.totalSupply()
-    const tokenReserve2ndA = await reserveA.balanceOf(token.address)
-    const tokenReserve2ndB = await reserveB.balanceOf(token.address)
-    const tokenReserve2ndC = await reserveC.balanceOf(token.address)
-    const tokenReserve2ndD = await reserveD.balanceOf(token.address)
+    const tokenSupply2 = await token.totalSupply()
+    const tokenReserveA2 = await reserveA.balanceOf(token.address)
+    const tokenReserveB2 = await reserveB.balanceOf(token.address)
+    const tokenReserveC2 = await reserveC.balanceOf(token.address)
+    const tokenReserveD2 = await reserveD.balanceOf(token.address)
 
     // 9/10ths remaining
-    assert(tokenSupply2nd.eq(tokenSupply.mul(9).div(10).add(1)), `
+    assert(tokenSupply2.eq(tokenSupply.mul(9).div(10).add(1)), `
     wrong new total token supply
       expected  ${tokenSupply.mul(9).div(10).add(1)}
-      got       ${tokenSupply2nd}
+      got       ${tokenSupply2}
     `)
 
     // hodler1 redeems tokens equal to 10% of new total supply
-    await token.connect(hodler1).redeem(tokenSupply2nd.div(10))
+    await token.connect(hodler1).redeem(tokenSupply2.div(10))
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
+    const balanceA2 = await reserveA.balanceOf(hodler1.address)
+    const expectedBalanceA2 = tokenReserveA2.div(10).sub(2)
     assert(
-      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserve2ndA.div(10).sub(3)), `
-      reserveA 2nd
-        expected  ${tokenReserve2ndA.div(10).sub(2)}
-        got       ${await reserveA.balanceOf(hodler1.address)}`
+      balanceA2.eq(expectedBalanceA2), `
+      reserveA2
+        expected  ${expectedBalanceA2}
+        got       ${balanceA2}`
     )
+    const balanceB2 = await reserveB.balanceOf(hodler1.address)
+    const expectedBalanceB2 = tokenReserveB2.div(10).sub(1)
     assert(
-      (await reserveB.balanceOf(hodler1.address)).eq(tokenReserve2ndB.div(10).sub(1)), `
-      reserveB 2nd
-        expected  ${tokenReserve2ndB.div(10).sub(1)}
-        got       ${await reserveB.balanceOf(hodler1.address)}`
+      balanceB2.eq(expectedBalanceB2), `
+      reserveB2
+        expected  ${expectedBalanceB2}
+        got       ${balanceB2}`
     )
+    const balanceC2 = await reserveC.balanceOf(hodler1.address)
+    const expectedBalanceC2 = tokenReserveC2.div(10).sub(1)
     assert(
-      (await reserveC.balanceOf(hodler1.address)).eq(tokenReserve2ndC.div(10).sub(1)), `
-      reserveC 2nd
-        expected  ${tokenReserve2ndC.div(10).sub(1)}
-        got       ${await reserveC.balanceOf(hodler1.address)}`
+      balanceC2.eq(expectedBalanceC2), `
+      reserveC2
+        expected  ${expectedBalanceC2}
+        got       ${balanceC2}`
     )
+    const balanceD2 = await reserveD.balanceOf(hodler1.address)
+    const expectedBalanceD2 = tokenReserveD2.div(10).sub(1)
     assert(
-      (await reserveD.balanceOf(hodler1.address)).eq(tokenReserve2ndD.div(10).sub(1)), `
-      reserveD 2nd
-        expected  ${tokenReserve2ndD.div(10).sub(1)}
-        got       ${await reserveD.balanceOf(hodler1.address)}`
+      balanceD2.eq(expectedBalanceD2), `
+      reserveD2
+        expected  ${expectedBalanceD2}
+        got       ${balanceD2}`
     )
   })
 
