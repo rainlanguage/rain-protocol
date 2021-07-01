@@ -87,24 +87,13 @@ describe("TrustSeed", async function () {
     // seeder1 creates seeder contract
     const seederFactory = new ethers.ContractFactory(seedFactory.interface, seedFactory.bytecode, seeder1)
 
-    const seederContract = await seederFactory.deploy({
-      reserve: reserve.address,
-      seedPrice,
-      seedUnits,
-      unseedDelay,
-      name: "seed",
-      symbol: "SD"
-    }) as SeedERC20
-
-    await seederContract.deployed()
-
     const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
 
     const trust = await trustFactory1.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
-        seeder: seederContract.address,
+        seeder: Util.zeroAddress,
         seederFee,
         seederUnits: seedUnits,
         unseedDelay,
@@ -127,10 +116,10 @@ describe("TrustSeed", async function () {
       },
       redeemInit,
     )
-
     await trust.deployed()
 
-    await seederContract.init(await trust.pool())
+    const seeder = (await trust.trustConfig()).seeder
+    const seederContract = new ethers.Contract(seeder, seedERC20Json.abi, signers[0]) as SeedERC20
 
     const seeder1Units = 4;
 
@@ -196,75 +185,6 @@ describe("TrustSeed", async function () {
     await seederContract2.unseed(1)
   })
 
-  it('should initialize with non-zero recipient', async function () {
-    this.timeout(0)
-
-    const signers = await ethers.getSigners()
-
-    const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
-
-    const seedFactory = await ethers.getContractFactory(
-      'SeedERC20'
-    )
-
-    const reserveInit = ethers.BigNumber.from('2000' + Util.eighteenZeros)
-
-    const seeder1 = signers[2]
-
-    const seedUnits = 10
-    const unseedDelay = 0
-    const seedPrice = reserveInit.div(10)
-
-    // seeder1 creates seeder contract
-    const seederFactory = new ethers.ContractFactory(seedFactory.interface, seedFactory.bytecode, seeder1)
-
-    const seederContract = await seederFactory.deploy({
-      reserve: reserve.address,
-      seedPrice,
-      seedUnits,
-      unseedDelay,
-      name: "seed",
-      symbol: "SD"
-    }) as SeedERC20
-
-    await seederContract.deployed()
-
-    await Util.assertError(
-      async () => await seederContract.init(ethers.constants.AddressZero),
-      "revert RECIPIENT_ZERO",
-      "seeder contract was initialized with zero address recipient"
-    )
-
-    // functions other than 'init' cannot be called until successful init
-    await Util.assertError(
-      async () => await seederContract.seed(1),
-      "revert ONLY_INIT",
-      "non-init function called before init"
-    )
-    await Util.assertError(
-      async () => await seederContract.unseed(1),
-      "revert ONLY_INIT",
-      "non-init function called before init"
-    )
-    await Util.assertError(
-      async () => await seederContract.redeem(1),
-      "revert ONLY_INIT",
-      "non-init function called before init"
-    )
-
-    await seederContract.init(signers[4].address) // some recipient
-
-
-    await Util.assertError(
-      async () => await seederContract.init(signers[5].address),
-      "revert ONLY_NOT_INIT",
-      "init was called twice"
-    )
-
-    // fetch recipient
-    assert((await seederContract.recipient()) === signers[4].address, "wrong recipient")
-  })
-
   it('should mint correct number of seed units on construction', async function () {
     this.timeout(0)
 
@@ -289,6 +209,7 @@ describe("TrustSeed", async function () {
 
     const seederContract = await seederFactory.deploy({
       reserve: reserve.address,
+      recipient: signers[0].address,
       seedPrice,
       seedUnits,
       unseedDelay,
@@ -327,6 +248,7 @@ describe("TrustSeed", async function () {
       await Util.assertError(
         async () => await seederFactory.deploy({
           reserve: reserve.address,
+          recipient: signers[0].address,
           seedPrice,
           seedUnits,
           unseedDelay,
@@ -361,6 +283,7 @@ describe("TrustSeed", async function () {
       await Util.assertError(
         async () => await seederFactory.deploy({
           reserve: reserve.address,
+          recipient: signers[0].address,
           seedPrice,
           seedUnits,
           unseedDelay,
@@ -397,10 +320,6 @@ describe("TrustSeed", async function () {
       }
     )
 
-    const seedFactory = await ethers.getContractFactory(
-      'SeedERC20'
-    )
-
     const tokenName = 'Token'
     const tokenSymbol = 'TKN'
 
@@ -425,27 +344,13 @@ describe("TrustSeed", async function () {
 
     const raiseDuration = 50
 
-    // seeder1 creates seeder contract
-    const seederFactory = new ethers.ContractFactory(seedFactory.interface, seedFactory.bytecode, seeder1)
-
-    const seederContract = await seederFactory.deploy({
-      reserve: reserve.address,
-      seedPrice,
-      seedUnits,
-      unseedDelay,
-      name: "seed",
-      symbol: "SD"
-    }) as SeedERC20
-
-    await seederContract.deployed()
-
     const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
 
     const trust = await trustFactory1.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
-        seeder: seederContract.address,
+        seeder: Util.zeroAddress,
         seederFee,
         seederUnits: seedUnits,
         unseedDelay,
@@ -467,11 +372,12 @@ describe("TrustSeed", async function () {
         finalValuation,
       },
       redeemInit,
-    )
+    ) as Trust
 
     await trust.deployed()
 
-    await seederContract.init(await trust.pool())
+    const seeder = (await trust.trustConfig()).seeder
+    const seederContract = new ethers.Contract(seeder, seedERC20Json.abi, signers[0]) as SeedERC20
 
     const seeder1Units = 4;
     const seeder2Units = 6;
@@ -660,27 +566,13 @@ describe("TrustSeed", async function () {
 
       const raiseDuration = 50
 
-      // seeder1 creates seeder contract
-      const seederFactory = new ethers.ContractFactory(seedFactory.interface, seedFactory.bytecode, seeder1)
-
-      const seederContract = await seederFactory.deploy({
-        reserve: reserve.address,
-        seedPrice,
-        seedUnits,
-        unseedDelay,
-        name: "seed",
-        symbol: "SD"
-      }) as SeedERC20
-
-      await seederContract.deployed()
-
       const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
 
       const trust = await trustFactory1.deploy(
         {
           creator: creator.address,
           minCreatorRaise,
-          seeder: seederContract.address,
+          seeder: Util.zeroAddress,
           seederFee,
           seederUnits: seedUnits,
           unseedDelay,
@@ -702,16 +594,17 @@ describe("TrustSeed", async function () {
           finalValuation,
         },
         redeemInit,
-      )
+      ) as Trust
 
       await trust.deployed()
+
+      const seeder = (await trust.trustConfig()).seeder
+      const seederContract = new ethers.Contract(seeder, seedERC20Json.abi, signers[0])
 
       const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
       const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
 
       const recipient = await trust.pool()
-
-      await seederContract.init(recipient)
 
       const seeder1Units = 4;
       const seeder2Units = 6;
@@ -908,27 +801,13 @@ describe("TrustSeed", async function () {
 
       const raiseDuration = 50
 
-      // seeder1 creates seeder contract
-      const seederFactory = new ethers.ContractFactory(seedFactory.interface, seedFactory.bytecode, seeder1)
-
-      const seederContract = await seederFactory.deploy({
-        reserve: reserve.address,
-        seedPrice,
-        seedUnits,
-        unseedDelay,
-        name: "seed",
-        symbol: "SD"
-      }) as SeedERC20
-
-      await seederContract.deployed()
-
       const trustFactory1 = new ethers.ContractFactory(trustFactory.interface, trustFactory.bytecode, deployer)
 
       const trust = await trustFactory1.deploy(
         {
           creator: creator.address,
           minCreatorRaise,
-          seeder: seederContract.address,
+          seeder: Util.zeroAddress,
           seederFee,
           seederUnits: seedUnits,
           unseedDelay,
@@ -950,13 +829,14 @@ describe("TrustSeed", async function () {
           finalValuation: successLevel,
         },
         redeemInit,
-      )
+      ) as Trust
 
       await trust.deployed()
 
-      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+      const seeder = (await trust.trustConfig()).seeder
+      const seederContract = new ethers.Contract(seeder, seedERC20Json.abi, signers[0])
 
-      await seederContract.init(await trust.pool())
+      const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
 
       const seeder1Units = 4;
       const seeder2Units = 6;
