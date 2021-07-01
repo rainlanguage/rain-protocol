@@ -143,11 +143,13 @@ contract Trust is ReentrancyGuard {
         require(poolConfig_.reserveInit > 0, "MIN_RESERVE");
         require(poolConfig_.initialValuation >= poolConfig_.finalValuation, "MIN_INITIAL_VALUTION");
 
-        RedeemableERC20 token_ = new RedeemableERC20(
+        trustConfig = trustConfig_;
+        redeemInit = redeemInit_;
+        token =  new RedeemableERC20(
             redeemableERC20Config_
         );
-        RedeemableERC20Pool pool_ = new RedeemableERC20Pool(
-            token_,
+        pool = new RedeemableERC20Pool(
+            token,
             poolConfig_
         );
 
@@ -162,28 +164,23 @@ contract Trust is ReentrancyGuard {
                 "",
                 ""
             ));
-            _seedERC20.init(address(pool_));
+            _seedERC20.init(address(pool));
             trustConfig_.seeder = address(_seedERC20);
         }
 
         // Need to make a few addresses unfreezable to facilitate exits.
-        address _crp = address(pool_.crp());
-        token_.ownerAddReceiver(_crp);
-        token_.ownerAddSender(_crp);
-        token_.ownerAddReceiver(address(poolConfig_.balancerFactory));
-        token_.ownerAddReceiver(address(pool_));
+        address _crp = address(pool.crp());
+        token.ownerAddReceiver(_crp);
+        token.ownerAddSender(_crp);
+        token.ownerAddReceiver(address(poolConfig_.balancerFactory));
+        token.ownerAddReceiver(address(pool));
 
         // The pool reserve must always be one of the redeemable assets.
-        token_.ownerAddRedeemable(poolConfig_.reserve);
+        token.ownerAddRedeemable(poolConfig_.reserve);
 
         // Send all tokens to the pool immediately.
         // When the seed funds are raised `startRaise` will build a pool from these.
-        token_.safeTransfer(address(pool_), redeemableERC20Config_.totalSupply);
-
-        trustConfig = trustConfig_;
-        redeemInit = redeemInit_;
-        token = token_;
-        pool = pool_;
+        token.safeTransfer(address(pool), redeemableERC20Config_.totalSupply);
 
         require(poolConfig_.finalValuation >= successBalance(), "MIN_FINAL_VALUATION");
     }
