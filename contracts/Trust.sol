@@ -210,6 +210,10 @@ contract Trust {
             poolReserveBalance_ = pool.reserve().balanceOf(balancerPool_);
             poolTokenBalance_ = token.balanceOf(balancerPool_);
         }
+        else {
+            poolReserveBalance_ = 0;
+            poolTokenBalance_ = 0;
+        }
 
         return RaiseProgress(
             getRaiseStatus(),
@@ -303,6 +307,8 @@ contract Trust {
             //
             // Implied if finalBalance_ > reserve_init is the remainder goes to token holders below.
             seederPay_ = seedInit_.sub(poolDust_);
+
+            creatorPay_ = 0;
         }
 
         if (creatorPay_ > 0) {
