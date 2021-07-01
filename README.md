@@ -48,6 +48,17 @@ __IMPORTANT: `security-check` applies and removes several patches to balancer to
 
 If you cancel the security check before it is finished your repository may be left in a dirty state.
 
+There is 1 benign reentrancy in the constructor of `Trust`:
+
+```
+0: Reentrancy in Trust.constructor(TrustConfig,RedeemableERC20Config,PoolConfig,uint256) (contracts/Trust.sol#134-184):
+	External calls:
+	- pool = new RedeemableERC20Pool(token,poolConfig_) (contracts/Trust.sol#151-154)
+	State variables written after the call(s):
+	- trustConfig.seeder = address(new SeedERC20(SeedERC20Config(poolConfig_.reserve,address(pool),poolConfig_.reserveInit.div(trustConfig.seederUnits),trustConfig.seederUnits,trustConfig.unseedDelay,,))) (contracts/Trust.sol#158-167)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-2
+```
+
 ## Why a token??
 
 > An engineer has a problem.
