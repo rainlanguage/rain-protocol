@@ -457,7 +457,7 @@ describe("TrustRewards", async function () {
       "added duplicate redeemable"
     )
 
-    const expectedRemainder = finalBalance.sub(poolDustA).sub(creatorPay).sub(seederPay)
+    const expectedRemainder = finalBalance.sub(creatorPay).sub(seederPay)
 
     const tokenReserveA = await reserveA.balanceOf(token.address)
     const tokenReserveB = await reserveB.balanceOf(token.address)
@@ -477,7 +477,7 @@ describe("TrustRewards", async function () {
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     assert(
-      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserveA.div(10).sub(3)), `
+      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserveA.div(10).sub(4)), `
       reserveA
         expected  ${tokenReserveA.div(10).sub(4)}
         got       ${await reserveA.balanceOf(hodler1.address)}`
@@ -528,7 +528,7 @@ describe("TrustRewards", async function () {
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     assert(
-      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserve2ndA.div(10).sub(3)), `
+      (await reserveA.balanceOf(hodler1.address)).eq(tokenReserve2ndA.div(10).sub(2)), `
       reserveA 2nd
         expected  ${tokenReserve2ndA.div(10).sub(2)}
         got       ${await reserveA.balanceOf(hodler1.address)}`

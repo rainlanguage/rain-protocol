@@ -2562,12 +2562,14 @@ describe("Trust", async function () {
 
     const seederReserveBalanceBeforeEndRaise = await reserve.balanceOf(seeder)
 
-    const finalBalance = await reserve.balanceOf(bPool.address)
+    const bPoolFinalBalance = await reserve.balanceOf(bPool.address)
     const tokenPay = redeemInit
-
+    
     await trust.endRaise()
-
+    
     const poolDust = await reserve.balanceOf(bPool.address)
+    const finalBalance = bPoolFinalBalance.sub(poolDust)
+
     const seederPay = reserveInit.add(seederFee).sub(poolDust)
 
     const creatorEndingReserveBalance = await reserve.balanceOf(creator)
@@ -3710,15 +3712,17 @@ describe("Trust", async function () {
       await reserve.transfer(signers[1].address, 1)
     }
 
+    // seeder is owner
     const ownerBefore = await reserve.balanceOf(signers[0].address)
     await trust.endRaise()
+    const poolDust = await reserve.balanceOf(bPool1.address)
     const ownerAfter = await reserve.balanceOf(signers[0].address)
     const ownerDiff = ownerAfter.sub(ownerBefore)
-    const expectedOwnerDiff = ethers.BigNumber.from('3300000000000000000000')
+    const expectedOwnerDiff = ethers.BigNumber.from('3300000000000000000000').sub(poolDust)
 
     assert(
       expectedOwnerDiff.eq(ownerDiff),
-      `wrong owner diff ${expectedOwnerDiff} ${ownerDiff}`
+      `wrong owner diff ${expectedOwnerDiff} ${ownerDiff} dust ${poolDust}`
     )
 
     const token1 = new ethers.Contract(
@@ -3728,7 +3732,7 @@ describe("Trust", async function () {
     )
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
-    const expectedBalance1 = '1829852176962663371131'
+    const expectedBalance1 = '1829852661873618767641'
     assert(
       ethers.BigNumber.from(expectedBalance1).eq(
         reserveBalance1
@@ -3743,7 +3747,7 @@ describe("Trust", async function () {
     )
     await token2.redeem(await token2.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
-    const expectedBalance2 = '170145904008325395437'
+    const expectedBalance2 = '170145949097001906142'
     assert(
       ethers.BigNumber.from(expectedBalance2).eq(
         reserveBalance2
