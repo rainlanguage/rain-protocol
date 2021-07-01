@@ -13,6 +13,7 @@ import { BlockBlockable } from "./libraries/BlockBlockable.sol";
 
 struct SeedERC20Config {
     IERC20 reserve;
+    address recipient;
     uint256 seedPrice;
     // Total seed units to be mint and sold.
     // 100% of all seed units must be sold for seeding to complete.
@@ -41,26 +42,12 @@ contract SeedERC20 is Ownable, ERC20, Initable, BlockBlockable {
     ) public ERC20(seedERC20Config_.name, seedERC20Config_.symbol) {
         require(seedERC20Config_.seedPrice > 0, "ZERO_PRICE");
         require(seedERC20Config_.seedUnits > 0, "ZERO_UNITS");
+        require(seedERC20Config_.recipient != address(0), "RECIPIENT_ZERO");
         seedPrice = seedERC20Config_.seedPrice;
         unseedDelay = seedERC20Config_.unseedDelay;
         reserve = seedERC20Config_.reserve;
+        recipient = seedERC20Config_.recipient;
         _mint(address(this), seedERC20Config_.seedUnits);
-    }
-
-    // The init is to break a chicken/egg between the seeder and recipient.
-    // The seeder needs to know the recipient so it can approve funds for the recipient.
-    // The recipient needs to know the seeder so it can transfer funds from the seeder.
-    //
-    // The order of events is:
-    // - seed contract is deployed
-    // - recipient is deployed with seed contract address
-    // - seed contract is init with recipient contract address
-    //
-    // The recipient can only be set by the owner during init.
-    // The recipient cannot be changed as this would risk seeder funds.
-    function init(address recipient_) external onlyOwner withInit {
-        require(recipient_ != address(0), "RECIPIENT_ZERO");
-        recipient = recipient_;
     }
 
     // Take reserve from seeder as units * seedPrice.

@@ -1,7 +1,6 @@
 import type { HardhatUserConfig }  from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
-import {removeConsoleLog} from 'hardhat-preprocessor';
 import "hardhat-gas-reporter"
 
 const config: HardhatUserConfig = {
@@ -10,9 +9,6 @@ const config: HardhatUserConfig = {
       blockGasLimit: 100000000,
       allowUnlimitedContractSize: true,
     }
-  },
-  preprocess: {
-    eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat' && hre.network.name !== 'localhost'),
   },
   solidity: {
     compilers: [

@@ -155,23 +155,21 @@ contract Trust is ReentrancyGuard {
 
         if (trustConfig.seeder == address(0)) {
             require(poolConfig_.reserveInit.mod(trustConfig.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
-            uint256 _seedPrice = poolConfig_.reserveInit.div(trustConfig.seederUnits);
-            SeedERC20 _seedERC20 = new SeedERC20(SeedERC20Config(
+            trustConfig.seeder = address(new SeedERC20(SeedERC20Config(
                 poolConfig_.reserve,
-                _seedPrice,
+                address(pool),
+                // seed price.
+                poolConfig_.reserveInit.div(trustConfig.seederUnits),
                 trustConfig.seederUnits,
                 trustConfig.unseedDelay,
                 "",
                 ""
-            ));
-            _seedERC20.init(address(pool));
-            trustConfig.seeder = address(_seedERC20);
+            )));
         }
 
         // Need to make a few addresses unfreezable to facilitate exits.
-        address _crp = address(pool.crp());
-        token.ownerAddReceiver(_crp);
-        token.ownerAddSender(_crp);
+        token.ownerAddReceiver(address(pool.crp()));
+        token.ownerAddSender(address(pool.crp()));
         token.ownerAddReceiver(address(poolConfig_.balancerFactory));
         token.ownerAddReceiver(address(pool));
 
