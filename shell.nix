@@ -24,6 +24,12 @@ let
  security-check = pkgs.writeShellScriptBin "security-check" ''
  patch -p1 < slither-hack-balancer.patch
  patch -p1 < slither-hack-local.patch
+
+ # https://github.com/crytic/slither/issues/860
+ rm -rf artifacts
+ rm -rf typechain
+ rm -rf cache
+
  export td=$(mktemp -d)
  python3 -m venv ''${td}/venv
  source ''${td}/venv/bin/activate
