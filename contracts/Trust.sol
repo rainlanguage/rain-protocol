@@ -23,7 +23,6 @@ import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { RedeemableERC20Pool, PoolConfig } from "./RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
-
 struct TrustContracts {
     address reserveERC20;
     address redeemableERC20;
