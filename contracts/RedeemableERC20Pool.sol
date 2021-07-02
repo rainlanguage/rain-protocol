@@ -111,6 +111,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // 5. Change cap
         bool[] memory rights_ = new bool[](6);
         rights_[2] = true;
+        rights_[4] = true;
 
         crp = poolConfig_.crpFactory.newCrp(
             address(poolConfig_.balancerFactory),
