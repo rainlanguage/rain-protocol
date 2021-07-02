@@ -4,16 +4,11 @@ pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
-import { Initable } from "./libraries/Initable.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { BlockBlockable } from "./libraries/BlockBlockable.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-
-import { Constants } from "./libraries/Constants.sol";
-import { RedeemableERC20 } from "./RedeemableERC20.sol";
 
 import { IBPool } from "./configurable-rights-pool/contracts/IBFactory.sol";
 import { BPool } from "./configurable-rights-pool/contracts/test/BPool.sol";
@@ -22,6 +17,10 @@ import { BalancerConstants } from "./configurable-rights-pool/libraries/Balancer
 import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
 import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
+
+import { Initable } from "./libraries/Initable.sol";
+import { BlockBlockable } from "./libraries/BlockBlockable.sol";
+import { RedeemableERC20 } from "./RedeemableERC20.sol";
 
 struct PoolConfig {
     CRPFactory crpFactory;
@@ -150,9 +149,9 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     // Br = reserve init
     // => Wt = Val / reserve init
     function valuationWeight(uint256 valuation_) private view returns (uint256) {
-        uint256 weight_ = valuation_.mul(Constants.ONE).div(reserveInit);
+        uint256 weight_ = valuation_.mul(BalancerConstants.BONE).div(reserveInit);
         require(weight_ >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_VALUATION");
-        require(BalancerConstants.MAX_WEIGHT >= BalancerConstants.MIN_WEIGHT.add(weight_).add(Constants.POOL_HEADROOM), "MAX_WEIGHT_VALUATION");
+        require(BalancerConstants.MAX_WEIGHT >= BalancerConstants.MIN_WEIGHT.add(weight_).add(BalancerConstants.BONE), "MAX_WEIGHT_VALUATION");
         return weight_;
     }
 

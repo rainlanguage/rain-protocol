@@ -10,7 +10,6 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import { Constants } from "./libraries/Constants.sol";
 import { Initable } from "./libraries/Initable.sol";
 import { BlockBlockable } from "./libraries/BlockBlockable.sol";
 import { PrestigeByConstruction } from "./tv-prestige/contracts/PrestigeByConstruction.sol";
