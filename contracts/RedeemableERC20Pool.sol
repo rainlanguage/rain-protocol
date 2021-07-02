@@ -70,9 +70,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
     /// ConfigurableRightsPool.
     ConfigurableRightsPool public crp;
 
-    /// @dev Internal weight accounting.
-    ///      Used only and deleted by `init` to `updateWeightsGradually` at the same time as `setUnblockBlock`.
-    uint256 private finalWeight;
+    uint256 public finalWeight;
 
     constructor (
         RedeemableERC20 token_,
@@ -164,7 +162,6 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         uint256[] memory finalWeights_ = new uint256[](2);
         finalWeights_[0] = BalancerConstants.MIN_WEIGHT;
         finalWeights_[1] = finalWeight;
-        delete finalWeight;
 
         // Max pool tokens to minimise dust on exit.
         // No minimum weight change period.
