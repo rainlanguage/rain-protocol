@@ -7,6 +7,7 @@ import * as Util from './Util'
 import { utils } from "ethers";
 import type { BigNumber } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
+import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -141,36 +142,37 @@ describe("Trust", async function () {
     const getContractsDeployed: TrustContracts = await trust.getContracts()
 
     const token = await trust.token()
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
-    const crp = await pool.crp()
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
     assert(
       getContractsDeployed.reserveERC20 === reserve.address,
-      'wrong reserve contract address'
+      `wrong reserve contract address ${getContractsDeployed.reserveERC20} ${reserve.address}`
     )
     assert(
       getContractsDeployed.redeemableERC20 === token,
-      'wrong token contract address'
+      `wrong token contract address ${getContractsDeployed.redeemableERC20} ${token}`
     )
     assert(
       getContractsDeployed.redeemableERC20Pool === pool.address,
-      'wrong pool contract address'
+      `wrong pool contract address ${getContractsDeployed.redeemableERC20Pool} ${pool.address}`
     )
     assert(
       getContractsDeployed.seeder === seeder.address,
-      'wrong seeder address'
+      `wrong seeder address ${getContractsDeployed.seeder} ${seeder.address}`
     )
     assert(
       getContractsDeployed.prestige === prestige.address,
-      'wrong prestige address'
+      `wrong prestige address ${getContractsDeployed.prestige} ${prestige.address}`
     )
     assert(
-      getContractsDeployed.crp === crp,
-      'wrong configurable rights pool address'
+      getContractsDeployed.crp === crp.address,
+      `wrong configurable rights pool address ${getContractsDeployed.crp} ${crp.address}`
     )
     assert(
       getContractsDeployed.pool === Util.zeroAddress,
-      'balancer pool should not be defined yet'
+      `balancer pool should not be defined yet ${getContractsDeployed.pool} ${Util.zeroAddress}`
     )
 
     // seeder needs some cash, give enough to seeder
@@ -183,13 +185,13 @@ describe("Trust", async function () {
 
     await trust.startRaise({ gasLimit: 100000000 })
 
-    const getContractsTrading: TrustContracts = await trust.getContracts()
+    let [crp2, bPool2] = await Util.poolContracts(signers, pool)
 
-    const bPool = await pool.pool()
+    const getContractsTrading = await trust.getContracts() as TrustContracts
 
     assert(
-      getContractsTrading.pool === bPool,
-      'wrong balancer pool address'
+      getContractsTrading.pool === bPool2.address,
+      `wrong balancer pool address ${getContractsTrading.pool} ${bPool2.address}`
     )
   })
 
@@ -282,9 +284,9 @@ describe("Trust", async function () {
     await trust.startRaise({ gasLimit: 100000000 })
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
-    const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, creator)
-    const crp = new ethers.Contract((await pool.crp()), crpJson.abi, creator)
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
     const startBlock = await ethers.provider.getBlockNumber()
 
@@ -389,7 +391,7 @@ describe("Trust", async function () {
         },
         redeemInit,
       ),
-      "revert ERR_MIN_TOKEN_SUPPLY",
+      "revert MIN_TOKEN_SUPPLY",
       "setting totalTokenSupply to zero did not error"
     )
   })
@@ -470,7 +472,7 @@ describe("Trust", async function () {
         },
         redeemInit,
       ),
-      "revert ERR_MIN_RESERVE",
+      "revert MIN_RESERVE",
       "setting reserveInit to zero did not error"
     )
   })
@@ -679,7 +681,7 @@ describe("Trust", async function () {
 
     const raiseProgressSeeded: RaiseProgress = await trust.getRaiseProgress()
 
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
 
     assert(raiseProgressSeeded.raiseStatus === RaiseStatus.SEEDED, `did not get correct value for RaiseProgress.raiseStatus on seeding pool
     expected  ${RaiseStatus.SEEDED}
@@ -702,8 +704,8 @@ describe("Trust", async function () {
     const startBlock = await ethers.provider.getBlockNumber()
 
     const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
-    const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, creator)
-    const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
     assert(raiseProgressTrading.raiseStatus === RaiseStatus.TRADING, `did not get correct value for RaiseProgress.raiseStatus on starting raise
     expected  ${RaiseStatus.TRADING}
@@ -857,9 +859,8 @@ describe("Trust", async function () {
     const startBlock = await ethers.provider.getBlockNumber()
 
     const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
-    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator)
-    const bPool = new ethers.Contract(pool.pool(), bPoolJson.abi, creator)
-    const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
     const swapReserveForTokens = async (hodler, spend) => {
       // give hodler some reserve
@@ -1173,11 +1174,12 @@ describe("Trust", async function () {
         finalValuation: successLevel,
       },
       redeemInit,
-    )
+    ) as Trust
 
     await trust.deployed()
 
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, signers[0])
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, signers[0]) as RedeemableERC20Pool
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
     assert(!(await pool.reserveInit()).isZero(), "reserveInit variable was zero on pool construction")
 
@@ -1191,13 +1193,16 @@ describe("Trust", async function () {
 
     await trust.startRaise({ gasLimit: 100000000 })
 
+    let [crp2, bPool2] = await Util.poolContracts(signers, pool)
+
     assert((await reserve.balanceOf(seeder)).isZero(), "seeder did not transfer reserve init during raise start")
 
     // trading pool reserve balance must be non-zero after raise start
-    assert((await reserve.balanceOf(await pool.pool())).eq(reserveInit),
+    const bPoolReserveBalance = await reserve.balanceOf(bPool2.address)
+    assert(bPoolReserveBalance.eq(reserveInit),
       `wrong reserve amount in pool when raise started
     pool reserve    ${await reserve.balanceOf(pool.address)}
-    bPool reserve   ${await reserve.balanceOf(await pool.pool())}
+    bPool reserve   ${bPoolReserveBalance}
     reserve init    ${reserveInit}`)
   })
 
@@ -1580,7 +1585,7 @@ describe("Trust", async function () {
     // creator attempts to immediately end raise
     await Util.assertError(
       async () => await trust.endRaise(),
-      "revert ERR_ONLY_UNBLOCKED",
+      "revert ONLY_UNBLOCKED",
       "creator ended raise before pool unblock block"
     )
 
@@ -1589,7 +1594,7 @@ describe("Trust", async function () {
     // other user attempts to immediately end raise
     await Util.assertError(
       async () => await trust2.endRaise(),
-      "revert ERR_ONLY_UNBLOCKED",
+      "revert ONLY_UNBLOCKED",
       "other user ended raise before pool unblock block"
     )
   })
@@ -1922,7 +1927,7 @@ describe("Trust", async function () {
     // non-creator cannot add redeemable
     await Util.assertError(
       async () => await trust2.creatorAddRedeemable(reserve3.address),
-      "revert ERR_NOT_CREATOR",
+      "revert NOT_CREATOR",
       "non-creator added redeemable"
     )
 
@@ -1944,7 +1949,7 @@ describe("Trust", async function () {
     // adding same redeemable should revert
     await Util.assertError(
       async () => await trust.creatorAddRedeemable(reserve2.address),
-      "revert ERR_DUPLICATE_REDEEMABLE",
+      "revert DUPLICATE_REDEEMABLE",
       "added redeemable that was previously added"
     )
 
@@ -1958,7 +1963,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () => await trust.creatorAddRedeemable(reserve9.address),
-      "revert ERR_MAX_REDEEMABLES",
+      "revert MAX_REDEEMABLES",
       "number of added redeemables exceeds limit of 8"
     )
   })
@@ -2336,24 +2341,13 @@ describe("Trust", async function () {
       (await trust.pool()),
       poolJson.abi,
       signers[0]
-    )
+    ) as RedeemableERC20Pool
+    const reserve1 = reserve.connect(hodler1)
 
-    const bPool1 = new ethers.Contract(
-      (await trustPool.pool()),
-      bPoolJson.abi,
-      hodler1
-    )
-    const reserve1 = new ethers.Contract(
-      reserve.address,
-      reserveJson.abi,
-      hodler1
-    )
+    let [crp, bPool] = await Util.poolContracts(signers,trustPool)
 
-    const crp1 = new ethers.Contract(
-      (await trustPool.crp()),
-      crpJson.abi,
-      hodler1
-    )
+    const crp1 = crp.connect(hodler1)
+    const bPool1 = bPool.connect(hodler1)
 
     let i = 0;
     while (i < 10) {
@@ -2377,23 +2371,11 @@ describe("Trust", async function () {
     // hodler 1 transferred all reserve to token contract
     assert((await reserve.balanceOf(hodler1.address)).eq(0), "balancer pool not swapping correct spend1 amount in")
 
-    const crp2 = new ethers.Contract(
-      (await trustPool.crp()),
-      crpJson.abi,
-      hodler2
-    )
+    const crp2 = crp.connect(hodler2)
     await crp2.pokeWeights()
 
-    const bPool2 = new ethers.Contract(
-      (await trustPool.pool()),
-      bPoolJson.abi,
-      hodler2
-    )
-    const reserve2 = new ethers.Contract(
-      reserve.address,
-      reserveJson.abi,
-      hodler2
-    )
+    const bPool2 = bPool.connect(hodler2)
+    const reserve2 = reserve.connect(hodler2)
     await reserve2.approve(
       bPool2.address,
       spend2
@@ -2422,7 +2404,6 @@ describe("Trust", async function () {
     }
 
     const pool = new ethers.Contract(trust.pool(), poolJson.abi, signers[0])
-    const bPool = new ethers.Contract((await pool.pool()), bPoolJson.abi, signers[0])
 
     const balancerPoolReserveBalance = await reserve.balanceOf(await bPool.address)
 
@@ -2436,29 +2417,30 @@ describe("Trust", async function () {
     await trust.endRaise()
 
     const poolDust = await reserve.balanceOf(bPool.address)
+    const availableBalance = finalBalance.sub(poolDust)
     const seederPay = reserveInit.add(seederFee).sub(poolDust)
 
     const creatorEndingReserveBalance = await reserve.balanceOf(creator)
+    const expectedCreatorEndingReserveBalance = creatorStartingReserveBalance
+      .add(availableBalance)
+      .sub(seederPay.add(tokenPay))
+      .sub(countTransfersToTriggerUnblock) // creator loses some reserve when moving blocks
 
     // Creator has correct final balance
 
     // creatorPay = finalBalance - (seederPay + tokenPay)
     assert(
-      creatorEndingReserveBalance
-        .eq(
-          creatorStartingReserveBalance
-            .add(finalBalance)
-            .sub(seederPay.add(tokenPay))
-            .sub(countTransfersToTriggerUnblock) // creator loses some reserve when moving blocks
-        ),
+      creatorEndingReserveBalance.eq(expectedCreatorEndingReserveBalance),
       `wrong reserve balance for creator after raise ended.
-      start ${creatorStartingReserveBalance}
-      end ${creatorEndingReserveBalance}
-      finalBalance ${finalBalance}
-      seederPay ${seederPay}
-      tokenPay ${tokenPay}
-      poolDust ${poolDust}
-      countTransfers ${countTransfersToTriggerUnblock}
+      ${creatorStartingReserveBalance} start
+      ${creatorEndingReserveBalance} end
+      ${expectedCreatorEndingReserveBalance} expected
+      ${finalBalance} finalBalance
+      ${availableBalance} availableBalance
+      ${seederPay} seederPay
+      ${tokenPay} tokenPay
+      ${poolDust} poolDust
+      ${countTransfersToTriggerUnblock} countTransfers
       `
     )
 
@@ -2640,7 +2622,7 @@ describe("Trust", async function () {
         finalValuation: successLevel,
       },
       redeemInit,
-    )
+    ) as Trust
 
     await trust.deployed()
 
@@ -2673,24 +2655,13 @@ describe("Trust", async function () {
       (await trust.pool()),
       poolJson.abi,
       signers[0]
-    )
+    ) as RedeemableERC20Pool
 
-    const bPool1 = new ethers.Contract(
-      (await trustPool.pool()),
-      bPoolJson.abi,
-      hodler1
-    )
-    const reserve1 = new ethers.Contract(
-      reserve.address,
-      reserveJson.abi,
-      hodler1
-    )
+    let [crp, bPool] = await Util.poolContracts(signers,trustPool)
+    const reserve1 = reserve.connect(hodler1)
 
-    const crp1 = new ethers.Contract(
-      (await trustPool.crp()),
-      crpJson.abi,
-      hodler1
-    )
+    const crp1 = crp.connect(hodler1)
+    const bPool1 = bPool.connect(hodler1)
 
     let i = 0;
     while (i < 10) {
@@ -2711,23 +2682,11 @@ describe("Trust", async function () {
     // hodler 1 transferred all reserve to token contract
     assert((await reserve.balanceOf(hodler1.address)).eq(0), "balancer pool not swapping correct spend1 amount in")
 
-    const crp2 = new ethers.Contract(
-      (await trustPool.crp()),
-      crpJson.abi,
-      hodler2
-    )
+    const crp2 = crp.connect(hodler2)
     await crp2.pokeWeights()
 
-    const bPool2 = new ethers.Contract(
-      (await trustPool.pool()),
-      bPoolJson.abi,
-      hodler2
-    )
-    const reserve2 = new ethers.Contract(
-      reserve.address,
-      reserveJson.abi,
-      hodler2
-    )
+    const bPool2 = bPool.connect(hodler2)
+    const reserve2 = reserve.connect(hodler2)
     await reserve2.approve(
       bPool2.address,
       spend2
@@ -2755,8 +2714,7 @@ describe("Trust", async function () {
       countTransfersToTriggerUnblock++
     }
 
-    const pool = new ethers.Contract(trust.pool(), poolJson.abi, signers[0])
-    const bPool = new ethers.Contract((await pool.pool()), bPoolJson.abi, signers[0])
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, signers[0]) as RedeemableERC20Pool
 
     const finalBalance = await reserve.balanceOf(await bPool.address)
 
@@ -3138,7 +3096,7 @@ describe("Trust", async function () {
         },
         redeemInit,
       ),
-      "revert ERR_MIN_FINAL_VALUATION",
+      "revert MIN_FINAL_VALUATION",
       "did not enforce restriction that final valuation larger than success level"
     )
   })
@@ -3210,7 +3168,7 @@ describe("Trust", async function () {
         },
         redeemInit,
       ),
-      "revert ERR_MIN_TOKEN_SUPPLY",
+      "revert MIN_TOKEN_SUPPLY",
       "did not enforce restriction that minted tokens be greater than liquidity"
     )
   })
@@ -3283,7 +3241,7 @@ describe("Trust", async function () {
         },
         redeemInit,
       ),
-      "revert ERR_MIN_INITIAL_VALUTION",
+      "revert MIN_INITIAL_VALUTION",
       "did not enforce valuation difference restriction (example 1)"
     )
 
@@ -3315,7 +3273,7 @@ describe("Trust", async function () {
         },
         redeemInit,
       ),
-      "revert ERR_MIN_INITIAL_VALUTION",
+      "revert MIN_INITIAL_VALUTION",
       "did not enforce valuation difference restriction (example 2)"
     )
   })
@@ -3405,7 +3363,7 @@ describe("Trust", async function () {
     // some other signer triggers trust to exit before unblock, should fail
     await Util.assertError(
       async () => await trust2.endRaise(),
-      "revert ERR_ONLY_UNBLOCKED",
+      "revert ONLY_UNBLOCKED",
       "trust exited before unblock"
     )
 
@@ -3456,8 +3414,8 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from('2000' + Util.eighteenZeros)
     const initialValuation = ethers.BigNumber.from('20000' + Util.eighteenZeros)
     const minCreatorRaise = ethers.BigNumber.from('100' + Util.eighteenZeros)
-    // @todo not a very interesting test
-    const seeder = signers[0].address
+    const owner = signers[0].address
+    const seeder = owner
     const seederFee = ethers.BigNumber.from('100' + Util.eighteenZeros)
     const seederUnits = 0
     const unseedDelay = 0
@@ -3490,7 +3448,7 @@ describe("Trust", async function () {
         finalValuation: redeemInit.add(minCreatorRaise).add(seederFee).add(reserveInit),
       },
       redeemInit,
-    )
+    ) as Trust
 
     await trust.deployed()
 
@@ -3511,18 +3469,12 @@ describe("Trust", async function () {
       (await trust.pool()),
       poolJson.abi,
       signers[0]
-    )
+    ) as RedeemableERC20Pool
 
-    const bPool1 = new ethers.Contract(
-      (await trustPool.pool()),
-      bPoolJson.abi,
-      signers[1]
-    )
-    const reserve1 = new ethers.Contract(
-      reserve.address,
-      reserveJson.abi,
-      signers[1]
-    )
+    let [crp,bPool] = await Util.poolContracts(signers,trustPool)
+
+    const bPool1 = bPool.connect(signers[1])
+    const reserve1 = reserve.connect(signers[1])
 
     const crp1 = new ethers.Contract(
       (await trustPool.crp()),
@@ -3544,23 +3496,11 @@ describe("Trust", async function () {
       i++
     }
 
-    const crp2 = new ethers.Contract(
-      (await trustPool.crp()),
-      crpJson.abi,
-      signers[2]
-    )
+    const crp2 = crp.connect(signers[2])
     await crp2.pokeWeights()
 
-    const bPool2 = new ethers.Contract(
-      (await trustPool.pool()),
-      bPoolJson.abi,
-      signers[2]
-    )
-    const reserve2 = new ethers.Contract(
-      reserve.address,
-      reserveJson.abi,
-      signers[2]
-    )
+    const bPool2 = bPool.connect(signers[2])
+    const reserve2 = reserve.connect(signers[2])
     await reserve2.approve(
       bPool2.address,
       spend2
@@ -3580,9 +3520,11 @@ describe("Trust", async function () {
 
     const ownerBefore = await reserve.balanceOf(signers[0].address)
     await trust.endRaise()
+    const dust = await reserve.balanceOf(bPool.address)
     const ownerAfter = await reserve.balanceOf(signers[0].address)
     const ownerDiff = ownerAfter.sub(ownerBefore)
-    const expectedOwnerDiff = ethers.BigNumber.from('3300000000000000000000')
+    // Owner is the seeder so they lose dust here.
+    const expectedOwnerDiff = ethers.BigNumber.from('3300000000000000000000').sub(dust)
 
     assert(
       expectedOwnerDiff.eq(ownerDiff),
@@ -3596,7 +3538,7 @@ describe("Trust", async function () {
     )
     await token1.redeem(await token1.balanceOf(signers[1].address))
     const reserveBalance1 = await reserve.balanceOf(signers[1].address)
-    const expectedBalance1 = '1829852176962663371131'
+    const expectedBalance1 = '1829852661873618767641'
     assert(
       ethers.BigNumber.from(expectedBalance1).eq(
         reserveBalance1
@@ -3611,7 +3553,7 @@ describe("Trust", async function () {
     )
     await token2.redeem(await token2.balanceOf(signers[2].address))
     const reserveBalance2 = await reserve.balanceOf(signers[2].address)
-    const expectedBalance2 = '170145904008325395437'
+    const expectedBalance2 = '170145949097001906142'
     assert(
       ethers.BigNumber.from(expectedBalance2).eq(
         reserveBalance2
@@ -3687,7 +3629,7 @@ describe("Trust", async function () {
       redeemInit,
     )
 
-    await trust.deployed()
+    await trust.deployed() as Trust
 
     await reserve.transfer(await trust.pool(), reserveInit)
 
@@ -3704,18 +3646,12 @@ describe("Trust", async function () {
       (await trust.pool()),
       poolJson.abi,
       signers[0]
-    )
+    ) as RedeemableERC20Pool
 
-    const bPool1 = new ethers.Contract(
-      (await trustPool.pool()),
-      bPoolJson.abi,
-      signers[1]
-    )
-    const reserve1 = new ethers.Contract(
-      reserve.address,
-      reserveJson.abi,
-      signers[1]
-    )
+    let [crp,bPool] = await Util.poolContracts(signers,trustPool)
+
+    const bPool1 = bPool.connect(signers[1])
+    const reserve1 = reserve.connect(signers[1])
     await reserve1.approve(bPool1.address, ethers.BigNumber.from('1000' + Util.eighteenZeros))
 
     await bPool1.swapExactAmountIn(
@@ -3725,23 +3661,11 @@ describe("Trust", async function () {
       ethers.BigNumber.from('1'),
       ethers.BigNumber.from('1000000' + Util.eighteenZeros)
     )
-    const crp2 = new ethers.Contract(
-      (await trustPool.crp()),
-      crpJson.abi,
-      signers[2]
-    )
+    const crp2 = crp.connect(signers[2])
     await crp2.pokeWeights()
 
-    const bPool2 = new ethers.Contract(
-      (await trustPool.pool()),
-      bPoolJson.abi,
-      signers[2]
-    )
-    const reserve2 = new ethers.Contract(
-      reserve.address,
-      reserveJson.abi,
-      signers[2]
-    )
+    const bPool2 = bPool.connect(signers[2])
+    const reserve2 = reserve.connect(signers[2])
     await reserve2.approve(
       bPool2.address,
       ethers.BigNumber.from('2000' + Util.eighteenZeros)

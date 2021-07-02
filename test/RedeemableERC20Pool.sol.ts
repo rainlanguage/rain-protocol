@@ -3,6 +3,8 @@ import chai, { util } from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ReserveToken } from '../typechain/ReserveToken'
+import type { ConfigurableRightsPool } from '../typechain/ConfigurableRightsPool'
+import type { RedeemableERC20Pool } from '../typechain/RedeemableERC20Pool'
 import type { Prestige } from '../typechain/Prestige'
 import { recoverAddress } from '@ethersproject/transactions'
 
@@ -11,10 +13,8 @@ const { expect, assert } = chai
 
 const trustJson = require('../artifacts/contracts/Trust.sol/Trust.json')
 const poolJson = require('../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json')
-const bPoolJson = require('../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json')
 const reserveJson = require('../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json')
 const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json')
-const crpJson = require('../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json')
 
 describe("RedeemableERC20Pool", async function () {
     it('should transfer all raised funds to owner on pool exit', async () => {
@@ -84,10 +84,9 @@ describe("RedeemableERC20Pool", async function () {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-        )
+        ) as RedeemableERC20Pool
 
         await pool.deployed()
-        await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Trust normally does this internally.
         await redeemable.transfer(pool.address, await redeemable.totalSupply())
@@ -101,13 +100,13 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init({
+        await pool.init(unblockBlock, {
             gasLimit: 10000000
         })
 
-        // The trust would do this internally but we need to do it here to test.
-        const crp = new ethers.Contract(await pool.crp(), crpJson.abi, signers[0])
-        const bPool = new ethers.Contract(await pool.pool(), bPoolJson.abi, signers[0])
+        // // The trust would do this internally but we need to do it here to test.
+        let [crp, bPool] = await Util.poolContracts(signers, pool)
+
         await redeemable.ownerAddReceiver(crp.address)
         await redeemable.ownerAddSender(crp.address)
         await redeemable.ownerAddReceiver(bFactory.address)
@@ -233,29 +232,19 @@ describe("RedeemableERC20Pool", async function () {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-        )
+        ) as RedeemableERC20Pool
 
         await pool.deployed()
 
-        const pool1 = new ethers.Contract(pool.address, pool.interface, signers[1])
+        const pool1 = pool.connect(signers[1])
 
         // Before init
 
         await Util.assertError(
             async () => await pool.exit(),
-            "revert ERR_ONLY_INIT",
+            "revert ONLY_INIT",
             "owner was wrongly able to exit pool before initialized"
         )
-
-        // Set unblock block
-
-        await Util.assertError(
-            async () => await pool1.ownerSetUnblockBlock(unblockBlock),
-            "revert Ownable: caller is not the owner",
-            "non-owner was wrongly able to set pool unblock block"
-        )
-
-        await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Init pool
 
@@ -274,7 +263,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await Util.assertError(
-            async () => await pool1.init({ gasLimit: 10000000 }),
+            async () => await pool1.init(unblockBlock, { gasLimit: 10000000 }),
             "revert Ownable: caller is not the owner",
             "non-owner was wrongly able to init pool"
         )
@@ -284,7 +273,7 @@ describe("RedeemableERC20Pool", async function () {
             reserveInit
         )
 
-        await pool.init({ gasLimit: 10000000 })
+        await pool.init(unblockBlock, { gasLimit: 10000000 })
 
         await reserve.approve(
             pool.address,
@@ -292,8 +281,8 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await Util.assertError(async () =>
-            await pool.init({ gasLimit: 10000000 }),
-            "revert ERR_ONLY_NOT_INIT",
+            await pool.init(unblockBlock, { gasLimit: 10000000 }),
+            "revert ONLY_NOT_INIT",
             "pool wrongly initialized twice by owner"
         )
 
@@ -310,7 +299,7 @@ describe("RedeemableERC20Pool", async function () {
         // Before unblock block
         await Util.assertError(
             async () => await pool.exit(),
-            "revert ERR_ONLY_UNBLOCKED",
+            "revert ONLY_UNBLOCKED",
             "owner was wrongly able to exit pool before unblock block"
         )
 
@@ -358,22 +347,9 @@ describe("RedeemableERC20Pool", async function () {
 
         const expectedRights = [false, false, true, true, false, false]
 
-        // Let's say we want to value the redeemable at 1 000 000 reserve
-        // The pool has 50 000 reserve
-        // So the weight needs to be 20:1
-        // Whatever the total tokens on the other side of the reserve is, that will be valued at
-        // 20x the reserve value, measured in terms of the reserve value.
-        const expectedStartWeights = [
-            ethers.BigNumber.from('1' + Util.eighteenZeros),
-            ethers.BigNumber.from('20' + Util.eighteenZeros),
-        ]
-
         // The final valuation of redeemable should be 100 000 as this is the redemption value.
         // Reserve init has value of 50 000 so ratio is 2:1.
-        const expectedTargetWeights = [
-            ethers.BigNumber.from('1' + Util.eighteenZeros),
-            ethers.BigNumber.from('2' + Util.eighteenZeros),
-        ]
+        const expectedFinalWeight = ethers.BigNumber.from('2' + Util.eighteenZeros)
 
         const tokenName = 'RedeemableERC20'
         const tokenSymbol = 'RDX'
@@ -427,10 +403,9 @@ describe("RedeemableERC20Pool", async function () {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-        )
+        ) as RedeemableERC20Pool
 
         await pool.deployed()
-        await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Trust normally does this internally.
         await redeemable.transfer(pool.address, await redeemable.totalSupply())
@@ -445,14 +420,6 @@ describe("RedeemableERC20Pool", async function () {
             assert(actualRight === expectedRight, `wrong right ${i} ${expectedRight} ${actualRight}`)
         }
 
-        let expectedTargetWeight;
-        for (let i = 0; expectedTargetWeight = expectedTargetWeights[i]; i++) {
-            const actualTargetWeight = await pool.targetWeights(i)
-            assert(
-                actualTargetWeight.eq(expectedTargetWeight),
-                `wrong target weight ${i} ${expectedTargetWeight} ${actualTargetWeight}`
-            )
-        }
         await reserve.transfer(
             pool.address,
             reserveInit
@@ -462,21 +429,20 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init({
+        await pool.init(unblockBlock, {
             gasLimit: 10000000
         })
 
         // The trust would do this internally but we need to do it here to test.
-        const crp = await pool.crp()
-        const bPool = await pool.pool()
-        await redeemable.ownerAddSender(crp)
-        await redeemable.ownerAddReceiver(crp)
+        let [crp, bPool] = await Util.poolContracts(signers, pool)
+        await redeemable.ownerAddSender(crp.address)
+        await redeemable.ownerAddReceiver(crp.address)
         await redeemable.ownerAddReceiver(bFactory.address)
         await redeemable.ownerAddReceiver(pool.address)
 
         await Util.assertError(
             async () => await pool.exit(),
-            'revert ERR_ONLY_UNBLOCKED',
+            'revert ONLY_UNBLOCKED',
             'failed to error on early exit'
         )
 
@@ -598,7 +564,7 @@ describe("RedeemableERC20Pool", async function () {
 
     //     await Util.assertError(
     //         async () => await pool.exit(),
-    //         'revert ERR_ONLY_UNBLOCKED',
+    //         'revert ONLY_UNBLOCKED',
     //         'failed to error on early exit'
     //     )
 
@@ -694,10 +660,9 @@ describe("RedeemableERC20Pool", async function () {
                 initialValuation: initialValuation,
                 finalValuation: finalValuation,
             },
-        )
+        ) as RedeemableERC20Pool
 
         await pool.deployed()
-        await pool.ownerSetUnblockBlock(unblockBlock)
 
         // Trust normally does this internally.
         await redeemable.transfer(pool.address, await redeemable.totalSupply())
@@ -715,21 +680,20 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init({
+        await pool.init(unblockBlock, {
             gasLimit: 10000000
         })
 
         // The trust would do this internally but we need to do it here to test.
-        const crp = await pool.crp()
-        const bPool = await pool.pool()
-        await redeemable.ownerAddSender(crp)
-        await redeemable.ownerAddReceiver(crp)
+        let [crp, bPool] = await Util.poolContracts(signers, pool)
+        await redeemable.ownerAddSender(crp.address)
+        await redeemable.ownerAddReceiver(crp.address)
         await redeemable.ownerAddReceiver(bFactory.address)
         await redeemable.ownerAddReceiver(pool.address)
 
         await Util.assertError(
             async () => await pool.exit(),
-            'revert ERR_ONLY_UNBLOCKED',
+            'revert ONLY_UNBLOCKED',
             'failed to error on early exit'
         )
 

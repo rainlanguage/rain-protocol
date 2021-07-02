@@ -13,17 +13,19 @@ contract ReserveToken is ERC20 {
     // blacklist
     mapping(address => bool) public freezables;
 
+    // One _billion_ dollars 👷😈
+    uint256 public constant TOTAL_SUPPLY = 10 ** (18 + 9);
+
     constructor() public ERC20("USD Classic", "USDCC") {
-        // One _billion_ dollars 👷😈
-        _mint(msg.sender, SafeMath.mul(1000000000, BalancerConstants.BONE));
+        _mint(msg.sender, TOTAL_SUPPLY);
     }
 
-    function ownerAddFreezable(address _address) external {
-        freezables[_address] = true;
+    function ownerAddFreezable(address account_) external {
+        freezables[account_] = true;
     }
 
-    function ownerRemoveFreezable(address _address) external {
-        freezables[_address] = false;
+    function ownerRemoveFreezable(address account_) external {
+        freezables[account_] = false;
     }
 
     // burns all tokens
@@ -33,12 +35,12 @@ contract ReserveToken is ERC20 {
 
     function _beforeTokenTransfer(
         address,
-        address _receiver,
+        address receiver_,
         uint256
     ) internal override {
         require(
-            _receiver == address(0) || !(freezables[_receiver]),
-            "ERR_FROZEN"
+            receiver_ == address(0) || !(freezables[receiver_]),
+            "FROZEN"
         );
     }
 }

@@ -17,8 +17,8 @@ contract BlockBlockableTest is BlockBlockable {
     // solhint-disable-next-line no-empty-blocks
     function blockable() external view onlyUnblocked {}
 
-    function trySetUnblockBlock(uint256 _unblockBlock) external {
-        BlockBlockable.setUnblockBlock(_unblockBlock);
+    function trySetUnblockBlock(uint256 unblockBlock_) external {
+        BlockBlockable.setUnblockBlock(unblockBlock_);
     }
 
     // Do nothing just to bump a new block.

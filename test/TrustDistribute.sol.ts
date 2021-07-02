@@ -6,6 +6,7 @@ import type { ReserveToken } from "../typechain/ReserveToken"
 import * as Util from './Util'
 import { utils } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
+import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -138,9 +139,9 @@ describe("TrustDistribute", async function () {
       const startBlock = await ethers.provider.getBlockNumber()
 
       const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
-      const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator)
-      const bPool = new ethers.Contract(pool.pool(), bPoolJson.abi, creator)
-      const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+      const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+
+      let [crp, bPool] = await Util.poolContracts(signers, pool)
 
       const reserveSpend = successLevel.div(10)
 
@@ -381,9 +382,8 @@ describe("TrustDistribute", async function () {
     const startBlock = await ethers.provider.getBlockNumber()
 
     const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
-    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator)
-    const bPool = new ethers.Contract(pool.pool(), bPoolJson.abi, creator)
-    const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+    let [crp, bPool] = await Util.poolContracts(signers,pool)
 
     const reserveSpend = successLevel.div(10)
 
@@ -526,8 +526,8 @@ describe("TrustDistribute", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber()
 
-    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator)
-    const bPool = new ethers.Contract(pool.pool(), bPoolJson.abi, creator)
+    const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+    let [crp, bPool] = await Util.poolContracts(signers, pool)
 
     // create empty transfer blocks until reaching unblock block, so raise can end
     while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
@@ -645,9 +645,8 @@ describe("TrustDistribute", async function () {
         const startBlock = await ethers.provider.getBlockNumber()
 
         const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
-        const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator)
-        const bPool = new ethers.Contract(pool.pool(), bPoolJson.abi, creator)
-        const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+        const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+        let [crp, bPool] = await Util.poolContracts(signers, pool)
 
         const reserveSpend = successLevel.div(10)
 
@@ -781,9 +780,8 @@ describe("TrustDistribute", async function () {
         const startBlock = await ethers.provider.getBlockNumber()
 
         const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
-        const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator)
-        const bPool = new ethers.Contract(pool.pool(), bPoolJson.abi, creator)
-        const crp = new ethers.Contract(pool.crp(), crpJson.abi, creator)
+        const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
+        let [crp, bPool] = await Util.poolContracts(signers, pool)
 
         const reserveSpend = successLevel.div(10)
 

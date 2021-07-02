@@ -9,7 +9,7 @@ chai.use(solidity)
 const { expect, assert } = chai
 
 describe("SeedERC20", async function () {
-    it("should emit UnblockSet event when fully seeded", async function () {
+    it("should emit UnblockBlockSet event when fully seeded", async function () {
         const signers = await ethers.getSigners()
         const alice = signers[0]
         const bob = signers[1]
@@ -35,6 +35,7 @@ describe("SeedERC20", async function () {
         )
         const seedERC20 = await seedERC20Factory.deploy({
             reserve: reserve.address,
+            recipient: dave.address,
             seedPrice: seedPrice,
             seedUnits: seedUnits,
             unseedDelay: unseedDelay,
@@ -46,8 +47,6 @@ describe("SeedERC20", async function () {
         const bobSeed = seedERC20.connect(bob)
         const carolSeed = seedERC20.connect(carol)
         const daveSeed = seedERC20.connect(dave)
-
-        await seedERC20.init(dave.address)
 
         await aliceReserve.transfer(bob.address, bobUnits * seedPrice)
         await aliceReserve.transfer(carol.address, carolUnits * seedPrice)
@@ -65,7 +64,7 @@ describe("SeedERC20", async function () {
 
         await expect(
             carolSeed.seed(carolUnits))
-            .to.emit(carolSeed, 'UnblockSet')
+            .to.emit(carolSeed, 'UnblockBlockSet')
             .withArgs(await ethers.provider.getBlockNumber() + 1)
 
         // seed contract automatically transfers to recipient on successful seed
@@ -105,6 +104,7 @@ describe("SeedERC20", async function () {
         )
         const seedERC20 = await seedERC20Factory.deploy({
             reserve: reserve.address,
+            recipient: dave.address,
             seedPrice: seedPrice,
             seedUnits: seedUnits,
             unseedDelay: unseedDelay,
@@ -122,12 +122,6 @@ describe("SeedERC20", async function () {
             `reserve not set`
         );
 
-        const recipientPreInit = await seedERC20.recipient()
-        assert(
-            recipientPreInit == '0x0000000000000000000000000000000000000000',
-            `recipient set too early ${recipientPreInit}`
-        )
-
         assert(
             (await seedERC20.seedPrice()).eq(seedPrice),
             `seed price not set`
@@ -137,8 +131,6 @@ describe("SeedERC20", async function () {
             (await seedERC20.totalSupply()).eq(seedUnits),
             `seed total supply is wrong`
         )
-
-        await seedERC20.init(dave.address)
 
         assert(
             await seedERC20.recipient() == dave.address,

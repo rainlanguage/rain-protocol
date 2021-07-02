@@ -1,7 +1,8 @@
-import chai from 'chai'
+import chai, { util } from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { InitableTest } from '../typechain/InitableTest'
+import * as Util from './Util'
 
 chai.use(solidity)
 const { expect, assert } = chai
@@ -31,33 +32,23 @@ describe("Initable", async function () {
         await initable.whenever()
 
         // afterInit must error before we init
-        let afterInitBeforeDidError = false
-        try {
-            await initable.afterInit()
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_INIT'), 'after init succeeded before init')
-            afterInitBeforeDidError = true
-        }
-        assert(afterInitBeforeDidError)
+        await Util.assertError(
+            async () => await initable.afterInit(),
+            `revert ONLY_INIT`,
+            `after init succeeded before init`,
+        )
 
-        const initialized = new Promise(resolve => {
-            initable.once('Initialized', resolve)
-        })
-        await initable.init()
-        await initialized
+        await expect(initable.init()).to.emit(initable, 'Initialized')
 
         // can inspect the initialized state
         assert(await initable.initialized(), 'failed to initialize')
 
         // beforeInit must error now that we init
-        let beforeInitAfterDidError = false
-        try {
-            await initable.beforeInit()
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_NOT_INIT'), 'before init succeeded after init')
-            beforeInitAfterDidError = true
-        }
-        assert(beforeInitAfterDidError)
+        await Util.assertError(
+            async () => await initable.beforeInit(),
+            `revert ONLY_NOT_INIT`,
+            `before init succeeded after init`,
+        )
 
         // afterInit must not error now
         await initable.afterInit()
@@ -66,13 +57,10 @@ describe("Initable", async function () {
         await initable.whenever()
 
         // init must not be able to call a second time
-        let initAgainDidError = false
-        try {
-            await initable.init()
-        } catch (e) {
-            assert(e.toString().includes('revert ERR_ONLY_NOT_INIT'), 'init twice')
-            initAgainDidError = true
-        }
-        assert(initAgainDidError)
+        await Util.assertError(
+            async () => await initable.init(),
+            `revert ONLY_NOT_INIT`,
+            `init twice`,
+        )
     })
 })
