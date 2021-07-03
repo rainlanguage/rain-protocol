@@ -10,21 +10,17 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
 import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
-import { Constants } from "./libraries/Constants.sol";
-import { Initable } from "./libraries/Initable.sol";
-import { RedeemableERC20 } from "./RedeemableERC20.sol";
-import { RedeemableERC20Pool } from "./RedeemableERC20Pool.sol";
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
-import { PoolConfig } from "./RedeemableERC20Pool.sol";
-import { RedeemableERC20Config } from "./RedeemableERC20.sol";
+import { Initable } from "./libraries/Initable.sol";
+import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
+import { RedeemableERC20Pool, PoolConfig } from "./RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
 struct TrustContracts {
