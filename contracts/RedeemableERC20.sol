@@ -165,7 +165,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
-    function redeemSpecific(IERC20[] memory specificRedeemables_, uint256 redeemAmount_) public onlyPhase(Phase.ONE) nonReentrant {
+    function senderRedeemSpecific(IERC20[] memory specificRedeemables_, uint256 redeemAmount_) public onlyPhase(Phase.ONE) nonReentrant {
         // The fraction of the redeemables we release is the fraction of the outstanding total supply passed in.
         // Every redeemable is released in the same proportion.
         uint256 supplyBeforeBurn_ = totalSupply();
@@ -185,8 +185,8 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         }
     }
 
-    function redeem(uint256 redeemAmount_) external {
-        redeemSpecific(redeemables, redeemAmount_);
+    function senderRedeem(uint256 redeemAmount_) external {
+        senderRedeemSpecific(redeemables, redeemAmount_);
     }
 
     function _beforeTokenTransfer(

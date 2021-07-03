@@ -16,24 +16,25 @@ enum Phase {
 abstract contract Phased {
     event PhaseShiftScheduled(uint32 indexed newPhaseBlock_);
 
-    uint256 public phaseBlocks = uint256(-1);
+    /// Solidity compiler should optimise this to 32 bytes as it has fixed size.
+    uint32[8] public phaseBlocks = [uint32(-1), uint32(-1), uint32(-1), uint32(-1), uint32(-1), uint32(-1), uint32(-1), uint32(-1)];
 
-    function phaseAtBlockNumber(uint256 phaseBlocks_, uint32 blockNumber_) public pure returns(Phase) {
-        for(uint256 i_; i_<8; i_++) {
-            if (blockNumber_ < uint32(uint256(phaseBlocks_ >> (i_ * 32)))) {
+    function phaseAtBlockNumber(uint32[8] memory phaseBlocks_, uint32 blockNumber_) public pure returns(Phase) {
+        for(uint i_; i_<8; i_++) {
+            if (blockNumber_ < phaseBlocks_[i_]) {
                 return Phase(i_);
             }
         }
         return Phase(8);
     }
 
-    function blockNumberForPhase(uint256 phaseBlocks_, Phase phase_) public pure returns(uint32) {
-        return uint32(uint256(phaseBlocks_ >> (uint256(phase_) * 32)));
-    }
-
-    function updatePhaseBlocks(uint256 phaseBlocks_, Phase phase_, uint32 blockNumber_) public pure returns (uint256) {
-        require(phase_ > Phase.ZERO, "UPDATE_PHASE_ZERO");
-        return(phaseBlocks_ & ~(uint256(uint32(-1))) << (uint256(phase_) - 1)) | (uint256(blockNumber_) << (uint256(phase_) - 1));
+    function blockNumberForPhase(uint32[8] memory phaseBlocks_, Phase phase_) public pure returns(uint32) {
+        if (phase_ == Phase.ZERO) {
+            return 0;
+        }
+        else {
+            return phaseBlocks_[uint(phase_) - 1];
+        }
     }
 
     function currentPhase() public view returns (Phase) {
@@ -53,10 +54,9 @@ abstract contract Phased {
     function scheduleNextPhase(uint32 newPhaseBlock_) internal {
         require(uint32(block.number) <= newPhaseBlock_, "BLOCK_PAST");
 
-        Phase nextPhase_ = Phase(uint8(currentPhase()) + 1);
-        require(uint32(-1) == blockNumberForPhase(phaseBlocks, nextPhase_), "DUPLICATE_SCHEDULE");
-
-        phaseBlocks = updatePhaseBlocks(phaseBlocks, nextPhase_, newPhaseBlock_);
+        uint nextIndex_ = uint(currentPhase());
+        require(uint32(-1) == phaseBlocks[nextIndex_], "DUPLICATE_SCHEDULE");
+        phaseBlocks[nextIndex_] = newPhaseBlock_;
 
         emit PhaseShiftScheduled(newPhaseBlock_);
     }

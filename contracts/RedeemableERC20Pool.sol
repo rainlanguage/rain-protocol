@@ -18,8 +18,7 @@ import { ConfigurableRightsPool } from "./configurable-rights-pool/contracts/Con
 import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
 import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
-import { Initable } from "./libraries/Initable.sol";
-import { BlockBlockable } from "./libraries/BlockBlockable.sol";
+import { Phase, Phased } from "./Phased.sol";
 import { RedeemableERC20 } from "./RedeemableERC20.sol";
 
 struct PoolConfig {
@@ -52,7 +51,7 @@ struct PoolConfig {
     // In either case the redeem function would be pointing at a dangling reserve balance.
 }
 
-contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
+contract RedeemableERC20Pool is Ownable, Phased {
 
     using SafeMath for uint256;
 
@@ -155,9 +154,11 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         return weight_;
     }
 
-    function init(uint256 unblockBlock_) external withInit onlyOwner onlyBlocked {
-        // Set the first possible `exit` block.
-        setUnblockBlock(unblockBlock_);
+    function ownerStartRaise(uint256 finalTradingBlock_) external onlyOwner onlyPhase(Phase.ZERO) {
+        // Move to Phase.ONE immediately.
+        scheduleNextPhase(uint32(block.number));
+        // Schedule Phase.TWO for 1 block after trading finishes.
+        scheduleNextPhase(uint32(finalTradingBlock_ + 1));
 
         // Define the weight curve.
         uint256[] memory finalWeights_ = new uint256[](2);
@@ -169,10 +170,14 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).
         crp.createPool(BalancerConstants.MAX_POOL_SUPPLY, 0, 0);
-        crp.updateWeightsGradually(finalWeights_, block.number, unblockBlock_);
+        crp.updateWeightsGradually(finalWeights_, block.number, finalTradingBlock_);
     }
 
-    function exit() external onlyInit onlyOwner onlyUnblocked {
+    function ownerEndRaise() external onlyOwner onlyPhase(Phase.TWO) {
+        // Move to Phase.THREE immediately.
+        // In Phase.THREE all `RedeemableERC20Pool` functions are no longer callable.
+        scheduleNextPhase(uint32(block.number));
+
         // It is not possible to destroy a Balancer pool completely with an exit (i think).
         // This removes as much as is allowable which leaves about 10^-7 of the supply behind as dust.
         crp.exitPool(
