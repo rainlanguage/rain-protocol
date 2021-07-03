@@ -261,7 +261,7 @@ contract Trust is ReentrancyGuard {
             raiseStatus = RaiseStatus.Fail;
         }
 
-        token.ownerSetUnblockBlock(block.number);
+        token.ownerScheduleNextPhase(uint32(block.number));
         pool.exit();
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
