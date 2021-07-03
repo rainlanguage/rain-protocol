@@ -39,14 +39,14 @@ describe("BlockBlockable", async function () {
 
         assert(nowBlock > 0, 'blocked at block 0')
 
-        const unblockPromise = new Promise(resolve => {
-            blockable.once('UnblockBlockSet', (unblockBlock) => {
-                assert(unblockBlock.eq(nowBlock), 'UnblockBlockSet error has wrong unblock block')
-                resolve(true)
-            })
-        })
-        await blockable.trySetUnblockBlock(nowBlock)
-        await unblockPromise
+        await Util.assertError(
+            async () => await blockable.trySetUnblockBlock(nowBlock),
+            'revert BLOCK_PAST',
+            'attempted to set a block in the past'
+        )
+
+        const earliestPossibleUnblock = nowBlock + 2
+        await expect(blockable.trySetUnblockBlock(earliestPossibleUnblock)).to.emit(blockable, 'UnblockBlockSet').withArgs(earliestPossibleUnblock)
 
         // we can call all functions now
         await blockable.unblockable()
@@ -77,7 +77,7 @@ describe("BlockBlockable", async function () {
 
         await Util.assertError(
             async () => await moreBlockable.trySetUnblockBlock(0),
-            `revert BLOCK_ZERO`,
+            `revert BLOCK_PAST`,
             `the unblock block zeroed`,
         )
 
