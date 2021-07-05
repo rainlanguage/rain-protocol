@@ -145,7 +145,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     function getRedeemables() external view returns (address[8] memory) {
         // Need a fixed length to avoid unpredictable gas issues.
         address[8] memory redeemablesArray_;
-        for(uint256 i_ = 0;i_<redeemables.length;i_++) {
+        for(uint256 i_ = 0;i_<8;i_++) {
             redeemablesArray_[i_] = address(redeemables[i_]);
         }
         return redeemablesArray_;
@@ -187,6 +187,12 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
 
     function senderRedeem(uint256 redeemAmount_) external {
         senderRedeemSpecific(redeemables, redeemAmount_);
+    }
+
+    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_) internal override virtual {
+        super._beforeScheduleNextPhase(nextPhaseBlock_);
+        // Phase.ONE is the last phase.
+        assert(currentPhase() < Phase.ONE);
     }
 
     function _beforeTokenTransfer(
@@ -235,7 +241,8 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
                     "FROZEN"
                 );
             } else {
-                revert("UNKNOWN_PHASE");
+                // This is unreachable code due to _beforeScheduleNextPhase.
+                assert(false);
             }
         }
     }

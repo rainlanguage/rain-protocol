@@ -117,4 +117,10 @@ contract SeedERC20 is Ownable, ERC20, Phased {
                 .div(_supplyBeforeBurn)
         );
     }
+
+    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_) internal override virtual {
+        super._beforeScheduleNextPhase(nextPhaseBlock_);
+        // Phase.ONE is the last phase.
+        assert(currentPhase() < Phase.ONE);
+    }
 }
