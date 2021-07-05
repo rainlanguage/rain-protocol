@@ -345,7 +345,7 @@ describe("RedeemableERC20Pool", async function () {
         // Same logic used by trust.
         const finalValuation = minRaise.add(redeemInit)
 
-        const expectedRights = [false, false, true, true, false, false]
+        const expectedRights = [false, false, true, false, true, false]
 
         // The final valuation of redeemable should be 100 000 as this is the redemption value.
         // Reserve init has value of 50 000 so ratio is 2:1.
@@ -414,11 +414,13 @@ describe("RedeemableERC20Pool", async function () {
         assert(await pool.owner() === signers[0].address, 'wrong owner')
         assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
 
-        let expectedRight;
-        for (let i = 0; expectedRight = expectedRights[i]; i++) {
-            const actualRight = await pool.rights(i)
-            assert(actualRight === expectedRight, `wrong right ${i} ${expectedRight} ${actualRight}`)
-        }
+        let [crp, bPool] = await Util.poolContracts(signers, pool)
+
+        const actualRights = await crp.rights()
+
+        expectedRights.forEach((expectedRight, i) => {
+            assert(actualRights[i] === expectedRight, `wrong right ${i} ${expectedRight} ${actualRights[i]}`)
+        });
 
         await reserve.transfer(
             pool.address,
@@ -434,7 +436,6 @@ describe("RedeemableERC20Pool", async function () {
         })
 
         // The trust would do this internally but we need to do it here to test.
-        let [crp, bPool] = await Util.poolContracts(signers, pool)
         await redeemable.ownerAddSender(crp.address)
         await redeemable.ownerAddReceiver(crp.address)
         await redeemable.ownerAddReceiver(bFactory.address)
