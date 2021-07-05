@@ -17,7 +17,88 @@ const reserveJson = require('../artifacts/contracts/test/ReserveToken.sol/Reserv
 const redeemableTokenJson = require('../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json')
 
 describe("RedeemableERC20Pool", async function () {
-    it('should transfer all raised funds to owner on pool exit', async () => {
+    it('should expose correct final weight', async function () {
+        this.timeout(0)
+
+        const signers = await ethers.getSigners()
+
+        const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
+
+        const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
+
+        const prestigeFactory = await ethers.getContractFactory(
+            'Prestige'
+        )
+        const prestige = await prestigeFactory.deploy() as Prestige
+        const minimumStatus = 0
+
+        const redeemableFactory = await ethers.getContractFactory(
+            'RedeemableERC20'
+        )
+
+        const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+        const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+        const totalTokenSupply = ethers.BigNumber.from('200000' + Util.eighteenZeros)
+        const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
+
+        const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
+        // Same logic used by trust.
+        const finalValuation = minRaise.add(redeemInit)
+
+        const tokenName = 'RedeemableERC20'
+        const tokenSymbol = 'RDX'
+
+        const now = await ethers.provider.getBlockNumber()
+        const unblockBlock = now + 50
+
+        const redeemable = await redeemableFactory.deploy(
+            {
+                name: tokenName,
+                symbol: tokenSymbol,
+                reserve: reserve.address,
+                prestige: prestige.address,
+                minimumStatus: minimumStatus,
+                totalSupply: totalTokenSupply,
+            }
+        )
+
+        await redeemable.deployed()
+        await redeemable.ownerSetUnblockBlock(unblockBlock)
+
+        const poolFactory = await ethers.getContractFactory(
+            'RedeemableERC20Pool',
+            {
+                libraries: {
+                    'RightsManager': rightsManager.address
+                }
+            }
+        )
+
+        const pool = await poolFactory.deploy(
+            redeemable.address,
+            {
+                crpFactory: crpFactory.address,
+                balancerFactory: bFactory.address,
+                reserve: reserve.address,
+                reserveInit: reserveInit,
+                initialValuation: initialValuation,
+                finalValuation: finalValuation,
+            },
+        ) as RedeemableERC20Pool
+
+        await pool.deployed()
+
+        const finalWeight = await pool.finalWeight()
+
+        assert(
+            finalWeight.eq(finalValuation.mul(Util.ONE).div(reserveInit)),
+            `final weight should equal finalValuation / totalSupply with no trading
+            expected    ${finalValuation.mul(Util.ONE).div(reserveInit)}
+            got         ${finalWeight}`
+        )
+    })
+
+    it('should transfer all raised funds to owner on pool exit', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
