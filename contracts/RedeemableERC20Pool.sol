@@ -102,12 +102,13 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
 
         // 0. Pause
         // 1. Change fee
-        // 2. Change weights (needed to set gradual weight schedule)
-        // 3. Add/remove tokens (limited by this contract to the owner after unblock)
-        // 4. Whitelist LPs (@todo limited by Trust?)
+        // 2. Change weights (`true` needed to set gradual weight schedule)
+        // 3. Add/remove tokens
+        // 4. Whitelist LPs (default for `true` is nobody can joinPool)
         // 5. Change cap
         bool[] memory rights_ = new bool[](6);
         rights_[2] = true;
+        rights_[4] = true;
 
         crp = poolConfig_.crpFactory.newCrp(
             address(poolConfig_.balancerFactory),

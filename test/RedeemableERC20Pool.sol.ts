@@ -398,7 +398,7 @@ describe("RedeemableERC20Pool", async function () {
         await pool.exit()
     })
 
-    it("should construct a pool", async function () {
+    it("should construct a pool with whitelisting", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -426,7 +426,7 @@ describe("RedeemableERC20Pool", async function () {
         // Same logic used by trust.
         const finalValuation = minRaise.add(redeemInit)
 
-        const expectedRights = [false, false, true, true, false, false]
+        const expectedRights = [false, false, true, false, true, false]
 
         // The final valuation of redeemable should be 100 000 as this is the redemption value.
         // Reserve init has value of 50 000 so ratio is 2:1.
@@ -495,12 +495,6 @@ describe("RedeemableERC20Pool", async function () {
         assert(await pool.owner() === signers[0].address, 'wrong owner')
         assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
 
-        let expectedRight;
-        for (let i = 0; expectedRight = expectedRights[i]; i++) {
-            const actualRight = await pool.rights(i)
-            assert(actualRight === expectedRight, `wrong right ${i} ${expectedRight} ${actualRight}`)
-        }
-
         await reserve.transfer(
             pool.address,
             reserveInit
@@ -514,8 +508,22 @@ describe("RedeemableERC20Pool", async function () {
             gasLimit: 10000000
         })
 
-        // The trust would do this internally but we need to do it here to test.
         let [crp, bPool] = await Util.poolContracts(signers, pool)
+
+        const actualRights = await crp.rights()
+
+        expectedRights.forEach((expectedRight, i) => {
+            assert(actualRights[i] === expectedRight, `wrong right ${i} ${expectedRight} ${actualRights[i]}`)
+        });
+
+        // whitelisted LPs
+        await Util.assertError(
+            async () => await crp.joinPool(1, []),
+            "revert ERR_NOT_ON_WHITELIST",
+            "non-whitelisted signer wrongly joined pool"
+        )
+
+        // The trust would do this internally but we need to do it here to test.
         await redeemable.ownerAddSender(crp.address)
         await redeemable.ownerAddReceiver(crp.address)
         await redeemable.ownerAddReceiver(bFactory.address)
