@@ -317,7 +317,7 @@ describe("RedeemableERC20Pool", async function () {
         await pool.exit()
     })
 
-    it("should construct a pool", async function () {
+    it("should construct a pool with whitelisting", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -414,14 +414,6 @@ describe("RedeemableERC20Pool", async function () {
         assert(await pool.owner() === signers[0].address, 'wrong owner')
         assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
 
-        let [crp, bPool] = await Util.poolContracts(signers, pool)
-
-        const actualRights = await crp.rights()
-
-        expectedRights.forEach((expectedRight, i) => {
-            assert(actualRights[i] === expectedRight, `wrong right ${i} ${expectedRight} ${actualRights[i]}`)
-        });
-
         await reserve.transfer(
             pool.address,
             reserveInit
@@ -434,6 +426,21 @@ describe("RedeemableERC20Pool", async function () {
         await pool.init(unblockBlock, {
             gasLimit: 10000000
         })
+
+        let [crp, bPool] = await Util.poolContracts(signers, pool)
+
+        const actualRights = await crp.rights()
+
+        expectedRights.forEach((expectedRight, i) => {
+            assert(actualRights[i] === expectedRight, `wrong right ${i} ${expectedRight} ${actualRights[i]}`)
+        });
+
+        // whitelisted LPs
+        await Util.assertError(
+            async () => await crp.joinPool(1, []),
+            "revert ERR_NOT_ON_WHITELIST",
+            "non-whitelisted signer wrongly joined pool"
+        )
 
         // The trust would do this internally but we need to do it here to test.
         await redeemable.ownerAddSender(crp.address)
