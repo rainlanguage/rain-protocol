@@ -145,7 +145,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     function getRedeemables() external view returns (address[8] memory) {
         // Need a fixed length to avoid unpredictable gas issues.
         address[8] memory redeemablesArray_;
-        for(uint256 i_ = 0;i_<8;i_++) {
+        for(uint256 i_ = 0;i_<redeemables.length;i_++) {
             redeemablesArray_[i_] = address(redeemables[i_]);
         }
         return redeemablesArray_;
