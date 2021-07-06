@@ -61,7 +61,7 @@ describe("RedeemableERC20Pool", async function () {
         const tokenSymbol = 'RDX'
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 50
+        const nextPhaseBlock = now + 50
 
         const redeemable = await redeemableFactory.deploy(
             {
@@ -75,7 +75,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await redeemable.deployed()
-        await redeemable.ownerSetUnblockBlock(unblockBlock)
+        await redeemable.ownerScheduleNextPhase(nextPhaseBlock)
 
         const poolFactory = await ethers.getContractFactory(
             'RedeemableERC20Pool',
@@ -242,18 +242,18 @@ describe("RedeemableERC20Pool", async function () {
         while ((await ethers.provider.getBlockNumber()) < (raiseEndBlock + 1)) {
             await reserve.transfer(signers[1].address, 1)
         }
-        
+
         // moves to phase TWO 1 block after trading finishes
         assert(
             (await pool.currentPhase()) === Phase.TWO,
             `expected phase ${Phase.TWO} but got ${await pool.currentPhase()}`
         )
-            
+
         const bPoolReserveBeforeExit = await reserve.balanceOf(bPool.address)
         const ownerReserveBeforeExit = await reserve.balanceOf(signers[0].address)
-            
+
         await pool.ownerEndRaise()
-            
+
         // moves to phase THREE immediately when ending raise
         assert(
             (await pool.currentPhase()) === Phase.THREE,
