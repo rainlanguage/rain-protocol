@@ -129,7 +129,7 @@ describe("TrustTrade", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const token = new ethers.Contract(trust.token(), redeemableTokenJson.abi, creator)
     const pool = new ethers.Contract(trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
@@ -254,7 +254,7 @@ describe("TrustTrade", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator)
     const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator)
@@ -360,7 +360,7 @@ describe("TrustTrade", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const startBlock = await ethers.provider.getBlockNumber()
     const unblockBlock = startBlock + raiseDuration
@@ -457,7 +457,7 @@ describe("TrustTrade", async function () {
     spotPrices = spotPrices.map(spotPrice => spotPrice.div('100000000000000')) // reduce scale
 
     // end raise to confirm raise is finished.
-    await trust.endRaise()
+    await trust.anonEndRaise()
 
     // check linearity
     const regression = linearRegression([spotBlocks, spotPrices.map(Number)])
@@ -568,7 +568,7 @@ describe("TrustTrade", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     let [crp, bPool] = await Util.poolContracts(signers, pool)
 
@@ -771,7 +771,7 @@ describe("TrustTrade", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
     let [crp, bPool] = await Util.poolContracts(signers, pool)

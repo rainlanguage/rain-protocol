@@ -23,6 +23,18 @@ enum Status {
   JAWAD,
 }
 
+enum Phase {
+  ZERO,
+  ONE,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT
+}
+
 const trustJson = require('../artifacts/contracts/Trust.sol/Trust.json')
 const poolJson = require('../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json')
 const seedERC20Json = require('../artifacts/contracts/SeedERC20.sol/SeedERC20.json')
@@ -296,7 +308,7 @@ describe("TrustSeed", async function () {
     })
   })
 
-  it('should set unblock block when fully seeded', async function () {
+  it('should set phase ONE when fully seeded', async function () {
     this.timeout(0)
 
     const signers = await ethers.getSigners()
@@ -396,9 +408,20 @@ describe("TrustSeed", async function () {
 
     // seeders send reserve to seeder contract
     await seederContract1.seed(seeder1Units)
+
+    assert(
+      (await seederContract.currentPhase()) === Phase.ZERO,
+      `should be phase ZERO before fully seeded, got ${await seederContract.currentPhase()}`
+    )
+
     await seederContract2.seed(seeder2Units)
 
-    assert((await seederContract.unblockBlock()).eq(await ethers.provider.getBlockNumber()), `unblock block wasn't set when fully seeded`)
+    assert((await seederContract.phaseBlocks(0)) === (await ethers.provider.getBlockNumber()), `unblock block wasn't set when fully seeded`)
+
+    assert(
+      (await seederContract.currentPhase()) === Phase.ONE,
+      `should be phase ONE when fully seeded, got ${await seederContract.currentPhase()}`
+    )
   })
 
   it('should allow trust to build SeedERC20 on construction and begin raise with sufficient funds', async function () {
@@ -502,14 +525,14 @@ describe("TrustSeed", async function () {
     await seederContract1.seed(seeder1Units)
 
     await Util.assertError(
-      async () => await trust.startRaise({ gasLimit: 100000000 }),
+      async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
       "revert ERC20: transfer amount exceeds balance",
       "raise begun with insufficient seed reserve"
     )
 
     await seederContract2.seed(seeder2Units)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
   })
 
   describe('should allow many seeders to seed trust', async function () {
@@ -625,7 +648,7 @@ describe("TrustSeed", async function () {
       await seederContract1.seed(seeder1Units)
 
       await Util.assertError(
-        async () => await trust.startRaise({ gasLimit: 100000000 }),
+        async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       )
@@ -635,7 +658,7 @@ describe("TrustSeed", async function () {
       // seeder cannot unseed after all units seeded
       await Util.assertError(
         async () => await seederContract1.unseed(seeder1Units),
-        "revert ONLY_BLOCKED",
+        "revert BAD_PHASE",
         "seeder1 unseeded despite all units being seeded"
       )
 
@@ -654,7 +677,7 @@ describe("TrustSeed", async function () {
         actual    ${await reserve.balanceOf(pool.address)}
       `)
 
-      await trust.startRaise({ gasLimit: 100000000 })
+      await trust.anonStartRaise({ gasLimit: 100000000 })
 
       let [crp, bPool] = await Util.poolContracts(signers, pool)
 
@@ -689,7 +712,7 @@ describe("TrustSeed", async function () {
       }
 
       // add blocks until raise can end
-      while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
         await reserve.transfer(signers[9].address, 0)
       }
 
@@ -701,7 +724,7 @@ describe("TrustSeed", async function () {
       )
 
       // seeder1 ends raise
-      await trust.connect(seeder1).endRaise()
+      await trust.connect(seeder1).anonEndRaise()
 
       const poolDust = await reserve.balanceOf(bPool.address)
 
@@ -857,7 +880,7 @@ describe("TrustSeed", async function () {
       await seederContract1.seed(seeder1Units)
 
       await Util.assertError(
-        async () => await trust.startRaise({ gasLimit: 100000000 }),
+        async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       )
@@ -865,7 +888,7 @@ describe("TrustSeed", async function () {
       // redeem fails before seeding is complete
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ONLY_UNBLOCKED",
+        "revert BAD_PHASE",
         "redeemed before seeding is complete"
       )
 
@@ -881,7 +904,7 @@ describe("TrustSeed", async function () {
         actual    ${await reserve.balanceOf(pool.address)}
       `)
 
-      await trust.startRaise({ gasLimit: 100000000 })
+      await trust.anonStartRaise({ gasLimit: 100000000 })
 
       let [crp, bPool] = await Util.poolContracts(signers, pool)
 
@@ -890,7 +913,7 @@ describe("TrustSeed", async function () {
       assert((await reserve.balanceOf(seederContract.address)).isZero(), `seeder contract wrongly holding reserve after raise started`)
 
       // add blocks until failed raise
-      while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+      while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
         await reserve.transfer(signers[9].address, 0)
       }
 
@@ -910,7 +933,7 @@ describe("TrustSeed", async function () {
       )
 
       // seeder1 ends raise
-      await trust.connect(seeder1).endRaise()
+      await trust.connect(seeder1).anonEndRaise()
 
       // seederContract should now hold reserve equal to final balance
       assert((await reserve.balanceOf(seederContract.address)).eq(expectedSeederPay), `seeder contract has wrong reserve amount after failed raise ended

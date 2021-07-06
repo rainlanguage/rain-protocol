@@ -132,7 +132,7 @@ describe("TrustDistribute", async function () {
 
       assert(await trust.getRaiseStatus() === RaiseStatus.SEEDED, `raise status not seeded`)
 
-      await trust.startRaise({ gasLimit: 100000000 })
+      await trust.anonStartRaise({ gasLimit: 100000000 })
 
       assert(await trust.getRaiseStatus() === RaiseStatus.TRADING, `raise status not trading`)
 
@@ -170,13 +170,13 @@ describe("TrustDistribute", async function () {
       }
 
       // create empty transfer blocks until reaching unblock block, so raise can end
-      while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration)) {
+      while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
         await reserve.transfer(signers[9].address, 0)
       }
 
       assert(await trust.getRaiseStatus() === RaiseStatus.TRADINGCANEND, `raise status not trading can end`)
 
-      await trust.endRaise()
+      await trust.anonEndRaise()
 
       assert(await trust.getRaiseStatus() === RaiseStatus.SUCCESS, "raise status not successful raise")
     })
@@ -271,20 +271,20 @@ describe("TrustDistribute", async function () {
 
       assert(await trust.getRaiseStatus() === RaiseStatus.SEEDED, `raise status not set to seeded`)
 
-      await trust.startRaise({ gasLimit: 100000000 })
+      await trust.anonStartRaise({ gasLimit: 100000000 })
 
       assert(await trust.getRaiseStatus() === RaiseStatus.TRADING, "raise status was not set to trading")
 
       const startBlock = await ethers.provider.getBlockNumber()
 
       // create empty transfer blocks until reaching unblock block, so raise can end
-      while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration)) {
+      while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
         await reserve.transfer(signers[9].address, 0)
       }
 
       assert(await trust.getRaiseStatus() === RaiseStatus.TRADINGCANEND, `raise status not trading can end`)
 
-      await trust.endRaise()
+      await trust.anonEndRaise()
 
       assert(await trust.getRaiseStatus() === RaiseStatus.FAIL, "raise status was failed")
     })
@@ -377,7 +377,7 @@ describe("TrustDistribute", async function () {
     // seeder must transfer funds before pool can init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const startBlock = await ethers.provider.getBlockNumber()
 
@@ -414,13 +414,13 @@ describe("TrustDistribute", async function () {
     const swappedTokens = await token.balanceOf(hodler1.address)
 
     // create empty transfer blocks until reaching unblock block, so raise can end
-    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+    while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
       await reserve.transfer(signers[9].address, 0)
     }
 
     const tokenBPoolBalanceBefore = await token.balanceOf(bPool.address)
 
-    await trust.endRaise()
+    await trust.anonEndRaise()
 
     const totalSupply = (await token.totalSupply())
     const tokenDust = tokenBPoolBalanceBefore
@@ -522,7 +522,7 @@ describe("TrustDistribute", async function () {
     // seeder must transfer seed funds before pool can init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const startBlock = await ethers.provider.getBlockNumber()
 
@@ -530,7 +530,7 @@ describe("TrustDistribute", async function () {
     let [crp, bPool] = await Util.poolContracts(signers, pool)
 
     // create empty transfer blocks until reaching unblock block, so raise can end
-    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+    while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
       await reserve.transfer(signers[9].address, 0)
     }
 
@@ -538,7 +538,7 @@ describe("TrustDistribute", async function () {
 
     assert(bPoolReserveBeforeExit.eq(reserveInit), "wrong amount of reserve in balancer pool")
 
-    await trust.endRaise()
+    await trust.anonEndRaise()
 
     const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address)
 
@@ -640,7 +640,7 @@ describe("TrustDistribute", async function () {
         // seeder must transfer seed funds before pool init
         await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-        await trust.startRaise({ gasLimit: 100000000 })
+        await trust.anonStartRaise({ gasLimit: 100000000 })
 
         const startBlock = await ethers.provider.getBlockNumber()
 
@@ -675,13 +675,13 @@ describe("TrustDistribute", async function () {
         }
 
         // create empty transfer blocks until reaching unblock block, so raise can end
-        while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+        while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
           await reserve.transfer(signers[9].address, 0)
         }
 
         const creatorBalanceBefore = await reserve.balanceOf(creator.address)
 
-        await trust.endRaise()
+        await trust.anonEndRaise()
 
         const creatorBalanceAfter = await reserve.balanceOf(creator.address)
 
@@ -775,7 +775,7 @@ describe("TrustDistribute", async function () {
         // seeder must transfer seed funds before pool init
         await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-        await trust.startRaise({ gasLimit: 100000000 })
+        await trust.anonStartRaise({ gasLimit: 100000000 })
 
         const startBlock = await ethers.provider.getBlockNumber()
 
@@ -810,13 +810,13 @@ describe("TrustDistribute", async function () {
         // }
 
         // create empty transfer blocks until reaching unblock block, so raise can end
-        while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+        while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
           await reserve.transfer(signers[9].address, 0)
         }
 
         const creatorBalanceBefore = await reserve.balanceOf(creator.address)
 
-        await trust.endRaise()
+        await trust.anonEndRaise()
 
         const creatorBalanceAfter = await reserve.balanceOf(creator.address)
 

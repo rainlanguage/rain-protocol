@@ -9,7 +9,7 @@ chai.use(solidity)
 const { expect, assert } = chai
 
 describe("SeedERC20", async function () {
-    it("should emit UnblockBlockSet event when fully seeded", async function () {
+    it("should emit PhaseShiftScheduled event when fully seeded", async function () {
         const signers = await ethers.getSigners()
         const alice = signers[0]
         const bob = signers[1]
@@ -64,7 +64,7 @@ describe("SeedERC20", async function () {
 
         await expect(
             carolSeed.seed(carolUnits))
-            .to.emit(carolSeed, 'UnblockBlockSet')
+            .to.emit(carolSeed, 'PhaseShiftScheduled')
             .withArgs(await ethers.provider.getBlockNumber() + 1)
 
         // seed contract automatically transfers to recipient on successful seed

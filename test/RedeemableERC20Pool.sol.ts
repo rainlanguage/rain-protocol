@@ -11,6 +11,18 @@ import { recoverAddress } from '@ethersproject/transactions'
 chai.use(solidity)
 const { expect, assert } = chai
 
+enum Phase {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT
+}
+
 const trustJson = require('../artifacts/contracts/Trust.sol/Trust.json')
 const poolJson = require('../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json')
 const reserveJson = require('../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json')
@@ -49,7 +61,7 @@ describe("RedeemableERC20Pool", async function () {
         const tokenSymbol = 'RDX'
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 50
+        const raiseEndBlock = now + 50
 
         const redeemable = await redeemableFactory.deploy(
             {
@@ -63,7 +75,6 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await redeemable.deployed()
-        await redeemable.ownerSetUnblockBlock(unblockBlock)
 
         const poolFactory = await ethers.getContractFactory(
             'RedeemableERC20Pool',
@@ -100,9 +111,20 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init(unblockBlock, {
+        assert(
+            (await pool.currentPhase()) === Phase.ZERO,
+            `expected phase ${Phase.ZERO} but got ${await pool.currentPhase()}`
+        )
+
+        await pool.ownerStartRaise(raiseEndBlock, {
             gasLimit: 10000000
         })
+
+        // move to phase ONE immediately
+        assert(
+            (await pool.currentPhase()) === Phase.ONE,
+            `expected phase ${Phase.ONE} but got ${await pool.currentPhase()}`
+        )
 
         // // The trust would do this internally but we need to do it here to test.
         let [crp, bPool] = await Util.poolContracts(signers, pool)
@@ -136,14 +158,26 @@ describe("RedeemableERC20Pool", async function () {
         await swapReserveForTokens(signers[3], reserveSpend)
 
         // create a few blocks by sending some tokens around
-        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+        while ((await ethers.provider.getBlockNumber()) < (raiseEndBlock + 1)) {
             await reserve.transfer(signers[1].address, 1)
         }
-
+        
+        // moves to phase TWO 1 block after trading finishes
+        assert(
+            (await pool.currentPhase()) === Phase.TWO,
+            `expected phase ${Phase.TWO} but got ${await pool.currentPhase()}`
+        )
+            
         const bPoolReserveBeforeExit = await reserve.balanceOf(bPool.address)
         const ownerReserveBeforeExit = await reserve.balanceOf(signers[0].address)
-
-        await pool.exit()
+            
+        await pool.ownerEndRaise()
+            
+        // moves to phase THREE immediately when ending raise
+        assert(
+            (await pool.currentPhase()) === Phase.THREE,
+            `expected phase ${Phase.THREE} but got ${await pool.currentPhase()}`
+        )
 
         const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address)
         const ownerReserveAfterExit = await reserve.balanceOf(signers[0].address)
@@ -165,7 +199,7 @@ describe("RedeemableERC20Pool", async function () {
         `)
     })
 
-    it('should only allow owner to set pool unblock block and initialize pool', async function () {
+    it('should only allow owner to set pool phases and start raise', async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -197,7 +231,7 @@ describe("RedeemableERC20Pool", async function () {
         const tokenSymbol = 'RDX'
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 50
+        const raiseEndBlock = now + 50
 
         const redeemable = await redeemableFactory.deploy(
             {
@@ -211,7 +245,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await redeemable.deployed()
-        await redeemable.ownerSetUnblockBlock(unblockBlock)
+        await redeemable.ownerScheduleNextPhase(raiseEndBlock)
 
         const poolFactory = await ethers.getContractFactory(
             'RedeemableERC20Pool',
@@ -241,9 +275,9 @@ describe("RedeemableERC20Pool", async function () {
         // Before init
 
         await Util.assertError(
-            async () => await pool.exit(),
-            "revert ONLY_INIT",
-            "owner was wrongly able to exit pool before initialized"
+            async () => await pool.ownerEndRaise(),
+            "revert BAD_PHASE",
+            "owner was wrongly able to exit pool before trading was started"
         )
 
         // Init pool
@@ -263,9 +297,9 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await Util.assertError(
-            async () => await pool1.init(unblockBlock, { gasLimit: 10000000 }),
+            async () => await pool1.ownerStartRaise(raiseEndBlock, { gasLimit: 10000000 }),
             "revert Ownable: caller is not the owner",
-            "non-owner was wrongly able to init pool"
+            "non-owner was wrongly able to start pool trading"
         )
 
         await reserve.approve(
@@ -273,7 +307,7 @@ describe("RedeemableERC20Pool", async function () {
             reserveInit
         )
 
-        await pool.init(unblockBlock, { gasLimit: 10000000 })
+        await pool.ownerStartRaise(raiseEndBlock, { gasLimit: 10000000 })
 
         await reserve.approve(
             pool.address,
@@ -281,9 +315,9 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await Util.assertError(async () =>
-            await pool.init(unblockBlock, { gasLimit: 10000000 }),
-            "revert ONLY_NOT_INIT",
-            "pool wrongly initialized twice by owner"
+            await pool.ownerStartRaise(raiseEndBlock, { gasLimit: 10000000 }),
+            "revert BAD_PHASE",
+            "pool trading wrongly initialized twice by owner"
         )
 
         // Exit pool
@@ -296,25 +330,25 @@ describe("RedeemableERC20Pool", async function () {
         await redeemable.ownerAddReceiver(pool.address)
 
 
-        // Before unblock block
+        // Before raiseEndBlock
         await Util.assertError(
-            async () => await pool.exit(),
-            "revert ONLY_UNBLOCKED",
-            "owner was wrongly able to exit pool before unblock block"
+            async () => await pool.ownerEndRaise(),
+            "revert BAD_PHASE",
+            "owner was wrongly able to exit pool before raiseEndBlock"
         )
 
         // create a few blocks by sending some tokens around
-        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+        while ((await ethers.provider.getBlockNumber()) < (raiseEndBlock - 1)) {
             await reserve.transfer(signers[2].address, 1)
         }
 
         await Util.assertError(
-            async () => await pool1.exit(),
+            async () => await pool1.ownerEndRaise(),
             "revert Ownable: caller is not the owner",
-            "non-owner was wrongly able to exit pool"
+            "non-owner was wrongly able to end pool trading directly"
         )
 
-        await pool.exit()
+        await pool.ownerEndRaise()
     })
 
     it("should construct a pool", async function () {
@@ -355,7 +389,7 @@ describe("RedeemableERC20Pool", async function () {
         const tokenSymbol = 'RDX'
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 15
+        const phaseOneBlock = now + 15
 
         const redeemable = await redeemableFactory.deploy(
             {
@@ -369,7 +403,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await redeemable.deployed()
-        await redeemable.ownerSetUnblockBlock(unblockBlock)
+        await redeemable.ownerScheduleNextPhase(phaseOneBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -380,8 +414,8 @@ describe("RedeemableERC20Pool", async function () {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
-            `unblock block was not ${unblockBlock} in construction`
+            (await redeemable.currentPhase()) === (Phase.ZERO),
+            `current phase was not ${Phase.ZERO} on construction, got ${await redeemable.currentPhase()}`
         )
 
         const poolFactory = await ethers.getContractFactory(
@@ -429,7 +463,7 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init(unblockBlock, {
+        await pool.ownerStartRaise(phaseOneBlock, {
             gasLimit: 10000000
         })
 
@@ -441,145 +475,18 @@ describe("RedeemableERC20Pool", async function () {
         await redeemable.ownerAddReceiver(pool.address)
 
         await Util.assertError(
-            async () => await pool.exit(),
-            'revert ONLY_UNBLOCKED',
+            async () => await pool.ownerEndRaise(),
+            'revert BAD_PHASE',
             'failed to error on early exit'
         )
 
         // create a few blocks by sending some tokens around
-        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+        while ((await ethers.provider.getBlockNumber()) <= phaseOneBlock) {
             await reserve.transfer(signers[1].address, 1)
         }
 
-        await pool.exit()
+        await pool.ownerEndRaise()
     })
-
-    // it('should be able to exit Trust if creator fails to exit', async function() {
-    //     this.timeout(0)
-
-    //     const signers = await ethers.getSigners()
-
-    //     const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy()
-
-    //     const reserve = (await Util.basicDeploy('ReserveToken', {})) as ReserveToken
-
-    //     const prestigeFactory = await ethers.getContractFactory(
-    //         'Prestige'
-    //     )
-    //     const prestige = await prestigeFactory.deploy() as Prestige
-    //     const minimumStatus = 0
-
-    //     const redeemableFactory = await ethers.getContractFactory(
-    //         'RedeemableERC20'
-    //     )
-
-    //     const reserveInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-    //     const redeemInit = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-    //     const totalTokenSupply = ethers.BigNumber.from('200000' + Util.eighteenZeros)
-    //     const minRaise = ethers.BigNumber.from('50000' + Util.eighteenZeros)
-
-    //     const initialValuation = ethers.BigNumber.from('1000000' + Util.eighteenZeros)
-    //     // Same logic used by trust.
-    //     const finalValuation = minRaise.add(redeemInit)
-
-    //     const tokenName = 'RedeemableERC20'
-    //     const tokenSymbol = 'RDX'
-
-    //     const now = await ethers.provider.getBlockNumber()
-    //     const unblockBlock = now + 15
-
-    //     const redeemable = await redeemableFactory.deploy(
-    //         {
-    //             name: tokenName,
-    //             symbol: tokenSymbol,
-    //             reserve: reserve.address,
-    //             prestige: prestige.address,
-    //             minimumStatus: minimumStatus,
-    //             totalSupply: totalTokenSupply,
-    //             unblockBlock: unblockBlock,
-    //         }
-    //     )
-
-    //     await redeemable.deployed()
-
-    //     assert(
-    //         (await reserve.balanceOf(redeemable.address)).eq(0),
-    //         'reserve was not 0 on redeemable construction'
-    //     )
-    //     assert(
-    //         (await redeemable.totalSupply()).eq(totalTokenSupply),
-    //         `total supply was not ${totalTokenSupply} on redeemable construction`
-    //     )
-    //     assert(
-    //         (await redeemable.unblockBlock()).eq(unblockBlock),
-    //         `unblock block was not ${unblockBlock} in construction`
-    //     )
-
-    //     const poolFactory = await ethers.getContractFactory(
-    //         'RedeemableERC20Pool',
-    //         {
-    //             libraries: {
-    //                 'RightsManager': rightsManager.address
-    //             }
-    //         }
-    //     )
-
-    //     const pool = await poolFactory.deploy(
-    //         {
-    //             crpFactory: crpFactory.address,
-    //             balancerFactory: bFactory.address,
-    //             reserveInit: reserveInit,
-    //         },
-    //         redeemable.address,
-    //         redeemInit,
-    //         initialValuation,
-    //         finalValuation,
-    //     )
-
-    //     await pool.deployed()
-
-    //     assert((await pool.token()) === redeemable.address, 'wrong token address')
-    //     assert(await pool.owner() === signers[0].address, 'wrong owner')
-    //     assert(await pool.owner() === await redeemable.owner(), 'mismatch owner')
-
-    //     await reserve.approve(
-    //         pool.address,
-    //         await pool.poolAmounts(0)
-    //     )
-    //     await redeemable.approve(
-    //         pool.address,
-    //         await pool.poolAmounts(1)
-    //     )
-
-    //     await pool.init({
-    //         gasLimit: 10000000
-    //     })
-
-    //     // The trust would do this internally but we need to do it here to test.
-    //     const crp = await pool.crp()
-    //     const bPool = await pool.pool()
-    //     await redeemable.addUnfreezable(crp)
-    //     await redeemable.addUnfreezable(bFactory.address)
-    //     await redeemable.addUnfreezable(pool.address)
-
-    //     await Util.assertError(
-    //         async () => await pool.exit(),
-    //         'revert ONLY_UNBLOCKED',
-    //         'failed to error on early exit'
-    //     )
-
-    //     // create a few blocks by sending some tokens around
-    //     while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
-    //         await reserve.transfer(signers[1].address, 1)
-    //     }
-
-    //     // owner 'rage quits' and fails to exit pool, locking everyone's tokens in limbo
-    //     // someone else can exit pool
-    //     const pool2 = new ethers.Contract(pool.address, pool.interface, signers[1]);
-    //     await pool2.exit();
-
-    //     assert((await redeemable.balanceOf(pool.address)).eq(0), 'non-owner failed to close pool')
-    // })
 
     it('should construct pool and exit with 0 minimum raise', async function () {
         this.timeout(0)
@@ -613,7 +520,7 @@ describe("RedeemableERC20Pool", async function () {
         const tokenSymbol = 'RDX'
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 15
+        const phaseOneBlock = now + 15
 
         const redeemable = await redeemableFactory.deploy(
             {
@@ -626,7 +533,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await redeemable.deployed()
-        await redeemable.ownerSetUnblockBlock(unblockBlock)
+        await redeemable.ownerScheduleNextPhase(phaseOneBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -637,8 +544,8 @@ describe("RedeemableERC20Pool", async function () {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
-            `unblock block was not ${unblockBlock} in construction`
+            (await redeemable.currentPhase()) === (Phase.ZERO),
+            `current phase was not ${Phase.ZERO} on construction, got ${await redeemable.currentPhase()}`
         )
 
         const poolFactory = await ethers.getContractFactory(
@@ -680,7 +587,7 @@ describe("RedeemableERC20Pool", async function () {
             totalTokenSupply
         )
 
-        await pool.init(unblockBlock, {
+        await pool.ownerStartRaise(phaseOneBlock, {
             gasLimit: 10000000
         })
 
@@ -692,17 +599,17 @@ describe("RedeemableERC20Pool", async function () {
         await redeemable.ownerAddReceiver(pool.address)
 
         await Util.assertError(
-            async () => await pool.exit(),
-            'revert ONLY_UNBLOCKED',
+            async () => await pool.ownerEndRaise(),
+            'revert BAD_PHASE',
             'failed to error on early exit'
         )
 
         // create a few blocks by sending some tokens around
-        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+        while ((await ethers.provider.getBlockNumber()) <= phaseOneBlock) {
             await reserve.transfer(signers[1].address, 1)
         }
 
-        await pool.exit()
+        await pool.ownerEndRaise()
     })
 
     it('should fail to construct pool if initial reserve amount is zero', async function () {
@@ -737,7 +644,7 @@ describe("RedeemableERC20Pool", async function () {
         const tokenSymbol = 'RDX'
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 15
+        const phaseOneBlock = now + 15
 
         const redeemable = await redeemableFactory.deploy(
             {
@@ -750,7 +657,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await redeemable.deployed()
-        await redeemable.ownerSetUnblockBlock(unblockBlock)
+        await redeemable.ownerScheduleNextPhase(phaseOneBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -761,8 +668,8 @@ describe("RedeemableERC20Pool", async function () {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
-            `unblock block was not ${unblockBlock} in construction`
+            (await redeemable.currentPhase()) === (Phase.ZERO),
+            `current phase was not ${Phase.ZERO} on construction, got ${await redeemable.currentPhase()}`
         )
 
         const poolFactory = await ethers.getContractFactory(
@@ -826,7 +733,7 @@ describe("RedeemableERC20Pool", async function () {
         const tokenSymbol = 'RDX'
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 15
+        const phaseOneBlock = now + 15
 
         const redeemable = await redeemableFactory.deploy(
             {
@@ -839,7 +746,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await redeemable.deployed()
-        await redeemable.ownerSetUnblockBlock(unblockBlock)
+        await redeemable.ownerScheduleNextPhase(phaseOneBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -850,8 +757,8 @@ describe("RedeemableERC20Pool", async function () {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
-            `unblock block was not ${unblockBlock} in construction`
+            (await redeemable.currentPhase()) === (Phase.ZERO),
+            `current phase was not ${Phase.ZERO} on construction, got ${await redeemable.currentPhase()}`
         )
 
         const poolFactory = await ethers.getContractFactory(
@@ -915,7 +822,7 @@ describe("RedeemableERC20Pool", async function () {
         const tokenSymbol = 'RDX'
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 15
+        const phaseOneBlock = now + 15
 
         const redeemable = await redeemableFactory.deploy(
             {
@@ -928,7 +835,7 @@ describe("RedeemableERC20Pool", async function () {
         )
 
         await redeemable.deployed()
-        await redeemable.ownerSetUnblockBlock(unblockBlock)
+        await redeemable.ownerScheduleNextPhase(phaseOneBlock)
 
         assert(
             (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -939,8 +846,8 @@ describe("RedeemableERC20Pool", async function () {
             `total supply was not ${totalTokenSupply} on redeemable construction`
         )
         assert(
-            (await redeemable.unblockBlock()).eq(unblockBlock),
-            `unblock block was not ${unblockBlock} in construction`
+            (await redeemable.currentPhase()) === (Phase.ZERO),
+            `current phase was not ${Phase.ZERO} on construction, got ${await redeemable.currentPhase()}`
         )
 
         const poolFactory = await ethers.getContractFactory(
