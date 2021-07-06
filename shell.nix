@@ -63,6 +63,7 @@ pkgs.stdenv.mkDerivation {
  buildInputs = [
   pkgs.nodejs-14_x
   pkgs.python3
+  pkgs.pre-commit
   local-node
   local-fork
   local-test
@@ -73,6 +74,7 @@ pkgs.stdenv.mkDerivation {
  ];
 
  shellHook = ''
+  pre-commit install
   ${(import ./default.nix).pre-commit-check.shellHook}
   export PATH=$( npm bin ):$PATH
   # keep it fresh
