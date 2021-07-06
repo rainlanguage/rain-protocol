@@ -68,9 +68,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// ConfigurableRightsPool.
     ConfigurableRightsPool public crp;
 
-    /// @dev Internal weight accounting.
-    ///      Used only and deleted by `init` to `updateWeightsGradually` at the same time as `setUnblockBlock`.
-    uint256 private finalWeight;
+    uint256 public finalWeight;
 
     constructor (
         RedeemableERC20 token_,
@@ -103,12 +101,13 @@ contract RedeemableERC20Pool is Ownable, Phased {
 
         // 0. Pause
         // 1. Change fee
-        // 2. Change weights (needed to set gradual weight schedule)
-        // 3. Add/remove tokens (limited by this contract to the owner after unblock)
-        // 4. Whitelist LPs (@todo limited by Trust?)
+        // 2. Change weights (`true` needed to set gradual weight schedule)
+        // 3. Add/remove tokens
+        // 4. Whitelist LPs (default for `true` is nobody can joinPool)
         // 5. Change cap
         bool[] memory rights_ = new bool[](6);
         rights_[2] = true;
+        rights_[4] = true;
 
         crp = poolConfig_.crpFactory.newCrp(
             address(poolConfig_.balancerFactory),
@@ -164,7 +163,6 @@ contract RedeemableERC20Pool is Ownable, Phased {
         uint256[] memory finalWeights_ = new uint256[](2);
         finalWeights_[0] = BalancerConstants.MIN_WEIGHT;
         finalWeights_[1] = finalWeight;
-        delete finalWeight;
 
         // Max pool tokens to minimise dust on exit.
         // No minimum weight change period.
