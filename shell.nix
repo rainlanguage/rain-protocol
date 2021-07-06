@@ -74,9 +74,12 @@ pkgs.stdenv.mkDerivation {
  ];
 
  shellHook = ''
+  # prettier formatter pre-commit hook
   pre-commit install
   ${(import ./default.nix).pre-commit-check.shellHook}
+
   export PATH=$( npm bin ):$PATH
+
   # keep it fresh
   npm install
  '';
