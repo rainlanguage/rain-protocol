@@ -9,7 +9,7 @@ in {
     # default_stages = ["manual" "push"];
     hooks = {
       prettier.enable = true;
-      prettier.files = "\.*$";
+      prettier.files = "\\*$";
     };
   };
 }
