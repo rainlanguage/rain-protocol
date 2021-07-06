@@ -39,6 +39,18 @@ enum RaiseStatus {
   FAIL
 }
 
+enum Phase {
+  ZERO,
+  ONE,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT
+}
+
 describe("TrustRewards", async function () {
   it('should provide function to get list of redeemables on token in single call', async function () {
     this.timeout(0)
@@ -225,7 +237,7 @@ describe("TrustRewards", async function () {
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const startBlock = await ethers.provider.getBlockNumber()
 
@@ -260,13 +272,13 @@ describe("TrustRewards", async function () {
       await swapReserveForTokens(hodler1, spend, reserveA)
     }
 
-    while ((await ethers.provider.getBlockNumber() < startBlock + raiseDuration)) {
+    while (await ethers.provider.getBlockNumber() <= (startBlock + raiseDuration)) {
       await reserveA.transfer(signers[9].address, 0)
     }
 
     const finalBalance = await reserveA.balanceOf(bPool.address)
 
-    await trust.endRaise()
+    await trust.anonEndRaise()
 
     // on successful raise
     const poolDustA = await reserveA.balanceOf(bPool.address)
@@ -309,7 +321,7 @@ describe("TrustRewards", async function () {
     const tokenSupply = await token.totalSupply()
 
     // hodler1 redeems tokens equal to 10% of total supply
-    await token.connect(hodler1).redeem(tokenSupply.div(10))
+    await token.connect(hodler1).senderRedeem(tokenSupply.div(10))
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
@@ -368,7 +380,7 @@ describe("TrustRewards", async function () {
     `)
 
     // hodler1 redeems tokens equal to 10% of new total supply
-    await token.connect(hodler1).redeem(tokenSupply2.div(10))
+    await token.connect(hodler1).senderRedeem(tokenSupply2.div(10))
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
@@ -493,13 +505,18 @@ describe("TrustRewards", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, creator)
     const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool
     let [crp, bPool] = await Util.poolContracts(signers, pool)
 
-    assert((await token.unblockBlock()).isZero(), "token unblock block should not be set until endRaise")
+    assert((await token.currentPhase()) === Phase.ZERO, "token current phase was not ZERO")
+
+    assert(
+      ethers.BigNumber.from("0xffffffff").eq(await token.phaseBlocks(0)), // max uint32
+      "token phaseOneBlock should not be set until endRaise"
+    )
 
     const startBlock = await ethers.provider.getBlockNumber()
 
@@ -529,26 +546,31 @@ describe("TrustRewards", async function () {
     const token1 = token.connect(hodler1)
 
     await Util.assertError(
-      async () => await token1.redeem(await token1.balanceOf(hodler1.address)),
-      "revert ONLY_UNBLOCKED",
+      async () => await token1.senderRedeem(await token1.balanceOf(hodler1.address)),
+      "revert BAD_PHASE",
       "hodler1 redeemed tokens before token unblocked (before pool unblock)"
     )
 
     // create empty transfer blocks until reaching pool unblock block, so raise can end
-    while ((await ethers.provider.getBlockNumber()) < (startBlock + raiseDuration - 1)) {
+    while ((await ethers.provider.getBlockNumber()) <= (startBlock + raiseDuration)) {
       await reserve.transfer(signers[9].address, 0)
     }
 
-    assert((await token.unblockBlock()).isZero(), "token unblock block should not be set until endRaise")
+    assert((await token.currentPhase()) === Phase.ZERO, "token current phase was still not ZERO")
+
+    assert(
+      ethers.BigNumber.from("0xffffffff").eq(await token.phaseBlocks(0)), // max uint32
+      "token phaseOneBlock should still not be set until endRaise"
+    )
 
     const hodler1TokenBalanceBeforeRed = await token1.balanceOf(hodler1.address)
 
     await Util.assertError(
-      async () => await token1.redeem(hodler1TokenBalanceBeforeRed),
-      "revert ONLY_UNBLOCKED",
+      async () => await token1.senderRedeem(hodler1TokenBalanceBeforeRed),
+      "revert BAD_PHASE",
       `hodler1 redeemed tokens before token unblocked (after pool unblock)
       currentBlock      ${await ethers.provider.getBlockNumber()}
-      tokenUnblockBlock ${await token.unblockBlock()}`
+      tokenUnblockBlock ${await token.phaseBlocks(0)}`
     )
 
     const hodler1TokenBalanceAfterRed = await token1.balanceOf(hodler1.address)
@@ -558,13 +580,13 @@ describe("TrustRewards", async function () {
     const trust1 = trust.connect(hodler1)
 
     // after endRaise is called, token is unblocked
-    await trust1.endRaise()
+    await trust1.anonEndRaise()
 
-    assert((await token.unblockBlock()).eq((await ethers.provider.getBlockNumber())), `token unblock block should be set to current block
+    assert((await token.phaseBlocks(0)) === ((await ethers.provider.getBlockNumber())), `token phase ONE block should be set to current block
     currentBlock  ${await ethers.provider.getBlockNumber()}
-    tokenUnblockBlock ${await token.unblockBlock()}`)
+    tokenUnblockBlock ${await token.phaseBlocks(0)}`)
 
-    await token1.redeem(await token1.balanceOf(hodler1.address))
+    await token1.senderRedeem(await token1.balanceOf(hodler1.address))
   })
 
   it('should allow token owner to burn only their own tokens', async function () {
@@ -655,7 +677,7 @@ describe("TrustRewards", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit)
 
-    await trust.startRaise({ gasLimit: 100000000 })
+    await trust.anonStartRaise({ gasLimit: 100000000 })
 
     const startBlock = await ethers.provider.getBlockNumber()
 

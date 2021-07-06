@@ -20,6 +20,18 @@ enum Status {
     JAWAD,
 }
 
+enum Phase {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT
+}
+
 describe("RedeemableERC20", async function () {
     it('should allow receiver/send to always receive/send tokens if added via ownerAddReceiver/ownerAddSender, bypassing BlockBlockable restrictions', async function () {
         const TEN_TOKENS = ethers.BigNumber.from('10' + Util.eighteenZeros);
@@ -64,7 +76,7 @@ describe("RedeemableERC20", async function () {
         )
 
         await token.deployed()
-        await token.ownerSetUnblockBlock(unblockBlock)
+        await token.ownerScheduleNextPhase(unblockBlock)
 
         // try sending/receiving, both with insufficient prestige
         await Util.assertError(
@@ -137,7 +149,7 @@ describe("RedeemableERC20", async function () {
         )
 
         await redeemableERC20.deployed()
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerScheduleNextPhase(unblockBlock)
         await redeemableERC20.ownerAddRedeemable(reserve.address)
 
         // create a few blocks by sending some tokens around
@@ -200,7 +212,7 @@ describe("RedeemableERC20", async function () {
         )
 
         await redeemableERC20.deployed()
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerScheduleNextPhase(unblockBlock)
         await redeemableERC20.ownerAddRedeemable(reserve0.address)
         await redeemableERC20.ownerAddRedeemable(reserve1.address)
         await redeemableERC20.ownerAddRedeemable(reserve2.address)
@@ -277,7 +289,7 @@ describe("RedeemableERC20", async function () {
         const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 8
+        const phaseOneBlock = now + 8
 
         const redeemableERC20 = await redeemableERC20Factory.deploy(
             {
@@ -290,7 +302,13 @@ describe("RedeemableERC20", async function () {
         )
 
         await redeemableERC20.deployed()
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+
+        const nextPhasePromise = redeemableERC20.ownerScheduleNextPhase(phaseOneBlock)
+
+        await expect(nextPhasePromise)
+            .to.emit(redeemableERC20, 'PhaseShiftScheduled')
+            .withArgs(phaseOneBlock)
+
         await redeemableERC20.ownerAddRedeemable(reserve.address)
 
         // There are no reserve tokens in the redeemer on construction
@@ -315,10 +333,10 @@ describe("RedeemableERC20", async function () {
             `reserve address not set as redeemable`
         )
 
-        // The unblock block is not set (i.e. contract is blocked)
+        // The phase is not set (i.e. contract is blocked)
         assert(
-            (await redeemableERC20.unblockBlock()).eq(unblockBlock),
-            `unblock block was not ${unblockBlock} in construction`
+            (await redeemableERC20.currentPhase()) === Phase.ZERO,
+            `phase was not ${Phase.ZERO} in construction`
         )
 
         // Normal ERC20 labelling applies
@@ -338,18 +356,9 @@ describe("RedeemableERC20", async function () {
 
         // Redemption not allowed yet.
         await Util.assertError(
-            async () => await redeemableERC20.redeem(100),
-            'revert ONLY_UNBLOCKED',
+            async () => await redeemableERC20.senderRedeem(100),
+            'revert BAD_PHASE',
             'redeem did not error'
-        )
-
-        assert(
-            (await reserve.balanceOf(redeemableERC20.address)).eq(0),
-            'reserve balance in redeemer is wrong'
-        )
-        assert(
-            (await redeemableERC20.unblockBlock()).eq(unblockBlock),
-            'unblock block not set correctly'
         )
 
         // We cannot send to the token address.
@@ -360,15 +369,20 @@ describe("RedeemableERC20", async function () {
         )
 
         // create a few blocks by sending some tokens around
-        while ((await ethers.provider.getBlockNumber()) < (unblockBlock - 1)) {
+        while ((await ethers.provider.getBlockNumber()) < (phaseOneBlock - 1)) {
             await redeemableERC20.transfer(signers[1].address, 1)
         }
-
+        
         // Funds need to be frozen once redemption unblocks.
         await Util.assertError(
             async () => await redeemableERC20.transfer(signers[1].address, 1),
             'revert FROZEN',
-            'funds were not frozen'
+            'funds were not frozen in next phase'
+            )
+            
+        assert(
+            (await redeemableERC20.currentPhase()) === Phase.ONE,
+            `wrong phase, expected ${Phase.ONE} got ${await redeemableERC20.currentPhase()}`
         )
 
         const redeemableERC202 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
@@ -397,7 +411,7 @@ describe("RedeemableERC20", async function () {
         const redeemAmount = ethers.BigNumber.from('50' + Util.eighteenZeros)
         const expectedReserveRedemption = ethers.BigNumber.from('10' + Util.eighteenZeros)
         // signer redeems all tokens they have for fraction of each redeemable asset
-        await expect(redeemableERC20.redeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
+        await expect(redeemableERC20.senderRedeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
 
         const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[0].address)
         const redeemableContractTotalSupplyAfter = await redeemableERC20.totalSupply()
@@ -430,7 +444,7 @@ describe("RedeemableERC20", async function () {
 
         // signer cannot redeem more tokens than they have
         await Util.assertError(
-            async () => await redeemableERC20.redeem(ethers.BigNumber.from('10000' + Util.eighteenZeros)),
+            async () => await redeemableERC20.senderRedeem(ethers.BigNumber.from('10000' + Util.eighteenZeros)),
             'revert ERC20: burn amount exceeds balance',
             'failed to stop greedy redeem',
         )
@@ -442,7 +456,7 @@ describe("RedeemableERC20", async function () {
             while (i < 3) {
                 console.log(`redemption check 1: ${i}`)
                 const balanceBefore = await reserve.balanceOf(signers[0].address)
-                await expect(redeemableERC20.redeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
+                await expect(redeemableERC20.senderRedeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
                 const balanceAfter = await reserve.balanceOf(signers[0].address)
                 const diff = balanceAfter.sub(balanceBefore)
                 assert(diff.eq(expectedDiff), `wrong diff ${i} ${expectedDiff} ${diff} ${balanceBefore} ${balanceAfter}`)
@@ -460,7 +474,7 @@ describe("RedeemableERC20", async function () {
             while (i < 3) {
                 console.log(`redemption check 2: ${i}`)
                 const balanceBefore = await reserve.balanceOf(signers[0].address)
-                await expect(redeemableERC20.redeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
+                await expect(redeemableERC20.senderRedeem(redeemAmount)).to.emit(redeemableERC20, 'Redeem').withArgs(signers[0].address, reserve.address, redeemAmount)
                 const balanceAfter = await reserve.balanceOf(signers[0].address)
                 const diff = balanceAfter.sub(balanceBefore)
                 assert(diff.eq(expectedDiff), `wrong diff ${i} ${expectedDiff} ${diff} ${balanceBefore} ${balanceAfter}`)
@@ -469,7 +483,7 @@ describe("RedeemableERC20", async function () {
         }
     })
 
-    it("should only allow owner to set unblock block", async function () {
+    it("should only allow owner to set phase blocks", async function () {
         this.timeout(0)
 
         const signers = await ethers.getSigners()
@@ -488,7 +502,7 @@ describe("RedeemableERC20", async function () {
         const totalSupply = ethers.BigNumber.from('5000' + Util.eighteenZeros)
 
         const now = await ethers.provider.getBlockNumber()
-        const unblockBlock = now + 8
+        const phaseOneBlock = now + 8
 
         const redeemableERC20 = await redeemableERC20Factory.deploy(
             {
@@ -502,17 +516,17 @@ describe("RedeemableERC20", async function () {
 
         await redeemableERC20.deployed()
 
-        assert((await redeemableERC20.unblockBlock()).isZero(), "unblock block was wrongly set")
+        assert((await redeemableERC20.currentPhase()) === Phase.ZERO, "default phase was not zero")
 
         const redeemableERC201 = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[1])
 
         await Util.assertError(
-            async () => await redeemableERC201.ownerSetUnblockBlock(unblockBlock),
+            async () => await redeemableERC201.ownerScheduleNextPhase(phaseOneBlock),
             "revert Ownable: caller is not the owner",
-            "non-owner was wrongly able to set token unblock block"
+            "non-owner was wrongly able to set phase block"
         )
 
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerScheduleNextPhase(phaseOneBlock)
     })
 
     it("should set owner as unfreezable on construction", async function () {
@@ -588,7 +602,7 @@ describe("RedeemableERC20", async function () {
         )
 
         await redeemableERC20.deployed()
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerScheduleNextPhase(unblockBlock)
 
         // owner is made unfreezable during construction, so required token transfers can go ahead
         assert((await redeemableERC20.unfreezables(signers[0].address)), "owner not made unfreezable during construction")
@@ -638,7 +652,7 @@ describe("RedeemableERC20", async function () {
         )
 
         await redeemableERC20.deployed()
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerScheduleNextPhase(unblockBlock)
 
         const redeemableERC20_SILVER = new ethers.Contract(redeemableERC20.address, redeemableERC20.interface, signers[2])
         await Util.assertError(
@@ -657,11 +671,11 @@ describe("RedeemableERC20", async function () {
         await reserve.transfer(redeemableERC20.address, reserveTotal)
 
         // GOLD signer can redeem.
-        await redeemableERC20.redeem(1)
+        await redeemableERC20.senderRedeem(1)
 
         // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
         await Util.assertError(
-            async () => await redeemableERC20_SILVER.redeem(1),
+            async () => await redeemableERC20_SILVER.senderRedeem(1),
             "revert ERC20: burn amount exceeds balance",
             "user could transfer despite not meeting minimum status"
         )
@@ -710,7 +724,7 @@ describe("RedeemableERC20", async function () {
         )
 
         await redeemableERC20.deployed()
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerScheduleNextPhase(unblockBlock)
         await redeemableERC20.ownerAddRedeemable(reserve1.address)
         await redeemableERC20.ownerAddRedeemable(reserve2.address)
 
@@ -771,7 +785,7 @@ describe("RedeemableERC20", async function () {
                 .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore))
 
         // signer redeems all tokens they have for fraction of each redeemable asset
-        await expect(redeemableERC20_1.redeem(redeemAmount)).to.emit(redeemableERC20_1, 'Redeem').withArgs(signers[1].address, reserve1.address, redeemAmount)
+        await expect(redeemableERC20_1.senderRedeem(redeemAmount)).to.emit(redeemableERC20_1, 'Redeem').withArgs(signers[1].address, reserve1.address, redeemAmount)
 
         // contract after
         const redeemableContractTotalSupplyAfter = await redeemableERC20.totalSupply()
@@ -860,7 +874,7 @@ describe("RedeemableERC20", async function () {
         )
 
         await redeemableERC20.deployed()
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerScheduleNextPhase(unblockBlock)
         await redeemableERC20.ownerAddRedeemable(reserve1.address)
         await redeemableERC20.ownerAddRedeemable(reserve2.address)
 
@@ -887,12 +901,12 @@ describe("RedeemableERC20", async function () {
 
         // should succeed, despite emitting redeem fail event for one redeemable
         await Util.assertError(
-            async () => await redeemableERC20_1.redeem(redeemAmount),
+            async () => await redeemableERC20_1.senderRedeem(redeemAmount),
             `revert FROZEN`,
             `failed to error when reserve is frozen`,
         )
 
-        await redeemableERC20_1.redeemSpecific([reserve2.address], redeemAmount)
+        await redeemableERC20_1.senderRedeemSpecific([reserve2.address], redeemAmount)
 
         const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(signers[1].address);
 
@@ -948,7 +962,7 @@ describe("RedeemableERC20", async function () {
         )
 
         await redeemableERC20.deployed()
-        await redeemableERC20.ownerSetUnblockBlock(unblockBlock)
+        await redeemableERC20.ownerScheduleNextPhase(unblockBlock)
 
         await Util.assertError(
             async () => await redeemableERC20.transfer(ethers.constants.AddressZero, TEN_TOKENS),

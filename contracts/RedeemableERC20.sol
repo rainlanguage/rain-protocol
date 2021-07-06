@@ -9,9 +9,9 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
-import { Initable } from "./libraries/Initable.sol";
-import { BlockBlockable } from "./libraries/BlockBlockable.sol";
+import { Phase, Phased } from "./Phased.sol";
 import { PrestigeByConstruction } from "./tv-prestige/contracts/PrestigeByConstruction.sol";
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
@@ -58,7 +58,7 @@ struct RedeemableERC20Config {
 // After the unblock block the `redeem` function will transfer RedeemableERC20 tokens to itself and reserve tokens to the caller according to the ratio.
 //
 // A `Redeem` event is emitted on every redemption as `(_redeemer, _redeem_amoutn, _reserveRelease)`.
-contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC20, ReentrancyGuard {
+contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, ReentrancyGuard, ERC20Burnable {
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -106,7 +106,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     function ownerAddSender(address account_)
         external
         onlyOwner
-        onlyBlocked
+        onlyPhase(Phase.ZERO)
     {
         unfreezables[account_] = unfreezables[account_] | 0x01;
     }
@@ -118,7 +118,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     function ownerAddReceiver(address account_)
         external
         onlyOwner
-        onlyBlocked
+        onlyPhase(Phase.ZERO)
         {
             unfreezables[account_] = unfreezables[account_] | 0x02;
         }
@@ -127,8 +127,8 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         return (unfreezables[account_] & 0x02) == 0x02;
     }
 
-    function ownerSetUnblockBlock(uint256 unblockBlock_) external onlyOwner {
-        setUnblockBlock(unblockBlock_);
+    function ownerScheduleNextPhase(uint32 newPhaseBlock_) external onlyOwner {
+        scheduleNextPhase(newPhaseBlock_);
     }
 
     function ownerAddRedeemable(IERC20 newRedeemable_) external onlyOwner {
@@ -151,10 +151,6 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         return redeemablesArray_;
     }
 
-    function burn(uint256 burnAmount_) external {
-        _burn(msg.sender, burnAmount_);
-    }
-
     // Redeem tokens.
     // Tokens can be _redeemed_ but NOT _transferred_ after the unblock block.
     //
@@ -169,7 +165,7 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     //
     // Note: Any tokens held by the 0 address are burned defensively.
     //       This is because transferring to 0 will go through but the `totalSupply` won't reflect it.
-    function redeemSpecific(IERC20[] memory specificRedeemables_, uint256 redeemAmount_) public onlyUnblocked nonReentrant {
+    function senderRedeemSpecific(IERC20[] memory specificRedeemables_, uint256 redeemAmount_) public onlyPhase(Phase.ONE) nonReentrant {
         // The fraction of the redeemables we release is the fraction of the outstanding total supply passed in.
         // Every redeemable is released in the same proportion.
         uint256 supplyBeforeBurn_ = totalSupply();
@@ -189,8 +185,14 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
         }
     }
 
-    function redeem(uint256 redeemAmount_) external {
-        redeemSpecific(redeemables, redeemAmount_);
+    function senderRedeem(uint256 redeemAmount_) external {
+        senderRedeemSpecific(redeemables, redeemAmount_);
+    }
+
+    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_) internal override virtual {
+        super._beforeScheduleNextPhase(nextPhaseBlock_);
+        // Phase.ONE is the last phase.
+        assert(currentPhase() < Phase.ONE);
     }
 
     function _beforeTokenTransfer(
@@ -200,7 +202,10 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
     )
         internal
         override
+        virtual
     {
+        super._beforeTokenTransfer(sender_, receiver_, amount_);
+
         // Some contracts may attempt a preflight (e.g. Balancer) of a 0 amount transfer.
         // In this case we do not want concerns such as prestige causing errors.
         if (amount_ > 0) {
@@ -219,7 +224,15 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
             // - All transfers are frozen (no trading, transferring, etc.) but redemption/burning is allowed
             // - Transfers TO the owner are allowed (notably the pool tokens can be used by the owner to exit the pool)
             // - Transfers FROM the owner are NOT allowed (the owner can only redeem like everyone else)
-            if (isUnblocked()) {
+            if (currentPhase() == Phase.ZERO) {
+                // Redemption is blocked.
+                // All transfer actions allowed.
+                require(
+                    isReceiver(receiver_) || isSender(sender_) || isStatus(receiver_, minimumPrestigeStatus),
+                    "MIN_STATUS"
+                );
+            }
+            else if (currentPhase() == Phase.ONE) {
                 // Redemption is unblocked.
                 // Can burn.
                 // Only owner and unfreezables can receive.
@@ -228,12 +241,8 @@ contract RedeemableERC20 is Ownable, BlockBlockable, PrestigeByConstruction, ERC
                     "FROZEN"
                 );
             } else {
-                // Redemption is blocked.
-                // All transfer actions allowed.
-                require(
-                    isReceiver(receiver_) || isSender(sender_) || isStatus(receiver_, minimumPrestigeStatus),
-                    "MIN_STATUS"
-                );
+                // This is unreachable code due to _beforeScheduleNextPhase.
+                assert(false);
             }
         }
     }

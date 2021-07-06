@@ -18,7 +18,7 @@ import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol
 
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
-import { Initable } from "./libraries/Initable.sol";
+import { Phase } from "./Phased.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { RedeemableERC20Pool, PoolConfig } from "./RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
@@ -119,7 +119,7 @@ contract Trust is ReentrancyGuard {
 
     TrustConfig public trustConfig;
 
-    RaiseStatus private raiseStatus;
+    bool private success;
     uint256 public redeemInit;
 
     using SafeERC20 for IERC20;
@@ -135,6 +135,7 @@ contract Trust is ReentrancyGuard {
         // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
         uint256 redeemInit_
     ) public {
+        require(trustConfig_.creator != address(0), "CREATOR_0");
         require(redeemableERC20Config_.totalSupply >= poolConfig_.reserveInit, "MIN_TOKEN_SUPPLY");
         require(poolConfig_.reserveInit > 0, "MIN_RESERVE");
         require(poolConfig_.initialValuation >= poolConfig_.finalValuation, "MIN_INITIAL_VALUTION");
@@ -220,16 +221,28 @@ contract Trust is ReentrancyGuard {
     }
 
     function getRaiseStatus() public view returns (RaiseStatus) {
-        RaiseStatus baseStatus_ = raiseStatus;
-        if (baseStatus_ == RaiseStatus.Pending && pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()) {
-            return RaiseStatus.Seeded;
+        Phase poolPhase_ = pool.currentPhase();
+        if (poolPhase_ == Phase.ZERO) {
+            if (pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()) {
+                return RaiseStatus.Seeded;
+            } else {
+                return RaiseStatus.Pending;
+            }
         }
-
-        if (baseStatus_ == RaiseStatus.Trading && pool.isUnblocked()) {
+        else if (poolPhase_ == Phase.ONE) {
+            return RaiseStatus.Trading;
+        }
+        else if (poolPhase_ == Phase.TWO) {
             return RaiseStatus.TradingCanEnd;
         }
-
-        return baseStatus_;
+        else if (poolPhase_ == Phase.THREE) {
+            if (success) {
+                return RaiseStatus.Success;
+            }
+            else {
+                return RaiseStatus.Fail;
+            }
+        }
     }
 
     function creatorAddRedeemable(IERC20 redeemable_) external {
@@ -243,26 +256,22 @@ contract Trust is ReentrancyGuard {
     // The only requirement is that the seeder can fund the pool.
     // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
-    function startRaise() external {
-        raiseStatus = RaiseStatus.Trading;
-        pool.init(block.number + trustConfig.raiseDuration);
+    function anonStartRaise() external {
+        pool.ownerStartRaise(block.number + trustConfig.raiseDuration);
     }
 
     // This function can be called by anyone!
     // It defers to the pool exit function (which is owned by the trust and has onlyOwner, onlyInit, onlyUnblocked).
     // If the minimum raise is reached then the trust owner receives the raise.
     // If the minimum raise is NOT reached then the reserve is refunded to the owner and sale proceeds rolled to token holders.
-    function endRaise() external nonReentrant {
+    function anonEndRaise() external nonReentrant {
         uint256 finalBalance_ = pool.reserve().balanceOf(address(pool.crp().bPool()));
         if (finalBalance_ >= successBalance()) {
-            raiseStatus = RaiseStatus.Success;
-        }
-        else {
-            raiseStatus = RaiseStatus.Fail;
+            success = true;
         }
 
-        token.ownerSetUnblockBlock(block.number);
-        pool.exit();
+        token.ownerScheduleNextPhase(uint32(block.number));
+        pool.ownerEndRaise();
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
         uint256 poolDust_ = pool.reserve().balanceOf(address(pool.crp().bPool()));
@@ -276,7 +285,7 @@ contract Trust is ReentrancyGuard {
         uint256 creatorPay_ = 0;
 
         // Set aside the redemption and seed fee if we reached the minimum.
-        if (raiseStatus == RaiseStatus.Success) {
+        if (success) {
             // The seeder gets an additional fee on success.
             seederPay_ = seederPay_.add(trustConfig.seederFee);
 

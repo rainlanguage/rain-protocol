@@ -3,13 +3,13 @@ pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
-import { Initable } from "./libraries/Initable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { BlockBlockable } from "./libraries/BlockBlockable.sol";
+
+import { Phase, Phased } from "./Phased.sol";
 
 struct SeedERC20Config {
     IERC20 reserve;
@@ -25,7 +25,7 @@ struct SeedERC20Config {
     string symbol;
 }
 
-contract SeedERC20 is Ownable, ERC20, BlockBlockable {
+contract SeedERC20 is Ownable, ERC20, Phased {
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -59,11 +59,11 @@ contract SeedERC20 is Ownable, ERC20, BlockBlockable {
     // - approves infinite reserve transfers for the recipient
     //
     // Can only be called after init so that all callers are guaranteed to know the recipient.
-    function seed(uint256 units_) external onlyBlocked {
+    function seed(uint256 units_) external onlyPhase(Phase.ZERO) {
         unseedLocks[msg.sender] = block.number + unseedDelay;
         // If balanceOf is less than units then the transfer below will fail and rollback anyway.
         if (balanceOf(address(this)) == units_) {
-            setUnblockBlock(block.number);
+            scheduleNextPhase(uint32(block.number));
         }
         _transfer(address(this), msg.sender, units_);
 
@@ -72,7 +72,7 @@ contract SeedERC20 is Ownable, ERC20, BlockBlockable {
         // Immediately transfer to the recipient.
         // The transfer is immediate rather than only approving for the recipient.
         // This avoids the situation where a seeder immediately redeems their units before the recipient can withdraw.
-        if (isUnblocked()) {
+        if (currentPhase() == Phase.ONE) {
             reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
         }
     }
@@ -83,7 +83,7 @@ contract SeedERC20 is Ownable, ERC20, BlockBlockable {
     //
     // Once the contract is seeded this function is disabled.
     // Once this function is disabled seeders are expected to call redeem at a later time.
-    function unseed(uint256 units_) external onlyBlocked {
+    function unseed(uint256 units_) external onlyPhase(Phase.ZERO) {
         // Prevent users from griefing contract with rapid seed/unseed cycles.
         require(unseedLocks[msg.sender] <= block.number, "UNSEED_LOCKED");
 
@@ -101,7 +101,7 @@ contract SeedERC20 is Ownable, ERC20, BlockBlockable {
     // Once funds are returned back to this contract it makes sense for token holders to redeem their portion.
     //
     // For example, if `SeedERC20` is used as a seeder for a `Trust` contract (in this repo) it will receive a refund or refund + fee.
-    function redeem(uint256 units_) external onlyUnblocked {
+    function redeem(uint256 units_) external onlyPhase(Phase.ONE) {
         uint256 _supplyBeforeBurn = totalSupply();
         _burn(msg.sender, units_);
 
@@ -116,5 +116,11 @@ contract SeedERC20 is Ownable, ERC20, BlockBlockable {
                 .mul(_currentReserveBalance)
                 .div(_supplyBeforeBurn)
         );
+    }
+
+    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_) internal override virtual {
+        super._beforeScheduleNextPhase(nextPhaseBlock_);
+        // Phase.ONE is the last phase.
+        assert(currentPhase() < Phase.ONE);
     }
 }
