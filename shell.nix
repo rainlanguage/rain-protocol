@@ -73,6 +73,7 @@ pkgs.stdenv.mkDerivation {
  ];
 
  shellHook = ''
+  ${(import ./default.nix).pre-commit-check.shellHook}
   export PATH=$( npm bin ):$PATH
   # keep it fresh
   npm install

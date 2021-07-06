@@ -7,3 +7,5 @@ typechain
 artifacts
 build
 venv
+result
+/.pre-commit-config.yaml
