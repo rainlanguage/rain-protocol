@@ -20,7 +20,7 @@ import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
 import { Phase } from "./Phased.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
-import { RedeemableERC20Pool, PoolConfig } from "./RedeemableERC20Pool.sol";
+import { RedeemableERC20Pool, PoolConfig as PoolConfigInner } from "./RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
 struct TrustContracts {
@@ -64,6 +64,15 @@ struct TrustConfig {
     uint256 seederUnits;
     uint256 unseedDelay;
     uint256 raiseDuration;
+}
+
+struct PoolConfig {
+    CRPFactory crpFactory;
+    BFactory balancerFactory;
+    IERC20 reserve;
+    uint256 reserveInit;
+    uint256 initialValuation;
+    uint256 finalValuation;
 }
 
 // Examples
@@ -145,10 +154,15 @@ contract Trust is ReentrancyGuard {
         token =  new RedeemableERC20(
             redeemableERC20Config_
         );
-        pool = new RedeemableERC20Pool(
+        pool = new RedeemableERC20Pool(PoolConfigInner(
+            poolConfig_.crpFactory,
+            poolConfig_.balancerFactory,
+            poolConfig_.reserve,
             token,
-            poolConfig_
-        );
+            poolConfig_.reserveInit,
+            poolConfig_.initialValuation,
+            poolConfig_.finalValuation
+        ));
 
         if (trustConfig.seeder == address(0)) {
             require(poolConfig_.reserveInit.mod(trustConfig.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
@@ -257,7 +271,7 @@ contract Trust is ReentrancyGuard {
     // Seeders should be careful NOT to approve the trust until/unless they are committed to funding it.
     // The pool is `init` after funding, which is onlyOwner, onlyInit, onlyBlocked.
     function anonStartRaise() external {
-        pool.ownerStartRaise(block.number + trustConfig.raiseDuration);
+        pool.ownerStartDutchAuction(block.number + trustConfig.raiseDuration);
     }
 
     // This function can be called by anyone!
@@ -271,7 +285,7 @@ contract Trust is ReentrancyGuard {
         }
 
         token.ownerScheduleNextPhase(uint32(block.number));
-        pool.ownerEndRaise();
+        pool.ownerEndDutchAuction();
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
         uint256 poolDust_ = pool.reserve().balanceOf(address(pool.crp().bPool()));
