@@ -464,7 +464,10 @@ describe("RedeemableERC20", async function () {
     // signer redeems all tokens they have for fraction of each redeemable asset
     await expect(redeemableERC20.senderRedeem(redeemAmount))
       .to.emit(redeemableERC20, "Redeem")
-      .withArgs(signers[0].address, reserve.address, redeemAmount);
+      .withArgs(signers[0].address, reserve.address, [
+        redeemAmount,
+        expectedReserveRedemption,
+      ]);
 
     const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(
       signers[0].address
@@ -529,7 +532,10 @@ describe("RedeemableERC20", async function () {
         const balanceBefore = await reserve.balanceOf(signers[0].address);
         await expect(redeemableERC20.senderRedeem(redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
-          .withArgs(signers[0].address, reserve.address, redeemAmount);
+          .withArgs(signers[0].address, reserve.address, [
+            redeemAmount,
+            expectedDiff,
+          ]);
         const balanceAfter = await reserve.balanceOf(signers[0].address);
         const diff = balanceAfter.sub(balanceBefore);
         assert(
@@ -555,7 +561,10 @@ describe("RedeemableERC20", async function () {
         const balanceBefore = await reserve.balanceOf(signers[0].address);
         await expect(redeemableERC20.senderRedeem(redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
-          .withArgs(signers[0].address, reserve.address, redeemAmount);
+          .withArgs(signers[0].address, reserve.address, [
+            redeemAmount,
+            expectedDiff,
+          ]);
         const balanceAfter = await reserve.balanceOf(signers[0].address);
         const diff = balanceAfter.sub(balanceBefore);
         assert(
@@ -905,7 +914,10 @@ describe("RedeemableERC20", async function () {
     // signer redeems all tokens they have for fraction of each redeemable asset
     await expect(redeemableERC20_1.senderRedeem(redeemAmount))
       .to.emit(redeemableERC20_1, "Redeem")
-      .withArgs(signers[1].address, reserve1.address, redeemAmount);
+      .withArgs(signers[1].address, reserve1.address, [
+        redeemAmount,
+        expectedReserve1Redemption,
+      ]);
 
     // contract after
     const redeemableContractTotalSupplyAfter =
