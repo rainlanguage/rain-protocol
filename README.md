@@ -2,6 +2,7 @@
 
 Implements a hybrid wrapped ERC20 + [Liquidity Bootstrapping Pool](https://docs.balancer.finance/smart-contracts/smart-pools/liquidity-bootstrapping-faq) with bespoke 'Last Wallet Standing' mechanic.
 
+
 ## Development setup
 
 ### Git submodules
@@ -43,7 +44,7 @@ Inside the nix-shell you can just run `hardhat test` as normal.
 
 Inside the nix-shell run `security-check`.
 
-**IMPORTANT: `security-check` applies and removes several patches to balancer to get slither compiling**
+__IMPORTANT: `security-check` applies and removes several patches to balancer to get slither compiling__
 
 If you cancel the security check before it is finished your repository may be left in a dirty state.
 
@@ -116,23 +117,23 @@ The distribution phase is a [Dutch Auction](https://www.investopedia.com/terms/d
 There are some technical differences between a Balancer Liquidity Bootstrapping Pool and a 'true' Dutch Auction (see below).
 
 0. During construction the basic parameters are defined:
-   - The name and symbol for the redeemable token to be created
-   - The `_reserve` ERC20 token to be wrapped e.g. TVK, DAI, USDC, WETH, etc.
-   - The amount `_reserve_init` of the reserve token to be deposited in the token during initialization
-   - The `_mint_ratio` which is the number of redeemable tokens minted per reserve token deposited
-   - `mint_ratio`, `reserve_init` and `reserve` become available as immutable public getters
-1. After construction the owner of the redeemable token MUST approve _exactly_ the number of reserve tokens `_reserve_init` defined in construction.
-2. Once the reserve tokens are approved the owner can `init` the redeemable token and set the `_unblockBlock`
-   - The redeemable contract will transfer `_reserve_init` reserve tokens from the owner to itself
-   - The redeemable contract will `_mint` ( `_reserve_init` x `_mint_ratio` ) of itself for its owner
-   - The `unblockBlock` becomes available as an immutable public getter
-3. After the contract is initialized but before it is unblocked:
-   - The owner can add 'unfreezable' addresses
-   - All token holders can freely transfer the minted ERC20 as per OZ ERC20
-   - But redeemable tokens cannot be sent to the redeemable token contract
-4. After the contract is unblocked (the predefined `unblockBlock` exists)
-   - All ERC20 transfers are frozen except TO addresses on the unfreezable list.
-   - `redeem` is now callable by everyone
+     - The name and symbol for the redeemable token to be created
+     - The `_reserve` ERC20 token to be wrapped e.g. TVK, DAI, USDC, WETH, etc.
+     - The amount `_reserve_init` of the reserve token to be deposited in the token during initialization
+     - The `_mint_ratio` which is the number of redeemable tokens minted per reserve token deposited
+     - `mint_ratio`, `reserve_init` and `reserve` become available as immutable public getters
+0. After construction the owner of the redeemable token MUST approve _exactly_ the number of reserve tokens `_reserve_init` defined in construction.
+0. Once the reserve tokens are approved the owner can `init` the redeemable token and set the `_unblockBlock`
+     - The redeemable contract will transfer `_reserve_init` reserve tokens from the owner to itself
+     - The redeemable contract will `_mint` ( `_reserve_init` x `_mint_ratio` ) of itself for its owner
+     - The `unblockBlock` becomes available as an immutable public getter
+0. After the contract is initialized but before it is unblocked:
+     - The owner can add 'unfreezable' addresses
+     - All token holders can freely transfer the minted ERC20 as per OZ ERC20
+     - But redeemable tokens cannot be sent to the redeemable token contract
+0. After the contract is unblocked (the predefined `unblockBlock` exists)
+     - All ERC20 transfers are frozen except TO addresses on the unfreezable list.
+     - `redeem` is now callable by everyone
 
 ### Redemption
 
@@ -192,7 +193,7 @@ The [Balancer Whitepaper](https://balancer.finance/whitepaper/) outlines the for
 
 We use a model similar to startup valuations for defining initial start and end weights internally.
 For example, an early stage investor may offer a founder $100 000 for 10% equity, immediately valuing the company _equity_ at $1 000 000 regardless of the _book value_ of the underlying assets (which may be close to $0 for a new company).
-We do the same thing by setting aside ( 1 / ( book*ratio + 1) ) of the total reserve to \_define* the initial implied marketcap for the distribution phase and ( book*ratio / ( book_ratio + 1 ) ) of the total reserve to \_back* the redemption phase of the token.
+We do the same thing by setting aside ( 1 / ( book_ratio + 1) ) of the total reserve to _define_ the initial implied marketcap for the distribution phase and ( book_ratio / ( book_ratio + 1 ) ) of the total reserve to _back_ the redemption phase of the token.
 By this model the initial weight of the balancer pool will be larger than the book ratio if the aspirational/maximum marketcap is to be larger than the redemption value of the token.
 Similarly there is an intentional discrepency between the implied market cap of the initial spot price (set very high, drifting downwards in an LBP) and the book value (redemption value of 1 token during the redemption phase).
 
@@ -207,7 +208,7 @@ The Balancer functionality is wrapped by the `RedeemableERC20Pool` contract.
 
 This contract exposes a constructor and `init` so that the `Trust` contract can treat the Balancer weight calculations and setup as a 'black box'.
 
-This means that the pool tokens created during the initialization of the Balancer LBP \_are owned by the `RedeemableERC20Pool` and never touch either the `Trust` nor a TV controlled wallet directly.
+This means that the pool tokens created during the initialization of the Balancer LBP _are owned by the `RedeemableERC20Pool` and never touch either the `Trust` nor a TV controlled wallet directly.
 
 The `exit` method on the `RedeemableERC20Pool` is callable only by the owner (the `Trust`, not TV) and only after the unblock block exists.
 
@@ -232,11 +233,11 @@ The trust exposes the addresses of its various components as public so each can 
 
 ### Audits && optimisations
 
-**These contracts are NOT audited.**
+__These contracts are NOT audited.__
 
-**These contracts are NOT gas optimised.**
+__These contracts are NOT gas optimised.__
 
-**There have been NO simulations designed or run.**
+__There have been NO simulations designed or run.__
 
 The details documented here:
 
@@ -264,11 +265,11 @@ If the difference before and after the distribution period is less than the mini
 
 This means the Trust owner will either meet their minimum raise or be refunded in full, minus gas and dust.
 
-Token holders can then use the existing redemption mechanism to receive their refund from the token reserve, which now contains 100% of the funds raised above the pool reserve. Token redemption is always pro-rata, so refunds are **in aggregate if the raise fails**.
+Token holders can then use the existing redemption mechanism to receive their refund from the token reserve, which now contains 100% of the funds raised above the pool reserve. Token redemption is always pro-rata, so refunds are __in aggregate if the raise fails__.
 
 Users that paid above average for their tokens will receive less of the refund and users who paid below average will receive more of the refund. It is possible for users to make a profit in the case of a failed raise if they buy when the price is low. We don't want to base our incentives around the case of a failed raise, but it is a real incentive to be patient and buy when the price is lower than average.
 
-If the raise is successful then **all the proceeds go to the Trust owner**. The token holders are entitled to the rewards + book value of the token that was backed by the owner at the start of the raise. It is expected that the Trust owner will use the proceeds of the sale to cover costs of producing the rewards for token holders, plus some reasonable margin.
+If the raise is successful then __all the proceeds go to the Trust owner__. The token holders are entitled to the rewards + book value of the token that was backed by the owner at the start of the raise. It is expected that the Trust owner will use the proceeds of the sale to cover costs of producing the rewards for token holders, plus some reasonable margin.
 
 Other than gas and dust it is not possible that the Trust owner loses their initial depost. In the absolute worst case scenario, where nobody buys any tokens at all, or equivalently tokens are purchased and subsequently 100% of tokens are dumped back in to the AMM, the final weight in the balancer pool sets a spot price equal to the book value of the tokens.
 
@@ -373,8 +374,8 @@ Commonly whales also have ready access to 'soft' control over the marketplace li
 Rather than trying to define rules or whitelisting accounts or taking a 'top down' approach we choose to disincentivise whales at the level of the token and AMM mechanics.
 
 0. The Dutch Auction style AMM means that whales cannot bulk buy in the first block with a bot to achieve immediate control over the token
-1. The Trust contract minting and controlling 100% of the supply (rather than the trust owner) means that Terra Virtua cannot 'premint' tokens for their whale-friends behind closed doors
-2. The transaction freezing in the redemption phase means that whales have no ability to trade publically or privately in order to manipulate market prices, only the market price of the rewards vs. the underlying reserve asset are relevant in this phase
+0. The Trust contract minting and controlling 100% of the supply (rather than the trust owner) means that Terra Virtua cannot 'premint' tokens for their whale-friends behind closed doors
+0. The transaction freezing in the redemption phase means that whales have no ability to trade publically or privately in order to manipulate market prices, only the market price of the rewards vs. the underlying reserve asset are relevant in this phase
 
 ### Scalpers
 
@@ -427,7 +428,7 @@ Small trades are less profitable to front run as the slippage and therefore arbi
 The Balancer contract _mitigates_ front running and slippage opportunities by exposing parameters that will revert the transaction if a minimum price is exceeded.
 If the parameters are set sensibly then any attempt at front-running (or an extra frothy market) will trip the safety on the trade and it will fail. The buyer will still need to pay gas up to the point of the reversion but they will not be forced to accept malicious or extreme slippage.
 
-**The GUI SHOULD expose or set the price thresholds for each trade to mitigate front-running.**
+__The GUI SHOULD expose or set the price thresholds for each trade to mitigate front-running.__
 
 ### Gas fees
 
@@ -447,7 +448,7 @@ We really want people to enjoy using our system :)
 - Balancer is currently in ['Bronze'](https://github.com/balancer-labs/balancer-core/blob/master/contracts/BFactory.sol#L20) release, which means _they have not optimised their own gas yet either_. Maybe it will be significantly cheaper in the future.
 - By paramaterising the Balancer backend and fixing the token scope/duration during initialization we can take advantage of Balancer upgrades without juggling proxy/upgrade contracts
 
-**Balancer has NOT yet [published Matic mainnet addresses](https://docs.balancer.finance/smart-contracts/addresses)!!!**.
+__Balancer has NOT yet [published Matic mainnet addresses](https://docs.balancer.finance/smart-contracts/addresses)!!!__.
 
 At the moment we can use the Matic testnet to test our contracts but have no go-live path until Balancer deploy.
 
@@ -485,7 +486,7 @@ The unblock block is public and can only be set during initialization of the `Tr
 
 As long as TV initializes the system through the `Trust` it is not possible for them to dump/exit the pool tokens early.
 
-**TV CAN always fail to deliver meaningful value during the redeem phase**.
+__TV CAN always fail to deliver meaningful value during the redeem phase__.
 
 Any user that loses faith in the ability for TV to deliver meaningful (subjective or financial) value can always redeem their tokens during the redemption phase for their book value.
 
