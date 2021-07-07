@@ -38,12 +38,15 @@ struct RedeemableERC20Config {
 ///
 /// Redeeming some amount of `RedeemableERC20` burns the token in exchange for some other tokens held by the contract.
 /// For example, if the `RedeemableERC20` token contract holds 100 000 USDC then a holder of the redeemable token
-/// can burn some of their tokens to receive a % of that USDC. If they burned 10% of the redeemable token supply then
+/// can burn some of their tokens to receive a % of that USDC. If they redeemed (burned) an amount equal to 10% of the redeemable token supply then
 /// they would receive 10 000 USDC.
 ///
 /// Up to 8 redeemable tokens can be registered on the redeemable contract. These will be looped over by default in
 /// the `senderRedeem` function. If there is an error during redemption or more than 8 tokens are to be redeemed,
-/// there is a `senderRedeemSpecific` function that allows the caller to specify exactly which tokens to redeem.
+/// there is a `senderRedeemSpecific` function that allows the caller to specify exactly which of the redeemable tokens they want to receive.
+/// Note: the same amount of `RedeemableERC20` is burned, regardless of which redeemable tokens were specified. Specifying fewer redeemable tokens 
+/// will NOT increase the proportion of each that is returned. `senderRedeemSpecific` is intended as a last resort if the caller cannot resolve
+/// issues causing errors for one or more redeemable tokens during redemption.
 ///
 /// `RedeemableERC20` has several owner administrative functions:
 /// - Owner can add senders and receivers that can send/receive tokens even during `Phase.ONE`
@@ -61,7 +64,7 @@ struct RedeemableERC20Config {
 /// The redeem functions MUST be used to redeem RedeemableERC20s.
 /// Sending RedeemableERC20 tokens to the RedeemableERC20 contract address will _make them unrecoverable_.
 ///
-/// The `redeem` function will simply revert if called outside `Phase.ONE`.
+/// The `senderRedeem` and `senderRedeemSpecific` functions will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per redeemed token) as `(_redeemer, _redeemable, _redeemAmount)`.
 contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, ReentrancyGuard, ERC20Burnable {
 
