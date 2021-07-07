@@ -86,6 +86,5 @@ pkgs.stdenv.mkDerivation {
   export PATH=$( npm bin ):$PATH
   # keep it fresh
   npm install
-  prettier-check
  '';
 }
