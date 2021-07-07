@@ -17,6 +17,14 @@ let
   hardhat run --network localhost scripts/deploy.ts
  '';
 
+ prettier-check = pkgs.writeShellScriptBin "prettier-check" ''
+  prettier --check .
+ '';
+
+ prettier-write = pkgs.writeShellScriptBin "prettier-write" ''
+  prettier --write .
+ '';
+
  ci-lint = pkgs.writeShellScriptBin "ci-lint" ''
  solhint 'contracts/**/*.sol'
  '';
@@ -67,6 +75,8 @@ pkgs.stdenv.mkDerivation {
   local-fork
   local-test
   local-deploy
+  prettier-check
+  prettier-write
   security-check
   ci-test
   ci-lint
