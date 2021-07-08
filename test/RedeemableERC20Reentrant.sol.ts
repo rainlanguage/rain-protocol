@@ -4,7 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../typechain/ReserveToken";
 import type { Prestige } from "../typechain/Prestige";
-import type { RedeemableERC20Attacker } from "../typechain/RedeemableERC20Attacker";
+import type { RedeemableERC20Reentrant } from "../typechain/RedeemableERC20Reentrant";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -33,7 +33,7 @@ enum Phase {
   EIGHT,
 }
 
-describe("RedeemableERC20Attacks", async function () {
+describe("RedeemableERC20Reentrant", async function () {
   it("should guard against reentrancy if a redeemable is malicious", async function () {
     this.timeout(0);
 
@@ -53,7 +53,7 @@ describe("RedeemableERC20Attacks", async function () {
       "RedeemableERC20"
     );
     const maliciousReserveFactory = await ethers.getContractFactory(
-      "RedeemableERC20Attacker"
+      "RedeemableERC20Reentrant"
     );
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
