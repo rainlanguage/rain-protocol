@@ -21,40 +21,57 @@ import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol
 import { Phase, Phased } from "./Phased.sol";
 import { RedeemableERC20 } from "./RedeemableERC20.sol";
 
+/// Everything required to construct a `RedeemableERC20Pool`.
 struct PoolConfig {
+    // The CRPFactory on the current network.
+    // This is an address published by Balancer or deployed locally during testing.
     CRPFactory crpFactory;
+    // The BFactory on the current network.
+    // This is an address published by Balancer or deployed locally during testing.
     BFactory balancerFactory;
+    // The reserve erc20 token.
+    // The reserve token anchors our newly minted redeemable tokens to an existant value system.
+    // The weights and balances of the reserve token and the minted token define a dynamic spot price in the AMM.
     IERC20 reserve;
-    // Amount of reserve token to initialize the pool.
-    // The starting/final weights are calculated against this.
-    // This amount will be refunded to the Trust owner regardless whether the minRaise is met.
-    uint256 reserveInit;
-    // Initial marketcap of the token according to the balancer pool denominated in reserve token.
-    // The spot price of a balancer pool token is a function of both the amounts of each token and their weights.
-    // This differs to e.g. a uniswap pool where the weights are always 1:1.
-    // So we can define a valuation of all our tokens in terms of the deposited reserve.
-    // We also want to set the weight of the reserve small for flexibility, i.e. 1.
-    // For example:
-    // - 200 000 reserve tokens
-    // - 1 000 000 token valuation
-    // - Token spot price x total token = initial valuation => 1 000 000 = spot x 200 000 => spot = 5
-    // - Spot price calculation is in balancer whitepaper: https://balancer.finance/whitepaper/
-    // - Spot = ( Br / Wr ) / ( Bt / Wt )
-    // - 5 = ( 50 000 / 1 ) / ( 200 000 / Wt ) => 50 000 x Wt = 1 000 000 => Wt = 20
-    uint256 initialValuation;
-    // Final market cap must be at least _redeemInit + _minRaise + seedFee.
-    // The Trust enforces this invariant to avoid final prices that are too low for the sale to succeed.
-    uint256 finalValuation;
-    // Reserve can be any IERC20 token.
+    // The newly minted redeemable token contract.
+    // 100% of the total supply of the token MUST be transferred to the `RedeemableERC20Pool` for it to function.
+    // This implies a 1:1 relationship between redeemable pools and tokens.
     // IMPORTANT: It is up to the caller to define a reserve that will remain functional and outlive the RedeemableERC20.
     // For example, USDC could freeze the tokens owned by the RedeemableERC20 contract or close their business.
-    // In either case the redeem function would be pointing at a dangling reserve balance.
+    RedeemableERC20 token;
+    // Amount of reserve token to initialize the pool.
+    // The starting/final weights are calculated against this.
+    uint256 reserveInit;
+    // Initial marketcap of the token according to the balancer pool denominated in reserve token.
+    // Th spot price of the token is ( market cap / token supply ) where market cap is defined in terms of the reserve.
+    // The spot price of a balancer pool token is a function of both the amounts of each token and their weights.
+    // This bonding curve is described in the balancer whitepaper.
+    // We define a valuation of newly minted tokens in terms of the deposited reserve.
+    // The reserve weight is set to the minimum allowable value to achieve maximum capital efficiency for the fund raising.
+    uint256 initialValuation;
+    // Final valuation is treated the same as initial valuation.
+    // The final valuation will ONLY be achieved if NO TRADING OCCURS.
+    // Any trading activity that net deposits reserve funds into the pool will increase the spot price permanently.
+    uint256 finalValuation;
 }
 
+/// @title RedeemableERC20Pool
+///
+/// Deployer and controller for a Balancer ConfigurableRightsPool.
+/// This contract is intended in turn to be owned by a `Trust`.
+///
+/// Responsibilities of `RedeemableERC20Pool`:
+/// - Configure and deploy Balancer contracts with correct weights, rights and balances
+/// - Allowing the owner to start and end a dutch auction raise modelled as Balancer's "gradual weights" functionality
+/// - Tracking and enforcing 3 phases: unstarted, started, ended
+/// - Burning unsold tokens after the raise and forwarding all raised and initial reserve back to the owner
+///
+/// Responsibilities of the owner:
+/// - Providing all token and reserve balances
+/// - Calling start and end raise functions
+/// - Handling the reserve proceeds of the raise
 contract RedeemableERC20Pool is Ownable, Phased {
-
     using SafeMath for uint256;
-
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
@@ -63,23 +80,22 @@ contract RedeemableERC20Pool is Ownable, Phased {
 
     /// Reserve token.
     IERC20 public reserve;
+    /// Initial reserve balance of the pool.
     uint256 public reserveInit;
 
-    /// ConfigurableRightsPool.
+    /// ConfigurableRightsPool built during construction.
     ConfigurableRightsPool public crp;
 
+    /// The final weight on the last block of the raise.
+    /// Note the spot price is unknown until the end because we don't know either of the final token balances.
     uint256 public finalWeight;
 
-    constructor (
-        RedeemableERC20 token_,
-        PoolConfig memory poolConfig_
-    )
-        public
-    {
-        token = token_;
-        reserve = poolConfig_.reserve;
-
+    /// @param poolConfig_ All configuration for the `RedeemableERC20Pool`.
+    constructor (PoolConfig memory poolConfig_) public {
         require(poolConfig_.reserveInit > 0, "RESERVE_INIT_0");
+
+        token = poolConfig_.token;
+        reserve = poolConfig_.reserve;
         reserveInit = poolConfig_.reserveInit;
 
         finalWeight = valuationWeight(poolConfig_.finalValuation);
@@ -87,11 +103,11 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // Build the CRP.
         // The addresses in the RedeemableERC20Pool, as [reserve, token].
         address[] memory poolAddresses_ = new address[](2);
-        poolAddresses_[0] = address(poolConfig_.reserve);
+        poolAddresses_[0] = address(reserve);
         poolAddresses_[1] = address(token);
 
         uint256[] memory poolAmounts_ = new uint256[](2);
-        poolAmounts_[0] = poolConfig_.reserveInit;
+        poolAmounts_[0] = reserveInit;
         poolAmounts_[1] = token.totalSupply();
         require(poolAmounts_[1] > 0, "TOKEN_INIT_0");
 
@@ -124,40 +140,48 @@ contract RedeemableERC20Pool is Ownable, Phased {
 
         // Preapprove all tokens and reserve for the CRP.
         require(poolConfig_.reserve.approve(address(crp), poolConfig_.reserveInit), "RESERVE_APPROVE");
-        require(token_.approve(address(crp), token_.totalSupply()), "TOKEN_APPROVE");
+        require(token.approve(address(crp), token.totalSupply()), "TOKEN_APPROVE");
     }
 
-    // https://balancer.finance/whitepaper/
-    // Spot = ( Br / Wr ) / ( Bt / Wt )
-    // => ( Bt / Wt ) = ( Br / Wr ) / Spot
-    // => Wt = ( Spot x Bt ) / ( Br / Wr )
-    //
-    // Valuation = Spot * Token supply
-    // Valuation / Supply = Spot
-    // => Wt = ( ( Val / Supply ) x Bt ) / ( Br / Wr )
-    //
-    // Bt = Total supply
-    // => Wt = ( ( Val / Bt) x Bt ) / ( Br / Wr )
-    // => Wt = Val / ( Br / Wr )
-    //
-    // Wr = Min weight = 1
-    // Wr = 1
-    // => Wt = Val / Br
-    //
-    // Br = reserve init
-    // => Wt = Val / reserve init
+    /// https://balancer.finance/whitepaper/
+    /// Spot = ( Br / Wr ) / ( Bt / Wt )
+    /// => ( Bt / Wt ) = ( Br / Wr ) / Spot
+    /// => Wt = ( Spot x Bt ) / ( Br / Wr )
+    ///
+    /// Valuation = Spot * Token supply
+    /// Valuation / Supply = Spot
+    /// => Wt = ( ( Val / Supply ) x Bt ) / ( Br / Wr )
+    ///
+    /// Bt = Total supply
+    /// => Wt = ( ( Val / Bt ) x Bt ) / ( Br / Wr )
+    /// => Wt = Val / ( Br / Wr )
+    ///
+    /// Wr = Min weight = 1
+    /// => Wt = Val / Br
+    ///
+    /// Br = reserve init (assumes zero trading)
+    /// => Wt = Val / reserve init
+    /// @param valuation_ Valuation as ( market cap * price ) denominated in reserve to calculate a weight for.
     function valuationWeight(uint256 valuation_) private view returns (uint256) {
         uint256 weight_ = valuation_.mul(BalancerConstants.BONE).div(reserveInit);
         require(weight_ >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_VALUATION");
-        require(BalancerConstants.MAX_WEIGHT >= BalancerConstants.MIN_WEIGHT.add(weight_).add(BalancerConstants.BONE), "MAX_WEIGHT_VALUATION");
+        // The combined weight of both tokens cannot exceed the maximum even temporarily during a transaction so we need to subtract one for headroom.
+        require(BalancerConstants.MAX_WEIGHT.sub(BalancerConstants.BONE) >= BalancerConstants.MIN_WEIGHT.add(weight_), "MAX_WEIGHT_VALUATION");
         return weight_;
     }
 
-    function ownerStartRaise(uint256 finalTradingBlock_) external onlyOwner onlyPhase(Phase.ZERO) {
+    /// Allow the owner to start the Balancer style dutch auction.
+    /// `Phase.ZERO` indicates the auction can start.
+    /// `Phase.ONE` indicates the auction has started.
+    /// `Phase.TWO` indicates the auction can be ended.
+    /// `Phase.THREE` indicates the auction has ended.
+    /// Creates the pool via. the CRP contract and configures the weight change curve.
+    /// @param finalAuctionBlock_ The last block that weights can dynamically decrease.
+    function ownerStartDutchAuction(uint256 finalAuctionBlock_) external onlyOwner onlyPhase(Phase.ZERO) {
         // Move to Phase.ONE immediately.
         scheduleNextPhase(uint32(block.number));
-        // Schedule Phase.TWO for 1 block after trading finishes.
-        scheduleNextPhase(uint32(finalTradingBlock_ + 1));
+        // Schedule Phase.TWO for 1 block after auctions weights have stopped changing.
+        scheduleNextPhase(uint32(finalAuctionBlock_ + 1));
 
         // Define the weight curve.
         uint256[] memory finalWeights_ = new uint256[](2);
@@ -168,15 +192,21 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).
         crp.createPool(BalancerConstants.MAX_POOL_SUPPLY, 0, 0);
-        crp.updateWeightsGradually(finalWeights_, block.number, finalTradingBlock_);
+        crp.updateWeightsGradually(finalWeights_, block.number, finalAuctionBlock_);
     }
 
-    function ownerEndRaise() external onlyOwner onlyPhase(Phase.TWO) {
+    /// Allow the owner to end the Balancer style dutch auction.
+    /// Moves from `Phase.TWO` to `Phase.THREE` to indicate the auction has ended.
+    /// `Phase.TWO` is scheduled by `ownerStartDutchAuction`.
+    /// Removes all LP tokens from the balancer pool.
+    /// Burns all unsold redeemable tokens.
+    /// Forwards the reserve balance to the owner.
+    function ownerEndDutchAuction() external onlyOwner onlyPhase(Phase.TWO) {
         // Move to Phase.THREE immediately.
         // In Phase.THREE all `RedeemableERC20Pool` functions are no longer callable.
         scheduleNextPhase(uint32(block.number));
 
-        // It is not possible to destroy a Balancer pool completely with an exit (i think).
+        // It is not possible to destroy a Balancer pool completely with an exit afaik.
         // This removes as much as is allowable which leaves about 10^-7 of the supply behind as dust.
         crp.exitPool(
             crp.balanceOf(address(this)) - BalancerConstants.MIN_POOL_SUPPLY,
@@ -193,10 +223,10 @@ contract RedeemableERC20Pool is Ownable, Phased {
         );
     }
 
+    // Enforce Phase.THREE as the last phase.
+    // @inheritdoc Phased
     function _beforeScheduleNextPhase(uint32 nextPhaseBlock_) internal override virtual {
         super._beforeScheduleNextPhase(nextPhaseBlock_);
-        // Phase.THREE is the last phase.
         assert(currentPhase() < Phase.THREE);
     }
-
 }
