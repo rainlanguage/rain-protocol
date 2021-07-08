@@ -86,9 +86,10 @@ describe("RedeemableERC20Pool", async function () {
       },
     });
 
-    const pool = (await poolFactory.deploy(redeemable.address, {
+    const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
       balancerFactory: bFactory.address,
+      token: redeemable.address,
       reserve: reserve.address,
       reserveInit: reserveInit,
       initialValuation: initialValuation,
@@ -163,9 +164,10 @@ describe("RedeemableERC20Pool", async function () {
       },
     });
 
-    const pool = (await poolFactory.deploy(redeemable.address, {
+    const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
       balancerFactory: bFactory.address,
+      token: redeemable.address,
       reserve: reserve.address,
       reserveInit: reserveInit,
       initialValuation: initialValuation,
@@ -185,7 +187,7 @@ describe("RedeemableERC20Pool", async function () {
       `expected phase ${Phase.ZERO} but got ${await pool.currentPhase()}`
     );
 
-    await pool.ownerStartRaise(raiseEndBlock, {
+    await pool.ownerStartDutchAuction(raiseEndBlock, {
       gasLimit: 10000000,
     });
 
@@ -240,7 +242,7 @@ describe("RedeemableERC20Pool", async function () {
     const bPoolReserveBeforeExit = await reserve.balanceOf(bPool.address);
     const ownerReserveBeforeExit = await reserve.balanceOf(signers[0].address);
 
-    await pool.ownerEndRaise();
+    await pool.ownerEndDutchAuction();
 
     // moves to phase THREE immediately when ending raise
     assert(
@@ -335,9 +337,10 @@ describe("RedeemableERC20Pool", async function () {
       },
     });
 
-    const pool = (await poolFactory.deploy(redeemable.address, {
+    const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
       balancerFactory: bFactory.address,
+      token: redeemable.address,
       reserve: reserve.address,
       reserveInit: reserveInit,
       initialValuation: initialValuation,
@@ -351,7 +354,7 @@ describe("RedeemableERC20Pool", async function () {
     // Before init
 
     await Util.assertError(
-      async () => await pool.ownerEndRaise(),
+      async () => await pool.ownerEndDutchAuction(),
       "revert BAD_PHASE",
       "owner was wrongly able to exit pool before trading was started"
     );
@@ -375,20 +378,20 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () =>
-        await pool1.ownerStartRaise(raiseEndBlock, { gasLimit: 10000000 }),
+        await pool1.ownerStartDutchAuction(raiseEndBlock, { gasLimit: 10000000 }),
       "revert Ownable: caller is not the owner",
       "non-owner was wrongly able to start pool trading"
     );
 
     await reserve.approve(pool.address, reserveInit);
 
-    await pool.ownerStartRaise(raiseEndBlock, { gasLimit: 10000000 });
+    await pool.ownerStartDutchAuction(raiseEndBlock, { gasLimit: 10000000 });
 
     await reserve.approve(pool.address, reserveInit);
 
     await Util.assertError(
       async () =>
-        await pool.ownerStartRaise(raiseEndBlock, { gasLimit: 10000000 }),
+        await pool.ownerStartDutchAuction(raiseEndBlock, { gasLimit: 10000000 }),
       "revert BAD_PHASE",
       "pool trading wrongly initialized twice by owner"
     );
@@ -404,7 +407,7 @@ describe("RedeemableERC20Pool", async function () {
 
     // Before raiseEndBlock
     await Util.assertError(
-      async () => await pool.ownerEndRaise(),
+      async () => await pool.ownerEndDutchAuction(),
       "revert BAD_PHASE",
       "owner was wrongly able to exit pool before raiseEndBlock"
     );
@@ -415,12 +418,12 @@ describe("RedeemableERC20Pool", async function () {
     }
 
     await Util.assertError(
-      async () => await pool1.ownerEndRaise(),
+      async () => await pool1.ownerEndDutchAuction(),
       "revert Ownable: caller is not the owner",
       "non-owner was wrongly able to end pool trading directly"
     );
 
-    await pool.ownerEndRaise();
+    await pool.ownerEndDutchAuction();
   });
 
   it("should construct a pool with whitelisting", async function () {
@@ -501,9 +504,10 @@ describe("RedeemableERC20Pool", async function () {
       },
     });
 
-    const pool = (await poolFactory.deploy(redeemable.address, {
+    const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
       balancerFactory: bFactory.address,
+      token: redeemable.address,
       reserve: reserve.address,
       reserveInit: reserveInit,
       initialValuation: initialValuation,
@@ -525,7 +529,7 @@ describe("RedeemableERC20Pool", async function () {
     await reserve.transfer(pool.address, reserveInit);
     await redeemable.approve(pool.address, totalTokenSupply);
 
-    await pool.ownerStartRaise(phaseOneBlock, {
+    await pool.ownerStartDutchAuction(phaseOneBlock, {
       gasLimit: 10000000,
     });
 
@@ -554,7 +558,7 @@ describe("RedeemableERC20Pool", async function () {
     await redeemable.ownerAddReceiver(pool.address);
 
     await Util.assertError(
-      async () => await pool.ownerEndRaise(),
+      async () => await pool.ownerEndDutchAuction(),
       "revert BAD_PHASE",
       "failed to error on early exit"
     );
@@ -564,7 +568,7 @@ describe("RedeemableERC20Pool", async function () {
       await reserve.transfer(signers[1].address, 1);
     }
 
-    await pool.ownerEndRaise();
+    await pool.ownerEndDutchAuction();
   });
 
   it("should construct pool and exit with 0 minimum raise", async function () {
@@ -638,9 +642,10 @@ describe("RedeemableERC20Pool", async function () {
       },
     });
 
-    const pool = (await poolFactory.deploy(redeemable.address, {
+    const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
       balancerFactory: bFactory.address,
+      token: redeemable.address,
       reserve: reserve.address,
       reserveInit: reserveInit,
       initialValuation: initialValuation,
@@ -662,7 +667,7 @@ describe("RedeemableERC20Pool", async function () {
     await reserve.transfer(pool.address, reserveInit);
     await redeemable.approve(pool.address, totalTokenSupply);
 
-    await pool.ownerStartRaise(phaseOneBlock, {
+    await pool.ownerStartDutchAuction(phaseOneBlock, {
       gasLimit: 10000000,
     });
 
@@ -674,7 +679,7 @@ describe("RedeemableERC20Pool", async function () {
     await redeemable.ownerAddReceiver(pool.address);
 
     await Util.assertError(
-      async () => await pool.ownerEndRaise(),
+      async () => await pool.ownerEndDutchAuction(),
       "revert BAD_PHASE",
       "failed to error on early exit"
     );
@@ -684,7 +689,7 @@ describe("RedeemableERC20Pool", async function () {
       await reserve.transfer(signers[1].address, 1);
     }
 
-    await pool.ownerEndRaise();
+    await pool.ownerEndDutchAuction();
   });
 
   it("should fail to construct pool if initial reserve amount is zero", async function () {
@@ -760,9 +765,10 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => {
-        const pool = await poolFactory.deploy(redeemable.address, {
+        const pool = await poolFactory.deploy({
           crpFactory: crpFactory.address,
           balancerFactory: bFactory.address,
+          token: redeemable.address,
           reserve: reserve.address,
           reserveInit: reserveInit,
           initialValuation: initialValuation,
@@ -846,9 +852,10 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => {
-        const pool = await poolFactory.deploy(redeemable.address, {
+        const pool = await poolFactory.deploy({
           crpFactory: crpFactory.address,
           balancerFactory: bFactory.address,
+          token: redeemable.address,
           reserve: reserve.address,
           reserveInit: reserveInit,
           initialValuation: initialValuation,
@@ -932,9 +939,10 @@ describe("RedeemableERC20Pool", async function () {
       },
     });
 
-    await poolFactory.deploy(redeemable.address, {
+    await poolFactory.deploy({
       crpFactory: crpFactory.address,
       balancerFactory: bFactory.address,
+      token: redeemable.address,
       reserve: reserve.address,
       reserveInit: reserveInit,
       initialValuation: initialValuation,

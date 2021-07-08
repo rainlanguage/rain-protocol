@@ -426,10 +426,10 @@ describe("TrustRewards", async function () {
     );
 
     // for simplicity, burn hodler1 reserve tokens
-    await reserveA.connect(hodler1).purge();
-    await reserveB.connect(hodler1).purge();
-    await reserveC.connect(hodler1).purge();
-    await reserveD.connect(hodler1).purge();
+    await reserveA.connect(hodler1).burn(await reserveA.balanceOf(hodler1.address));
+    await reserveB.connect(hodler1).burn(await reserveB.balanceOf(hodler1.address));
+    await reserveC.connect(hodler1).burn(await reserveC.balanceOf(hodler1.address));
+    await reserveD.connect(hodler1).burn(await reserveD.balanceOf(hodler1.address));
 
     // Now again, 10% of new total supply
 

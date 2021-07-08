@@ -1041,7 +1041,7 @@ describe("RedeemableERC20", async function () {
     );
 
     // reserve 1 blacklists signer 1. Signer 1 cannot receive reserve 1 upon redeeming contract tokens
-    reserve1.ownerAddFreezable(signers[1].address);
+    reserve1.addFreezable(signers[1].address);
 
     // signer 1
     const redeemableERC20_1 = new ethers.Contract(
