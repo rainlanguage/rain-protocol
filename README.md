@@ -55,7 +55,7 @@ There is 1 benign reentrancy in the constructor of `Trust`:
 	External calls:
 	- pool = new RedeemableERC20Pool(token,poolConfig_) (contracts/Trust.sol#151-154)
 	State variables written after the call(s):
-	- trustConfig.seeder = address(new SeedERC20(SeedERC20Config(poolConfig_.reserve,address(pool),poolConfig_.reserveInit.div(trustConfig.seederUnits),trustConfig.seederUnits,trustConfig.unseedDelay,,))) (contracts/Trust.sol#158-167)
+	- trustConfig.seeder = address(new SeedERC20(SeedERC20Config(poolConfig_.reserve,address(pool),poolConfig_.reserveInit.div(trustConfig.seederUnits),trustConfig.seederUnits,trustConfig.cooldownDuration,,))) (contracts/Trust.sol#158-167)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-2
 ```
 

@@ -62,7 +62,7 @@ struct TrustConfig {
     // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
     uint256 seederFee;
     uint256 seederUnits;
-    uint256 unseedDelay;
+    uint256 seederCooldownDuration;
     uint256 raiseDuration;
 }
 
@@ -158,7 +158,7 @@ contract Trust is ReentrancyGuard {
                 // seed price.
                 poolConfig_.reserveInit.div(trustConfig.seederUnits),
                 trustConfig.seederUnits,
-                trustConfig.unseedDelay,
+                trustConfig.seederCooldownDuration,
                 "",
                 ""
             )));
