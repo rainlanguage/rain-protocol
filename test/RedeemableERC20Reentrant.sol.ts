@@ -2,7 +2,6 @@ import * as Util from "./Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { ReserveToken } from "../typechain/ReserveToken";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Reentrant } from "../typechain/RedeemableERC20Reentrant";
 
@@ -72,9 +71,9 @@ describe("RedeemableERC20Reentrant", async function () {
 
     await redeemableERC20.deployed();
 
-    const maliciousReserve = await maliciousReserveFactory.deploy(
+    const maliciousReserve = (await maliciousReserveFactory.deploy(
       redeemableERC20.address
-    );
+    )) as RedeemableERC20Reentrant;
 
     await redeemableERC20.ownerScheduleNextPhase(phaseOneBlock);
     await redeemableERC20.ownerAddRedeemable(maliciousReserve.address);
