@@ -33,18 +33,14 @@ enum Phase {
   EIGHT,
 }
 
-describe.only("RedeemableERC20Attacks", async function () {
-  it("should guard against reentrancy", async function () {
+describe("RedeemableERC20Attacks", async function () {
+  it("should guard against reentrancy if a redeemable is malicious", async function () {
     this.timeout(0);
 
+    const ONE_TOKEN = ethers.BigNumber.from("1" + Util.eighteenZeros);
     const FIFTY_TOKENS = ethers.BigNumber.from("50" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -56,7 +52,7 @@ describe.only("RedeemableERC20Attacks", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const redeemableERC20AttackerFactory = await ethers.getContractFactory(
+    const maliciousReserveFactory = await ethers.getContractFactory(
       "RedeemableERC20Attacker"
     );
     const tokenName = "RedeemableERC20";
@@ -76,18 +72,15 @@ describe.only("RedeemableERC20Attacks", async function () {
 
     await redeemableERC20.deployed();
 
-    const redeemableERC20Attacker = await redeemableERC20AttackerFactory.deploy(
+    const maliciousReserve = await maliciousReserveFactory.deploy(
       redeemableERC20.address
     );
 
     await redeemableERC20.ownerScheduleNextPhase(phaseOneBlock);
-    await redeemableERC20.ownerAddRedeemable(reserve.address);
+    await redeemableERC20.ownerAddRedeemable(maliciousReserve.address);
 
-    // send redeemable tokens to attacker contract
-    await redeemableERC20.transfer(
-      redeemableERC20Attacker.address,
-      FIFTY_TOKENS
-    );
+    // send redeemable tokens to signer 1
+    await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
 
     // create a few blocks by sending some tokens around, after which redeeming now possible
     while ((await ethers.provider.getBlockNumber()) < phaseOneBlock - 1) {
@@ -97,27 +90,14 @@ describe.only("RedeemableERC20Attacks", async function () {
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.eighteenZeros);
 
-    // move all reserve tokens, to become redeemables
-    await reserve.transfer(redeemableERC20.address, reserveTotal);
+    // move all reserve tokens from pool, to become redeemables
+    await maliciousReserve.transfer(redeemableERC20.address, reserveTotal);
 
-    console.log(
-      `before attack
-      redeemable  ${await redeemableERC20.balanceOf(
-        redeemableERC20Attacker.address
-      )}
-      reserve     ${await reserve.balanceOf(redeemableERC20Attacker.address)}`
+    await Util.assertError(
+      async () =>
+        await redeemableERC20.connect(signers[1]).senderRedeem(ONE_TOKEN),
+      "revert ReentrancyGuard: reentrant call",
+      "did not guard against reentancy attack"
     );
-
-    await redeemableERC20Attacker.attack();
-
-    console.log(
-      `after attack
-      redeemable  ${await redeemableERC20.balanceOf(
-        redeemableERC20Attacker.address
-      )}
-      reserve     ${await reserve.balanceOf(redeemableERC20Attacker.address)}`
-    );
-
-    throw new Error("Incomplete test");
   });
 });

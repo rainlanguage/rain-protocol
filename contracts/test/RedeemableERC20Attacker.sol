@@ -2,24 +2,16 @@
 
 pragma solidity ^0.6.12;
 
+import {ReserveToken} from "./ReserveToken.sol";
 import {RedeemableERC20} from "../RedeemableERC20.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "hardhat/console.sol";
 
-contract RedeemableERC20Attacker is ERC20 {
-    uint256 private constant BONE = 10**18;
-    RedeemableERC20 public token;
+contract RedeemableERC20Attacker is ReserveToken {
+    address private victim;
+    RedeemableERC20 private victimInstance;
 
-    constructor(address victim_) public ERC20("Attacker", "ATK") {
-        token = RedeemableERC20(victim_);
-    }
-
-    function kill() external {
-        selfdestruct(msg.sender);
-    }
-
-    function attack() external {
-        token.senderRedeem(BONE);
+    constructor(address victim_) public ReserveToken() {
+        victim = victim_;
+        victimInstance = RedeemableERC20(victim_);
     }
 
     function _beforeTokenTransfer(
@@ -28,7 +20,8 @@ contract RedeemableERC20Attacker is ERC20 {
         uint256 amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
-        console.log("_beforeTokenTransfer triggered");
-        token.senderRedeem(BONE);
+        if (sender_ != address(0) && sender_ == victim) {
+            victimInstance.senderRedeem(amount_); // reentrant call
+        }
     }
 }
