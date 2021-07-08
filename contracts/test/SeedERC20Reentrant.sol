@@ -19,7 +19,7 @@ contract SeedERC20Reentrant is ReserveToken {
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         if (address(seedERC20Contract) != address(0)) {
-            seedERC20Contract.seed(1); // reentrant call
+            seedERC20Contract.seed(0, 1); // reentrant call
         }
     }
 }

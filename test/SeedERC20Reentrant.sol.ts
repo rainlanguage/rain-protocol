@@ -24,7 +24,7 @@ describe("SeedERC20", async function () {
 
     const seedPrice = 100;
     const seedUnits = 100;
-    const unseedDelay = 0;
+    const cooldownDuration = 1;
 
     const bobUnits = 1;
 
@@ -32,9 +32,9 @@ describe("SeedERC20", async function () {
     const seedERC20 = (await seedERC20Factory.deploy({
       reserve: maliciousReserve.address,
       recipient: dave.address,
-      seedPrice: seedPrice,
-      seedUnits: seedUnits,
-      unseedDelay: unseedDelay,
+      seedPrice,
+      seedUnits,
+      cooldownDuration,
       name: "seed",
       symbol: "SD",
     })) as SeedERC20;
@@ -49,7 +49,7 @@ describe("SeedERC20", async function () {
 
     await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
     await Util.assertError(
-      async () => await bobSeed.seed(bobUnits),
+      async () => await bobSeed.seed(0, bobUnits),
       "revert ReentrancyGuard: reentrant call",
       "did not guard against reentancy attack"
     );
