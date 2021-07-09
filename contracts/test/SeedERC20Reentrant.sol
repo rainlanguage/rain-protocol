@@ -5,6 +5,9 @@ pragma solidity ^0.6.12;
 import { ReserveToken } from "./ReserveToken.sol";
 import { SeedERC20 } from "../SeedERC20.sol";
 
+/// @title SeedERC20Reentrant
+/// Test contract that attempts to call reentrant code on `SeedERC20`.
+/// The calls MUST fail when driven by the test harness.
 contract SeedERC20Reentrant is ReserveToken {
     SeedERC20 private seedERC20Contract;
 
@@ -19,7 +22,8 @@ contract SeedERC20Reentrant is ReserveToken {
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         if (receiver_ == address(seedERC20Contract)) {
-            seedERC20Contract.seed(0, 1); // reentrant call
+            // This call MUST fail.
+            seedERC20Contract.seed(0, 1);
         }
     }
 }

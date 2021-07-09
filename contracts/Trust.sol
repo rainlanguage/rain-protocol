@@ -1,8 +1,6 @@
-// contracts/GLDToken.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
-// Needed to handle structures externally
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
@@ -61,8 +59,8 @@ struct TrustConfig {
     address seeder;
     // The amount that seeders receive in addition to what they contribute IFF the raise is successful.
     uint256 seederFee;
-    uint256 seederUnits;
-    uint256 seederCooldownDuration;
+    uint16 seederUnits;
+    uint16 seederCooldownDuration;
     uint256 raiseDuration;
 }
 
