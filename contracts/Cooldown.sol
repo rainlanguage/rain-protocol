@@ -11,6 +11,7 @@ pragma solidity ^0.6.12;
 /// It is always possible for many accounts to be created to spam a contract with dust in parallel.
 /// Cooldown is useful to stop a single account rapidly cycling contract state in a way that can be disruptive to other peers.
 /// Cooldown works best when coupled with economic stake associated with each state change so that peers must lock capital during the cooldown.
+/// Cooldown tracks the first `msg.sender` it sees for a call stack so cooldowns are enforced across reentrant code.
 abstract contract Cooldown {
     /// Time in blocks to restrict access to modified functions.
     uint16 public cooldownDuration;
