@@ -96,7 +96,7 @@ describe("RedeemableERC20Reentrant", async function () {
       async () =>
         await redeemableERC20.connect(signers[1]).senderRedeem(ONE_TOKEN),
       "revert ReentrancyGuard: reentrant call",
-      "did not guard against reentancy attack"
+      "did not guard against reentrancy attack"
     );
   });
 });

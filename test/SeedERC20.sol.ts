@@ -9,6 +9,107 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 describe("SeedERC20", async function () {
+  it("should allow specifing a min/max units to seed", async function () {
+    const signers = await ethers.getSigners();
+    const bob = signers[1];
+    const carol = signers[2];
+    const dave = signers[3];
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const bobReserve = reserve.connect(bob);
+    const carolReserve = reserve.connect(carol);
+    const daveReserve = reserve.connect(dave);
+
+    const seedPrice = 100;
+    const seedUnits = 10;
+    const cooldownDuration = 1;
+
+    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
+    const seedERC20 = (await seedERC20Factory.deploy({
+      reserve: reserve.address,
+      recipient: signers[9].address,
+      seedPrice,
+      seedUnits,
+      cooldownDuration,
+      name: "seed",
+      symbol: "SD",
+    })) as SeedERC20;
+
+    const bobSeed = seedERC20.connect(bob);
+    const carolSeed = seedERC20.connect(carol);
+    const daveSeed = seedERC20.connect(dave);
+
+    const bobUnits = {
+      min: 5,
+      desired: 6,
+    };
+    const carolUnits = {
+      min: 5,
+      desired: 6,
+    };
+    const daveUnits = {
+      min: 0,
+      desired: 10,
+    };
+
+    // bob seeds with min/max unit values (5, 6)
+    await reserve.transfer(bob.address, bobUnits.desired * seedPrice);
+    await bobReserve.approve(seedERC20.address, bobUnits.desired * seedPrice);
+    await Util.assertError(
+      async () => await bobSeed.seed(1, 0), // max === 0
+      "revert DESIRED_0",
+      "bob successfully called seed with 0 max desired units"
+    );
+    await Util.assertError(
+      async () => await bobSeed.seed(2, 1), // min > max
+      "revert MINIMUM_OVER_DESIRED",
+      "bob successfully called seed with min greater than max"
+    );
+    await bobSeed.seed(bobUnits.min, bobUnits.desired); // normal
+
+    // 6/10 units have been sold
+
+    assert(
+      (await seedERC20.balanceOf(bob.address)).eq(bobUnits.desired),
+      "bob did not receive desired units"
+    );
+
+    // carol seeds with min/max unit values (5, 6)
+    await reserve.transfer(carol.address, carolUnits.desired * seedPrice);
+    await carolReserve.approve(
+      seedERC20.address,
+      carolUnits.desired * seedPrice
+    );
+    await Util.assertError(
+      async () => await carolSeed.seed(carolUnits.min, carolUnits.desired),
+      "revert INSUFFICIENT_STOCK",
+      "carol's minimum did not cause seed to fail"
+    );
+
+    assert(
+      (await seedERC20.balanceOf(carol.address)).eq(0),
+      "carol wrongly has units despite out of stock error"
+    );
+
+    // still 6/10 units sold
+
+    // dave buys up remaining units (0, 10)
+    await reserve.transfer(dave.address, daveUnits.desired * seedPrice);
+    await daveReserve.approve(seedERC20.address, daveUnits.desired * seedPrice);
+    await daveSeed.seed(daveUnits.min, daveUnits.desired);
+
+    const daveExpected = 4;
+    const daveActual = await seedERC20.balanceOf(dave.address);
+    assert(
+      daveActual.eq(daveExpected),
+      `dave did not buy up remaining units, expected ${daveExpected} got ${daveActual}`
+    );
+  });
+
   it("should emit PhaseShiftScheduled event when fully seeded", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[0];
@@ -55,7 +156,7 @@ describe("SeedERC20", async function () {
     // Bob and carol co-fund the seed round.
 
     await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
-    await bobSeed.seed(0,bobUnits);
+    await bobSeed.seed(0, bobUnits);
     await bobSeed.unseed(2);
 
     await bobReserve.approve(seedERC20.address, 2 * seedPrice);
