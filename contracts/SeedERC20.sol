@@ -106,7 +106,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         require(desiredUnits_ > 0, "DESIRED_0");
         require(minimumUnits_ <= desiredUnits_, "MINIMUM_OVER_DESIRED");
         uint256 remainingStock_ = balanceOf(address(this));
-        require(minimumUnits_ <= remainingStock_, "OUT_OF_STOCK");
+        require(minimumUnits_ <= remainingStock_, "INSUFFICIENT_STOCK");
 
         uint256 units_ = desiredUnits_.min(remainingStock_);
 
