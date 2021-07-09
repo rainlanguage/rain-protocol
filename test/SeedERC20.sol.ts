@@ -86,7 +86,7 @@ describe("SeedERC20", async function () {
     );
     await Util.assertError(
       async () => await carolSeed.seed(carolUnits.min, carolUnits.desired),
-      "revert INSUFFIENT_STOCK",
+      "revert INSUFFICIENT_STOCK",
       "carol's minimum did not cause seed to fail"
     );
 
