@@ -31,7 +31,7 @@ abstract contract Cooldown {
     /// Modifies a function to enforce the cooldown for `msg.sender`.
     /// Saves the original caller so that cooldowns are enforced across reentrant code.
     modifier onlyAfterCooldown() {
-        address caller_ = caller == address(0) ? msg.sender : caller;
+        address caller_ = caller == address(0) ? caller = msg.sender : caller;
         require(cooldowns[caller_] <= block.number, "COOLDOWN");
         // Every action that requires a cooldown also triggers a cooldown.
         cooldowns[caller_] = block.number + cooldownDuration;
