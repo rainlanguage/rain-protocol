@@ -28,7 +28,7 @@ describe("SeedERC20", async function () {
 
     const seedPrice = 100;
     const seedUnits = 10;
-    const unseedDelay = 0;
+    const cooldownDuration = 1;
 
     const bobUnits = 6;
     const carolUnits = 4;
@@ -37,9 +37,9 @@ describe("SeedERC20", async function () {
     const seedERC20 = (await seedERC20Factory.deploy({
       reserve: reserve.address,
       recipient: dave.address,
-      seedPrice: seedPrice,
-      seedUnits: seedUnits,
-      unseedDelay: unseedDelay,
+      seedPrice,
+      seedUnits,
+      cooldownDuration,
       name: "seed",
       symbol: "SD",
     })) as SeedERC20;
@@ -55,15 +55,15 @@ describe("SeedERC20", async function () {
     // Bob and carol co-fund the seed round.
 
     await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
-    await bobSeed.seed(bobUnits);
+    await bobSeed.seed(0,bobUnits);
     await bobSeed.unseed(2);
 
     await bobReserve.approve(seedERC20.address, 2 * seedPrice);
-    await bobSeed.seed(2);
+    await bobSeed.seed(0, 2);
 
     await carolReserve.approve(seedERC20.address, carolUnits * seedPrice);
 
-    await expect(carolSeed.seed(carolUnits))
+    await expect(carolSeed.seed(0, carolUnits))
       .to.emit(carolSeed, "PhaseShiftScheduled")
       .withArgs((await ethers.provider.getBlockNumber()) + 1);
 
@@ -97,7 +97,7 @@ describe("SeedERC20", async function () {
 
     const seedPrice = 100;
     const seedUnits = 10;
-    const unseedDelay = 0;
+    const cooldownDuration = 1;
 
     const bobUnits = 6;
     const carolUnits = 4;
@@ -106,9 +106,9 @@ describe("SeedERC20", async function () {
     const seedERC20 = (await seedERC20Factory.deploy({
       reserve: reserve.address,
       recipient: dave.address,
-      seedPrice: seedPrice,
-      seedUnits: seedUnits,
-      unseedDelay: unseedDelay,
+      seedPrice,
+      seedUnits,
+      cooldownDuration,
       name: "seed",
       symbol: "SD",
     })) as SeedERC20;
@@ -147,14 +147,14 @@ describe("SeedERC20", async function () {
     // Bob and carol co-fund the seed round.
 
     await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
-    await bobSeed.seed(bobUnits);
+    await bobSeed.seed(0, bobUnits);
     await bobSeed.unseed(2);
 
     await bobReserve.approve(seedERC20.address, 2 * seedPrice);
-    await bobSeed.seed(2);
+    await bobSeed.seed(0, 2);
 
     await carolReserve.approve(seedERC20.address, carolUnits * seedPrice);
-    await carolSeed.seed(carolUnits);
+    await carolSeed.seed(0, carolUnits);
 
     // seed contract automatically transfers to recipient on successful seed
     assert(

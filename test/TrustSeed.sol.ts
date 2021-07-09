@@ -85,8 +85,8 @@ describe("TrustSeed", async function () {
     const seeder2 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
-    const seedUnits = 10;
-    const unseedDelay = 5;
+    const seederUnits = 10;
+    const seederCooldownDuration = 5;
     const seedPrice = reserveInit.div(10);
 
     const successLevel = redeemInit
@@ -116,8 +116,8 @@ describe("TrustSeed", async function () {
         minCreatorRaise,
         seeder: Util.zeroAddress,
         seederFee,
-        seederUnits: seedUnits,
-        unseedDelay,
+        seederUnits,
+        seederCooldownDuration,
         raiseDuration,
       },
       {
@@ -161,9 +161,9 @@ describe("TrustSeed", async function () {
     await reserve2.approve(seederContract.address, seedPrice.mul(1));
 
     // seeder1 sends reserve to seeder contract
-    await seederContract1.seed(seeder1Units);
+    await seederContract1.seed(0, seeder1Units);
     const seed1Block = await ethers.provider.getBlockNumber();
-    const delay1UnlockBlock = seed1Block + unseedDelay;
+    const delay1UnlockBlock = seed1Block + seederCooldownDuration;
 
     let seed2Block;
     let delay2UnlockBlock;
@@ -176,19 +176,19 @@ describe("TrustSeed", async function () {
     ) {
       await Util.assertError(
         async () => await seederContract1.unseed(1),
-        "revert UNSEED_LOCKED",
-        `seeder1 unseeded before their delay period ended
+        "revert COOLDOWN",
+        `seeder1 unseeded before their cooldown
         lastBlock   ${await ethers.provider.getBlockNumber()}
         unlockBlock ${delay1UnlockBlock}`
       );
 
       if (i === 1) {
         // seeder2 sends 1 unit to seeder contract
-        await seederContract2.seed(1);
+        await seederContract2.seed(0, 1);
         console.log("seeder2 seeded contract");
 
         seed2Block = await ethers.provider.getBlockNumber();
-        delay2UnlockBlock = seed2Block + unseedDelay;
+        delay2UnlockBlock = seed2Block + seederCooldownDuration;
       } else {
         // create a block
         await reserve.transfer(signers[9].address, 0);
@@ -206,8 +206,8 @@ describe("TrustSeed", async function () {
     ) {
       await Util.assertError(
         async () => await seederContract2.unseed(1),
-        "revert UNSEED_LOCKED",
-        `seeder2 unseeded before their delay period ended
+        "revert COOLDOWN",
+        `seeder2 unseeded before their cooldown
         lastBlock   ${await ethers.provider.getBlockNumber()}
         unlockBlock ${delay2UnlockBlock}`
       );
@@ -235,7 +235,7 @@ describe("TrustSeed", async function () {
     const seeder1 = signers[2];
 
     const seedUnits = 10;
-    const unseedDelay = 0;
+    const cooldownDuration = 1;
     const seedPrice = reserveInit.div(10);
 
     // seeder1 creates seeder contract
@@ -250,7 +250,7 @@ describe("TrustSeed", async function () {
       recipient: signers[0].address,
       seedPrice,
       seedUnits,
-      unseedDelay,
+      cooldownDuration,
       name: "seed",
       symbol: "SD",
     })) as SeedERC20;
@@ -264,7 +264,7 @@ describe("TrustSeed", async function () {
   });
 
   describe("should revert if parameters set to 0", async function () {
-    it("seedUnits set to 0", async function () {
+    it("seederUnits set to 0", async function () {
       this.timeout(0);
 
       const signers = await ethers.getSigners();
@@ -281,7 +281,7 @@ describe("TrustSeed", async function () {
       const seeder1 = signers[2];
 
       const seedUnits = 0;
-      const unseedDelay = 0;
+      const cooldownDuration = 1;
       const seedPrice = reserveInit.div(10);
 
       // seeder1 creates seeder contract
@@ -298,11 +298,11 @@ describe("TrustSeed", async function () {
             recipient: signers[0].address,
             seedPrice,
             seedUnits,
-            unseedDelay,
+            cooldownDuration,
             name: "seed",
             symbol: "SD",
           })) as SeedERC20,
-        "revert ZERO_UNITS",
+        "revert UNITS_0",
         "seeder contract was wrongly constructed with seedUnits set to 0"
       );
     });
@@ -322,7 +322,7 @@ describe("TrustSeed", async function () {
       const seeder1 = signers[2];
 
       const seedUnits = 10;
-      const unseedDelay = 0;
+      const cooldownDuration = 1;
       const seedPrice = 0;
 
       // seeder1 creates seeder contract
@@ -339,11 +339,11 @@ describe("TrustSeed", async function () {
             recipient: signers[0].address,
             seedPrice,
             seedUnits,
-            unseedDelay,
+            cooldownDuration,
             name: "seed",
             symbol: "SD",
           })) as SeedERC20,
-        "revert ZERO_PRICE",
+        "revert PRICE_0",
         "seeder contract was wrongly constructed with seedPrice set to 0"
       );
     });
@@ -389,7 +389,7 @@ describe("TrustSeed", async function () {
 
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seedUnits = 10;
-    const unseedDelay = 0;
+    const seederCooldownDuration = 1;
     const seedPrice = reserveInit.div(10);
 
     const successLevel = redeemInit
@@ -413,7 +413,7 @@ describe("TrustSeed", async function () {
         seeder: Util.zeroAddress,
         seederFee,
         seederUnits: seedUnits,
-        unseedDelay,
+        seederCooldownDuration,
         raiseDuration,
       },
       {
@@ -459,14 +459,14 @@ describe("TrustSeed", async function () {
     await reserve2.approve(seederContract.address, seedPrice.mul(seeder2Units));
 
     // seeders send reserve to seeder contract
-    await seederContract1.seed(seeder1Units);
+    await seederContract1.seed(0, seeder1Units);
 
     assert(
       (await seederContract.currentPhase()) === Phase.ZERO,
       `should be phase ZERO before fully seeded, got ${await seederContract.currentPhase()}`
     );
 
-    await seederContract2.seed(seeder2Units);
+    await seederContract2.seed(0, seeder2Units);
 
     assert(
       (await seederContract.phaseBlocks(0)) ===
@@ -520,7 +520,7 @@ describe("TrustSeed", async function () {
 
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seedUnits = 10;
-    const unseedDelay = 0;
+    const seederCooldownDuration = 1;
     const seedPrice = reserveInit.div(10);
 
     const successLevel = redeemInit
@@ -544,7 +544,7 @@ describe("TrustSeed", async function () {
         seeder: ethers.constants.AddressZero,
         seederFee,
         seederUnits: seedUnits,
-        unseedDelay,
+        seederCooldownDuration,
         raiseDuration,
       },
       {
@@ -589,7 +589,7 @@ describe("TrustSeed", async function () {
     await reserve2.approve(seederContract.address, seedPrice.mul(seeder2Units));
 
     // seeders send reserve to seeder contract
-    await seederContract1.seed(seeder1Units);
+    await seederContract1.seed(0, seeder1Units);
 
     await Util.assertError(
       async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
@@ -597,7 +597,7 @@ describe("TrustSeed", async function () {
       "raise begun with insufficient seed reserve"
     );
 
-    await seederContract2.seed(seeder2Units);
+    await seederContract2.seed(0, seeder2Units);
 
     await trust.anonStartRaise({ gasLimit: 100000000 });
   });
@@ -647,8 +647,8 @@ describe("TrustSeed", async function () {
       const hodler1 = signers[4];
 
       const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
-      const seedUnits = 10;
-      const unseedDelay = 0;
+      const seederUnits = 10;
+      const seederCooldownDuration = 1;
       const seedPrice = reserveInit.div(10);
 
       const successLevel = redeemInit
@@ -671,8 +671,8 @@ describe("TrustSeed", async function () {
           minCreatorRaise,
           seeder: Util.zeroAddress,
           seederFee,
-          seederUnits: seedUnits,
-          unseedDelay,
+          seederUnits,
+          seederCooldownDuration,
           raiseDuration,
         },
         {
@@ -700,7 +700,7 @@ describe("TrustSeed", async function () {
         seeder,
         seedERC20Json.abi,
         signers[0]
-      );
+      ) as SeedERC20;
 
       const token = new ethers.Contract(
         await trust.token(),
@@ -737,7 +737,7 @@ describe("TrustSeed", async function () {
       );
 
       // seeders send reserve to seeder contract
-      await seederContract1.seed(seeder1Units);
+      await seederContract1.seed(0, seeder1Units);
 
       await Util.assertError(
         async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
@@ -745,7 +745,7 @@ describe("TrustSeed", async function () {
         "raise begun with insufficient seed reserve"
       );
 
-      await seederContract2.seed(seeder2Units);
+      await seederContract2.seed(0, seeder2Units);
 
       // seeder cannot unseed after all units seeded
       await Util.assertError(
@@ -859,7 +859,7 @@ describe("TrustSeed", async function () {
 
       const expectedReturn1 = expectedSeederPay
         .mul(seeder1Units)
-        .div(seedUnits);
+        .div(seederUnits);
 
       // correct amount of reserve should have been returned
       assert(
@@ -881,7 +881,7 @@ describe("TrustSeed", async function () {
       // add 1 to offset rounding error
       const expectedReturn2 = expectedSeederPay
         .mul(seeder2Units)
-        .div(seedUnits)
+        .div(seederUnits)
         .add(1);
       const return2 = await reserve.balanceOf(seeder2.address);
 
@@ -945,9 +945,9 @@ describe("TrustSeed", async function () {
       const seeder2 = signers[3];
 
       const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
-      const seedUnits = 10;
-      const unseedDelay = 0;
-      const seedPrice = reserveInit.div(seedUnits);
+      const seederUnits = 10;
+      const seederCooldownDuration = 1;
+      const seedPrice = reserveInit.div(seederUnits);
 
       const successLevel = redeemInit
         .add(minCreatorRaise)
@@ -968,8 +968,8 @@ describe("TrustSeed", async function () {
           minCreatorRaise,
           seeder: Util.zeroAddress,
           seederFee,
-          seederUnits: seedUnits,
-          unseedDelay,
+          seederUnits,
+          seederCooldownDuration,
           raiseDuration,
         },
         {
@@ -997,7 +997,7 @@ describe("TrustSeed", async function () {
         seeder,
         seedERC20Json.abi,
         signers[0]
-      );
+      ) as SeedERC20;
 
       const pool = new ethers.Contract(
         await trust.pool(),
@@ -1027,7 +1027,7 @@ describe("TrustSeed", async function () {
       );
 
       // seeders send reserve to seeder contract
-      await seederContract1.seed(seeder1Units);
+      await seederContract1.seed(0, seeder1Units);
 
       await Util.assertError(
         async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
@@ -1042,7 +1042,7 @@ describe("TrustSeed", async function () {
         "redeemed before seeding is complete"
       );
 
-      await seederContract2.seed(seeder2Units);
+      await seederContract2.seed(0, seeder2Units);
 
       assert(
         (await reserve.balanceOf(seederContract.address)).isZero(),
@@ -1121,7 +1121,7 @@ describe("TrustSeed", async function () {
 
       const expectedReturn1 = trustFinalBalance
         .mul(seeder1Units)
-        .div(seedUnits);
+        .div(seederUnits);
 
       // correct amount of reserve should have been returned
       assert(
@@ -1142,7 +1142,7 @@ describe("TrustSeed", async function () {
 
       const expectedReturn2 = trustFinalBalance
         .mul(seeder2Units)
-        .div(seedUnits)
+        .div(seederUnits)
         .add(1);
 
       // correct amount of reserve should have been returned

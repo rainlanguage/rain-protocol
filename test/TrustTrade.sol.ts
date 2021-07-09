@@ -72,7 +72,7 @@ describe("TrustTrade", async function () {
     const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
-    const unseedDelay = 0;
+    const seederCooldownDuration = 0;
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
@@ -109,7 +109,7 @@ describe("TrustTrade", async function () {
         seeder: seeder.address,
         seederFee,
         seederUnits,
-        unseedDelay,
+        seederCooldownDuration,
         raiseDuration,
       },
       {
@@ -226,7 +226,7 @@ describe("TrustTrade", async function () {
     const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
-    const unseedDelay = 0;
+    const seederCooldownDuration = 0;
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
@@ -253,7 +253,7 @@ describe("TrustTrade", async function () {
         seeder: seeder.address,
         seederFee,
         seederUnits,
-        unseedDelay,
+        seederCooldownDuration,
         raiseDuration,
       },
       {
@@ -349,7 +349,7 @@ describe("TrustTrade", async function () {
     const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
-    const unseedDelay = 0;
+    const seederCooldownDuration = 0;
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
@@ -376,7 +376,7 @@ describe("TrustTrade", async function () {
         seeder: seeder.address,
         seederFee,
         seederUnits,
-        unseedDelay,
+        seederCooldownDuration,
         raiseDuration,
       },
       {
@@ -613,7 +613,7 @@ describe("TrustTrade", async function () {
     const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
-    const unseedDelay = 0;
+    const seederCooldownDuration = 0;
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
@@ -648,7 +648,7 @@ describe("TrustTrade", async function () {
         seeder: seeder.address,
         seederFee,
         seederUnits,
-        unseedDelay,
+        seederCooldownDuration,
         raiseDuration,
       },
       {
@@ -835,7 +835,7 @@ describe("TrustTrade", async function () {
     const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
-    const unseedDelay = 0;
+    const seederCooldownDuration = 0;
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
@@ -875,7 +875,7 @@ describe("TrustTrade", async function () {
             seeder: seeder.address,
             seederFee,
             seederUnits,
-            unseedDelay,
+            seederCooldownDuration,
             raiseDuration,
           },
           {
@@ -912,7 +912,7 @@ describe("TrustTrade", async function () {
         seeder: seeder.address,
         seederFee,
         seederUnits,
-        unseedDelay,
+        seederCooldownDuration,
         raiseDuration,
       },
       {

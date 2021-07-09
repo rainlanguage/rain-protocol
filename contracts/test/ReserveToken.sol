@@ -32,5 +32,5 @@ contract ReserveToken is ERC20, ERC20Burnable {
         address,
         address receiver_,
         uint256
-    ) internal override { require(!freezables[receiver_], "FROZEN"); }
+    ) internal virtual override { require(!freezables[receiver_], "FROZEN"); }
 }

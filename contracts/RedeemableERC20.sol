@@ -44,7 +44,7 @@ struct RedeemableERC20Config {
 /// Up to 8 redeemable tokens can be registered on the redeemable contract. These will be looped over by default in
 /// the `senderRedeem` function. If there is an error during redemption or more than 8 tokens are to be redeemed,
 /// there is a `senderRedeemSpecific` function that allows the caller to specify exactly which of the redeemable tokens they want to receive.
-/// Note: the same amount of `RedeemableERC20` is burned, regardless of which redeemable tokens were specified. Specifying fewer redeemable tokens 
+/// Note: the same amount of `RedeemableERC20` is burned, regardless of which redeemable tokens were specified. Specifying fewer redeemable tokens
 /// will NOT increase the proportion of each that is returned. `senderRedeemSpecific` is intended as a last resort if the caller cannot resolve
 /// issues causing errors for one or more redeemable tokens during redemption.
 ///

@@ -7,6 +7,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 import { Phase, Phased } from "./Phased.sol";
@@ -20,7 +21,7 @@ struct SeedERC20Config {
     // STRONGLY recommended to keep seed units to a small value (single-triple digits).
     // The ability for users to buy/sell or not buy/sell dust seed quantities is almost certainly NOT desired.
     uint256 seedUnits;
-    uint256 unseedDelay;
+    uint256 cooldownDuration;
     string name;
     string symbol;
 }
@@ -28,26 +29,35 @@ struct SeedERC20Config {
 contract SeedERC20 is Ownable, ERC20, Phased {
 
     using SafeMath for uint256;
+    using Math for uint256;
     using SafeERC20 for IERC20;
 
     IERC20 public reserve;
     address public recipient;
     uint256 public seedPrice;
-    uint256 public unseedDelay;
+    uint256 public cooldownDuration;
 
-    mapping (address => uint256) public unseedLocks;
+    mapping (address => uint256) public cooldowns;
 
     constructor (
         SeedERC20Config memory seedERC20Config_
     ) public ERC20(seedERC20Config_.name, seedERC20Config_.symbol) {
-        require(seedERC20Config_.seedPrice > 0, "ZERO_PRICE");
-        require(seedERC20Config_.seedUnits > 0, "ZERO_UNITS");
-        require(seedERC20Config_.recipient != address(0), "RECIPIENT_ZERO");
+        require(seedERC20Config_.seedPrice > 0, "PRICE_0");
+        require(seedERC20Config_.seedUnits > 0, "UNITS_0");
+        require(seedERC20Config_.recipient != address(0), "RECIPIENT_0");
+        require(seedERC20Config_.cooldownDuration > 0, "COOLDOWN_0");
         seedPrice = seedERC20Config_.seedPrice;
-        unseedDelay = seedERC20Config_.unseedDelay;
+        cooldownDuration = seedERC20Config_.cooldownDuration;
         reserve = seedERC20Config_.reserve;
         recipient = seedERC20Config_.recipient;
         _mint(address(this), seedERC20Config_.seedUnits);
+    }
+
+    modifier onlyAfterCooldown() {
+        require(cooldowns[msg.sender] <= block.number, "COOLDOWN");
+        // Every action that requires a cooldown also triggers a cooldown.
+        cooldowns[msg.sender] = block.number + cooldownDuration;
+        _;
     }
 
     // Take reserve from seeder as units * seedPrice.
@@ -59,10 +69,16 @@ contract SeedERC20 is Ownable, ERC20, Phased {
     // - approves infinite reserve transfers for the recipient
     //
     // Can only be called after init so that all callers are guaranteed to know the recipient.
-    function seed(uint256 units_) external onlyPhase(Phase.ZERO) {
-        unseedLocks[msg.sender] = block.number + unseedDelay;
-        // If balanceOf is less than units then the transfer below will fail and rollback anyway.
-        if (balanceOf(address(this)) == units_) {
+    function seed(uint256 minimumUnits_, uint256 desiredUnits_) external onlyPhase(Phase.ZERO) onlyAfterCooldown() {
+        require(desiredUnits_ > 0, "DESIRED_0");
+        require(minimumUnits_ <= desiredUnits_, "MINIMUM_OVER_DESIRED");
+        uint256 remainingStock_ = balanceOf(address(this));
+        require(minimumUnits_ <= remainingStock_, "OUT_OF_STOCK");
+
+        uint256 units_ = desiredUnits_.min(remainingStock_);
+
+        // If balanceOf is less than units then the transfer below will fail and rollback.
+        if (remainingStock_ == units_) {
             scheduleNextPhase(uint32(block.number));
         }
         _transfer(address(this), msg.sender, units_);
@@ -83,10 +99,7 @@ contract SeedERC20 is Ownable, ERC20, Phased {
     //
     // Once the contract is seeded this function is disabled.
     // Once this function is disabled seeders are expected to call redeem at a later time.
-    function unseed(uint256 units_) external onlyPhase(Phase.ZERO) {
-        // Prevent users from griefing contract with rapid seed/unseed cycles.
-        require(unseedLocks[msg.sender] <= block.number, "UNSEED_LOCKED");
-
+    function unseed(uint256 units_) external onlyPhase(Phase.ZERO) onlyAfterCooldown() {
         _transfer(msg.sender, address(this), units_);
 
         // Reentrant reserve transfer.
