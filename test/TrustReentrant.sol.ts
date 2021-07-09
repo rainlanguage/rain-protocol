@@ -4,6 +4,10 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { Prestige } from "../typechain/Prestige";
 import type { TrustReentrant } from "../typechain/TrustReentrant";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20"
+import type { Trust } from "../typechain/Trust"
+import type { BPool } from "../typechain/BPool"
+import type { SeedERC20Reentrant } from "../typechain/SeedERC20Reentrant"
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -66,7 +70,7 @@ describe("TrustReentrant", async function () {
 
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
-    const unseedDelay = 0;
+    const seederCooldownDuration = 1;
 
     const successLevel = reserveInit
       .add(seederFee)
@@ -88,7 +92,7 @@ describe("TrustReentrant", async function () {
         seeder: seeder.address,
         seederFee,
         seederUnits,
-        unseedDelay,
+        seederCooldownDuration,
         raiseDuration,
       },
       {
@@ -107,7 +111,7 @@ describe("TrustReentrant", async function () {
         finalValuation: successLevel,
       },
       redeemInit
-    );
+    ) as Trust;
 
     await trust.deployed();
 
@@ -115,7 +119,7 @@ describe("TrustReentrant", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator);
     const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator);
 
@@ -128,7 +132,7 @@ describe("TrustReentrant", async function () {
       maliciousReserve.address,
       maliciousReserve.interface,
       seeder
-    );
+    ) as SeedERC20Reentrant;
 
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -141,7 +145,7 @@ describe("TrustReentrant", async function () {
       await crp.bPool(),
       bPoolJson.abi,
       creator
-    );
+    ) as BPool;
 
     const swapReserveForTokens = async (hodler, spend) => {
       // give hodler some reserve

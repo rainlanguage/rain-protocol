@@ -50,7 +50,7 @@ describe("SeedERC20", async function () {
     await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
     await Util.assertError(
       async () => await bobSeed.seed(0, bobUnits),
-      "revert ReentrancyGuard: reentrant call",
+      "revert COOLDOWN",
       "did not guard against reentancy attack"
     );
   });
