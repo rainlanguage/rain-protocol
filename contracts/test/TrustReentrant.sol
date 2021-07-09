@@ -5,6 +5,9 @@ pragma solidity ^0.6.12;
 import { ReserveToken } from "./ReserveToken.sol";
 import { Trust } from "../Trust.sol";
 
+/// @title TrustReentrant
+/// Test contract that attempts to call reentrant code on `Trust`.
+/// The calls MUST fail when driven by the test harness.
 contract TrustReentrant is ReserveToken {
     Trust private trustContract;
 
@@ -19,7 +22,8 @@ contract TrustReentrant is ReserveToken {
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         if (sender_ != address(0) && sender_ == address(trustContract)) {
-            trustContract.anonEndRaise(); // reentrant call
+            // This call MUST fail.
+            trustContract.anonEndRaise();
         }
     }
 }
