@@ -4,10 +4,10 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { Prestige } from "../typechain/Prestige";
 import type { TrustReentrant } from "../typechain/TrustReentrant";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20"
-import type { Trust } from "../typechain/Trust"
-import type { BPool } from "../typechain/BPool"
-import type { SeedERC20Reentrant } from "../typechain/SeedERC20Reentrant"
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type { Trust } from "../typechain/Trust";
+import type { BPool } from "../typechain/BPool";
+import type { SeedERC20Reentrant } from "../typechain/SeedERC20Reentrant";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -85,7 +85,7 @@ describe("TrustReentrant", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
@@ -111,7 +111,7 @@ describe("TrustReentrant", async function () {
         finalValuation: successLevel,
       },
       redeemInit
-    ) as Trust;
+    )) as Trust;
 
     await trust.deployed();
 
@@ -182,7 +182,7 @@ describe("TrustReentrant", async function () {
     await Util.assertError(
       async () => await trust.anonEndRaise(),
       "revert ReentrancyGuard: reentrant call",
-      "did not guard against reentancy attack"
+      "did not guard against reentrancy attack"
     );
   });
 });
