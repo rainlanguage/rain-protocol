@@ -21,7 +21,7 @@ import { Phase, Phased } from "./Phased.sol";
 import { RedeemableERC20 } from "./RedeemableERC20.sol";
 
 /// Everything required to construct a `RedeemableERC20Pool`.
-struct PoolConfig {
+struct Config {
     // The CRPFactory on the current network.
     // This is an address published by Balancer or deployed locally during testing.
     CRPFactory crpFactory;
@@ -89,15 +89,15 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// Note the spot price is unknown until the end because we don't know either of the final token balances.
     uint256 public finalWeight;
 
-    /// @param poolConfig_ All configuration for the `RedeemableERC20Pool`.
-    constructor (PoolConfig memory poolConfig_) public {
-        require(poolConfig_.reserveInit > 0, "RESERVE_INIT_0");
+    /// @param config_ All configuration for the `RedeemableERC20Pool`.
+    constructor (Config memory config_) public {
+        require(config_.reserveInit > 0, "RESERVE_INIT_0");
 
-        token = poolConfig_.token;
-        reserve = poolConfig_.reserve;
-        reserveInit = poolConfig_.reserveInit;
+        token = config_.token;
+        reserve = config_.reserve;
+        reserveInit = config_.reserveInit;
 
-        finalWeight = valuationWeight(poolConfig_.finalValuation);
+        finalWeight = valuationWeight(config_.finalValuation);
 
         // Build the CRP.
         // The addresses in the RedeemableERC20Pool, as [reserve, token].
@@ -112,7 +112,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
 
         uint256[] memory initialWeights_ = new uint256[](2);
         initialWeights_[0] = BalancerConstants.MIN_WEIGHT;
-        initialWeights_[1] = valuationWeight(poolConfig_.initialValuation);
+        initialWeights_[1] = valuationWeight(config_.initialValuation);
 
         // 0. Pause
         // 1. Change fee
@@ -124,8 +124,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
         rights_[2] = true;
         rights_[4] = true;
 
-        crp = poolConfig_.crpFactory.newCrp(
-            address(poolConfig_.balancerFactory),
+        crp = config_.crpFactory.newCrp(
+            address(config_.balancerFactory),
             ConfigurableRightsPool.PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",
@@ -138,7 +138,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
         );
 
         // Preapprove all tokens and reserve for the CRP.
-        require(poolConfig_.reserve.approve(address(crp), poolConfig_.reserveInit), "RESERVE_APPROVE");
+        require(config_.reserve.approve(address(crp), config_.reserveInit), "RESERVE_APPROVE");
         require(token.approve(address(crp), token.totalSupply()), "TOKEN_APPROVE");
     }
 
@@ -222,8 +222,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
         );
     }
 
-    // Enforce Phase.THREE as the last phase.
-    // @inheritdoc Phased
+    /// Enforce Phase.THREE as the last phase.
+    /// @inheritdoc Phased
     function _beforeScheduleNextPhase(uint32 nextPhaseBlock_) internal override virtual {
         super._beforeScheduleNextPhase(nextPhaseBlock_);
         assert(currentPhase() < Phase.THREE);
