@@ -7,6 +7,8 @@ import * as Util from "./Util";
 import { utils } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type { SeedERC20 } from "../typechain/SeedERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -99,7 +101,7 @@ describe("TrustDistribute", async function () {
         deployer
       );
 
-      const trust = await trustFactoryDeployer.deploy(
+      const trust = (await trustFactoryDeployer.deploy(
         {
           creator: creator.address,
           minCreatorRaise,
@@ -125,7 +127,7 @@ describe("TrustDistribute", async function () {
           finalValuation,
         },
         redeemInit
-      );
+      )) as Trust;
 
       await trust.deployed();
 
@@ -141,7 +143,7 @@ describe("TrustDistribute", async function () {
         reserve.address,
         reserve.interface,
         seeder
-      );
+      ) as ReserveToken;
 
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -161,12 +163,12 @@ describe("TrustDistribute", async function () {
       const startBlock = await ethers.provider.getBlockNumber();
 
       const token = new ethers.Contract(
-        trust.token(),
+        await trust.token(),
         redeemableTokenJson.abi,
         creator
-      );
+      ) as RedeemableERC20;
       const pool = new ethers.Contract(
-        trust.pool(),
+        await trust.pool(),
         poolJson.abi,
         creator
       ) as RedeemableERC20Pool;
@@ -277,7 +279,7 @@ describe("TrustDistribute", async function () {
         deployer
       );
 
-      const trust = await trustFactoryDeployer.deploy(
+      const trust = (await trustFactoryDeployer.deploy(
         {
           creator: creator.address,
           minCreatorRaise,
@@ -303,7 +305,7 @@ describe("TrustDistribute", async function () {
           finalValuation,
         },
         redeemInit
-      );
+      )) as Trust;
 
       await trust.deployed();
 
@@ -319,7 +321,7 @@ describe("TrustDistribute", async function () {
         reserve.address,
         reserve.interface,
         seeder
-      );
+      ) as ReserveToken;
 
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -416,7 +418,7 @@ describe("TrustDistribute", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
@@ -442,7 +444,7 @@ describe("TrustDistribute", async function () {
         finalValuation,
       },
       redeemInit
-    );
+    )) as Trust;
 
     await trust.deployed();
 
@@ -453,7 +455,7 @@ describe("TrustDistribute", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer funds before pool can init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -463,12 +465,12 @@ describe("TrustDistribute", async function () {
     const startBlock = await ethers.provider.getBlockNumber();
 
     const token = new ethers.Contract(
-      trust.token(),
+      await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
-      trust.pool(),
+      await trust.pool(),
       poolJson.abi,
       creator
     ) as RedeemableERC20Pool;
@@ -587,7 +589,7 @@ describe("TrustDistribute", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
@@ -613,7 +615,7 @@ describe("TrustDistribute", async function () {
         finalValuation,
       },
       redeemInit
-    );
+    )) as Trust;
 
     await trust.deployed();
 
@@ -624,7 +626,7 @@ describe("TrustDistribute", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer seed funds before pool can init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -634,7 +636,7 @@ describe("TrustDistribute", async function () {
     const startBlock = await ethers.provider.getBlockNumber();
 
     const pool = new ethers.Contract(
-      trust.pool(),
+      await trust.pool(),
       poolJson.abi,
       creator
     ) as RedeemableERC20Pool;
@@ -734,7 +736,7 @@ describe("TrustDistribute", async function () {
         deployer
       );
 
-      const trust = await trustFactoryDeployer.deploy(
+      const trust = (await trustFactoryDeployer.deploy(
         {
           creator: creator.address,
           minCreatorRaise,
@@ -760,7 +762,7 @@ describe("TrustDistribute", async function () {
           finalValuation,
         },
         redeemInit
-      );
+      )) as Trust;
 
       await trust.deployed();
 
@@ -771,7 +773,7 @@ describe("TrustDistribute", async function () {
         reserve.address,
         reserve.interface,
         seeder
-      );
+      ) as ReserveToken;
 
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -781,12 +783,12 @@ describe("TrustDistribute", async function () {
       const startBlock = await ethers.provider.getBlockNumber();
 
       const token = new ethers.Contract(
-        trust.token(),
+        await trust.token(),
         redeemableTokenJson.abi,
         creator
       );
       const pool = new ethers.Contract(
-        trust.pool(),
+        await trust.pool(),
         poolJson.abi,
         creator
       ) as RedeemableERC20Pool;
@@ -896,7 +898,7 @@ describe("TrustDistribute", async function () {
         deployer
       );
 
-      const trust = await trustFactoryDeployer.deploy(
+      const trust = (await trustFactoryDeployer.deploy(
         {
           creator: creator.address,
           minCreatorRaise,
@@ -922,7 +924,7 @@ describe("TrustDistribute", async function () {
           finalValuation,
         },
         redeemInit
-      );
+      )) as Trust;
 
       await trust.deployed();
 
@@ -933,7 +935,7 @@ describe("TrustDistribute", async function () {
         reserve.address,
         reserve.interface,
         seeder
-      );
+      ) as ReserveToken;
 
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -943,12 +945,12 @@ describe("TrustDistribute", async function () {
       const startBlock = await ethers.provider.getBlockNumber();
 
       const token = new ethers.Contract(
-        trust.token(),
+        await trust.token(),
         redeemableTokenJson.abi,
         creator
-      );
+      ) as RedeemableERC20;
       const pool = new ethers.Contract(
-        trust.pool(),
+        await trust.pool(),
         poolJson.abi,
         creator
       ) as RedeemableERC20Pool;

@@ -7,6 +7,7 @@ import * as Util from "./Util";
 import { utils } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -114,7 +115,7 @@ describe("TrustRewards", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
@@ -140,7 +141,7 @@ describe("TrustRewards", async function () {
         finalValuation: successLevel,
       },
       redeemInit
-    );
+    )) as Trust;
 
     await trust.deployed();
 
@@ -148,7 +149,7 @@ describe("TrustRewards", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
 
     await trust.connect(creator).creatorAddRedeemable(reserveB.address);
 
@@ -247,7 +248,7 @@ describe("TrustRewards", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
@@ -273,7 +274,7 @@ describe("TrustRewards", async function () {
         finalValuation: successLevel,
       },
       redeemInit
-    );
+    )) as Trust;
 
     await trust.deployed();
 
@@ -293,7 +294,7 @@ describe("TrustRewards", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
@@ -426,10 +427,18 @@ describe("TrustRewards", async function () {
     );
 
     // for simplicity, burn hodler1 reserve tokens
-    await reserveA.connect(hodler1).burn(await reserveA.balanceOf(hodler1.address));
-    await reserveB.connect(hodler1).burn(await reserveB.balanceOf(hodler1.address));
-    await reserveC.connect(hodler1).burn(await reserveC.balanceOf(hodler1.address));
-    await reserveD.connect(hodler1).burn(await reserveD.balanceOf(hodler1.address));
+    await reserveA
+      .connect(hodler1)
+      .burn(await reserveA.balanceOf(hodler1.address));
+    await reserveB
+      .connect(hodler1)
+      .burn(await reserveB.balanceOf(hodler1.address));
+    await reserveC
+      .connect(hodler1)
+      .burn(await reserveC.balanceOf(hodler1.address));
+    await reserveD
+      .connect(hodler1)
+      .burn(await reserveD.balanceOf(hodler1.address));
 
     // Now again, 10% of new total supply
 
@@ -548,7 +557,7 @@ describe("TrustRewards", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
@@ -574,7 +583,7 @@ describe("TrustRewards", async function () {
         finalValuation,
       },
       redeemInit
-    );
+    )) as Trust;
 
     await trust.deployed();
 
@@ -585,7 +594,7 @@ describe("TrustRewards", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -596,7 +605,7 @@ describe("TrustRewards", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
@@ -757,7 +766,7 @@ describe("TrustRewards", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
@@ -783,7 +792,7 @@ describe("TrustRewards", async function () {
         finalValuation,
       },
       redeemInit
-    );
+    )) as Trust;
 
     await trust.deployed();
 
@@ -794,7 +803,7 @@ describe("TrustRewards", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -807,7 +816,7 @@ describe("TrustRewards", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
@@ -915,7 +924,7 @@ describe("TrustRewards", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minCreatorRaise,
@@ -941,7 +950,7 @@ describe("TrustRewards", async function () {
         finalValuation,
       },
       redeemInit
-    );
+    )) as Trust;
 
     await trust.deployed();
 

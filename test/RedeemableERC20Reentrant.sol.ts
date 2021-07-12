@@ -4,6 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Reentrant } from "../typechain/RedeemableERC20Reentrant";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -61,13 +62,13 @@ describe("RedeemableERC20Reentrant", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + 15;
 
-    const redeemableERC20 = await redeemableERC20Factory.deploy({
+    const redeemableERC20 = (await redeemableERC20Factory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemableERC20.deployed();
 
