@@ -5,9 +5,9 @@ import type { Trust } from "../typechain/Trust";
 import type { ReserveToken } from "../typechain/ReserveToken";
 import * as Util from "./Util";
 import { utils } from "ethers";
-import type { Prestige } from "../typechain/Prestige"
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20"
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool"
+import type { Prestige } from "../typechain/Prestige";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -76,7 +76,9 @@ describe("TrustDistribute", async function () {
         "2000" + Util.eighteenZeros
       );
 
-      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from(
+        "100" + Util.eighteenZeros
+      );
       const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
       const seederUnits = 0;
       const seederCooldownDuration = 0;
@@ -100,7 +102,7 @@ describe("TrustDistribute", async function () {
         deployer
       );
 
-      const trust = await trustFactoryDeployer.deploy(
+      const trust = (await trustFactoryDeployer.deploy(
         {
           creator: creator.address,
           minimumCreatorRaise,
@@ -125,8 +127,8 @@ describe("TrustDistribute", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
-        },
-      ) as Trust;
+        }
+      )) as Trust;
 
       await trust.deployed();
 
@@ -213,11 +215,18 @@ describe("TrustDistribute", async function () {
         `distribution status not trading can end`
       );
 
+      const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
+
       await trust.anonEndDistribution();
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.SUCCESS,
         "distribution status not successful distribution"
+      );
+
+      assert(
+        (await trust.finalBalance()).eq(expectedTrustFinalBalance),
+        "finalBalance was not exposed after trading ended (successful distribution)"
       );
     });
 
@@ -255,7 +264,9 @@ describe("TrustDistribute", async function () {
         "2000" + Util.eighteenZeros
       );
 
-      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from(
+        "100" + Util.eighteenZeros
+      );
       const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
       const seederUnits = 0;
       const seederCooldownDuration = 0;
@@ -278,7 +289,7 @@ describe("TrustDistribute", async function () {
         deployer
       );
 
-      const trust = await trustFactoryDeployer.deploy(
+      const trust = (await trustFactoryDeployer.deploy(
         {
           creator: creator.address,
           minimumCreatorRaise,
@@ -303,8 +314,8 @@ describe("TrustDistribute", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
-        },
-      ) as Trust;
+        }
+      )) as Trust;
 
       await trust.deployed();
 
@@ -352,11 +363,25 @@ describe("TrustDistribute", async function () {
         `distribution status not trading can end`
       );
 
+      const pool = new ethers.Contract(
+        await trust.pool(),
+        poolJson.abi,
+        creator
+      ) as RedeemableERC20Pool;
+      let [crp, bPool] = await Util.poolContracts(signers, pool);
+
+      const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
+
       await trust.anonEndDistribution();
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.FAIL,
         "distribution status was failed"
+      );
+
+      assert(
+        (await trust.finalBalance()).eq(expectedTrustFinalBalance),
+        "finalBalance was not exposed after trading ended (failed distribution)"
       );
     });
   });
@@ -393,7 +418,9 @@ describe("TrustDistribute", async function () {
     );
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -417,7 +444,7 @@ describe("TrustDistribute", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -442,8 +469,8 @@ describe("TrustDistribute", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -565,7 +592,9 @@ describe("TrustDistribute", async function () {
     );
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -588,7 +617,7 @@ describe("TrustDistribute", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -613,8 +642,8 @@ describe("TrustDistribute", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -711,7 +740,9 @@ describe("TrustDistribute", async function () {
         "2000" + Util.eighteenZeros
       );
 
-      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from(
+        "100" + Util.eighteenZeros
+      );
       const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
       const seederUnits = 0;
       const seederCooldownDuration = 0;
@@ -735,7 +766,7 @@ describe("TrustDistribute", async function () {
         deployer
       );
 
-      const trust = await trustFactoryDeployer.deploy(
+      const trust = (await trustFactoryDeployer.deploy(
         {
           creator: creator.address,
           minimumCreatorRaise,
@@ -760,8 +791,8 @@ describe("TrustDistribute", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
-        },
-      ) as Trust;
+        }
+      )) as Trust;
 
       await trust.deployed();
 
@@ -873,7 +904,9 @@ describe("TrustDistribute", async function () {
         "2000" + Util.eighteenZeros
       );
 
-      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from(
+        "100" + Util.eighteenZeros
+      );
       const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
       const seederUnits = 0;
       const seederCooldownDuration = 0;
@@ -897,7 +930,7 @@ describe("TrustDistribute", async function () {
         deployer
       );
 
-      const trust = await trustFactoryDeployer.deploy(
+      const trust = (await trustFactoryDeployer.deploy(
         {
           creator: creator.address,
           minimumCreatorRaise,
@@ -922,8 +955,8 @@ describe("TrustDistribute", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
-        },
-      ) as Trust;
+        }
+      )) as Trust;
 
       await trust.deployed();
 
