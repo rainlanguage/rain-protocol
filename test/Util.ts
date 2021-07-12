@@ -43,6 +43,9 @@ export const balancerDeploy = async (): Promise<
 export const zeroAddress = ethers.constants.AddressZero;
 export const eighteenZeros = "000000000000000000";
 
+export const fourZeros = "0000"; // poor precision
+export const tenZeros = "0000000000"; // just enough precision for dust
+
 export const ONE = ethers.BigNumber.from("1" + eighteenZeros);
 
 export const assertError = async (f: Function, s: string, e: string) => {
