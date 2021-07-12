@@ -69,7 +69,9 @@ describe("TrustTrade", async function () {
     );
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -102,7 +104,7 @@ describe("TrustTrade", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -127,8 +129,8 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -223,7 +225,9 @@ describe("TrustTrade", async function () {
     );
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -246,7 +250,7 @@ describe("TrustTrade", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -271,8 +275,8 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -346,7 +350,9 @@ describe("TrustTrade", async function () {
     );
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -369,7 +375,7 @@ describe("TrustTrade", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -394,8 +400,8 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -610,7 +616,9 @@ describe("TrustTrade", async function () {
     );
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -666,7 +674,7 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
+      }
     );
 
     await trust.deployed();
@@ -832,7 +840,9 @@ describe("TrustTrade", async function () {
     //   .mul(redeemInit.div(reserveInit)
     // )}`);
 
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -893,7 +903,7 @@ describe("TrustTrade", async function () {
             reserveInit,
             initialValuation: initialValuation1,
             finalValuation: successLevel,
-          },
+          }
         ),
       "revert MAX_WEIGHT_VALUATION",
       "wrongly deployed trust with pool at 50:1 weight ratio"
@@ -930,7 +940,7 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation: initialValuation2,
         finalValuation: successLevel,
-      },
+      }
     );
 
     await trust.deployed();

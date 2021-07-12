@@ -61,7 +61,9 @@ describe("TrustReentrant", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -110,7 +112,7 @@ describe("TrustReentrant", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
+      }
     )) as Trust;
 
     await trust.deployed();

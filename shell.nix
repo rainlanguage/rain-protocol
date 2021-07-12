@@ -27,6 +27,7 @@ let
 
  ci-lint = pkgs.writeShellScriptBin "ci-lint" ''
  solhint 'contracts/**/*.sol'
+ prettier-check
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''

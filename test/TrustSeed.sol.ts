@@ -77,7 +77,9 @@ describe("TrustSeed", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const deployer = signers[1]; // deployer is not creator
@@ -135,7 +137,7 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
+      }
     );
     await trust.deployed();
 
@@ -380,7 +382,9 @@ describe("TrustSeed", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const deployer = signers[1]; // deployer is not creator
@@ -431,7 +435,7 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
+      }
     )) as Trust;
 
     await trust.deployed();
@@ -511,7 +515,9 @@ describe("TrustSeed", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const deployer = signers[1]; // deployer is not creator
@@ -562,7 +568,7 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
+      }
     )) as Trust;
 
     await trust.deployed();
@@ -638,7 +644,9 @@ describe("TrustSeed", async function () {
       const initialValuation = ethers.BigNumber.from(
         "20000" + Util.eighteenZeros
       );
-      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from(
+        "100" + Util.eighteenZeros
+      );
 
       const creator = signers[0];
       const deployer = signers[1]; // deployer is not creator
@@ -690,7 +698,7 @@ describe("TrustSeed", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
-        },
+        }
       )) as Trust;
 
       await trust.deployed();
@@ -937,7 +945,9 @@ describe("TrustSeed", async function () {
       const initialValuation = ethers.BigNumber.from(
         "20000" + Util.eighteenZeros
       );
-      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from(
+        "100" + Util.eighteenZeros
+      );
 
       const creator = signers[0];
       const deployer = signers[1]; // deployer is not creator
@@ -987,7 +997,7 @@ describe("TrustSeed", async function () {
           reserveInit,
           initialValuation,
           finalValuation: successLevel,
-        },
+        }
       )) as Trust;
 
       await trust.deployed();

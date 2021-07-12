@@ -104,7 +104,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -128,7 +130,7 @@ describe("Trust", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -153,8 +155,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -254,7 +256,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -278,7 +282,7 @@ describe("Trust", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -303,8 +307,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -403,7 +407,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -427,7 +433,7 @@ describe("Trust", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -452,8 +458,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -559,7 +565,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -585,7 +593,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () =>
-        await trustFactory1.deploy(
+        (await trustFactory1.deploy(
           {
             creator: creator.address,
             minimumCreatorRaise,
@@ -610,8 +618,8 @@ describe("Trust", async function () {
             reserveInit,
             initialValuation,
             finalValuation: successLevel,
-          },
-        ) as Trust,
+          }
+        )) as Trust,
       "revert MIN_TOKEN_SUPPLY",
       "setting totalTokenSupply to zero did not error"
     );
@@ -648,7 +656,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -674,7 +684,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () =>
-        await trustFactory1.deploy(
+        (await trustFactory1.deploy(
           {
             creator: creator.address,
             minimumCreatorRaise,
@@ -699,8 +709,8 @@ describe("Trust", async function () {
             reserveInit,
             initialValuation,
             finalValuation: successLevel,
-          },
-        ) as Trust,
+          }
+        )) as Trust,
       "revert MIN_RESERVE",
       "setting reserveInit to zero did not error"
     );
@@ -737,7 +747,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -763,7 +775,7 @@ describe("Trust", async function () {
 
     // a redeemInit value of zero causes division by zero in following pool calculation
     // i.e. _tokenWeightFinal = _targetSpotFinal / redeemInit
-    await trustFactory1.deploy(
+    (await trustFactory1.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -788,8 +800,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
   });
 
   it("should include correct values when calling getDistributionProgress", async function () {
@@ -823,7 +835,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -847,7 +861,7 @@ describe("Trust", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -872,15 +886,17 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
-    const distributionProgressDeployed: DistributionProgress = await trust.getDistributionProgress();
+    const distributionProgressDeployed: DistributionProgress =
+      await trust.getDistributionProgress();
 
     assert(
-      distributionProgressDeployed.distributionStatus === DistributionStatus.PENDING,
+      distributionProgressDeployed.distributionStatus ===
+        DistributionStatus.PENDING,
       `did not get correct value for DistributionProgress.distributionStatus on deploy
     expected  ${DistributionStatus.PENDING}
     got       ${distributionProgressDeployed.distributionStatus}
@@ -947,7 +963,8 @@ describe("Trust", async function () {
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    const raiseProgressSeeded: DistributionProgress = await trust.getDistributionProgress();
+    const raiseProgressSeeded: DistributionProgress =
+      await trust.getDistributionProgress();
 
     const pool = new ethers.Contract(
       await trust.pool(),
@@ -977,7 +994,8 @@ describe("Trust", async function () {
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
-    const raiseProgressTrading: DistributionProgress = await trust.getDistributionProgress();
+    const raiseProgressTrading: DistributionProgress =
+      await trust.getDistributionProgress();
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -1039,7 +1057,8 @@ describe("Trust", async function () {
 
     await swapReserveForTokens(hodler1, spend);
 
-    const raiseProgressSwap: DistributionProgress = await trust.getDistributionProgress();
+    const raiseProgressSwap: DistributionProgress =
+      await trust.getDistributionProgress();
 
     assert(
       raiseProgressSwap.distributionStatus === DistributionStatus.TRADING,
@@ -1100,7 +1119,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -1124,7 +1145,7 @@ describe("Trust", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -1149,8 +1170,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -1278,7 +1299,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const creator = signers[0].address;
     const seeder = signers[1].address; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
@@ -1299,7 +1322,7 @@ describe("Trust", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator,
         minimumCreatorRaise,
@@ -1324,8 +1347,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -1370,7 +1393,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const creator = signers[0].address;
     const seeder = signers[1].address; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
@@ -1391,7 +1416,7 @@ describe("Trust", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator,
         minimumCreatorRaise,
@@ -1416,8 +1441,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -1504,7 +1529,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const creator = signers[0].address;
     const seeder = signers[1].address; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
@@ -1550,7 +1577,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
+      }
     )) as Trust;
 
     await trust.deployed();
@@ -1630,7 +1657,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const creator = signers[0].address;
     const seeder = signers[1].address; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
@@ -1651,7 +1680,7 @@ describe("Trust", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator,
         minimumCreatorRaise,
@@ -1676,8 +1705,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -1691,7 +1720,10 @@ describe("Trust", async function () {
       "wrong minimum raise amount"
     );
     assert(config.seederFee.eq(seederFee), "wrong seeder fee");
-    assert(config.minimumTradingDuration.eq(minimumTradingDuration), "wrong raise duration");
+    assert(
+      config.minimumTradingDuration.eq(minimumTradingDuration),
+      "wrong raise duration"
+    );
     assert(contractRedeemInit.eq(redeemInit), "wrong redeem init");
   });
 
@@ -1726,7 +1758,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const creator = signers[0].address;
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
@@ -1740,7 +1774,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -1765,8 +1799,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -1775,7 +1809,11 @@ describe("Trust", async function () {
       redeemableTokenJson.abi,
       signers[0]
     );
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, signers[0]);
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      signers[0]
+    );
 
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder, reserveInit);
@@ -1911,7 +1949,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -1936,8 +1974,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -2021,7 +2059,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -2046,8 +2084,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -2133,7 +2171,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -2158,8 +2196,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -2217,7 +2255,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -2242,8 +2280,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -2309,7 +2347,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -2334,8 +2372,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -2441,7 +2479,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -2466,8 +2504,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -2578,7 +2616,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -2603,8 +2641,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -2679,7 +2717,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
@@ -2692,7 +2732,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -2717,8 +2757,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -2789,7 +2829,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
@@ -2826,11 +2868,11 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
+      }
     );
 
     await Util.assertError(
-      async () => await trustPromise as Trust,
+      async () => (await trustPromise) as Trust,
       "Error: invalid ENS name",
       "initialized without seeder"
     );
@@ -2869,7 +2911,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const creator = signers[0].address;
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
@@ -2883,7 +2927,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -2908,8 +2952,8 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
@@ -3023,7 +3067,11 @@ describe("Trust", async function () {
       countTransfersToTriggerUnblock++;
     }
 
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, signers[0]);
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      signers[0]
+    );
 
     const balancerPoolReserveBalance = await reserve.balanceOf(
       await bPool.address
@@ -3240,7 +3288,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("10000" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "10000" + Util.eighteenZeros
+    );
     const creator = signers[0].address;
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
@@ -3596,7 +3646,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
@@ -3700,7 +3752,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
@@ -3713,7 +3767,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -3739,7 +3793,7 @@ describe("Trust", async function () {
         initialValuation,
         finalValuation: successLevel,
       }
-    ) as Trust;
+    )) as Trust;
 
     await trust.deployed();
 
@@ -3786,7 +3840,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
@@ -3801,7 +3857,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () =>
-        await trustFactory.deploy(
+        (await trustFactory.deploy(
           {
             creator: signers[0].address,
             minimumCreatorRaise: minimumCreatorRaise,
@@ -3827,7 +3883,7 @@ describe("Trust", async function () {
             initialValuation,
             finalValuation: successLevel.sub(1),
           }
-        ) as Trust,
+        )) as Trust,
       "revert MIN_FINAL_VALUATION",
       "did not enforce restriction that final valuation larger than success level"
     );
@@ -3864,7 +3920,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
@@ -3874,7 +3932,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () =>
-        await trustFactory.deploy(
+        (await trustFactory.deploy(
           {
             creator: signers[0].address,
             minimumCreatorRaise: minimumCreatorRaise,
@@ -3902,8 +3960,8 @@ describe("Trust", async function () {
               .add(minimumCreatorRaise)
               .add(seederFee)
               .add(reserveInit),
-          },
-        ) as Trust,
+          }
+        )) as Trust,
       "revert MIN_TOKEN_SUPPLY",
       "did not enforce restriction that minted tokens be greater than liquidity"
     );
@@ -3940,7 +3998,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
@@ -3950,7 +4010,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () =>
-        await trustFactory.deploy(
+        (await trustFactory.deploy(
           {
             creator: signers[0].address,
             minimumCreatorRaise: minimumCreatorRaise,
@@ -3976,15 +4036,15 @@ describe("Trust", async function () {
             initialValuation,
             // finalValuation: redeemInit.add(minimumCreatorRaise).add(seederFee),
             finalValuation: initialValuation.add(1),
-          },
-        ) as Trust,
+          }
+        )) as Trust,
       "revert MIN_INITIAL_VALUTION",
       "did not enforce valuation difference restriction (example 1)"
     );
 
     await Util.assertError(
       async () =>
-        await trustFactory.deploy(
+        (await trustFactory.deploy(
           {
             creator: signers[0].address,
             minimumCreatorRaise: minimumCreatorRaise,
@@ -4016,8 +4076,8 @@ describe("Trust", async function () {
               .add(minimumCreatorRaise)
               .add(seederFee)
               .add(reserveInit),
-          },
-        ) as Trust,
+          }
+        )) as Trust,
       "revert MIN_INITIAL_VALUTION",
       "did not enforce valuation difference restriction (example 2)"
     );
@@ -4054,7 +4114,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const seeder = signers[1].address; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
     const seederUnits = 0;
@@ -4062,7 +4124,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -4091,7 +4153,7 @@ describe("Trust", async function () {
           .add(seederFee)
           .add(reserveInit),
       }
-    ) as Trust;
+    )) as Trust;
 
     await trust.deployed();
 
@@ -4175,7 +4237,9 @@ describe("Trust", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
     const owner = signers[0].address;
     const seeder = owner;
     const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
@@ -4212,7 +4276,7 @@ describe("Trust", async function () {
           .add(minimumCreatorRaise)
           .add(seederFee)
           .add(reserveInit),
-      },
+      }
     )) as Trust;
 
     await trust.deployed();
@@ -4368,7 +4432,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 15;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise,
@@ -4396,8 +4460,8 @@ describe("Trust", async function () {
           .add(minimumCreatorRaise)
           .add(seederFee)
           .add(reserveInit),
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     (await trust.deployed()) as Trust;
 
@@ -4536,7 +4600,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise,
@@ -4564,8 +4628,8 @@ describe("Trust", async function () {
           .add(minimumCreatorRaise)
           .add(seederFee)
           .add(reserveInit),
-      },
-    ) as Trust;
+      }
+    )) as Trust;
 
     await trust.deployed();
 
