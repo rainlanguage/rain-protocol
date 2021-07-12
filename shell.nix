@@ -27,6 +27,7 @@ let
 
  ci-lint = pkgs.writeShellScriptBin "ci-lint" ''
  solhint 'contracts/**/*.sol'
+ prettier-check
  '';
 
  security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -86,5 +87,6 @@ pkgs.stdenv.mkDerivation {
   export PATH=$( npm bin ):$PATH
   # keep it fresh
   npm install
+  npx husky install
  '';
 }

@@ -378,7 +378,9 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () =>
-        await pool1.ownerStartDutchAuction(raiseEndBlock, { gasLimit: 10000000 }),
+        await pool1.ownerStartDutchAuction(raiseEndBlock, {
+          gasLimit: 10000000,
+        }),
       "revert Ownable: caller is not the owner",
       "non-owner was wrongly able to start pool trading"
     );
@@ -391,7 +393,9 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () =>
-        await pool.ownerStartDutchAuction(raiseEndBlock, { gasLimit: 10000000 }),
+        await pool.ownerStartDutchAuction(raiseEndBlock, {
+          gasLimit: 10000000,
+        }),
       "revert BAD_PHASE",
       "pool trading wrongly initialized twice by owner"
     );

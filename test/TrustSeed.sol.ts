@@ -77,7 +77,9 @@ describe("TrustSeed", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const deployer = signers[1]; // deployer is not creator
@@ -90,12 +92,12 @@ describe("TrustSeed", async function () {
     const seedPrice = reserveInit.div(10);
 
     const successLevel = redeemInit
-      .add(minCreatorRaise)
+      .add(minimumCreatorRaise)
       .add(seederFee)
       .add(reserveInit);
     const finalValuation = successLevel;
 
-    const raiseDuration = 50;
+    const minimumTradingDuration = 50;
 
     // seeder1 creates seeder contract
     const seederFactory = new ethers.ContractFactory(
@@ -113,12 +115,13 @@ describe("TrustSeed", async function () {
     const trust = await trustFactory1.deploy(
       {
         creator: creator.address,
-        minCreatorRaise,
+        minimumCreatorRaise,
         seeder: Util.zeroAddress,
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        raiseDuration,
+        minimumTradingDuration,
+        redeemInit,
       },
       {
         name: tokenName,
@@ -134,12 +137,11 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-      redeemInit
+      }
     );
     await trust.deployed();
 
-    const seeder = (await trust.trustConfig()).seeder;
+    const seeder = (await trust.config()).seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -380,7 +382,9 @@ describe("TrustSeed", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const deployer = signers[1]; // deployer is not creator
@@ -393,12 +397,12 @@ describe("TrustSeed", async function () {
     const seedPrice = reserveInit.div(10);
 
     const successLevel = redeemInit
-      .add(minCreatorRaise)
+      .add(minimumCreatorRaise)
       .add(seederFee)
       .add(reserveInit);
     const finalValuation = successLevel;
 
-    const raiseDuration = 50;
+    const minimumTradingDuration = 50;
 
     const trustFactory1 = new ethers.ContractFactory(
       trustFactory.interface,
@@ -409,12 +413,13 @@ describe("TrustSeed", async function () {
     const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
-        minCreatorRaise,
+        minimumCreatorRaise,
         seeder: Util.zeroAddress,
         seederFee,
         seederUnits: seedUnits,
         seederCooldownDuration,
-        raiseDuration,
+        minimumTradingDuration,
+        redeemInit,
       },
       {
         name: tokenName,
@@ -430,13 +435,12 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-      redeemInit
+      }
     )) as Trust;
 
     await trust.deployed();
 
-    const seeder = (await trust.trustConfig()).seeder;
+    const seeder = (await trust.config()).seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -511,7 +515,9 @@ describe("TrustSeed", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const deployer = signers[1]; // deployer is not creator
@@ -524,12 +530,12 @@ describe("TrustSeed", async function () {
     const seedPrice = reserveInit.div(10);
 
     const successLevel = redeemInit
-      .add(minCreatorRaise)
+      .add(minimumCreatorRaise)
       .add(seederFee)
       .add(reserveInit);
     const finalValuation = successLevel;
 
-    const raiseDuration = 50;
+    const minimumTradingDuration = 50;
 
     const trustFactory1 = new ethers.ContractFactory(
       trustFactory.interface,
@@ -540,12 +546,13 @@ describe("TrustSeed", async function () {
     const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
-        minCreatorRaise,
+        minimumCreatorRaise,
         seeder: ethers.constants.AddressZero,
         seederFee,
         seederUnits: seedUnits,
         seederCooldownDuration,
-        raiseDuration,
+        minimumTradingDuration,
+        redeemInit,
       },
       {
         name: tokenName,
@@ -561,14 +568,13 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
-      },
-      redeemInit
+      }
     )) as Trust;
 
     await trust.deployed();
 
     const seederContract = new ethers.Contract(
-      (await trust.trustConfig()).seeder,
+      (await trust.config()).seeder,
       seedERC20Json.abi,
       signers[0]
     );
@@ -592,14 +598,14 @@ describe("TrustSeed", async function () {
     await seederContract1.seed(0, seeder1Units);
 
     await Util.assertError(
-      async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
+      async () => await trust.anonStartDistribution({ gasLimit: 100000000 }),
       "revert ERC20: transfer amount exceeds balance",
       "raise begun with insufficient seed reserve"
     );
 
     await seederContract2.seed(0, seeder2Units);
 
-    await trust.anonStartRaise({ gasLimit: 100000000 });
+    await trust.anonStartDistribution({ gasLimit: 100000000 });
   });
 
   describe("should allow many seeders to seed trust", async function () {
@@ -638,7 +644,9 @@ describe("TrustSeed", async function () {
       const initialValuation = ethers.BigNumber.from(
         "20000" + Util.eighteenZeros
       );
-      const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from(
+        "100" + Util.eighteenZeros
+      );
 
       const creator = signers[0];
       const deployer = signers[1]; // deployer is not creator
@@ -652,12 +660,12 @@ describe("TrustSeed", async function () {
       const seedPrice = reserveInit.div(10);
 
       const successLevel = redeemInit
-        .add(minCreatorRaise)
+        .add(minimumCreatorRaise)
         .add(seederFee)
         .add(reserveInit);
       const finalValuation = successLevel;
 
-      const raiseDuration = 50;
+      const minimumTradingDuration = 50;
 
       const trustFactory1 = new ethers.ContractFactory(
         trustFactory.interface,
@@ -668,12 +676,13 @@ describe("TrustSeed", async function () {
       const trust = (await trustFactory1.deploy(
         {
           creator: creator.address,
-          minCreatorRaise,
+          minimumCreatorRaise,
           seeder: Util.zeroAddress,
           seederFee,
           seederUnits,
           seederCooldownDuration,
-          raiseDuration,
+          minimumTradingDuration,
+          redeemInit,
         },
         {
           name: tokenName,
@@ -689,13 +698,12 @@ describe("TrustSeed", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
-        },
-        redeemInit
+        }
       )) as Trust;
 
       await trust.deployed();
 
-      const seeder = (await trust.trustConfig()).seeder;
+      const seeder = (await trust.config()).seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,
@@ -740,7 +748,7 @@ describe("TrustSeed", async function () {
       await seederContract1.seed(0, seeder1Units);
 
       await Util.assertError(
-        async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
+        async () => await trust.anonStartDistribution({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
@@ -780,7 +788,7 @@ describe("TrustSeed", async function () {
       `
       );
 
-      await trust.anonStartRaise({ gasLimit: 100000000 });
+      await trust.anonStartDistribution({ gasLimit: 100000000 });
 
       let [crp, bPool] = await Util.poolContracts(signers, pool);
 
@@ -820,7 +828,7 @@ describe("TrustSeed", async function () {
       // add blocks until raise can end
       while (
         (await ethers.provider.getBlockNumber()) <=
-        startBlock + raiseDuration
+        startBlock + minimumTradingDuration
       ) {
         await reserve.transfer(signers[9].address, 0);
       }
@@ -833,7 +841,7 @@ describe("TrustSeed", async function () {
       );
 
       // seeder1 ends raise
-      await trust.connect(seeder1).anonEndRaise();
+      await trust.connect(seeder1).anonEndDistribution();
 
       const poolDust = await reserve.balanceOf(bPool.address);
 
@@ -937,7 +945,9 @@ describe("TrustSeed", async function () {
       const initialValuation = ethers.BigNumber.from(
         "20000" + Util.eighteenZeros
       );
-      const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from(
+        "100" + Util.eighteenZeros
+      );
 
       const creator = signers[0];
       const deployer = signers[1]; // deployer is not creator
@@ -950,11 +960,11 @@ describe("TrustSeed", async function () {
       const seedPrice = reserveInit.div(seederUnits);
 
       const successLevel = redeemInit
-        .add(minCreatorRaise)
+        .add(minimumCreatorRaise)
         .add(seederFee)
         .add(reserveInit);
 
-      const raiseDuration = 50;
+      const minimumTradingDuration = 50;
 
       const trustFactory1 = new ethers.ContractFactory(
         trustFactory.interface,
@@ -965,12 +975,13 @@ describe("TrustSeed", async function () {
       const trust = (await trustFactory1.deploy(
         {
           creator: creator.address,
-          minCreatorRaise,
+          minimumCreatorRaise,
           seeder: Util.zeroAddress,
           seederFee,
           seederUnits,
           seederCooldownDuration,
-          raiseDuration,
+          minimumTradingDuration,
+          redeemInit,
         },
         {
           name: tokenName,
@@ -986,13 +997,12 @@ describe("TrustSeed", async function () {
           reserveInit,
           initialValuation,
           finalValuation: successLevel,
-        },
-        redeemInit
+        }
       )) as Trust;
 
       await trust.deployed();
 
-      const seeder = (await trust.trustConfig()).seeder;
+      const seeder = (await trust.config()).seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,
@@ -1030,7 +1040,7 @@ describe("TrustSeed", async function () {
       await seederContract1.seed(0, seeder1Units);
 
       await Util.assertError(
-        async () => await trust.anonStartRaise({ gasLimit: 100000000 }),
+        async () => await trust.anonStartDistribution({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
@@ -1060,7 +1070,7 @@ describe("TrustSeed", async function () {
       `
       );
 
-      await trust.anonStartRaise({ gasLimit: 100000000 });
+      await trust.anonStartDistribution({ gasLimit: 100000000 });
 
       let [crp, bPool] = await Util.poolContracts(signers, pool);
 
@@ -1074,7 +1084,7 @@ describe("TrustSeed", async function () {
       // add blocks until failed raise
       while (
         (await ethers.provider.getBlockNumber()) <=
-        startBlock + raiseDuration
+        startBlock + minimumTradingDuration
       ) {
         await reserve.transfer(signers[9].address, 0);
       }
@@ -1100,7 +1110,7 @@ describe("TrustSeed", async function () {
       );
 
       // seeder1 ends raise
-      await trust.connect(seeder1).anonEndRaise();
+      await trust.connect(seeder1).anonEndDistribution();
 
       // seederContract should now hold reserve equal to final balance
       assert(
