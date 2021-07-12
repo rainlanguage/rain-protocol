@@ -17,7 +17,7 @@ import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 import { Phase, Phased } from "./Phased.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
-struct RedeemableERC20Config {
+struct Config {
     // Name forwarded through to parent ERC20 contract.
     string name;
     // Symbol forwarded through to parent ERC20 contract.
@@ -98,21 +98,21 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     mapping(address => uint8) public unfreezables;
 
     /// Mint the full ERC20 token supply and configure basic transfer restrictions.
-    /// @param redeemableERC20Config_ All the constructor configuration.
+    /// @param config_ All the constructor configuration.
     constructor (
-        RedeemableERC20Config memory redeemableERC20Config_
+        Config memory config_
     )
         public
-        ERC20(redeemableERC20Config_.name, redeemableERC20Config_.symbol)
-        PrestigeByConstruction(redeemableERC20Config_.prestige)
+        ERC20(config_.name, config_.symbol)
+        PrestigeByConstruction(config_.prestige)
     {
-        minimumPrestigeStatus = redeemableERC20Config_.minimumStatus;
+        minimumPrestigeStatus = config_.minimumStatus;
 
         // Add the owner as a receiver to simplify `_beforeTokenTransfer` logic.
         // Can't call `ownerAddReceiver` here as the owner is not set at this point.
         unfreezables[msg.sender] = 0x0002;
 
-        _mint(msg.sender, redeemableERC20Config_.totalSupply);
+        _mint(msg.sender, config_.totalSupply);
     }
 
     /// Owner can add accounts to the sender list.

@@ -23,7 +23,7 @@ contract TrustReentrant is ReserveToken {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         if (sender_ != address(0) && sender_ == address(trustContract)) {
             // This call MUST fail.
-            trustContract.anonEndRaise();
+            trustContract.anonEndDistribution();
         }
     }
 }

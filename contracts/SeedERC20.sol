@@ -14,7 +14,7 @@ import { Phase, Phased } from "./Phased.sol";
 import { Cooldown } from "./Cooldown.sol";
 
 /// Everything required to construct a `SeedERC20` contract.
-struct SeedERC20Config {
+struct Config {
     // Reserve erc20 token contract used to purchase seed tokens.
     IERC20 reserve;
     // Recipient address for all reserve funds raised when seeding is complete.
@@ -74,18 +74,18 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// Sanity checks on configuration.
     /// Store relevant config as contract state.
     /// Mint all seed tokens.
-    /// @param seedERC20Config_ All config required to construct the contract.
-    constructor (SeedERC20Config memory seedERC20Config_)
+    /// @param config_ All config required to construct the contract.
+    constructor (Config memory config_)
     public
-    ERC20(seedERC20Config_.name, seedERC20Config_.symbol)
-    Cooldown(seedERC20Config_.cooldownDuration) {
-        require(seedERC20Config_.seedPrice > 0, "PRICE_0");
-        require(seedERC20Config_.seedUnits > 0, "UNITS_0");
-        require(seedERC20Config_.recipient != address(0), "RECIPIENT_0");
-        seedPrice = seedERC20Config_.seedPrice;
-        reserve = seedERC20Config_.reserve;
-        recipient = seedERC20Config_.recipient;
-        _mint(address(this), seedERC20Config_.seedUnits);
+    ERC20(config_.name, config_.symbol)
+    Cooldown(config_.cooldownDuration) {
+        require(config_.seedPrice > 0, "PRICE_0");
+        require(config_.seedUnits > 0, "UNITS_0");
+        require(config_.recipient != address(0), "RECIPIENT_0");
+        seedPrice = config_.seedPrice;
+        reserve = config_.reserve;
+        recipient = config_.recipient;
+        _mint(address(this), config_.seedUnits);
     }
 
     /// Take reserve from seeder as units * seedPrice.

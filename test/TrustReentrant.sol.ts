@@ -63,7 +63,9 @@ describe("TrustReentrant", async function () {
     const initialValuation = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minCreatorRaise = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from(
+      "100" + Util.eighteenZeros
+    );
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
@@ -77,9 +79,9 @@ describe("TrustReentrant", async function () {
     const successLevel = reserveInit
       .add(seederFee)
       .add(redeemInit)
-      .add(minCreatorRaise);
+      .add(minimumCreatorRaise);
 
-    const raiseDuration = 50;
+    const minimumTradingDuration = 50;
 
     const trustFactory1 = new ethers.ContractFactory(
       trustFactory.interface,
@@ -90,12 +92,13 @@ describe("TrustReentrant", async function () {
     const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
-        minCreatorRaise,
+        minimumCreatorRaise,
         seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        raiseDuration,
+        minimumTradingDuration,
+        redeemInit,
       },
       {
         name: tokenName,
@@ -111,8 +114,7 @@ describe("TrustReentrant", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      },
-      redeemInit
+      }
     )) as Trust;
 
     await trust.deployed();
@@ -147,7 +149,7 @@ describe("TrustReentrant", async function () {
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartRaise({ gasLimit: 100000000 });
+    await trust.anonStartDistribution({ gasLimit: 100000000 });
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -184,13 +186,13 @@ describe("TrustReentrant", async function () {
 
     while (
       (await ethers.provider.getBlockNumber()) <
-      startBlock + raiseDuration
+      startBlock + minimumTradingDuration
     ) {
       await maliciousReserve.transfer(signers[3].address, 0);
     }
 
     await Util.assertError(
-      async () => await trust.anonEndRaise(),
+      async () => await trust.anonEndDistribution(),
       "revert ReentrancyGuard: reentrant call",
       "did not guard against reentrancy attack"
     );
