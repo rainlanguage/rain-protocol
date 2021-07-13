@@ -9,6 +9,9 @@ import type { BigNumber } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import { max_uint32 } from "./Util";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
+import type { SeedERC20 } from "../typechain/SeedERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -167,9 +170,17 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator);
-    const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator);
+    ) as RedeemableERC20;
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+    const crp = new ethers.Contract(
+      await pool.crp(),
+      crpJson.abi,
+      creator
+    ) as ConfigurableRightsPool;
 
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder.address, reserveInit);
@@ -178,7 +189,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -362,7 +373,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -473,7 +484,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -484,7 +495,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
@@ -977,7 +988,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -1040,7 +1051,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
 
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
@@ -1255,7 +1266,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
 
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -1268,7 +1279,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
@@ -1523,7 +1534,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20;
 
     assert(
       (await token.currentPhase()) === Phase.ZERO,
@@ -1537,7 +1548,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
 
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -1674,7 +1685,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
 
     // seeder must transfer before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -1881,12 +1892,12 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20Pool;
 
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder, reserveInit);
@@ -1901,7 +1912,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
 
     // seeder must transfer before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -2062,7 +2073,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
 
     // seeder transfers insufficient reserve liquidity
     await reserveSeeder.transfer(await trust.pool(), reserveInit.sub(1));
@@ -2172,7 +2183,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
@@ -2188,7 +2199,7 @@ describe("Trust", async function () {
       trust.address,
       trustJson.abi,
       signers[2]
-    );
+    ) as Trust;
 
     // other user attempts to immediately end raise
     await Util.assertError(
@@ -2274,7 +2285,7 @@ describe("Trust", async function () {
 
     await trust.deployed();
 
-    // const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0])
+    // const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0]) as RedeemableERC20
 
     // assert(
     //   (await token.minimumPrestigeStatus()) === minimumStatus,
@@ -2362,7 +2373,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20;
 
     assert(
       (await token.totalSupply()).eq(totalTokenSupply),
@@ -2454,7 +2465,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20;
 
     assert(
       (await token.getRedeemables())[0] === reserve.address,
@@ -2602,12 +2613,12 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20;
     const token2 = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
       signers[2]
-    );
+    ) as RedeemableERC20;
 
     // cannot add redeemables directly to token when trust is owner
     await Util.assertError(
@@ -2723,7 +2734,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20;
 
     // token owner is correct
     assert(
@@ -2742,7 +2753,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[2]
-    );
+    ) as RedeemableERC20;
 
     // non-creator cannot add unfreezable, (no one but owner can add unfreezables)
     await Util.assertError(
@@ -2845,7 +2856,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
     const blockBeforeRaiseSetup = await ethers.provider.getBlockNumber();
@@ -2942,7 +2953,7 @@ describe("Trust", async function () {
         initialValuation,
         finalValuation: successLevel,
       }
-    );
+    ) as Promise<Trust>;
 
     await Util.assertError(
       async () => (await trustPromise) as Trust,
@@ -3043,7 +3054,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
 
     // seeder must transfer before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -3066,7 +3077,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20;
 
     const trustPool = new ethers.Contract(
       await trust.pool(),
@@ -3144,7 +3155,7 @@ describe("Trust", async function () {
       await trust.pool(),
       poolJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20Pool;
 
     const balancerPoolReserveBalance = await reserve.balanceOf(
       await bPool.address
@@ -3274,12 +3285,12 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[2]
-    );
+    ) as RedeemableERC20;
     const token2 = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
       signers[3]
-    );
+    ) as RedeemableERC20;
 
     // redeem all
     await token1.senderRedeem(hodler1EndingTokenBalance);
@@ -3415,7 +3426,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
 
     // seeder must transfer before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -3438,7 +3449,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[0]
-    );
+    ) as RedeemableERC20;
 
     const trustPool = new ethers.Contract(
       await trust.pool(),
@@ -3634,12 +3645,12 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[2]
-    );
+    ) as RedeemableERC20;
     const token2 = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
       signers[3]
-    );
+    ) as RedeemableERC20;
 
     // redeem all
     await token1.senderRedeem(hodler1EndingTokenBalance);
@@ -3734,7 +3745,7 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await trustFactory.deploy(
+    const trust = (await trustFactory.deploy(
       {
         creator: signers[0].address,
         minimumCreatorRaise: minimumCreatorRaise,
@@ -3760,7 +3771,7 @@ describe("Trust", async function () {
         initialValuation,
         finalValuation: successLevel,
       }
-    );
+    )) as Trust;
 
     await trust.deployed();
 
@@ -3771,7 +3782,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
 
     const seederReserveBeforeStart = await reserve.balanceOf(seeder);
 
@@ -4240,7 +4251,7 @@ describe("Trust", async function () {
       reserve.address,
       reserve.interface,
       signers[1]
-    );
+    ) as ReserveToken;
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
     await trust.anonStartDistribution({
@@ -4253,7 +4264,7 @@ describe("Trust", async function () {
       trust.address,
       trust.interface,
       signers[2]
-    );
+    ) as Trust;
     // some other signer triggers trust to exit before unblock, should fail
     await Util.assertError(
       async () => await trust2.anonEndDistribution(),
@@ -4439,7 +4450,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[1]
-    );
+    ) as RedeemableERC20;
     await token1.senderRedeem(await token1.balanceOf(signers[1].address));
     const reserveBalance1 = await reserve.balanceOf(signers[1].address);
     const expectedBalance1 = "1829852661873618767643";
@@ -4452,7 +4463,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[2]
-    );
+    ) as RedeemableERC20;
     await token2.senderRedeem(await token2.balanceOf(signers[2].address));
     const reserveBalance2 = await reserve.balanceOf(signers[2].address);
     const expectedBalance2 = "170145949097001906142";
@@ -4609,7 +4620,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[1]
-    );
+    ) as RedeemableERC20;
     await token1.senderRedeem(await token1.balanceOf(signers[1].address));
     const reserveBalance1 = await reserve.balanceOf(signers[1].address);
     const expectedBalance1 = "841320926251152929583";
@@ -4622,7 +4633,7 @@ describe("Trust", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       signers[2]
-    );
+    ) as RedeemableERC20;
     await token2.senderRedeem(await token1.balanceOf(signers[2].address));
     const reserveBalance2 = await reserve.balanceOf(signers[2].address);
     const expectedBalance2 = "2158594779527790295800";

@@ -8,6 +8,8 @@ import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { Trust } from "../typechain/Trust";
 import type { BPool } from "../typechain/BPool";
 import type { SeedERC20Reentrant } from "../typechain/SeedERC20Reentrant";
+import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -122,8 +124,16 @@ describe("TrustReentrant", async function () {
       redeemableTokenJson.abi,
       creator
     ) as RedeemableERC20;
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator);
-    const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator);
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+    const crp = new ethers.Contract(
+      await pool.crp(),
+      crpJson.abi,
+      creator
+    ) as ConfigurableRightsPool;
 
     await maliciousReserve.addReentrantTarget(trust.address);
 

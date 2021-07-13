@@ -287,7 +287,7 @@ describe("TrustTrade", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -412,7 +412,7 @@ describe("TrustTrade", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -698,7 +698,7 @@ describe("TrustTrade", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -958,7 +958,7 @@ describe("TrustTrade", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);

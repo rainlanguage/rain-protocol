@@ -5,7 +5,7 @@ pragma solidity ^0.6.12;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ReserveToken } from "./ReserveToken.sol";
-import { RedeemableERC20 } from "../RedeemableERC20.sol";
+import { RedeemableERC20, ERC20 } from "../RedeemableERC20.sol";
 
 /// @title RedeemableERC20Reentrant
 /// Test contract that attempts to call reentrant code on `RedeemableERC20`.
@@ -13,10 +13,12 @@ import { RedeemableERC20 } from "../RedeemableERC20.sol";
 contract RedeemableERC20Reentrant is ReserveToken {
     RedeemableERC20 private redeemableERC20Contract;
 
+    /// Configures the contract to attempt to reenter.
     constructor(RedeemableERC20 redeemableERC20Contract_) public ReserveToken() {
         redeemableERC20Contract = redeemableERC20Contract_;
     }
 
+    /// @inheritdoc ERC20
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
