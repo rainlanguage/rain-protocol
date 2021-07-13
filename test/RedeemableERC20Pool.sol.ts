@@ -3,10 +3,9 @@ import chai, { util } from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../typechain/ReserveToken";
-import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { Prestige } from "../typechain/Prestige";
-import { recoverAddress } from "@ethersproject/transactions";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -68,14 +67,14 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const nextPhaseBlock = now + 50;
 
-    const redeemable = await redeemableFactory.deploy({
+    const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemable.deployed();
     await redeemable.ownerScheduleNextPhase(nextPhaseBlock);
@@ -147,14 +146,14 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const raiseEndBlock = now + 50;
 
-    const redeemable = await redeemableFactory.deploy({
+    const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemable.deployed();
 
@@ -319,14 +318,14 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const raiseEndBlock = now + 50;
 
-    const redeemable = await redeemableFactory.deploy({
+    const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemable.deployed();
     await redeemable.ownerScheduleNextPhase(raiseEndBlock);
@@ -475,14 +474,14 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + 15;
 
-    const redeemable = await redeemableFactory.deploy({
+    const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemable.deployed();
     await redeemable.ownerScheduleNextPhase(phaseOneBlock);
@@ -614,13 +613,13 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + 15;
 
-    const redeemable = await redeemableFactory.deploy({
+    const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemable.deployed();
     await redeemable.ownerScheduleNextPhase(phaseOneBlock);
@@ -735,13 +734,13 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + 15;
 
-    const redeemable = await redeemableFactory.deploy({
+    const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemable.deployed();
     await redeemable.ownerScheduleNextPhase(phaseOneBlock);
@@ -769,7 +768,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => {
-        const pool = await poolFactory.deploy({
+        const pool = (await poolFactory.deploy({
           crpFactory: crpFactory.address,
           balancerFactory: bFactory.address,
           token: redeemable.address,
@@ -777,7 +776,7 @@ describe("RedeemableERC20Pool", async function () {
           reserveInit: reserveInit,
           initialValuation: initialValuation,
           finalValuation: finalValuation,
-        });
+        })) as RedeemableERC20Pool;
         await pool.deployed();
       },
       "revert RESERVE_INIT_0",
@@ -822,13 +821,13 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + 15;
 
-    const redeemable = await redeemableFactory.deploy({
+    const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemable.deployed();
     await redeemable.ownerScheduleNextPhase(phaseOneBlock);
@@ -856,7 +855,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => {
-        const pool = await poolFactory.deploy({
+        const pool = (await poolFactory.deploy({
           crpFactory: crpFactory.address,
           balancerFactory: bFactory.address,
           token: redeemable.address,
@@ -864,7 +863,7 @@ describe("RedeemableERC20Pool", async function () {
           reserveInit: reserveInit,
           initialValuation: initialValuation,
           finalValuation: finalValuation,
-        });
+        })) as RedeemableERC20Pool;
         await pool.deployed();
       },
       "revert TOKEN_INIT_0",
@@ -911,13 +910,13 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + 15;
 
-    const redeemable = await redeemableFactory.deploy({
+    const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
-    });
+    })) as RedeemableERC20;
 
     await redeemable.deployed();
     await redeemable.ownerScheduleNextPhase(phaseOneBlock);
@@ -943,7 +942,7 @@ describe("RedeemableERC20Pool", async function () {
       },
     });
 
-    await poolFactory.deploy({
+    (await poolFactory.deploy({
       crpFactory: crpFactory.address,
       balancerFactory: bFactory.address,
       token: redeemable.address,
@@ -951,6 +950,6 @@ describe("RedeemableERC20Pool", async function () {
       reserveInit: reserveInit,
       initialValuation: initialValuation,
       finalValuation: finalValuation,
-    });
+    })) as RedeemableERC20Pool;
   });
 });

@@ -6,6 +6,7 @@ import type { ReserveToken } from "../typechain/ReserveToken";
 import type { SeedERC20 } from "../typechain/SeedERC20";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { Trust } from "../typechain/Trust";
 
 chai.use(solidity);
@@ -112,7 +113,7 @@ describe("TrustSeed", async function () {
       deployer
     );
 
-    const trust = await trustFactory1.deploy(
+    const trust = (await trustFactory1.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -138,7 +139,7 @@ describe("TrustSeed", async function () {
         initialValuation,
         finalValuation,
       }
-    );
+    )) as Trust;
     await trust.deployed();
 
     const seeder = (await trust.config()).seeder;
@@ -577,7 +578,7 @@ describe("TrustSeed", async function () {
       (await trust.config()).seeder,
       seedERC20Json.abi,
       signers[0]
-    );
+    ) as SeedERC20;
 
     const seeder1Units = 4;
     const seeder2Units = 6;
@@ -714,7 +715,7 @@ describe("TrustSeed", async function () {
         await trust.token(),
         redeemableTokenJson.abi,
         creator
-      );
+      ) as RedeemableERC20;
       const pool = new ethers.Contract(
         await trust.pool(),
         poolJson.abi,

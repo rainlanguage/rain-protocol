@@ -8,6 +8,7 @@ import { utils } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import type { SeedERC20 } from "../typechain/SeedERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -144,7 +145,7 @@ describe("TrustDistribute", async function () {
         reserve.address,
         reserve.interface,
         seeder
-      );
+      ) as ReserveToken;
 
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -167,7 +168,7 @@ describe("TrustDistribute", async function () {
         await trust.token(),
         redeemableTokenJson.abi,
         creator
-      );
+      ) as RedeemableERC20;
       const pool = new ethers.Contract(
         await trust.pool(),
         poolJson.abi,
@@ -331,7 +332,7 @@ describe("TrustDistribute", async function () {
         reserve.address,
         reserve.interface,
         seeder
-      );
+      ) as ReserveToken;
 
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -481,7 +482,7 @@ describe("TrustDistribute", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer funds before pool can init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -494,7 +495,7 @@ describe("TrustDistribute", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
@@ -654,7 +655,7 @@ describe("TrustDistribute", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    );
+    ) as ReserveToken;
 
     // seeder must transfer seed funds before pool can init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -803,7 +804,7 @@ describe("TrustDistribute", async function () {
         reserve.address,
         reserve.interface,
         seeder
-      );
+      ) as ReserveToken;
 
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -967,7 +968,7 @@ describe("TrustDistribute", async function () {
         reserve.address,
         reserve.interface,
         seeder
-      );
+      ) as ReserveToken;
 
       // seeder must transfer seed funds before pool init
       await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -980,7 +981,7 @@ describe("TrustDistribute", async function () {
         await trust.token(),
         redeemableTokenJson.abi,
         creator
-      );
+      ) as RedeemableERC20;
       const pool = new ethers.Contract(
         await trust.pool(),
         poolJson.abi,
