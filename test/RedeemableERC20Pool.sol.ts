@@ -110,31 +110,44 @@ describe("RedeemableERC20Pool", async function () {
     });
 
     const expectedStartBlock = await ethers.provider.getBlockNumber();
+    const expectedEndBlock = nextPhaseBlock + 1;
 
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
-    // FIXME: change to fetch startBlock from wherever this number should be stored
-    const actualStartBlock = (await crp.gradualUpdate()).startBlock;
+    const actualStartBlock = await pool.phaseBlocks(0);
+    const actualEndBlock = await pool.phaseBlocks(1);
 
     assert(
-      actualStartBlock.eq(expectedStartBlock),
-      `wrong start block from crp.gradualUpdate
+      expectedStartBlock === actualStartBlock,
+      `wrong start block from pool.phaseBlocks
       expected ${expectedStartBlock} got ${actualStartBlock}`
     );
+
+    assert(
+      expectedEndBlock === actualEndBlock,
+      `wrong end block from pool.phaseBlocks
+      expected ${expectedEndBlock} got ${actualEndBlock}`
+    )
 
     while ((await ethers.provider.getBlockNumber()) <= nextPhaseBlock + 2) {
       await crp.pokeWeights();
 
-      // FIXME: change to fetch startBlock from wherever this number should be stored
-      const actualStartBlock = (await crp.gradualUpdate()).startBlock;
+      const actualStartBlock = await pool.phaseBlocks(0);
+      const actualEndBlock = await pool.phaseBlocks(1);
 
       assert(
-        actualStartBlock.eq(expectedStartBlock),
-        `wrong start block from crp.gradualUpdate after pokeWeights
+        actualStartBlock === expectedStartBlock,
+        `wrong start block from pool.phaseBlocks after pokeWeights
         expected ${expectedStartBlock} got ${actualStartBlock}
         current block ${await ethers.provider.getBlockNumber()}
         final auction block ${nextPhaseBlock}`
       );
+
+      assert(
+        expectedEndBlock === actualEndBlock,
+        `wrong end block from pool.phaseBlocks after pokeWeights
+        expected ${expectedEndBlock} got ${actualEndBlock}`
+      )
     }
   });
 
