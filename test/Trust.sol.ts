@@ -1056,7 +1056,8 @@ describe("Trust", async function () {
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     assert(
-      distributionProgressTrading.distributionStatus === DistributionStatus.TRADING,
+      distributionProgressTrading.distributionStatus ===
+        DistributionStatus.TRADING,
       `did not get correct value for DistributionProgress.distributionStatus on starting raise
     expected  ${DistributionStatus.TRADING}
     got       ${distributionProgressTrading.distributionStatus}
@@ -1065,7 +1066,7 @@ describe("Trust", async function () {
 
     assert(
       distributionStartBlock ===
-      distributionProgressTrading.distributionStartBlock,
+        distributionProgressTrading.distributionStartBlock,
       `did not get correct value for DistributionProgress.distributionStartBlock on starting raise
     expected  ${distributionStartBlock}
     got       ${distributionProgressTrading.distributionStartBlock}
@@ -1073,8 +1074,7 @@ describe("Trust", async function () {
     );
 
     assert(
-      distributionEndBlock ===
-      distributionProgressTrading.distributionEndBlock,
+      distributionEndBlock === distributionProgressTrading.distributionEndBlock,
       `did not get correct value for DistributionProgress.distributionEndBlock on starting raise
     expected  ${distributionEndBlock}
     got       ${distributionProgressTrading.distributionEndBlock}
@@ -1127,7 +1127,8 @@ describe("Trust", async function () {
       await trust.getDistributionProgress();
 
     assert(
-      distributionProgressSwap.distributionStatus === DistributionStatus.TRADING,
+      distributionProgressSwap.distributionStatus ===
+        DistributionStatus.TRADING,
       `did not get correct value for DistributionProgress.distributionStatus after a swap
     expected  ${DistributionStatus.TRADING}
     got       ${distributionProgressSwap.distributionStatus}
@@ -1136,7 +1137,7 @@ describe("Trust", async function () {
 
     assert(
       distributionStartBlock ===
-      distributionProgressSwap.distributionStartBlock,
+        distributionProgressSwap.distributionStartBlock,
       `did not get correct value for DistributionProgress.distributionStartBlock after a swap
     expected  ${distributionStartBlock}
     got       ${distributionProgressSwap.distributionStartBlock}
@@ -1144,8 +1145,7 @@ describe("Trust", async function () {
     );
 
     assert(
-      distributionEndBlock ===
-      distributionProgressSwap.distributionEndBlock,
+      distributionEndBlock === distributionProgressSwap.distributionEndBlock,
       `did not get correct value for DistributionProgress.distributionEndBlock after a swap
     expected  ${distributionEndBlock}
     got       ${distributionProgressSwap.distributionEndBlock}
