@@ -807,7 +807,7 @@ describe("Trust", async function () {
     )) as Trust;
   });
 
-  it.only("should include correct values when calling getDistributionProgress", async function () {
+  it("should include correct values when calling getDistributionProgress", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1029,12 +1029,12 @@ describe("Trust", async function () {
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
-    const raiseProgressTrading: DistributionProgress =
+    const distributionProgressTrading: DistributionProgress =
       await trust.getDistributionProgress();
 
     const distributionStartBlock = await ethers.provider.getBlockNumber();
     const distributionEndBlock =
-      distributionStartBlock + minimumTradingDuration;
+      distributionStartBlock + minimumTradingDuration + 1;
 
     const token = new ethers.Contract(
       await trust.token(),
@@ -1045,49 +1045,49 @@ describe("Trust", async function () {
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     assert(
-      raiseProgressTrading.distributionStatus === DistributionStatus.TRADING,
+      distributionProgressTrading.distributionStatus === DistributionStatus.TRADING,
       `did not get correct value for DistributionProgress.distributionStatus on starting raise
     expected  ${DistributionStatus.TRADING}
-    got       ${raiseProgressTrading.distributionStatus}
+    got       ${distributionProgressTrading.distributionStatus}
     `
     );
 
     assert(
       distributionStartBlock ===
-        distributionProgressDeployed.distributionStartBlock,
+      distributionProgressTrading.distributionStartBlock,
       `did not get correct value for DistributionProgress.distributionStartBlock on starting raise
     expected  ${distributionStartBlock}
-    got       ${distributionProgressDeployed.distributionStartBlock}
+    got       ${distributionProgressTrading.distributionStartBlock}
     `
     );
 
     assert(
       distributionEndBlock ===
-        distributionProgressDeployed.distributionEndBlock,
+      distributionProgressTrading.distributionEndBlock,
       `did not get correct value for DistributionProgress.distributionEndBlock on starting raise
     expected  ${distributionEndBlock}
-    got       ${distributionProgressDeployed.distributionEndBlock}
+    got       ${distributionProgressTrading.distributionEndBlock}
     `
     );
 
     assert(
-      raiseProgressTrading.poolReserveBalance.eq(reserveInit),
+      distributionProgressTrading.poolReserveBalance.eq(reserveInit),
       `did not get correct value for poolReserveBalance on starting raise
     expected  ${reserveInit}
-    got       ${raiseProgressTrading.poolReserveBalance}
+    got       ${distributionProgressTrading.poolReserveBalance}
     `
     );
 
     assert(
-      raiseProgressTrading.poolTokenBalance.eq(
+      distributionProgressTrading.poolTokenBalance.eq(
         await token.balanceOf(bPool.address)
       ),
       `did not get correct value for poolTokenBalance on starting raise
     expected    ${await token.balanceOf(bPool.address)}
-    got         ${raiseProgressTrading.poolTokenBalance}
+    got         ${distributionProgressTrading.poolTokenBalance}
     `
     );
-    assert(raiseProgressTrading.poolTokenBalance.eq(totalTokenSupply));
+    assert(distributionProgressTrading.poolTokenBalance.eq(totalTokenSupply));
 
     const swapReserveForTokens = async (hodler, spend) => {
       // give hodler some reserve
@@ -1112,53 +1112,53 @@ describe("Trust", async function () {
 
     await swapReserveForTokens(hodler1, spend);
 
-    const raiseProgressSwap: DistributionProgress =
+    const distributionProgressSwap: DistributionProgress =
       await trust.getDistributionProgress();
 
     assert(
-      raiseProgressSwap.distributionStatus === DistributionStatus.TRADING,
+      distributionProgressSwap.distributionStatus === DistributionStatus.TRADING,
       `did not get correct value for DistributionProgress.distributionStatus after a swap
     expected  ${DistributionStatus.TRADING}
-    got       ${raiseProgressSwap.distributionStatus}
+    got       ${distributionProgressSwap.distributionStatus}
     `
     );
 
     assert(
       distributionStartBlock ===
-        distributionProgressDeployed.distributionStartBlock,
+      distributionProgressSwap.distributionStartBlock,
       `did not get correct value for DistributionProgress.distributionStartBlock after a swap
     expected  ${distributionStartBlock}
-    got       ${distributionProgressDeployed.distributionStartBlock}
+    got       ${distributionProgressSwap.distributionStartBlock}
     `
     );
 
     assert(
       distributionEndBlock ===
-        distributionProgressDeployed.distributionEndBlock,
+      distributionProgressSwap.distributionEndBlock,
       `did not get correct value for DistributionProgress.distributionEndBlock after a swap
     expected  ${distributionEndBlock}
-    got       ${distributionProgressDeployed.distributionEndBlock}
+    got       ${distributionProgressSwap.distributionEndBlock}
     `
     );
 
     assert(
-      raiseProgressSwap.poolReserveBalance.eq(reserveInit.add(spend)),
+      distributionProgressSwap.poolReserveBalance.eq(reserveInit.add(spend)),
       `did not get correct value for poolReserveBalance after a swap
     expected  ${reserveInit.add(spend)}
-    got       ${raiseProgressSwap.poolReserveBalance}
+    got       ${distributionProgressSwap.poolReserveBalance}
     `
     );
 
     assert(
-      raiseProgressSwap.poolTokenBalance.eq(
+      distributionProgressSwap.poolTokenBalance.eq(
         await token.balanceOf(bPool.address)
       ),
       `did not get correct value for poolTokenBalance after a swap
     expected    ${await token.balanceOf(bPool.address)}
-    got         ${raiseProgressSwap.poolTokenBalance}
+    got         ${distributionProgressSwap.poolTokenBalance}
     `
     );
-    assert(raiseProgressSwap.poolTokenBalance.lt(totalTokenSupply));
+    assert(distributionProgressSwap.poolTokenBalance.lt(totalTokenSupply));
   });
 
   it("should succeed if minimum raise hit exactly (i.e. dust left in pool doesn't cause issues)", async function () {
