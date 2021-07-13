@@ -9,6 +9,34 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 describe("SeedERC20", async function () {
+  it("should have 0 decimals", async () => {
+    const signers = await ethers.getSigners();
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const seedPrice = 100;
+    const seedUnits = 10;
+    const cooldownDuration = 1;
+
+    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
+    const seedERC20 = (await seedERC20Factory.deploy({
+      reserve: reserve.address,
+      recipient: signers[9].address,
+      seedPrice,
+      seedUnits,
+      cooldownDuration,
+      name: "seed",
+      symbol: "SD",
+    })) as SeedERC20;
+
+    // SeedERC20 has 0 decimals
+    const decimals = await seedERC20.decimals();
+    assert(decimals === 0, `expected 0 decimals, got ${decimals}`);
+  });
+
   it("should allow specifing a min/max units to seed", async function () {
     const signers = await ethers.getSigners();
     const bob = signers[1];
