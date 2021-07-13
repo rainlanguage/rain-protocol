@@ -61,6 +61,12 @@ enum DistributionStatus {
 struct DistributionProgress {
     // `DistributionStatus` as above.
     DistributionStatus distributionStatus;
+    // First block that the distribution can be traded.
+    // Will be `0` before trading.
+    uint32 distributionStartBlock;
+    // First block that the distribution can be ended.
+    // Will be `0` before trading.
+    uint32 distributionEndBlock;
     // Current reserve balance in the Balancer pool.
     // Will be `0` before trading.
     // Will be the exit dust after trading.
@@ -287,6 +293,8 @@ contract Trust is ReentrancyGuard {
 
         return DistributionProgress(
             getDistributionStatus(),
+            pool.phaseBlocks(0),
+            pool.phaseBlocks(1),
             poolReserveBalance_,
             poolTokenBalance_,
             pool.reserveInit(),
