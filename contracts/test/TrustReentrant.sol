@@ -2,7 +2,7 @@
 
 pragma solidity ^0.6.12;
 
-import { ReserveToken } from "./ReserveToken.sol";
+import { ReserveToken, ERC20 } from "./ReserveToken.sol";
 import { Trust } from "../Trust.sol";
 
 /// @title TrustReentrant
@@ -11,10 +11,13 @@ import { Trust } from "../Trust.sol";
 contract TrustReentrant is ReserveToken {
     Trust private trustContract;
 
+    /// Set the contract to attempt to reenter.
+    /// @param trustContract_ Trust to reenter.
     function addReentrantTarget(Trust trustContract_) external {
         trustContract = trustContract_;
     }
 
+    /// @inheritdoc ERC20
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
