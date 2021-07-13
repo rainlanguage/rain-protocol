@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type { ReserveToken } from "../typechain/ReserveToken";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { Prestige } from "../typechain/Prestige";
 import { recoverAddress } from "@ethersproject/transactions";
 
@@ -29,6 +30,114 @@ const reserveJson = require("../artifacts/contracts/test/ReserveToken.sol/Reserv
 const redeemableTokenJson = require("../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
 
 describe("RedeemableERC20Pool", async function () {
+  it("should safely poke weights after minimum trade duration", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const prestigeFactory = await ethers.getContractFactory("Prestige");
+    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const minimumStatus = 0;
+
+    const redeemableFactory = await ethers.getContractFactory(
+      "RedeemableERC20"
+    );
+
+    const reserveInit = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemInit = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const totalTokenSupply = ethers.BigNumber.from(
+      "20000" + Util.eighteenZeros
+    );
+    const minRaise = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+
+    const initialValuation = ethers.BigNumber.from(
+      "100000" + Util.eighteenZeros
+    );
+    // Same logic used by trust.
+    const finalValuation = minRaise.add(redeemInit);
+
+    const tokenName = "RedeemableERC20";
+    const tokenSymbol = "RDX";
+
+    const firstBlock = await ethers.provider.getBlockNumber();
+    const nextPhaseBlock = firstBlock + 10;
+
+    const redeemable = (await redeemableFactory.deploy({
+      name: tokenName,
+      symbol: tokenSymbol,
+      reserve: reserve.address,
+      prestige: prestige.address,
+      minimumStatus: minimumStatus,
+      totalSupply: totalTokenSupply,
+    })) as RedeemableERC20;
+
+    await redeemable.deployed();
+    await redeemable.ownerScheduleNextPhase(nextPhaseBlock);
+
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
+      libraries: {
+        RightsManager: rightsManager.address,
+      },
+    });
+
+    const pool = (await poolFactory.deploy({
+      crpFactory: crpFactory.address,
+      balancerFactory: bFactory.address,
+      token: redeemable.address,
+      reserve: reserve.address,
+      reserveInit: reserveInit,
+      initialValuation: initialValuation,
+      finalValuation: finalValuation,
+    })) as RedeemableERC20Pool;
+
+    await pool.deployed();
+
+    // Trust normally does this internally.
+    await redeemable.transfer(pool.address, await redeemable.totalSupply());
+
+    await reserve.transfer(pool.address, reserveInit);
+    await redeemable.approve(pool.address, totalTokenSupply);
+
+    await pool.ownerStartDutchAuction(nextPhaseBlock, {
+      gasLimit: 10000000,
+    });
+
+    const expectedStartBlock = await ethers.provider.getBlockNumber();
+
+    let [crp, bPool] = await Util.poolContracts(signers, pool);
+
+    // FIXME: change to fetch startBlock from wherever this number should be stored
+    const actualStartBlock = (await crp.gradualUpdate()).startBlock;
+
+    assert(
+      actualStartBlock.eq(expectedStartBlock),
+      `wrong start block from crp.gradualUpdate
+      expected ${expectedStartBlock} got ${actualStartBlock}`
+    );
+
+    while ((await ethers.provider.getBlockNumber()) <= nextPhaseBlock + 2) {
+      await crp.pokeWeights();
+
+      // FIXME: change to fetch startBlock from wherever this number should be stored
+      const actualStartBlock = (await crp.gradualUpdate()).startBlock;
+
+      assert(
+        actualStartBlock.eq(expectedStartBlock),
+        `wrong start block from crp.gradualUpdate after pokeWeights
+        expected ${expectedStartBlock} got ${actualStartBlock}
+        current block ${await ethers.provider.getBlockNumber()}
+        final auction block ${nextPhaseBlock}`
+      );
+    }
+  });
+
   it("should expose correct final weight", async function () {
     this.timeout(0);
 
