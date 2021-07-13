@@ -127,7 +127,7 @@ describe("RedeemableERC20Pool", async function () {
       expectedEndBlock === actualEndBlock,
       `wrong end block from pool.phaseBlocks
       expected ${expectedEndBlock} got ${actualEndBlock}`
-    )
+    );
 
     while ((await ethers.provider.getBlockNumber()) <= nextPhaseBlock + 2) {
       await crp.pokeWeights();
@@ -147,7 +147,7 @@ describe("RedeemableERC20Pool", async function () {
         expectedEndBlock === actualEndBlock,
         `wrong end block from pool.phaseBlocks after pokeWeights
         expected ${expectedEndBlock} got ${actualEndBlock}`
-      )
+      );
     }
   });
 
