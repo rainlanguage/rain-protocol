@@ -45,6 +45,11 @@ export const eighteenZeros = "000000000000000000";
 
 export const ONE = ethers.BigNumber.from("1" + eighteenZeros);
 
+export const max_uint256 = ethers.BigNumber.from(
+  "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+);
+export const max_uint32 = ethers.BigNumber.from("0xffffffff");
+
 export const assertError = async (f: Function, s: string, e: string) => {
   let didError = false;
   try {
