@@ -8,6 +8,7 @@ import { utils } from "ethers";
 import type { BigNumber } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import { max_uint32 } from "./Util";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { SeedERC20 } from "../typechain/SeedERC20";
@@ -57,6 +58,8 @@ enum Phase {
 
 interface DistributionProgress {
   distributionStatus: DistributionStatus;
+  distributionStartBlock: number;
+  distributionEndBlock: number;
   poolReserveBalance: BigNumber;
   poolTokenBalance: BigNumber;
   reserveInit: BigNumber;
@@ -909,8 +912,24 @@ describe("Trust", async function () {
       distributionProgressDeployed.distributionStatus ===
         DistributionStatus.PENDING,
       `did not get correct value for DistributionProgress.distributionStatus on deploy
-    expected  ${DistributionStatus.PENDING}
-    got       ${distributionProgressDeployed.distributionStatus}
+      expected  ${DistributionStatus.PENDING}
+      got       ${distributionProgressDeployed.distributionStatus}
+      `
+    );
+
+    assert(
+      max_uint32.eq(distributionProgressDeployed.distributionStartBlock),
+      `did not get correct value for DistributionProgress.distributionStartBlock on deploy
+    expected  ${max_uint32}
+    got       ${distributionProgressDeployed.distributionStartBlock}
+    `
+    );
+
+    assert(
+      max_uint32.eq(distributionProgressDeployed.distributionEndBlock),
+      `did not get correct value for DistributionProgress.distributionEndBlock on deploy
+    expected  ${max_uint32}
+    got       ${distributionProgressDeployed.distributionEndBlock}
     `
     );
 
@@ -991,6 +1010,22 @@ describe("Trust", async function () {
     `
     );
 
+    assert(
+      max_uint32.eq(distributionProgressDeployed.distributionStartBlock),
+      `did not get correct value for DistributionProgress.distributionStartBlock on seeding pool
+    expected  ${max_uint32}
+    got       ${distributionProgressDeployed.distributionStartBlock}
+    `
+    );
+
+    assert(
+      max_uint32.eq(distributionProgressDeployed.distributionEndBlock),
+      `did not get correct value for DistributionProgress.distributionEndBlock on seeding pool
+    expected  ${max_uint32}
+    got       ${distributionProgressDeployed.distributionEndBlock}
+    `
+    );
+
     // poolReserveBalance is actually the bPool balance, but bPool doesn't exist
     // since raise hasn't started yet, this value is actually zero
     assert(raiseProgressSeeded.poolReserveBalance.isZero());
@@ -1005,10 +1040,12 @@ describe("Trust", async function () {
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
-    const raiseProgressTrading: DistributionProgress =
+    const distributionProgressTrading: DistributionProgress =
       await trust.getDistributionProgress();
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const distributionStartBlock = await ethers.provider.getBlockNumber();
+    const distributionEndBlock =
+      distributionStartBlock + minimumTradingDuration + 1;
 
     const token = new ethers.Contract(
       await trust.token(),
@@ -1019,31 +1056,49 @@ describe("Trust", async function () {
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     assert(
-      raiseProgressTrading.distributionStatus === DistributionStatus.TRADING,
+      distributionProgressTrading.distributionStatus ===
+        DistributionStatus.TRADING,
       `did not get correct value for DistributionProgress.distributionStatus on starting raise
     expected  ${DistributionStatus.TRADING}
-    got       ${raiseProgressTrading.distributionStatus}
+    got       ${distributionProgressTrading.distributionStatus}
     `
     );
 
     assert(
-      raiseProgressTrading.poolReserveBalance.eq(reserveInit),
+      distributionStartBlock ===
+        distributionProgressTrading.distributionStartBlock,
+      `did not get correct value for DistributionProgress.distributionStartBlock on starting raise
+    expected  ${distributionStartBlock}
+    got       ${distributionProgressTrading.distributionStartBlock}
+    `
+    );
+
+    assert(
+      distributionEndBlock === distributionProgressTrading.distributionEndBlock,
+      `did not get correct value for DistributionProgress.distributionEndBlock on starting raise
+    expected  ${distributionEndBlock}
+    got       ${distributionProgressTrading.distributionEndBlock}
+    `
+    );
+
+    assert(
+      distributionProgressTrading.poolReserveBalance.eq(reserveInit),
       `did not get correct value for poolReserveBalance on starting raise
     expected  ${reserveInit}
-    got       ${raiseProgressTrading.poolReserveBalance}
+    got       ${distributionProgressTrading.poolReserveBalance}
     `
     );
 
     assert(
-      raiseProgressTrading.poolTokenBalance.eq(
+      distributionProgressTrading.poolTokenBalance.eq(
         await token.balanceOf(bPool.address)
       ),
       `did not get correct value for poolTokenBalance on starting raise
     expected    ${await token.balanceOf(bPool.address)}
-    got         ${raiseProgressTrading.poolTokenBalance}
+    got         ${distributionProgressTrading.poolTokenBalance}
     `
     );
-    assert(raiseProgressTrading.poolTokenBalance.eq(totalTokenSupply));
+    assert(distributionProgressTrading.poolTokenBalance.eq(totalTokenSupply));
 
     const swapReserveForTokens = async (hodler, spend) => {
       // give hodler some reserve
@@ -1068,35 +1123,53 @@ describe("Trust", async function () {
 
     await swapReserveForTokens(hodler1, spend);
 
-    const raiseProgressSwap: DistributionProgress =
+    const distributionProgressSwap: DistributionProgress =
       await trust.getDistributionProgress();
 
     assert(
-      raiseProgressSwap.distributionStatus === DistributionStatus.TRADING,
+      distributionProgressSwap.distributionStatus ===
+        DistributionStatus.TRADING,
       `did not get correct value for DistributionProgress.distributionStatus after a swap
     expected  ${DistributionStatus.TRADING}
-    got       ${raiseProgressSwap.distributionStatus}
+    got       ${distributionProgressSwap.distributionStatus}
     `
     );
 
     assert(
-      raiseProgressSwap.poolReserveBalance.eq(reserveInit.add(spend)),
+      distributionStartBlock ===
+        distributionProgressSwap.distributionStartBlock,
+      `did not get correct value for DistributionProgress.distributionStartBlock after a swap
+    expected  ${distributionStartBlock}
+    got       ${distributionProgressSwap.distributionStartBlock}
+    `
+    );
+
+    assert(
+      distributionEndBlock === distributionProgressSwap.distributionEndBlock,
+      `did not get correct value for DistributionProgress.distributionEndBlock after a swap
+    expected  ${distributionEndBlock}
+    got       ${distributionProgressSwap.distributionEndBlock}
+    `
+    );
+
+    assert(
+      distributionProgressSwap.poolReserveBalance.eq(reserveInit.add(spend)),
       `did not get correct value for poolReserveBalance after a swap
     expected  ${reserveInit.add(spend)}
-    got       ${raiseProgressSwap.poolReserveBalance}
+    got       ${distributionProgressSwap.poolReserveBalance}
     `
     );
 
     assert(
-      raiseProgressSwap.poolTokenBalance.eq(
+      distributionProgressSwap.poolTokenBalance.eq(
         await token.balanceOf(bPool.address)
       ),
       `did not get correct value for poolTokenBalance after a swap
     expected    ${await token.balanceOf(bPool.address)}
-    got         ${raiseProgressSwap.poolTokenBalance}
+    got         ${distributionProgressSwap.poolTokenBalance}
     `
     );
-    assert(raiseProgressSwap.poolTokenBalance.lt(totalTokenSupply));
+    assert(distributionProgressSwap.poolTokenBalance.lt(totalTokenSupply));
   });
 
   it("should succeed if minimum raise hit exactly (i.e. dust left in pool doesn't cause issues)", async function () {
