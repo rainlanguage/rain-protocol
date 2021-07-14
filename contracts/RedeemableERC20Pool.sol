@@ -3,6 +3,8 @@ pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
+
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
@@ -91,7 +93,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
 
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
     constructor (Config memory config_) public {
-        require(config_.reserveInit > 0, "RESERVE_INIT_0");
+        require(config_.reserveInit > 10 ** 8, "RESERVE_INIT_MINIMUM");
 
         token = config_.token;
         reserve = config_.reserve;
@@ -204,6 +206,10 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // Move to Phase.THREE immediately.
         // In Phase.THREE all `RedeemableERC20Pool` functions are no longer callable.
         scheduleNextPhase(uint32(block.number));
+
+        uint256 finalReserveBalance_ = reserve.balanceOf(address(crp.bPool()));
+        uint256 balanceLimit_ = BalancerConstants.MIN_BALANCE.div(finalReserveBalance_);
+        console.log("%s", balanceLimit_);
 
         // It is not possible to destroy a Balancer pool completely with an exit afaik.
         // This removes as much as is allowable which leaves about 10^-7 of the supply behind as dust.
