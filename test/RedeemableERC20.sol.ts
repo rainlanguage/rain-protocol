@@ -33,7 +33,7 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
-  it("should have 0 decimals", async () => {
+  it("should have 18 decimals", async () => {
     const prestigeFactory = await ethers.getContractFactory("Prestige");
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
