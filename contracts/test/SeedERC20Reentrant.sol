@@ -14,7 +14,8 @@ contract SeedERC20Reentrant is ReserveToken {
     enum Method {
         UNINITIALIZED,
         SEED,
-        UNSEED
+        UNSEED,
+        REDEEM
     }
 
     Method public methodTarget;
@@ -44,6 +45,9 @@ contract SeedERC20Reentrant is ReserveToken {
         } else if (methodTarget == Method.UNSEED && sender_ == address(seedERC20Contract)) {
             // This call MUST fail.
             seedERC20Contract.unseed(1);
+        } else if (methodTarget == Method.REDEEM && sender_ == address(seedERC20Contract)) {
+            // This call MUST fail.
+            seedERC20Contract.redeem(1);
         }
     }
 }
