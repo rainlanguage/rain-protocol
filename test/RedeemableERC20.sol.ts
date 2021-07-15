@@ -61,6 +61,60 @@ describe("RedeemableERC20", async function () {
     assert(decimals === 18, `expected 18 decimals, got ${decimals}`);
   });
 
+  it("should fail to construct redeemable token if too few minted tokens", async function () {
+    this.timeout(0);
+
+    const prestigeFactory = await ethers.getContractFactory("Prestige");
+    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const minimumStatus = 0;
+
+    const redeemableFactory = await ethers.getContractFactory(
+      "RedeemableERC20"
+    );
+
+    const totalTokenSupplyZero = ethers.BigNumber.from("0" + Util.eighteenZeros);
+    const totalTokenSupplyOneShort = ethers.BigNumber.from('1' + Util.eighteenZeros).sub(1);
+    const totalTokenSupplyMinimum = ethers.BigNumber.from('1' + Util.eighteenZeros)
+
+    const tokenName = "RedeemableERC20";
+    const tokenSymbol = "RDX";
+
+    await Util.assertError(
+      async () => await redeemableFactory.deploy({
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus: minimumStatus,
+        totalSupply: totalTokenSupplyZero,
+      }),
+      `revert MINIMUM_SUPPLY`,
+      `failed to error when constructed with 0 total supply`,
+    );
+
+    await Util.assertError(
+      async () => await redeemableFactory.deploy({
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus: minimumStatus,
+        totalSupply: totalTokenSupplyOneShort,
+      }),
+      `revert MINIMUM_SUPPLY`,
+      `failed to error when constructed with 0 total supply`,
+    );
+
+    const redeemable = await redeemableFactory.deploy({
+      name: tokenName,
+      symbol: tokenSymbol,
+      prestige: prestige.address,
+      minimumStatus,
+      totalSupply: totalTokenSupplyMinimum,
+    })
+
+    await redeemable.deployed()
+
+  });
+
   it("should allow receiver/send to always receive/send tokens if added via ownerAddReceiver/ownerAddSender, bypassing BlockBlockable restrictions", async function () {
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
 

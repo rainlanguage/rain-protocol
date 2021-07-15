@@ -3,6 +3,8 @@ pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
+
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
@@ -81,6 +83,10 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         uint256[2] redeemAmounts
     );
 
+    /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
+    /// The absolute minimum supply is "one" token which is 10 ** 18.
+    uint256 public constant MINIMUM_SUPPLY = 10 ** 18;
+
     /// The maximum number of redeemables that can be set.
     /// Attempting to add more redeemables than this will fail with an error.
     /// This prevents a very large loop in the default redemption behaviour.
@@ -106,6 +112,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         ERC20(config_.name, config_.symbol)
         PrestigeByConstruction(config_.prestige)
     {
+        require(config_.totalSupply >= MINIMUM_SUPPLY, "MINIMUM_SUPPLY");
         minimumPrestigeStatus = config_.minimumStatus;
 
         // Add the owner as a receiver to simplify `_beforeTokenTransfer` logic.

@@ -215,8 +215,9 @@ contract Trust is ReentrancyGuard {
         PoolConfig memory poolConfig_
     ) public {
         require(config_.creator != address(0), "CREATOR_0");
+        // There are additional minimum reserve init and token supply restrictions enforced by `RedeemableERC20` and `RedeemableERC20Pool`.
+        // This ensures that the weightings and valuations will be in a sensible range according to the internal assumptions made by Balancer etc.
         require(redeemableERC20Config_.totalSupply >= poolConfig_.reserveInit, "MIN_TOKEN_SUPPLY");
-        require(poolConfig_.reserveInit > 0, "MIN_RESERVE");
         require(poolConfig_.initialValuation >= poolConfig_.finalValuation, "MIN_INITIAL_VALUTION");
 
         successBalance = poolConfig_.reserveInit.add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);

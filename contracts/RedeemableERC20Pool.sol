@@ -219,6 +219,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // - The LP token supply implied by the token
         // @TODO is there some way to further minimise dust by reweighting the reserve/token pair before exiting?
         uint256 minReservePoolTokens = MIN_BALANCER_POOL_BALANCE.mul(BalancerConstants.MAX_POOL_SUPPLY).div(reserve.balanceOf(address(crp.bPool())));
+        // The minimum redeemable token supply is 10 ** 18 so it is near impossible to hit this before the reserve or global pool minimums.
         uint256 minRedeemablePoolTokens = MIN_BALANCER_POOL_BALANCE.mul(BalancerConstants.MAX_POOL_SUPPLY).div(token.balanceOf(address(crp.bPool())));
         uint256 minPoolSupply_ = BalancerConstants.MIN_POOL_SUPPLY.max(minReservePoolTokens).max(minRedeemablePoolTokens);
 

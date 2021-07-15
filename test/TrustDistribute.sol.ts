@@ -70,7 +70,7 @@ describe("TrustDistribute", async function () {
     const reserveInit = ethers.BigNumber.from(10 ** 8); // just passes RESERVE_INIT_MINIMUM
     const redeemInit = ethers.BigNumber.from(10 ** 8);
     const initialValuation = ethers.BigNumber.from(10 ** 9);
-    const totalTokenSupply = ethers.BigNumber.from(10 ** 8);
+    const totalTokenSupply = ethers.BigNumber.from('1' + Util.eighteenZeros); // minimum total supply also
 
     const minimumCreatorRaise = ethers.BigNumber.from("1");
     const seederFee = ethers.BigNumber.from("1");
@@ -220,7 +220,7 @@ describe("TrustDistribute", async function () {
     const reserveInit = ethers.BigNumber.from("2001");
     const redeemInit = ethers.BigNumber.from("2001");
     const initialValuation = ethers.BigNumber.from("10001");
-    const totalTokenSupply = ethers.BigNumber.from("2001");
+    const totalTokenSupply = ethers.BigNumber.from("2001" + Util.eighteenZeros);
 
     const minimumCreatorRaise = ethers.BigNumber.from("101");
     const seederFee = ethers.BigNumber.from("101");
@@ -246,7 +246,7 @@ describe("TrustDistribute", async function () {
       deployer
     );
 
-    Util.assertError(
+    await Util.assertError(
       async () =>
         await trustFactoryDeployer.deploy(
           {
@@ -308,7 +308,7 @@ describe("TrustDistribute", async function () {
     const reserveInit = ethers.BigNumber.from("2001" + Util.tenZeros);
     const redeemInit = ethers.BigNumber.from("2001" + Util.tenZeros);
     const initialValuation = ethers.BigNumber.from("10001" + Util.tenZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2001" + Util.tenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2001" + Util.eighteenZeros);
 
     const minimumCreatorRaise = ethers.BigNumber.from("101" + Util.tenZeros);
     const seederFee = ethers.BigNumber.from("101" + Util.tenZeros);
