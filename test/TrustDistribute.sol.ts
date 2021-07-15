@@ -70,7 +70,7 @@ describe("TrustDistribute", async function () {
     const reserveInit = ethers.BigNumber.from(10 ** 8); // just passes RESERVE_INIT_MINIMUM
     const redeemInit = ethers.BigNumber.from(10 ** 8);
     const initialValuation = ethers.BigNumber.from(10 ** 9);
-    const totalTokenSupply = ethers.BigNumber.from('1' + Util.eighteenZeros); // minimum total supply also
+    const totalTokenSupply = ethers.BigNumber.from("1" + Util.eighteenZeros); // minimum total supply also
 
     const minimumCreatorRaise = ethers.BigNumber.from("1");
     const seederFee = ethers.BigNumber.from("1");
