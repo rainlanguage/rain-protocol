@@ -96,36 +96,37 @@ describe("TrustDistribute", async function () {
     );
 
     Util.assertError(
-      async () => await trustFactoryDeployer.deploy(
-      {
-        creator: creator.address,
-        minimumCreatorRaise,
-        seeder: seeder.address,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation,
-      }
-    ),
-    `revert RESERVE_INIT_MINIMUM`,
-    `failed to project against large dust`
-  )
+      async () =>
+        await trustFactoryDeployer.deploy(
+          {
+            creator: creator.address,
+            minimumCreatorRaise,
+            seeder: seeder.address,
+            seederFee,
+            seederUnits,
+            seederCooldownDuration,
+            minimumTradingDuration,
+            redeemInit,
+          },
+          {
+            name: tokenName,
+            symbol: tokenSymbol,
+            prestige: prestige.address,
+            minimumStatus,
+            totalSupply: totalTokenSupply,
+          },
+          {
+            crpFactory: crpFactory.address,
+            balancerFactory: bFactory.address,
+            reserve: reserve.address,
+            reserveInit,
+            initialValuation,
+            finalValuation,
+          }
+        ),
+      `revert RESERVE_INIT_MINIMUM`,
+      `failed to protect against large dust`
+    );
   });
 
   it("supports precision of ten zeros", async function () {
