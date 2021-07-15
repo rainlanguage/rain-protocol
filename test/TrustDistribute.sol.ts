@@ -95,7 +95,7 @@ describe("TrustDistribute", async function () {
       deployer
     );
 
-    const trust = await trustFactoryDeployer.deploy(
+    const trust = (await trustFactoryDeployer.deploy(
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -121,7 +121,7 @@ describe("TrustDistribute", async function () {
         initialValuation,
         finalValuation,
       }
-    ) as Trust;
+    )) as Trust;
 
     await trust.deployed();
 
