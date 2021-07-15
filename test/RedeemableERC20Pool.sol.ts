@@ -780,8 +780,8 @@ describe("RedeemableERC20Pool", async function () {
         });
         await pool.deployed();
       },
-      "revert RESERVE_INIT_0",
-      "failed to error when reserve is 0 at construction"
+      "revert RESERVE_INIT_MINIMUM",
+      "failed to error when reserve is below minimum at construction"
     );
   });
 

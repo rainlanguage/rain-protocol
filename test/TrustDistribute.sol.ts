@@ -66,10 +66,10 @@ describe("TrustDistribute", async function () {
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
-    const reserveInit = ethers.BigNumber.from(10 ** 8 + 1); // just passes RESERVE_INIT_MINIMUM
-    const redeemInit = ethers.BigNumber.from(10 ** 8 + 1);
+    const reserveInit = ethers.BigNumber.from(10 ** 8); // just passes RESERVE_INIT_MINIMUM
+    const redeemInit = ethers.BigNumber.from(10 ** 8);
     const initialValuation = ethers.BigNumber.from(10 ** 9);
-    const totalTokenSupply = ethers.BigNumber.from(10 ** 8 + 1);
+    const totalTokenSupply = ethers.BigNumber.from(10 ** 8);
 
     const minimumCreatorRaise = ethers.BigNumber.from("1");
     const seederFee = ethers.BigNumber.from("1");
@@ -121,7 +121,7 @@ describe("TrustDistribute", async function () {
         initialValuation,
         finalValuation,
       }
-    );
+    ) as Trust;
 
     await trust.deployed();
 
