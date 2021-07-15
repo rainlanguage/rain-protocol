@@ -34,6 +34,33 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
+  it("should have 18 decimals", async () => {
+    const prestigeFactory = await ethers.getContractFactory("Prestige");
+    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const minimumStatus = Status.NIL;
+
+    const redeemableERC20Factory = await ethers.getContractFactory(
+      "RedeemableERC20"
+    );
+    const tokenName = "RedeemableERC20";
+    const tokenSymbol = "RDX";
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+
+    const token = await redeemableERC20Factory.deploy({
+      name: tokenName,
+      symbol: tokenSymbol,
+      prestige: prestige.address,
+      minimumStatus: minimumStatus,
+      totalSupply: totalSupply,
+    });
+
+    await token.deployed();
+
+    // token has 18 decimals
+    const decimals = await token.decimals();
+    assert(decimals === 18, `expected 18 decimals, got ${decimals}`);
+  });
+
   it("should allow receiver/send to always receive/send tokens if added via ownerAddReceiver/ownerAddSender, bypassing BlockBlockable restrictions", async function () {
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
 

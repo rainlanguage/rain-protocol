@@ -71,8 +71,14 @@ struct Config {
 /// - Handling the reserve proceeds of the raise
 contract RedeemableERC20Pool is Ownable, Phased {
     using SafeMath for uint256;
+    using Math for uint256;
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
+
+    /// Balancer requires a minimum balance of 10 ** 6 for all tokens at all times.
+    uint256 public constant MIN_BALANCER_POOL_BALANCE = 10 ** 6;
+    /// To ensure that the dust at the end of the raise is dust-like, we enfore a minimum starting reserve balance 100x the minimum.
+    uint256 public constant MIN_RESERVE_INIT = 10 ** 8;
 
     /// RedeemableERC20 token.
     RedeemableERC20 public token;
@@ -91,7 +97,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
 
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
     constructor (Config memory config_) public {
-        require(config_.reserveInit > 0, "RESERVE_INIT_0");
+        require(config_.reserveInit >= MIN_RESERVE_INIT, "RESERVE_INIT_MINIMUM");
 
         token = config_.token;
         reserve = config_.reserve;
@@ -205,10 +211,21 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // In Phase.THREE all `RedeemableERC20Pool` functions are no longer callable.
         scheduleNextPhase(uint32(block.number));
 
+        // Balancer enforces a global minimum pool LP token supply as MIN_POOL_SUPPLY.
+        // Balancer also indirectly enforces local minimums on pool token supply by enforcing minimum erc20 token balances in the pool.
+        // The real minimum pool LP token supply is the largest of:
+        // - The global minimum
+        // - The LP token supply implied by the reserve
+        // - The LP token supply implied by the token
+        // @TODO is there some way to further minimise dust by reweighting the reserve/token pair before exiting?
+        uint256 minReservePoolTokens = MIN_BALANCER_POOL_BALANCE.mul(BalancerConstants.MAX_POOL_SUPPLY).div(reserve.balanceOf(address(crp.bPool())));
+        uint256 minRedeemablePoolTokens = MIN_BALANCER_POOL_BALANCE.mul(BalancerConstants.MAX_POOL_SUPPLY).div(token.balanceOf(address(crp.bPool())));
+        uint256 minPoolSupply_ = BalancerConstants.MIN_POOL_SUPPLY.max(minReservePoolTokens).max(minRedeemablePoolTokens);
+
         // It is not possible to destroy a Balancer pool completely with an exit afaik.
         // This removes as much as is allowable which leaves about 10^-7 of the supply behind as dust.
         crp.exitPool(
-            crp.balanceOf(address(this)) - BalancerConstants.MIN_POOL_SUPPLY,
+            crp.balanceOf(address(this)) - minPoolSupply_,
             new uint256[](2)
         );
 
