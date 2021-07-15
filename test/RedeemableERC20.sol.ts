@@ -87,7 +87,7 @@ describe("RedeemableERC20", async function () {
         minimumStatus: minimumStatus,
         totalSupply: totalTokenSupplyZero,
       }),
-      `revert MINIMUM_SUPPLY`,
+      `revert MINIMUM_INITIAL_SUPPLY`,
       `failed to error when constructed with 0 total supply`,
     );
 
@@ -99,7 +99,7 @@ describe("RedeemableERC20", async function () {
         minimumStatus: minimumStatus,
         totalSupply: totalTokenSupplyOneShort,
       }),
-      `revert MINIMUM_SUPPLY`,
+      `revert MINIMUM_INITIAL_SUPPLY`,
       `failed to error when constructed with 0 total supply`,
     );
 
