@@ -77,7 +77,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
 
     /// Balancer requires a minimum balance of 10 ** 6 for all tokens at all times.
     uint256 public constant MIN_BALANCER_POOL_BALANCE = 10 ** 6;
-    /// To ensure that the dust at the end of the raise is dust-like, we enfore a minimum starting reserve balance 100x this.
+    /// To ensure that the dust at the end of the raise is dust-like, we enfore a minimum starting reserve balance 100x the minimum.
     uint256 public constant MIN_RESERVE_INIT = 10 ** 8;
 
     /// RedeemableERC20 token.
