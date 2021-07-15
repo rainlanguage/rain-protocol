@@ -4,12 +4,89 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../typechain/ReserveToken";
 import type { SeedERC20 } from "../typechain/SeedERC20";
+import type { SeedERC20ForceSendEther } from "../typechain/SeedERC20ForceSendEther";
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
 describe("SeedERC20", async function () {
+  it("shouldn't be affected by attacker forcibly sending ether to contract", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const alice = signers[0];
+    const bob = signers[1];
+    const carol = signers[2];
+    const dave = signers[3];
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const aliceReserve = reserve.connect(alice);
+    const bobReserve = reserve.connect(bob);
+    const carolReserve = reserve.connect(carol);
+    const daveReserve = reserve.connect(dave);
+
+    const seedPrice = 100;
+    const seedUnits = 10;
+    const cooldownDuration = 1;
+
+    const bobUnits = 6;
+    const carolUnits = 4;
+
+    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
+    const seedERC20 = (await seedERC20Factory.deploy({
+      reserve: reserve.address,
+      recipient: dave.address,
+      seedPrice,
+      seedUnits,
+      cooldownDuration,
+      name: "seed",
+      symbol: "SD",
+    })) as SeedERC20;
+
+    const aliceSeed = seedERC20.connect(alice);
+    const bobSeed = seedERC20.connect(bob);
+    const carolSeed = seedERC20.connect(carol);
+    const daveSeed = seedERC20.connect(dave);
+
+    await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
+    await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
+
+    // Bob and carol co-fund the seed round.
+
+    await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
+    await bobSeed.seed(0, bobUnits);
+
+    // Setup attacker contract
+    // This contract sends ether to SeedERC20, affecting value returned from balanceOf(address(this))
+    const forceSendEtherFactory = await ethers.getContractFactory(
+      "SeedERC20ForceSendEther"
+    );
+    const forceSendEther =
+      (await forceSendEtherFactory.deploy()) as SeedERC20ForceSendEther;
+
+    // send ether to attacker contract
+    const txResult = await signers[0].sendTransaction({
+      to: forceSendEther.address,
+      value: ethers.utils.parseEther("1.0"),
+    });
+    // destroy attacker contract
+    await forceSendEther.destroy(seedERC20.address);
+
+    await carolReserve.approve(seedERC20.address, (carolUnits + 1) * seedPrice);
+    await Util.assertError(
+      async () => await carolSeed.seed(carolUnits + 1, carolUnits + 1),
+      "revert INSUFFICIENT_STOCK",
+      "seedUnits stock calculation was affected by forcibly sending eth to contract"
+    );
+  });
+
   it("should allow specifing a min/max units to seed", async function () {
+    this.timeout(0);
+
     const signers = await ethers.getSigners();
     const bob = signers[1];
     const carol = signers[2];
@@ -111,6 +188,8 @@ describe("SeedERC20", async function () {
   });
 
   it("should emit PhaseShiftScheduled event when fully seeded", async function () {
+    this.timeout(0);
+
     const signers = await ethers.getSigners();
     const alice = signers[0];
     const bob = signers[1];
@@ -180,6 +259,8 @@ describe("SeedERC20", async function () {
   });
 
   it("should work on the happy path", async function () {
+    this.timeout(0);
+
     const signers = await ethers.getSigners();
     const alice = signers[0];
     const bob = signers[1];
