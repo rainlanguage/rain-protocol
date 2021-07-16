@@ -85,6 +85,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         seedPrice = config_.seedPrice;
         reserve = config_.reserve;
         recipient = config_.recipient;
+        _setupDecimals(0);
         _mint(address(this), config_.seedUnits);
     }
 

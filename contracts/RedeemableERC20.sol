@@ -81,6 +81,11 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         uint256[2] redeemAmounts
     );
 
+    /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
+    /// The absolute minimum supply is "one" token which is 10 ** 18.
+    /// This minimum supply only applies at construction and does not prevent subsequent redemption/burning.
+    uint256 public constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
+
     /// The maximum number of redeemables that can be set.
     /// Attempting to add more redeemables than this will fail with an error.
     /// This prevents a very large loop in the default redemption behaviour.
@@ -106,6 +111,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         ERC20(config_.name, config_.symbol)
         PrestigeByConstruction(config_.prestige)
     {
+        require(config_.totalSupply >= MINIMUM_INITIAL_SUPPLY, "MINIMUM_INITIAL_SUPPLY");
         minimumPrestigeStatus = config_.minimumStatus;
 
         // Add the owner as a receiver to simplify `_beforeTokenTransfer` logic.
