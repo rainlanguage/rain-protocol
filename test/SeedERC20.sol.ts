@@ -83,7 +83,7 @@ describe("SeedERC20", async function () {
       "seedUnits stock calculation was affected by forcibly sending eth to contract"
     );
   });
-  
+
   it("should have 0 decimals", async () => {
     const signers = await ethers.getSigners();
 
