@@ -352,8 +352,11 @@ contract Trust is ReentrancyGuard {
     function anonEndDistribution() external nonReentrant {
         finalBalance = pool.reserve().balanceOf(address(pool.crp().bPool()));
 
-        token.ownerScheduleNextPhase(uint32(block.number));
         pool.ownerEndDutchAuction();
+        token.ownerBurnAllOnce(
+            address(pool.crp().bPool())
+        );
+        token.ownerScheduleNextPhase(uint32(block.number));
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
         uint256 poolDust_ = pool.reserve().balanceOf(address(pool.crp().bPool()));

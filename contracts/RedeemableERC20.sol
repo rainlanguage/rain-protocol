@@ -86,6 +86,8 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// This prevents a very large loop in the default redemption behaviour.
     uint8 public constant MAX_REDEEMABLES = 8;
 
+    bool private ownerBurned;
+
     /// @dev List of redeemables to loop over in default redemption behaviour.
     ///      see `getRedeemables`.
     IERC20[] private redeemables;
@@ -113,6 +115,17 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         unfreezables[msg.sender] = 0x0002;
 
         _mint(msg.sender, config_.totalSupply);
+    }
+
+    /// The owner can burn all tokens of any address during `Phase.ZERO`.
+    /// Super dangerous obviously.
+    /// Currently the only use of this is to clear out dust in the balancer pool when the `Trust` that owns this contract ends the distribution.
+    /// This can only be called ONCE EVER to mitigate risks due to bugs etc.
+    /// @param account_ Ostensibly the Balancer pool account holding token dust after the distribution.
+    function ownerBurnAllOnce(address account_) external onlyOwner onlyPhase(Phase.ZERO) {
+        require(!ownerBurned, "BURN_ONCE");
+        ownerBurned = true;
+        _burn(account_, balanceOf(account_));
     }
 
     /// Owner can add accounts to the sender list.
