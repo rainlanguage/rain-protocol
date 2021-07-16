@@ -251,7 +251,7 @@ describe("RedeemableERC20", async function () {
     }
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
-    const reserveTotal = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
     await reserve.transfer(redeemableERC20.address, reserveTotal);
 
     // user attempts to wrongly 'redeem' by sending all of their redeemable tokens directly to contract address
@@ -528,7 +528,7 @@ describe("RedeemableERC20", async function () {
     );
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
-    const reserveTotal = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
     await reserve.transfer(redeemableERC20.address, reserveTotal);
 
     // redeem should work now
@@ -548,7 +548,7 @@ describe("RedeemableERC20", async function () {
     // redemption should emit this
     const redeemAmount = ethers.BigNumber.from("50" + Util.eighteenZeros);
     const expectedReserveRedemption = ethers.BigNumber.from(
-      "10" + Util.eighteenZeros
+      "10" + Util.sixZeros
     );
     // signer redeems all tokens they have for fraction of each redeemable asset
     await expect(redeemableERC20.senderRedeem(redeemAmount))
@@ -615,7 +615,7 @@ describe("RedeemableERC20", async function () {
     // check math for more redemptions
     {
       let i = 0;
-      const expectedDiff = "10000000000000000000";
+      const expectedDiff = "10000000";
       while (i < 3) {
         console.log(`redemption check 1: ${i}`);
         const balanceBefore = await reserve.balanceOf(signers[0].address);
@@ -639,11 +639,11 @@ describe("RedeemableERC20", async function () {
       // Things dynamically recalculate if we dump more reserve back in the token contract
       await reserve.transfer(
         redeemableERC20.address,
-        ethers.BigNumber.from("20" + Util.eighteenZeros)
+        ethers.BigNumber.from("20" + Util.sixZeros)
       );
 
       let i = 0;
-      const expectedDiff = "10208333333333333333";
+      const expectedDiff = "10208333";
 
       while (i < 3) {
         console.log(`redemption check 2: ${i}`);
@@ -856,7 +856,7 @@ describe("RedeemableERC20", async function () {
     }
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
-    const reserveTotal = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
     await reserve.transfer(redeemableERC20.address, reserveTotal);
 
     // GOLD signer can redeem.
@@ -944,8 +944,8 @@ describe("RedeemableERC20", async function () {
     );
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
-    const reserve1Total = ethers.BigNumber.from("1000" + Util.eighteenZeros);
-    const reserve2Total = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const reserve1Total = ethers.BigNumber.from("1000" + Util.sixZeros);
+    const reserve2Total = ethers.BigNumber.from("2000" + Util.sixZeros);
 
     // move all reserve tokens, to become redeemables
     await reserve1.transfer(redeemableERC20.address, reserve1Total);

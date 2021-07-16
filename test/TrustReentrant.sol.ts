@@ -57,22 +57,18 @@ describe("TrustReentrant", async function () {
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
-    const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("0" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("0" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from(
-      "20000" + Util.eighteenZeros
-    );
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
     const hodler1 = signers[3];
 
-    const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 1;
 
@@ -174,11 +170,11 @@ describe("TrustReentrant", async function () {
         spend,
         token.address,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     };
 
-    const spend = ethers.BigNumber.from("250" + Util.eighteenZeros);
+    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
 
     while ((await maliciousReserve.balanceOf(bPool.address)).lt(successLevel)) {
       await swapReserveForTokens(hodler1, spend);
