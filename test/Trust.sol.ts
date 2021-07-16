@@ -725,7 +725,7 @@ describe("Trust", async function () {
             finalValuation: successLevel,
           }
         )) as Trust,
-      "revert MIN_RESERVE",
+      "revert RESERVE_INIT_MINIMUM",
       "setting reserveInit to zero did not error"
     );
   });
