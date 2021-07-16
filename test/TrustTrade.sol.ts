@@ -881,13 +881,20 @@ describe("TrustTrade", async function () {
       "wrongly deployed trust with pool at 50:1 weight ratio"
     );
 
+    const ONE_SIX = ethers.BigNumber.from("1" + Util.sixZeros);
+
     // Ratio = initialValuation2 / totalTokenSupply1 = 5
-    const expectedRatio = ethers.BigNumber.from("5" + Util.sixZeros);
+    const expectedRatio = 5;
+    const actualRatio = initialValuation2
+      .mul(Util.ONE)
+      .div(totalTokenSupply1)
+      .div(ONE_SIX);
+
     assert(
-      initialValuation2.mul(Util.ONE).div(totalTokenSupply1).eq(expectedRatio),
+      actualRatio.eq(expectedRatio),
       `wrong spot price for a valid pool
       expected ratio  ${expectedRatio}
-      actual ratio    ${initialValuation2.mul(Util.ONE).div(totalTokenSupply1)}`
+      actual ratio    ${actualRatio}`
     );
 
     const trust = await trustFactory2.deploy(
