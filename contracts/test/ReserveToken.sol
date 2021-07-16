@@ -14,9 +14,14 @@ contract ReserveToken is ERC20, ERC20Burnable {
 
     // One _billion_ dollars 👷😈.
     uint256 public constant TOTAL_SUPPLY = 10 ** (18 + 9);
+    // Stables such as USDT and USDC commonly have 6 decimals.
+    uint8 public constant DECIMALS = 6;
 
     /// Define and mint the erc20 token.
-    constructor() public ERC20("USD Classic", "USDCC") { _mint(msg.sender, TOTAL_SUPPLY); }
+    constructor() public ERC20("USD Classic", "USDCC") {
+        _setupDecimals(DECIMALS);
+        _mint(msg.sender, TOTAL_SUPPLY);
+    }
 
     /// Add an account to the freezable list.
     /// @param account_ The account to freeze.
