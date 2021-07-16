@@ -79,7 +79,7 @@ interface TrustContracts {
 }
 
 describe("Trust", async function () {
-  it('should burn token dust when closing pool', async function () {
+  it("should burn token dust when closing pool", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -242,14 +242,15 @@ describe("Trust", async function () {
 
     const tokenInPoolAfterExit = await token.balanceOf(bPool.address);
 
-    assert(tokenInPoolAfterExit.isZero(),
+    assert(
+      tokenInPoolAfterExit.isZero(),
       `did not burn token dust
       expected 0 got ${tokenInPoolAfterExit}
       ----
       tokenInPoolBeforeExit ${tokenInPoolBeforeExit}
       `
-    )
-  })
+    );
+  });
 
   it("should correctly end raise if redeemInit set to 0 after successful raise", async function () {
     this.timeout(0);
