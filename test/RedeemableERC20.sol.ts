@@ -480,99 +480,99 @@ describe("RedeemableERC20", async function () {
       redeemableERC20.address
     );
 
-    // // signer should have redeemed 50 redeemable tokens
-    // assert(
-    //   redeemableSignerBalanceBefore
-    //     .sub(redeemableSignerBalanceAfter)
-    //     .eq(redeemAmount),
-    //   "wrong number of redeemable tokens redeemed"
-    // );
+    // signer should have redeemed 50 redeemable tokens
+    assert(
+      redeemableSignerBalanceBefore
+        .sub(redeemableSignerBalanceAfter)
+        .eq(redeemAmount),
+      "wrong number of redeemable tokens redeemed"
+    );
 
-    // // signer should have gained 10 reserve tokens
-    // assert(
-    //   reserveSignerBalanceAfter
-    //     .sub(reserveSignerBalanceBefore)
-    //     .eq(expectedReserveRedemption),
-    //   `wrong number of reserve tokens released ${reserveSignerBalanceBefore} ${reserveSignerBalanceAfter}`
-    // );
+    // signer should have gained 10 reserve tokens
+    assert(
+      reserveSignerBalanceAfter
+        .sub(reserveSignerBalanceBefore)
+        .eq(expectedReserveRedemption),
+      `wrong number of reserve tokens released ${reserveSignerBalanceBefore} ${reserveSignerBalanceAfter}`
+    );
 
-    // // total supply should have lost 50 redeemable tokens
-    // assert(
-    //   redeemableContractTotalSupplyBefore
-    //     .sub(redeemableContractTotalSupplyAfter)
-    //     .eq(redeemAmount),
-    //   `contract did not receive correct tokens ${redeemableContractTotalSupplyBefore} ${redeemableContractTotalSupplyAfter}`
-    // );
+    // total supply should have lost 50 redeemable tokens
+    assert(
+      redeemableContractTotalSupplyBefore
+        .sub(redeemableContractTotalSupplyAfter)
+        .eq(redeemAmount),
+      `contract did not receive correct tokens ${redeemableContractTotalSupplyBefore} ${redeemableContractTotalSupplyAfter}`
+    );
 
-    // // contract should have sent 10 reserve tokens
-    // assert(
-    //   reserveContractBalanceBefore
-    //     .sub(reserveContractBalanceAfter)
-    //     .eq(expectedReserveRedemption),
-    //   "contract did not send correct reserve tokens"
-    // );
+    // contract should have sent 10 reserve tokens
+    assert(
+      reserveContractBalanceBefore
+        .sub(reserveContractBalanceAfter)
+        .eq(expectedReserveRedemption),
+      "contract did not send correct reserve tokens"
+    );
 
-    // // signer cannot redeem more tokens than they have
-    // await Util.assertError(
-    //   async () =>
-    //     await redeemableERC20.senderRedeem(
-    //       ethers.BigNumber.from("10000" + Util.eighteenZeros)
-    //     ),
-    //   "revert ERC20: burn amount exceeds balance",
-    //   "failed to stop greedy redeem"
-    // );
+    // signer cannot redeem more tokens than they have
+    await Util.assertError(
+      async () =>
+        await redeemableERC20.senderRedeem(
+          ethers.BigNumber.from("10000" + Util.eighteenZeros)
+        ),
+      "revert ERC20: burn amount exceeds balance",
+      "failed to stop greedy redeem"
+    );
 
-    // // check math for more redemptions
-    // {
-    //   let i = 0;
-    //   const expectedDiff = "10000000000000000000";
-    //   while (i < 3) {
-    //     console.log(`redemption check 1: ${i}`);
-    //     const balanceBefore = await reserve.balanceOf(signers[0].address);
-    //     await expect(redeemableERC20.senderRedeem(redeemAmount))
-    //       .to.emit(redeemableERC20, "Redeem")
-    //       .withArgs(signers[0].address, reserve.address, [
-    //         redeemAmount,
-    //         expectedDiff,
-    //       ]);
-    //     const balanceAfter = await reserve.balanceOf(signers[0].address);
-    //     const diff = balanceAfter.sub(balanceBefore);
-    //     assert(
-    //       diff.eq(expectedDiff),
-    //       `wrong diff ${i} ${expectedDiff} ${diff} ${balanceBefore} ${balanceAfter}`
-    //     );
-    //     i++;
-    //   }
-    // }
+    // check math for more redemptions
+    {
+      let i = 0;
+      const expectedDiff = "10000000000000000000";
+      while (i < 3) {
+        console.log(`redemption check 1: ${i}`);
+        const balanceBefore = await reserve.balanceOf(signers[0].address);
+        await expect(redeemableERC20.senderRedeem(redeemAmount))
+          .to.emit(redeemableERC20, "Redeem")
+          .withArgs(signers[0].address, reserve.address, [
+            redeemAmount,
+            expectedDiff,
+          ]);
+        const balanceAfter = await reserve.balanceOf(signers[0].address);
+        const diff = balanceAfter.sub(balanceBefore);
+        assert(
+          diff.eq(expectedDiff),
+          `wrong diff ${i} ${expectedDiff} ${diff} ${balanceBefore} ${balanceAfter}`
+        );
+        i++;
+      }
+    }
 
-    // {
-    //   // Things dynamically recalculate if we dump more reserve back in the token contract
-    //   await reserve.transfer(
-    //     redeemableERC20.address,
-    //     ethers.BigNumber.from("20" + Util.eighteenZeros)
-    //   );
+    {
+      // Things dynamically recalculate if we dump more reserve back in the token contract
+      await reserve.transfer(
+        redeemableERC20.address,
+        ethers.BigNumber.from("20" + Util.eighteenZeros)
+      );
 
-    //   let i = 0;
-    //   const expectedDiff = "10208333333333333333";
+      let i = 0;
+      const expectedDiff = "10208333333333333333";
 
-    //   while (i < 3) {
-    //     console.log(`redemption check 2: ${i}`);
-    //     const balanceBefore = await reserve.balanceOf(signers[0].address);
-    //     await expect(redeemableERC20.senderRedeem(redeemAmount))
-    //       .to.emit(redeemableERC20, "Redeem")
-    //       .withArgs(signers[0].address, reserve.address, [
-    //         redeemAmount,
-    //         expectedDiff,
-    //       ]);
-    //     const balanceAfter = await reserve.balanceOf(signers[0].address);
-    //     const diff = balanceAfter.sub(balanceBefore);
-    //     assert(
-    //       diff.eq(expectedDiff),
-    //       `wrong diff ${i} ${expectedDiff} ${diff} ${balanceBefore} ${balanceAfter}`
-    //     );
-    //     i++;
-    //   }
-    // }
+      while (i < 3) {
+        console.log(`redemption check 2: ${i}`);
+        const balanceBefore = await reserve.balanceOf(signers[0].address);
+        await expect(redeemableERC20.senderRedeem(redeemAmount))
+          .to.emit(redeemableERC20, "Redeem")
+          .withArgs(signers[0].address, reserve.address, [
+            redeemAmount,
+            expectedDiff,
+          ]);
+        const balanceAfter = await reserve.balanceOf(signers[0].address);
+        const diff = balanceAfter.sub(balanceBefore);
+        assert(
+          diff.eq(expectedDiff),
+          `wrong diff ${i} ${expectedDiff} ${diff} ${balanceBefore} ${balanceAfter}`
+        );
+        i++;
+      }
+    }
   });
 
   it("should only allow owner to set phase blocks", async function () {
