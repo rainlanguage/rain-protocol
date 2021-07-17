@@ -81,7 +81,7 @@ describe("RedeemableERC20Reentrant", async function () {
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress)
+    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
 
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.eighteenZeros);

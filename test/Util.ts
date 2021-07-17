@@ -41,7 +41,7 @@ export const balancerDeploy = async (): Promise<
 };
 
 export const zeroAddress = ethers.constants.AddressZero;
-export const oneAddress = '0x0000000000000000000000000000000000000001'
+export const oneAddress = "0x0000000000000000000000000000000000000001";
 export const eighteenZeros = "000000000000000000";
 
 export const fourZeros = "0000"; // poor precision

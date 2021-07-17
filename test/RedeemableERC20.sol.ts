@@ -315,7 +315,7 @@ describe("RedeemableERC20", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const alice = signers[1]
+    const alice = signers[1];
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -405,7 +405,7 @@ describe("RedeemableERC20", async function () {
     );
 
     // Send alice some tokens.
-    await redeemableERC20.transfer(alice.address, 10)
+    await redeemableERC20.transfer(alice.address, 10);
 
     const now = await ethers.provider.getBlockNumber();
     await expect(redeemableERC20.ownerBurnDistributor(Util.oneAddress))
@@ -426,7 +426,7 @@ describe("RedeemableERC20", async function () {
       } got ${await redeemableERC20.currentPhase()}`
     );
 
-    const aliceRedeemableERC20 = redeemableERC20.connect(alice)
+    const aliceRedeemableERC20 = redeemableERC20.connect(alice);
     // owner is on the unfreezable list.
     await aliceRedeemableERC20.transfer(signers[0].address, 1);
 
@@ -699,7 +699,7 @@ describe("RedeemableERC20", async function () {
       "owner not made unfreezable during construction"
     );
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress)
+    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
 
     await reserve.transfer(redeemableERC20.address, 1);
   });
@@ -754,7 +754,7 @@ describe("RedeemableERC20", async function () {
       "user could receive transfers despite not meeting minimum status"
     );
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress)
+    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
     const reserveTotal = ethers.BigNumber.from("1000" + Util.eighteenZeros);
@@ -823,9 +823,9 @@ describe("RedeemableERC20", async function () {
     );
 
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);
-    await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS)
+    await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS);
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress)
+    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
 
     // at this point signer[1] should have 10 tokens
     assert(
@@ -1037,9 +1037,9 @@ describe("RedeemableERC20", async function () {
     );
 
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);
-    await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS)
+    await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS);
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress)
+    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
 
     const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(
       signers[1].address
