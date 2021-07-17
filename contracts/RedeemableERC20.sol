@@ -115,14 +115,15 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         _mint(msg.sender, config_.totalSupply);
     }
 
-    /// The owner can burn all tokens of any address during `Phase.ZERO`.
-    /// Super dangerous obviously.
-    /// Currently the only use of this is to clear out dust in the balancer pool when the `Trust` that owns this contract ends the distribution.
-    /// This can only be called ONCE EVER to mitigate risks due to bugs etc.
-    /// @param account_ Ostensibly the Balancer pool account holding token dust after the distribution.
-    function ownerBurnDistributor(address account_) external onlyOwner onlyPhase(Phase.ZERO) {
+    /// The owner can burn all tokens of a single address to end `Phase.ZERO`.
+    /// The intent is that during `Phase.ZERO` there is some contract responsible for distributing the tokens.
+    /// The owner specifies the distributor to end `Phase.ZERO` and all undistributed tokens are burned.
+    /// The distributor is NOT set during the constructor because it likely doesn't exist at that point.
+    /// For example, Balancer needs the paired erc20 tokens to exist before the trading pool can be built.
+    /// @param distributorAccount_ The distributor according to the owner.
+    function ownerBurnDistributor(address distributorAccount_) external onlyOwner onlyPhase(Phase.ZERO) {
         scheduleNextPhase(uint32(block.number));
-        _burn(account_, balanceOf(account_));
+        _burn(distributorAccount_, balanceOf(distributorAccount_));
     }
 
     /// Owner can add accounts to the sender list.
