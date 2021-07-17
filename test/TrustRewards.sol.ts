@@ -445,7 +445,7 @@ describe("TrustRewards", async function () {
     const tokenReserveD2 = await reserveD.balanceOf(token.address);
 
     // 9/10ths remaining
-    const expectedTokenSupply2 = tokenSupply.mul(9).div(10).add(1)
+    const expectedTokenSupply2 = tokenSupply.mul(9).div(10).add(1);
     assert(
       tokenSupply2.eq(expectedTokenSupply2),
       `

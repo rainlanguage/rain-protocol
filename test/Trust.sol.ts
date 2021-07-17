@@ -107,12 +107,8 @@ describe("Trust", async function () {
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from(
-      "20000" + Util.sixZeros
-    );
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.sixZeros
-    );
+    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
 
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
