@@ -62,17 +62,13 @@ describe("TrustTrade", async function () {
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
-    const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from(
-      "10000" + Util.eighteenZeros
-    );
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.eighteenZeros
-    );
-    const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
@@ -160,7 +156,7 @@ describe("TrustTrade", async function () {
     ) as RedeemableERC20Pool;
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
-    const reserveSpend = ethers.BigNumber.from("10" + Util.eighteenZeros);
+    const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);
 
     const swapReserveForTokens = async (hodler, spend) => {
       // give hodler some reserve
@@ -177,7 +173,7 @@ describe("TrustTrade", async function () {
         spend,
         token.address,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     };
 
@@ -218,17 +214,13 @@ describe("TrustTrade", async function () {
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
-    const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from(
-      "10000" + Util.eighteenZeros
-    );
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.eighteenZeros
-    );
-    const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
@@ -343,17 +335,13 @@ describe("TrustTrade", async function () {
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
-    const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from(
-      "10000" + Util.eighteenZeros
-    );
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.eighteenZeros
-    );
-    const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
@@ -436,9 +424,6 @@ describe("TrustTrade", async function () {
 
     const reserveAmountStart = await reserve.balanceOf(bPool.address);
     const tokenAmountStart = await token.balanceOf(bPool.address);
-
-    assert(reserveAmountStart.eq(reserveInit), "wrong starting reserve");
-    assert(tokenAmountStart.eq(redeemInit), "wrong starting token supply");
 
     const block25Percent = startBlock + minimumTradingDuration / 4;
     const block50Percent = startBlock + minimumTradingDuration / 2;
@@ -609,17 +594,13 @@ describe("TrustTrade", async function () {
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
-    const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from(
-      "10000" + Util.eighteenZeros
-    );
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.eighteenZeros
-    );
-    const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
@@ -724,10 +705,10 @@ describe("TrustTrade", async function () {
     // hodler 1 needs some reserve
     await reserve.transfer(
       hodlerSilver.address,
-      ethers.BigNumber.from("100000" + Util.eighteenZeros)
+      ethers.BigNumber.from("100000" + Util.sixZeros)
     );
 
-    const reserveSpend = ethers.BigNumber.from("10" + Util.eighteenZeros);
+    const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);
 
     await reserve.transfer(hodlerGold.address, reserveSpend);
     await reserve.transfer(hodlerPlatinum.address, reserveSpend);
@@ -740,7 +721,7 @@ describe("TrustTrade", async function () {
         spend,
         token.address,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     };
 
@@ -809,15 +790,11 @@ describe("TrustTrade", async function () {
     const tokenSymbol = "TKN";
 
     // initial reserve and token supply 1:1 for simplicity
-    const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
 
-    const initialValuation1 = ethers.BigNumber.from(
-      "100000" + Util.eighteenZeros
-    );
-    const initialValuation2 = ethers.BigNumber.from(
-      "10000" + Util.eighteenZeros
-    );
+    const initialValuation1 = ethers.BigNumber.from("100000" + Util.sixZeros);
+    const initialValuation2 = ethers.BigNumber.from("10000" + Util.sixZeros);
 
     const totalTokenSupply1 = ethers.BigNumber.from(
       "2000" + Util.eighteenZeros
@@ -840,10 +817,8 @@ describe("TrustTrade", async function () {
     //   .mul(redeemInit.div(reserveInit)
     // )}`);
 
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.eighteenZeros
-    );
-    const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
@@ -865,14 +840,11 @@ describe("TrustTrade", async function () {
       deployer
     );
 
-    // bad weight ratio = initialValuation1 / totalTokenSupply1 >= 50
-    // console.log(`${initialValuation1.mul(Util.ONE).div(totalTokenSupply1)}`);
-
     assert(
       initialValuation1
         .mul(Util.ONE)
         .div(totalTokenSupply1)
-        .gte(ethers.BigNumber.from("50" + Util.eighteenZeros)),
+        .gte(ethers.BigNumber.from("50" + Util.sixZeros)),
       "wrong intended spot price for max weight test"
     );
 
@@ -909,10 +881,20 @@ describe("TrustTrade", async function () {
       "wrongly deployed trust with pool at 50:1 weight ratio"
     );
 
+    const ONE_SIX = ethers.BigNumber.from("1" + Util.sixZeros);
+
     // Ratio = initialValuation2 / totalTokenSupply1 = 5
+    const expectedRatio = 5;
+    const actualRatio = initialValuation2
+      .mul(Util.ONE)
+      .div(totalTokenSupply1)
+      .div(ONE_SIX);
+
     assert(
-      initialValuation2.div(totalTokenSupply1).eq(5),
-      "wrong spot price for a valid pool"
+      actualRatio.eq(expectedRatio),
+      `wrong spot price for a valid pool
+      expected ratio  ${expectedRatio}
+      actual ratio    ${actualRatio}`
     );
 
     const trust = await trustFactory2.deploy(
@@ -981,10 +963,10 @@ describe("TrustTrade", async function () {
     // hodler 1 needs some reserve
     await reserve.transfer(
       hodler1.address,
-      ethers.BigNumber.from("100000" + Util.eighteenZeros)
+      ethers.BigNumber.from("100000" + Util.sixZeros)
     );
 
-    const spend = ethers.BigNumber.from("1" + Util.eighteenZeros);
+    const spend = ethers.BigNumber.from("1" + Util.sixZeros);
 
     // do some swaps
     // TODO: Fuzz testing
@@ -999,7 +981,7 @@ describe("TrustTrade", async function () {
         spend,
         token.address,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     }
   });
