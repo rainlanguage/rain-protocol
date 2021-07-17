@@ -84,7 +84,7 @@ describe("RedeemableERC20Reentrant", async function () {
     await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
 
     // theoretical pool amount being sent to redeemable token
-    const reserveTotal = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
 
     // move all reserve tokens from pool, to become redeemables
     await maliciousReserve.transfer(redeemableERC20.address, reserveTotal);

@@ -48,16 +48,14 @@ describe("RedeemableERC20Pool", async function () {
       "RedeemableERC20"
     );
 
-    const reserveInit = ethers.BigNumber.from("5000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("5000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("5000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "20000" + Util.eighteenZeros
     );
-    const minRaise = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const minRaise = ethers.BigNumber.from("5000" + Util.sixZeros);
 
-    const initialValuation = ethers.BigNumber.from(
-      "100000" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("100000" + Util.sixZeros);
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
@@ -168,16 +166,14 @@ describe("RedeemableERC20Pool", async function () {
       "RedeemableERC20"
     );
 
-    const reserveInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("50000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("50000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "200000" + Util.eighteenZeros
     );
-    const minRaise = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const minRaise = ethers.BigNumber.from("50000" + Util.sixZeros);
 
-    const initialValuation = ethers.BigNumber.from(
-      "1000000" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
@@ -243,16 +239,14 @@ describe("RedeemableERC20Pool", async function () {
       "RedeemableERC20"
     );
 
-    const reserveInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("50000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("50000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "200000" + Util.eighteenZeros
     );
-    const minRaise = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const minRaise = ethers.BigNumber.from("50000" + Util.sixZeros);
 
-    const initialValuation = ethers.BigNumber.from(
-      "1000000" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
@@ -336,7 +330,7 @@ describe("RedeemableERC20Pool", async function () {
         spend,
         redeemable.address,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     };
 
@@ -368,11 +362,9 @@ describe("RedeemableERC20Pool", async function () {
     const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address);
     const ownerReserveAfterExit = await reserve.balanceOf(signers[0].address);
 
-    const reserveDust = bPoolReserveBeforeExit
-      .mul(Util.ONE)
-      .div(1e7)
-      .div(Util.ONE)
-      .add(1); // rounding error
+    const reserveDust = Util.estimateReserveDust(bPoolReserveBeforeExit).add(
+      1 // rounding error
+    );
 
     assert(
       bPoolReserveAfterExit.eq(reserveDust),
@@ -415,16 +407,14 @@ describe("RedeemableERC20Pool", async function () {
       "RedeemableERC20"
     );
 
-    const reserveInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("50000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("50000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "200000" + Util.eighteenZeros
     );
-    const minRaise = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const minRaise = ethers.BigNumber.from("50000" + Util.sixZeros);
 
-    const initialValuation = ethers.BigNumber.from(
-      "1000000" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
@@ -564,16 +554,14 @@ describe("RedeemableERC20Pool", async function () {
       "RedeemableERC20"
     );
 
-    const reserveInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("50000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("50000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "200000" + Util.eighteenZeros
     );
-    const minRaise = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const minRaise = ethers.BigNumber.from("50000" + Util.sixZeros);
 
-    const initialValuation = ethers.BigNumber.from(
-      "1000000" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
@@ -581,7 +569,7 @@ describe("RedeemableERC20Pool", async function () {
 
     // The final valuation of redeemable should be 100 000 as this is the redemption value.
     // Reserve init has value of 50 000 so ratio is 2:1.
-    const expectedFinalWeight = ethers.BigNumber.from("2" + Util.eighteenZeros);
+    const expectedFinalWeight = ethers.BigNumber.from("2" + Util.sixZeros);
 
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
@@ -708,16 +696,14 @@ describe("RedeemableERC20Pool", async function () {
       "RedeemableERC20"
     );
 
-    const reserveInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("50000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("50000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "200000" + Util.eighteenZeros
     );
-    const minRaise = ethers.BigNumber.from("0" + Util.eighteenZeros);
+    const minRaise = ethers.BigNumber.from("0" + Util.sixZeros);
 
-    const initialValuation = ethers.BigNumber.from(
-      "1000000" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
@@ -828,16 +814,14 @@ describe("RedeemableERC20Pool", async function () {
       "RedeemableERC20"
     );
 
-    const reserveInit = ethers.BigNumber.from("0" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("0" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("50000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "200000" + Util.eighteenZeros
     );
-    const minRaise = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const minRaise = ethers.BigNumber.from("50000" + Util.sixZeros);
 
-    const initialValuation = ethers.BigNumber.from(
-      "1000000" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
@@ -893,89 +877,6 @@ describe("RedeemableERC20Pool", async function () {
     );
   });
 
-  it("should fail to construct pool if zero minted tokens", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = 0;
-
-    const redeemableFactory = await ethers.getContractFactory(
-      "RedeemableERC20"
-    );
-
-    const reserveInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-    const totalTokenSupply = ethers.BigNumber.from("0" + Util.eighteenZeros);
-    const minRaise = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-
-    const initialValuation = ethers.BigNumber.from(
-      "1000000" + Util.eighteenZeros
-    );
-    // Same logic used by trust.
-    const finalValuation = minRaise.add(redeemInit);
-
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
-
-    const redeemable = (await redeemableFactory.deploy({
-      name: tokenName,
-      symbol: tokenSymbol,
-      prestige: prestige.address,
-      minimumStatus: minimumStatus,
-      totalSupply: totalTokenSupply,
-    })) as RedeemableERC20;
-
-    await redeemable.deployed();
-
-    assert(
-      (await reserve.balanceOf(redeemable.address)).eq(0),
-      "reserve was not 0 on redeemable construction"
-    );
-    assert(
-      (await redeemable.totalSupply()).eq(totalTokenSupply),
-      `total supply was not ${totalTokenSupply} on redeemable construction`
-    );
-    assert(
-      (await redeemable.currentPhase()) === Phase.ZERO,
-      `current phase was not ${
-        Phase.ZERO
-      } on construction, got ${await redeemable.currentPhase()}`
-    );
-
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    await Util.assertError(
-      async () => {
-        const pool = (await poolFactory.deploy({
-          crpFactory: crpFactory.address,
-          balancerFactory: bFactory.address,
-          token: redeemable.address,
-          reserve: reserve.address,
-          reserveInit: reserveInit,
-          initialValuation: initialValuation,
-          finalValuation: finalValuation,
-        })) as RedeemableERC20Pool;
-        await pool.deployed();
-      },
-      "revert TOKEN_INIT_0",
-      "failed to error when constructed with 0 total supply"
-    );
-  });
-
   it("should fail to construct pool if initial redeemable amount is zero", async function () {
     this.timeout(0);
 
@@ -996,16 +897,14 @@ describe("RedeemableERC20Pool", async function () {
       "RedeemableERC20"
     );
 
-    const reserveInit = ethers.BigNumber.from("50000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("0" + Util.eighteenZeros);
+    const reserveInit = ethers.BigNumber.from("50000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("0" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "200000" + Util.eighteenZeros
     );
-    const minRaise = ethers.BigNumber.from("50000" + Util.eighteenZeros);
+    const minRaise = ethers.BigNumber.from("50000" + Util.sixZeros);
 
-    const initialValuation = ethers.BigNumber.from(
-      "1000000" + Util.eighteenZeros
-    );
+    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 

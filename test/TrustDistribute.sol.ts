@@ -70,7 +70,7 @@ describe("TrustDistribute", async function () {
     const reserveInit = ethers.BigNumber.from(10 ** 8); // just passes RESERVE_INIT_MINIMUM
     const redeemInit = ethers.BigNumber.from(10 ** 8);
     const initialValuation = ethers.BigNumber.from(10 ** 9);
-    const totalTokenSupply = ethers.BigNumber.from(10 ** 8);
+    const totalTokenSupply = ethers.BigNumber.from("1" + Util.eighteenZeros); // minimum total supply also
 
     const minimumCreatorRaise = ethers.BigNumber.from("1");
     const seederFee = ethers.BigNumber.from("1");
@@ -172,7 +172,7 @@ describe("TrustDistribute", async function () {
         spend,
         token.address,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     };
 
@@ -220,7 +220,7 @@ describe("TrustDistribute", async function () {
     const reserveInit = ethers.BigNumber.from("2001");
     const redeemInit = ethers.BigNumber.from("2001");
     const initialValuation = ethers.BigNumber.from("10001");
-    const totalTokenSupply = ethers.BigNumber.from("2001");
+    const totalTokenSupply = ethers.BigNumber.from("2001" + Util.eighteenZeros);
 
     const minimumCreatorRaise = ethers.BigNumber.from("101");
     const seederFee = ethers.BigNumber.from("101");
@@ -246,7 +246,7 @@ describe("TrustDistribute", async function () {
       deployer
     );
 
-    Util.assertError(
+    await Util.assertError(
       async () =>
         await trustFactoryDeployer.deploy(
           {
@@ -308,7 +308,7 @@ describe("TrustDistribute", async function () {
     const reserveInit = ethers.BigNumber.from("2001" + Util.tenZeros);
     const redeemInit = ethers.BigNumber.from("2001" + Util.tenZeros);
     const initialValuation = ethers.BigNumber.from("10001" + Util.tenZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2001" + Util.tenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2001" + Util.eighteenZeros);
 
     const minimumCreatorRaise = ethers.BigNumber.from("101" + Util.tenZeros);
     const seederFee = ethers.BigNumber.from("101" + Util.tenZeros);
@@ -410,7 +410,7 @@ describe("TrustDistribute", async function () {
         spend,
         token.address,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     };
 
@@ -456,19 +456,15 @@ describe("TrustDistribute", async function () {
       const tokenName = "Token";
       const tokenSymbol = "TKN";
 
-      const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-      const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-      const initialValuation = ethers.BigNumber.from(
-        "10000" + Util.eighteenZeros
-      );
+      const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+      const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+      const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
       const totalTokenSupply = ethers.BigNumber.from(
         "2000" + Util.eighteenZeros
       );
 
-      const minimumCreatorRaise = ethers.BigNumber.from(
-        "100" + Util.eighteenZeros
-      );
-      const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+      const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 0;
       const seederCooldownDuration = 0;
 
@@ -582,7 +578,7 @@ describe("TrustDistribute", async function () {
           spend,
           token.address,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+          ethers.BigNumber.from("1000000" + Util.sixZeros)
         );
       };
 
@@ -644,19 +640,15 @@ describe("TrustDistribute", async function () {
       const tokenName = "Token";
       const tokenSymbol = "TKN";
 
-      const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-      const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-      const initialValuation = ethers.BigNumber.from(
-        "10000" + Util.eighteenZeros
-      );
+      const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+      const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+      const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
       const totalTokenSupply = ethers.BigNumber.from(
         "2000" + Util.eighteenZeros
       );
 
-      const minimumCreatorRaise = ethers.BigNumber.from(
-        "100" + Util.eighteenZeros
-      );
-      const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+      const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 0;
       const seederCooldownDuration = 0;
 
@@ -800,17 +792,13 @@ describe("TrustDistribute", async function () {
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
-    const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from(
-      "10000" + Util.eighteenZeros
-    );
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.eighteenZeros
-    );
-    const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
@@ -908,7 +896,7 @@ describe("TrustDistribute", async function () {
         spend,
         token.address,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     };
 
@@ -928,6 +916,8 @@ describe("TrustDistribute", async function () {
     }
 
     await trust.anonEndDistribution();
+
+    const tokenBPoolBalanceAfter = await token.balanceOf(bPool.address);
 
     const totalSupply = await token.totalSupply();
 
@@ -965,17 +955,13 @@ describe("TrustDistribute", async function () {
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
-    const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from(
-      "10000" + Util.eighteenZeros
-    );
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
-    const minimumCreatorRaise = ethers.BigNumber.from(
-      "100" + Util.eighteenZeros
-    );
-    const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
@@ -1069,11 +1055,7 @@ describe("TrustDistribute", async function () {
 
     const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address);
 
-    const expectedDust = bPoolReserveBeforeExit
-      .mul(Util.ONE)
-      .div(1e7)
-      .div(Util.ONE)
-      .add(1);
+    const expectedDust = Util.estimateReserveDust(bPoolReserveAfterExit).add(1);
 
     assert(
       bPoolReserveAfterExit.eq(expectedDust),
@@ -1111,19 +1093,15 @@ describe("TrustDistribute", async function () {
       const tokenName = "Token";
       const tokenSymbol = "TKN";
 
-      const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-      const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-      const initialValuation = ethers.BigNumber.from(
-        "10000" + Util.eighteenZeros
-      );
+      const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+      const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+      const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
       const totalTokenSupply = ethers.BigNumber.from(
         "2000" + Util.eighteenZeros
       );
 
-      const minimumCreatorRaise = ethers.BigNumber.from(
-        "100" + Util.eighteenZeros
-      );
-      const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+      const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 0;
       const seederCooldownDuration = 0;
 
@@ -1221,7 +1199,7 @@ describe("TrustDistribute", async function () {
           spend,
           token.address,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+          ethers.BigNumber.from("1000000" + Util.sixZeros)
         );
       };
 
@@ -1275,19 +1253,15 @@ describe("TrustDistribute", async function () {
       const tokenName = "Token";
       const tokenSymbol = "TKN";
 
-      const reserveInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-      const redeemInit = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-      const initialValuation = ethers.BigNumber.from(
-        "10000" + Util.eighteenZeros
-      );
+      const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+      const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+      const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
       const totalTokenSupply = ethers.BigNumber.from(
         "2000" + Util.eighteenZeros
       );
 
-      const minimumCreatorRaise = ethers.BigNumber.from(
-        "100" + Util.eighteenZeros
-      );
-      const seederFee = ethers.BigNumber.from("100" + Util.eighteenZeros);
+      const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+      const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 0;
       const seederCooldownDuration = 0;
 
@@ -1385,7 +1359,7 @@ describe("TrustDistribute", async function () {
           spend,
           token.address,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+          ethers.BigNumber.from("1000000" + Util.sixZeros)
         );
       };
 

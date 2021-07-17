@@ -6,6 +6,7 @@ import chai from "chai";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
+import type { BigNumber } from "ethers";
 
 const { expect, assert } = chai;
 
@@ -44,15 +45,33 @@ export const zeroAddress = ethers.constants.AddressZero;
 export const oneAddress = "0x0000000000000000000000000000000000000001";
 export const eighteenZeros = "000000000000000000";
 
-export const fourZeros = "0000"; // poor precision
-export const tenZeros = "0000000000"; // just enough precision for dust
+export const fourZeros = "0000";
+export const sixZeros = "000000";
+export const tenZeros = "0000000000";
 
 export const ONE = ethers.BigNumber.from("1" + eighteenZeros);
 
+export const RESERVE_MIN_BALANCE = ethers.BigNumber.from("1" + sixZeros);
+
 export const max_uint256 = ethers.BigNumber.from(
-  "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+  "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
 );
 export const max_uint32 = ethers.BigNumber.from("0xffffffff");
+
+export const estimateReserveDust = (bPoolReserveBalance: BigNumber) => {
+  let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
+  if (dust.lt(RESERVE_MIN_BALANCE)) {
+    dust = RESERVE_MIN_BALANCE;
+  }
+  return dust;
+};
+
+export const determineReserveDust = (bPoolDust: BigNumber) => {
+  if (bPoolDust.lt(RESERVE_MIN_BALANCE)) {
+    bPoolDust = RESERVE_MIN_BALANCE;
+  }
+  return bPoolDust;
+};
 
 export const assertError = async (f: Function, s: string, e: string) => {
   let didError = false;
