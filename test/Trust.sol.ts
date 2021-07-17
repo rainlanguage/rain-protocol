@@ -4626,7 +4626,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20;
     await token1.senderRedeem(await token1.balanceOf(signers[1].address));
     const reserveBalance1 = await reserve.balanceOf(signers[1].address);
-    const expectedBalance1 = "1829852661873618767643";
+    const expectedBalance1 = "1829853932734054989266";
     assert(
       ethers.BigNumber.from(expectedBalance1).eq(reserveBalance1),
       `wrong balance 1 after redemption: ${reserveBalance1} ${expectedBalance1}`
@@ -4639,7 +4639,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20;
     await token2.senderRedeem(await token2.balanceOf(signers[2].address));
     const reserveBalance2 = await reserve.balanceOf(signers[2].address);
-    const expectedBalance2 = "170145949097001906142";
+    const expectedBalance2 = "170146067265945010750";
     assert(
       ethers.BigNumber.from(expectedBalance2).eq(reserveBalance2),
       `wrong balance 2 after redemption: ${reserveBalance2} ${expectedBalance2}`
@@ -4796,7 +4796,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20;
     await token1.senderRedeem(await token1.balanceOf(signers[1].address));
     const reserveBalance1 = await reserve.balanceOf(signers[1].address);
-    const expectedBalance1 = "841320926251152929583";
+    const expectedBalance1 = "841344566412774967801";
     assert(
       ethers.BigNumber.from(expectedBalance1).eq(reserveBalance1),
       `wrong balance 1 after redemption: ${reserveBalance1} ${expectedBalance1}`
@@ -4809,7 +4809,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20;
     await token2.senderRedeem(await token1.balanceOf(signers[2].address));
     const reserveBalance2 = await reserve.balanceOf(signers[2].address);
-    const expectedBalance2 = "2158594779527790295800";
+    const expectedBalance2 = "2158655433587225032208";
     assert(
       ethers.BigNumber.from(expectedBalance2).eq(reserveBalance2),
       `wrong balance 2 after redemption: ${reserveBalance2} ${expectedBalance2}`

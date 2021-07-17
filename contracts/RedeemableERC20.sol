@@ -86,8 +86,6 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// This prevents a very large loop in the default redemption behaviour.
     uint8 public constant MAX_REDEEMABLES = 8;
 
-    bool private ownerBurned;
-
     /// @dev List of redeemables to loop over in default redemption behaviour.
     ///      see `getRedeemables`.
     IERC20[] private redeemables;
@@ -122,9 +120,8 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// Currently the only use of this is to clear out dust in the balancer pool when the `Trust` that owns this contract ends the distribution.
     /// This can only be called ONCE EVER to mitigate risks due to bugs etc.
     /// @param account_ Ostensibly the Balancer pool account holding token dust after the distribution.
-    function ownerBurnAllOnce(address account_) external onlyOwner onlyPhase(Phase.ZERO) {
-        require(!ownerBurned, "BURN_ONCE");
-        ownerBurned = true;
+    function ownerBurnDistributor(address account_) external onlyOwner onlyPhase(Phase.ZERO) {
+        scheduleNextPhase(uint32(block.number));
         _burn(account_, balanceOf(account_));
     }
 
@@ -169,14 +166,6 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// @return True if the account is a receiver.
     function isReceiver(address account_) public view returns (bool) {
         return (unfreezables[account_] & 0x0002) == 0x0002;
-    }
-
-    /// Owner can schedule `Phase.ONE` at any point during `Phase.ZERO`.
-    /// It is intended that the owner will be a contract that can implement controls around this phase shift.
-    /// Calling this more than once will error as there is no `Phase.TWO`.
-    /// @param newPhaseBlock_ The first block of `Phase.ONE`.
-    function ownerScheduleNextPhase(uint32 newPhaseBlock_) external onlyOwner {
-        scheduleNextPhase(newPhaseBlock_);
     }
 
     /// Owner can add up to 8 redeemables to this contract.
@@ -252,7 +241,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// @inheritdoc Phased
     function _beforeScheduleNextPhase(uint32 nextPhaseBlock_) internal override virtual {
         super._beforeScheduleNextPhase(nextPhaseBlock_);
-        assert(currentPhase() < Phase.ONE);
+        assert(currentPhase() < Phase.TWO);
     }
 
     /// Apply phase sensitive transfer restrictions.

@@ -927,24 +927,15 @@ describe("TrustDistribute", async function () {
       await reserve.transfer(signers[9].address, 0);
     }
 
-    const tokenBPoolBalanceBefore = await token.balanceOf(bPool.address);
-
     await trust.anonEndDistribution();
 
     const totalSupply = await token.totalSupply();
-    const tokenDust = tokenBPoolBalanceBefore
-      .mul(Util.ONE)
-      .div(1e7)
-      .div(Util.ONE)
-      .add(2); // rounding error
 
     assert(
-      totalSupply.eq(swappedTokens.add(tokenDust)),
-      `remaining supply of tokens was not equal to number that were sold plus dust
-      actual    ${totalSupply}
-      expected  ${swappedTokens.add(tokenDust)}
-      swapped   ${swappedTokens}
-      tokenDust ${tokenDust}
+      totalSupply.eq(swappedTokens),
+      `remaining supply of tokens was not equal to number that were sold
+      remaining supply ${totalSupply}
+      swapped          ${swappedTokens}
     `
     );
   });

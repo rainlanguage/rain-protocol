@@ -394,7 +394,7 @@ describe("TrustRewards", async function () {
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     const balanceA = await reserveA.balanceOf(hodler1.address);
-    const expectedBalanceA = tokenReserveA.div(10).sub(4);
+    const expectedBalanceA = tokenReserveA.div(10).sub(2);
     assert(
       balanceA.eq(expectedBalanceA),
       `
@@ -412,7 +412,7 @@ describe("TrustRewards", async function () {
         got       ${balanceB}`
     );
     const balanceC = await reserveC.balanceOf(hodler1.address);
-    const expectedBalanceC = tokenReserveC.div(10).sub(2);
+    const expectedBalanceC = tokenReserveC.div(10).sub(1);
     assert(
       balanceC.eq(expectedBalanceC),
       `
@@ -421,7 +421,7 @@ describe("TrustRewards", async function () {
         got       ${balanceC}`
     );
     const balanceD = await reserveD.balanceOf(hodler1.address);
-    const expectedBalanceD = tokenReserveD.div(10).sub(2);
+    const expectedBalanceD = tokenReserveD.div(10).sub(1);
     assert(
       balanceD.eq(expectedBalanceD),
       `
@@ -468,7 +468,7 @@ describe("TrustRewards", async function () {
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     const balanceA2 = await reserveA.balanceOf(hodler1.address);
-    const expectedBalanceA2 = tokenReserveA2.div(10).sub(2);
+    const expectedBalanceA2 = tokenReserveA2.div(10).sub(1);
     assert(
       balanceA2.eq(expectedBalanceA2),
       `
