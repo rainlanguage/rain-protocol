@@ -17,9 +17,9 @@ import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
 import { Phase } from "./Phased.sol";
-import { RedeemableERC20, Config as RedeemableERC20Config } from "./RedeemableERC20.sol";
-import { RedeemableERC20Pool, Config as PoolConfigInner } from "./RedeemableERC20Pool.sol";
-import { SeedERC20, Config as SeedERC20Config } from "./SeedERC20.sol";
+import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
+import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "./RedeemableERC20Pool.sol";
+import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -87,7 +87,7 @@ struct DistributionProgress {
 
 /// Configuration specific to constructing the `Trust`.
 /// `Trust` contracts also take inner config for the pool and token.
-struct Config {
+struct TrustConfig {
     // Address of the creator who will receive reserve assets on successful distribution.
     address creator;
     // Minimum amount to raise for the creator from the distribution period.
@@ -118,8 +118,8 @@ struct Config {
 }
 
 /// Configuration passed through to the `RedeemableERC20Pool` constructor.
-/// @see PoolConfigInner
-struct PoolConfig {
+/// @see RedeemableERC20PoolConfig
+struct TrustRedeemableERC20PoolConfig {
     // As RedeemableERC20Pool Config.
     CRPFactory crpFactory;
     // As RedeemableERC20Pool Config.
@@ -182,7 +182,7 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for RedeemableERC20;
 
     /// Config the Trust was constructed with.
-    Config public config;
+    TrustConfig public config;
 
     /// Balance of the reserve asset in the Balance pool at the moment `anonEndDistribution` is called.
     /// This must be greater than or equal to `successBalance` for the distribution to succeed.
@@ -210,9 +210,9 @@ contract Trust is ReentrancyGuard {
     /// @param redeemableERC20Config_ RedeemableERC20 Config for constructed redeemable token.
     /// @param poolConfig_ RedeemableERC20Pool Config for constructed redeemable pool contract.
     constructor (
-        Config memory config_,
+        TrustConfig memory config_,
         RedeemableERC20Config memory redeemableERC20Config_,
-        PoolConfig memory poolConfig_
+        TrustRedeemableERC20PoolConfig memory poolConfig_
     ) public {
         require(config_.creator != address(0), "CREATOR_0");
         // There are additional minimum reserve init and token supply restrictions enforced by `RedeemableERC20` and `RedeemableERC20Pool`.
@@ -227,7 +227,7 @@ contract Trust is ReentrancyGuard {
         token =  new RedeemableERC20(
             redeemableERC20Config_
         );
-        pool = new RedeemableERC20Pool(PoolConfigInner(
+        pool = new RedeemableERC20Pool(RedeemableERC20PoolConfig(
             poolConfig_.crpFactory,
             poolConfig_.balancerFactory,
             poolConfig_.reserve,
