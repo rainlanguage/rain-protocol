@@ -2847,7 +2847,8 @@ describe("Trust", async function () {
 
     // creator cannot add unfreezable
     await Util.assertError(
-      async () => await token.grantRole(await token.RECEIVER(), signers[3].address),
+      async () =>
+        await token.grantRole(await token.RECEIVER(), signers[3].address),
       "revert AccessControl: sender must be an admin to grant",
       "creator added receiver, despite not being token admin"
     );
@@ -2860,7 +2861,8 @@ describe("Trust", async function () {
 
     // non-creator cannot add unfreezable, (no one but admin can add receiver)
     await Util.assertError(
-      async () => await token1.grantRole(await token.RECEIVER(), signers[3].address),
+      async () =>
+        await token1.grantRole(await token.RECEIVER(), signers[3].address),
       "revert AccessControl: sender must be an admin to grant",
       "anon added receiver, despite not being token admin"
     );

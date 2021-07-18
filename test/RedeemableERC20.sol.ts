@@ -173,7 +173,10 @@ describe("RedeemableERC20", async function () {
 
     // remove transfer restrictions for sender and receiver
     await token.grantRole(await token.SENDER(), sender.address);
-    assert(await token.hasRole(await token.SENDER(), sender.address), "sender status was wrong");
+    assert(
+      await token.hasRole(await token.SENDER(), sender.address),
+      "sender status was wrong"
+    );
 
     await token.grantRole(await token.RECEIVER(), receiver.address);
     assert(
@@ -705,7 +708,10 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.deployed();
 
     assert(
-      await redeemableERC20.hasRole(await redeemableERC20.RECEIVER(), signers[0].address),
+      await redeemableERC20.hasRole(
+        await redeemableERC20.RECEIVER(),
+        signers[0].address
+      ),
       "owner not set as receiver on token construction"
     );
   });
@@ -749,7 +755,10 @@ describe("RedeemableERC20", async function () {
 
     // admin is made receiver during construction, so required token transfers can go ahead
     assert(
-      await redeemableERC20.hasRole(await redeemableERC20.RECEIVER(), signers[0].address),
+      await redeemableERC20.hasRole(
+        await redeemableERC20.RECEIVER(),
+        signers[0].address
+      ),
       "admin not made receiver during construction"
     );
 

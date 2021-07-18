@@ -627,7 +627,10 @@ describe("RedeemableERC20Pool", async function () {
     assert((await pool.token()) === redeemable.address, "wrong token address");
     assert((await pool.owner()) === signers[0].address, "wrong owner");
     assert(
-      await redeemable.hasRole(await redeemable.DEFAULT_ADMIN_ROLE(), await pool.owner()),
+      await redeemable.hasRole(
+        await redeemable.DEFAULT_ADMIN_ROLE(),
+        await pool.owner()
+      ),
       "mismatch owner"
     );
 
@@ -762,7 +765,10 @@ describe("RedeemableERC20Pool", async function () {
     assert((await pool.token()) === redeemable.address, "wrong token address");
     assert((await pool.owner()) === signers[0].address, "wrong owner");
     assert(
-      await redeemable.hasRole(await redeemable.DEFAULT_ADMIN_ROLE(), await pool.owner()),
+      await redeemable.hasRole(
+        await redeemable.DEFAULT_ADMIN_ROLE(),
+        await pool.owner()
+      ),
       "mismatch owner"
     );
 
