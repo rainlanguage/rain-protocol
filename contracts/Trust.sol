@@ -206,6 +206,12 @@ contract Trust is ReentrancyGuard {
     /// (optional) Creates the `SeedERC20` contract. Pass a non-zero address to bypass this.
     /// Adds the Balancer pool contracts to the token sender/receiver lists as needed.
     /// Adds the Balancer pool reserve asset as the first redeemable on the `RedeemableERC20` contract.
+    ///
+    /// Note on slither detector:
+    /// Slither detects a benign reentrancy in this constructor.
+    /// However reentrancy is not possible in a contract constructor.
+    /// Further discussion with the slither team: https://github.com/crytic/slither/issues/887
+    ///
     /// @param config_ Config for the Trust.
     /// @param redeemableERC20Config_ RedeemableERC20 Config for constructed redeemable token.
     /// @param poolConfig_ RedeemableERC20Pool Config for constructed redeemable pool contract.
