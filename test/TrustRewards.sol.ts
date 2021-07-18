@@ -498,7 +498,7 @@ describe("TrustRewards", async function () {
     );
   });
 
-  it("should allow redemption only after token unblocked", async function () {
+  it("should allow redemption only after token phase change", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -649,10 +649,10 @@ describe("TrustRewards", async function () {
       async () =>
         await token1.senderRedeem(await token1.balanceOf(hodler1.address)),
       "revert BAD_PHASE",
-      "hodler1 redeemed tokens before token unblocked (before pool unblock)"
+      "hodler1 redeemed tokens before token phase change"
     );
 
-    // create empty transfer blocks until reaching pool unblock block, so raise can end
+    // create empty transfer blocks until reaching pool phase change, so raise can end
     while (
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
@@ -677,28 +677,28 @@ describe("TrustRewards", async function () {
     await Util.assertError(
       async () => await token1.senderRedeem(hodler1TokenBalanceBeforeRed),
       "revert BAD_PHASE",
-      `hodler1 redeemed tokens before token unblocked (after pool unblock)
-      currentBlock      ${await ethers.provider.getBlockNumber()}
-      tokenUnblockBlock ${await token.phaseBlocks(0)}`
+      `hodler1 redeemed tokens before token phase change
+      currentBlock        ${await ethers.provider.getBlockNumber()}
+      tokenPhaseOneBlock  ${await token.phaseBlocks(0)}`
     );
 
     const hodler1TokenBalanceAfterRed = await token1.balanceOf(hodler1.address);
 
     assert(
       hodler1TokenBalanceBeforeRed.eq(hodler1TokenBalanceAfterRed),
-      "tokens wrongly redeemed before redemption unblocked"
+      "tokens wrongly redeemed before redemption phase"
     );
 
     const trust1 = trust.connect(hodler1);
 
-    // after endRaise is called, token is unblocked
+    // after endRaise is called, token is now next phase
     await trust1.anonEndDistribution();
 
     assert(
       (await token.phaseBlocks(0)) === (await ethers.provider.getBlockNumber()),
       `token phase ONE block should be set to current block
     currentBlock  ${await ethers.provider.getBlockNumber()}
-    tokenUnblockBlock ${await token.phaseBlocks(0)}`
+    tokenPhaseOneBlock ${await token.phaseBlocks(0)}`
     );
 
     await token1.senderRedeem(await token1.balanceOf(hodler1.address));

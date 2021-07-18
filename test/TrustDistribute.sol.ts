@@ -181,7 +181,7 @@ describe("TrustDistribute", async function () {
       await swapReserveForTokens(hodler1, reserveSpend);
     }
 
-    // create empty transfer blocks until reaching unblock block, so distribution can end
+    // create empty transfer blocks until reaching next phase, so distribution can end
     while (
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
@@ -419,7 +419,7 @@ describe("TrustDistribute", async function () {
       await swapReserveForTokens(hodler1, reserveSpend);
     }
 
-    // create empty transfer blocks until reaching unblock block, so distribution can end
+    // create empty transfer blocks until reaching next phase, so distribution can end
     while (
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
@@ -587,7 +587,7 @@ describe("TrustDistribute", async function () {
         await swapReserveForTokens(hodler1, reserveSpend);
       }
 
-      // create empty transfer blocks until reaching unblock block, so distribution can end
+      // create empty transfer blocks until reaching next phase, so distribution can end
       while (
         (await ethers.provider.getBlockNumber()) <=
         startBlock + minimumTradingDuration
@@ -731,7 +731,7 @@ describe("TrustDistribute", async function () {
 
       const startBlock = await ethers.provider.getBlockNumber();
 
-      // create empty transfer blocks until reaching unblock block, so distribution can end
+      // create empty transfer blocks until reaching next phase, so distribution can end
       while (
         (await ethers.provider.getBlockNumber()) <=
         startBlock + minimumTradingDuration
@@ -907,7 +907,7 @@ describe("TrustDistribute", async function () {
 
     const swappedTokens = await token.balanceOf(hodler1.address);
 
-    // create empty transfer blocks until reaching unblock block, so distribution can end
+    // create empty transfer blocks until reaching next phase, so distribution can end
     while (
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
@@ -1036,7 +1036,7 @@ describe("TrustDistribute", async function () {
     ) as RedeemableERC20Pool;
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
-    // create empty transfer blocks until reaching unblock block, so distribution can end
+    // create empty transfer blocks until reaching next phase, so distribution can end
     while (
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
@@ -1208,7 +1208,7 @@ describe("TrustDistribute", async function () {
         await swapReserveForTokens(hodler1, reserveSpend);
       }
 
-      // create empty transfer blocks until reaching unblock block, so distribution can end
+      // create empty transfer blocks until reaching next phase, so distribution can end
       while (
         (await ethers.provider.getBlockNumber()) <=
         startBlock + minimumTradingDuration
@@ -1368,7 +1368,7 @@ describe("TrustDistribute", async function () {
       await swapReserveForTokens(hodler1, reserveSpend);
       // }
 
-      // create empty transfer blocks until reaching unblock block, so distribution can end
+      // create empty transfer blocks until reaching next phase, so distribution can end
       while (
         (await ethers.provider.getBlockNumber()) <=
         startBlock + minimumTradingDuration

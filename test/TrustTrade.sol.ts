@@ -408,7 +408,7 @@ describe("TrustTrade", async function () {
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
     const startBlock = await ethers.provider.getBlockNumber();
-    const unblockBlock = startBlock + minimumTradingDuration;
+    const nextPhaseBlock = startBlock + minimumTradingDuration;
 
     const token = new ethers.Contract(
       await trust.token(),
@@ -428,7 +428,7 @@ describe("TrustTrade", async function () {
     const block25Percent = startBlock + minimumTradingDuration / 4;
     const block50Percent = startBlock + minimumTradingDuration / 2;
     const block75Percent = startBlock + (minimumTradingDuration * 3) / 4;
-    const block100Percent = unblockBlock;
+    const block100Percent = nextPhaseBlock;
 
     await crp.pokeWeights();
 

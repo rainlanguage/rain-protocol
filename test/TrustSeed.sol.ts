@@ -468,7 +468,7 @@ describe("TrustSeed", async function () {
     assert(
       (await seederContract.phaseBlocks(0)) ===
         (await ethers.provider.getBlockNumber()),
-      `unblock block wasn't set when fully seeded`
+      `phase ONE block wasn't set when fully seeded`
     );
 
     assert(

@@ -153,7 +153,6 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const now = await ethers.provider.getBlockNumber();
-    const unblockBlock = now + 10;
 
     const token = (await redeemableERC20Factory.deploy({
       name: tokenName,
@@ -225,7 +224,6 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const now = await ethers.provider.getBlockNumber();
-    const unblockBlock = now + 8;
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       name: tokenName,
@@ -473,7 +471,7 @@ describe("RedeemableERC20", async function () {
       .to.emit(redeemableERC20, "PhaseShiftScheduled")
       .withArgs(now + 1);
 
-    // Funds need to be frozen once redemption unblocks.
+    // Funds need to be frozen once redemption phase begins.
     await Util.assertError(
       async () => await redeemableERC20.transfer(signers[1].address, 1),
       "revert FROZEN",
