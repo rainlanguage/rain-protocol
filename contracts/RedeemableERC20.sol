@@ -164,7 +164,7 @@ contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20
     ///
     /// Calculate the redeem value of tokens as:
     ///
-    /// ( redeemAmount / redeemableErc20Token.totalSupply() ) * token.balanceOf(address(this))
+    /// `( redeemAmount / redeemableErc20Token.totalSupply() ) * token.balanceOf(address(this))`
     ///
     /// This means that the users get their redeemed pro-rata share of the outstanding token supply
     /// burned in return for a pro-rata share of the current balance of each redeemable token.

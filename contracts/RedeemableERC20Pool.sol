@@ -75,7 +75,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
-    /// Balancer requires a minimum balance of 10 ** 6 for all tokens at all times.
+    /// Balancer requires a minimum balance of `10 ** 6` for all tokens at all times.
     uint256 public constant MIN_BALANCER_POOL_BALANCE = 10 ** 6;
     /// To ensure that the dust at the end of the raise is dust-like, we enfore a minimum starting reserve balance 100x the minimum.
     uint256 public constant MIN_RESERVE_INIT = 10 ** 8;
@@ -88,7 +88,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// Initial reserve balance of the pool.
     uint256 public reserveInit;
 
-    /// ConfigurableRightsPool built during construction.
+    /// The `ConfigurableRightsPool` built during construction.
     ConfigurableRightsPool public crp;
 
     /// The final weight on the last block of the raise.
@@ -106,7 +106,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
         finalWeight = valuationWeight(config_.finalValuation);
 
         // Build the CRP.
-        // The addresses in the RedeemableERC20Pool, as [reserve, token].
+        // The addresses in the `RedeemableERC20Pool`, as [reserve, token].
         address[] memory poolAddresses_ = new address[](2);
         poolAddresses_[0] = address(reserve);
         poolAddresses_[1] = address(token);
@@ -124,7 +124,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // 1. Change fee
         // 2. Change weights (`true` needed to set gradual weight schedule)
         // 3. Add/remove tokens
-        // 4. Whitelist LPs (default for `true` is nobody can joinPool)
+        // 4. Whitelist LPs (default behaviour for `true` is that nobody can `joinPool`)
         // 5. Change cap
         bool[] memory rights_ = new bool[](6);
         rights_[2] = true;
@@ -222,8 +222,9 @@ contract RedeemableERC20Pool is Ownable, Phased {
         uint256 minRedeemablePoolTokens = MIN_BALANCER_POOL_BALANCE.mul(BalancerConstants.MAX_POOL_SUPPLY).div(token.balanceOf(address(crp.bPool())));
         uint256 minPoolSupply_ = BalancerConstants.MIN_POOL_SUPPLY.max(minReservePoolTokens).max(minRedeemablePoolTokens);
 
-        // It is not possible to destroy a Balancer pool completely with an exit afaik.
-        // This removes as much as is allowable which leaves about 10^-7 of the supply behind as dust.
+        // This removes as much as is allowable which leaves behind some dust.
+        // The reserve dust will be trapped.
+        // The redeemable token will be burned when it moves to its `Phase.ONE`.
         crp.exitPool(
             crp.balanceOf(address(this)) - minPoolSupply_,
             new uint256[](2)
