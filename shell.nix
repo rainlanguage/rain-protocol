@@ -39,7 +39,7 @@ let
  # Balancer has PoolParams struct defined inside a contract which slither does not like.
  # This patch moves PoolParams outside the contract and upates import references to it.
  patch -p1 < slither-hack-balancer-pool-params.patch
- patch -p1 < slither-hack-local-pool-params.patch
+ # patch -p1 < slither-hack-local-pool-params.patch
 
  # Workaround a slither bug due to stale compiled artifacts.
  # https://github.com/crytic/slither/issues/860
@@ -58,8 +58,8 @@ let
  slither . --npx-disable --filter-paths="contracts/configurable-rights-pool|openzeppelin" --exclude-dependencies
 
  # Rollback all the slither specific patches.
+ # patch -R -p1 < slither-hack-local-pool-params.patch
  patch -R -p1 < slither-hack-balancer-pool-params.patch
- patch -R -p1 < slither-hack-local-pool-params.patch
  patch -R -p1 < slither-hack-balancer-ierc20.patch
  '';
 
