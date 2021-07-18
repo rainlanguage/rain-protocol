@@ -117,6 +117,7 @@ contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20
         _mint(msg.sender, config_.totalSupply);
     }
 
+    /// Ensure that `msg.sender` has the admin role.
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "ONLY_ADMIN");
         _;
