@@ -76,16 +76,12 @@ describe("RedeemableERC20Reentrant", async function () {
       redeemableERC20.address
     )) as RedeemableERC20Reentrant;
 
-    await redeemableERC20.ownerScheduleNextPhase(phaseOneBlock);
     await redeemableERC20.ownerAddRedeemable(maliciousReserve.address);
 
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
 
-    // create a few blocks by sending some tokens around, after which redeeming now possible
-    while ((await ethers.provider.getBlockNumber()) < phaseOneBlock - 1) {
-      await redeemableERC20.transfer(signers[9].address, 0);
-    }
+    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
 
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);

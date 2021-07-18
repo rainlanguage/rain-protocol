@@ -75,7 +75,6 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20;
 
     await redeemable.deployed();
-    await redeemable.ownerScheduleNextPhase(nextPhaseBlock);
 
     const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
       libraries: {
@@ -181,9 +180,6 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
-    const now = await ethers.provider.getBlockNumber();
-    const nextPhaseBlock = now + 50;
-
     const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
@@ -194,7 +190,6 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20;
 
     await redeemable.deployed();
-    await redeemable.ownerScheduleNextPhase(nextPhaseBlock);
 
     const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
       libraries: {
@@ -439,7 +434,6 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20;
 
     await redeemable.deployed();
-    await redeemable.ownerScheduleNextPhase(raiseEndBlock);
 
     const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
       libraries: {
@@ -593,7 +587,6 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20;
 
     await redeemable.deployed();
-    await redeemable.ownerScheduleNextPhase(phaseOneBlock);
 
     assert(
       (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -729,7 +722,6 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20;
 
     await redeemable.deployed();
-    await redeemable.ownerScheduleNextPhase(phaseOneBlock);
 
     assert(
       (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -836,9 +828,6 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
-    const now = await ethers.provider.getBlockNumber();
-    const phaseOneBlock = now + 15;
-
     const redeemable = (await redeemableFactory.deploy({
       name: tokenName,
       symbol: tokenSymbol,
@@ -848,7 +837,6 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20;
 
     await redeemable.deployed();
-    await redeemable.ownerScheduleNextPhase(phaseOneBlock);
 
     assert(
       (await reserve.balanceOf(redeemable.address)).eq(0),
@@ -935,7 +923,6 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20;
 
     await redeemable.deployed();
-    await redeemable.ownerScheduleNextPhase(phaseOneBlock);
 
     assert(
       (await reserve.balanceOf(redeemable.address)).eq(0),

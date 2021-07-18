@@ -386,7 +386,7 @@ describe("TrustRewards", async function () {
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     const balanceA = await reserveA.balanceOf(hodler1.address);
-    const expectedBalanceA = tokenReserveA.div(10);
+    const expectedBalanceA = tokenReserveA.div(10).sub(1);
     assert(
       balanceA.eq(expectedBalanceA),
       `
@@ -395,7 +395,7 @@ describe("TrustRewards", async function () {
         got       ${balanceA}`
     );
     const balanceB = await reserveB.balanceOf(hodler1.address);
-    const expectedBalanceB = tokenReserveB.div(10);
+    const expectedBalanceB = tokenReserveB.div(10).sub(1);
     assert(
       balanceB.eq(expectedBalanceB),
       `
@@ -404,7 +404,7 @@ describe("TrustRewards", async function () {
         got       ${balanceB}`
     );
     const balanceC = await reserveC.balanceOf(hodler1.address);
-    const expectedBalanceC = tokenReserveC.div(10);
+    const expectedBalanceC = tokenReserveC.div(10).sub(1);
     assert(
       balanceC.eq(expectedBalanceC),
       `
@@ -413,7 +413,7 @@ describe("TrustRewards", async function () {
         got       ${balanceC}`
     );
     const balanceD = await reserveD.balanceOf(hodler1.address);
-    const expectedBalanceD = tokenReserveD.div(10);
+    const expectedBalanceD = tokenReserveD.div(10).sub(1);
     assert(
       balanceD.eq(expectedBalanceD),
       `
@@ -445,11 +445,12 @@ describe("TrustRewards", async function () {
     const tokenReserveD2 = await reserveD.balanceOf(token.address);
 
     // 9/10ths remaining
+    const expectedTokenSupply2 = tokenSupply.mul(9).div(10).add(1);
     assert(
-      tokenSupply2.eq(tokenSupply.mul(9).div(10)),
+      tokenSupply2.eq(expectedTokenSupply2),
       `
     wrong new total token supply
-      expected  ${tokenSupply.mul(9).div(10)}
+      expected  ${expectedTokenSupply2}
       got       ${tokenSupply2}
     `
     );
@@ -460,7 +461,7 @@ describe("TrustRewards", async function () {
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     const balanceA2 = await reserveA.balanceOf(hodler1.address);
-    const expectedBalanceA2 = tokenReserveA2.div(10).sub(1);
+    const expectedBalanceA2 = tokenReserveA2.div(10);
     assert(
       balanceA2.eq(expectedBalanceA2),
       `
@@ -469,7 +470,7 @@ describe("TrustRewards", async function () {
         got       ${balanceA2}`
     );
     const balanceB2 = await reserveB.balanceOf(hodler1.address);
-    const expectedBalanceB2 = tokenReserveB2.div(10).sub(1);
+    const expectedBalanceB2 = tokenReserveB2.div(10);
     assert(
       balanceB2.eq(expectedBalanceB2),
       `
@@ -478,7 +479,7 @@ describe("TrustRewards", async function () {
         got       ${balanceB2}`
     );
     const balanceC2 = await reserveC.balanceOf(hodler1.address);
-    const expectedBalanceC2 = tokenReserveC2.div(10).sub(1);
+    const expectedBalanceC2 = tokenReserveC2.div(10);
     assert(
       balanceC2.eq(expectedBalanceC2),
       `
@@ -487,7 +488,7 @@ describe("TrustRewards", async function () {
         got       ${balanceC2}`
     );
     const balanceD2 = await reserveD.balanceOf(hodler1.address);
-    const expectedBalanceD2 = tokenReserveD2.div(10).sub(1);
+    const expectedBalanceD2 = tokenReserveD2.div(10);
     assert(
       balanceD2.eq(expectedBalanceD2),
       `
@@ -497,7 +498,7 @@ describe("TrustRewards", async function () {
     );
   });
 
-  it("should allow redemption only after token unblocked", async function () {
+  it("should allow redemption only after token phase change", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -648,10 +649,10 @@ describe("TrustRewards", async function () {
       async () =>
         await token1.senderRedeem(await token1.balanceOf(hodler1.address)),
       "revert BAD_PHASE",
-      "hodler1 redeemed tokens before token unblocked (before pool unblock)"
+      "hodler1 redeemed tokens before token phase change"
     );
 
-    // create empty transfer blocks until reaching pool unblock block, so raise can end
+    // create empty transfer blocks until reaching pool phase change, so raise can end
     while (
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
@@ -676,28 +677,28 @@ describe("TrustRewards", async function () {
     await Util.assertError(
       async () => await token1.senderRedeem(hodler1TokenBalanceBeforeRed),
       "revert BAD_PHASE",
-      `hodler1 redeemed tokens before token unblocked (after pool unblock)
-      currentBlock      ${await ethers.provider.getBlockNumber()}
-      tokenUnblockBlock ${await token.phaseBlocks(0)}`
+      `hodler1 redeemed tokens before token phase change
+      currentBlock        ${await ethers.provider.getBlockNumber()}
+      tokenPhaseOneBlock  ${await token.phaseBlocks(0)}`
     );
 
     const hodler1TokenBalanceAfterRed = await token1.balanceOf(hodler1.address);
 
     assert(
       hodler1TokenBalanceBeforeRed.eq(hodler1TokenBalanceAfterRed),
-      "tokens wrongly redeemed before redemption unblocked"
+      "tokens wrongly redeemed before redemption phase"
     );
 
     const trust1 = trust.connect(hodler1);
 
-    // after endRaise is called, token is unblocked
+    // after endRaise is called, token is now next phase
     await trust1.anonEndDistribution();
 
     assert(
       (await token.phaseBlocks(0)) === (await ethers.provider.getBlockNumber()),
       `token phase ONE block should be set to current block
     currentBlock  ${await ethers.provider.getBlockNumber()}
-    tokenUnblockBlock ${await token.phaseBlocks(0)}`
+    tokenPhaseOneBlock ${await token.phaseBlocks(0)}`
     );
 
     await token1.senderRedeem(await token1.balanceOf(hodler1.address));

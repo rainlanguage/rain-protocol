@@ -121,6 +121,17 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         _mint(msg.sender, config_.totalSupply);
     }
 
+    /// The owner can burn all tokens of a single address to end `Phase.ZERO`.
+    /// The intent is that during `Phase.ZERO` there is some contract responsible for distributing the tokens.
+    /// The owner specifies the distributor to end `Phase.ZERO` and all undistributed tokens are burned.
+    /// The distributor is NOT set during the constructor because it likely doesn't exist at that point.
+    /// For example, Balancer needs the paired erc20 tokens to exist before the trading pool can be built.
+    /// @param distributorAccount_ The distributor according to the owner.
+    function ownerBurnDistributor(address distributorAccount_) external onlyOwner onlyPhase(Phase.ZERO) {
+        scheduleNextPhase(uint32(block.number));
+        _burn(distributorAccount_, balanceOf(distributorAccount_));
+    }
+
     /// Owner can add accounts to the sender list.
     /// Senders can always send token transfers in either phase.
     /// The original owner is guaranteed to be on the sender list at construction.
@@ -162,14 +173,6 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// @return True if the account is a receiver.
     function isReceiver(address account_) public view returns (bool) {
         return (unfreezables[account_] & 0x0002) == 0x0002;
-    }
-
-    /// Owner can schedule `Phase.ONE` at any point during `Phase.ZERO`.
-    /// It is intended that the owner will be a contract that can implement controls around this phase shift.
-    /// Calling this more than once will error as there is no `Phase.TWO`.
-    /// @param newPhaseBlock_ The first block of `Phase.ONE`.
-    function ownerScheduleNextPhase(uint32 newPhaseBlock_) external onlyOwner {
-        scheduleNextPhase(newPhaseBlock_);
     }
 
     /// Owner can add up to 8 redeemables to this contract.
@@ -245,7 +248,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// @inheritdoc Phased
     function _beforeScheduleNextPhase(uint32 nextPhaseBlock_) internal override virtual {
         super._beforeScheduleNextPhase(nextPhaseBlock_);
-        assert(currentPhase() < Phase.ONE);
+        assert(currentPhase() < Phase.TWO);
     }
 
     /// Apply phase sensitive transfer restrictions.
