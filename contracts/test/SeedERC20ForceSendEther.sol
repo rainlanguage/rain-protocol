@@ -14,6 +14,7 @@ contract SeedERC20ForceSendEther {
         selfdestruct(victimAddress);
     }
 
-    fallback () external payable {
-    }
+    fallback () external payable { }
+
+    receive () external payable { }
 }
