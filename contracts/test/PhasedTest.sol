@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.6.12;
 
 import { Phase, Phased } from "../Phased.sol";
 
 /// @title PhasedTest
-/// Empty contract for tests enumerating behaviour of the modifiers.
+/// Empty contract for tests enumerating behaviour of the `Phased` modifiers.
 contract PhasedTest is Phased {
-    /// Custom variable for testing _beforeScheduleNextPhase hook
+    /// Custom variable for testing the `_beforeScheduleNextPhase` hook
     bool public hookCondition = true;
 
     /// Exposes `scheduleNextPhase` for testing.

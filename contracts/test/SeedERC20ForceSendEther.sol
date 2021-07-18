@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.6.12;
 
 import { SeedERC20 } from "../SeedERC20.sol";
 
 /// @title SeedERC20ForceSendEther
 /// Test contract that can selfdestruct and forcibly send ether to the target address.
+/// None of this should do anything as `SeedERC20` deals only with erc20 tokens.
 contract SeedERC20ForceSendEther {
     /// Destroy and send current ether balance to SeedERC20 contract address.
     /// @param seedERC20Contract_ Seed contract to send current ether balance to.

@@ -9,7 +9,7 @@ pragma solidity ^0.6.12;
 ///
 /// Cooldown is NOT an effective sybil resistance as the cooldown is per-address only.
 /// It is always possible for many accounts to be created to spam a contract with dust in parallel.
-/// Cooldown is useful to stop a single account rapidly cycling contract state in a way that can be disruptive to other peers.
+/// Cooldown is useful to stop a single account rapidly cycling contract state in a way that can be disruptive to peers.
 /// Cooldown works best when coupled with economic stake associated with each state change so that peers must lock capital during the cooldown.
 /// Cooldown tracks the first `msg.sender` it sees for a call stack so cooldowns are enforced across reentrant code.
 abstract contract Cooldown {

@@ -18,13 +18,13 @@ import { Phase, Phased } from "./Phased.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
-    // Name forwarded through to parent ERC20 contract.
+    // Name forwarded to ERC20 constructor.
     string name;
-    // Symbol forwarded through to parent ERC20 contract.
+    // Symbol forwarded to ERC20 constructor.
     string symbol;
     // Prestige contract to compare statuses against on transfer.
     IPrestige prestige;
-    // Minimum status required for transfers in `Phase.ZERO`. Can be 0.
+    // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
     IPrestige.Status minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
@@ -53,19 +53,16 @@ struct RedeemableERC20Config {
 /// - Owner can add redeemable tokens
 ///   - But NOT remove them
 ///   - And everyone can call `senderRedeemSpecific` to override the redeemable list
-/// - Owner can schedule `Phase.ONE` during `Phase.ZERO`
+/// - Owner can end `Phase.ONE` during `Phase.ZERO` by specifying the address of a distributor, which will have any undistributed tokens burned
 ///
 /// The intent is that the redeemable token contract is owned by a `Trust` contract, NOT an externally owned account.
 /// The `Trust` contract will add the minimum possible senders/receivers to facilitate the AMM trading and redemption.
-/// The `Trust` will also control access to managing redeemable tokens and moving to `Phase.ONE`.
+/// The `Trust` will also control access to managing redeemable tokens and specifying the trading AMM pool as the distributor to burn to end `Phase.ONE`.
 ///
-/// RedeemableERC20 is not upgradeable.
-///
-/// The redeem functions MUST be used to redeem RedeemableERC20s.
-/// Sending RedeemableERC20 tokens to the RedeemableERC20 contract address will _make them unrecoverable_.
+/// The redeem functions MUST be used to redeem and burn RedeemableERC20s (NOT regular transfers).
 ///
 /// The `senderRedeem` and `senderRedeemSpecific` functions will simply revert if called outside `Phase.ONE`.
-/// A `Redeem` event is emitted on every redemption (per redeemed token) as `(_redeemer, _redeemable, _redeemAmount)`.
+/// A `Redeem` event is emitted on every redemption (per redeemed token) as `(redeemer, redeemable, redeemAmount)`.
 contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, ReentrancyGuard, ERC20Burnable {
 
     using SafeMath for uint256;
@@ -82,8 +79,8 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     );
 
     /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
-    /// The absolute minimum supply is "one" token which is 10 ** 18.
-    /// This minimum supply only applies at construction and does not prevent subsequent redemption/burning.
+    /// The minimum supply enforced by the constructor is "one" token which is 10 ** 18.
+    /// The minimum supply does not prevent subsequent redemption/burning.
     uint256 public constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
 
     /// The maximum number of redeemables that can be set.
@@ -103,7 +100,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     mapping(address => uint8) public unfreezables;
 
     /// Mint the full ERC20 token supply and configure basic transfer restrictions.
-    /// @param config_ All the constructor configuration.
+    /// @param config_ Constructor configuration.
     constructor (
         RedeemableERC20Config memory config_
     )
@@ -137,13 +134,13 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// The original owner is guaranteed to be on the sender list at construction.
     /// Senders cannot be removed.
     /// Senders can ONLY be added during `Phase.ZERO`.
-    /// @param account_ The account to set sender status for.
-    function ownerAddSender(address account_)
+    /// @param newSenderAccount_ The account to grant sender status to.
+    function ownerAddSender(address newSenderAccount_)
         external
         onlyOwner
         onlyPhase(Phase.ZERO)
     {
-        unfreezables[account_] = unfreezables[account_] | 0x0001;
+        unfreezables[newSenderAccount_] = unfreezables[newSenderAccount_] | 0x0001;
     }
 
     /// Checks if a given account is on the sender list.
