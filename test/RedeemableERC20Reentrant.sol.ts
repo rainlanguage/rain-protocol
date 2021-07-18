@@ -76,12 +76,12 @@ describe("RedeemableERC20Reentrant", async function () {
       redeemableERC20.address
     )) as RedeemableERC20Reentrant;
 
-    await redeemableERC20.ownerAddRedeemable(maliciousReserve.address);
+    await redeemableERC20.adminAddRedeemable(maliciousReserve.address);
 
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
+    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
 
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);

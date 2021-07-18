@@ -2592,7 +2592,7 @@ describe("Trust", async function () {
     );
   });
 
-  it("should allow only token owner and creator to set redeemables", async function () {
+  it("should allow only token admin and creator to set redeemables", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -2727,13 +2727,13 @@ describe("Trust", async function () {
 
     // cannot add redeemables directly to token when trust is owner
     await Util.assertError(
-      async () => await token.ownerAddRedeemable(reserve3.address),
-      "revert Ownable: caller is not the owner",
+      async () => await token.adminAddRedeemable(reserve3.address),
+      "revert ONLY_ADMIN",
       "creator added redeemable directly to token when trust was owner"
     );
     await Util.assertError(
-      async () => await token2.ownerAddRedeemable(reserve3.address),
-      "revert Ownable: caller is not the owner",
+      async () => await token2.adminAddRedeemable(reserve3.address),
+      "revert ONLY_ADMIN",
       "non-creator added redeemable directly to token when trust was owner"
     );
 
@@ -2759,7 +2759,7 @@ describe("Trust", async function () {
     );
   });
 
-  it("should allow only token owner (Trust) to set unfreezables", async function () {
+  it("should allow only token admin (Trust) to set senders/receivers", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -2839,17 +2839,17 @@ describe("Trust", async function () {
       signers[0]
     ) as RedeemableERC20;
 
-    // token owner is correct
+    // token admin is correct
     assert(
-      (await token.owner()) === trust.address,
-      "token owner is not correct"
+      await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), trust.address),
+      "token admin is not correct"
     );
 
     // creator cannot add unfreezable
     await Util.assertError(
-      async () => await token.ownerAddReceiver(signers[3].address),
-      "revert Ownable: caller is not the owner",
-      "creator added unfreezable, despite not being token owner"
+      async () => await token.grantRole(await token.RECEIVER(), signers[3].address),
+      "revert AccessControl: sender must be an admin to grant",
+      "creator added receiver, despite not being token admin"
     );
 
     const token1 = new ethers.Contract(
@@ -2858,18 +2858,11 @@ describe("Trust", async function () {
       signers[2]
     ) as RedeemableERC20;
 
-    // non-creator cannot add unfreezable, (no one but owner can add unfreezables)
+    // non-creator cannot add unfreezable, (no one but admin can add receiver)
     await Util.assertError(
-      async () => await token1.ownerAddReceiver(signers[3].address),
-      "revert Ownable: caller is not the owner",
-      "non-creator added unfreezable, despite not being token owner"
-    );
-
-    // creator cannot add unfreezable via some hypothetical proxy method on trust contract
-    await Util.assertError(
-      async () => await trust.creatorAddReceiver(signers[3].address),
-      "TypeError: trust.creatorAddReceiver is not a function",
-      "creator added unfreezable via trust proxy method"
+      async () => await token1.grantRole(await token.RECEIVER(), signers[3].address),
+      "revert AccessControl: sender must be an admin to grant",
+      "anon added receiver, despite not being token admin"
     );
   });
 

@@ -258,13 +258,13 @@ contract Trust is ReentrancyGuard {
         }
 
         // Need to make a few addresses unfreezable to facilitate exits.
-        token.ownerAddReceiver(address(pool.crp()));
-        token.ownerAddSender(address(pool.crp()));
-        token.ownerAddReceiver(address(poolConfig_.balancerFactory));
-        token.ownerAddReceiver(address(pool));
+        token.grantRole(token.RECEIVER(), address(poolConfig_.balancerFactory));
+        token.grantRole(token.RECEIVER(), address(pool.crp()));
+        token.grantRole(token.RECEIVER(), address(pool));
+        token.grantRole(token.SENDER(), address(pool.crp()));
 
         // The pool reserve must always be one of the redeemable assets.
-        token.ownerAddRedeemable(poolConfig_.reserve);
+        token.adminAddRedeemable(poolConfig_.reserve);
 
         // Send all tokens to the pool immediately.
         // When the seed funds are raised `startRaise` will build a pool from these.
@@ -339,10 +339,12 @@ contract Trust is ReentrancyGuard {
 
     /// Allow the creator to add a redeemable erc20 to the internal `RedeemableERC20` token.
     /// This is a thin wrapper that effectively allows the creator to act as the owner for this function call.
-    /// @param redeemable_ Redeemable erc20 passed directly to `ownerAddRedeemable`.
+    /// @param redeemable_ Redeemable erc20 passed directly to `adminAddRedeemable`.
     function creatorAddRedeemable(IERC20 redeemable_) external {
+        // Not using the Open Zepplin RBAC system here as it would be overkill for this one check.
+        // This contract has no other access controls.
         require(msg.sender == config.creator, "NOT_CREATOR");
-        token.ownerAddRedeemable(redeemable_);
+        token.adminAddRedeemable(redeemable_);
     }
 
     /// Anyone can start the distribution.
@@ -362,7 +364,7 @@ contract Trust is ReentrancyGuard {
         pool.ownerEndDutchAuction();
         // Burning the distributor moves the token to its `Phase.ONE`.
         // The distributor is the `bPool` itself.
-        token.ownerBurnDistributor(
+        token.adminBurnDistributor(
             address(pool.crp().bPool())
         );
 

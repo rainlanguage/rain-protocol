@@ -127,7 +127,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         }
     }
 
-    /// Send reserve back to seeder as ( units * seedPrice )
+    /// Send reserve back to seeder as `( units * seedPrice )`.
     ///
     /// Allows addresses to back out until `Phase.ONE`.
     /// Unlike `redeem` the seed tokens are NOT burned so become newly available for another account to `seed`.

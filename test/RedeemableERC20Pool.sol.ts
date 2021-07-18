@@ -309,10 +309,10 @@ describe("RedeemableERC20Pool", async function () {
     // // The trust would do this internally but we need to do it here to test.
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
-    await redeemable.ownerAddReceiver(crp.address);
-    await redeemable.ownerAddSender(crp.address);
-    await redeemable.ownerAddReceiver(bFactory.address);
-    await redeemable.ownerAddReceiver(pool.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
 
     // raise some funds
     const swapReserveForTokens = async (hodler, spend) => {
@@ -508,10 +508,10 @@ describe("RedeemableERC20Pool", async function () {
 
     // The trust would do this internally but we need to do it here to test.
     const crp = await pool.crp();
-    await redeemable.ownerAddSender(crp);
-    await redeemable.ownerAddReceiver(crp);
-    await redeemable.ownerAddReceiver(bFactory.address);
-    await redeemable.ownerAddReceiver(pool.address);
+    await redeemable.grantRole(await redeemable.SENDER(), crp);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
 
     // Before raiseEndBlock
     await Util.assertError(
@@ -627,7 +627,7 @@ describe("RedeemableERC20Pool", async function () {
     assert((await pool.token()) === redeemable.address, "wrong token address");
     assert((await pool.owner()) === signers[0].address, "wrong owner");
     assert(
-      (await pool.owner()) === (await redeemable.owner()),
+      await redeemable.hasRole(await redeemable.DEFAULT_ADMIN_ROLE(), await pool.owner()),
       "mismatch owner"
     );
 
@@ -657,10 +657,10 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // The trust would do this internally but we need to do it here to test.
-    await redeemable.ownerAddSender(crp.address);
-    await redeemable.ownerAddReceiver(crp.address);
-    await redeemable.ownerAddReceiver(bFactory.address);
-    await redeemable.ownerAddReceiver(pool.address);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
 
     await Util.assertError(
       async () => await pool.ownerEndDutchAuction(),
@@ -762,7 +762,7 @@ describe("RedeemableERC20Pool", async function () {
     assert((await pool.token()) === redeemable.address, "wrong token address");
     assert((await pool.owner()) === signers[0].address, "wrong owner");
     assert(
-      (await pool.owner()) === (await redeemable.owner()),
+      await redeemable.hasRole(await redeemable.DEFAULT_ADMIN_ROLE(), await pool.owner()),
       "mismatch owner"
     );
 
@@ -775,10 +775,10 @@ describe("RedeemableERC20Pool", async function () {
 
     // The trust would do this internally but we need to do it here to test.
     let [crp, bPool] = await Util.poolContracts(signers, pool);
-    await redeemable.ownerAddSender(crp.address);
-    await redeemable.ownerAddReceiver(crp.address);
-    await redeemable.ownerAddReceiver(bFactory.address);
-    await redeemable.ownerAddReceiver(pool.address);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
 
     await Util.assertError(
       async () => await pool.ownerEndDutchAuction(),

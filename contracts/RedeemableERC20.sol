@@ -7,7 +7,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
@@ -63,10 +63,13 @@ struct RedeemableERC20Config {
 ///
 /// The `senderRedeem` and `senderRedeemSpecific` functions will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per redeemed token) as `(redeemer, redeemable, redeemAmount)`.
-contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, ReentrancyGuard, ERC20Burnable {
+contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20, ReentrancyGuard, ERC20Burnable {
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
+    bytes32 public constant SENDER = keccak256("SENDER");
+    bytes32 public constant RECEIVER = keccak256("RECEIVER");
 
     /// Redeemable token burn amount.
     event Redeem(
@@ -96,9 +99,6 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// The prestige contract passed to `PrestigeByConstruction` determines if the status is held during `_beforeTokenTransfer`.
     IPrestige.Status public minimumPrestigeStatus;
 
-    /// 8 bit mappings for addresses that can be whitelisted for sending and receiving independently.
-    mapping(address => uint8) public unfreezables;
-
     /// Mint the full ERC20 token supply and configure basic transfer restrictions.
     /// @param config_ Constructor configuration.
     constructor (
@@ -111,72 +111,33 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         require(config_.totalSupply >= MINIMUM_INITIAL_SUPPLY, "MINIMUM_INITIAL_SUPPLY");
         minimumPrestigeStatus = config_.minimumStatus;
 
-        // Add the owner as a receiver to simplify `_beforeTokenTransfer` logic.
-        // Can't call `ownerAddReceiver` here as the owner is not set at this point.
-        unfreezables[msg.sender] = 0x0002;
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(RECEIVER, msg.sender);
 
         _mint(msg.sender, config_.totalSupply);
     }
 
-    /// The owner can burn all tokens of a single address to end `Phase.ZERO`.
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "ONLY_ADMIN");
+        _;
+    }
+
+    /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
     /// The intent is that during `Phase.ZERO` there is some contract responsible for distributing the tokens.
-    /// The owner specifies the distributor to end `Phase.ZERO` and all undistributed tokens are burned.
+    /// The admin specifies the distributor to end `Phase.ZERO` and all undistributed tokens are burned.
     /// The distributor is NOT set during the constructor because it likely doesn't exist at that point.
     /// For example, Balancer needs the paired erc20 tokens to exist before the trading pool can be built.
-    /// @param distributorAccount_ The distributor according to the owner.
-    function ownerBurnDistributor(address distributorAccount_) external onlyOwner onlyPhase(Phase.ZERO) {
+    /// @param distributorAccount_ The distributor according to the admin.
+    function adminBurnDistributor(address distributorAccount_) external onlyAdmin onlyPhase(Phase.ZERO) {
         scheduleNextPhase(uint32(block.number));
         _burn(distributorAccount_, balanceOf(distributorAccount_));
     }
 
-    /// Owner can add accounts to the sender list.
-    /// Senders can always send token transfers in either phase.
-    /// The original owner is guaranteed to be on the sender list at construction.
-    /// Senders cannot be removed.
-    /// Senders can ONLY be added during `Phase.ZERO`.
-    /// @param newSenderAccount_ The account to grant sender status to.
-    function ownerAddSender(address newSenderAccount_)
-        external
-        onlyOwner
-        onlyPhase(Phase.ZERO)
-    {
-        unfreezables[newSenderAccount_] = unfreezables[newSenderAccount_] | 0x0001;
-    }
-
-    /// Checks if a given account is on the sender list.
-    /// Senders can always send token transfers in either phase.
-    /// @param account_ The account to check sender status for.
-    /// @return True if the account is a sender.
-    function isSender(address account_) public view returns (bool) {
-        return (unfreezables[account_] & 0x0001) == 0x0001;
-    }
-
-    /// Owner can add accounts to the receiver list.
-    /// Receivers can always receive token transfers in either phase.
-    /// Receivers cannot be removed.
-    /// Receivers can ONLY be added during `Phase.ZERO`.
-    /// @param account_ The account to set receiver status for.
-    function ownerAddReceiver(address account_)
-        external
-        onlyOwner
-        onlyPhase(Phase.ZERO)
-        {
-            unfreezables[account_] = unfreezables[account_] | 0x02;
-        }
-
-    /// Checks if a given account is on the receiver list.
-    /// Receivers can always receive token transfers in either phase.
-    /// @param account_ The account to check receiver status for.
-    /// @return True if the account is a receiver.
-    function isReceiver(address account_) public view returns (bool) {
-        return (unfreezables[account_] & 0x0002) == 0x0002;
-    }
-
-    /// Owner can add up to 8 redeemables to this contract.
+    /// Admin can add up to 8 redeemables to this contract.
     /// Each redeemable will be sent to token holders when they call redeem functions in `Phase.ONE` to burn tokens.
-    /// If the owner adds a non-compliant or malicious IERC20 address then token holders can override the list with `senderRedeemSpecific`.
+    /// If the admin adds a non-compliant or malicious IERC20 address then token holders can override the list with `senderRedeemSpecific`.
     /// @param newRedeemable_ The redeemable contract address to add.
-    function ownerAddRedeemable(IERC20 newRedeemable_) external onlyOwner {
+    function adminAddRedeemable(IERC20 newRedeemable_) external onlyAdmin {
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and `safeTransfer` per redeemable.
@@ -236,7 +197,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// Default redemption behaviour.
     /// Thin wrapper for `senderRedeemSpecific`.
     /// `msg.sender` specifies an amount of their own redeemable token to redeem.
-    /// Each redeemable token specified by this contract's owner will be sent to the sender pro-rata.
+    /// Each redeemable token specified by this contract's admin will be sent to the sender pro-rata.
     /// The sender's tokens are burned in the process.
     /// @param redeemAmount_ The amount of the sender's redeemable erc20 to burn.
     function senderRedeem(uint256 redeemAmount_) external { senderRedeemSpecific(redeemables, redeemAmount_); }
@@ -271,8 +232,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
         // We don't want to accidentally cause external errors due to zero value transfers.
         if (amount_ > 0
             // The sender and receiver lists bypass all access restrictions.
-            && !(isSender(sender_) || isReceiver(receiver_))) {
-
+            && !(hasRole(SENDER, sender_) || hasRole(RECEIVER, receiver_))) {
             // During `Phase.ZERO` transfers are only restricted by the prestige of the recipient.
             if (currentPhase() == Phase.ZERO) { require(isStatus(receiver_, minimumPrestigeStatus), "MIN_STATUS"); }
             // During `Phase.ONE` only token burns are allowed.
