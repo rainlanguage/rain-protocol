@@ -14,7 +14,7 @@ import { Phase, Phased } from "./Phased.sol";
 import { Cooldown } from "./Cooldown.sol";
 
 /// Everything required to construct a `SeedERC20` contract.
-struct Config {
+struct SeedERC20Config {
     // Reserve erc20 token contract used to purchase seed tokens.
     IERC20 reserve;
     // Recipient address for all reserve funds raised when seeding is complete.
@@ -75,7 +75,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// Store relevant config as contract state.
     /// Mint all seed tokens.
     /// @param config_ All config required to construct the contract.
-    constructor (Config memory config_)
+    constructor (SeedERC20Config memory config_)
     public
     ERC20(config_.name, config_.symbol)
     Cooldown(config_.cooldownDuration) {

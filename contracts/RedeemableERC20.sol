@@ -17,7 +17,7 @@ import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 import { Phase, Phased } from "./Phased.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
-struct Config {
+struct RedeemableERC20Config {
     // Name forwarded through to parent ERC20 contract.
     string name;
     // Symbol forwarded through to parent ERC20 contract.
@@ -105,7 +105,7 @@ contract RedeemableERC20 is Ownable, Phased, PrestigeByConstruction, ERC20, Reen
     /// Mint the full ERC20 token supply and configure basic transfer restrictions.
     /// @param config_ All the constructor configuration.
     constructor (
-        Config memory config_
+        RedeemableERC20Config memory config_
     )
         public
         ERC20(config_.name, config_.symbol)

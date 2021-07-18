@@ -64,10 +64,11 @@ abstract contract Phased {
     /// Pure function to reduce an array of phase blocks and phase to a specific block number.
     /// `Phase.ZERO` will always return block `0`.
     /// Every other phase will map to a block number in `phaseBlocks_`.
+    ///
     /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
     /// @param phase_ Determine the relevant block number for this phase.
     /// @return The block number for the phase according to the phase blocks list, as uint32.
-    function blockNumberForPhase(uint32[8] memory phaseBlocks_, Phase phase_) public pure returns(uint32) {
+    function blockNumberForPhase(uint32[8] calldata phaseBlocks_, Phase phase_) external pure returns(uint32) {
         if (phase_ == Phase.ZERO) {
             return 0;
         }

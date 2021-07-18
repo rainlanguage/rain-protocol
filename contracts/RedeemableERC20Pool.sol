@@ -21,7 +21,7 @@ import { Phase, Phased } from "./Phased.sol";
 import { RedeemableERC20 } from "./RedeemableERC20.sol";
 
 /// Everything required to construct a `RedeemableERC20Pool`.
-struct Config {
+struct RedeemableERC20PoolConfig {
     // The CRPFactory on the current network.
     // This is an address published by Balancer or deployed locally during testing.
     CRPFactory crpFactory;
@@ -96,7 +96,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     uint256 public finalWeight;
 
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
-    constructor (Config memory config_) public {
+    constructor (RedeemableERC20PoolConfig memory config_) public {
         require(config_.reserveInit >= MIN_RESERVE_INIT, "RESERVE_INIT_MINIMUM");
 
         token = config_.token;

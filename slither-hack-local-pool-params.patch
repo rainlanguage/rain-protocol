@@ -1,8 +1,8 @@
 diff --git a/contracts/RedeemableERC20Pool.sol b/contracts/RedeemableERC20Pool.sol
-index a341d74..fd28b11 100644
+index fedbe77..7c75045 100644
 --- a/contracts/RedeemableERC20Pool.sol
 +++ b/contracts/RedeemableERC20Pool.sol
-@@ -19,7 +19,7 @@ import { IBPool } from "./configurable-rights-pool/contracts/IBFactory.sol";
+@@ -13,7 +13,7 @@ import { IBPool } from "./configurable-rights-pool/contracts/IBFactory.sol";
  import { BPool } from "./configurable-rights-pool/contracts/test/BPool.sol";
  import { RightsManager } from "./configurable-rights-pool/libraries/RightsManager.sol";
  import { BalancerConstants } from "./configurable-rights-pool/libraries/BalancerConstants.sol";
@@ -11,10 +11,10 @@ index a341d74..fd28b11 100644
  import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
  import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
  
-@@ -114,7 +114,7 @@ contract RedeemableERC20Pool is Ownable, Initable, BlockBlockable {
+@@ -132,7 +132,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
  
-         crp = poolConfig_.crpFactory.newCrp(
-             address(poolConfig_.balancerFactory),
+         crp = config_.crpFactory.newCrp(
+             address(config_.balancerFactory),
 -            ConfigurableRightsPool.PoolParams(
 +            PoolParams(
                  "R20P",
