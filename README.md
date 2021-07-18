@@ -1,4 +1,4 @@
-# Terra Virtua x Balancer
+# Trust Factory x Balancer
 
 Implements a hybrid wrapped ERC20 + [Liquidity Bootstrapping Pool](https://docs.balancer.finance/smart-contracts/smart-pools/liquidity-bootstrapping-faq) with bespoke 'Last Wallet Standing' mechanic.
 

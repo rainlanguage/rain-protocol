@@ -6,8 +6,9 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 /// @title ReserveToken
-/// An test token that can be used as a reserve asset.
+/// A test token that can be used as a reserve asset.
 /// On mainnet this would likely be some brand of stablecoin but can be anything.
+/// Notably mimics 6 decimals commonly used by stables in production.
 contract ReserveToken is ERC20, ERC20Burnable {
     /// Accounts to freeze during testing.
     mapping(address => bool) public freezables;
@@ -23,19 +24,18 @@ contract ReserveToken is ERC20, ERC20Burnable {
         _mint(msg.sender, TOTAL_SUPPLY);
     }
 
-    /// Add an account to the freezable list.
+    /// Add an account to the freezables list.
     /// @param account_ The account to freeze.
     function addFreezable(address account_) external { freezables[account_] = true; }
-
-    /// Remove an account from the freezables list.
-    /// @param account_ The account to unfreeze.
-    function removeFreezable(address account_) external { freezables[account_] = false; }
 
     /// Block any transfers to a frozen account.
     /// @inheritdoc ERC20
     function _beforeTokenTransfer(
-        address,
+        address sender_,
         address receiver_,
-        uint256
-    ) internal virtual override { require(!freezables[receiver_], "FROZEN"); }
+        uint256 amount_
+    ) internal virtual override {
+        super._beforeTokenTransfer(sender_, receiver_, amount_);
+        require(!freezables[receiver_], "FROZEN");
+    }
 }

@@ -103,7 +103,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// Seeding enforces the cooldown configured in the constructor.
     /// @param minimumUnits_ The minimum units the caller will accept for a successful `seed` call.
     /// @param desiredUnits_ The maximum units the caller is willing to fund.
-    function seed(uint256 minimumUnits_, uint256 desiredUnits_) external onlyPhase(Phase.ZERO) onlyAfterCooldown() {
+    function seed(uint256 minimumUnits_, uint256 desiredUnits_) external onlyPhase(Phase.ZERO) onlyAfterCooldown {
         require(desiredUnits_ > 0, "DESIRED_0");
         require(minimumUnits_ <= desiredUnits_, "MINIMUM_OVER_DESIRED");
         uint256 remainingStock_ = balanceOf(address(this));
@@ -127,7 +127,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         }
     }
 
-    /// Send reserve back to seeder as ( units * seedPrice )
+    /// Send reserve back to seeder as `( units * seedPrice )`.
     ///
     /// Allows addresses to back out until `Phase.ONE`.
     /// Unlike `redeem` the seed tokens are NOT burned so become newly available for another account to `seed`.
@@ -137,7 +137,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// - Call redeem and burn the seed tokens
     ///
     /// @param units_ Units to unseed.
-    function unseed(uint256 units_) external onlyPhase(Phase.ZERO) onlyAfterCooldown() {
+    function unseed(uint256 units_) external onlyPhase(Phase.ZERO) onlyAfterCooldown {
         _transfer(msg.sender, address(this), units_);
 
         // Reentrant reserve transfer.

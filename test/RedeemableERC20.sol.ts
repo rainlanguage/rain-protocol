@@ -122,7 +122,7 @@ describe("RedeemableERC20", async function () {
     await redeemable.deployed();
   });
 
-  it("should allow receiver/send to always receive/send tokens if added via ownerAddReceiver/ownerAddSender, bypassing BlockBlockable restrictions", async function () {
+  it("should allow receiver/send to always receive/send tokens if added via adminAddReceiver/adminAddSender, bypassing BlockBlockable restrictions", async function () {
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();
@@ -172,19 +172,22 @@ describe("RedeemableERC20", async function () {
     );
 
     // remove transfer restrictions for sender and receiver
-    await token.ownerAddSender(sender.address);
-    assert(await token.isSender(sender.address), "sender status was wrong");
-
-    await token.ownerAddReceiver(receiver.address);
+    await token.grantRole(await token.SENDER(), sender.address);
     assert(
-      await token.isReceiver(receiver.address),
+      await token.hasRole(await token.SENDER(), sender.address),
+      "sender status was wrong"
+    );
+
+    await token.grantRole(await token.RECEIVER(), receiver.address);
+    assert(
+      await token.hasRole(await token.RECEIVER(), receiver.address),
       "receiver status was wrong"
     );
 
     // sender needs tokens (actually needs permission to receive these tokens anyway)
-    await token.ownerAddReceiver(sender.address);
+    await token.grantRole(await token.RECEIVER(), sender.address);
     assert(
-      await token.isSender(sender.address),
+      await token.hasRole(await token.SENDER(), sender.address),
       "sender did not remain sender after also becoming receiver"
     );
 
@@ -194,7 +197,7 @@ describe("RedeemableERC20", async function () {
     // should work now
     await token.connect(sender).transfer(receiver.address, 1);
 
-    await token.ownerBurnDistributor(Util.oneAddress);
+    await token.adminBurnDistributor(Util.oneAddress);
 
     // sender and receiver should be unrestricted in phase 1
     await token.connect(sender).transfer(receiver.address, 1);
@@ -318,14 +321,14 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.ownerAddRedeemable(reserve0.address);
-    await redeemableERC20.ownerAddRedeemable(reserve1.address);
-    await redeemableERC20.ownerAddRedeemable(reserve2.address);
-    await redeemableERC20.ownerAddRedeemable(reserve3.address);
-    await redeemableERC20.ownerAddRedeemable(reserve4.address);
-    await redeemableERC20.ownerAddRedeemable(reserve5.address);
-    await redeemableERC20.ownerAddRedeemable(reserve6.address);
-    await redeemableERC20.ownerAddRedeemable(reserve7.address);
+    await redeemableERC20.adminAddRedeemable(reserve0.address);
+    await redeemableERC20.adminAddRedeemable(reserve1.address);
+    await redeemableERC20.adminAddRedeemable(reserve2.address);
+    await redeemableERC20.adminAddRedeemable(reserve3.address);
+    await redeemableERC20.adminAddRedeemable(reserve4.address);
+    await redeemableERC20.adminAddRedeemable(reserve5.address);
+    await redeemableERC20.adminAddRedeemable(reserve6.address);
+    await redeemableERC20.adminAddRedeemable(reserve7.address);
 
     assert(
       (await redeemableERC20.getRedeemables())[0] == reserve0.address,
@@ -404,7 +407,7 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.deployed();
 
-    await redeemableERC20.ownerAddRedeemable(reserve.address);
+    await redeemableERC20.adminAddRedeemable(reserve.address);
 
     // There are no reserve tokens in the redeemer on construction
     assert(
@@ -443,11 +446,6 @@ describe("RedeemableERC20", async function () {
       (await redeemableERC20.symbol()) === "RDX",
       "redeemable token did not set symbol correctly"
     );
-    // And other configuration
-    assert(
-      (await redeemableERC20.owner()) === signers[0].address,
-      "redeemable token not owned correctly"
-    );
 
     // Redemption not allowed yet.
     await Util.assertError(
@@ -467,7 +465,7 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.transfer(alice.address, 10);
 
     const now = await ethers.provider.getBlockNumber();
-    await expect(redeemableERC20.ownerBurnDistributor(Util.oneAddress))
+    await expect(redeemableERC20.adminBurnDistributor(Util.oneAddress))
       .to.emit(redeemableERC20, "PhaseShiftScheduled")
       .withArgs(now + 1);
 
@@ -634,7 +632,7 @@ describe("RedeemableERC20", async function () {
     }
   });
 
-  it("should only allow owner to set phase blocks", async function () {
+  it("should only allow admin to set phase blocks", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -675,12 +673,12 @@ describe("RedeemableERC20", async function () {
     );
 
     await Util.assertError(
-      async () => await redeemableERC201.ownerBurnDistributor(Util.oneAddress),
-      "revert Ownable: caller is not the owner",
-      "non-owner was wrongly able to set phase block"
+      async () => await redeemableERC201.adminBurnDistributor(Util.oneAddress),
+      "ONLY_ADMIN",
+      "non-admin was wrongly able to set phase block"
     );
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
+    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
   });
 
   it("should set owner as unfreezable on construction", async function () {
@@ -710,8 +708,11 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.deployed();
 
     assert(
-      await redeemableERC20.unfreezables(signers[0].address),
-      "owner not set as unfreezable on token construction"
+      await redeemableERC20.hasRole(
+        await redeemableERC20.RECEIVER(),
+        signers[0].address
+      ),
+      "owner not set as receiver on token construction"
     );
   });
 
@@ -752,13 +753,16 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.deployed();
 
-    // owner is made unfreezable during construction, so required token transfers can go ahead
+    // admin is made receiver during construction, so required token transfers can go ahead
     assert(
-      await redeemableERC20.unfreezables(signers[0].address),
-      "owner not made unfreezable during construction"
+      await redeemableERC20.hasRole(
+        await redeemableERC20.RECEIVER(),
+        signers[0].address
+      ),
+      "admin not made receiver during construction"
     );
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
+    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
 
     await reserve.transfer(redeemableERC20.address, 1);
   });
@@ -813,7 +817,7 @@ describe("RedeemableERC20", async function () {
       "user could receive transfers despite not meeting minimum status"
     );
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
+    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
@@ -871,8 +875,8 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.ownerAddRedeemable(reserve1.address);
-    await redeemableERC20.ownerAddRedeemable(reserve2.address);
+    await redeemableERC20.adminAddRedeemable(reserve1.address);
+    await redeemableERC20.adminAddRedeemable(reserve2.address);
 
     // There are no reserve tokens in the redeemer on construction
     assert(
@@ -884,7 +888,7 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);
     await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS);
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
+    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
 
     // at this point signer[1] should have 10 tokens
     assert(
@@ -1071,8 +1075,8 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.ownerAddRedeemable(reserve1.address);
-    await redeemableERC20.ownerAddRedeemable(reserve2.address);
+    await redeemableERC20.adminAddRedeemable(reserve1.address);
+    await redeemableERC20.adminAddRedeemable(reserve2.address);
 
     await reserve2.transfer(
       redeemableERC20.address,
@@ -1098,7 +1102,7 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);
     await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS);
 
-    await redeemableERC20.ownerBurnDistributor(Util.oneAddress);
+    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
 
     const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(
       signers[1].address

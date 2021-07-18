@@ -23,7 +23,7 @@ enum Phase {
 /// This is enforced by only allowing `scheduleNextPhase` to be called once per phase.
 /// It is possible to call `scheduleNextPhase` several times in a single block but the `block.number` must be passed each time to explicitly move through each phase.
 /// It is not possible to schedule any phase other than the immediate next phase.
-/// Importantly there are events and several modifiers and checks available to ensure that child functionality is limited to the current phase.
+/// Importantly there are events and several modifiers and checks available to ensure that functionality is limited to the current phase.
 /// The full history of each phase shift block is recorded as a fixed size array of `uint32`.
 abstract contract Phased {
     /// Every phase block starts uninitialized.
@@ -64,7 +64,6 @@ abstract contract Phased {
     /// Pure function to reduce an array of phase blocks and phase to a specific block number.
     /// `Phase.ZERO` will always return block `0`.
     /// Every other phase will map to a block number in `phaseBlocks_`.
-    ///
     /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
     /// @param phase_ Determine the relevant block number for this phase.
     /// @return The block number for the phase according to the phase blocks list, as uint32.
