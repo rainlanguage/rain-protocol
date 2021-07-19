@@ -637,7 +637,7 @@ describe("TrustSeed", async function () {
       const deployer = signers[1]; // deployer is not creator
       const seeder1 = signers[2];
       const seeder2 = signers[3];
-      const hodler1 = signers[4];
+      const signer1 = signers[4];
 
       const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 10;
@@ -787,17 +787,17 @@ describe("TrustSeed", async function () {
       const reserveSpend = finalValuation.div(10);
 
       // holder1 fully funds raise
-      const swapReserveForTokens = async (hodler, spend) => {
-        // give hodler some reserve
-        await reserve.transfer(hodler.address, spend);
+      const swapReserveForTokens = async (signer, spend) => {
+        // give signer some reserve
+        await reserve.transfer(signer.address, spend);
 
-        const reserveHodler = reserve.connect(hodler);
-        const crpHodler = crp.connect(hodler);
-        const bPoolHodler = bPool.connect(hodler);
+        const reserveSigner = reserve.connect(signer);
+        const crpSigner = crp.connect(signer);
+        const bPoolSigner = bPool.connect(signer);
 
-        await reserveHodler.approve(bPool.address, spend);
-        await crpHodler.pokeWeights();
-        await bPoolHodler.swapExactAmountIn(
+        await reserveSigner.approve(bPool.address, spend);
+        await crpSigner.pokeWeights();
+        await bPoolSigner.swapExactAmountIn(
           reserve.address,
           spend,
           token.address,
@@ -807,7 +807,7 @@ describe("TrustSeed", async function () {
       };
 
       while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
-        await swapReserveForTokens(hodler1, reserveSpend);
+        await swapReserveForTokens(signer1, reserveSpend);
       }
 
       // add blocks until raise can end

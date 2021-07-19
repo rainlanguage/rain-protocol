@@ -80,7 +80,7 @@ describe("TrustDistribute", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -157,17 +157,17 @@ describe("TrustDistribute", async function () {
 
     const reserveSpend = successLevel.div(10);
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await crpHodler.pokeWeights();
-      await reserveHodler.approve(bPool.address, spend);
-      await bPoolHodler.swapExactAmountIn(
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -178,7 +178,7 @@ describe("TrustDistribute", async function () {
 
     // reach success level
     while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
-      await swapReserveForTokens(hodler1, reserveSpend);
+      await swapReserveForTokens(signer1, reserveSpend);
     }
 
     // create empty transfer blocks until reaching next phase, so distribution can end
@@ -230,7 +230,7 @@ describe("TrustDistribute", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -318,7 +318,7 @@ describe("TrustDistribute", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -395,17 +395,17 @@ describe("TrustDistribute", async function () {
 
     const reserveSpend = successLevel.div(10);
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await crpHodler.pokeWeights();
-      await reserveHodler.approve(bPool.address, spend);
-      await bPoolHodler.swapExactAmountIn(
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -416,7 +416,7 @@ describe("TrustDistribute", async function () {
 
     // reach success level
     while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
-      await swapReserveForTokens(hodler1, reserveSpend);
+      await swapReserveForTokens(signer1, reserveSpend);
     }
 
     // create empty transfer blocks until reaching next phase, so distribution can end
@@ -471,7 +471,7 @@ describe("TrustDistribute", async function () {
       const creator = signers[0];
       const seeder = signers[1]; // seeder is not creator
       const deployer = signers[2]; // deployer is not creator
-      const hodler1 = signers[3];
+      const signer1 = signers[3];
 
       const successLevel = redeemInit
         .add(minimumCreatorRaise)
@@ -563,17 +563,17 @@ describe("TrustDistribute", async function () {
 
       const reserveSpend = successLevel.div(10);
 
-      const swapReserveForTokens = async (hodler, spend) => {
-        // give hodler some reserve
-        await reserve.transfer(hodler.address, spend);
+      const swapReserveForTokens = async (signer, spend) => {
+        // give signer some reserve
+        await reserve.transfer(signer.address, spend);
 
-        const reserveHodler = reserve.connect(hodler);
-        const crpHodler = crp.connect(hodler);
-        const bPoolHodler = bPool.connect(hodler);
+        const reserveSigner = reserve.connect(signer);
+        const crpSigner = crp.connect(signer);
+        const bPoolSigner = bPool.connect(signer);
 
-        await crpHodler.pokeWeights();
-        await reserveHodler.approve(bPool.address, spend);
-        await bPoolHodler.swapExactAmountIn(
+        await crpSigner.pokeWeights();
+        await reserveSigner.approve(bPool.address, spend);
+        await bPoolSigner.swapExactAmountIn(
           reserve.address,
           spend,
           token.address,
@@ -584,7 +584,7 @@ describe("TrustDistribute", async function () {
 
       // reach success level
       while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
-        await swapReserveForTokens(hodler1, reserveSpend);
+        await swapReserveForTokens(signer1, reserveSpend);
       }
 
       // create empty transfer blocks until reaching next phase, so distribution can end
@@ -805,7 +805,7 @@ describe("TrustDistribute", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -881,17 +881,17 @@ describe("TrustDistribute", async function () {
 
     const reserveSpend = successLevel.div(10);
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await crpHodler.pokeWeights();
-      await reserveHodler.approve(bPool.address, spend);
-      await bPoolHodler.swapExactAmountIn(
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -902,10 +902,10 @@ describe("TrustDistribute", async function () {
 
     // reach success level
     while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
-      await swapReserveForTokens(hodler1, reserveSpend);
+      await swapReserveForTokens(signer1, reserveSpend);
     }
 
-    const swappedTokens = await token.balanceOf(hodler1.address);
+    const swappedTokens = await token.balanceOf(signer1.address);
 
     // create empty transfer blocks until reaching next phase, so distribution can end
     while (
@@ -1108,7 +1108,7 @@ describe("TrustDistribute", async function () {
       const creator = signers[0];
       const seeder = signers[1]; // seeder is not creator
       const deployer = signers[2]; // deployer is not creator
-      const hodler1 = signers[3];
+      const signer1 = signers[3];
 
       const successLevel = redeemInit
         .add(minimumCreatorRaise)
@@ -1184,17 +1184,17 @@ describe("TrustDistribute", async function () {
 
       const reserveSpend = successLevel.div(10);
 
-      const swapReserveForTokens = async (hodler, spend) => {
-        // give hodler some reserve
-        await reserve.transfer(hodler.address, spend);
+      const swapReserveForTokens = async (signer, spend) => {
+        // give signer some reserve
+        await reserve.transfer(signer.address, spend);
 
-        const reserveHodler = reserve.connect(hodler);
-        const crpHodler = crp.connect(hodler);
-        const bPoolHodler = bPool.connect(hodler);
+        const reserveSigner = reserve.connect(signer);
+        const crpSigner = crp.connect(signer);
+        const bPoolSigner = bPool.connect(signer);
 
-        await crpHodler.pokeWeights();
-        await reserveHodler.approve(bPool.address, spend);
-        await bPoolHodler.swapExactAmountIn(
+        await crpSigner.pokeWeights();
+        await reserveSigner.approve(bPool.address, spend);
+        await bPoolSigner.swapExactAmountIn(
           reserve.address,
           spend,
           token.address,
@@ -1205,7 +1205,7 @@ describe("TrustDistribute", async function () {
 
       // reach success level
       while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
-        await swapReserveForTokens(hodler1, reserveSpend);
+        await swapReserveForTokens(signer1, reserveSpend);
       }
 
       // create empty transfer blocks until reaching next phase, so distribution can end
@@ -1268,7 +1268,7 @@ describe("TrustDistribute", async function () {
       const creator = signers[0];
       const seeder = signers[1]; // seeder is not creator
       const deployer = signers[2]; // deployer is not creator
-      const hodler1 = signers[3];
+      const signer1 = signers[3];
 
       const successLevel = redeemInit
         .add(minimumCreatorRaise)
@@ -1344,17 +1344,17 @@ describe("TrustDistribute", async function () {
 
       const reserveSpend = successLevel.div(10);
 
-      const swapReserveForTokens = async (hodler, spend) => {
-        // give hodler some reserve
-        await reserve.transfer(hodler.address, spend);
+      const swapReserveForTokens = async (signer, spend) => {
+        // give signer some reserve
+        await reserve.transfer(signer.address, spend);
 
-        const reserveHodler = reserve.connect(hodler);
-        const crpHodler = crp.connect(hodler);
-        const bPoolHodler = bPool.connect(hodler);
+        const reserveSigner = reserve.connect(signer);
+        const crpSigner = crp.connect(signer);
+        const bPoolSigner = bPool.connect(signer);
 
-        await crpHodler.pokeWeights();
-        await reserveHodler.approve(bPool.address, spend);
-        await bPoolHodler.swapExactAmountIn(
+        await crpSigner.pokeWeights();
+        await reserveSigner.approve(bPool.address, spend);
+        await bPoolSigner.swapExactAmountIn(
           reserve.address,
           spend,
           token.address,
@@ -1365,7 +1365,7 @@ describe("TrustDistribute", async function () {
 
       // failed to reach success level
       // while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
-      await swapReserveForTokens(hodler1, reserveSpend);
+      await swapReserveForTokens(signer1, reserveSpend);
       // }
 
       // create empty transfer blocks until reaching next phase, so distribution can end

@@ -75,16 +75,16 @@ describe("TrustTrade", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodlerBronze = signers[3];
-    const hodlerSilver = signers[4];
-    const hodlerGold = signers[5];
-    const hodlerPlatinum = signers[6];
+    const signerBronze = signers[3];
+    const signerSilver = signers[4];
+    const signerGold = signers[5];
+    const signerPlatinum = signers[6];
 
     // Set prestige levels
-    await prestige.setStatus(hodlerBronze.address, Status.BRONZE, []);
-    await prestige.setStatus(hodlerSilver.address, Status.SILVER, []);
-    await prestige.setStatus(hodlerGold.address, Status.GOLD, []);
-    await prestige.setStatus(hodlerPlatinum.address, Status.PLATINUM, []);
+    await prestige.setStatus(signerBronze.address, Status.BRONZE, []);
+    await prestige.setStatus(signerSilver.address, Status.SILVER, []);
+    await prestige.setStatus(signerGold.address, Status.GOLD, []);
+    await prestige.setStatus(signerPlatinum.address, Status.PLATINUM, []);
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -158,17 +158,17 @@ describe("TrustTrade", async function () {
 
     const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await reserveHodler.approve(bPool.address, spend);
-      await crpHodler.pokeWeights();
-      await bPoolHodler.swapExactAmountIn(
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -177,14 +177,14 @@ describe("TrustTrade", async function () {
       );
     };
 
-    // bronze hodler attempts swap for tokens
+    // bronze signer attempts swap for tokens
     await Util.assertError(
-      async () => await swapReserveForTokens(hodlerBronze, reserveSpend),
+      async () => await swapReserveForTokens(signerBronze, reserveSpend),
       "revert MIN_STATUS",
-      "bronze hodler swapped reserve for tokens, despite being below min status of gold"
+      "bronze signer swapped reserve for tokens, despite being below min status of gold"
     );
 
-    // TODO: all hodlers attempt swap
+    // TODO: all signers attempt swap
 
     // TODO: test token transfers before redemption phase
   });
@@ -607,14 +607,14 @@ describe("TrustTrade", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodlerSilver = signers[3];
-    const hodlerGold = signers[4];
-    const hodlerPlatinum = signers[5];
+    const signerSilver = signers[3];
+    const signerGold = signers[4];
+    const signerPlatinum = signers[5];
 
     // Set prestige levels
-    await prestige.setStatus(hodlerSilver.address, Status.SILVER, []);
-    await prestige.setStatus(hodlerGold.address, Status.GOLD, []);
-    await prestige.setStatus(hodlerPlatinum.address, Status.PLATINUM, []);
+    await prestige.setStatus(signerSilver.address, Status.SILVER, []);
+    await prestige.setStatus(signerGold.address, Status.GOLD, []);
+    await prestige.setStatus(signerPlatinum.address, Status.PLATINUM, []);
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -688,30 +688,30 @@ describe("TrustTrade", async function () {
 
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
-    const bPoolSilver = bPool.connect(hodlerSilver);
-    const reserveSilver = reserve.connect(hodlerSilver);
-    const crpSilver = crp.connect(hodlerSilver);
+    const bPoolSilver = bPool.connect(signerSilver);
+    const reserveSilver = reserve.connect(signerSilver);
+    const crpSilver = crp.connect(signerSilver);
 
-    const bPoolGold = bPool.connect(hodlerGold);
-    const reserveGold = reserve.connect(hodlerGold);
-    const crpGold = crp.connect(hodlerGold);
+    const bPoolGold = bPool.connect(signerGold);
+    const reserveGold = reserve.connect(signerGold);
+    const crpGold = crp.connect(signerGold);
 
-    const bPoolPlatinum = bPool.connect(hodlerPlatinum);
-    const reservePlatinum = reserve.connect(hodlerPlatinum);
-    const crpPlatinum = crp.connect(hodlerPlatinum);
+    const bPoolPlatinum = bPool.connect(signerPlatinum);
+    const reservePlatinum = reserve.connect(signerPlatinum);
+    const crpPlatinum = crp.connect(signerPlatinum);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    // hodler 1 needs some reserve
+    // signer 1 needs some reserve
     await reserve.transfer(
-      hodlerSilver.address,
+      signerSilver.address,
       ethers.BigNumber.from("100000" + Util.sixZeros)
     );
 
     const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    await reserve.transfer(hodlerGold.address, reserveSpend);
-    await reserve.transfer(hodlerPlatinum.address, reserveSpend);
+    await reserve.transfer(signerGold.address, reserveSpend);
+    await reserve.transfer(signerPlatinum.address, reserveSpend);
 
     const swapReserveForTokens = async (spend, crp, reserve, bPool) => {
       await crp.pokeWeights();
@@ -725,7 +725,7 @@ describe("TrustTrade", async function () {
       );
     };
 
-    // silver hodler get some redeemable tokens
+    // silver signer get some redeemable tokens
     await Util.assertError(
       async () =>
         await swapReserveForTokens(
@@ -735,13 +735,13 @@ describe("TrustTrade", async function () {
           bPoolSilver
         ),
       "revert MIN_STATUS",
-      "Silver hodler swapped reserve for tokens, despite being below min status of Gold"
+      "Silver signer swapped reserve for tokens, despite being below min status of Gold"
     );
 
-    // gold hodler get some redeemable tokens
+    // gold signer get some redeemable tokens
     await swapReserveForTokens(reserveSpend, crpGold, reserveGold, bPoolGold);
 
-    // platinum hodler get some redeemable tokens
+    // platinum signer get some redeemable tokens
     await swapReserveForTokens(
       reserveSpend,
       crpPlatinum,
@@ -750,16 +750,16 @@ describe("TrustTrade", async function () {
     );
 
     console.log(
-      `hodler silver token balance ${await token.balanceOf(
-        hodlerSilver.address
+      `signer silver token balance ${await token.balanceOf(
+        signerSilver.address
       )}`
     );
     console.log(
-      `hodler gold token balance ${await token.balanceOf(hodlerGold.address)}`
+      `signer gold token balance ${await token.balanceOf(signerGold.address)}`
     );
     console.log(
-      `hodler platinum token balance ${await token.balanceOf(
-        hodlerPlatinum.address
+      `signer platinum token balance ${await token.balanceOf(
+        signerPlatinum.address
       )}`
     );
   });
@@ -825,7 +825,7 @@ describe("TrustTrade", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -954,15 +954,15 @@ describe("TrustTrade", async function () {
     );
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
-    const bPool1 = bPool.connect(hodler1);
-    const reserve1 = reserve.connect(hodler1);
-    const crp1 = crp.connect(hodler1);
+    const bPool1 = bPool.connect(signer1);
+    const reserve1 = reserve.connect(signer1);
+    const crp1 = crp.connect(signer1);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    // hodler 1 needs some reserve
+    // signer 1 needs some reserve
     await reserve.transfer(
-      hodler1.address,
+      signer1.address,
       ethers.BigNumber.from("100000" + Util.sixZeros)
     );
 
