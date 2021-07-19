@@ -42,17 +42,17 @@ struct RedeemableERC20Config {
 /// they would receive 10 000 USDC.
 ///
 /// Up to 8 redeemable tokens can be registered on the redeemable contract. These will be looped over by default in
-/// the `senderRedeem` function. If there is an error during redemption or more than 8 tokens are to be redeemed,
-/// there is a `senderRedeemSpecific` function that allows the caller to specify exactly which of the redeemable tokens they want to receive.
+/// the `redeem` function. If there is an error during redemption or more than 8 tokens are to be redeemed,
+/// there is a `redeemSpecific` function that allows the caller to specify exactly which of the redeemable tokens they want to receive.
 /// Note: the same amount of `RedeemableERC20` is burned, regardless of which redeemable tokens were specified. Specifying fewer redeemable tokens
-/// will NOT increase the proportion of each that is returned. `senderRedeemSpecific` is intended as a last resort if the caller cannot resolve
+/// will NOT increase the proportion of each that is returned. `redeemSpecific` is intended as a last resort if the caller cannot resolve
 /// issues causing errors for one or more redeemable tokens during redemption.
 ///
 /// `RedeemableERC20` has several owner administrative functions:
 /// - Owner can add senders and receivers that can send/receive tokens even during `Phase.ONE`
 /// - Owner can add redeemable tokens
 ///   - But NOT remove them
-///   - And everyone can call `senderRedeemSpecific` to override the redeemable list
+///   - And everyone can call `redeemSpecific` to override the redeemable list
 /// - Owner can end `Phase.ONE` during `Phase.ZERO` by specifying the address of a distributor, which will have any undistributed tokens burned
 ///
 /// The intent is that the redeemable token contract is owned by a `Trust` contract, NOT an externally owned account.
@@ -61,7 +61,7 @@ struct RedeemableERC20Config {
 ///
 /// The redeem functions MUST be used to redeem and burn RedeemableERC20s (NOT regular transfers).
 ///
-/// The `senderRedeem` and `senderRedeemSpecific` functions will simply revert if called outside `Phase.ONE`.
+/// The `redeem` and `redeemSpecific` functions will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per redeemed token) as `(redeemer, redeemable, redeemAmount)`.
 contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20, ReentrancyGuard, ERC20Burnable {
 
@@ -136,7 +136,7 @@ contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20
 
     /// Admin can add up to 8 redeemables to this contract.
     /// Each redeemable will be sent to token holders when they call redeem functions in `Phase.ONE` to burn tokens.
-    /// If the admin adds a non-compliant or malicious IERC20 address then token holders can override the list with `senderRedeemSpecific`.
+    /// If the admin adds a non-compliant or malicious IERC20 address then token holders can override the list with `redeemSpecific`.
     /// @param newRedeemable_ The redeemable contract address to add.
     function adminAddRedeemable(IERC20 newRedeemable_) external onlyAdmin {
         // Somewhat arbitrary but we limit the length of redeemables to 8.
@@ -174,7 +174,7 @@ contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20
     ///
     /// Note: Any tokens held by `address(0)` are burned defensively.
     ///       This is because transferring directly to `address(0)` will succeed but the `totalSupply` won't reflect it.
-    function senderRedeemSpecific(IERC20[] memory specificRedeemables_, uint256 redeemAmount_) public onlyPhase(Phase.ONE) nonReentrant {
+    function redeemSpecific(IERC20[] memory specificRedeemables_, uint256 redeemAmount_) public onlyPhase(Phase.ONE) nonReentrant {
         // The fraction of the redeemables we release is the fraction of the outstanding total supply passed in.
         // Every redeemable is released in the same proportion.
         uint256 supplyBeforeBurn_ = totalSupply();
@@ -196,12 +196,12 @@ contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20
     }
 
     /// Default redemption behaviour.
-    /// Thin wrapper for `senderRedeemSpecific`.
+    /// Thin wrapper for `redeemSpecific`.
     /// `msg.sender` specifies an amount of their own redeemable token to redeem.
     /// Each redeemable token specified by this contract's admin will be sent to the sender pro-rata.
     /// The sender's tokens are burned in the process.
     /// @param redeemAmount_ The amount of the sender's redeemable erc20 to burn.
-    function senderRedeem(uint256 redeemAmount_) external { senderRedeemSpecific(redeemables, redeemAmount_); }
+    function redeem(uint256 redeemAmount_) external { redeemSpecific(redeemables, redeemAmount_); }
 
     /// Sanity check to ensure `Phase.ONE` is the final phase.
     /// @inheritdoc Phased

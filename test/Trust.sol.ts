@@ -3379,7 +3379,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20;
 
     // redeem all
-    await token1.senderRedeem(hodler1EndingTokenBalance);
+    await token1.redeem(hodler1EndingTokenBalance);
 
     assert(
       (await token.totalSupply()).eq(
@@ -3403,7 +3403,7 @@ describe("Trust", async function () {
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.senderRedeem(hodler2EndingTokenBalance.sub(smallTokenAmount));
+    await token2.redeem(hodler2EndingTokenBalance.sub(smallTokenAmount));
 
     assert(
       (await token.totalSupply()).eq(
@@ -3735,7 +3735,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20;
 
     // redeem all
-    await token1.senderRedeem(hodler1EndingTokenBalance);
+    await token1.redeem(hodler1EndingTokenBalance);
 
     assert(
       (await token.totalSupply()).eq(
@@ -3759,7 +3759,7 @@ describe("Trust", async function () {
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.senderRedeem(hodler2EndingTokenBalance.sub(smallTokenAmount));
+    await token2.redeem(hodler2EndingTokenBalance.sub(smallTokenAmount));
 
     assert(
       (await token.totalSupply()).eq(
@@ -4506,7 +4506,7 @@ describe("Trust", async function () {
       redeemableTokenJson.abi,
       signers[1]
     ) as RedeemableERC20;
-    await token1.senderRedeem(await token1.balanceOf(signers[1].address));
+    await token1.redeem(await token1.balanceOf(signers[1].address));
     const reserveBalance1 = await reserve.balanceOf(signers[1].address);
     const expectedBalance1 = "1829853948";
     assert(
@@ -4519,7 +4519,7 @@ describe("Trust", async function () {
       redeemableTokenJson.abi,
       signers[2]
     ) as RedeemableERC20;
-    await token2.senderRedeem(await token2.balanceOf(signers[2].address));
+    await token2.redeem(await token2.balanceOf(signers[2].address));
     const reserveBalance2 = await reserve.balanceOf(signers[2].address);
     const expectedBalance2 = "170146068";
     assert(
@@ -4672,7 +4672,7 @@ describe("Trust", async function () {
       redeemableTokenJson.abi,
       signers[1]
     ) as RedeemableERC20;
-    await token1.senderRedeem(await token1.balanceOf(signers[1].address));
+    await token1.redeem(await token1.balanceOf(signers[1].address));
     const reserveBalance1 = await reserve.balanceOf(signers[1].address);
     const expectedBalance1 = "841344575";
     assert(
@@ -4685,7 +4685,7 @@ describe("Trust", async function () {
       redeemableTokenJson.abi,
       signers[2]
     ) as RedeemableERC20;
-    await token2.senderRedeem(await token1.balanceOf(signers[2].address));
+    await token2.redeem(await token1.balanceOf(signers[2].address));
     const reserveBalance2 = await reserve.balanceOf(signers[2].address);
     const expectedBalance2 = "2158655434";
     assert(

@@ -449,7 +449,7 @@ describe("RedeemableERC20", async function () {
 
     // Redemption not allowed yet.
     await Util.assertError(
-      async () => await redeemableERC20.senderRedeem(100),
+      async () => await redeemableERC20.redeem(100),
       "revert BAD_PHASE",
       "redeem did not error"
     );
@@ -518,7 +518,7 @@ describe("RedeemableERC20", async function () {
       "10" + Util.sixZeros
     );
     // signer redeems all tokens they have for fraction of each redeemable asset
-    await expect(redeemableERC20.senderRedeem(redeemAmount))
+    await expect(redeemableERC20.redeem(redeemAmount))
       .to.emit(redeemableERC20, "Redeem")
       .withArgs(signers[0].address, reserve.address, [
         redeemAmount,
@@ -572,7 +572,7 @@ describe("RedeemableERC20", async function () {
     // signer cannot redeem more tokens than they have
     await Util.assertError(
       async () =>
-        await redeemableERC20.senderRedeem(
+        await redeemableERC20.redeem(
           ethers.BigNumber.from("10000" + Util.eighteenZeros)
         ),
       "revert ERC20: burn amount exceeds balance",
@@ -586,7 +586,7 @@ describe("RedeemableERC20", async function () {
       while (i < 3) {
         console.log(`redemption check 1: ${i}`);
         const balanceBefore = await reserve.balanceOf(signers[0].address);
-        await expect(redeemableERC20.senderRedeem(redeemAmount))
+        await expect(redeemableERC20.redeem(redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
           .withArgs(signers[0].address, reserve.address, [
             redeemAmount,
@@ -615,7 +615,7 @@ describe("RedeemableERC20", async function () {
       while (i < 3) {
         console.log(`redemption check 2: ${i}`);
         const balanceBefore = await reserve.balanceOf(signers[0].address);
-        await expect(redeemableERC20.senderRedeem(redeemAmount))
+        await expect(redeemableERC20.redeem(redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
           .withArgs(signers[0].address, reserve.address, [
             redeemAmount,
@@ -824,11 +824,11 @@ describe("RedeemableERC20", async function () {
     await reserve.transfer(redeemableERC20.address, reserveTotal);
 
     // GOLD signer can redeem.
-    await redeemableERC20.senderRedeem(1);
+    await redeemableERC20.redeem(1);
 
     // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
     await Util.assertError(
-      async () => await redeemableERC20_SILVER.senderRedeem(1),
+      async () => await redeemableERC20_SILVER.redeem(1),
       "revert ERC20: burn amount exceeds balance",
       "user could transfer despite not meeting minimum status"
     );
@@ -959,7 +959,7 @@ describe("RedeemableERC20", async function () {
       .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore));
 
     // signer redeems all tokens they have for fraction of each redeemable asset
-    await expect(redeemableERC20_1.senderRedeem(redeemAmount))
+    await expect(redeemableERC20_1.redeem(redeemAmount))
       .to.emit(redeemableERC20_1, "Redeem")
       .withArgs(signers[1].address, reserve1.address, [
         redeemAmount,
@@ -1112,15 +1112,12 @@ describe("RedeemableERC20", async function () {
 
     // should succeed, despite emitting redeem fail event for one redeemable
     await Util.assertError(
-      async () => await redeemableERC20_1.senderRedeem(redeemAmount),
+      async () => await redeemableERC20_1.redeem(redeemAmount),
       `revert FROZEN`,
       `failed to error when reserve is frozen`
     );
 
-    await redeemableERC20_1.senderRedeemSpecific(
-      [reserve2.address],
-      redeemAmount
-    );
+    await redeemableERC20_1.redeemSpecific([reserve2.address], redeemAmount);
 
     const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(
       signers[1].address

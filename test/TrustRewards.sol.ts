@@ -381,7 +381,7 @@ describe("TrustRewards", async function () {
     const tokenSupply = await token.totalSupply();
 
     // hodler1 redeems tokens equal to 10% of total supply
-    await token.connect(hodler1).senderRedeem(tokenSupply.div(10));
+    await token.connect(hodler1).redeem(tokenSupply.div(10));
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
@@ -456,7 +456,7 @@ describe("TrustRewards", async function () {
     );
 
     // hodler1 redeems tokens equal to 10% of new total supply
-    await token.connect(hodler1).senderRedeem(tokenSupply2.div(10));
+    await token.connect(hodler1).redeem(tokenSupply2.div(10));
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
@@ -646,8 +646,7 @@ describe("TrustRewards", async function () {
     const token1 = token.connect(hodler1);
 
     await Util.assertError(
-      async () =>
-        await token1.senderRedeem(await token1.balanceOf(hodler1.address)),
+      async () => await token1.redeem(await token1.balanceOf(hodler1.address)),
       "revert BAD_PHASE",
       "hodler1 redeemed tokens before token phase change"
     );
@@ -675,7 +674,7 @@ describe("TrustRewards", async function () {
     );
 
     await Util.assertError(
-      async () => await token1.senderRedeem(hodler1TokenBalanceBeforeRed),
+      async () => await token1.redeem(hodler1TokenBalanceBeforeRed),
       "revert BAD_PHASE",
       `hodler1 redeemed tokens before token phase change
       currentBlock        ${await ethers.provider.getBlockNumber()}
@@ -701,7 +700,7 @@ describe("TrustRewards", async function () {
     tokenPhaseOneBlock ${await token.phaseBlocks(0)}`
     );
 
-    await token1.senderRedeem(await token1.balanceOf(hodler1.address));
+    await token1.redeem(await token1.balanceOf(hodler1.address));
   });
 
   it("should allow token owner to burn only their own tokens", async function () {
