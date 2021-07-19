@@ -28,7 +28,7 @@ contract RedeemableERC20Reentrant is ReserveToken {
             IERC20[] memory specificRedeemables_ = new IERC20[](1);
             specificRedeemables_[0] = IERC20(address(this));
             // This call MUST fail.
-            redeemableERC20Contract.senderRedeemSpecific(specificRedeemables_, amount_);
+            redeemableERC20Contract.redeemSpecific(specificRedeemables_, amount_);
         }
     }
 }
