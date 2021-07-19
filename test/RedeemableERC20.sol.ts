@@ -1117,10 +1117,7 @@ describe("RedeemableERC20", async function () {
       `failed to error when reserve is frozen`
     );
 
-    await redeemableERC20_1.redeemSpecific(
-      [reserve2.address],
-      redeemAmount
-    );
+    await redeemableERC20_1.redeemSpecific([reserve2.address], redeemAmount);
 
     const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(
       signers[1].address

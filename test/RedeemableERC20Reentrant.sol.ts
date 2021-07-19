@@ -90,8 +90,7 @@ describe("RedeemableERC20Reentrant", async function () {
     await maliciousReserve.transfer(redeemableERC20.address, reserveTotal);
 
     await Util.assertError(
-      async () =>
-        await redeemableERC20.connect(signers[1]).redeem(ONE_TOKEN),
+      async () => await redeemableERC20.connect(signers[1]).redeem(ONE_TOKEN),
       "revert ReentrancyGuard: reentrant call",
       "did not guard against reentrancy attack"
     );

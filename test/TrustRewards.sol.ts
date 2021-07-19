@@ -646,8 +646,7 @@ describe("TrustRewards", async function () {
     const token1 = token.connect(hodler1);
 
     await Util.assertError(
-      async () =>
-        await token1.redeem(await token1.balanceOf(hodler1.address)),
+      async () => await token1.redeem(await token1.balanceOf(hodler1.address)),
       "revert BAD_PHASE",
       "hodler1 redeemed tokens before token phase change"
     );
