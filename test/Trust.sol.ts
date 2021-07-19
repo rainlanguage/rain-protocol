@@ -113,7 +113,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -200,17 +200,17 @@ describe("Trust", async function () {
       creator
     );
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await reserveHodler.approve(bPool.address, spend);
-      await crpHodler.pokeWeights();
-      await bPoolHodler.swapExactAmountIn(
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -222,7 +222,7 @@ describe("Trust", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
 
     while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(hodler1, spend);
+      await swapReserveForTokens(signer1, spend);
     }
 
     while (
@@ -282,7 +282,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -369,17 +369,17 @@ describe("Trust", async function () {
       creator
     );
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await reserveHodler.approve(bPool.address, spend);
-      await crpHodler.pokeWeights();
-      await bPoolHodler.swapExactAmountIn(
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -391,7 +391,7 @@ describe("Trust", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
 
     while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(hodler1, spend);
+      await swapReserveForTokens(signer1, spend);
     }
 
     while (
@@ -438,7 +438,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -739,7 +739,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -826,7 +826,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -913,7 +913,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -997,7 +997,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -1241,17 +1241,17 @@ describe("Trust", async function () {
     );
     assert(distributionProgressTrading.poolTokenBalance.eq(totalTokenSupply));
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await reserveHodler.approve(bPool.address, spend);
-      await crpHodler.pokeWeights();
-      await bPoolHodler.swapExactAmountIn(
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -1262,7 +1262,7 @@ describe("Trust", async function () {
 
     const spend = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    await swapReserveForTokens(hodler1, spend);
+    await swapReserveForTokens(signer1, spend);
 
     const distributionProgressSwap: DistributionProgress =
       await trust.getDistributionProgress();
@@ -1347,7 +1347,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -1424,17 +1424,17 @@ describe("Trust", async function () {
     ) as RedeemableERC20Pool;
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await reserveHodler.approve(bPool.address, spend);
-      await crpHodler.pokeWeights();
-      await bPoolHodler.swapExactAmountIn(
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -1449,7 +1449,7 @@ describe("Trust", async function () {
 
     for (let i = 0; i < swapUnits; i++) {
       await swapReserveForTokens(
-        hodler1,
+        signer1,
         successLevel
           .sub(bPoolBalance)
           .mul(Util.ONE)
@@ -3056,8 +3056,8 @@ describe("Trust", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const hodler1 = signers[2];
-    const hodler2 = signers[3];
+    const signer1 = signers[2];
+    const signer2 = signers[3];
 
     const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -3148,8 +3148,8 @@ describe("Trust", async function () {
     // give holders some reserve
     const spend1 = ethers.BigNumber.from("300" + Util.sixZeros);
     const spend2 = ethers.BigNumber.from("300" + Util.sixZeros);
-    await reserve.transfer(hodler1.address, spend1.mul(10));
-    await reserve.transfer(hodler2.address, spend2);
+    await reserve.transfer(signer1.address, spend1.mul(10));
+    await reserve.transfer(signer2.address, spend2);
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
@@ -3170,12 +3170,12 @@ describe("Trust", async function () {
       poolJson.abi,
       signers[0]
     ) as RedeemableERC20Pool;
-    const reserve1 = reserve.connect(hodler1);
+    const reserve1 = reserve.connect(signer1);
 
     let [crp, bPool] = await Util.poolContracts(signers, trustPool);
 
-    const crp1 = crp.connect(hodler1);
-    const bPool1 = bPool.connect(hodler1);
+    const crp1 = crp.connect(signer1);
+    const bPool1 = bPool.connect(signer1);
 
     let i = 0;
     while (i < 10) {
@@ -3194,19 +3194,19 @@ describe("Trust", async function () {
       i++;
     }
 
-    const hodler1TokenBalance = await token.balanceOf(hodler1.address);
+    const signer1TokenBalance = await token.balanceOf(signer1.address);
 
-    // hodler 1 transferred all reserve to token contract
+    // signer 1 transferred all reserve to token contract
     assert(
-      (await reserve.balanceOf(hodler1.address)).eq(0),
+      (await reserve.balanceOf(signer1.address)).eq(0),
       "balancer pool not swapping correct spend1 amount in"
     );
 
-    const crp2 = crp.connect(hodler2);
+    const crp2 = crp.connect(signer2);
     await crp2.pokeWeights();
 
-    const bPool2 = bPool.connect(hodler2);
-    const reserve2 = reserve.connect(hodler2);
+    const bPool2 = bPool.connect(signer2);
+    const reserve2 = reserve.connect(signer2);
     await reserve2.approve(bPool2.address, spend2);
 
     await bPool2.swapExactAmountIn(
@@ -3217,11 +3217,11 @@ describe("Trust", async function () {
       ethers.BigNumber.from("1000000" + Util.sixZeros)
     );
 
-    const hodler2TokenBalance = await token.balanceOf(hodler2.address);
+    const signer2TokenBalance = await token.balanceOf(signer2.address);
 
-    // hodler 2 transferred all reserve to token contract
+    // signer 2 transferred all reserve to token contract
     assert(
-      (await reserve.balanceOf(hodler2.address)).eq(0),
+      (await reserve.balanceOf(signer2.address)).eq(0),
       "balancer pool not swapping correct spend2 amount in"
     );
 
@@ -3319,35 +3319,35 @@ describe("Trust", async function () {
 
     // correct reserve
     assert(
-      (await reserve.balanceOf(hodler1.address)).eq(0),
-      "hodler 1 wrongly given reserve when raise ended"
+      (await reserve.balanceOf(signer1.address)).eq(0),
+      "signer 1 wrongly given reserve when raise ended"
     );
     assert(
-      (await reserve.balanceOf(hodler2.address)).eq(0),
-      "hodler 2 wrongly given reserve when raise ended"
+      (await reserve.balanceOf(signer2.address)).eq(0),
+      "signer 2 wrongly given reserve when raise ended"
     );
 
-    const hodler1EndingTokenBalance = await token.balanceOf(hodler1.address);
-    const hodler2EndingTokenBalance = await token.balanceOf(hodler2.address);
+    const signer1EndingTokenBalance = await token.balanceOf(signer1.address);
+    const signer2EndingTokenBalance = await token.balanceOf(signer2.address);
 
     // Should remain unchanged from amounts during pool phase
-    const hodler1ExpectedEndingTokenBalance = hodler1TokenBalance;
-    const hodler2ExpectedEndingTokenBalance = hodler2TokenBalance;
+    const signer1ExpectedEndingTokenBalance = signer1TokenBalance;
+    const signer2ExpectedEndingTokenBalance = signer2TokenBalance;
 
     // correct tokens
     assert(
-      hodler1EndingTokenBalance.eq(hodler1ExpectedEndingTokenBalance),
-      "wrong final token balance for hodler 1"
+      signer1EndingTokenBalance.eq(signer1ExpectedEndingTokenBalance),
+      "wrong final token balance for signer 1"
     );
     assert(
-      hodler2EndingTokenBalance.eq(hodler2ExpectedEndingTokenBalance),
-      "wrong final token balance for hodler 2"
+      signer2EndingTokenBalance.eq(signer2ExpectedEndingTokenBalance),
+      "wrong final token balance for signer 2"
     );
 
     assert(
       (await token.totalSupply()).eq(
-        hodler1EndingTokenBalance
-          .add(hodler2EndingTokenBalance)
+        signer1EndingTokenBalance
+          .add(signer2EndingTokenBalance)
           .add(await token.balanceOf(bPool.address))
       ), // token dust
       `wrong total token supply after successful raise
@@ -3360,8 +3360,8 @@ describe("Trust", async function () {
       balanceOf trust     ${await token.balanceOf(trust.address)}
       balanceOf creator   ${await token.balanceOf(creator)}
       balanceOf seeder    ${await token.balanceOf(seeder)}
-      balanceOf hodler 1  ${hodler1EndingTokenBalance}
-      balanceOf hodler 2  ${hodler2EndingTokenBalance}
+      balanceOf signer 1  ${signer1EndingTokenBalance}
+      balanceOf signer 2  ${signer2EndingTokenBalance}
       `
     );
 
@@ -3379,13 +3379,13 @@ describe("Trust", async function () {
     ) as RedeemableERC20;
 
     // redeem all
-    await token1.redeem(hodler1EndingTokenBalance);
+    await token1.redeem(signer1EndingTokenBalance);
 
     assert(
       (await token.totalSupply()).eq(
-        hodler2EndingTokenBalance.add(await token.balanceOf(bPool.address))
+        signer2EndingTokenBalance.add(await token.balanceOf(bPool.address))
       ), // token dust
-      `wrong total token supply after hodler 1 redemption
+      `wrong total token supply after signer 1 redemption
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -3395,21 +3395,21 @@ describe("Trust", async function () {
       balanceOf trust     ${await token.balanceOf(trust.address)}
       balanceOf creator   ${await token.balanceOf(creator)}
       balanceOf seeder    ${await token.balanceOf(seeder)}
-      balanceOf hodler 1  ${await token.balanceOf(hodler1.address)}
-      balanceOf hodler 2  ${await token.balanceOf(hodler2.address)}
+      balanceOf signer 1  ${await token.balanceOf(signer1.address)}
+      balanceOf signer 2  ${await token.balanceOf(signer2.address)}
       `
     );
 
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.redeem(hodler2EndingTokenBalance.sub(smallTokenAmount));
+    await token2.redeem(signer2EndingTokenBalance.sub(smallTokenAmount));
 
     assert(
       (await token.totalSupply()).eq(
         smallTokenAmount.add(await token.balanceOf(bPool.address))
       ), // token dust
-      `wrong total token supply after hodler 2 redemption
+      `wrong total token supply after signer 2 redemption
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -3419,8 +3419,8 @@ describe("Trust", async function () {
       balanceOf trust     ${await token.balanceOf(trust.address)}
       balanceOf creator   ${await token.balanceOf(creator)}
       balanceOf seeder    ${await token.balanceOf(seeder)}
-      balanceOf hodler 1  ${await token.balanceOf(hodler1.address)}
-      balanceOf hodler 2  ${await token.balanceOf(hodler2.address)}
+      balanceOf signer 1  ${await token.balanceOf(signer1.address)}
+      balanceOf signer 2  ${await token.balanceOf(signer2.address)}
       `
     );
   });
@@ -3429,8 +3429,8 @@ describe("Trust", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const hodler1 = signers[2];
-    const hodler2 = signers[3];
+    const signer1 = signers[2];
+    const signer2 = signers[3];
 
     const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -3516,8 +3516,8 @@ describe("Trust", async function () {
     // give holders some reserve (not enough for successful raise)
     const spend1 = ethers.BigNumber.from("300" + Util.sixZeros);
     const spend2 = ethers.BigNumber.from("300" + Util.sixZeros);
-    await reserve.transfer(hodler1.address, spend1.mul(10));
-    await reserve.transfer(hodler2.address, spend2);
+    await reserve.transfer(signer1.address, spend1.mul(10));
+    await reserve.transfer(signer2.address, spend2);
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
@@ -3540,10 +3540,10 @@ describe("Trust", async function () {
     ) as RedeemableERC20Pool;
 
     let [crp, bPool] = await Util.poolContracts(signers, trustPool);
-    const reserve1 = reserve.connect(hodler1);
+    const reserve1 = reserve.connect(signer1);
 
-    const crp1 = crp.connect(hodler1);
-    const bPool1 = bPool.connect(hodler1);
+    const crp1 = crp.connect(signer1);
+    const bPool1 = bPool.connect(signer1);
 
     let i = 0;
     while (i < 10) {
@@ -3559,19 +3559,19 @@ describe("Trust", async function () {
       i++;
     }
 
-    const hodler1TokenBalance = await token.balanceOf(hodler1.address);
+    const signer1TokenBalance = await token.balanceOf(signer1.address);
 
-    // hodler 1 transferred all reserve to token contract
+    // signer 1 transferred all reserve to token contract
     assert(
-      (await reserve.balanceOf(hodler1.address)).eq(0),
+      (await reserve.balanceOf(signer1.address)).eq(0),
       "balancer pool not swapping correct spend1 amount in"
     );
 
-    const crp2 = crp.connect(hodler2);
+    const crp2 = crp.connect(signer2);
     await crp2.pokeWeights();
 
-    const bPool2 = bPool.connect(hodler2);
-    const reserve2 = reserve.connect(hodler2);
+    const bPool2 = bPool.connect(signer2);
+    const reserve2 = reserve.connect(signer2);
     await reserve2.approve(bPool2.address, spend2);
 
     await bPool2.swapExactAmountIn(
@@ -3582,11 +3582,11 @@ describe("Trust", async function () {
       ethers.BigNumber.from("1000000" + Util.sixZeros)
     );
 
-    const hodler2TokenBalance = await token.balanceOf(hodler2.address);
+    const signer2TokenBalance = await token.balanceOf(signer2.address);
 
-    // hodler 2 transferred all reserve to token contract
+    // signer 2 transferred all reserve to token contract
     assert(
-      (await reserve.balanceOf(hodler2.address)).eq(0),
+      (await reserve.balanceOf(signer2.address)).eq(0),
       "balancer pool not swapping correct spend2 amount in"
     );
 
@@ -3666,29 +3666,29 @@ describe("Trust", async function () {
 
     // correct reserve
     assert(
-      (await reserve.balanceOf(hodler1.address)).eq(0),
-      "hodler 1 wrongly given reserve when raise ended"
+      (await reserve.balanceOf(signer1.address)).eq(0),
+      "signer 1 wrongly given reserve when raise ended"
     );
     assert(
-      (await reserve.balanceOf(hodler2.address)).eq(0),
-      "hodler 2 wrongly given reserve when raise ended"
+      (await reserve.balanceOf(signer2.address)).eq(0),
+      "signer 2 wrongly given reserve when raise ended"
     );
 
-    const hodler1EndingTokenBalance = await token.balanceOf(hodler1.address);
-    const hodler2EndingTokenBalance = await token.balanceOf(hodler2.address);
+    const signer1EndingTokenBalance = await token.balanceOf(signer1.address);
+    const signer2EndingTokenBalance = await token.balanceOf(signer2.address);
 
     // Should remain unchanged from amounts during pool phase
-    const hodler1ExpectedEndingTokenBalance = hodler1TokenBalance;
-    const hodler2ExpectedEndingTokenBalance = hodler2TokenBalance;
+    const signer1ExpectedEndingTokenBalance = signer1TokenBalance;
+    const signer2ExpectedEndingTokenBalance = signer2TokenBalance;
 
     // correct tokens
     assert(
-      hodler1EndingTokenBalance.eq(hodler1ExpectedEndingTokenBalance),
-      "wrong final token balance for hodler 1"
+      signer1EndingTokenBalance.eq(signer1ExpectedEndingTokenBalance),
+      "wrong final token balance for signer 1"
     );
     assert(
-      hodler2EndingTokenBalance.eq(hodler2ExpectedEndingTokenBalance),
-      "wrong final token balance for hodler 2"
+      signer2EndingTokenBalance.eq(signer2ExpectedEndingTokenBalance),
+      "wrong final token balance for signer 2"
     );
 
     // Token contract holds correct reserve balance
@@ -3702,8 +3702,8 @@ describe("Trust", async function () {
 
     assert(
       (await token.totalSupply()).eq(
-        hodler1EndingTokenBalance
-          .add(hodler2EndingTokenBalance)
+        signer1EndingTokenBalance
+          .add(signer2EndingTokenBalance)
           .add(await token.balanceOf(bPool.address))
       ), // token dust
       `wrong total token supply after failed raise
@@ -3716,8 +3716,8 @@ describe("Trust", async function () {
       balanceOf trust     ${await token.balanceOf(trust.address)}
       balanceOf creator   ${await token.balanceOf(creator)}
       balanceOf seeder    ${await token.balanceOf(seeder)}
-      balanceOf hodler 1  ${hodler1EndingTokenBalance}
-      balanceOf hodler 2  ${hodler2EndingTokenBalance}
+      balanceOf signer 1  ${signer1EndingTokenBalance}
+      balanceOf signer 2  ${signer2EndingTokenBalance}
       `
     );
 
@@ -3735,13 +3735,13 @@ describe("Trust", async function () {
     ) as RedeemableERC20;
 
     // redeem all
-    await token1.redeem(hodler1EndingTokenBalance);
+    await token1.redeem(signer1EndingTokenBalance);
 
     assert(
       (await token.totalSupply()).eq(
-        hodler2EndingTokenBalance.add(await token.balanceOf(bPool.address))
+        signer2EndingTokenBalance.add(await token.balanceOf(bPool.address))
       ), // token dust
-      `wrong total token supply after hodler 1 redemption
+      `wrong total token supply after signer 1 redemption
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -3751,21 +3751,21 @@ describe("Trust", async function () {
       balanceOf trust     ${await token.balanceOf(trust.address)}
       balanceOf creator   ${await token.balanceOf(creator)}
       balanceOf seeder    ${await token.balanceOf(seeder)}
-      balanceOf hodler 1  ${await token.balanceOf(hodler1.address)}
-      balanceOf hodler 2  ${await token.balanceOf(hodler2.address)}
+      balanceOf signer 1  ${await token.balanceOf(signer1.address)}
+      balanceOf signer 2  ${await token.balanceOf(signer2.address)}
       `
     );
 
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.redeem(hodler2EndingTokenBalance.sub(smallTokenAmount));
+    await token2.redeem(signer2EndingTokenBalance.sub(smallTokenAmount));
 
     assert(
       (await token.totalSupply()).eq(
         smallTokenAmount.add(await token.balanceOf(bPool.address))
       ), // token dust
-      `wrong total token supply after hodler 2 redemption
+      `wrong total token supply after signer 2 redemption
       initial supply      ${totalTokenSupply}
       total supply        ${await token.totalSupply()}
       balanceOf Address0  ${await token.balanceOf(ethers.constants.AddressZero)}
@@ -3775,8 +3775,8 @@ describe("Trust", async function () {
       balanceOf trust     ${await token.balanceOf(trust.address)}
       balanceOf creator   ${await token.balanceOf(creator)}
       balanceOf seeder    ${await token.balanceOf(seeder)}
-      balanceOf hodler 1  ${await token.balanceOf(hodler1.address)}
-      balanceOf hodler 2  ${await token.balanceOf(hodler2.address)}
+      balanceOf signer 1  ${await token.balanceOf(signer1.address)}
+      balanceOf signer 2  ${await token.balanceOf(signer2.address)}
       `
     );
   });

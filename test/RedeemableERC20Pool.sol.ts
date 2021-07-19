@@ -315,17 +315,17 @@ describe("RedeemableERC20Pool", async function () {
     await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
 
     // raise some funds
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await crpHodler.pokeWeights();
-      await reserveHodler.approve(bPool.address, spend);
-      await bPoolHodler.swapExactAmountIn(
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         redeemable.address,

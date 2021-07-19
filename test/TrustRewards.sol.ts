@@ -224,8 +224,8 @@ describe("TrustRewards", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
-    const hodler2 = signers[4];
+    const signer1 = signers[3];
+    const signer2 = signers[4];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -299,17 +299,17 @@ describe("TrustRewards", async function () {
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     // raise some funds
-    const swapReserveForTokens = async (hodler, spend, reserve) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend, reserve) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await crpHodler.pokeWeights();
-      await reserveHodler.approve(bPool.address, spend);
-      await bPoolHodler.swapExactAmountIn(
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -322,7 +322,7 @@ describe("TrustRewards", async function () {
 
     // trading/swaps occur with default reserve
     for (let i = 0; i < 11; i++) {
-      await swapReserveForTokens(hodler1, spend, reserveA);
+      await swapReserveForTokens(signer1, spend, reserveA);
     }
 
     while (
@@ -380,12 +380,12 @@ describe("TrustRewards", async function () {
 
     const tokenSupply = await token.totalSupply();
 
-    // hodler1 redeems tokens equal to 10% of total supply
-    await token.connect(hodler1).redeem(tokenSupply.div(10));
+    // signer1 redeems tokens equal to 10% of total supply
+    await token.connect(signer1).redeem(tokenSupply.div(10));
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
-    const balanceA = await reserveA.balanceOf(hodler1.address);
+    const balanceA = await reserveA.balanceOf(signer1.address);
     const expectedBalanceA = tokenReserveA.div(10).sub(1);
     assert(
       balanceA.eq(expectedBalanceA),
@@ -394,7 +394,7 @@ describe("TrustRewards", async function () {
         expected  ${expectedBalanceA}
         got       ${balanceA}`
     );
-    const balanceB = await reserveB.balanceOf(hodler1.address);
+    const balanceB = await reserveB.balanceOf(signer1.address);
     const expectedBalanceB = tokenReserveB.div(10).sub(1);
     assert(
       balanceB.eq(expectedBalanceB),
@@ -403,7 +403,7 @@ describe("TrustRewards", async function () {
         expected  ${expectedBalanceB}
         got       ${balanceB}`
     );
-    const balanceC = await reserveC.balanceOf(hodler1.address);
+    const balanceC = await reserveC.balanceOf(signer1.address);
     const expectedBalanceC = tokenReserveC.div(10).sub(1);
     assert(
       balanceC.eq(expectedBalanceC),
@@ -412,7 +412,7 @@ describe("TrustRewards", async function () {
         expected  ${expectedBalanceC}
         got       ${balanceC}`
     );
-    const balanceD = await reserveD.balanceOf(hodler1.address);
+    const balanceD = await reserveD.balanceOf(signer1.address);
     const expectedBalanceD = tokenReserveD.div(10).sub(1);
     assert(
       balanceD.eq(expectedBalanceD),
@@ -422,19 +422,19 @@ describe("TrustRewards", async function () {
         got       ${balanceD}`
     );
 
-    // for simplicity, burn hodler1 reserve tokens
+    // for simplicity, burn signer1 reserve tokens
     await reserveA
-      .connect(hodler1)
-      .burn(await reserveA.balanceOf(hodler1.address));
+      .connect(signer1)
+      .burn(await reserveA.balanceOf(signer1.address));
     await reserveB
-      .connect(hodler1)
-      .burn(await reserveB.balanceOf(hodler1.address));
+      .connect(signer1)
+      .burn(await reserveB.balanceOf(signer1.address));
     await reserveC
-      .connect(hodler1)
-      .burn(await reserveC.balanceOf(hodler1.address));
+      .connect(signer1)
+      .burn(await reserveC.balanceOf(signer1.address));
     await reserveD
-      .connect(hodler1)
-      .burn(await reserveD.balanceOf(hodler1.address));
+      .connect(signer1)
+      .burn(await reserveD.balanceOf(signer1.address));
 
     // Now again, 10% of new total supply
 
@@ -455,12 +455,12 @@ describe("TrustRewards", async function () {
     `
     );
 
-    // hodler1 redeems tokens equal to 10% of new total supply
-    await token.connect(hodler1).redeem(tokenSupply2.div(10));
+    // signer1 redeems tokens equal to 10% of new total supply
+    await token.connect(signer1).redeem(tokenSupply2.div(10));
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
-    const balanceA2 = await reserveA.balanceOf(hodler1.address);
+    const balanceA2 = await reserveA.balanceOf(signer1.address);
     const expectedBalanceA2 = tokenReserveA2.div(10);
     assert(
       balanceA2.eq(expectedBalanceA2),
@@ -469,7 +469,7 @@ describe("TrustRewards", async function () {
         expected  ${expectedBalanceA2}
         got       ${balanceA2}`
     );
-    const balanceB2 = await reserveB.balanceOf(hodler1.address);
+    const balanceB2 = await reserveB.balanceOf(signer1.address);
     const expectedBalanceB2 = tokenReserveB2.div(10);
     assert(
       balanceB2.eq(expectedBalanceB2),
@@ -478,7 +478,7 @@ describe("TrustRewards", async function () {
         expected  ${expectedBalanceB2}
         got       ${balanceB2}`
     );
-    const balanceC2 = await reserveC.balanceOf(hodler1.address);
+    const balanceC2 = await reserveC.balanceOf(signer1.address);
     const expectedBalanceC2 = tokenReserveC2.div(10);
     assert(
       balanceC2.eq(expectedBalanceC2),
@@ -487,7 +487,7 @@ describe("TrustRewards", async function () {
         expected  ${expectedBalanceC2}
         got       ${balanceC2}`
     );
-    const balanceD2 = await reserveD.balanceOf(hodler1.address);
+    const balanceD2 = await reserveD.balanceOf(signer1.address);
     const expectedBalanceD2 = tokenReserveD2.div(10);
     assert(
       balanceD2.eq(expectedBalanceD2),
@@ -536,7 +536,7 @@ describe("TrustRewards", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -622,17 +622,17 @@ describe("TrustRewards", async function () {
 
     const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await reserveHodler.approve(bPool.address, spend);
-      await crpHodler.pokeWeights();
-      await bPoolHodler.swapExactAmountIn(
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -641,14 +641,14 @@ describe("TrustRewards", async function () {
       );
     };
 
-    await swapReserveForTokens(hodler1, reserveSpend);
+    await swapReserveForTokens(signer1, reserveSpend);
 
-    const token1 = token.connect(hodler1);
+    const token1 = token.connect(signer1);
 
     await Util.assertError(
-      async () => await token1.redeem(await token1.balanceOf(hodler1.address)),
+      async () => await token1.redeem(await token1.balanceOf(signer1.address)),
       "revert BAD_PHASE",
-      "hodler1 redeemed tokens before token phase change"
+      "signer1 redeemed tokens before token phase change"
     );
 
     // create empty transfer blocks until reaching pool phase change, so raise can end
@@ -669,26 +669,26 @@ describe("TrustRewards", async function () {
       "token phaseOneBlock should still not be set until endRaise"
     );
 
-    const hodler1TokenBalanceBeforeRed = await token1.balanceOf(
-      hodler1.address
+    const signer1TokenBalanceBeforeRed = await token1.balanceOf(
+      signer1.address
     );
 
     await Util.assertError(
-      async () => await token1.redeem(hodler1TokenBalanceBeforeRed),
+      async () => await token1.redeem(signer1TokenBalanceBeforeRed),
       "revert BAD_PHASE",
-      `hodler1 redeemed tokens before token phase change
+      `signer1 redeemed tokens before token phase change
       currentBlock        ${await ethers.provider.getBlockNumber()}
       tokenPhaseOneBlock  ${await token.phaseBlocks(0)}`
     );
 
-    const hodler1TokenBalanceAfterRed = await token1.balanceOf(hodler1.address);
+    const signer1TokenBalanceAfterRed = await token1.balanceOf(signer1.address);
 
     assert(
-      hodler1TokenBalanceBeforeRed.eq(hodler1TokenBalanceAfterRed),
+      signer1TokenBalanceBeforeRed.eq(signer1TokenBalanceAfterRed),
       "tokens wrongly redeemed before redemption phase"
     );
 
-    const trust1 = trust.connect(hodler1);
+    const trust1 = trust.connect(signer1);
 
     // after endRaise is called, token is now next phase
     await trust1.anonEndDistribution();
@@ -700,7 +700,7 @@ describe("TrustRewards", async function () {
     tokenPhaseOneBlock ${await token.phaseBlocks(0)}`
     );
 
-    await token1.redeem(await token1.balanceOf(hodler1.address));
+    await token1.redeem(await token1.balanceOf(signer1.address));
   });
 
   it("should allow token owner to burn only their own tokens", async function () {
@@ -741,8 +741,8 @@ describe("TrustRewards", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
-    const hodler2 = signers[4];
+    const signer1 = signers[3];
+    const signer2 = signers[4];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -818,17 +818,17 @@ describe("TrustRewards", async function () {
 
     const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await reserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
 
-      const reserveHodler = reserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await reserveHodler.approve(bPool.address, spend);
-      await crpHodler.pokeWeights();
-      await bPoolHodler.swapExactAmountIn(
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
         token.address,
@@ -837,26 +837,26 @@ describe("TrustRewards", async function () {
       );
     };
 
-    await swapReserveForTokens(hodler1, reserveSpend);
-    await swapReserveForTokens(hodler2, reserveSpend);
+    await swapReserveForTokens(signer1, reserveSpend);
+    await swapReserveForTokens(signer2, reserveSpend);
 
-    const token1 = token.connect(hodler1);
+    const token1 = token.connect(signer1);
 
-    await token1.burn(await token1.balanceOf(hodler1.address));
+    await token1.burn(await token1.balanceOf(signer1.address));
 
     assert(
-      (await token.balanceOf(hodler1.address)).isZero(),
-      "hodler1 failed to burn all of their own tokens"
+      (await token.balanceOf(signer1.address)).isZero(),
+      "signer1 failed to burn all of their own tokens"
     );
 
     await Util.assertError(
       async () =>
         await token1._burn(
-          hodler2.address,
-          await token1.balanceOf(hodler2.address)
+          signer2.address,
+          await token1.balanceOf(signer2.address)
         ),
       "TypeError: token1._burn is not a function", // internal
-      "hodler1 burned hodler2's tokens"
+      "signer1 burned signer2's tokens"
     );
   });
 
@@ -898,7 +898,7 @@ describe("TrustRewards", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -955,7 +955,7 @@ describe("TrustRewards", async function () {
 
     const trustCreator = trust.connect(creator);
     const trustDeployer = trust.connect(deployer);
-    const trustHodler1 = trust.connect(hodler1);
+    const trustSigner1 = trust.connect(signer1);
 
     await Util.assertError(
       async () => await trustDeployer.creatorAddRedeemable(reserve2.address),
@@ -966,9 +966,9 @@ describe("TrustRewards", async function () {
     await trustCreator.creatorAddRedeemable(reserve2.address);
 
     await Util.assertError(
-      async () => await trustHodler1.creatorAddRedeemable(reserve3.address),
+      async () => await trustSigner1.creatorAddRedeemable(reserve3.address),
       "revert NOT_CREATOR",
-      "hodler wrongly added new redeemable"
+      "signer wrongly added new redeemable"
     );
   });
 });

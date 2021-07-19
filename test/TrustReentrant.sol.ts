@@ -66,7 +66,7 @@ describe("TrustReentrant", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
-    const hodler1 = signers[3];
+    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -155,17 +155,17 @@ describe("TrustReentrant", async function () {
       creator
     ) as BPool;
 
-    const swapReserveForTokens = async (hodler, spend) => {
-      // give hodler some reserve
-      await maliciousReserve.transfer(hodler.address, spend);
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await maliciousReserve.transfer(signer.address, spend);
 
-      const reserveHodler = maliciousReserve.connect(hodler);
-      const crpHodler = crp.connect(hodler);
-      const bPoolHodler = bPool.connect(hodler);
+      const reserveSigner = maliciousReserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
 
-      await reserveHodler.approve(bPool.address, spend);
-      await crpHodler.pokeWeights();
-      await bPoolHodler.swapExactAmountIn(
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
         maliciousReserve.address,
         spend,
         token.address,
@@ -177,7 +177,7 @@ describe("TrustReentrant", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
 
     while ((await maliciousReserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(hodler1, spend);
+      await swapReserveForTokens(signer1, spend);
     }
 
     while (
