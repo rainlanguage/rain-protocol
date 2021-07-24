@@ -17,6 +17,7 @@ import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
 import { Phase } from "./Phased.sol";
+import { RedeemableERC20Factory, RedeemableERC20FactoryConfig } from "./RedeemableERC20Factory.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "./RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
@@ -212,13 +213,13 @@ contract Trust is ReentrancyGuard {
     /// @param poolConfig_ RedeemableERC20Pool Config for constructed redeemable pool contract.
     constructor (
         TrustConfig memory config_,
-        RedeemableERC20Config memory redeemableERC20Config_,
+        RedeemableERC20FactoryConfig memory redeemableERC20FactoryConfig_,
         TrustRedeemableERC20PoolConfig memory poolConfig_
     ) public {
         require(config_.creator != address(0), "CREATOR_0");
         // There are additional minimum reserve init and token supply restrictions enforced by `RedeemableERC20` and `RedeemableERC20Pool`.
         // This ensures that the weightings and valuations will be in a sensible range according to the internal assumptions made by Balancer etc.
-        require(redeemableERC20Config_.totalSupply >= poolConfig_.reserveInit, "MIN_TOKEN_SUPPLY");
+        require(redeemableERC20FactoryConfig_.totalSupply >= poolConfig_.reserveInit, "MIN_TOKEN_SUPPLY");
         require(poolConfig_.initialValuation >= poolConfig_.finalValuation, "MIN_INITIAL_VALUTION");
 
         successBalance = poolConfig_.reserveInit.add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);

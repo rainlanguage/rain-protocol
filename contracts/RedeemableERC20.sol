@@ -18,6 +18,9 @@ import { Phase, Phased } from "./Phased.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
+    // Account that will be the admin for the `RedeemableERC20` contract.
+    // Useful for factory contracts etc.
+    address admin;
     // Name forwarded to ERC20 constructor.
     string name;
     // Symbol forwarded to ERC20 constructor.
@@ -111,10 +114,10 @@ contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20
         require(config_.totalSupply >= MINIMUM_INITIAL_SUPPLY, "MINIMUM_INITIAL_SUPPLY");
         minimumPrestigeStatus = config_.minimumStatus;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(RECEIVER, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, config_.admin);
+        _setupRole(RECEIVER, config_.admin);
 
-        _mint(msg.sender, config_.totalSupply);
+        _mint(config_.admin, config_.totalSupply);
     }
 
     /// Ensure that `msg.sender` has the admin role.
