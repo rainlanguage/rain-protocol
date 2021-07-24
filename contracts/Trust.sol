@@ -104,12 +104,6 @@ struct TrustConfig {
     // The reserve amount that seeders receive in addition to what they contribute IFF the raise is successful.
     // An absolute value, so percentages etc. must be calculated off-chain and passed in to the constructor.
     uint256 seederFee;
-    // Number of units minted by the newly built `SeedERC20` contract.
-    // IGNORED IF the `seeder` contract is an EOA.
-    uint16 seederUnits;
-    // Cooldown duration of the newly built `SeedERC20` contract.
-    // IGNORED IF the `seeder` contract is an EOA.
-    uint16 seederCooldownDuration;
     // Minimum duration IN BLOCKS of the trading on Balancer.
     // The trading does not stop until the `anonEndDistribution` function is called.
     uint256 minimumTradingDuration;
@@ -205,20 +199,6 @@ contract Trust is ReentrancyGuard {
         require(config_.redeemableERC20Pool.weightValuation(config_.redeemableERC20Pool.finalWeight()) >= successBalance, "MIN_FINAL_VALUATION");
 
         config = config_;
-
-        if (config.seeder == address(0)) {
-            require(config_.redeemableERC20Pool.reserveInit().mod(config.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
-            config.seeder = address(new SeedERC20(SeedERC20Config(
-                config_.redeemableERC20Pool.reserve(),
-                address(config_.redeemableERC20Pool),
-                // seed price.
-                config_.redeemableERC20Pool.reserveInit().div(config.seederUnits),
-                config.seederUnits,
-                config.seederCooldownDuration,
-                "",
-                ""
-            )));
-        }
 
         // Need to grant transfers for a few balancer addresses to facilitate exits.
         config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool.crp().bFactory()));
