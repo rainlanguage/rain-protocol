@@ -89,6 +89,7 @@ struct DistributionProgress {
 /// `Trust` contracts also take inner config for the pool and token.
 struct TrustConfig {
     RedeemableERC20 redeemableERC20;
+    RedeemableERC20Pool redeemableERC20Pool;
     // Address of the creator who will receive reserve assets on successful distribution.
     address creator;
     // Minimum amount to raise for the creator from the distribution period.
@@ -116,18 +117,6 @@ struct TrustConfig {
     // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
     // Successful the redeemInit is sent to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
-}
-
-/// Configuration passed through to the `RedeemableERC20Pool` constructor.
-/// All params as per `RedeemableERC20PoolConfig`.
-/// @see RedeemableERC20PoolConfig
-struct TrustRedeemableERC20PoolConfig {
-    CRPFactory crpFactory;
-    BFactory balancerFactory;
-    IERC20 reserve;
-    uint256 reserveInit;
-    uint256 initialValuation;
-    uint256 finalValuation;
 }
 
 /// @title Trust
@@ -191,11 +180,6 @@ contract Trust is ReentrancyGuard {
     /// Could be calculated as a view function but that would require external calls to the pool contract.
     uint256 public successBalance;
 
-    /// The redeemable token minted in the constructor.
-    RedeemableERC20 public redeemableERC20;
-    /// The Balance pool created for trading.
-    RedeemableERC20Pool public pool;
-
     /// Sanity checks configuration.
     /// Creates the `RedeemableERC20` contract and mints the redeemable ERC20 token.
     /// Creates the `RedeemableERC20Pool` contract.
@@ -209,38 +193,26 @@ contract Trust is ReentrancyGuard {
     /// Further discussion with the slither team: https://github.com/crytic/slither/issues/887
     ///
     /// @param config_ Config for the Trust.
-    /// @param poolConfig_ RedeemableERC20Pool Config for constructed redeemable pool contract.
     constructor (
-        TrustConfig memory config_,
-        TrustRedeemableERC20PoolConfig memory poolConfig_
+        TrustConfig memory config_
     ) public {
         require(config_.creator != address(0), "CREATOR_0");
         // There are additional minimum reserve init and token supply restrictions enforced by `RedeemableERC20` and `RedeemableERC20Pool`.
         // This ensures that the weightings and valuations will be in a sensible range according to the internal assumptions made by Balancer etc.
-        require(config_.redeemableERC20.totalSupply() >= poolConfig_.reserveInit, "MIN_TOKEN_SUPPLY");
-        require(poolConfig_.initialValuation >= poolConfig_.finalValuation, "MIN_INITIAL_VALUTION");
+        require(config_.redeemableERC20.totalSupply() >= config_.redeemableERC20Pool.reserveInit, "MIN_TOKEN_SUPPLY");
 
-        successBalance = poolConfig_.reserveInit.add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);
-        require(poolConfig_.finalValuation >= successBalance, "MIN_FINAL_VALUATION");
+        successBalance = config_.redeemableERC20Pool.reserveInit.add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);
+        require(config_.redeemableERC20Pool.finalValuation >= successBalance, "MIN_FINAL_VALUATION");
 
         config = config_;
-        pool = new RedeemableERC20Pool(RedeemableERC20PoolConfig(
-            poolConfig_.crpFactory,
-            poolConfig_.balancerFactory,
-            poolConfig_.reserve,
-            config.redeemableERC20,
-            poolConfig_.reserveInit,
-            poolConfig_.initialValuation,
-            poolConfig_.finalValuation
-        ));
 
         if (config.seeder == address(0)) {
-            require(poolConfig_.reserveInit.mod(config.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
+            require(config_.redeemableERC20Pool.reserveInit.mod(config.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
             config.seeder = address(new SeedERC20(SeedERC20Config(
-                poolConfig_.reserve,
-                address(pool),
+                config_.redeemableERC20Pool.reserve,
+                address(config_.redeemableERC20Pool),
                 // seed price.
-                poolConfig_.reserveInit.div(config.seederUnits),
+                config_.redeemableERC20Pool.reserveInit.div(config.seederUnits),
                 config.seederUnits,
                 config.seederCooldownDuration,
                 "",
@@ -249,39 +221,39 @@ contract Trust is ReentrancyGuard {
         }
 
         // Need to grant transfers for a few balancer addresses to facilitate exits.
-        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(poolConfig_.balancerFactory));
-        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(pool.crp()));
-        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(pool));
-        config.redeemableERC20.grantRole(config.redeemableERC20.SENDER(), address(pool.crp()));
+        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool.balancerFactory));
+        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool.crp()));
+        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool));
+        config.redeemableERC20.grantRole(config.redeemableERC20.SENDER(), address(config_.redeemableERC20Pool.crp()));
 
         // The pool reserve must always be one of the redeemable assets.
-        config.redeemableERC20.adminAddRedeemable(poolConfig_.reserve);
+        config.redeemableERC20.adminAddRedeemable(config_.redeemableERC20Pool.reserve);
 
         // Send all tokens to the pool immediately.
         // When the seed funds are raised `anonStartDistribution` will build a pool from these.
-        config.redeemableERC20.safeTransfer(address(pool), config.redeemableERC20.totalSupply());
+        config.redeemableERC20.safeTransfer(address(config_.redeemableERC20Pool), config.redeemableERC20.totalSupply());
     }
 
     /// Accessor for the `TrustContracts` of this `Trust`.
     function getContracts() external view returns(TrustContracts memory) {
         return TrustContracts(
-            address(pool.reserve()),
+            address(config.redeemableERC20Pool.reserve()),
             address(config.redeemableERC20),
-            address(pool),
+            address(config.redeemableERC20Pool),
             address(config.seeder),
             address(config.redeemableERC20.prestige()),
-            address(pool.crp()),
-            address(pool.crp().bPool())
+            address(config.redeemableERC20Pool.crp()),
+            address(config.redeemableERC20Pool.crp().bPool())
         );
     }
 
     /// Accessor for the `DistributionProgress` of this `Trust`.
     function getDistributionProgress() external view returns(DistributionProgress memory) {
-        address balancerPool_ = address(pool.crp().bPool());
+        address balancerPool_ = address(config.redeemableERC20Pool.crp().bPool());
         uint256 poolReserveBalance_;
         uint256 poolTokenBalance_;
         if (balancerPool_ != address(0)) {
-            poolReserveBalance_ = pool.reserve().balanceOf(balancerPool_);
+            poolReserveBalance_ = config.redeemableERC20Pool.reserve().balanceOf(balancerPool_);
             poolTokenBalance_ = config.redeemableERC20.balanceOf(balancerPool_);
         }
         else {
@@ -291,11 +263,11 @@ contract Trust is ReentrancyGuard {
 
         return DistributionProgress(
             getDistributionStatus(),
-            pool.phaseBlocks(0),
-            pool.phaseBlocks(1),
+            config.redeemableERC20Pool.phaseBlocks(0),
+            config.redeemableERC20Pool.phaseBlocks(1),
             poolReserveBalance_,
             poolTokenBalance_,
-            pool.reserveInit(),
+            config.redeemableERC20Pool.reserveInit(),
             config.minimumCreatorRaise,
             config.seederFee,
             config.redeemInit
@@ -304,9 +276,9 @@ contract Trust is ReentrancyGuard {
 
     /// Accessor for the `DistributionStatus` of this `Trust`.
     function getDistributionStatus() public view returns (DistributionStatus) {
-        Phase poolPhase_ = pool.currentPhase();
+        Phase poolPhase_ = config.redeemableERC20Pool.currentPhase();
         if (poolPhase_ == Phase.ZERO) {
-            if (pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()) {
+            if (config.redeemableERC20Pool.reserve().balanceOf(address(config.redeemableERC20Pool)) >= config.redeemableERC20Pool.reserveInit()) {
                 return DistributionStatus.Seeded;
             } else {
                 return DistributionStatus.Pending;
@@ -342,7 +314,7 @@ contract Trust is ReentrancyGuard {
     /// The requirement is that BOTH the reserve and redeemable tokens have already been sent to the Balancer pool.
     /// If the pool has the required funds it will set the weight curve and start the dutch auction.
     function anonStartDistribution() external {
-        pool.ownerStartDutchAuction(block.number + config.minimumTradingDuration);
+        config.redeemableERC20Pool.ownerStartDutchAuction(block.number + config.minimumTradingDuration);
     }
 
     /// Anyone can end the distribution.
@@ -350,24 +322,24 @@ contract Trust is ReentrancyGuard {
     /// If the `successBalance` is reached then the creator receives the raise and seeder earns a fee.
     /// Else the initial reserve is refunded to the seeder and sale proceeds rolled forward to token holders (not the creator).
     function anonEndDistribution() external nonReentrant {
-        finalBalance = pool.reserve().balanceOf(address(pool.crp().bPool()));
+        finalBalance = config.redeemableERC20Pool.reserve().balanceOf(address(config.redeemableERC20Pool.crp().bPool()));
 
-        pool.ownerEndDutchAuction();
+        config.redeemableERC20Pool.ownerEndDutchAuction();
         // Burning the distributor moves the token to its `Phase.ONE` and unlocks redemptions.
         // The distributor is the `bPool` itself.
         config.redeemableERC20.adminBurnDistributor(
-            address(pool.crp().bPool())
+            address(config.redeemableERC20Pool.crp().bPool())
         );
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
-        uint256 poolDust_ = pool.reserve().balanceOf(address(pool.crp().bPool()));
+        uint256 poolDust_ = config.redeemableERC20Pool.reserve().balanceOf(address(config.redeemableERC20Pool.crp().bPool()));
         // The dust is included in the final balance for UX reasons.
         // We don't want to fail the raise due to dust, even if technically it was a failure.
         // To ensure a good UX for creators and token holders we subtract the dust from the seeder.
-        uint256 availableBalance_ = pool.reserve().balanceOf(address(this));
+        uint256 availableBalance_ = config.redeemableERC20Pool.reserve().balanceOf(address(this));
 
         // Base payments for each fundraiser.
-        uint256 seederPay_ = pool.reserveInit().sub(poolDust_);
+        uint256 seederPay_ = config.redeemableERC20Pool.reserveInit().sub(poolDust_);
         uint256 creatorPay_ = 0;
 
         // Set aside the redemption and seed fee if we reached the minimum.
@@ -392,13 +364,13 @@ contract Trust is ReentrancyGuard {
         }
 
         if (creatorPay_ > 0) {
-            pool.reserve().safeTransfer(
+            config.redeemableERC20Pool.reserve().safeTransfer(
                 config.creator,
                 creatorPay_
             );
         }
 
-        pool.reserve().safeTransfer(
+        config.redeemableERC20Pool.reserve().safeTransfer(
             config.seeder,
             seederPay_
         );
@@ -407,9 +379,9 @@ contract Trust is ReentrancyGuard {
         // Implicitly the remainder of the finalBalance_ is:
         // - the redeem init if successful
         // - whatever users deposited in the AMM if unsuccessful
-        uint256 remainder_ = pool.reserve().balanceOf(address(this));
+        uint256 remainder_ = config.redeemableERC20Pool.reserve().balanceOf(address(this));
         if (remainder_ > 0) {
-            pool.reserve().safeTransfer(
+            config.redeemableERC20Pool.reserve().safeTransfer(
                 address(config.redeemableERC20),
                 remainder_
             );

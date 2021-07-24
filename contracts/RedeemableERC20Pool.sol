@@ -98,6 +98,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
     constructor (RedeemableERC20PoolConfig memory config_) public {
         require(config_.reserveInit >= MIN_RESERVE_INIT, "RESERVE_INIT_MINIMUM");
+        require(config_.initialValuation >= config_.finalValuation, "MIN_INITIAL_VALUTION");
 
         token = config_.token;
         reserve = config_.reserve;
