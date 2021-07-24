@@ -176,6 +176,10 @@ contract RedeemableERC20Pool is Ownable, Phased {
         return weight_;
     }
 
+    function weightValuation(uint256 weight) public view returns (uint256) {
+        return weight.mul(reserveInit).div(BalancerConstants.BONE);
+    }
+
     /// Allow the owner to start the Balancer style dutch auction.
     /// `Phase.ZERO` indicates the auction can start.
     /// `Phase.ONE` indicates the auction has started.

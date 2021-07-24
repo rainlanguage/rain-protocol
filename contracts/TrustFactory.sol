@@ -3,15 +3,23 @@ pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
+import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
+import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
+
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import { Factory } from "./Factory.sol";
-import { Trust, TrustConfig, TrustRedeemableERC20PoolConfig } from "./Trust.sol";
+import { Trust, TrustConfig } from "./Trust.sol";
 import { RedeemableERC20Factory } from "./RedeemableERC20Factory.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
+import { RedeemableERC20PoolFactory } from "./RedeemableERC20PoolFactory.sol";
+import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "./RedeemableERC20Pool.sol";
 
 struct TrustFactoryConfig {
     CRPFactory crpFactory;
     BFactory balancerFactory;
     RedeemableERC20Factory redeemableERC20Factory;
+    RedeemableERC20PoolFactory redeemableERC20PoolFactory;
 }
 
 struct TrustFactoryTrustConfig {
@@ -41,7 +49,18 @@ contract TrustFactory is Factory {
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
-        (TrustFactoryTrustConfig memory trustFactoryTrustConfig_, RedeemableERC20Config memory redeemableERC20Config_, TrustRedeemableERC20PoolConfig memory trustRedeemableERC20PoolConfig_) = abi.decode(data_, (TrustFactoryTrustConfig, RedeemableERC20Config, TrustRedeemableERC20PoolConfig));
+        (
+            TrustFactoryTrustConfig memory trustFactoryTrustConfig_,
+            RedeemableERC20Config memory redeemableERC20Config_,
+            TrustFactoryRedeemableERC20PoolConfig memory trustFactoryRedeemableERC20PoolConfig_
+        ) = abi.decode(
+            data_,
+            (
+                TrustFactoryTrustConfig,
+                RedeemableERC20Config,
+                TrustFactoryRedeemableERC20PoolConfig
+            )
+        );
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(config.redeemableERC20Factory.createChild(abi.encode(redeemableERC20Config_)));
         RedeemableERC20Pool redeemableERC20Pool_ = RedeemableERC20Pool(config.redeemableERC20PoolFactory.createChild(abi.encode(RedeemableERC20PoolConfig(
             config.crpFactory,

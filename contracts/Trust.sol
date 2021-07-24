@@ -199,20 +199,20 @@ contract Trust is ReentrancyGuard {
         require(config_.creator != address(0), "CREATOR_0");
         // There are additional minimum reserve init and token supply restrictions enforced by `RedeemableERC20` and `RedeemableERC20Pool`.
         // This ensures that the weightings and valuations will be in a sensible range according to the internal assumptions made by Balancer etc.
-        require(config_.redeemableERC20.totalSupply() >= config_.redeemableERC20Pool.reserveInit, "MIN_TOKEN_SUPPLY");
+        require(config_.redeemableERC20.totalSupply() >= config_.redeemableERC20Pool.reserveInit(), "MIN_TOKEN_SUPPLY");
 
-        successBalance = config_.redeemableERC20Pool.reserveInit.add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);
-        require(config_.redeemableERC20Pool.finalValuation >= successBalance, "MIN_FINAL_VALUATION");
+        successBalance = config_.redeemableERC20Pool.reserveInit().add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);
+        require(config_.redeemableERC20Pool.weightValuation(config_.redeemableERC20Pool.finalWeight()) >= successBalance, "MIN_FINAL_VALUATION");
 
         config = config_;
 
         if (config.seeder == address(0)) {
-            require(config_.redeemableERC20Pool.reserveInit.mod(config.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
+            require(config_.redeemableERC20Pool.reserveInit().mod(config.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
             config.seeder = address(new SeedERC20(SeedERC20Config(
-                config_.redeemableERC20Pool.reserve,
+                config_.redeemableERC20Pool.reserve(),
                 address(config_.redeemableERC20Pool),
                 // seed price.
-                config_.redeemableERC20Pool.reserveInit.div(config.seederUnits),
+                config_.redeemableERC20Pool.reserveInit().div(config.seederUnits),
                 config.seederUnits,
                 config.seederCooldownDuration,
                 "",
@@ -221,13 +221,13 @@ contract Trust is ReentrancyGuard {
         }
 
         // Need to grant transfers for a few balancer addresses to facilitate exits.
-        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool.balancerFactory));
+        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool.crp().bFactory()));
         config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool.crp()));
         config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool));
         config.redeemableERC20.grantRole(config.redeemableERC20.SENDER(), address(config_.redeemableERC20Pool.crp()));
 
         // The pool reserve must always be one of the redeemable assets.
-        config.redeemableERC20.adminAddRedeemable(config_.redeemableERC20Pool.reserve);
+        config.redeemableERC20.adminAddRedeemable(config_.redeemableERC20Pool.reserve());
 
         // Send all tokens to the pool immediately.
         // When the seed funds are raised `anonStartDistribution` will build a pool from these.
