@@ -13,4 +13,8 @@ contract RedeemableERC20PoolFactory is Factory {
         (RedeemableERC20PoolConfig memory config_) = abi.decode(data_, (RedeemableERC20PoolConfig));
         return address(new RedeemableERC20Pool(config_));
     }
+
+    function createChild(RedeemableERC20PoolConfig calldata config_) external returns(address) {
+        return this.createChild(abi.encode(config_));
+    }
 }

@@ -56,6 +56,20 @@ contract TrustFactory is Factory {
         config = config_;
     }
 
+    function createChild(
+        TrustFactoryTrustConfig calldata trustFactoryTrustConfig_,
+        RedeemableERC20Config calldata redeemableERC20Config_,
+        TrustFactoryRedeemableERC20PoolConfig calldata trustFactoryRedeemableERC20PoolConfig_,
+        TrustFactorySeedERC20Config calldata trustFactorySeedERC20Config_
+    ) external returns(address) {
+        return this.createChild(abi.encode(
+            trustFactoryTrustConfig_,
+            redeemableERC20Config_,
+            trustFactoryRedeemableERC20PoolConfig_,
+            trustFactorySeedERC20Config_
+        ));
+    }
+
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
@@ -63,7 +77,7 @@ contract TrustFactory is Factory {
             TrustFactoryTrustConfig memory trustFactoryTrustConfig_,
             RedeemableERC20Config memory redeemableERC20Config_,
             TrustFactoryRedeemableERC20PoolConfig memory trustFactoryRedeemableERC20PoolConfig_,
-            TrustFactorySeedERC20Config memory trustFactorySeedERC20Config
+            TrustFactorySeedERC20Config memory trustFactorySeedERC20Config_
         ) = abi.decode(
             data_,
             (
@@ -84,14 +98,14 @@ contract TrustFactory is Factory {
             trustFactoryRedeemableERC20PoolConfig_.finalValuation
         ))));
         if (trustFactoryTrustConfig_.seeder == address(0)) {
-            require(redeemableERC20Pool_.reserveInit().mod(trustFactorySeedERC20Config.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
+            require(redeemableERC20Pool_.reserveInit().mod(trustFactorySeedERC20Config_.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
             trustFactoryTrustConfig_.seeder = address(config.seedERC20Factory.createChild(abi.encode(SeedERC20Config(
                 redeemableERC20Pool_.reserve(),
                 address(redeemableERC20Pool_),
                 // seed price.
-                redeemableERC20Pool_.reserveInit().div(trustFactorySeedERC20Config.seederUnits),
-                trustFactorySeedERC20Config.seederUnits,
-                trustFactorySeedERC20Config.seederCooldownDuration,
+                redeemableERC20Pool_.reserveInit().div(trustFactorySeedERC20Config_.seederUnits),
+                trustFactorySeedERC20Config_.seederUnits,
+                trustFactorySeedERC20Config_.seederCooldownDuration,
                 "",
                 ""
             ))));

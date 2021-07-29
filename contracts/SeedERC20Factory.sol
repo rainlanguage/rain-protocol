@@ -13,4 +13,8 @@ contract SeedERC20Factory is Factory {
         (SeedERC20Config memory config_) = abi.decode(data_, (SeedERC20Config));
         return address(new SeedERC20(config_));
     }
+
+    function createChild(SeedERC20Config calldata config_) external returns(address) {
+        return this.createChild(abi.encode(config_));
+    }
 }
