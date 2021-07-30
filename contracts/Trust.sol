@@ -199,19 +199,6 @@ contract Trust is ReentrancyGuard {
         require(config_.redeemableERC20Pool.weightValuation(config_.redeemableERC20Pool.finalWeight()) >= successBalance, "MIN_FINAL_VALUATION");
 
         config = config_;
-
-        // Need to grant transfers for a few balancer addresses to facilitate exits.
-        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool.crp().bFactory()));
-        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool.crp()));
-        config.redeemableERC20.grantRole(config.redeemableERC20.RECEIVER(), address(config_.redeemableERC20Pool));
-        config.redeemableERC20.grantRole(config.redeemableERC20.SENDER(), address(config_.redeemableERC20Pool.crp()));
-
-        // The pool reserve must always be one of the redeemable assets.
-        config.redeemableERC20.adminAddRedeemable(config_.redeemableERC20Pool.reserve());
-
-        // Send all tokens to the pool immediately.
-        // When the seed funds are raised `anonStartDistribution` will build a pool from these.
-        config.redeemableERC20.safeTransfer(address(config_.redeemableERC20Pool), config.redeemableERC20.totalSupply());
     }
 
     /// Accessor for the `TrustContracts` of this `Trust`.
@@ -280,16 +267,6 @@ contract Trust is ReentrancyGuard {
         }
     }
 
-    /// Allow the creator to add a redeemable erc20 to the internal `RedeemableERC20` token.
-    /// This is a thin wrapper that proxies the creator to act as the admin for this function call.
-    /// @param redeemable_ Redeemable erc20 passed directly to `adminAddRedeemable`.
-    function creatorAddRedeemable(IERC20 redeemable_) external {
-        // Not using the Open Zepplin RBAC system here as it would be overkill for this one check.
-        // This contract has no other access controls.
-        require(msg.sender == config.creator, "NOT_CREATOR");
-        config.redeemableERC20.adminAddRedeemable(redeemable_);
-    }
-
     /// Anyone can start the distribution.
     /// The requirement is that BOTH the reserve and redeemable tokens have already been sent to the Balancer pool.
     /// If the pool has the required funds it will set the weight curve and start the dutch auction.
@@ -307,7 +284,8 @@ contract Trust is ReentrancyGuard {
         config.redeemableERC20Pool.ownerEndDutchAuction();
         // Burning the distributor moves the token to its `Phase.ONE` and unlocks redemptions.
         // The distributor is the `bPool` itself.
-        config.redeemableERC20.adminBurnDistributor(
+        // Requires that the `Trust` has been granted `ONLY_DISTRIBUTOR_BURNER` role on the `redeemableERC20`.
+        config.redeemableERC20.burnDistributor(
             address(config.redeemableERC20Pool.crp().bPool())
         );
 
