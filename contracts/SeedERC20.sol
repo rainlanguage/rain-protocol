@@ -65,11 +65,11 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     using SafeERC20 for IERC20;
 
     /// Reserve erc20 token contract used to purchase seed tokens.
-    IERC20 public reserve;
+    IERC20 public immutable reserve;
     /// Recipient address for all reserve funds raised when seeding is complete.
-    address public recipient;
+    address public immutable recipient;
     /// Price in reserve for a unit of seed token.
-    uint256 public seedPrice;
+    uint256 public immutable seedPrice;
 
     /// Sanity checks on configuration.
     /// Store relevant config as contract state.

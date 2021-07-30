@@ -176,8 +176,18 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
-    /// Config the Trust was constructed with.
-    TrustConfig public config;
+    /// Creator from the initial config.
+    address public immutable creator;
+    /// minimum creator raise fromt he initial config.
+    uint256 public immutable minimumCreatorRaise;
+    /// Seeder from the initial config.
+    address public immutable seeder;
+    /// Seeder fee from the initial config.
+    uint256 public immutable seederFee;
+    /// Minimum trading duration from the initial config.
+    uint256 public immutable minimumTradingDuration;
+    /// Redeem init from the initial config.
+    uint256 public immutable redeemInit;
 
     /// Balance of the reserve asset in the Balance pool at the moment `anonEndDistribution` is called.
     /// This must be greater than or equal to `successBalance` for the distribution to succeed.
@@ -188,12 +198,12 @@ contract Trust is ReentrancyGuard {
     uint256 public finalBalance;
     /// Pool reserveInit + seederFee + redeemInit + minimumCreatorRaise.
     /// Could be calculated as a view function but that would require external calls to the pool contract.
-    uint256 public successBalance;
+    uint256 public immutable successBalance;
 
     /// The redeemable token minted in the constructor.
-    RedeemableERC20 public token;
-    /// The Balance pool created for trading.
-    RedeemableERC20Pool public pool;
+    RedeemableERC20 public immutable token;
+    /// The `RedeemableERC20Pool` pool created for trading.
+    RedeemableERC20Pool public immutable pool;
 
     /// Sanity checks configuration.
     /// Creates the `RedeemableERC20` contract and mints the redeemable ERC20 token.
@@ -221,49 +231,59 @@ contract Trust is ReentrancyGuard {
         require(redeemableERC20Config_.totalSupply >= poolConfig_.reserveInit, "MIN_TOKEN_SUPPLY");
         require(poolConfig_.initialValuation >= poolConfig_.finalValuation, "MIN_INITIAL_VALUTION");
 
-        successBalance = poolConfig_.reserveInit.add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);
-        require(poolConfig_.finalValuation >= successBalance, "MIN_FINAL_VALUATION");
+        uint256 successBalance_ = poolConfig_.reserveInit.add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);
+        require(poolConfig_.finalValuation >= successBalance_, "MIN_FINAL_VALUATION");
+        successBalance = successBalance_;
 
-        config = config_;
-        token =  new RedeemableERC20(
+        creator = config_.creator;
+        seederFee = config_.seederFee;
+        minimumTradingDuration = config_.minimumTradingDuration;
+        redeemInit = config_.redeemInit;
+        minimumCreatorRaise = config_.minimumCreatorRaise;
+
+        RedeemableERC20 token_ =  new RedeemableERC20(
             redeemableERC20Config_
         );
-        pool = new RedeemableERC20Pool(RedeemableERC20PoolConfig(
+        token = token_;
+
+        RedeemableERC20Pool pool_ = new RedeemableERC20Pool(RedeemableERC20PoolConfig(
             poolConfig_.crpFactory,
             poolConfig_.balancerFactory,
             poolConfig_.reserve,
-            token,
+            token_,
             poolConfig_.reserveInit,
             poolConfig_.initialValuation,
             poolConfig_.finalValuation
         ));
+        pool = pool_;
 
-        if (config.seeder == address(0)) {
-            require(poolConfig_.reserveInit.mod(config.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
-            config.seeder = address(new SeedERC20(SeedERC20Config(
+        if (config_.seeder == address(0)) {
+            require(poolConfig_.reserveInit.mod(config_.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
+            config_.seeder = address(new SeedERC20(SeedERC20Config(
                 poolConfig_.reserve,
-                address(pool),
+                address(pool_),
                 // seed price.
-                poolConfig_.reserveInit.div(config.seederUnits),
-                config.seederUnits,
-                config.seederCooldownDuration,
+                poolConfig_.reserveInit.div(config_.seederUnits),
+                config_.seederUnits,
+                config_.seederCooldownDuration,
                 "",
                 ""
             )));
         }
+        seeder = config_.seeder;
 
         // Need to grant transfers for a few balancer addresses to facilitate exits.
-        token.grantRole(token.RECEIVER(), address(poolConfig_.balancerFactory));
-        token.grantRole(token.RECEIVER(), address(pool.crp()));
-        token.grantRole(token.RECEIVER(), address(pool));
-        token.grantRole(token.SENDER(), address(pool.crp()));
+        token_.grantRole(token_.RECEIVER(), address(poolConfig_.balancerFactory));
+        token_.grantRole(token_.RECEIVER(), address(pool_.crp()));
+        token_.grantRole(token_.RECEIVER(), address(pool_));
+        token_.grantRole(token_.SENDER(), address(pool_.crp()));
 
         // The pool reserve must always be one of the redeemable assets.
-        token.adminAddRedeemable(poolConfig_.reserve);
+        token_.adminAddRedeemable(poolConfig_.reserve);
 
         // Send all tokens to the pool immediately.
         // When the seed funds are raised `anonStartDistribution` will build a pool from these.
-        token.safeTransfer(address(pool), redeemableERC20Config_.totalSupply);
+        token_.safeTransfer(address(pool_), redeemableERC20Config_.totalSupply);
     }
 
     /// Accessor for the `TrustContracts` of this `Trust`.
@@ -272,7 +292,7 @@ contract Trust is ReentrancyGuard {
             address(pool.reserve()),
             address(token),
             address(pool),
-            address(config.seeder),
+            address(seeder),
             address(token.prestige()),
             address(pool.crp()),
             address(pool.crp().bPool())
@@ -300,9 +320,9 @@ contract Trust is ReentrancyGuard {
             poolReserveBalance_,
             poolTokenBalance_,
             pool.reserveInit(),
-            config.minimumCreatorRaise,
-            config.seederFee,
-            config.redeemInit
+            minimumCreatorRaise,
+            seederFee,
+            redeemInit
         );
     }
 
@@ -338,7 +358,7 @@ contract Trust is ReentrancyGuard {
     function creatorAddRedeemable(IERC20 redeemable_) external {
         // Not using the Open Zepplin RBAC system here as it would be overkill for this one check.
         // This contract has no other access controls.
-        require(msg.sender == config.creator, "NOT_CREATOR");
+        require(msg.sender == creator, "NOT_CREATOR");
         token.adminAddRedeemable(redeemable_);
     }
 
@@ -346,7 +366,7 @@ contract Trust is ReentrancyGuard {
     /// The requirement is that BOTH the reserve and redeemable tokens have already been sent to the Balancer pool.
     /// If the pool has the required funds it will set the weight curve and start the dutch auction.
     function anonStartDistribution() external {
-        pool.ownerStartDutchAuction(block.number + config.minimumTradingDuration);
+        pool.ownerStartDutchAuction(block.number + minimumTradingDuration);
     }
 
     /// Anyone can end the distribution.
@@ -377,7 +397,7 @@ contract Trust is ReentrancyGuard {
         // Set aside the redemption and seed fee if we reached the minimum.
         if (finalBalance >= successBalance) {
             // The seeder gets an additional fee on success.
-            seederPay_ = seederPay_.add(config.seederFee);
+            seederPay_ = seederPay_.add(seederFee);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -392,18 +412,18 @@ contract Trust is ReentrancyGuard {
             //
             // Implied is the remainder of finalBalance_ as redeemInit
             // This will be transferred to the token holders below.
-            creatorPay_ = availableBalance_.sub(seederPay_.add(config.redeemInit));
+            creatorPay_ = availableBalance_.sub(seederPay_.add(redeemInit));
         }
 
         if (creatorPay_ > 0) {
             pool.reserve().safeTransfer(
-                config.creator,
+                creator,
                 creatorPay_
             );
         }
 
         pool.reserve().safeTransfer(
-            config.seeder,
+            seeder,
             seederPay_
         );
 
