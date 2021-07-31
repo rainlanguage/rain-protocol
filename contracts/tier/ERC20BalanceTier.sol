@@ -21,7 +21,7 @@ import "./ReadOnlyTier.sol";
 /// - Assets that cannot be transferred, so are not eligible for `ERC20TransferTier`.
 /// - Lightweight, realtime checks that encumber the tiered address as little as possible.
 contract ERC20BalanceTier is ReadOnlyTier, ValueTier {
-    IERC20 public erc20;
+    IERC20 public immutable erc20;
 
     /// @param erc20_ The erc20 token contract to check the balance of at `report` time.
     /// @param tierValues_ 8 values corresponding to minimum erc20 balances for tiers ONE through EIGHT.
