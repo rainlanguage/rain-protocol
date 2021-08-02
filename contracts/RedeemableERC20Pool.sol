@@ -81,19 +81,19 @@ contract RedeemableERC20Pool is Ownable, Phased {
     uint256 public constant MIN_RESERVE_INIT = 10 ** 8;
 
     /// RedeemableERC20 token.
-    RedeemableERC20 public token;
+    RedeemableERC20 public immutable token;
 
     /// Reserve token.
-    IERC20 public reserve;
+    IERC20 public immutable reserve;
     /// Initial reserve balance of the pool.
-    uint256 public reserveInit;
+    uint256 public immutable reserveInit;
 
     /// The `ConfigurableRightsPool` built during construction.
-    ConfigurableRightsPool public crp;
+    ConfigurableRightsPool public immutable crp;
 
     /// The final weight on the last block of the raise.
     /// Note the spot price is unknown until the end because we don't know either of the final token balances.
-    uint256 public finalWeight;
+    uint256 public immutable finalWeight;
 
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
     constructor (RedeemableERC20PoolConfig memory config_) public {
@@ -103,22 +103,22 @@ contract RedeemableERC20Pool is Ownable, Phased {
         reserve = config_.reserve;
         reserveInit = config_.reserveInit;
 
-        finalWeight = valuationWeight(config_.finalValuation);
+        finalWeight = valuationWeight(config_.reserveInit, config_.finalValuation);
 
         // Build the CRP.
         // The addresses in the `RedeemableERC20Pool`, as [reserve, token].
         address[] memory poolAddresses_ = new address[](2);
-        poolAddresses_[0] = address(reserve);
-        poolAddresses_[1] = address(token);
+        poolAddresses_[0] = address(config_.reserve);
+        poolAddresses_[1] = address(config_.token);
 
         uint256[] memory poolAmounts_ = new uint256[](2);
-        poolAmounts_[0] = reserveInit;
-        poolAmounts_[1] = token.totalSupply();
+        poolAmounts_[0] = config_.reserveInit;
+        poolAmounts_[1] = config_.token.totalSupply();
         require(poolAmounts_[1] > 0, "TOKEN_INIT_0");
 
         uint256[] memory initialWeights_ = new uint256[](2);
         initialWeights_[0] = BalancerConstants.MIN_WEIGHT;
-        initialWeights_[1] = valuationWeight(config_.initialValuation);
+        initialWeights_[1] = valuationWeight(config_.reserveInit, config_.initialValuation);
 
         // 0. Pause
         // 1. Change fee
@@ -130,7 +130,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
         rights_[2] = true;
         rights_[4] = true;
 
-        crp = config_.crpFactory.newCrp(
+        ConfigurableRightsPool crp_ = config_.crpFactory.newCrp(
             address(config_.balancerFactory),
             ConfigurableRightsPool.PoolParams(
                 "R20P",
@@ -142,10 +142,11 @@ contract RedeemableERC20Pool is Ownable, Phased {
             ),
             RightsManager.constructRights(rights_)
         );
+        crp = crp_;
 
         // Preapprove all tokens and reserve for the CRP.
-        require(config_.reserve.approve(address(crp), config_.reserveInit), "RESERVE_APPROVE");
-        require(token.approve(address(crp), token.totalSupply()), "TOKEN_APPROVE");
+        require(config_.reserve.approve(address(crp_), config_.reserveInit), "RESERVE_APPROVE");
+        require(config_.token.approve(address(crp_), config_.token.totalSupply()), "TOKEN_APPROVE");
     }
 
     /// https://balancer.finance/whitepaper/
@@ -167,8 +168,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// Br = reserve init (assumes zero trading)
     /// => Wt = Val / reserve init
     /// @param valuation_ Valuation as ( market cap * price ) denominated in reserve to calculate a weight for.
-    function valuationWeight(uint256 valuation_) private view returns (uint256) {
-        uint256 weight_ = valuation_.mul(BalancerConstants.BONE).div(reserveInit);
+    function valuationWeight(uint256 reserveInit_, uint256 valuation_) private pure returns (uint256) {
+        uint256 weight_ = valuation_.mul(BalancerConstants.BONE).div(reserveInit_);
         require(weight_ >= BalancerConstants.MIN_WEIGHT, "MIN_WEIGHT_VALUATION");
         // The combined weight of both tokens cannot exceed the maximum even temporarily during a transaction so we need to subtract one for headroom.
         require(BalancerConstants.MAX_WEIGHT.sub(BalancerConstants.BONE) >= BalancerConstants.MIN_WEIGHT.add(weight_), "MAX_WEIGHT_VALUATION");
