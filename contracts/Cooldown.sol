@@ -3,15 +3,21 @@ pragma solidity ^0.6.12;
 
 /// @title Cooldown
 /// Base contract for anything that enforces a cooldown delay on functions.
-/// Cooldown requires a minimum time in blocks to elapse between actions that cooldown.
-/// The modifier `onlyAfterCooldown` both enforces and resets the cooldown.
-/// There is a single cooldown across all functions per-contract so any function call that requires a cooldown will also trigger it for all other functions.
+/// Cooldown requires a minimum time in blocks to elapse between actions that
+/// cooldown. The modifier `onlyAfterCooldown` both enforces and resets the
+/// cooldown. There is a single cooldown across all functions per-contract
+/// so any function call that requires a cooldown will also trigger it for
+/// all other functions.
 ///
-/// Cooldown is NOT an effective sybil resistance as the cooldown is per-address only.
-/// It is always possible for many accounts to be created to spam a contract with dust in parallel.
-/// Cooldown is useful to stop a single account rapidly cycling contract state in a way that can be disruptive to peers.
-/// Cooldown works best when coupled with economic stake associated with each state change so that peers must lock capital during the cooldown.
-/// Cooldown tracks the first `msg.sender` it sees for a call stack so cooldowns are enforced across reentrant code.
+/// Cooldown is NOT an effective sybil resistance as the cooldown is
+/// per-address only. It is always possible for many accounts to be created
+/// to spam a contract with dust in parallel.
+/// Cooldown is useful to stop a single account rapidly cycling contract
+/// state in a way that can be disruptive to peers. Cooldown works best when
+/// coupled with economic stake associated with each state change so that
+/// peers must lock capital during the cooldown. Cooldown tracks the first
+/// `msg.sender` it sees for a call stack so cooldowns are enforced across
+/// reentrant code.
 abstract contract Cooldown {
     /// Time in blocks to restrict access to modified functions.
     uint16 public immutable cooldownDuration;
@@ -29,7 +35,8 @@ abstract contract Cooldown {
     }
 
     /// Modifies a function to enforce the cooldown for `msg.sender`.
-    /// Saves the original caller so that cooldowns are enforced across reentrant code.
+    /// Saves the original caller so that cooldowns are enforced across
+    /// reentrant code.
     modifier onlyAfterCooldown() {
         address caller_ = caller == address(0) ? caller = msg.sender : caller;
         require(cooldowns[caller_] <= block.number, "COOLDOWN");

@@ -7,18 +7,26 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {
+    ReentrancyGuard
+} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import { CRPFactory } from "./configurable-rights-pool/contracts/CRPFactory.sol";
-import { BFactory } from "./configurable-rights-pool/contracts/test/BFactory.sol";
+import {
+    CRPFactory
+} from "./configurable-rights-pool/contracts/CRPFactory.sol";
+import {
+    BFactory
+} from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
 import { Phase } from "./Phased.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
-import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "./RedeemableERC20Pool.sol";
+import {
+    RedeemableERC20Pool, RedeemableERC20PoolConfig
+} from "./RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
@@ -42,17 +50,21 @@ struct TrustContracts {
 /// High level state of the distribution.
 /// An amalgamation of the phases and states of the internal contracts.
 enum DistributionStatus {
-    // Trust is created but does not have reserve funds required to start the distribution.
+    // Trust is created but does not have reserve funds required to start the
+    // distribution.
     Pending,
     // Trust has enough reserve funds to start the distribution.
     Seeded,
     // The balancer pool is funded and trading.
     Trading,
-    // The last block of the balancer pool gradual weight changes is in the past.
+    // The last block of the balancer pool gradual weight changes is in the
+    // past.
     TradingCanEnd,
-    // The balancer pool liquidity has been removed and distribution is successful.
+    // The balancer pool liquidity has been removed and distribution is
+    // successful.
     Success,
-    // The balancer pool liquidity has been removed and distribution is a failure.
+    // The balancer pool liquidity has been removed and distribution is a
+    // failure.
     Fail
 }
 
@@ -88,19 +100,25 @@ struct DistributionProgress {
 /// Configuration specific to constructing the `Trust`.
 /// `Trust` contracts also take inner config for the pool and token.
 struct TrustConfig {
-    // Address of the creator who will receive reserve assets on successful distribution.
+    // Address of the creator who will receive reserve assets on successful
+    // distribution.
     address creator;
     // Minimum amount to raise for the creator from the distribution period.
-    // A successful distribution raises at least this AND also the seed fee and redeemInit;
+    // A successful distribution raises at least this AND also the seed fee and
+    // `redeemInit`;
     // On success the creator receives these funds.
     // On failure the creator receives `0`.
     uint256 minimumCreatorRaise;
     // Either an EOA (externally owned address) or `address(0)`.
-    // If an EOA the seeder account must transfer seed funds to the newly constructed `Trust` before distribution can start.
-    // If `address(0)` a new `SeedERC20` contract is built in the `Trust` constructor.
+    // If an EOA the seeder account must transfer seed funds to the newly
+    // constructed `Trust` before distribution can start.
+    // If `address(0)` a new `SeedERC20` contract is built in the `Trust`
+    // constructor.
     address seeder;
-    // The reserve amount that seeders receive in addition to what they contribute IFF the raise is successful.
-    // An absolute value, so percentages etc. must be calculated off-chain and passed in to the constructor.
+    // The reserve amount that seeders receive in addition to what they
+    // contribute IFF the raise is successful.
+    // An absolute value, so percentages etc. must be calculated off-chain and
+    // passed in to the constructor.
     uint256 seederFee;
     // Number of units minted by the newly built `SeedERC20` contract.
     // IGNORED IF the `seeder` contract is an EOA.
@@ -109,11 +127,13 @@ struct TrustConfig {
     // IGNORED IF the `seeder` contract is an EOA.
     uint16 seederCooldownDuration;
     // Minimum duration IN BLOCKS of the trading on Balancer.
-    // The trading does not stop until the `anonEndDistribution` function is called.
+    // The trading does not stop until the `anonEndDistribution` function is
+    // called.
     uint256 minimumTradingDuration;
-    // The amount of reserve to back the redemption initially after trading finishes.
-    // Anyone can send more of the reserve to the redemption token at any time to increase redemption value.
-    // Successful the redeemInit is sent to token holders, otherwise the failed raise is refunded instead.
+    // The amount of reserve to back the redemption initially after trading
+    // finishes. Anyone can send more of the reserve to the redemption token at
+    // any time to increase redemption value. Successful the redeemInit is sent
+    // to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
 }
 
@@ -130,44 +150,59 @@ struct TrustRedeemableERC20PoolConfig {
 }
 
 /// @title Trust
-/// Mediates stakeholders and creates internal Balancer pools and tokens for a distribution.
+/// Mediates stakeholders and creates internal Balancer pools and tokens for a
+/// distribution.
+///
 /// The goals of a distribution:
-/// - Mint and distribute a `RedeemableERC20` as fairly as possible, prioritising true fans of a creator.
+/// - Mint and distribute a `RedeemableERC20` as fairly as possible,
+///   prioritising true fans of a creator.
 /// - Raise a minimum reserve so that a creator can deliver value to fans.
-/// - Provide a safe space through membership style filters to enhance exclusivity for fans.
-/// - Ensure that anyone who seeds the raise (not fans) by risking and providing capital is compensated.
+/// - Provide a safe space through membership style filters to enhance
+///   exclusivity for fans.
+/// - Ensure that anyone who seeds the raise (not fans) by risking and
+///   providing capital is compensated.
 ///
 /// Stakeholders:
 /// - Creator: Have a project of interest to their fans
-/// - Fans: Will purchase project-specific tokens to receive future rewards from the creator
+/// - Fans: Will purchase project-specific tokens to receive future rewards
+///   from the creator
 /// - Seeder(s): Provide initial reserve assets to seed a Balancer trading pool
 /// - Deployer: Configures and deploys the `Trust` contract
 ///
-/// The creator is nominated to receive reserve assets on a successful distribution.
-/// The creator must complete the project and fans receive rewards.
-/// There is no on-chain mechanism to hold the creator accountable to the project completion.
-/// Requires a high degree of trust between creator and their fans.
+/// The creator is nominated to receive reserve assets on a successful
+/// distribution. The creator must complete the project and fans receive
+/// rewards. There is no on-chain mechanism to hold the creator accountable to
+/// the project completion. Requires a high degree of trust between creator and
+/// their fans.
 ///
-/// Fans are willing to trust and provide funds to a creator to complete a project.
-/// Fans likely expect some kind of reward or "perks" from the creator, such as NFTs, exclusive events, etc.
-/// The distributed tokens are untransferable after trading ends and merely act as records for who should receive rewards.
+/// Fans are willing to trust and provide funds to a creator to complete a
+/// project. Fans likely expect some kind of reward or "perks" from the
+/// creator, such as NFTs, exclusive events, etc.
+/// The distributed tokens are untransferable after trading ends and merely act
+/// as records for who should receive rewards.
 ///
-/// Seeders add the initial reserve asset to the Balancer pool to start the automated market maker (AMM).
+/// Seeders add the initial reserve asset to the Balancer pool to start the
+/// automated market maker (AMM).
 /// Ideally this would not be needed at all.
-/// Future versions of `Trust` may include a bespoke distribution mechanism rather than Balancer contracts.
-/// Currently it is required by Balancer so the seeder provides some reserve and receives a fee on successful distribution.
-/// If the distribution fails the seeder is returned their initial reserve assets.
-/// The seeder is expected to promote and mentor the creator in non-financial ways.
+/// Future versions of `Trust` may include a bespoke distribution mechanism
+/// rather than Balancer contracts. Currently it is required by Balancer so the
+/// seeder provides some reserve and receives a fee on successful distribution.
+/// If the distribution fails the seeder is returned their initial reserve
+/// assets. The seeder is expected to promote and mentor the creator in
+/// non-financial ways.
 ///
-/// The deployer has no specific priviledge or admin access once the `Trust` is deployed.
-/// They provide the configuration, including nominating creator/seeder, and pay gas but that is all.
-/// The deployer defines the conditions under which the distribution is successful.
-/// The seeder/creator could also act as the deployer.
+/// The deployer has no specific priviledge or admin access once the `Trust` is
+/// deployed. They provide the configuration, including nominating
+/// creator/seeder, and pay gas but that is all.
+/// The deployer defines the conditions under which the distribution is
+/// successful. The seeder/creator could also act as the deployer.
 ///
-/// Importantly the `Trust` contract is the owner/admin of the contracts it creates.
-/// The `Trust` never transfers ownership so it directly controls all internal workflows.
-/// No stakeholder, even the deployer or creator, can act as owner of the internals.
-/// There is one function `creatorAddRedeemable` on the `Trust` with a simple access check locked to the creator defined at construction.
+/// Importantly the `Trust` contract is the owner/admin of the contracts it
+/// creates. The `Trust` never transfers ownership so it directly controls all
+/// internal workflows. No stakeholder, even the deployer or creator, can act
+/// as owner of the internals. There is one function `creatorAddRedeemable` on
+/// the `Trust` with a simple access check locked to the creator defined at
+/// construction.
 contract Trust is ReentrancyGuard {
 
     using SafeMath for uint256;
@@ -178,7 +213,7 @@ contract Trust is ReentrancyGuard {
 
     /// Creator from the initial config.
     address public immutable creator;
-    /// minimum creator raise fromt he initial config.
+    /// minimum creator raise from the initial config.
     uint256 public immutable minimumCreatorRaise;
     /// Seeder from the initial config.
     address public immutable seeder;
@@ -189,15 +224,20 @@ contract Trust is ReentrancyGuard {
     /// Redeem init from the initial config.
     uint256 public immutable redeemInit;
 
-    /// Balance of the reserve asset in the Balance pool at the moment `anonEndDistribution` is called.
-    /// This must be greater than or equal to `successBalance` for the distribution to succeed.
+    /// Balance of the reserve asset in the Balance pool at the moment
+    /// `anonEndDistribution` is called. This must be greater than or equal to
+    /// `successBalance` for the distribution to succeed.
     /// Will be uninitialized until `anonEndDistribution` is called.
-    /// Note the finalBalance includes the dust that is permanently locked in the Balancer pool after the distribution.
-    /// The actual distributed amount will lose roughly 10 ** -7 times this as locked dust.
-    /// The exact dust can be retrieved by inspecting the reserve balance of the Balancer pool after the distribution.
+    /// Note the finalBalance includes the dust that is permanently locked in
+    /// the Balancer pool after the distribution.
+    /// The actual distributed amount will lose roughly 10 ** -7 times this as
+    /// locked dust.
+    /// The exact dust can be retrieved by inspecting the reserve balance of
+    /// the Balancer pool after the distribution.
     uint256 public finalBalance;
     /// Pool reserveInit + seederFee + redeemInit + minimumCreatorRaise.
-    /// Could be calculated as a view function but that would require external calls to the pool contract.
+    /// Could be calculated as a view function but that would require external
+    /// calls to the pool contract.
     uint256 public immutable successBalance;
 
     /// The redeemable token minted in the constructor.
@@ -206,33 +246,55 @@ contract Trust is ReentrancyGuard {
     RedeemableERC20Pool public immutable pool;
 
     /// Sanity checks configuration.
-    /// Creates the `RedeemableERC20` contract and mints the redeemable ERC20 token.
+    /// Creates the `RedeemableERC20` contract and mints the redeemable ERC20
+    /// token.
     /// Creates the `RedeemableERC20Pool` contract.
-    /// (optional) Creates the `SeedERC20` contract. Pass a non-zero address to bypass this.
-    /// Adds the Balancer pool contracts to the token sender/receiver lists as needed.
-    /// Adds the Balancer pool reserve asset as the first redeemable on the `RedeemableERC20` contract.
+    /// (optional) Creates the `SeedERC20` contract. Pass a non-zero address to
+    /// bypass this.
+    /// Adds the Balancer pool contracts to the token sender/receiver lists as
+    /// needed.
+    /// Adds the Balancer pool reserve asset as the first redeemable on the
+    /// `RedeemableERC20` contract.
     ///
     /// Note on slither:
     /// Slither detects a benign reentrancy in this constructor.
     /// However reentrancy is not possible in a contract constructor.
-    /// Further discussion with the slither team: https://github.com/crytic/slither/issues/887
+    /// Further discussion with the slither team:
+    /// https://github.com/crytic/slither/issues/887
     ///
     /// @param config_ Config for the Trust.
-    /// @param redeemableERC20Config_ RedeemableERC20 Config for constructed redeemable token.
-    /// @param poolConfig_ RedeemableERC20Pool Config for constructed redeemable pool contract.
+    /// @param redeemableERC20Config_ RedeemableERC20 Config for constructed
+    ///        redeemable token.
+    /// @param poolConfig_ RedeemableERC20Pool Config for constructed
+    ///        redeemable pool contract.
     constructor (
         TrustConfig memory config_,
         RedeemableERC20Config memory redeemableERC20Config_,
         TrustRedeemableERC20PoolConfig memory poolConfig_
     ) public {
         require(config_.creator != address(0), "CREATOR_0");
-        // There are additional minimum reserve init and token supply restrictions enforced by `RedeemableERC20` and `RedeemableERC20Pool`.
-        // This ensures that the weightings and valuations will be in a sensible range according to the internal assumptions made by Balancer etc.
-        require(redeemableERC20Config_.totalSupply >= poolConfig_.reserveInit, "MIN_TOKEN_SUPPLY");
-        require(poolConfig_.initialValuation >= poolConfig_.finalValuation, "MIN_INITIAL_VALUTION");
+        // There are additional minimum reserve init and token supply
+        // restrictions enforced by `RedeemableERC20` and
+        // `RedeemableERC20Pool`. This ensures that the weightings and
+        // valuations will be in a sensible range according to the internal
+        // assumptions made by Balancer etc.
+        require(
+            redeemableERC20Config_.totalSupply >= poolConfig_.reserveInit,
+            "MIN_TOKEN_SUPPLY"
+        );
+        require(
+            poolConfig_.initialValuation >= poolConfig_.finalValuation,
+            "MIN_INITIAL_VALUTION"
+        );
 
-        uint256 successBalance_ = poolConfig_.reserveInit.add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);
-        require(poolConfig_.finalValuation >= successBalance_, "MIN_FINAL_VALUATION");
+        uint256 successBalance_ = poolConfig_.reserveInit
+            .add(config_.seederFee)
+            .add(config_.redeemInit)
+            .add(config_.minimumCreatorRaise);
+        require(
+            poolConfig_.finalValuation >= successBalance_,
+            "MIN_FINAL_VALUATION"
+        );
         successBalance = successBalance_;
 
         creator = config_.creator;
@@ -246,19 +308,24 @@ contract Trust is ReentrancyGuard {
         );
         token = token_;
 
-        RedeemableERC20Pool pool_ = new RedeemableERC20Pool(RedeemableERC20PoolConfig(
-            poolConfig_.crpFactory,
-            poolConfig_.balancerFactory,
-            poolConfig_.reserve,
-            token_,
-            poolConfig_.reserveInit,
-            poolConfig_.initialValuation,
-            poolConfig_.finalValuation
-        ));
+        RedeemableERC20Pool pool_ = new RedeemableERC20Pool(
+            RedeemableERC20PoolConfig(
+                poolConfig_.crpFactory,
+                poolConfig_.balancerFactory,
+                poolConfig_.reserve,
+                token_,
+                poolConfig_.reserveInit,
+                poolConfig_.initialValuation,
+                poolConfig_.finalValuation
+            )
+        );
         pool = pool_;
 
         if (config_.seeder == address(0)) {
-            require(poolConfig_.reserveInit.mod(config_.seederUnits) == 0, "SEED_PRICE_MULTIPLIER");
+            require(
+                poolConfig_.reserveInit.mod(config_.seederUnits) == 0,
+                "SEED_PRICE_MULTIPLIER"
+            );
             config_.seeder = address(new SeedERC20(SeedERC20Config(
                 poolConfig_.reserve,
                 address(pool_),
@@ -272,8 +339,12 @@ contract Trust is ReentrancyGuard {
         }
         seeder = config_.seeder;
 
-        // Need to grant transfers for a few balancer addresses to facilitate exits.
-        token_.grantRole(token_.RECEIVER(), address(poolConfig_.balancerFactory));
+        // Need to grant transfers for a few balancer addresses to facilitate
+        // exits.
+        token_.grantRole(
+            token_.RECEIVER(),
+            address(poolConfig_.balancerFactory)
+        );
         token_.grantRole(token_.RECEIVER(), address(pool_.crp()));
         token_.grantRole(token_.RECEIVER(), address(pool_));
         token_.grantRole(token_.SENDER(), address(pool_.crp()));
@@ -282,8 +353,12 @@ contract Trust is ReentrancyGuard {
         token_.adminAddRedeemable(poolConfig_.reserve);
 
         // Send all tokens to the pool immediately.
-        // When the seed funds are raised `anonStartDistribution` will build a pool from these.
-        token_.safeTransfer(address(pool_), redeemableERC20Config_.totalSupply);
+        // When the seed funds are raised `anonStartDistribution` will build a
+        // pool from these.
+        token_.safeTransfer(
+            address(pool_),
+            redeemableERC20Config_.totalSupply
+        );
     }
 
     /// Accessor for the `TrustContracts` of this `Trust`.
@@ -300,7 +375,11 @@ contract Trust is ReentrancyGuard {
     }
 
     /// Accessor for the `DistributionProgress` of this `Trust`.
-    function getDistributionProgress() external view returns(DistributionProgress memory) {
+    function getDistributionProgress()
+        external
+        view
+        returns(DistributionProgress memory)
+    {
         address balancerPool_ = address(pool.crp().bPool());
         uint256 poolReserveBalance_;
         uint256 poolTokenBalance_;
@@ -330,7 +409,9 @@ contract Trust is ReentrancyGuard {
     function getDistributionStatus() public view returns (DistributionStatus) {
         Phase poolPhase_ = pool.currentPhase();
         if (poolPhase_ == Phase.ZERO) {
-            if (pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()) {
+            if (
+                pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()
+            ) {
                 return DistributionStatus.Seeded;
             } else {
                 return DistributionStatus.Pending;
@@ -352,42 +433,54 @@ contract Trust is ReentrancyGuard {
         }
     }
 
-    /// Allow the creator to add a redeemable erc20 to the internal `RedeemableERC20` token.
-    /// This is a thin wrapper that proxies the creator to act as the admin for this function call.
-    /// @param redeemable_ Redeemable erc20 passed directly to `adminAddRedeemable`.
+    /// Allow the creator to add a redeemable erc20 to the internal
+    /// `RedeemableERC20` token.
+    /// This is a thin wrapper that proxies the creator to act as the admin for
+    /// this function call.
+    /// @param redeemable_ Redeemable erc20 passed directly to
+    ///        `adminAddRedeemable`.
     function creatorAddRedeemable(IERC20 redeemable_) external {
-        // Not using the Open Zepplin RBAC system here as it would be overkill for this one check.
+        // Not using the Open Zepplin RBAC system here as it would be overkill
+        // for this one check.
         // This contract has no other access controls.
         require(msg.sender == creator, "NOT_CREATOR");
         token.adminAddRedeemable(redeemable_);
     }
 
     /// Anyone can start the distribution.
-    /// The requirement is that BOTH the reserve and redeemable tokens have already been sent to the Balancer pool.
-    /// If the pool has the required funds it will set the weight curve and start the dutch auction.
+    /// The requirement is that BOTH the reserve and redeemable tokens have
+    /// already been sent to the Balancer pool.
+    /// If the pool has the required funds it will set the weight curve and
+    /// start the dutch auction.
     function anonStartDistribution() external {
         pool.ownerStartDutchAuction(block.number + minimumTradingDuration);
     }
 
     /// Anyone can end the distribution.
     /// The requirement is that the `minimumTradingDuration` has elapsed.
-    /// If the `successBalance` is reached then the creator receives the raise and seeder earns a fee.
-    /// Else the initial reserve is refunded to the seeder and sale proceeds rolled forward to token holders (not the creator).
+    /// If the `successBalance` is reached then the creator receives the raise
+    /// and seeder earns a fee.
+    /// Else the initial reserve is refunded to the seeder and sale proceeds
+    /// rolled forward to token holders (not the creator).
     function anonEndDistribution() external nonReentrant {
         finalBalance = pool.reserve().balanceOf(address(pool.crp().bPool()));
 
         pool.ownerEndDutchAuction();
-        // Burning the distributor moves the token to its `Phase.ONE` and unlocks redemptions.
+        // Burning the distributor moves the token to its `Phase.ONE` and
+        // unlocks redemptions.
         // The distributor is the `bPool` itself.
         token.adminBurnDistributor(
             address(pool.crp().bPool())
         );
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
-        uint256 poolDust_ = pool.reserve().balanceOf(address(pool.crp().bPool()));
+        uint256 poolDust_ = pool.reserve()
+            .balanceOf(address(pool.crp().bPool()));
         // The dust is included in the final balance for UX reasons.
-        // We don't want to fail the raise due to dust, even if technically it was a failure.
-        // To ensure a good UX for creators and token holders we subtract the dust from the seeder.
+        // We don't want to fail the raise due to dust, even if technically it
+        // was a failure.
+        // To ensure a good UX for creators and token holders we subtract the
+        // dust from the seeder.
         uint256 availableBalance_ = pool.reserve().balanceOf(address(this));
 
         // Base payments for each fundraiser.
@@ -400,14 +493,15 @@ contract Trust is ReentrancyGuard {
             seederPay_ = seederPay_.add(seederFee);
 
             // The creators get new funds raised minus redeem and seed fees.
-            // Can subtract without underflow due to the inequality check for this code block.
+            // Can subtract without underflow due to the inequality check for
+            // this code block.
             // Proof (assuming all positive integers):
             // final balance >= success balance
             // AND seed pay = seed init + seed fee
-            // AND success balance = seed init + seed fee + token pay + min raise
-            // SO success balance = seed pay + token pay + min raise
-            // SO success balance >= seed pay + token pay
-            // SO success balance - (seed pay + token pay) >= 0
+            // AND success = seed init + seed fee + token pay + min raise
+            // SO success = seed pay + token pay + min raise
+            // SO success >= seed pay + token pay
+            // SO success - (seed pay + token pay) >= 0
             // SO final balance - (seed pay + token pay) >= 0
             //
             // Implied is the remainder of finalBalance_ as redeemInit
