@@ -160,8 +160,18 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
-    /// Config the Trust was constructed with.
-    TrustConfig public config;
+    /// Creator from the initial config.
+    address public immutable creator;
+    /// minimum creator raise fromt he initial config.
+    uint256 public immutable minimumCreatorRaise;
+    /// Seeder from the initial config.
+    address public immutable seeder;
+    /// Seeder fee from the initial config.
+    uint256 public immutable seederFee;
+    /// Minimum trading duration from the initial config.
+    uint256 public immutable minimumTradingDuration;
+    /// Redeem init from the initial config.
+    uint256 public immutable redeemInit;
 
     /// Balance of the reserve asset in the Balance pool at the moment `anonEndDistribution` is called.
     /// This must be greater than or equal to `successBalance` for the distribution to succeed.
@@ -172,7 +182,12 @@ contract Trust is ReentrancyGuard {
     uint256 public finalBalance;
     /// Pool reserveInit + seederFee + redeemInit + minimumCreatorRaise.
     /// Could be calculated as a view function but that would require external calls to the pool contract.
-    uint256 public successBalance;
+    uint256 public immutable successBalance;
+
+    /// The redeemable token minted in the constructor.
+    RedeemableERC20 public immutable token;
+    /// The `RedeemableERC20Pool` pool created for trading.
+    RedeemableERC20Pool public immutable pool;
 
     /// Sanity checks configuration.
     /// Creates the `RedeemableERC20` contract and mints the redeemable ERC20 token.
@@ -198,19 +213,24 @@ contract Trust is ReentrancyGuard {
         successBalance = config_.redeemableERC20Pool.reserveInit().add(config_.seederFee).add(config_.redeemInit).add(config_.minimumCreatorRaise);
         require(config_.redeemableERC20Pool.weightValuation(config_.redeemableERC20Pool.finalWeight()) >= successBalance, "MIN_FINAL_VALUATION");
 
-        config = config_;
+        creator = config_.creator;
+        seederFee = config_.seederFee;
+        minimumTradingDuration = config_.minimumTradingDuration;
+        redeemInit = config_.redeemInit;
+        minimumCreatorRaise = config_.minimumCreatorRaise;
+        seeder = config_.seeder;
     }
 
     /// Accessor for the `TrustContracts` of this `Trust`.
     function getContracts() external view returns(TrustContracts memory) {
         return TrustContracts(
-            address(config.redeemableERC20Pool.reserve()),
-            address(config.redeemableERC20),
-            address(config.redeemableERC20Pool),
-            address(config.seeder),
-            address(config.redeemableERC20.prestige()),
-            address(config.redeemableERC20Pool.crp()),
-            address(config.redeemableERC20Pool.crp().bPool())
+            address(pool.reserve()),
+            address(token),
+            address(pool),
+            address(seeder),
+            address(token.prestige()),
+            address(pool.crp()),
+            address(pool.crp().bPool())
         );
     }
 
@@ -234,10 +254,10 @@ contract Trust is ReentrancyGuard {
             config.redeemableERC20Pool.phaseBlocks(1),
             poolReserveBalance_,
             poolTokenBalance_,
-            config.redeemableERC20Pool.reserveInit(),
-            config.minimumCreatorRaise,
-            config.seederFee,
-            config.redeemInit
+            pool.reserveInit(),
+            minimumCreatorRaise,
+            seederFee,
+            redeemInit
         );
     }
 
@@ -267,11 +287,21 @@ contract Trust is ReentrancyGuard {
         }
     }
 
+    /// Allow the creator to add a redeemable erc20 to the internal `RedeemableERC20` token.
+    /// This is a thin wrapper that proxies the creator to act as the admin for this function call.
+    /// @param redeemable_ Redeemable erc20 passed directly to `adminAddRedeemable`.
+    function creatorAddRedeemable(IERC20 redeemable_) external {
+        // Not using the Open Zepplin RBAC system here as it would be overkill for this one check.
+        // This contract has no other access controls.
+        require(msg.sender == creator, "NOT_CREATOR");
+        token.adminAddRedeemable(redeemable_);
+    }
+
     /// Anyone can start the distribution.
     /// The requirement is that BOTH the reserve and redeemable tokens have already been sent to the Balancer pool.
     /// If the pool has the required funds it will set the weight curve and start the dutch auction.
     function anonStartDistribution() external {
-        config.redeemableERC20Pool.ownerStartDutchAuction(block.number + config.minimumTradingDuration);
+        pool.ownerStartDutchAuction(block.number + minimumTradingDuration);
     }
 
     /// Anyone can end the distribution.
@@ -303,7 +333,7 @@ contract Trust is ReentrancyGuard {
         // Set aside the redemption and seed fee if we reached the minimum.
         if (finalBalance >= successBalance) {
             // The seeder gets an additional fee on success.
-            seederPay_ = seederPay_.add(config.seederFee);
+            seederPay_ = seederPay_.add(seederFee);
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for this code block.
@@ -318,18 +348,18 @@ contract Trust is ReentrancyGuard {
             //
             // Implied is the remainder of finalBalance_ as redeemInit
             // This will be transferred to the token holders below.
-            creatorPay_ = availableBalance_.sub(seederPay_.add(config.redeemInit));
+            creatorPay_ = availableBalance_.sub(seederPay_.add(redeemInit));
         }
 
         if (creatorPay_ > 0) {
-            config.redeemableERC20Pool.reserve().safeTransfer(
-                config.creator,
+            pool.reserve().safeTransfer(
+                creator,
                 creatorPay_
             );
         }
 
-        config.redeemableERC20Pool.reserve().safeTransfer(
-            config.seeder,
+        pool.reserve().safeTransfer(
+            seeder,
             seederPay_
         );
 

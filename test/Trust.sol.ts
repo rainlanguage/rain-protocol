@@ -1895,21 +1895,18 @@ describe("Trust", async function () {
 
     await trust.deployed();
 
-    const config = await trust.config();
-    const contractRedeemInit = (await trust.config()).redeemInit;
-
-    assert(config.creator === creator, "wrong creator");
-    assert(config.seeder === seeder, "wrong seeder");
+    assert((await trust.creator()) === creator, "wrong creator");
+    assert((await trust.seeder()) === seeder, "wrong seeder");
     assert(
-      config.minimumCreatorRaise.eq(minimumCreatorRaise),
+      (await trust.minimumCreatorRaise()).eq(minimumCreatorRaise),
       "wrong minimum raise amount"
     );
-    assert(config.seederFee.eq(seederFee), "wrong seeder fee");
+    assert((await trust.seederFee()).eq(seederFee), "wrong seeder fee");
     assert(
-      config.minimumTradingDuration.eq(minimumTradingDuration),
+      (await trust.minimumTradingDuration()).eq(minimumTradingDuration),
       "wrong raise duration"
     );
-    assert(contractRedeemInit.eq(redeemInit), "wrong redeem init");
+    assert((await trust.redeemInit()).eq(redeemInit), "wrong redeem init");
   });
 
   it("should set correct phases for token and pool", async function () {

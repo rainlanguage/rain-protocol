@@ -102,6 +102,7 @@ contract RedeemableERC20 is AccessControl, Phased, PrestigeByConstruction, ERC20
 
     /// The minimum status that a user must hold to receive transfers during `Phase.ZERO`.
     /// The prestige contract passed to `PrestigeByConstruction` determines if the status is held during `_beforeTokenTransfer`.
+    /// Not immutable because it is read during the constructor by the `_mint` call.
     IPrestige.Status public minimumPrestigeStatus;
 
     /// Mint the full ERC20 token supply and configure basic transfer restrictions.

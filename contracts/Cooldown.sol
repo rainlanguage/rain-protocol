@@ -14,7 +14,7 @@ pragma solidity ^0.6.12;
 /// Cooldown tracks the first `msg.sender` it sees for a call stack so cooldowns are enforced across reentrant code.
 abstract contract Cooldown {
     /// Time in blocks to restrict access to modified functions.
-    uint16 public cooldownDuration;
+    uint16 public immutable cooldownDuration;
 
     /// Every address has its own cooldown state.
     mapping (address => uint256) public cooldowns;
