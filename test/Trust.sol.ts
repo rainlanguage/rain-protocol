@@ -1915,10 +1915,8 @@ describe("Trust", async function () {
 
     await trust.deployed();
 
-    const contractRedeemInit = await trust.redeemInit();
-
-    assert(await trust.creator() === creator, "wrong creator");
-    assert(await trust.seeder() === seeder, "wrong seeder");
+    assert((await trust.creator()) === creator, "wrong creator");
+    assert((await trust.seeder()) === seeder, "wrong seeder");
     assert(
       (await trust.minimumCreatorRaise()).eq(minimumCreatorRaise),
       "wrong minimum raise amount"
@@ -1928,7 +1926,7 @@ describe("Trust", async function () {
       (await trust.minimumTradingDuration()).eq(minimumTradingDuration),
       "wrong raise duration"
     );
-    assert(contractRedeemInit.eq(redeemInit), "wrong redeem init");
+    assert((await trust.redeemInit()).eq(redeemInit), "wrong redeem init");
   });
 
   it("should set correct phases for token and pool", async function () {
