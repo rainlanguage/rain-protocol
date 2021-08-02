@@ -8,10 +8,10 @@ import { utils } from "ethers";
 import type { BigNumber } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
-import { max_uint32 } from "./Util";
+import { basicDeploy, max_uint32 } from "./Util";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
-import type { SeedERC20 } from "../typechain/SeedERC20";
+import type { TrustFactory } from "../typechain/TrustFactory";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -95,11 +95,21 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
+    const redeemableERC20PoolFactory = await basicDeploy(
+      "RedeemableERC20PoolFactory",
+      {
         RightsManager: rightsManager.address,
-      },
-    });
+      }
+    );
+    const redeemableERC20Factory = await basicDeploy(
+      "RedeemableERC20Factory",
+      {}
+    );
+    const seedERC20Factory = await basicDeploy("SeedERC20Factory", {});
+    const trustContractFactory = await ethers.getContractFactory(
+      "TrustFactory",
+      {}
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -126,20 +136,27 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactory = await trustContractFactory.deploy({
+      crpFactory: crpFactory.address,
+      balancerFactory: bFactory.address,
+      redeemableERC20Factory: redeemableERC20Factory.address,
+      redeemableERC20PoolFactory: redeemableERC20PoolFactory.address,
+      seedERC20Factory: seedERC20Factory.address,
+    });
 
-    const trust = (await trustFactory1.deploy(
+    await trustFactory.deployed();
+
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    // deployer creates trust
+    const trust = await trustFactory1[
+      "createChild((address,uint256,address,uint256,uint256,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256),(uint16,uint16))"
+    ](
       {
         creator: creator.address,
         minimumCreatorRaise,
         seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         minimumTradingDuration,
         redeemInit,
       },
@@ -151,16 +168,17 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
-
-    await trust.deployed();
+      },
+      {
+        seederUnits,
+        seederCooldownDuration,
+      },
+      { gasLimit: 100000000 }
+    );
 
     const token = new ethers.Contract(
       await trust.token(),
@@ -264,11 +282,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -313,6 +327,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -420,11 +435,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -469,6 +480,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -567,11 +579,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -616,6 +624,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -721,11 +730,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -808,11 +813,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -895,11 +896,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -946,6 +943,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -979,11 +977,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1028,6 +1022,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -1329,11 +1324,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1378,6 +1369,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -1505,11 +1497,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1551,6 +1539,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -1595,11 +1584,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1641,6 +1626,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -1727,11 +1713,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1773,6 +1755,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -1851,11 +1834,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1897,6 +1876,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: deployer.address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -1948,11 +1928,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1987,6 +1963,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2120,11 +2097,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2160,6 +2133,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2228,11 +2202,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2268,6 +2238,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2338,11 +2309,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.GOLD;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2378,6 +2345,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2420,11 +2388,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2460,6 +2424,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2510,11 +2475,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2550,6 +2511,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2640,11 +2602,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2680,6 +2638,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2775,11 +2734,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2815,6 +2770,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2884,11 +2840,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2922,6 +2874,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -2992,11 +2945,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3029,6 +2978,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -3070,11 +3020,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3109,6 +3055,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -3443,11 +3390,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3482,6 +3425,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -3797,11 +3741,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3835,6 +3775,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -3899,11 +3840,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3937,6 +3874,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -3983,11 +3921,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4059,11 +3993,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4133,11 +4063,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4245,11 +4171,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4278,6 +4200,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -4364,11 +4287,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4398,6 +4317,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -4544,11 +4464,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4579,6 +4495,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,
@@ -4710,11 +4627,7 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const trustFactory = await ethers.getContractFactory("Trust", {});
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4745,6 +4658,7 @@ describe("Trust", async function () {
         redeemInit,
       },
       {
+        admin: signers[0].address,
         name: tokenName,
         symbol: tokenSymbol,
         prestige: prestige.address,

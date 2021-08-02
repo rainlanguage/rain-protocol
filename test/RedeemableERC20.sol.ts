@@ -35,6 +35,10 @@ enum Phase {
 
 describe("RedeemableERC20", async function () {
   it("should have 18 decimals", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
     const prestigeFactory = await ethers.getContractFactory("Prestige");
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
@@ -47,6 +51,7 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const token = await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -63,6 +68,8 @@ describe("RedeemableERC20", async function () {
 
   it("should fail to construct redeemable token if too few minted tokens", async function () {
     this.timeout(0);
+
+    const signers = await ethers.getSigners();
 
     const prestigeFactory = await ethers.getContractFactory("Prestige");
     const prestige = (await prestigeFactory.deploy()) as Prestige;
@@ -88,6 +95,7 @@ describe("RedeemableERC20", async function () {
     await Util.assertError(
       async () =>
         await redeemableFactory.deploy({
+          admin: signers[0].address,
           name: tokenName,
           symbol: tokenSymbol,
           prestige: prestige.address,
@@ -101,6 +109,7 @@ describe("RedeemableERC20", async function () {
     await Util.assertError(
       async () =>
         await redeemableFactory.deploy({
+          admin: signers[0].address,
           name: tokenName,
           symbol: tokenSymbol,
           prestige: prestige.address,
@@ -112,6 +121,7 @@ describe("RedeemableERC20", async function () {
     );
 
     const redeemable = await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -123,6 +133,8 @@ describe("RedeemableERC20", async function () {
   });
 
   it("should allow receiver/send to always receive/send tokens if added via adminAddReceiver/adminAddSender, bypassing BlockBlockable restrictions", async function () {
+    this.timeout(0);
+
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();
@@ -155,6 +167,7 @@ describe("RedeemableERC20", async function () {
     const now = await ethers.provider.getBlockNumber();
 
     const token = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -197,7 +210,15 @@ describe("RedeemableERC20", async function () {
     // should work now
     await token.connect(sender).transfer(receiver.address, 1);
 
-    await token.adminBurnDistributor(Util.oneAddress);
+    await Util.assertError(
+      async () => await token.burnDistributor(Util.oneAddress),
+      "revert ONLY_DISTRIBUTOR_BURNER",
+      "called burnDistributor without sufficient role permissions"
+    )
+
+    await token.grantRole(await token.DISTRIBUTOR_BURNER(), owner.address);
+
+    await token.burnDistributor(Util.oneAddress);
 
     // sender and receiver should be unrestricted in phase 1
     await token.connect(sender).transfer(receiver.address, 1);
@@ -229,6 +250,7 @@ describe("RedeemableERC20", async function () {
     const now = await ethers.provider.getBlockNumber();
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -252,6 +274,8 @@ describe("RedeemableERC20", async function () {
 
   it("should allow filling all slots in redeemables array", async function () {
     this.timeout(0);
+
+    const signers = await ethers.getSigners();
 
     const reserve0 = (await Util.basicDeploy(
       "ReserveToken",
@@ -313,6 +337,7 @@ describe("RedeemableERC20", async function () {
     const now = await ethers.provider.getBlockNumber();
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -321,14 +346,22 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.adminAddRedeemable(reserve0.address);
-    await redeemableERC20.adminAddRedeemable(reserve1.address);
-    await redeemableERC20.adminAddRedeemable(reserve2.address);
-    await redeemableERC20.adminAddRedeemable(reserve3.address);
-    await redeemableERC20.adminAddRedeemable(reserve4.address);
-    await redeemableERC20.adminAddRedeemable(reserve5.address);
-    await redeemableERC20.adminAddRedeemable(reserve6.address);
-    await redeemableERC20.adminAddRedeemable(reserve7.address);
+
+    await Util.assertError(
+      async () => await redeemableERC20.addRedeemable(reserve0.address),
+      "revert ONLY_REDEEMABLE_ADDER",
+      "called addRedeemable without sufficient role permissions"
+    )
+
+    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+    await redeemableERC20.addRedeemable(reserve0.address);
+    await redeemableERC20.addRedeemable(reserve1.address);
+    await redeemableERC20.addRedeemable(reserve2.address);
+    await redeemableERC20.addRedeemable(reserve3.address);
+    await redeemableERC20.addRedeemable(reserve4.address);
+    await redeemableERC20.addRedeemable(reserve5.address);
+    await redeemableERC20.addRedeemable(reserve6.address);
+    await redeemableERC20.addRedeemable(reserve7.address);
 
     assert(
       (await redeemableERC20.getRedeemables())[0] == reserve0.address,
@@ -398,6 +431,7 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -407,7 +441,9 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.deployed();
 
-    await redeemableERC20.adminAddRedeemable(reserve.address);
+    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+
+    await redeemableERC20.addRedeemable(reserve.address);
 
     // There are no reserve tokens in the redeemer on construction
     assert(
@@ -464,8 +500,11 @@ describe("RedeemableERC20", async function () {
     // Send alice some tokens.
     await redeemableERC20.transfer(alice.address, 10);
 
+    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+
     const now = await ethers.provider.getBlockNumber();
-    await expect(redeemableERC20.adminBurnDistributor(Util.oneAddress))
+
+    await expect(redeemableERC20.burnDistributor(Util.oneAddress))
       .to.emit(redeemableERC20, "PhaseShiftScheduled")
       .withArgs(now + 1);
 
@@ -632,7 +671,7 @@ describe("RedeemableERC20", async function () {
     }
   });
 
-  it("should only allow admin to set phase blocks", async function () {
+  it("should only allow sender with DISTRIBUTOR_BURNER role to call burnDistributor", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -652,6 +691,7 @@ describe("RedeemableERC20", async function () {
     const phaseOneBlock = now + 8;
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -673,12 +713,14 @@ describe("RedeemableERC20", async function () {
     );
 
     await Util.assertError(
-      async () => await redeemableERC201.adminBurnDistributor(Util.oneAddress),
-      "ONLY_ADMIN",
-      "non-admin was wrongly able to set phase block"
+      async () => await redeemableERC201.burnDistributor(Util.oneAddress),
+      "ONLY_DISTRIBUTOR_BURNER",
+      "was wrongly able to set phase block with insuffient role permissions"
     );
 
-    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
+    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+
+    await redeemableERC20.burnDistributor(Util.oneAddress);
   });
 
   it("should set owner as unfreezable on construction", async function () {
@@ -698,6 +740,7 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -744,6 +787,7 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -762,7 +806,9 @@ describe("RedeemableERC20", async function () {
       "admin not made receiver during construction"
     );
 
-    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
+    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+
+    await redeemableERC20.burnDistributor(Util.oneAddress);
 
     await reserve.transfer(redeemableERC20.address, 1);
   });
@@ -797,6 +843,7 @@ describe("RedeemableERC20", async function () {
     await prestige.setStatus(signers[2].address, Status.SILVER, []);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -817,7 +864,9 @@ describe("RedeemableERC20", async function () {
       "user could receive transfers despite not meeting minimum status"
     );
 
-    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
+    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+
+    await redeemableERC20.burnDistributor(Util.oneAddress);
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
@@ -867,6 +916,7 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -875,8 +925,9 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.adminAddRedeemable(reserve1.address);
-    await redeemableERC20.adminAddRedeemable(reserve2.address);
+    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+    await redeemableERC20.addRedeemable(reserve1.address);
+    await redeemableERC20.addRedeemable(reserve2.address);
 
     // There are no reserve tokens in the redeemer on construction
     assert(
@@ -888,7 +939,9 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);
     await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS);
 
-    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
+    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+
+    await redeemableERC20.burnDistributor(Util.oneAddress);
 
     // at this point signer[1] should have 10 tokens
     assert(
@@ -1067,6 +1120,7 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -1075,8 +1129,10 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.adminAddRedeemable(reserve1.address);
-    await redeemableERC20.adminAddRedeemable(reserve2.address);
+
+    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+    await redeemableERC20.addRedeemable(reserve1.address);
+    await redeemableERC20.addRedeemable(reserve2.address);
 
     await reserve2.transfer(
       redeemableERC20.address,
@@ -1102,7 +1158,9 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);
     await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS);
 
-    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
+    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+
+    await redeemableERC20.burnDistributor(Util.oneAddress);
 
     const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(
       signers[1].address
@@ -1162,6 +1220,7 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,

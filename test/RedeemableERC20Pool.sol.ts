@@ -66,6 +66,7 @@ describe("RedeemableERC20Pool", async function () {
     const nextPhaseBlock = firstBlock + 10;
 
     const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
@@ -181,6 +182,7 @@ describe("RedeemableERC20Pool", async function () {
     const tokenSymbol = "RDX";
 
     const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
@@ -257,6 +259,7 @@ describe("RedeemableERC20Pool", async function () {
     const raiseEndBlock = now + 50;
 
     const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
@@ -425,6 +428,7 @@ describe("RedeemableERC20Pool", async function () {
     const raiseEndBlock = now + 50;
 
     const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
@@ -578,6 +582,7 @@ describe("RedeemableERC20Pool", async function () {
     const phaseOneBlock = now + 15;
 
     const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
@@ -717,6 +722,7 @@ describe("RedeemableERC20Pool", async function () {
     const phaseOneBlock = now + 15;
 
     const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -835,6 +841,7 @@ describe("RedeemableERC20Pool", async function () {
     const tokenSymbol = "RDX";
 
     const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -921,6 +928,7 @@ describe("RedeemableERC20Pool", async function () {
     const phaseOneBlock = now + 15;
 
     const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,

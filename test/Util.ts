@@ -23,7 +23,7 @@ export const basicDeploy = async (name, libs) => {
 };
 
 export const balancerDeploy = async (): Promise<
-  [RightsManager, CRPFactory, BFactory]
+  [RightsManager, CRPFactory, BFactory, ]
 > => {
   const rightsManager = (await basicDeploy(
     "RightsManager",

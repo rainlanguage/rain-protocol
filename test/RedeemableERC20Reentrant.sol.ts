@@ -63,6 +63,7 @@ describe("RedeemableERC20Reentrant", async function () {
     const phaseOneBlock = now + 15;
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
       prestige: prestige.address,
@@ -76,12 +77,16 @@ describe("RedeemableERC20Reentrant", async function () {
       redeemableERC20.address
     )) as RedeemableERC20Reentrant;
 
-    await redeemableERC20.adminAddRedeemable(maliciousReserve.address);
+    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+
+    await redeemableERC20.addRedeemable(maliciousReserve.address);
 
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
 
-    await redeemableERC20.adminBurnDistributor(Util.oneAddress);
+    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+
+    await redeemableERC20.burnDistributor(Util.oneAddress);
 
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
