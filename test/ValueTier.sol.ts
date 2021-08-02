@@ -39,43 +39,19 @@ describe("ValueTierTest", async function () {
     await valueTier.deployed()
   });
 
-  it('should set tierValues on construction', async () => {
-    assert(
-      (await valueTier.tierValues(0)).eq(LEVELS[0]),
-      "tier value at position 0 was not set"
-    )
-    assert(
-      (await valueTier.tierValues(1)).eq(LEVELS[1]),
-      "tier value at position 1 was not set"
-    )
-    assert(
-      (await valueTier.tierValues(2)).eq(LEVELS[2]),
-      "tier value at position 2 was not set"
-    )
-    assert(
-      (await valueTier.tierValues(3)).eq(LEVELS[3]),
-      "tier value at position 3 was not set"
-    )
-    assert(
-      (await valueTier.tierValues(4)).eq(LEVELS[4]),
-      "tier value at position 4 was not set"
-    )
-    assert(
-      (await valueTier.tierValues(5)).eq(LEVELS[5]),
-      "tier value at position 5 was not set"
-    )
-    assert(
-      (await valueTier.tierValues(6)).eq(LEVELS[6]),
-      "tier value at position 6 was not set"
-    )
-    assert(
-      (await valueTier.tierValues(7)).eq(LEVELS[7]),
-      "tier value at position 7 was not set"
-    )
-  })
+  it("should set tierValues on construction", async () => {
+    const tierValues = await valueTier.tierValues();
+
+    tierValues.forEach((tierValue, index) => {
+      assert(
+        tierValue.eq(LEVELS[index]),
+        `tier value at position ${index} was not set`
+      );
+    });
+  });
 
   it('should return all the values in a list rather than requiring an index be specified', async () => {
-    const tierValues = await valueTier.getTierValues()
+    const tierValues = await valueTier.tierValues()
 
     assert(
       tierValues.every((value:any, index:any) => value.eq(LEVELS[index])),

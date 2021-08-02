@@ -26,7 +26,7 @@ import "./ReadWriteTier.sol";
 contract ERC20TransferTier is ReadWriteTier, ValueTier {
     using SafeERC20 for IERC20;
 
-    IERC20 public erc20;
+    IERC20 public immutable erc20;
 
     /// @param erc20_ The erc20 token contract to transfer balances from/to during `setTier`.
     /// @param tierValues_ 8 values corresponding to minimum erc20 balances for tiers ONE through EIGHT.

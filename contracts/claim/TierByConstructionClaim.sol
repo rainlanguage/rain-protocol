@@ -12,7 +12,7 @@ import { TierByConstruction } from "../tier/TierByConstruction.sol";
 contract TierByConstructionClaim is TierByConstruction {
     /// The minimum tier required for an address to claim anything at all.
     /// This tier must have been held continuously since before this contract was constructed.
-    ITier.Tier public minimumTier;
+    ITier.Tier public immutable minimumTier;
 
     /// Tracks every address that has already claimed to prevent duplicate claims.
     mapping(address => bool) public claims;
