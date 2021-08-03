@@ -38,13 +38,22 @@ contract SeedERC20Reentrant is ReserveToken {
         uint256 amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
-        if (methodTarget == Method.SEED && receiver_ == address(seedERC20Contract)) {
+        if (
+            methodTarget == Method.SEED
+            && receiver_ == address(seedERC20Contract)
+        ) {
             // This call MUST fail.
             seedERC20Contract.seed(0, 1);
-        } else if (methodTarget == Method.UNSEED && sender_ == address(seedERC20Contract)) {
+        } else if (
+            methodTarget == Method.UNSEED
+            && sender_ == address(seedERC20Contract)
+        ) {
             // This call MUST fail.
             seedERC20Contract.unseed(1);
-        } else if (methodTarget == Method.REDEEM && sender_ == address(seedERC20Contract)) {
+        } else if (
+            methodTarget == Method.REDEEM
+            && sender_ == address(seedERC20Contract)
+        ) {
             // This call MUST fail.
             seedERC20Contract.redeem(1);
         }

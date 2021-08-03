@@ -3,11 +3,14 @@ pragma solidity ^0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import {
+    ERC20Burnable
+} from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 /// @title ReserveToken
 /// A test token that can be used as a reserve asset.
-/// On mainnet this would likely be some brand of stablecoin but can be anything.
+/// On mainnet this would likely be some brand of stablecoin but can be
+/// anything.
 /// Notably mimics 6 decimals commonly used by stables in production.
 contract ReserveToken is ERC20, ERC20Burnable {
     /// Accounts to freeze during testing.
@@ -26,7 +29,9 @@ contract ReserveToken is ERC20, ERC20Burnable {
 
     /// Add an account to the freezables list.
     /// @param account_ The account to freeze.
-    function addFreezable(address account_) external { freezables[account_] = true; }
+    function addFreezable(address account_) external {
+        freezables[account_] = true;
+    }
 
     /// Block any transfers to a frozen account.
     /// @inheritdoc ERC20

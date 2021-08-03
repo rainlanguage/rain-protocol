@@ -13,7 +13,10 @@ contract RedeemableERC20Reentrant is ReserveToken {
     RedeemableERC20 private redeemableERC20Contract;
 
     /// Configures the contract to attempt to reenter.
-    constructor(RedeemableERC20 redeemableERC20Contract_) public ReserveToken() {
+    constructor(RedeemableERC20 redeemableERC20Contract_)
+        public
+        ReserveToken()
+    {
         redeemableERC20Contract = redeemableERC20Contract_;
     }
 
@@ -24,11 +27,17 @@ contract RedeemableERC20Reentrant is ReserveToken {
         uint256 amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
-        if (sender_ != address(0) && sender_ == address(redeemableERC20Contract)) {
+        if (
+            sender_ != address(0)
+            && sender_ == address(redeemableERC20Contract)
+        ) {
             IERC20[] memory specificRedeemables_ = new IERC20[](1);
             specificRedeemables_[0] = IERC20(address(this));
             // This call MUST fail.
-            redeemableERC20Contract.redeemSpecific(specificRedeemables_, amount_);
+            redeemableERC20Contract.redeemSpecific(
+                specificRedeemables_,
+                amount_
+            );
         }
     }
 }
