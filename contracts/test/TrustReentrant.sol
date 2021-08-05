@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: CAL
 pragma solidity ^0.6.12;
 
 import { ReserveToken, ERC20 } from "./ReserveToken.sol";
