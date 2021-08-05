@@ -1,6 +1,7 @@
 {
   "name": "tv-balancer",
   "version": "1.0.0",
+  "license": "CAL",
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
