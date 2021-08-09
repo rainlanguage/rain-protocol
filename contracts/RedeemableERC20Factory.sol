@@ -11,11 +11,18 @@ contract RedeemableERC20Factory is Factory {
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
-        (RedeemableERC20Config memory config_) = abi.decode(data_, (RedeemableERC20Config));
-        return address(new RedeemableERC20(config_));
+        (RedeemableERC20Config memory config_) = abi.decode(
+            data_,
+            (RedeemableERC20Config)
+        );
+        RedeemableERC20 redeemableERC20_ = new RedeemableERC20(config_);
+        return address(redeemableERC20_);
     }
 
-    function createChild(RedeemableERC20Config calldata config_) external returns(address) {
+    function createChild(RedeemableERC20Config calldata config_)
+        external
+        returns(address)
+    {
         return this.createChild(abi.encode(config_));
     }
 }

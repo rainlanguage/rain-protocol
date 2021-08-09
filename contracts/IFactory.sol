@@ -4,10 +4,7 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 interface IFactory {
-    event NewContract(
-        address indexed _caller,
-        address indexed _contract
-    );
+    event NewContract(address indexed _contract);
 
     function createChild(bytes calldata data_) external returns(address);
 

@@ -8,7 +8,7 @@ import { utils } from "ethers";
 import type { BigNumber } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
-import { basicDeploy, max_uint32 } from "./Util";
+import { basicDeploy, factoriesDeploy, max_uint32 } from "./Util";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { TrustFactory } from "../typechain/TrustFactory";
@@ -95,21 +95,12 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const redeemableERC20PoolFactory = await basicDeploy(
-      "RedeemableERC20PoolFactory",
-      {
-        RightsManager: rightsManager.address,
-      }
-    );
-    const redeemableERC20Factory = await basicDeploy(
-      "RedeemableERC20Factory",
-      {}
-    );
-    const seedERC20Factory = await basicDeploy("SeedERC20Factory", {});
-    const trustContractFactory = await ethers.getContractFactory(
-      "TrustFactory",
-      {}
-    );
+    const [
+      redeemableERC20Factory,
+      redeemableERC20PoolFactory,
+      seedERC20Factory,
+      trustFactory
+    ] = await factoriesDeploy(rightsManager, crpFactory, bFactory)
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -136,27 +127,16 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory = await trustContractFactory.deploy({
-      crpFactory: crpFactory.address,
-      balancerFactory: bFactory.address,
-      redeemableERC20Factory: redeemableERC20Factory.address,
-      redeemableERC20PoolFactory: redeemableERC20PoolFactory.address,
-      seedERC20Factory: seedERC20Factory.address,
-    });
-
-    await trustFactory.deployed();
-
     const trustFactory1 = trustFactory.connect(deployer);
 
-    // deployer creates trust
-    const trust = await trustFactory1[
-      "createChild((address,uint256,address,uint256,uint256,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256),(uint16,uint16))"
-    ](
+    const tx = await trustFactory1['createChild((address,uint256,address,uint256,uint16,uint16,uint256,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256))'](
       {
         creator: creator.address,
         minimumCreatorRaise,
         seeder: seeder.address,
         seederFee,
+        seederUnits,
+        seederCooldownDuration,
         minimumTradingDuration,
         redeemInit,
       },
@@ -165,7 +145,7 @@ describe("Trust", async function () {
         symbol: tokenSymbol,
         prestige: prestige.address,
         minimumStatus,
-        totalSupply: totalTokenSupply,
+        totalSupply: totalTokenSupply
       },
       {
         reserve: reserve.address,
@@ -173,12 +153,16 @@ describe("Trust", async function () {
         initialValuation,
         finalValuation: successLevel,
       },
-      {
-        seederUnits,
-        seederCooldownDuration,
-      },
       { gasLimit: 100000000 }
-    );
+    )
+    const receipt = await tx.wait()
+    const trust = new ethers.Contract(
+      ethers.utils.hexStripZeros(
+        receipt.events?.filter((x) => x.event == 'NewContract' && x.address == trustFactory1.address)[0].topics[1]
+      ),
+      trustJson.abi,
+      creator
+    ) as Trust
 
     const token = new ethers.Contract(
       await trust.token(),
