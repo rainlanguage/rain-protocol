@@ -3,14 +3,17 @@ import type { RightsManager } from "../typechain/RightsManager";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
-import type { TrustFactory } from "../typechain/TrustFactory"
-import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory"
-import type { RedeemableERC20PoolFactory } from "../typechain/RedeemableERC20PoolFactory"
-import type { SeedERC20Factory } from "../typechain/SeedERC20Factory"
+import type { TrustFactory } from "../typechain/TrustFactory";
+import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
+import type { RedeemableERC20PoolFactory } from "../typechain/RedeemableERC20PoolFactory";
+import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
 import type { BigNumber } from "ethers";
+import type { Trust } from "../typechain/Trust";
+
+const trustJson = require("../artifacts/contracts/Trust.sol/Trust.json");
 
 const { expect, assert } = chai;
 
@@ -27,7 +30,7 @@ export const basicDeploy = async (name, libs) => {
 };
 
 export const balancerDeploy = async (): Promise<
-  [RightsManager, CRPFactory, BFactory, ]
+  [RightsManager, CRPFactory, BFactory]
 > => {
   const rightsManager = (await basicDeploy(
     "RightsManager",
@@ -45,36 +48,62 @@ export const balancerDeploy = async (): Promise<
   return [rightsManager, crpFactory, bFactory];
 };
 
-export const factoriesDeploy = async (rightsManager, crpFactory, balancerFactory): Promise<[RedeemableERC20Factory, RedeemableERC20PoolFactory, SeedERC20Factory, TrustFactory]> => {
-  const redeemableERC20FactoryFactory = await ethers.getContractFactory('RedeemableERC20Factory')
-  const redeemableERC20Factory = await redeemableERC20FactoryFactory.deploy() as RedeemableERC20Factory
-  await redeemableERC20Factory.deployed()
+export interface Factories {
+  redeemableERC20Factory: RedeemableERC20Factory;
+  redeemableERC20PoolFactory: RedeemableERC20PoolFactory;
+  seedERC20Factory: SeedERC20Factory;
+  trustFactory: TrustFactory;
+}
 
-  const redeemableERC20PoolFactoryFactory = await ethers.getContractFactory('RedeemableERC20PoolFactory', {
-    libraries: {
-      "RightsManager": rightsManager.address
+export const factoriesDeploy = async (
+  rightsManager,
+  crpFactory,
+  balancerFactory
+): Promise<Factories> => {
+  const redeemableERC20FactoryFactory = await ethers.getContractFactory(
+    "RedeemableERC20Factory"
+  );
+  const redeemableERC20Factory =
+    (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
+  await redeemableERC20Factory.deployed();
+
+  const redeemableERC20PoolFactoryFactory = await ethers.getContractFactory(
+    "RedeemableERC20PoolFactory",
+    {
+      libraries: {
+        RightsManager: rightsManager.address,
+      },
     }
-  })
-  const redeemableERC20PoolFactory = await redeemableERC20PoolFactoryFactory.deploy({
-    crpFactory: crpFactory.address,
-    balancerFactory: balancerFactory.address,
-  }) as RedeemableERC20PoolFactory
-  await redeemableERC20PoolFactory.deployed()
+  );
+  const redeemableERC20PoolFactory =
+    (await redeemableERC20PoolFactoryFactory.deploy({
+      crpFactory: crpFactory.address,
+      balancerFactory: balancerFactory.address,
+    })) as RedeemableERC20PoolFactory;
+  await redeemableERC20PoolFactory.deployed();
 
-  const seedERC20FactoryFactory = await ethers.getContractFactory('SeedERC20Factory')
-  const seedERC20Factory = await seedERC20FactoryFactory.deploy() as SeedERC20Factory
-  await seedERC20Factory.deployed()
+  const seedERC20FactoryFactory = await ethers.getContractFactory(
+    "SeedERC20Factory"
+  );
+  const seedERC20Factory =
+    (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory;
+  await seedERC20Factory.deployed();
 
-  const trustFactoryFactory = await ethers.getContractFactory('TrustFactory')
-  const trustFactory = await trustFactoryFactory.deploy({
+  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
+  const trustFactory = (await trustFactoryFactory.deploy({
     redeemableERC20Factory: redeemableERC20Factory.address,
     redeemableERC20PoolFactory: redeemableERC20PoolFactory.address,
     seedERC20Factory: seedERC20Factory.address,
-  }) as TrustFactory
-  await trustFactory.deployed()
+  })) as TrustFactory;
+  await trustFactory.deployed();
 
-  return [redeemableERC20Factory, redeemableERC20PoolFactory, seedERC20Factory, trustFactory]
-}
+  return {
+    redeemableERC20Factory,
+    redeemableERC20PoolFactory,
+    seedERC20Factory,
+    trustFactory,
+  };
+};
 
 export const zeroAddress = ethers.constants.AddressZero;
 export const oneAddress = "0x0000000000000000000000000000000000000001";
@@ -137,4 +166,26 @@ export const poolContracts = async (
     signers[0]
   ) as BPool;
   return [crp, bPool];
+};
+
+export const trustDeploy = async (
+  trustFactory: TrustFactory,
+  creator: any,
+  ...args
+): Promise<Trust> => {
+  const tx = await trustFactory[
+    "createChild((address,uint256,address,uint256,uint16,uint16,uint256,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256))"
+  ](...args);
+  const receipt = await tx.wait();
+  const trust = new ethers.Contract(
+    ethers.utils.hexStripZeros(
+      receipt.events?.filter(
+        (x) => x.event == "NewContract" && x.address == trustFactory.address
+      )[0].topics[1]
+    ),
+    trustJson.abi,
+    creator
+  ) as Trust;
+
+  return trust;
 };
