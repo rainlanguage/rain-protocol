@@ -1543,7 +1543,7 @@ describe("Trust", async function () {
     assert(
       successLevel.eq(successBalance),
       `wrong success balance
-    expected  ${successBalance}
+    expected  ${successLevel}
     got       ${successBalance}`
     );
   });
@@ -2709,7 +2709,7 @@ describe("Trust", async function () {
     // non-creator cannot add redeemable
     await Util.assertError(
       async () => await token.connect(signer1).addRedeemable(reserve3.address),
-      "revert NOT_CREATOR",
+      "revert ONLY_REDEEMABLE_ADDER",
       "non-creator added redeemable"
     );
 
@@ -4305,6 +4305,7 @@ describe("Trust", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
+    const signer1 = signers[3];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -4351,14 +4352,14 @@ describe("Trust", async function () {
 
     // seeder needs some cash, give everything (1 billion USD) to seeder
     await reserve.transfer(
-      signers[1].address,
+      seeder.address,
       await reserve.balanceOf(signers[0].address)
     );
 
     const reserveSeeder = new ethers.Contract(
       reserve.address,
       reserve.interface,
-      signers[1]
+      seeder
     ) as ReserveToken;
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
@@ -4371,7 +4372,7 @@ describe("Trust", async function () {
     const trust2 = new ethers.Contract(
       trust.address,
       trust.interface,
-      signers[2]
+      signer1
     ) as Trust;
     // some other signer triggers trust to exit before phase change, should fail
     await Util.assertError(
@@ -4385,7 +4386,7 @@ describe("Trust", async function () {
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
     ) {
-      await reserveSeeder.transfer(signers[1].address, 1);
+      await reserveSeeder.transfer(seeder.address, 1);
     }
 
     // some other signer triggers trust to exit after phase change, should succeed
@@ -4665,7 +4666,7 @@ describe("Trust", async function () {
       { gasLimit: 100000000 }
     );
 
-    (await trust.deployed()) as Trust;
+    await trust.deployed();
 
     await reserve.transfer(await trust.pool(), reserveInit);
 

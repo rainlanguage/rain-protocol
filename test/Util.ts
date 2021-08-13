@@ -187,5 +187,7 @@ export const trustDeploy = async (
     creator
   ) as Trust;
 
+  await trust.deployed();
+
   return trust;
 };
