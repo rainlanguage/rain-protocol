@@ -4140,11 +4140,11 @@ describe("Trust", async function () {
             symbol: tokenSymbol,
             prestige: prestige.address,
             minimumStatus,
-            totalSupply: totalTokenSupply.add(1),
+            totalSupply: totalTokenSupply,
           },
           {
             reserve: reserve.address,
-            reserveInit,
+            reserveInit: totalTokenSupply.add(1),
             initialValuation,
             finalValuation: successLevel,
           },
@@ -4549,13 +4549,13 @@ describe("Trust", async function () {
     const seederAfter = await reserve.balanceOf(seeder.address);
     const seederDiff = seederAfter.sub(seederBefore);
     // Seeder loses dust here.
-    const expectedSeederDiff = ethers.BigNumber.from("3300000000").sub(
+    const expectedSeederDiff = ethers.BigNumber.from("2100000000").sub(
       Util.determineReserveDust(dust)
     );
 
     assert(
       expectedSeederDiff.eq(seederDiff),
-      `wrong owner diff
+      `wrong seeder diff
       ${expectedSeederDiff} ${seederDiff}`
     );
 
