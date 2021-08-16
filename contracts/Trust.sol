@@ -360,16 +360,8 @@ contract Trust is ReentrancyGuard {
         }
         seeder = config_.seeder;
 
-        // Send all tokens to the pool immediately.
-        // When the seed funds are raised `anonStartDistribution` on the
-        // `Trust` will build a pool from these.
-        redeemableERC20_.safeTransfer(
-            address(redeemableERC20Pool_),
-            trustRedeemableERC20Config_.totalSupply
-        );
-
         // Need to grant transfers for a few balancer addresses to facilitate
-        // exits.
+        // setup and exits.
         redeemableERC20_.grantRole(
             redeemableERC20_.RECEIVER(),
             address(redeemableERC20Pool_.crp().bFactory())
@@ -417,6 +409,14 @@ contract Trust is ReentrancyGuard {
         redeemableERC20_.renounceRole(
             redeemableERC20_.REDEEMABLE_ADDER(),
             address(this)
+        );
+
+        // Send all tokens to the pool immediately.
+        // When the seed funds are raised `anonStartDistribution` on the
+        // `Trust` will build a pool from these.
+        redeemableERC20_.safeTransfer(
+            address(redeemableERC20Pool_),
+            trustRedeemableERC20Config_.totalSupply
         );
     }
 

@@ -176,8 +176,14 @@ contract RedeemableERC20 is
     /// For example, Balancer needs the paired erc20 tokens to exist before the
     /// trading pool can be built.
     /// @param distributorAccount_ The distributor according to the admin.
-    function burnDistributor(address distributorAccount_) external onlyPhase(Phase.ZERO) {
-        require(hasRole(DISTRIBUTOR_BURNER, msg.sender), "ONLY_DISTRIBUTOR_BURNER");
+    function burnDistributor(address distributorAccount_)
+        external
+        onlyPhase(Phase.ZERO)
+    {
+        require(
+            hasRole(DISTRIBUTOR_BURNER, msg.sender),
+            "ONLY_DISTRIBUTOR_BURNER"
+        );
         scheduleNextPhase(uint32(block.number));
         _burn(distributorAccount_, balanceOf(distributorAccount_));
     }
