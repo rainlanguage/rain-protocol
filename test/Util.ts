@@ -177,15 +177,25 @@ export const trustDeploy = async (
     "createChild((address,uint256,address,uint256,uint16,uint16,uint256,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256))"
   ](...args);
   const receipt = await tx.wait();
+
   const trust = new ethers.Contract(
-    ethers.utils.hexStripZeros(
-      receipt.events?.filter(
-        (x) => x.event == "NewContract" && x.address == trustFactory.address
-      )[0].topics[1]
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        receipt.events?.filter(
+          (x) => x.event == "NewContract" && x.address == trustFactory.address
+        )[0].topics[1]
+      ),
+      20 // address bytes length
     ),
     trustJson.abi,
     creator
   ) as Trust;
+
+  if (!ethers.utils.isAddress(trust.address)) {
+    throw new Error(
+      `invalid trust address: ${trust.address} (${trust.address.length} chars)`
+    );
+  }
 
   await trust.deployed();
 

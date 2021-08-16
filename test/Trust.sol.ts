@@ -1473,8 +1473,8 @@ describe("Trust", async function () {
       creator
     ) as RedeemableERC20;
 
-     // creator can add redeemable via proxy method on trust contract
-     await token.addRedeemable(reserve2.address);
+    // creator can add redeemable via proxy method on trust contract
+    await token.addRedeemable(reserve2.address);
 
     // non-creator cannot add redeemable
     await Util.assertError(
@@ -1736,6 +1736,7 @@ describe("Trust", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
+
     const signer1 = signers[2];
     const signer2 = signers[3];
 
@@ -2121,6 +2122,7 @@ describe("Trust", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
+
     const signer1 = signers[2];
     const signer2 = signers[3];
 
