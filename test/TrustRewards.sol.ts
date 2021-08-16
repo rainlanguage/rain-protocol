@@ -147,7 +147,7 @@ describe("TrustRewards", async function () {
       creator
     ) as RedeemableERC20;
 
-    await trust.connect(creator).creatorAddRedeemable(reserveB.address);
+    await token.connect(creator).addRedeemable(reserveB.address);
 
     const redeemables1 = await token.getRedeemables();
     assert(
@@ -159,7 +159,7 @@ describe("TrustRewards", async function () {
       "wrong redeemable in token redeemables list"
     );
 
-    await trust.connect(creator).creatorAddRedeemable(reserveC.address);
+    await token.connect(creator).addRedeemable(reserveC.address);
 
     const redeemables2 = await token.getRedeemables();
     assert(
@@ -343,9 +343,9 @@ describe("TrustRewards", async function () {
     );
 
     // creator adds redeemables to token
-    await trust.connect(creator).creatorAddRedeemable(reserveB.address);
-    await trust.connect(creator).creatorAddRedeemable(reserveC.address);
-    await trust.connect(creator).creatorAddRedeemable(reserveD.address);
+    await token.connect(creator).addRedeemable(reserveB.address);
+    await token.connect(creator).addRedeemable(reserveC.address);
+    await token.connect(creator).addRedeemable(reserveD.address);
 
     await reserveB.transfer(token.address, spend.mul(2));
     await reserveC.transfer(token.address, spend.mul(3));
@@ -353,7 +353,7 @@ describe("TrustRewards", async function () {
 
     await Util.assertError(
       async () =>
-        await trust.connect(creator).creatorAddRedeemable(reserveA.address),
+        await token.connect(creator).addRedeemable(reserveA.address),
       "revert DUPLICATE_REDEEMABLE",
       "added duplicate redeemable"
     );
@@ -936,21 +936,23 @@ describe("TrustRewards", async function () {
       {}
     )) as ReserveToken;
 
-    const trustCreator = trust.connect(creator);
-    const trustDeployer = trust.connect(deployer);
-    const trustSigner1 = trust.connect(signer1);
+    const token = new ethers.Contract(
+      await trust.token(),
+      redeemableTokenJson.abi,
+      creator
+    ) as RedeemableERC20;
 
     await Util.assertError(
-      async () => await trustDeployer.creatorAddRedeemable(reserve2.address),
-      "revert NOT_CREATOR",
+      async () => await token.connect(deployer).addRedeemable(reserve2.address),
+      "revert ONLY_REDEEMABLE_ADDER",
       "trust deployer wrongly added new redeemable"
     );
 
-    await trustCreator.creatorAddRedeemable(reserve2.address);
+    await token.connect(creator).addRedeemable(reserve2.address);
 
     await Util.assertError(
-      async () => await trustSigner1.creatorAddRedeemable(reserve3.address),
-      "revert NOT_CREATOR",
+      async () => await token.connect(signer1).addRedeemable(reserve3.address),
+      "revert ONLY_REDEEMABLE_ADDER",
       "signer wrongly added new redeemable"
     );
   });
