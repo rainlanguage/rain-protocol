@@ -68,8 +68,6 @@ describe("TrustSeed", async function () {
       bFactory
     );
 
-    const seedFactory = await ethers.getContractFactory("SeedERC20");
-
     const tokenName = "Token";
     const tokenSymbol = "TKN";
 
@@ -95,13 +93,6 @@ describe("TrustSeed", async function () {
       .add(reserveInit);
 
     const minimumTradingDuration = 50;
-
-    // seeder1 creates seeder contract
-    const seederFactory = new ethers.ContractFactory(
-      seedFactory.interface,
-      seedFactory.bytecode,
-      seeder1
-    );
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
@@ -240,7 +231,7 @@ describe("TrustSeed", async function () {
       seedFactory.interface,
       seedFactory.bytecode,
       seeder1
-    );
+    ) ;
 
     const seederContract = (await seederFactory.deploy({
       reserve: reserve.address,
@@ -286,7 +277,7 @@ describe("TrustSeed", async function () {
         seedFactory.interface,
         seedFactory.bytecode,
         seeder1
-      );
+      ) ;
 
       await Util.assertError(
         async () =>
@@ -327,7 +318,7 @@ describe("TrustSeed", async function () {
         seedFactory.interface,
         seedFactory.bytecode,
         seeder1
-      );
+      ) ;
 
       await Util.assertError(
         async () =>

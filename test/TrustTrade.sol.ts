@@ -6,13 +6,9 @@ import type { ReserveToken } from "../typechain/ReserveToken";
 import * as Util from "./Util";
 import { utils } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
-
-import {
-  linearRegression,
-  linearRegressionLine,
-  rSquared,
-} from "simple-statistics";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import { factoriesDeploy } from "./Util";
 
 chai.use(solidity);
@@ -145,7 +141,7 @@ describe("TrustTrade", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
@@ -279,8 +275,8 @@ describe("TrustTrade", async function () {
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator);
-    const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator);
+    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool;
+    const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator) as ConfigurableRightsPool;
 
     const expectedRights = [false, false, true, true, false, false];
 
@@ -294,7 +290,9 @@ describe("TrustTrade", async function () {
     }
 
     let expectedRightCrp;
+
     for (let i = 0; (expectedRightCrp = expectedRights[i]); i++) {
+      // @ts-ignore
       const actualRight = await crp.rights(i);
       assert(
         actualRight === expectedRightCrp,
@@ -403,7 +401,7 @@ describe("TrustTrade", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
@@ -655,7 +653,7 @@ describe("TrustTrade", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
 
     // seeder needs some cash, give enough to seeder
     await reserve.transfer(seeder.address, reserveInit);
@@ -934,7 +932,7 @@ describe("TrustTrade", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    );
+    ) as RedeemableERC20;
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const bPool1 = bPool.connect(signer1);

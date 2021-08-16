@@ -56,9 +56,9 @@ export interface Factories {
 }
 
 export const factoriesDeploy = async (
-  rightsManager,
-  crpFactory,
-  balancerFactory
+  rightsManager: RightsManager,
+  crpFactory: CRPFactory,
+  balancerFactory: BFactory
 ): Promise<Factories> => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory"
