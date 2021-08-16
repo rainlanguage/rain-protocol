@@ -900,7 +900,7 @@ describe("TrustTrade", async function () {
       {
         reserve: reserve.address,
         reserveInit,
-        initialValuation: initialValuation1,
+        initialValuation: initialValuation2,
         finalValuation: successLevel,
       },
       { gasLimit: 100000000 }

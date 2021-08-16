@@ -122,6 +122,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// Note the spot price is unknown until the end because we don't know
     /// either of the final token balances.
     uint256 public immutable finalWeight;
+    uint256 public immutable finalValuation;
 
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
     constructor (RedeemableERC20PoolConfig memory config_) public {
@@ -142,6 +143,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
             config_.reserveInit,
             config_.finalValuation
         );
+        finalValuation = config_.finalValuation;
 
         // Build the CRP.
         // The addresses in the `RedeemableERC20Pool`, as [reserve, token].
@@ -239,10 +241,6 @@ contract RedeemableERC20Pool is Ownable, Phased {
             "MAX_WEIGHT_VALUATION"
         );
         return weight_;
-    }
-
-    function weightValuation(uint256 weight) public view returns (uint256) {
-        return weight.mul(reserveInit).div(BalancerConstants.BONE);
     }
 
     /// Allow the owner to start the Balancer style dutch auction.

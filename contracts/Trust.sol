@@ -329,9 +329,7 @@ contract Trust is ReentrancyGuard {
         pool = redeemableERC20Pool_;
 
         require(
-            redeemableERC20Pool_
-                .weightValuation(redeemableERC20Pool_.finalWeight())
-            >= successBalance_,
+            redeemableERC20Pool_.finalValuation() >= successBalance_,
             "MIN_FINAL_VALUATION"
         );
 
