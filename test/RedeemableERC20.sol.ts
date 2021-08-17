@@ -132,7 +132,7 @@ describe("RedeemableERC20", async function () {
     await redeemable.deployed();
   });
 
-  it("should allow receiver/send to always receive/send tokens if added via adminAddReceiver/adminAddSender, bypassing BlockBlockable restrictions", async function () {
+  it("should allow granting sender/receiver/distributor-burner roles, bypassing BlockBlockable restrictions", async function () {
     this.timeout(0);
 
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);

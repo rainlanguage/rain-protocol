@@ -270,7 +270,11 @@ The major functions of the `Trust` contract, apart from building and configuring
 
 ### TrustFactory
 
-The `TrustFactory` contract is the only contract that the deployer uses to deploy all contracts for a single project fundraising event. It takes references to factories for `RedeemableERC20`, `RedeemableERC20Pool` and `SeedERC20`, and builds a new `Trust` contract.
+The `TrustFactory` contract is the only contract that the deployer uses to deploy all contracts for a single project fundraising event. It takes references to `RedeemableERC20Factory`, `RedeemableERC20PoolFactory` and `SeedERC20Factory` contracts, and builds a new `Trust` contract.
+
+## Other Factories
+
+`RedeemableERC20Factory`, `RedeemableERC20PoolFactory` and `SeedERC20Factory` factories are intended to be deployed officially and versioned, which ensures that new `Trust` contracts deployed used `TrustFactory` are able to use the latest versions of these contracts in the case that vulnerablities are discovered and/or further optimisations are available.
 
 ## Risk mitigation
 
