@@ -352,8 +352,7 @@ describe("TrustRewards", async function () {
     await reserveD.transfer(token.address, spend.mul(4));
 
     await Util.assertError(
-      async () =>
-        await token.connect(creator).addRedeemable(reserveA.address),
+      async () => await token.connect(creator).addRedeemable(reserveA.address),
       "revert DUPLICATE_REDEEMABLE",
       "added duplicate redeemable"
     );

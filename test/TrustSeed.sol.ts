@@ -231,7 +231,7 @@ describe("TrustSeed", async function () {
       seedFactory.interface,
       seedFactory.bytecode,
       seeder1
-    ) ;
+    );
 
     const seederContract = (await seederFactory.deploy({
       reserve: reserve.address,
@@ -277,7 +277,7 @@ describe("TrustSeed", async function () {
         seedFactory.interface,
         seedFactory.bytecode,
         seeder1
-      ) ;
+      );
 
       await Util.assertError(
         async () =>
@@ -318,7 +318,7 @@ describe("TrustSeed", async function () {
         seedFactory.interface,
         seedFactory.bytecode,
         seeder1
-      ) ;
+      );
 
       await Util.assertError(
         async () =>

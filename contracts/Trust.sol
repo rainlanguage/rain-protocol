@@ -210,9 +210,7 @@ struct TrustRedeemableERC20PoolConfig {
 /// Importantly the `Trust` contract is the owner/admin of the contracts it
 /// creates. The `Trust` never transfers ownership so it directly controls all
 /// internal workflows. No stakeholder, even the deployer or creator, can act
-/// as owner of the internals. There is one function `creatorAddRedeemable` on
-/// the `Trust` with a simple access check locked to the creator defined at
-/// construction.
+/// as owner of the internals.
 contract Trust is ReentrancyGuard {
 
     using SafeMath for uint256;

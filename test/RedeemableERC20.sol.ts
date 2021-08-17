@@ -214,7 +214,7 @@ describe("RedeemableERC20", async function () {
       async () => await token.burnDistributor(Util.oneAddress),
       "revert ONLY_DISTRIBUTOR_BURNER",
       "called burnDistributor without sufficient role permissions"
-    )
+    );
 
     await token.grantRole(await token.DISTRIBUTOR_BURNER(), owner.address);
 
@@ -351,9 +351,12 @@ describe("RedeemableERC20", async function () {
       async () => await redeemableERC20.addRedeemable(reserve0.address),
       "revert ONLY_REDEEMABLE_ADDER",
       "called addRedeemable without sufficient role permissions"
-    )
+    );
 
-    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.REDEEMABLE_ADDER(),
+      signers[0].address
+    );
     await redeemableERC20.addRedeemable(reserve0.address);
     await redeemableERC20.addRedeemable(reserve1.address);
     await redeemableERC20.addRedeemable(reserve2.address);
@@ -441,7 +444,10 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.deployed();
 
-    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.REDEEMABLE_ADDER(),
+      signers[0].address
+    );
 
     await redeemableERC20.addRedeemable(reserve.address);
 
@@ -500,7 +506,10 @@ describe("RedeemableERC20", async function () {
     // Send alice some tokens.
     await redeemableERC20.transfer(alice.address, 10);
 
-    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.DISTRIBUTOR_BURNER(),
+      signers[0].address
+    );
 
     const now = await ethers.provider.getBlockNumber();
 
@@ -718,7 +727,10 @@ describe("RedeemableERC20", async function () {
       "was wrongly able to set phase block with insuffient role permissions"
     );
 
-    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.DISTRIBUTOR_BURNER(),
+      signers[0].address
+    );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
   });
@@ -806,7 +818,10 @@ describe("RedeemableERC20", async function () {
       "admin not made receiver during construction"
     );
 
-    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.DISTRIBUTOR_BURNER(),
+      signers[0].address
+    );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
 
@@ -864,7 +879,10 @@ describe("RedeemableERC20", async function () {
       "user could receive transfers despite not meeting minimum status"
     );
 
-    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.DISTRIBUTOR_BURNER(),
+      signers[0].address
+    );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
 
@@ -925,7 +943,10 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.REDEEMABLE_ADDER(),
+      signers[0].address
+    );
     await redeemableERC20.addRedeemable(reserve1.address);
     await redeemableERC20.addRedeemable(reserve2.address);
 
@@ -939,7 +960,10 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);
     await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS);
 
-    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.DISTRIBUTOR_BURNER(),
+      signers[0].address
+    );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
 
@@ -1130,7 +1154,10 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.deployed();
 
-    await redeemableERC20.grantRole(await redeemableERC20.REDEEMABLE_ADDER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.REDEEMABLE_ADDER(),
+      signers[0].address
+    );
     await redeemableERC20.addRedeemable(reserve1.address);
     await redeemableERC20.addRedeemable(reserve2.address);
 
@@ -1158,7 +1185,10 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);
     await redeemableERC20.transfer(signers[2].address, TWENTY_TOKENS);
 
-    await redeemableERC20.grantRole(await redeemableERC20.DISTRIBUTOR_BURNER(), signers[0].address);
+    await redeemableERC20.grantRole(
+      await redeemableERC20.DISTRIBUTOR_BURNER(),
+      signers[0].address
+    );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
 

@@ -1592,7 +1592,7 @@ describe("Trust", async function () {
 
     // the trust renounces the admin role after deploying the redeemable token.
     assert(
-      !await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), trust.address),
+      !(await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), trust.address)),
       "trust did not renounce admin role"
     );
 

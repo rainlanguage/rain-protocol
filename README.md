@@ -244,11 +244,33 @@ For our use-case the recipient is a `Trust` contract but `SeedERC20` could be us
 
 ## Trust
 
-The `Trust` contract is the only contract that the deployer deploys directly. The `Trust` builds and references all other contracts internally and manages all access controlled functionally.
+Coordinates the mediation and distribution of tokens between stakeholders.
 
-The only function that is not world-callable is the `creatorAddRedeemable` function that proxies `adminAddRedeemable` from the minted `RedeemableERC20` contract for the creator.
+The `Trust` contract is responsible for configuring the `RedeemableERC20` token, `RedeemableERC20Pool` Balancer wrapper and the `SeedERC20` contract.
 
-Internally the `Trust` calls several admin/owner only functions on its children and these may impose additional restrictions such as `Phased` limits.
+Internally the `TrustFactory` calls several admin/owner only functions on its children and these may impose additional restrictions such as `Phased` limits.
+
+The `Trust` builds and references `RedeemableERC20`, `RedeemableERC20Pool` and `SeedERC20` contracts internally and manages all access controlled functionally.
+
+The major functions of the `Trust` contract, apart from building and configuring the other contracts, is to start and end the fundraising event, and mediate the distribution of funds to the correct stakeholders:
+
+- On `Trust` construction, all minted `RedeemableERC20` tokens are sent to the `RedeemableERC20Pool`
+
+- `anonStartDistribution` can be called by anyone to begin the Dutch Auction. If this is called before seeder reserve funds are available on the `Trust`, this will revert
+
+- `anonEndDistribution` can be called by anyone (only when `RedeemableERC20Pool` is in `Phase.TWO`) to end the Dutch Auction and distribute funds to the correct stakeholders, depending on whether or not the auction met the fundraising target.
+  - On successful raise
+    - seed funds are returned to `seeder` address along with additional `seederFee` if configured
+    - `redeemInit` is sent to the `redeemableERC20` address, to back redemptions
+    - the `creator` gets the remaining balance, which should equal or exceed `minimumCreatorRaise`
+  - On failed raise
+    - seed funds are returned to `seeder` address
+    - the remaining balance is sent to the `redeemableERC20` address, to back redemptions
+    - the `creator` gets nothing
+
+### TrustFactory
+
+The `TrustFactory` contract is the only contract that the deployer uses to deploy all contracts for a single project fundraising event. It takes references to factories for `RedeemableERC20`, `RedeemableERC20Pool` and `SeedERC20`, and builds a new `Trust` contract.
 
 ## Risk mitigation
 

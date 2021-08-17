@@ -275,8 +275,16 @@ describe("TrustTrade", async function () {
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
-    const pool = new ethers.Contract(await trust.pool(), poolJson.abi, creator) as RedeemableERC20Pool;
-    const crp = new ethers.Contract(await pool.crp(), crpJson.abi, creator) as ConfigurableRightsPool;
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+    const crp = new ethers.Contract(
+      await pool.crp(),
+      crpJson.abi,
+      creator
+    ) as ConfigurableRightsPool;
 
     const expectedRights = [false, false, true, true, false, false];
 
