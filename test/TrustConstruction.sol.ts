@@ -67,6 +67,126 @@ interface TrustContracts {
 }
 
 describe("TrustConstruction", async function () {
+  it("should allow TrustFactory to create multiple child Trust contracts", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const prestigeFactory = await ethers.getContractFactory("Prestige");
+    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const minimumStatus = Status.NIL;
+
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
+
+    const tokenName = "Token";
+    const tokenSymbol = "TKN";
+
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederUnits = 0;
+    const seederCooldownDuration = 0;
+
+    const successLevel = redeemInit
+      .add(minimumCreatorRaise)
+      .add(seederFee)
+      .add(reserveInit);
+
+    const minimumTradingDuration = 10;
+
+    const trustFactoryDeployer = trustFactory.connect(deployer);
+
+    const trust1 = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
+      {
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        seederCooldownDuration,
+        minimumTradingDuration,
+        redeemInit,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
+
+    const trust2 = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
+      {
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        seederCooldownDuration,
+        minimumTradingDuration,
+        redeemInit,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
+
+    assert(
+      await trustFactory.isChild(trust1.address),
+      "child trust1 contract was not registered"
+    );
+
+    assert(
+      await trustFactory.isChild(trust2.address),
+      "child trust2 contract was not registered"
+    );
+
+    assert(
+      trust1.address !== trust2.address,
+      "wrongly deployed successive trusts with same address"
+    );
+  });
+
   it("should create a token and immediately send all supply to the pool", async function () {
     this.timeout(0);
 

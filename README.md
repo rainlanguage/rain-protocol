@@ -250,7 +250,7 @@ The `Trust` contract is responsible for configuring the `RedeemableERC20` token,
 
 Internally the `TrustFactory` calls several admin/owner only functions on its children and these may impose additional restrictions such as `Phased` limits.
 
-The `Trust` builds and references `RedeemableERC20`, `RedeemableERC20Pool` and `SeedERC20` contracts internally and manages all access controlled functionally.
+The `Trust` builds and references `RedeemableERC20`, `RedeemableERC20Pool` and `SeedERC20` contracts internally and manages all access-control functionality.
 
 The major functions of the `Trust` contract, apart from building and configuring the other contracts, is to start and end the fundraising event, and mediate the distribution of funds to the correct stakeholders:
 

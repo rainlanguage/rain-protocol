@@ -7,6 +7,10 @@ import { Factory } from "./Factory.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
+/// @title RedeemableERC20Factory
+/// Creates new `RedeemableERC20` contracts.
+/// Requires passing a `RedeemableERC20Config` which contains
+/// everything required for the `RedeemableERC20` constructor.
 contract RedeemableERC20Factory is Factory {
     function _createChild(
         bytes calldata data_
