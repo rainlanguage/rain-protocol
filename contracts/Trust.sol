@@ -117,6 +117,7 @@ struct TrustConfig {
     // On success the creator receives these funds.
     // On failure the creator receives `0`.
     uint256 minimumCreatorRaise;
+    // The SeedERC20Factory on the current network.
     SeedERC20Factory seedERC20Factory;
     // Either an EOA (externally owned address) or `address(0)`.
     // If an EOA the seeder account must transfer seed funds to the newly
@@ -129,7 +130,18 @@ struct TrustConfig {
     // An absolute value, so percentages etc. must be calculated off-chain and
     // passed in to the constructor.
     uint256 seederFee;
+    // Total seed units to be mint and sold.
+    // 100% of all seed units must be sold for seeding to complete.
+    // Recommended to keep seed units to a small value (single-triple digits).
+    // The ability for users to buy/sell or not buy/sell dust seed quantities
+    // is likely NOT desired.
     uint16 seederUnits;
+    // Cooldown duration in blocks for seed/unseed cycles.
+    // Seeding requires locking funds for at least the cooldown period.
+    // Ideally `unseed` is never called and `seed` leaves funds in the contract
+    // until all seed tokens are sold out.
+    // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
+    // but it should be called rarely.
     uint16 seederCooldownDuration;
     // Minimum duration IN BLOCKS of the trading on Balancer.
     // The trading does not stop until the `anonEndDistribution` function is
@@ -143,19 +155,47 @@ struct TrustConfig {
 }
 
 struct TrustRedeemableERC20Config {
+    // The RedeemableERC20Factory on the current network.
     RedeemableERC20Factory redeemableERC20Factory;
+    // Name forwarded to ERC20 constructor.
     string name;
+    // Symbol forwarded to ERC20 constructor.
     string symbol;
+    // Prestige contract to compare statuses against on transfer.
     IPrestige prestige;
+    // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
     IPrestige.Status minimumStatus;
+    // Number of redeemable tokens to mint.
     uint256 totalSupply;
 }
 
 struct TrustRedeemableERC20PoolConfig {
+    // The RedeemableERC20PoolFactory on the current network.
     RedeemableERC20PoolFactory redeemableERC20PoolFactory;
+    // The reserve erc20 token.
+    // The reserve token anchors our newly minted redeemable tokens to an
+    // existant value system.
+    // The weights and balances of the reserve token and the minted token
+    // define a dynamic spot price in the AMM.
     IERC20 reserve;
+    // Amount of reserve token to initialize the pool.
+    // The starting/final weights are calculated against this.
     uint256 reserveInit;
+    // Initial marketcap of the token according to the balancer pool
+    // denominated in reserve token.
+    // Th spot price of the token is ( market cap / token supply ) where market
+    // cap is defined in terms of the reserve.
+    // The spot price of a balancer pool token is a function of both the
+    // amounts of each token and their weights.
+    // This bonding curve is described in the balancer whitepaper.
+    // We define a valuation of newly minted tokens in terms of the deposited
+    // reserve. The reserve weight is set to the minimum allowable value to
+    // achieve maximum capital efficiency for the fund raising.
     uint256 initialValuation;
+    // Final valuation is treated the same as initial valuation.
+    // The final valuation will ONLY be achieved if NO TRADING OCCURS.
+    // Any trading activity that net deposits reserve funds into the pool will
+    // increase the spot price permanently.
     uint256 finalValuation;
 }
 

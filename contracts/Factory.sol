@@ -14,9 +14,10 @@ abstract contract Factory is IFactory, ReentrancyGuard {
 
     /// Implements `IFactory`.
     ///
-    /// `_createChild` hook can be overridden to allow inheriting
-    /// factory contracts to enforce number of function call
-    /// parameters and parameter types.
+    /// `_createChild` hook must be overridden to actually create child
+    /// contract.
+    ///
+    /// @param data_ Encoded data to pass down to child contract constructor.
     function _createChild(bytes calldata data_)
         internal
         virtual
@@ -25,17 +26,19 @@ abstract contract Factory is IFactory, ReentrancyGuard {
 
     /// Implements `IFactory`.
     ///
-    /// Calls the _createChild hook, which inheriting contracts
-    /// should override to enforce extra requirements.
+    /// Calls the _createChild hook, which inheriting contracts must override.
     /// Registers child contract address to `contracts` mapping.
     /// Emits `NewContract` event.
+    ///
+    /// @param data_ Encoded data to pass down to child contract constructor.
+    /// @return New child contract address.
     function createChild(bytes calldata data_)
         external
         virtual
         override
         nonReentrant
         returns(address) {
-        // Create child contract.
+        // Create child contract using hook.
         address child_ = _createChild(data_);
         // Register child contract address to `contracts` mapping.
         contracts[child_] = true;
@@ -46,7 +49,10 @@ abstract contract Factory is IFactory, ReentrancyGuard {
 
     /// Implements `IFactory`.
     ///
-    /// Returns true if address is a contract created by this
+    /// Checks if address is registered as a child contract of this factory.
+    ///
+    /// @param maybeChild_ Address of child contract to look up.
+    /// @return Returns true if address is a contract created by this
     /// contract factory, otherwise returns false.
     function isChild(address maybeChild_)
         external

@@ -8,10 +8,15 @@ import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
 
 /// @title RedeemableERC20Factory
-/// Creates new `RedeemableERC20` contracts.
-/// Requires passing a `RedeemableERC20Config` which contains
-/// everything required for the `RedeemableERC20` constructor.
+/// Factory for creating and registering new RedeemableERC20 contracts.
 contract RedeemableERC20Factory is Factory {
+
+    /// Decodes the arbitrary data_ parameter for RedeemableERC20 constructor,
+    /// which expects a RedeemableERC20Config type.
+    ///
+    /// @param data_ Encoded data to pass down to child RedeemableERC20
+    /// contract constructor.
+    /// @return New RedeemableERC20 child contract address.
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
@@ -23,6 +28,12 @@ contract RedeemableERC20Factory is Factory {
         return address(redeemableERC20_);
     }
 
+    /// Allows calling `createChild` with RedeemableERC20Config struct.
+    /// Can use original Factory `createChild` function signature if function
+    /// parameters are already encoded.
+    ///
+    /// @param config_ RedeemableERC20 constructor configuration.
+    /// @return New RedeemableERC20 child contract address.
     function createChild(RedeemableERC20Config calldata config_)
         external
         returns(address)

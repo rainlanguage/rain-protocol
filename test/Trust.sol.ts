@@ -1236,6 +1236,7 @@ describe("Trust", async function () {
     // seeder approves sufficient reserve liquidity
     await reserveSeeder.transfer(await trust.pool(), 1);
 
+    // anyone can start distribution
     await trust2.anonStartDistribution({ gasLimit: 100000000 });
   });
 
