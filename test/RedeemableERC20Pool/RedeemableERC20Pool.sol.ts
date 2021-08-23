@@ -1,11 +1,11 @@
-import * as Util from "./Util";
+import * as Util from "../Util";
 import chai, { util } from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { ReserveToken } from "../typechain/ReserveToken";
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
-import type { ReadWriteTier } from "../typechain/ReadWriteTier";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -22,10 +22,10 @@ enum Phase {
   EIGHT,
 }
 
-const trustJson = require("../artifacts/contracts/Trust.sol/Trust.json");
-const poolJson = require("../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const reserveJson = require("../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
-const redeemableTokenJson = require("../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
+const trustJson = require("../../artifacts/contracts/Trust.sol/Trust.json");
+const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
+const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
 
 describe("RedeemableERC20Pool", async function () {
   it("should safely poke weights after minimum trade duration", async function () {

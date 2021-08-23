@@ -1,10 +1,10 @@
-import * as Util from "./Util";
+import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../typechain/ReadWriteTier";
-import type { RedeemableERC20Reentrant } from "../typechain/RedeemableERC20Reentrant";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;

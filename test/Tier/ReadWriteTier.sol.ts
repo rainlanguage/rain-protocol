@@ -1,9 +1,9 @@
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import { ReadWriteTier } from '../typechain/ReadWriteTier'
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { tierReport, blockNumbersToReport, assertError } from '../utils/report'
+import type { ReadWriteTier } from '../../typechain/ReadWriteTier'
+import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
+import { tierReport, blockNumbersToReport, assertError } from '../../contracts/tv-tier/utils/report'
 
 chai.use(solidity)
 const { expect, assert } = chai

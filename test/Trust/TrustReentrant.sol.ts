@@ -1,24 +1,24 @@
-import * as Util from "./Util";
+import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../typechain/ReadWriteTier";
-import type { TrustReentrant } from "../typechain/TrustReentrant";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
-import type { Trust } from "../typechain/Trust";
-import type { BPool } from "../typechain/BPool";
-import type { SeedERC20Reentrant } from "../typechain/SeedERC20Reentrant";
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
-import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
-import { factoriesDeploy } from "./Util";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { TrustReentrant } from "../../typechain/TrustReentrant";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { Trust } from "../../typechain/Trust";
+import type { BPool } from "../../typechain/BPool";
+import type { SeedERC20Reentrant } from "../../typechain/SeedERC20Reentrant";
+import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
+import type { ConfigurableRightsPool } from "../../typechain/ConfigurableRightsPool";
+import { factoriesDeploy } from "../Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
-const poolJson = require("../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const bPoolJson = require("../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
-const redeemableTokenJson = require("../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
+const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const bPoolJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
+const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
+const crpJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
 
 enum Tier {
   NIL,

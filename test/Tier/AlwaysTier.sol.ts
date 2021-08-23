@@ -1,9 +1,9 @@
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import type { AlwaysTier } from '../typechain/AlwaysTier'
-import type { NeverTier } from '../typechain/NeverTier'
-import { assertError } from '../utils/report'
+import type { AlwaysTier } from '../../typechain/AlwaysTier'
+import type { NeverTier } from '../../typechain/NeverTier'
+import { assertError } from '../../contracts/tv-tier/utils/report'
 
 chai.use(solidity)
 const { expect, assert } = chai

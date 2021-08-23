@@ -1,9 +1,9 @@
-import * as Util from "./Util";
+import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { PhasedTest } from "../typechain/PhasedTest";
-import type { ReserveToken } from "../typechain/ReserveToken";
+import type { PhasedTest } from "../../typechain/PhasedTest";
+import type { ReserveToken } from "../../typechain/ReserveToken";
 
 chai.use(solidity);
 const { expect, assert } = chai;

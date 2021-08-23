@@ -1,7 +1,7 @@
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import type { ValueTierTest } from '../typechain/ValueTierTest'
+import type { ValueTierTest } from '../../typechain/ValueTierTest'
 import { assertError, basicDeploy, eighteenZeros } from './Util'
 
 chai.use(solidity)

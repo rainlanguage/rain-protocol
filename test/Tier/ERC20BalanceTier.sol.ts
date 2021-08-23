@@ -1,8 +1,8 @@
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import type { ERC20BalanceTier } from '../typechain/ERC20BalanceTier'
-import type { ReserveTokenTest } from '../typechain/ReserveTokenTest'
+import type { ERC20BalanceTier } from '../../typechain/ERC20BalanceTier'
+import type { ReserveTokenTest } from '../../typechain/ReserveTokenTest'
 import { assertError, basicDeploy, eighteenZeros } from './Util'
 
 chai.use(solidity)

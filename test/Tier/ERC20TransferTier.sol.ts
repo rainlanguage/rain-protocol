@@ -1,8 +1,8 @@
 import chai from 'chai'
 import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
-import type { ERC20TransferTier } from '../typechain/ERC20TransferTier'
-import type { ReserveTokenTest } from '../typechain/ReserveTokenTest'
+import type { ERC20TransferTier } from '../../typechain/ERC20TransferTier'
+import type { ReserveTokenTest } from '../../typechain/ReserveTokenTest'
 import { assertError, basicDeploy, eighteenZeros } from './Util'
 
 chai.use(solidity)
@@ -51,7 +51,7 @@ describe("ERC20TransferTier", async function () {
 
     // bob intends to cover the cost of upgrading alice
     await reserve.connect(bob).approve(erc20TransferTier.address, requiredForTier2)
-    
+
     // bob sets alice's tier to TWO
     await erc20TransferTier.connect(bob).setTier(alice.address, Tier.TWO, [])
   })

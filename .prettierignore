@@ -1,5 +1,4 @@
 contracts/configurable-rights-pool
-contracts/tv-tier
 *.md
 artifacts
 cache

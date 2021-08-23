@@ -1,9 +1,9 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../typechain/ReadWriteTier";
-import type { TierUtilTest } from "../typechain/TierUtilTest";
-import type { ReserveTokenTest } from "../typechain/ReserveTokenTest";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { TierUtilTest } from "../../typechain/TierUtilTest";
+import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
 import { assertError, basicDeploy } from "./Util";
 
 chai.use(solidity);
