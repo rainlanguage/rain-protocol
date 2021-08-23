@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import { Factory } from "./Factory.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
-import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
+import { ITier } from "./tv-tier/contracts/tier/ITier.sol";
 
 /// @title RedeemableERC20Factory
 /// Factory for creating and registering new RedeemableERC20 contracts.

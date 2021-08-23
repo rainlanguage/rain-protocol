@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
+import { ITier } from "./tv-tier/contracts/tier/ITier.sol";
 
 import { Factory } from "./Factory.sol";
 import { Trust, TrustConfig } from "./Trust.sol";
@@ -88,10 +88,10 @@ struct TrustFactoryTrustRedeemableERC20Config {
     string name;
     // Symbol forwarded to ERC20 constructor.
     string symbol;
-    // Prestige contract to compare statuses against on transfer.
-    IPrestige prestige;
+    // Tier contract to compare statuses against on transfer.
+    ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    IPrestige.Status minimumStatus;
+    ITier.Tier minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
 }
@@ -216,7 +216,7 @@ contract TrustFactory is Factory {
                 redeemableERC20Factory,
                 trustFactoryTrustRedeemableERC20Config_.name,
                 trustFactoryTrustRedeemableERC20Config_.symbol,
-                trustFactoryTrustRedeemableERC20Config_.prestige,
+                trustFactoryTrustRedeemableERC20Config_.tier,
                 trustFactoryTrustRedeemableERC20Config_.minimumStatus,
                 trustFactoryTrustRedeemableERC20Config_.totalSupply
             ),

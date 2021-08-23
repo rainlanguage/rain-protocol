@@ -3,13 +3,13 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../typechain/ReserveToken";
-import type { Prestige } from "../typechain/Prestige";
+import type { ReadWriteTier } from "../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
-enum Status {
+enum Tier {
   NIL,
   COPPER,
   BRONZE,
@@ -39,9 +39,9 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -54,7 +54,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     });
@@ -71,8 +71,8 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -98,7 +98,7 @@ describe("RedeemableERC20", async function () {
           admin: signers[0].address,
           name: tokenName,
           symbol: tokenSymbol,
-          prestige: prestige.address,
+          tier: tier.address,
           minimumStatus: minimumStatus,
           totalSupply: totalTokenSupplyZero,
         }),
@@ -112,7 +112,7 @@ describe("RedeemableERC20", async function () {
           admin: signers[0].address,
           name: tokenName,
           symbol: tokenSymbol,
-          prestige: prestige.address,
+          tier: tier.address,
           minimumStatus: minimumStatus,
           totalSupply: totalTokenSupplyOneShort,
         }),
@@ -124,7 +124,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus,
       totalSupply: totalTokenSupplyMinimum,
     });
@@ -150,12 +150,12 @@ describe("RedeemableERC20", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.GOLD;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.GOLD;
 
-    await prestige.setStatus(sender.address, Status.COPPER, []);
-    await prestige.setStatus(receiver.address, Status.COPPER, []);
+    await tier.setTier(sender.address, Tier.COPPER, []);
+    await tier.setTier(receiver.address, Tier.COPPER, []);
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -170,18 +170,18 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
 
     await token.deployed();
 
-    // try sending/receiving, both with insufficient prestige
+    // try sending/receiving, both with insufficient tier
     await Util.assertError(
       async () => await token.connect(sender).transfer(receiver.address, 1),
-      "revert MIN_STATUS",
-      "sender/receiver sent/received tokens despite insufficient prestige status"
+      "revert MIN_TIER",
+      "sender/receiver sent/received tokens despite insufficient tier status"
     );
 
     // remove transfer restrictions for sender and receiver
@@ -236,9 +236,9 @@ describe("RedeemableERC20", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -253,7 +253,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -323,9 +323,9 @@ describe("RedeemableERC20", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -340,7 +340,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -422,9 +422,9 @@ describe("RedeemableERC20", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -437,7 +437,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -685,9 +685,9 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -703,7 +703,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -740,9 +740,9 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -755,7 +755,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -771,7 +771,7 @@ describe("RedeemableERC20", async function () {
     );
   });
 
-  it("should allow token transfers in constructor regardless of owner prestige level", async function () {
+  it("should allow token transfers in constructor regardless of owner tier level", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -783,13 +783,13 @@ describe("RedeemableERC20", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
     // Set owner to COPPER status, lower than minimum status of DIAMOND
-    await prestige.setStatus(signers[0].address, Status.COPPER, []);
+    await tier.setTier(signers[0].address, Tier.COPPER, []);
 
-    const minimumStatus = Status.DIAMOND;
+    const minimumStatus = Tier.DIAMOND;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -802,7 +802,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -828,7 +828,7 @@ describe("RedeemableERC20", async function () {
     await reserve.transfer(redeemableERC20.address, 1);
   });
 
-  it("should allow transfer only if redeemer meets minimum prestige level", async function () {
+  it("should allow transfer only if redeemer meets minimum tier level", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -840,10 +840,10 @@ describe("RedeemableERC20", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
-    const minimumStatus = Status.GOLD;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -853,15 +853,15 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     // grant second signer GOLD status so they can receive transferred tokens
-    await prestige.setStatus(signers[1].address, Status.GOLD, []);
+    await tier.setTier(signers[1].address, Tier.GOLD, []);
     // grant third signer SILVER status which is NOT enough to receive transfers
-    await prestige.setStatus(signers[2].address, Status.SILVER, []);
+    await tier.setTier(signers[2].address, Tier.SILVER, []);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -875,7 +875,7 @@ describe("RedeemableERC20", async function () {
     );
     await Util.assertError(
       async () => await redeemableERC20.transfer(signers[2].address, 1),
-      "revert MIN_STATUS",
+      "revert MIN_TIER",
       "user could receive transfers despite not meeting minimum status"
     );
 
@@ -921,10 +921,10 @@ describe("RedeemableERC20", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
-    const minimumStatus = Status.NIL;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -937,7 +937,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -1131,10 +1131,10 @@ describe("RedeemableERC20", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
-    const minimumStatus = Status.NIL;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -1147,7 +1147,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;
@@ -1237,10 +1237,10 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
-    const minimumStatus = Status.NIL;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -1253,7 +1253,7 @@ describe("RedeemableERC20", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;

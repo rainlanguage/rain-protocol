@@ -18,9 +18,9 @@ import {
 } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 import {
-    PrestigeByConstruction
-} from "./tv-prestige/contracts/PrestigeByConstruction.sol";
-import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
+    TierByConstruction
+} from "./tv-tier/contracts/tier/TierByConstruction.sol";
+import { ITier } from "./tv-tier/contracts/tier/ITier.sol";
 
 import { Phase, Phased } from "./Phased.sol";
 
@@ -33,10 +33,10 @@ struct RedeemableERC20Config {
     string name;
     // Symbol forwarded to ERC20 constructor.
     string symbol;
-    // Prestige contract to compare statuses against on transfer.
-    IPrestige prestige;
+    // Tier contract to compare statuses against on transfer.
+    ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    IPrestige.Status minimumStatus;
+    ITier.Tier minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
 }
@@ -96,7 +96,7 @@ struct RedeemableERC20Config {
 contract RedeemableERC20 is
     AccessControl,
     Phased,
-    PrestigeByConstruction,
+    TierByConstruction,
     ERC20,
     ReentrancyGuard,
     ERC20Burnable
@@ -138,11 +138,11 @@ contract RedeemableERC20 is
 
     /// The minimum status that a user must hold to receive transfers during
     /// `Phase.ZERO`.
-    /// The prestige contract passed to `PrestigeByConstruction` determines if
+    /// The tier contract passed to `TierByConstruction` determines if
     /// the status is held during `_beforeTokenTransfer`.
     /// Not immutable because it is read during the constructor by the `_mint`
     /// call.
-    IPrestige.Status public minimumPrestigeStatus;
+    ITier.Tier public minimumTier;
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions.
@@ -152,13 +152,13 @@ contract RedeemableERC20 is
     )
         public
         ERC20(config_.name, config_.symbol)
-        PrestigeByConstruction(config_.prestige)
+        TierByConstruction(config_.tier)
     {
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
             "MINIMUM_INITIAL_SUPPLY"
         );
-        minimumPrestigeStatus = config_.minimumStatus;
+        minimumTier = config_.minimumStatus;
 
         _setupRole(DEFAULT_ADMIN_ROLE, config_.admin);
         _setupRole(RECEIVER, config_.admin);
@@ -300,7 +300,7 @@ contract RedeemableERC20 is
     }
 
     /// Apply phase sensitive transfer restrictions.
-    /// During `Phase.ZERO` only prestige requirements apply.
+    /// During `Phase.ZERO` only tier requirements apply.
     /// During `Phase.ONE` all transfers except burns are prevented.
     /// If a transfer involves either a sender or receiver with the relevant
     /// `unfreezables` state it will ignore these restrictions.
@@ -328,11 +328,11 @@ contract RedeemableERC20 is
             // The sender and receiver lists bypass all access restrictions.
             && !(hasRole(SENDER, sender_) || hasRole(RECEIVER, receiver_))) {
             // During `Phase.ZERO` transfers are only restricted by the
-            // prestige of the recipient.
+            // tier of the recipient.
             if (currentPhase() == Phase.ZERO) {
                 require(
-                    isStatus(receiver_, minimumPrestigeStatus),
-                    "MIN_STATUS"
+                    isTier(receiver_, minimumTier),
+                    "MIN_TIER"
                 );
             }
             // During `Phase.ONE` only token burns are allowed.
