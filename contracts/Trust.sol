@@ -219,6 +219,10 @@ contract Trust is ReentrancyGuard {
     address public immutable seeder;
     /// Seeder fee from the initial config.
     uint256 public immutable seederFee;
+    /// Seeder units from the initial config.
+    uint16 public immutable seederUnits;
+    /// Seeder cooldown duration from the initial config.
+    uint16 public immutable seederCooldownDuration;
     /// Minimum trading duration from the initial config.
     uint256 public immutable minimumTradingDuration;
     /// Redeem init from the initial config.
@@ -299,6 +303,8 @@ contract Trust is ReentrancyGuard {
 
         creator = config_.creator;
         seederFee = config_.seederFee;
+        seederUnits = config_.seederUnits;
+        seederCooldownDuration = config_.seederCooldownDuration;
         minimumTradingDuration = config_.minimumTradingDuration;
         redeemInit = config_.redeemInit;
         minimumCreatorRaise = config_.minimumCreatorRaise;
@@ -371,6 +377,20 @@ contract Trust is ReentrancyGuard {
             address(token.prestige()),
             address(pool.crp()),
             address(pool.crp().bPool())
+        );
+    }
+
+    /// Accessor for the `TrustConfig` of this `Trust`.
+    function getTrustConfig() external view returns(TrustConfig memory) {
+        return TrustConfig(
+            address(creator),
+            minimumCreatorRaise,
+            address(seeder),
+            seederFee,
+            seederUnits,
+            seederCooldownDuration,
+            minimumTradingDuration,
+            redeemInit
         );
     }
 
