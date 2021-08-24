@@ -26,48 +26,61 @@ contract KYC is AccessControl {
     mapping (uint256 => uint256) public approved;
     mapping (uint256 => uint256) public banned;
 
-    constructor () public {
+    constructor (address admin_) public {
+        require(admin_ != address(0), "0_ACCOUNT");
         _setRoleAdmin(APPROVER, APPROVER_ADMIN);
-        _setupRole(APPROVER_ADMIN, msg.sender);
+        _setupRole(APPROVER_ADMIN, admin_);
         _setRoleAdmin(REMOVER, REMOVER_ADMIN);
-        _setupRole(REMOVER_ADMIN, msg.sender);
+        _setupRole(REMOVER_ADMIN, admin_);
         _setRoleAdmin(BANNER, BANNER_ADMIN);
-        _setupRole(BANNER_ADMIN, msg.sender);
+        _setupRole(BANNER_ADMIN, admin_);
     }
 
-    function add(uint256 id) external {
-        require(id != 0, "0_ID");
+    function add(uint256 id_) external {
+        require(id_ != 0, "0_ID");
         require(ids[msg.sender] == 0, "SESSION_EXISTS");
-        ids[msg.sender] = id;
-        approved[id] = uint256(-1);
-        banned[id] = uint256(-1);
+        ids[msg.sender] = id_;
+        approved[id_] = uint256(-1);
+        banned[id_] = uint256(-1);
     }
 
-    function remove(address account) external {
-        require(account != address(0), "0_ACCOUNT");
+    function remove(address account_) external {
+        require(account_ != address(0), "0_ACCOUNT");
         require(hasRole(REMOVER, msg.sender), "ONLY_REMOVER");
-        require(ids[account] != 0, "REMOVED");
-        delete(approved[ids[account]]);
-        delete(banned[ids[account]]);
-        delete(ids[account]);
-        emit Remove(account);
+        require(ids[account_] != 0, "REMOVED");
+        delete(approved[ids[account_]]);
+        delete(banned[ids[account_]]);
+        delete(ids[account_]);
+        emit Remove(account_);
     }
 
-    function approve(uint256 id) external {
-        require(id != 0, "0_ID");
+    function approve(uint256 id_) external {
+        require(id_ != 0, "0_ID");
         require(hasRole(APPROVER, msg.sender), "ONLY_APPROVER");
-        require(banned[id] > block.number, "APPROVE_BLOCKED");
-        require(approved[id] > block.number, "APPROVED");
-        approved[id] = block.number;
-        emit Approve(id);
+        require(banned[id_] > block.number, "APPROVE_BLOCKED");
+        require(approved[id_] > block.number, "APPROVED");
+        approved[id_] = block.number;
+        emit Approve(id_);
     }
 
-    function ban(uint256 id) external {
-        require(id != 0, "0_ID");
+    function ban(uint256 id_) external {
+        require(id_ != 0, "0_ID");
         require(hasRole(BANNER, msg.sender), "ONLY_BANNER");
-        require(banned[id] != 0, "MISSING_ID");
-        require(banned[id] > block.number, "BANNED");
-        banned[id] = block.number;
-        emit Ban(id);
+        require(banned[id_] != 0, "MISSING_ID");
+        require(banned[id_] > block.number, "BANNED");
+        banned[id_] = block.number;
+        emit Ban(id_);
+    }
+
+    function accountApprovedSince(address account_) external view returns(uint256) {
+        if (banned[ids[account_]] < block.number) {
+            return uint256(-1);
+        }
+        else if (approved[ids[account_]] < block.number) {
+            return approved[ids[account_]];
+        }
+        else {
+            return uint256(-1);
+        }
     }
 }
