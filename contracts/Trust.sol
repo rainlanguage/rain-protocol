@@ -275,7 +275,8 @@ contract Trust is ReentrancyGuard {
     uint256 public immutable minimumTradingDuration;
     /// Redeem init from the initial config.
     uint256 public immutable redeemInit;
-
+    /// SeedERC20Factory from the initial config.
+    SeedERC20Factory public immutable seedERC20Factory;
     /// Balance of the reserve asset in the Balance pool at the moment
     /// `anonEndDistribution` is called. This must be greater than or equal to
     /// `successBalance` for the distribution to succeed.
@@ -344,6 +345,7 @@ contract Trust is ReentrancyGuard {
         minimumTradingDuration = config_.minimumTradingDuration;
         redeemInit = config_.redeemInit;
         minimumCreatorRaise = config_.minimumCreatorRaise;
+        seedERC20Factory = config_.seedERC20Factory;
         successBalance = successBalance_;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
@@ -480,6 +482,7 @@ contract Trust is ReentrancyGuard {
         return TrustConfig(
             address(creator),
             minimumCreatorRaise,
+            seedERC20Factory,
             address(seeder),
             seederFee,
             seederUnits,
