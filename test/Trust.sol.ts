@@ -1050,8 +1050,14 @@ describe("Trust", async function () {
     // using TrustConfig accessor
     const trustConfig = await trust.getTrustConfig();
 
-    assert(trustConfig.creator === creator.address, "wrong getTrustConfig creator");
-    assert(trustConfig.seeder === seeder.address, "wrong getTrustConfig seeder");
+    assert(
+      trustConfig.creator === creator.address,
+      "wrong getTrustConfig creator"
+    );
+    assert(
+      trustConfig.seeder === seeder.address,
+      "wrong getTrustConfig seeder"
+    );
     assert(
       trustConfig.minimumCreatorRaise.eq(minimumCreatorRaise),
       "wrong getTrustConfig minimum raise amount"
