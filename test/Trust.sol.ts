@@ -948,6 +948,135 @@ describe("Trust", async function () {
     );
   });
 
+  it("should allow third party to deploy trust, independently of creator and seeder, with its configuration publicly accessible", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const prestigeFactory = await ethers.getContractFactory("Prestige");
+    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const minimumStatus = Status.NIL;
+
+    const trustFactory = await ethers.getContractFactory("Trust", {
+      libraries: {
+        RightsManager: rightsManager.address,
+      },
+    });
+
+    const tokenName = "Token";
+    const tokenSymbol = "TKN";
+
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const creator = signers[0].address;
+    const seeder = signers[1].address; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederUnits = 0;
+    const seederCooldownDuration = 0;
+
+    const successLevel = redeemInit
+      .add(minimumCreatorRaise)
+      .add(seederFee)
+      .add(reserveInit);
+
+    const minimumTradingDuration = 50;
+
+    const trustFactory1 = new ethers.ContractFactory(
+      trustFactory.interface,
+      trustFactory.bytecode,
+      deployer
+    );
+
+    const trust = (await trustFactory1.deploy(
+      {
+        creator,
+        minimumCreatorRaise,
+        seeder,
+        seederFee,
+        seederUnits,
+        seederCooldownDuration,
+        minimumTradingDuration,
+        redeemInit,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        prestige: prestige.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        crpFactory: crpFactory.address,
+        balancerFactory: bFactory.address,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+      }
+    )) as Trust;
+
+    await trust.deployed();
+
+    assert((await trust.creator()) === creator, "wrong creator");
+    assert((await trust.seeder()) === seeder, "wrong seeder");
+    assert(
+      (await trust.minimumCreatorRaise()).eq(minimumCreatorRaise),
+      "wrong minimum raise amount"
+    );
+    assert((await trust.seederFee()).eq(seederFee), "wrong seeder fee");
+    assert(
+      (await trust.minimumTradingDuration()).eq(minimumTradingDuration),
+      "wrong raise duration"
+    );
+    assert((await trust.redeemInit()).eq(redeemInit), "wrong redeem init");
+    assert((await trust.seederUnits()) === seederUnits, "wrong seeder units");
+    assert(
+      (await trust.seederCooldownDuration()) === seederCooldownDuration,
+      "wrong seeder cooldown duration"
+    );
+
+    // using TrustConfig accessor
+    const trustConfig = await trust.getTrustConfig();
+
+    assert(trustConfig.creator === creator, "wrong getTrustConfig creator");
+    assert(trustConfig.seeder === seeder, "wrong getTrustConfig seeder");
+    assert(
+      trustConfig.minimumCreatorRaise.eq(minimumCreatorRaise),
+      "wrong getTrustConfig minimum raise amount"
+    );
+    assert(
+      trustConfig.seederFee.eq(seederFee),
+      "wrong getTrustConfig seeder fee"
+    );
+    assert(
+      trustConfig.minimumTradingDuration.eq(minimumTradingDuration),
+      "wrong getTrustConfig raise duration"
+    );
+    assert(
+      trustConfig.redeemInit.eq(redeemInit),
+      "wrong getTrustConfig redeem init"
+    );
+    assert(
+      trustConfig.seederUnits === seederUnits,
+      "wrong getTrustConfig seeder units"
+    );
+    assert(
+      trustConfig.seederCooldownDuration === seederCooldownDuration,
+      "wrong getTrustConfig seeder cooldown duration"
+    );
+  });
+
   it("should set correct phases for token and pool", async function () {
     this.timeout(0);
 
