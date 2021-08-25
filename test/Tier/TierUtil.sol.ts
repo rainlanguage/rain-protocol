@@ -198,12 +198,22 @@ describe("TierUtil", async function () {
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.THREE, []);
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.FOUR, []);
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.FIVE, []);
+    await readWriteTier
+      .connect(signer1)
+      .setTier(signer1.address, Tier.THREE, []);
+    await readWriteTier
+      .connect(signer1)
+      .setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier
+      .connect(signer1)
+      .setTier(signer1.address, Tier.FIVE, []);
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.SIX, []);
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.SEVEN, []);
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.EIGHT, []);
+    await readWriteTier
+      .connect(signer1)
+      .setTier(signer1.address, Tier.SEVEN, []);
+    await readWriteTier
+      .connect(signer1)
+      .setTier(signer1.address, Tier.EIGHT, []);
 
     const report = await readWriteTier.report(signer1.address);
 
@@ -237,7 +247,7 @@ describe("TierUtil", async function () {
 
     assert(
       updatedReportSetBlock.toHexString().slice(0, 24) ===
-      report.toHexString().slice(0, 24),
+        report.toHexString().slice(0, 24),
       `first section of updated report (set block) is wrong
       expected  ${report.toHexString().slice(0, 24)}
       got       ${updatedReportSetBlock.toHexString().slice(0, 24)}`
@@ -245,7 +255,7 @@ describe("TierUtil", async function () {
 
     assert(
       updatedReportSetBlock.toHexString().slice(24, 24 + 8) ===
-      "0".repeat(8 - initialBlockHex.length) + initialBlockHex,
+        "0".repeat(8 - initialBlockHex.length) + initialBlockHex,
       `set block was wrong
       expected  ${"0".repeat(8 - initialBlockHex.length) + initialBlockHex}
       got       ${updatedReportSetBlock.toHexString().slice(24, 24 + 8)}`
@@ -253,7 +263,7 @@ describe("TierUtil", async function () {
 
     assert(
       updatedReportSetBlock.toHexString().slice(24 + 8) ===
-      report.toHexString().slice(24 + 8),
+        report.toHexString().slice(24 + 8),
       `last section of updated report (set block) is wrong
       expected  ${report.toHexString().slice(24 + 8)}
       got       ${updatedReportSetBlock.toHexString().slice(24 + 8)}`

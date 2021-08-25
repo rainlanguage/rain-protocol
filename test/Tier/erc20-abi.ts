@@ -1,5 +1,4 @@
-export const erc20ABI =
-`[
+export const erc20ABI = `[
     {
         "constant": true,
         "inputs": [],
@@ -220,4 +219,4 @@ export const erc20ABI =
         "name": "Transfer",
         "type": "event"
     }
-]`
+]`;
