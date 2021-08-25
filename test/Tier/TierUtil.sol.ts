@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierUtilTest } from "../../typechain/TierUtilTest";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { assertError, basicDeploy } from "./Util";
+import { assertError, basicDeploy } from "../Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;

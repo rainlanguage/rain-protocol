@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ITier } from "../tier/ITier.sol";
-import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
+import { TierByConstructionClaim } from "../tier/claim/TierByConstructionClaim.sol";
 
 /// @title TierByConstructionClaimTest
 /// A simple example showing how TierByConstruction can be used to gate a claim on an erc20.

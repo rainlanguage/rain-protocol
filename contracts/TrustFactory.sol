@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import { ITier } from "./tv-tier/contracts/tier/ITier.sol";
+import { ITier } from "./tier/ITier.sol";
 
 import { Factory } from "./Factory.sol";
 import { Trust, TrustConfig } from "./Trust.sol";

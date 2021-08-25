@@ -3,7 +3,7 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ReadWriteTier } from '../../typechain/ReadWriteTier'
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { tierReport, blockNumbersToReport, assertError } from '../../contracts/tv-tier/utils/report'
+import { tierReport, blockNumbersToReport, assertError } from '../Util'
 
 chai.use(solidity)
 const { expect, assert } = chai

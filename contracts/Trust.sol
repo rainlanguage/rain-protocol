@@ -20,7 +20,7 @@ import {
     BFactory
 } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
-import { ITier } from "./tv-tier/contracts/tier/ITier.sol";
+import { ITier } from "./tier/ITier.sol";
 
 import { Phase } from "./Phased.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";

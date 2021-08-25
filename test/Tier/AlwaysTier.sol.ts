@@ -3,7 +3,7 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { AlwaysTier } from '../../typechain/AlwaysTier'
 import type { NeverTier } from '../../typechain/NeverTier'
-import { assertError } from '../../contracts/tv-tier/utils/report'
+import { assertError } from '../Util'
 
 chai.use(solidity)
 const { expect, assert } = chai

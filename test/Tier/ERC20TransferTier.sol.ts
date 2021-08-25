@@ -3,7 +3,7 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ERC20TransferTier } from '../../typechain/ERC20TransferTier'
 import type { ReserveTokenTest } from '../../typechain/ReserveTokenTest'
-import { assertError, basicDeploy, eighteenZeros } from './Util'
+import { assertError, basicDeploy, eighteenZeros } from '../Util'
 
 chai.use(solidity)
 const { expect, assert } = chai

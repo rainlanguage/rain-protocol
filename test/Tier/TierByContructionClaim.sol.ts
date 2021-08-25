@@ -3,7 +3,7 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import type { ReadWriteTier } from '../../typechain/ReadWriteTier'
 import type { TierByConstructionClaim } from '../../typechain/TierByConstructionClaim'
-import { assertError } from '../../contracts/tv-tier/utils/report'
+import { assertError } from '../Util'
 
 chai.use(solidity)
 const { expect, assert } = chai

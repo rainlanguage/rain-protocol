@@ -19,8 +19,8 @@ import {
 
 import {
     TierByConstruction
-} from "./tv-tier/contracts/tier/TierByConstruction.sol";
-import { ITier } from "./tv-tier/contracts/tier/ITier.sol";
+} from "./tier/TierByConstruction.sol";
+import { ITier } from "./tier/ITier.sol";
 
 import { Phase, Phased } from "./Phased.sol";
 
