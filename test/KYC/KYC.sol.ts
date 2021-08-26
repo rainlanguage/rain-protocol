@@ -21,7 +21,7 @@ const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
 let kycFactory;
 
-describe.only("KYC", async function () {
+describe("KYC", async function () {
   before(async () => {
     kycFactory = await ethers.getContractFactory("KYC");
   });
