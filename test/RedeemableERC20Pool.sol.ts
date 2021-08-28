@@ -521,7 +521,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // create a few blocks by sending some tokens around
-    while ((await ethers.provider.getBlockNumber()) < raiseEndBlock - 1) {
+    while ((await ethers.provider.getBlockNumber()) < raiseEndBlock) {
       await reserve.transfer(signers[2].address, 1);
     }
 
