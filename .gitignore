@@ -7,4 +7,5 @@ typechain
 artifacts
 build
 venv
+bin
 !dist/**/artifacts

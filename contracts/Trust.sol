@@ -143,10 +143,6 @@ struct TrustConfig {
     // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
     // but it should be called rarely.
     uint16 seederCooldownDuration;
-    // Minimum duration IN BLOCKS of the trading on Balancer.
-    // The trading does not stop until the `anonEndDistribution` function is
-    // called.
-    uint256 minimumTradingDuration;
     // The amount of reserve to back the redemption initially after trading
     // finishes. Anyone can send more of the reserve to the redemption token at
     // any time to increase redemption value. Successful the redeemInit is sent
@@ -197,6 +193,10 @@ struct TrustRedeemableERC20PoolConfig {
     // Any trading activity that net deposits reserve funds into the pool will
     // increase the spot price permanently.
     uint256 finalValuation;
+    // Minimum duration IN BLOCKS of the trading on Balancer.
+    // The trading does not stop until the `anonEndDistribution` function is
+    // called.
+    uint256 minimumTradingDuration;
 }
 
 /// @title Trust
@@ -271,8 +271,6 @@ contract Trust is ReentrancyGuard {
     uint16 public immutable seederUnits;
     /// Seeder cooldown duration from the initial config.
     uint16 public immutable seederCooldownDuration;
-    /// Minimum trading duration from the initial config.
-    uint256 public immutable minimumTradingDuration;
     /// Redeem init from the initial config.
     uint256 public immutable redeemInit;
     /// SeedERC20Factory from the initial config.
@@ -342,7 +340,6 @@ contract Trust is ReentrancyGuard {
         seederFee = config_.seederFee;
         seederUnits = config_.seederUnits;
         seederCooldownDuration = config_.seederCooldownDuration;
-        minimumTradingDuration = config_.minimumTradingDuration;
         redeemInit = config_.redeemInit;
         minimumCreatorRaise = config_.minimumCreatorRaise;
         seedERC20Factory = config_.seedERC20Factory;
@@ -368,7 +365,8 @@ contract Trust is ReentrancyGuard {
                         redeemableERC20_,
                         trustRedeemableERC20PoolConfig_.reserveInit,
                         trustRedeemableERC20PoolConfig_.initialValuation,
-                        trustRedeemableERC20PoolConfig_.finalValuation
+                        trustRedeemableERC20PoolConfig_.finalValuation,
+                        trustRedeemableERC20PoolConfig_.minimumTradingDuration
         ))));
 
         token = redeemableERC20_;
@@ -487,7 +485,6 @@ contract Trust is ReentrancyGuard {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit
         );
     }
@@ -551,15 +548,6 @@ contract Trust is ReentrancyGuard {
         }
     }
 
-    /// Anyone can start the distribution.
-    /// The requirement is that BOTH the reserve and redeemable tokens have
-    /// already been sent to the Balancer pool.
-    /// If the pool has the required funds it will set the weight curve and
-    /// start the dutch auction.
-    function anonStartDistribution() external {
-        pool.ownerStartDutchAuction(block.number + minimumTradingDuration);
-    }
-
     /// Anyone can end the distribution.
     /// The requirement is that the `minimumTradingDuration` has elapsed.
     /// If the `successBalance` is reached then the creator receives the raise
@@ -573,7 +561,8 @@ contract Trust is ReentrancyGuard {
         // Burning the distributor moves the token to its `Phase.ONE` and
         // unlocks redemptions.
         // The distributor is the `bPool` itself.
-        // Requires that the `Trust` has been granted `ONLY_DISTRIBUTOR_BURNER` role on the `redeemableERC20`.
+        // Requires that the `Trust` has been granted `ONLY_DISTRIBUTOR_BURNER`
+        // role on the `redeemableERC20`.
         token.burnDistributor(
             address(pool.crp().bPool())
         );

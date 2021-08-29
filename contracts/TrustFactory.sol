@@ -209,7 +209,6 @@ contract TrustFactory is Factory {
                 trustFactoryTrustConfig_.seederFee,
                 trustFactoryTrustConfig_.seederUnits,
                 trustFactoryTrustConfig_.seederCooldownDuration,
-                trustFactoryTrustConfig_.minimumTradingDuration,
                 trustFactoryTrustConfig_.redeemInit
             ),
             TrustRedeemableERC20Config(
@@ -225,7 +224,8 @@ contract TrustFactory is Factory {
                 trustFactoryTrustRedeemableERC20PoolConfig_.reserve,
                 trustFactoryTrustRedeemableERC20PoolConfig_.reserveInit,
                 trustFactoryTrustRedeemableERC20PoolConfig_.initialValuation,
-                trustFactoryTrustRedeemableERC20PoolConfig_.finalValuation
+                trustFactoryTrustRedeemableERC20PoolConfig_.finalValuation,
+                trustFactoryTrustConfig_.minimumTradingDuration
             )
         ));
 

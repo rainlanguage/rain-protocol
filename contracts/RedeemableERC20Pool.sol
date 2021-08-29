@@ -74,6 +74,10 @@ struct RedeemableERC20PoolConfig {
     // Any trading activity that net deposits reserve funds into the pool will
     // increase the spot price permanently.
     uint256 finalValuation;
+    // Minimum duration IN BLOCKS of the trading on Balancer.
+    // The trading does not stop until the `anonEndDistribution` function is
+    // called.
+    uint256 minimumTradingDuration;
 }
 
 /// @title RedeemableERC20Pool
@@ -110,6 +114,9 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// RedeemableERC20 token.
     RedeemableERC20 public immutable token;
 
+    /// Minimum trading duration from the initial config.
+    uint256 public immutable minimumTradingDuration;
+
     /// Reserve token.
     IERC20 public immutable reserve;
     /// Initial reserve balance of the pool.
@@ -144,6 +151,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
             config_.finalValuation
         );
         finalValuation = config_.finalValuation;
+        minimumTradingDuration = config_.minimumTradingDuration;
 
         // Build the CRP.
         // The addresses in the `RedeemableERC20Pool`, as [reserve, token].
@@ -243,20 +251,18 @@ contract RedeemableERC20Pool is Ownable, Phased {
         return weight_;
     }
 
-    /// Allow the owner to start the Balancer style dutch auction.
+    /// Allow anyone to start the Balancer style dutch auction.
+    /// The auction won't start unless this contract owns enough of both the
+    /// tokens for the pool, so it is safe for anon to call.
     /// `Phase.ZERO` indicates the auction can start.
     /// `Phase.ONE` indicates the auction has started.
     /// `Phase.TWO` indicates the auction can be ended.
     /// `Phase.THREE` indicates the auction has ended.
     /// Creates the pool via. the CRP contract and configures the weight change
     /// curve.
-    /// @param finalAuctionBlock_ The last block that weights can dynamically
-    ///        decrease.
-    function ownerStartDutchAuction(uint256 finalAuctionBlock_)
-        external
-        onlyOwner
-        onlyPhase(Phase.ZERO)
+    function startDutchAuction() external onlyPhase(Phase.ZERO)
     {
+        uint256 finalAuctionBlock_ = minimumTradingDuration + block.number;
         // Move to Phase.ONE immediately.
         scheduleNextPhase(uint32(block.number));
         // Schedule Phase.TWO for 1 block after auctions weights have stopped
