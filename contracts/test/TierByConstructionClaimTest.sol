@@ -22,7 +22,7 @@ import { TierByConstructionClaim } from "../tier/claim/TierByConstructionClaim.s
 ///
 /// The main takeaways:
 ///
-/// - Checking the prestige level is decoupled from granting it (ANY ITier set by the constructor can authorize a claim)
+/// - Checking the tier is decoupled from granting it (ANY ITier set by the constructor can authorize a claim)
 /// - Claims are time sensitive against TWO blocks, for BOTH construction and claim (NOT a snapshot)
 /// - Users pay the gas and manage their own claim/mint (NOT an airdrop)
 contract TierByConstructionClaimTest is ERC20, TierByConstructionClaim {
