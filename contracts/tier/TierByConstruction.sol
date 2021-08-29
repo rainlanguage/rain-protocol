@@ -9,8 +9,8 @@ import { ITier } from "./ITier.sol";
 /// The construction block is compared against the blocks returned by `report`.
 /// The `ITier` contract is paramaterised and set during construction.
 contract TierByConstruction {
-    ITier public immutable tierContract;
-    uint256 public immutable constructionBlock;
+    ITier public tierContract;
+    uint256 public constructionBlock;
 
     constructor(ITier tierContract_) public {
         tierContract = tierContract_;
