@@ -26,6 +26,9 @@ import { Phase, Phased } from "./Phased.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
+    // Account that will be the admin for the `RedeemableERC20` contract.
+    // Useful for factory contracts etc.
+    address admin;
     // Name forwarded to ERC20 constructor.
     string name;
     // Symbol forwarded to ERC20 constructor.
@@ -104,6 +107,8 @@ contract RedeemableERC20 is
 
     bytes32 public constant SENDER = keccak256("SENDER");
     bytes32 public constant RECEIVER = keccak256("RECEIVER");
+    bytes32 public constant DISTRIBUTOR_BURNER = keccak256("DISTRIBUTOR_BURNER");
+    bytes32 public constant REDEEMABLE_ADDER = keccak256("REDEEMABLE_ADDER");
 
     /// Redeemable token burn amount.
     event Redeem(
@@ -155,16 +160,10 @@ contract RedeemableERC20 is
         );
         minimumPrestigeStatus = config_.minimumStatus;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(RECEIVER, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, config_.admin);
+        _setupRole(RECEIVER, config_.admin);
 
-        _mint(msg.sender, config_.totalSupply);
-    }
-
-    /// Ensure that `msg.sender` has the admin role.
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "ONLY_ADMIN");
-        _;
+        _mint(config_.admin, config_.totalSupply);
     }
 
     /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
@@ -177,11 +176,14 @@ contract RedeemableERC20 is
     /// For example, Balancer needs the paired erc20 tokens to exist before the
     /// trading pool can be built.
     /// @param distributorAccount_ The distributor according to the admin.
-    function adminBurnDistributor(address distributorAccount_)
+    function burnDistributor(address distributorAccount_)
         external
-        onlyAdmin
         onlyPhase(Phase.ZERO)
     {
+        require(
+            hasRole(DISTRIBUTOR_BURNER, msg.sender),
+            "ONLY_DISTRIBUTOR_BURNER"
+        );
         scheduleNextPhase(uint32(block.number));
         _burn(distributorAccount_, balanceOf(distributorAccount_));
     }
@@ -192,7 +194,8 @@ contract RedeemableERC20 is
     /// If the admin adds a non-compliant or malicious IERC20 address then
     /// token holders can override the list with `redeemSpecific`.
     /// @param newRedeemable_ The redeemable contract address to add.
-    function adminAddRedeemable(IERC20 newRedeemable_) external onlyAdmin {
+    function addRedeemable(IERC20 newRedeemable_) external {
+        require(hasRole(REDEEMABLE_ADDER, msg.sender), "ONLY_REDEEMABLE_ADDER");
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and

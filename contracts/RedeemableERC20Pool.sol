@@ -122,12 +122,17 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// Note the spot price is unknown until the end because we don't know
     /// either of the final token balances.
     uint256 public immutable finalWeight;
+    uint256 public immutable finalValuation;
 
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
     constructor (RedeemableERC20PoolConfig memory config_) public {
         require(
             config_.reserveInit >= MIN_RESERVE_INIT,
             "RESERVE_INIT_MINIMUM"
+        );
+        require(
+            config_.initialValuation >= config_.finalValuation,
+            "MIN_INITIAL_VALUTION"
         );
 
         token = config_.token;
@@ -138,6 +143,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
             config_.reserveInit,
             config_.finalValuation
         );
+        finalValuation = config_.finalValuation;
 
         // Build the CRP.
         // The addresses in the `RedeemableERC20Pool`, as [reserve, token].

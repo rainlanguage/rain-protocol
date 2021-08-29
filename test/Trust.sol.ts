@@ -4,14 +4,12 @@ import { solidity } from "ethereum-waffle";
 import type { Trust } from "../typechain/Trust";
 import type { ReserveToken } from "../typechain/ReserveToken";
 import * as Util from "./Util";
-import { utils } from "ethers";
-import type { BigNumber } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
-import { max_uint32 } from "./Util";
+import { factoriesDeploy } from "./Util";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
-import type { SeedERC20 } from "../typechain/SeedERC20";
+import type { BPool } from "../typechain/BPool";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -56,28 +54,6 @@ enum Phase {
   EIGHT,
 }
 
-interface DistributionProgress {
-  distributionStatus: DistributionStatus;
-  distributionStartBlock: number;
-  distributionEndBlock: number;
-  poolReserveBalance: BigNumber;
-  poolTokenBalance: BigNumber;
-  reserveInit: BigNumber;
-  minimumCreatorRaise: BigNumber;
-  seederFee: BigNumber;
-  redeemInit: BigNumber;
-}
-
-interface TrustContracts {
-  reserveERC20: string;
-  redeemableERC20: string;
-  redeemableERC20Pool: string;
-  seeder: string;
-  prestige: string;
-  crp: string;
-  pool: string;
-}
-
 describe("Trust", async function () {
   it("should burn token dust when closing pool", async function () {
     this.timeout(0);
@@ -95,11 +71,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -126,13 +102,11 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactory1 = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -151,14 +125,13 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -198,7 +171,7 @@ describe("Trust", async function () {
       await crp.bPool(),
       bPoolJson.abi,
       creator
-    );
+    ) as BPool;
 
     const swapReserveForTokens = async (signer, spend) => {
       // give signer some reserve
@@ -264,11 +237,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -295,13 +268,11 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactory1 = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -320,14 +291,13 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -367,7 +337,7 @@ describe("Trust", async function () {
       await crp.bPool(),
       bPoolJson.abi,
       creator
-    );
+    ) as BPool;
 
     const swapReserveForTokens = async (signer, spend) => {
       // give signer some reserve
@@ -404,153 +374,6 @@ describe("Trust", async function () {
     await trust.anonEndDistribution();
   });
 
-  it("should include correct values when calling getContracts", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 50;
-
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
-
-    const trust = (await trustFactory1.deploy(
-      {
-        creator: creator.address,
-        minimumCreatorRaise,
-        seeder: seeder.address,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    )) as Trust;
-
-    await trust.deployed();
-
-    const getContractsDeployed: TrustContracts = await trust.getContracts();
-
-    const token = await trust.token();
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool;
-
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
-
-    assert(
-      getContractsDeployed.reserveERC20 === reserve.address,
-      `wrong reserve contract address ${getContractsDeployed.reserveERC20} ${reserve.address}`
-    );
-    assert(
-      getContractsDeployed.redeemableERC20 === token,
-      `wrong token contract address ${getContractsDeployed.redeemableERC20} ${token}`
-    );
-    assert(
-      getContractsDeployed.redeemableERC20Pool === pool.address,
-      `wrong pool contract address ${getContractsDeployed.redeemableERC20Pool} ${pool.address}`
-    );
-    assert(
-      getContractsDeployed.seeder === seeder.address,
-      `wrong seeder address ${getContractsDeployed.seeder} ${seeder.address}`
-    );
-    assert(
-      getContractsDeployed.prestige === prestige.address,
-      `wrong prestige address ${getContractsDeployed.prestige} ${prestige.address}`
-    );
-    assert(
-      getContractsDeployed.crp === crp.address,
-      `wrong configurable rights pool address ${getContractsDeployed.crp} ${crp.address}`
-    );
-    assert(
-      getContractsDeployed.pool === Util.zeroAddress,
-      `balancer pool should not be defined yet ${getContractsDeployed.pool} ${Util.zeroAddress}`
-    );
-
-    // seeder needs some cash, give enough to seeder
-    await reserve.transfer(seeder.address, reserveInit);
-
-    const reserveSeeder = new ethers.Contract(
-      reserve.address,
-      reserve.interface,
-      seeder
-    ) as ReserveToken;
-
-    // seeder must transfer funds to pool
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
-
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
-
-    let [crp2, bPool2] = await Util.poolContracts(signers, pool);
-
-    const getContractsTrading = (await trust.getContracts()) as TrustContracts;
-
-    assert(
-      getContractsTrading.pool === bPool2.address,
-      `wrong balancer pool address ${getContractsTrading.pool} ${bPool2.address}`
-    );
-  });
-
   it("should calculate weights correctly when no trading occurs", async function () {
     this.timeout(0);
 
@@ -567,11 +390,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -598,13 +421,11 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactory1 = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -623,14 +444,13 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation,
-      }
-    )) as Trust;
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -705,614 +525,6 @@ describe("Trust", async function () {
     );
   });
 
-  it("should error if totalTokenSupply is zero", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("0" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 50;
-
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
-
-    await Util.assertError(
-      async () =>
-        (await trustFactory1.deploy(
-          {
-            creator: creator.address,
-            minimumCreatorRaise,
-            seeder: seeder.address,
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            minimumTradingDuration,
-            redeemInit,
-          },
-          {
-            name: tokenName,
-            symbol: tokenSymbol,
-            prestige: prestige.address,
-            minimumStatus,
-            totalSupply: totalTokenSupply,
-          },
-          {
-            crpFactory: crpFactory.address,
-            balancerFactory: bFactory.address,
-            reserve: reserve.address,
-            reserveInit,
-            initialValuation,
-            finalValuation: successLevel,
-          }
-        )) as Trust,
-      "revert MIN_TOKEN_SUPPLY",
-      "setting totalTokenSupply to zero did not error"
-    );
-  });
-
-  it("should error if reserveInit is zero", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("0" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 50;
-
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
-
-    await Util.assertError(
-      async () =>
-        (await trustFactory1.deploy(
-          {
-            creator: creator.address,
-            minimumCreatorRaise,
-            seeder: seeder.address,
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            minimumTradingDuration,
-            redeemInit,
-          },
-          {
-            name: tokenName,
-            symbol: tokenSymbol,
-            prestige: prestige.address,
-            minimumStatus,
-            totalSupply: totalTokenSupply,
-          },
-          {
-            crpFactory: crpFactory.address,
-            balancerFactory: bFactory.address,
-            reserve: reserve.address,
-            reserveInit,
-            initialValuation,
-            finalValuation: successLevel,
-          }
-        )) as Trust,
-      "revert RESERVE_INIT_MINIMUM",
-      "setting reserveInit to zero did not error"
-    );
-  });
-
-  it("should allow redeemInit to be zero", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("0" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 50;
-
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
-
-    // a redeemInit value of zero causes division by zero in following pool calculation
-    // i.e. _tokenWeightFinal = _targetSpotFinal / redeemInit
-    (await trustFactory1.deploy(
-      {
-        creator: creator.address,
-        minimumCreatorRaise,
-        seeder: seeder.address,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    )) as Trust;
-  });
-
-  it("should include correct values when calling getDistributionProgress", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 50;
-
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
-
-    const trust = (await trustFactory1.deploy(
-      {
-        creator: creator.address,
-        minimumCreatorRaise,
-        seeder: seeder.address,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    )) as Trust;
-
-    await trust.deployed();
-
-    const distributionProgressDeployed: DistributionProgress =
-      await trust.getDistributionProgress();
-
-    assert(
-      distributionProgressDeployed.distributionStatus ===
-        DistributionStatus.PENDING,
-      `did not get correct value for DistributionProgress.distributionStatus on deploy
-      expected  ${DistributionStatus.PENDING}
-      got       ${distributionProgressDeployed.distributionStatus}
-      `
-    );
-
-    assert(
-      max_uint32.eq(distributionProgressDeployed.distributionStartBlock),
-      `did not get correct value for DistributionProgress.distributionStartBlock on deploy
-    expected  ${max_uint32}
-    got       ${distributionProgressDeployed.distributionStartBlock}
-    `
-    );
-
-    assert(
-      max_uint32.eq(distributionProgressDeployed.distributionEndBlock),
-      `did not get correct value for DistributionProgress.distributionEndBlock on deploy
-    expected  ${max_uint32}
-    got       ${distributionProgressDeployed.distributionEndBlock}
-    `
-    );
-
-    assert(
-      distributionProgressDeployed.poolReserveBalance.isZero(),
-      `did not get correct value for poolReserveBalance on deploy
-    expected  ${0}
-    got       ${distributionProgressDeployed.poolReserveBalance}
-    `
-    );
-
-    assert(
-      distributionProgressDeployed.poolTokenBalance.isZero(),
-      `did not get correct value for poolTokenBalance on deploy
-    expected  ${0}
-    got       ${distributionProgressDeployed.poolTokenBalance}
-    `
-    );
-
-    assert(
-      distributionProgressDeployed.reserveInit.eq(reserveInit),
-      `did not get correct value for reserveInit on deploy
-    expected  ${reserveInit}
-    got       ${distributionProgressDeployed.reserveInit}
-    `
-    );
-
-    assert(
-      distributionProgressDeployed.minimumCreatorRaise.eq(minimumCreatorRaise),
-      `did not get correct value for minimumCreatorRaise on deploy
-    expected  ${minimumCreatorRaise}
-    got       ${distributionProgressDeployed.minimumCreatorRaise}
-    `
-    );
-
-    assert(
-      distributionProgressDeployed.seederFee.eq(seederFee),
-      `did not get correct value for seederFee on deploy
-    expected  ${seederFee}
-    got       ${distributionProgressDeployed.seederFee}
-    `
-    );
-
-    assert(
-      distributionProgressDeployed.redeemInit.eq(redeemInit),
-      `did not get correct value for redeemInit on deploy
-    expected  ${redeemInit}
-    got       ${distributionProgressDeployed.redeemInit}
-    `
-    );
-
-    // seeder needs some cash, give enough to seeder
-    await reserve.transfer(seeder.address, reserveInit);
-
-    const reserveSeeder = new ethers.Contract(
-      reserve.address,
-      reserve.interface,
-      seeder
-    ) as ReserveToken;
-
-    // seeder must transfer funds to pool
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
-
-    const raiseProgressSeeded: DistributionProgress =
-      await trust.getDistributionProgress();
-
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool;
-
-    assert(
-      raiseProgressSeeded.distributionStatus === DistributionStatus.SEEDED,
-      `did not get correct value for DistributionProgress.distributionStatus on seeding pool
-    expected  ${DistributionStatus.SEEDED}
-    got       ${raiseProgressSeeded.distributionStatus}
-    `
-    );
-
-    assert(
-      max_uint32.eq(distributionProgressDeployed.distributionStartBlock),
-      `did not get correct value for DistributionProgress.distributionStartBlock on seeding pool
-    expected  ${max_uint32}
-    got       ${distributionProgressDeployed.distributionStartBlock}
-    `
-    );
-
-    assert(
-      max_uint32.eq(distributionProgressDeployed.distributionEndBlock),
-      `did not get correct value for DistributionProgress.distributionEndBlock on seeding pool
-    expected  ${max_uint32}
-    got       ${distributionProgressDeployed.distributionEndBlock}
-    `
-    );
-
-    // poolReserveBalance is actually the bPool balance, but bPool doesn't exist
-    // since raise hasn't started yet, this value is actually zero
-    assert(raiseProgressSeeded.poolReserveBalance.isZero());
-
-    assert(
-      raiseProgressSeeded.poolTokenBalance.isZero(),
-      `did not get correct value for poolTokenBalance on seeding pool
-    expected  ${0} (token not constructed yet)
-    got       ${raiseProgressSeeded.poolTokenBalance}
-    `
-    );
-
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
-
-    const distributionProgressTrading: DistributionProgress =
-      await trust.getDistributionProgress();
-
-    const distributionStartBlock = await ethers.provider.getBlockNumber();
-    const distributionEndBlock =
-      distributionStartBlock + minimumTradingDuration + 1;
-
-    const token = new ethers.Contract(
-      await trust.token(),
-      redeemableTokenJson.abi,
-      creator
-    ) as RedeemableERC20;
-
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
-
-    assert(
-      distributionProgressTrading.distributionStatus ===
-        DistributionStatus.TRADING,
-      `did not get correct value for DistributionProgress.distributionStatus on starting raise
-    expected  ${DistributionStatus.TRADING}
-    got       ${distributionProgressTrading.distributionStatus}
-    `
-    );
-
-    assert(
-      distributionStartBlock ===
-        distributionProgressTrading.distributionStartBlock,
-      `did not get correct value for DistributionProgress.distributionStartBlock on starting raise
-    expected  ${distributionStartBlock}
-    got       ${distributionProgressTrading.distributionStartBlock}
-    `
-    );
-
-    assert(
-      distributionEndBlock === distributionProgressTrading.distributionEndBlock,
-      `did not get correct value for DistributionProgress.distributionEndBlock on starting raise
-    expected  ${distributionEndBlock}
-    got       ${distributionProgressTrading.distributionEndBlock}
-    `
-    );
-
-    assert(
-      distributionProgressTrading.poolReserveBalance.eq(reserveInit),
-      `did not get correct value for poolReserveBalance on starting raise
-    expected  ${reserveInit}
-    got       ${distributionProgressTrading.poolReserveBalance}
-    `
-    );
-
-    assert(
-      distributionProgressTrading.poolTokenBalance.eq(
-        await token.balanceOf(bPool.address)
-      ),
-      `did not get correct value for poolTokenBalance on starting raise
-    expected    ${await token.balanceOf(bPool.address)}
-    got         ${distributionProgressTrading.poolTokenBalance}
-    `
-    );
-    assert(distributionProgressTrading.poolTokenBalance.eq(totalTokenSupply));
-
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
-
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await reserveSigner.approve(bPool.address, spend);
-      await crpSigner.pokeWeights();
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        token.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
-    };
-
-    const spend = ethers.BigNumber.from("10" + Util.sixZeros);
-
-    await swapReserveForTokens(signer1, spend);
-
-    const distributionProgressSwap: DistributionProgress =
-      await trust.getDistributionProgress();
-
-    assert(
-      distributionProgressSwap.distributionStatus ===
-        DistributionStatus.TRADING,
-      `did not get correct value for DistributionProgress.distributionStatus after a swap
-    expected  ${DistributionStatus.TRADING}
-    got       ${distributionProgressSwap.distributionStatus}
-    `
-    );
-
-    assert(
-      distributionStartBlock ===
-        distributionProgressSwap.distributionStartBlock,
-      `did not get correct value for DistributionProgress.distributionStartBlock after a swap
-    expected  ${distributionStartBlock}
-    got       ${distributionProgressSwap.distributionStartBlock}
-    `
-    );
-
-    assert(
-      distributionEndBlock === distributionProgressSwap.distributionEndBlock,
-      `did not get correct value for DistributionProgress.distributionEndBlock after a swap
-    expected  ${distributionEndBlock}
-    got       ${distributionProgressSwap.distributionEndBlock}
-    `
-    );
-
-    assert(
-      distributionProgressSwap.poolReserveBalance.eq(reserveInit.add(spend)),
-      `did not get correct value for poolReserveBalance after a swap
-    expected  ${reserveInit.add(spend)}
-    got       ${distributionProgressSwap.poolReserveBalance}
-    `
-    );
-
-    assert(
-      distributionProgressSwap.poolTokenBalance.eq(
-        await token.balanceOf(bPool.address)
-      ),
-      `did not get correct value for poolTokenBalance after a swap
-    expected    ${await token.balanceOf(bPool.address)}
-    got         ${distributionProgressSwap.poolTokenBalance}
-    `
-    );
-    assert(distributionProgressSwap.poolTokenBalance.lt(totalTokenSupply));
-  });
-
   it("should succeed if minimum raise hit exactly (i.e. dust left in pool doesn't cause issues)", async function () {
     this.timeout(0);
 
@@ -1329,11 +541,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1360,13 +572,11 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactory1 = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -1385,14 +595,13 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -1489,96 +698,6 @@ describe("Trust", async function () {
     );
   });
 
-  it("should return raise success balance", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const creator = signers[0].address;
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 50;
-
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
-
-    const trust = (await trustFactory1.deploy(
-      {
-        creator,
-        minimumCreatorRaise,
-        seeder,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    )) as Trust;
-
-    await trust.deployed();
-
-    const successBalance = await trust.successBalance();
-
-    assert(
-      successLevel.eq(successBalance),
-      `wrong success balance
-    expected  ${successBalance}
-    got       ${successBalance}`
-    );
-  });
-
   it("should set next phase when raise end has been triggered", async function () {
     this.timeout(0);
 
@@ -1595,11 +714,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1609,8 +728,8 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const creator = signers[0].address;
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -1623,17 +742,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactory1 = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator,
+        creator: creator.address,
         minimumCreatorRaise,
-        seeder,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -1648,21 +765,20 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20;
 
     assert(
@@ -1671,7 +787,7 @@ describe("Trust", async function () {
     );
 
     // seeder needs some cash, give enough to seeder
-    await reserve.transfer(seeder, reserveInit);
+    await reserve.transfer(seeder.address, reserveInit);
 
     const reserveSeeder = new ethers.Contract(
       reserve.address,
@@ -1727,11 +843,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1741,8 +857,8 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const creator = signers[0].address;
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -1755,17 +871,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactory1 = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator,
+        creator: creator.address,
         minimumCreatorRaise,
-        seeder,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -1780,21 +894,20 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20Pool;
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
@@ -1804,7 +917,7 @@ describe("Trust", async function () {
     );
 
     // seeder needs some cash, give enough to seeder
-    await reserve.transfer(seeder, reserveInit);
+    await reserve.transfer(seeder.address, reserveInit);
 
     const reserveSeeder = new ethers.Contract(
       reserve.address,
@@ -1820,7 +933,7 @@ describe("Trust", async function () {
     let [crp2, bPool2] = await Util.poolContracts(signers, pool);
 
     assert(
-      (await reserve.balanceOf(seeder)).isZero(),
+      (await reserve.balanceOf(seeder.address)).isZero(),
       "seeder did not transfer reserve init during raise start"
     );
 
@@ -1851,11 +964,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1865,8 +978,8 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const creator = signers[0].address;
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -1879,17 +992,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactory1 = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator,
+        creator: creator.address,
         minimumCreatorRaise,
-        seeder,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -1904,19 +1015,18 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
-    assert((await trust.creator()) === creator, "wrong creator");
-    assert((await trust.seeder()) === seeder, "wrong seeder");
+    assert((await trust.creator()) === creator.address, "wrong creator");
+    assert((await trust.seeder()) === seeder.address, "wrong seeder");
     assert(
       (await trust.minimumCreatorRaise()).eq(minimumCreatorRaise),
       "wrong minimum raise amount"
@@ -1932,12 +1042,22 @@ describe("Trust", async function () {
       (await trust.seederCooldownDuration()) === seederCooldownDuration,
       "wrong seeder cooldown duration"
     );
+    assert(
+      ethers.utils.isAddress(await trust.seedERC20Factory()),
+      `seedERC20Factory address was wrong, got ${await trust.seedERC20Factory()}`
+    );
 
     // using TrustConfig accessor
     const trustConfig = await trust.getTrustConfig();
 
-    assert(trustConfig.creator === creator, "wrong getTrustConfig creator");
-    assert(trustConfig.seeder === seeder, "wrong getTrustConfig seeder");
+    assert(
+      trustConfig.creator === creator.address,
+      "wrong getTrustConfig creator"
+    );
+    assert(
+      trustConfig.seeder === seeder.address,
+      "wrong getTrustConfig seeder"
+    );
     assert(
       trustConfig.minimumCreatorRaise.eq(minimumCreatorRaise),
       "wrong getTrustConfig minimum raise amount"
@@ -1962,6 +1082,10 @@ describe("Trust", async function () {
       trustConfig.seederCooldownDuration === seederCooldownDuration,
       "wrong getTrustConfig seeder cooldown duration"
     );
+    assert(
+      ethers.utils.isAddress(trustConfig.seedERC20Factory),
+      `seedERC20Factory address was wrong, got ${trustConfig.seedERC20Factory}`
+    );
   });
 
   it("should set correct phases for token and pool", async function () {
@@ -1980,11 +1104,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1994,8 +1118,9 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const creator = signers[0].address;
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // seeder is not creator/owner
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -2007,11 +1132,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -2026,31 +1155,32 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20Pool;
 
     // seeder needs some cash, give enough to seeder
-    await reserve.transfer(seeder, reserveInit);
-    const seederStartingReserveBalance = await reserve.balanceOf(seeder);
+    await reserve.transfer(seeder.address, reserveInit);
+    const seederStartingReserveBalance = await reserve.balanceOf(
+      seeder.address
+    );
 
     assert(
       seederStartingReserveBalance.eq(reserveInit),
@@ -2152,11 +1282,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2168,7 +1298,9 @@ describe("Trust", async function () {
     );
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100");
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -2180,11 +1312,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -2199,20 +1335,19 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     // seeder needs some cash, give some (0.5 billion USD) to seeder
     await reserve.transfer(
-      seeder,
+      seeder.address,
       (await reserve.balanceOf(signers[0].address)).div(2)
     );
 
@@ -2230,7 +1365,7 @@ describe("Trust", async function () {
       trust.address,
       trustJson.abi,
       signers[2]
-    );
+    ) as Trust;
 
     await Util.assertError(
       async () => await trust2.anonStartDistribution({ gasLimit: 100000000 }),
@@ -2241,6 +1376,7 @@ describe("Trust", async function () {
     // seeder approves sufficient reserve liquidity
     await reserveSeeder.transfer(await trust.pool(), 1);
 
+    // anyone can start distribution
     await trust2.anonStartDistribution({ gasLimit: 100000000 });
   });
 
@@ -2260,11 +1396,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2276,7 +1412,9 @@ describe("Trust", async function () {
     );
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100");
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -2288,11 +1426,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -2307,20 +1449,19 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     // seeder needs some cash, give some (0.5 billion USD) to seeder
     await reserve.transfer(
-      seeder,
+      seeder.address,
       (await reserve.balanceOf(signers[0].address)).div(2)
     );
 
@@ -2351,276 +1492,6 @@ describe("Trust", async function () {
       async () => await trust2.anonEndDistribution(),
       "revert BAD_PHASE",
       "other user ended raise before pool trading ended"
-    );
-  });
-
-  it("should configure prestige correctly", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.GOLD;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from(
-      "100000" + Util.eighteenZeros
-    );
-    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100");
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 10;
-
-    const trust = (await trustFactory.deploy(
-      {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    )) as Trust;
-
-    await trust.deployed();
-
-    // const token = new ethers.Contract(await trust.token(), redeemableTokenJson.abi, signers[0]) as RedeemableERC20
-
-    // assert(
-    //   (await token.minimumPrestigeStatus()) === minimumStatus,
-    //   "wrong prestige level set on token"
-    // )
-  });
-
-  it("should mint the correct amount of tokens on construction", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from(
-      "100000" + Util.eighteenZeros
-    );
-    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100");
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 10;
-
-    const trust = (await trustFactory.deploy(
-      {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    )) as Trust;
-
-    await trust.deployed();
-
-    const token = new ethers.Contract(
-      await trust.token(),
-      redeemableTokenJson.abi,
-      signers[0]
-    ) as RedeemableERC20;
-
-    assert(
-      (await token.totalSupply()).eq(totalTokenSupply),
-      "wrong amount of tokens minted"
-    );
-  });
-
-  it("should set reserve asset as first redeemable asset on token construction", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-    const reserve2 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from(
-      "100000" + Util.eighteenZeros
-    );
-    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100");
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 10;
-
-    const trust = (await trustFactory.deploy(
-      {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    )) as Trust;
-
-    await trust.deployed();
-
-    const token = new ethers.Contract(
-      await trust.token(),
-      redeemableTokenJson.abi,
-      signers[0]
-    ) as RedeemableERC20;
-
-    assert(
-      (await token.getRedeemables())[0] === reserve.address,
-      "reserve asset not set as first redeemable"
-    );
-
-    await trust.creatorAddRedeemable(reserve2.address);
-
-    assert(
-      (await token.getRedeemables())[0] === reserve.address,
-      "reserve asset no longer first redeemable, after adding 2nd redeemable"
-    );
-
-    assert(
-      (await token.getRedeemables())[1] === reserve2.address,
-      "2nd redeemable was not reserve 2 which was added after reserve 1"
     );
   });
 
@@ -2672,11 +1543,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2688,7 +1559,11 @@ describe("Trust", async function () {
     );
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100");
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
+    const signer1 = signers[3];
+    const signer2 = signers[4];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -2700,11 +1575,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -2719,73 +1598,49 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
-
-    // creator can add redeemable via proxy method on trust contract
-    await trust.creatorAddRedeemable(reserve2.address);
-
-    const trust2 = new ethers.Contract(
-      trust.address,
-      trustJson.abi,
-      signers[2]
-    );
-
-    // non-creator cannot add redeemable
-    await Util.assertError(
-      async () => await trust2.creatorAddRedeemable(reserve3.address),
-      "revert NOT_CREATOR",
-      "non-creator added redeemable"
-    );
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[0]
-    ) as RedeemableERC20;
-    const token2 = new ethers.Contract(
-      await trust.token(),
-      redeemableTokenJson.abi,
-      signers[2]
+      creator
     ) as RedeemableERC20;
 
-    // cannot add redeemables directly to token when trust is owner
+    // creator can add redeemable via proxy method on trust contract
+    await token.addRedeemable(reserve2.address);
+
+    // non-creator cannot add redeemable
     await Util.assertError(
-      async () => await token.adminAddRedeemable(reserve3.address),
-      "revert ONLY_ADMIN",
-      "creator added redeemable directly to token when trust was owner"
-    );
-    await Util.assertError(
-      async () => await token2.adminAddRedeemable(reserve3.address),
-      "revert ONLY_ADMIN",
-      "non-creator added redeemable directly to token when trust was owner"
+      async () => await token.connect(signer1).addRedeemable(reserve3.address),
+      "revert ONLY_REDEEMABLE_ADDER",
+      "non-creator added redeemable"
     );
 
     // adding same redeemable should revert
     await Util.assertError(
-      async () => await trust.creatorAddRedeemable(reserve2.address),
+      async () => await token.addRedeemable(reserve2.address),
       "revert DUPLICATE_REDEEMABLE",
       "added redeemable that was previously added"
     );
 
     // can add up to 8 redeemables
-    await trust.creatorAddRedeemable(reserve3.address);
-    await trust.creatorAddRedeemable(reserve4.address);
-    await trust.creatorAddRedeemable(reserve5.address);
-    await trust.creatorAddRedeemable(reserve6.address);
-    await trust.creatorAddRedeemable(reserve7.address);
-    await trust.creatorAddRedeemable(reserve8.address);
+    await token.addRedeemable(reserve3.address);
+    await token.addRedeemable(reserve4.address);
+    await token.addRedeemable(reserve5.address);
+    await token.addRedeemable(reserve6.address);
+    await token.addRedeemable(reserve7.address);
+    await token.addRedeemable(reserve8.address);
 
     await Util.assertError(
-      async () => await trust.creatorAddRedeemable(reserve9.address),
+      async () => await token.addRedeemable(reserve9.address),
       "revert MAX_REDEEMABLES",
       "number of added redeemables exceeds limit of 8"
     );
@@ -2807,11 +1662,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2823,7 +1678,9 @@ describe("Trust", async function () {
     );
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100");
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -2835,11 +1692,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -2854,27 +1715,26 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20;
 
-    // token admin is correct
+    // the trust renounces the admin role after deploying the redeemable token.
     assert(
-      await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), trust.address),
-      "token admin is not correct"
+      !(await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), trust.address)),
+      "trust did not renounce admin role"
     );
 
     // creator cannot add unfreezable
@@ -2916,11 +1776,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2930,7 +1790,9 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -2942,11 +1804,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -2961,20 +1827,19 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     // seeder needs some cash, give some (0.5 billion USD) to seeder
     await reserve.transfer(
-      seeder,
+      seeder.address,
       (await reserve.balanceOf(signers[0].address)).div(2)
     );
 
@@ -3008,86 +1873,11 @@ describe("Trust", async function () {
     );
   });
 
-  it("should not initialize without seeder", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 10;
-
-    const trustPromise = trustFactory.deploy(
-      {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    ) as Promise<Trust>;
-
-    await Util.assertError(
-      async () => (await trustPromise) as Trust,
-      "Error: invalid ENS name",
-      "initialized without seeder"
-    );
-  });
-
   it("should transfer correct value to all stakeholders after successful raise", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
+
     const signer1 = signers[2];
     const signer2 = signers[3];
 
@@ -3102,11 +1892,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3116,8 +1906,9 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const creator = signers[0].address;
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -3129,11 +1920,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -3148,20 +1943,21 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     // seeder needs some cash, give enough to seeder
-    await reserve.transfer(seeder, reserveInit);
-    const seederStartingReserveBalance = await reserve.balanceOf(seeder);
+    await reserve.transfer(seeder.address, reserveInit);
+    const seederStartingReserveBalance = await reserve.balanceOf(
+      seeder.address
+    );
 
     assert(
       seederStartingReserveBalance.eq(reserveInit),
@@ -3187,20 +1983,22 @@ describe("Trust", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const creatorStartingReserveBalance = await reserve.balanceOf(creator);
+    const creatorStartingReserveBalance = await reserve.balanceOf(
+      creator.address
+    );
 
     // BEGIN: users hit the minimum raise
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20;
 
     const trustPool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20Pool;
     const reserve1 = reserve.connect(signer1);
 
@@ -3272,7 +2070,7 @@ describe("Trust", async function () {
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20Pool;
 
     const balancerPoolReserveBalance = await reserve.balanceOf(
@@ -3284,7 +2082,9 @@ describe("Trust", async function () {
       `got zero reserve balance for pool/trust ${await bPool.address}`
     );
 
-    const seederReserveBalanceBeforeEndRaise = await reserve.balanceOf(seeder);
+    const seederReserveBalanceBeforeEndRaise = await reserve.balanceOf(
+      seeder.address
+    );
 
     const finalBalance = await reserve.balanceOf(bPool.address);
     const tokenPay = redeemInit;
@@ -3295,7 +2095,9 @@ describe("Trust", async function () {
     const availableBalance = finalBalance.sub(poolDust);
     const seederPay = reserveInit.add(seederFee).sub(poolDust);
 
-    const creatorEndingReserveBalance = await reserve.balanceOf(creator);
+    const creatorEndingReserveBalance = await reserve.balanceOf(
+      creator.address
+    );
     const expectedCreatorEndingReserveBalance = creatorStartingReserveBalance
       .add(availableBalance)
       .sub(seederPay.add(tokenPay))
@@ -3321,7 +2123,7 @@ describe("Trust", async function () {
 
     // creator has no tokens
     assert(
-      (await token.balanceOf(creator)).eq(0),
+      (await token.balanceOf(creator.address)).eq(0),
       "creator wrongly given tokens"
     );
 
@@ -3332,7 +2134,7 @@ describe("Trust", async function () {
       .add(reserveInit)
       .add(seederFee)
       .sub(poolDust);
-    const seederEndActual = await reserve.balanceOf(seeder);
+    const seederEndActual = await reserve.balanceOf(seeder.address);
 
     assert(
       seederEndActual.eq(seederEndExpected),
@@ -3343,7 +2145,7 @@ describe("Trust", async function () {
     );
 
     assert(
-      (await token.balanceOf(seeder)).eq(0),
+      (await token.balanceOf(seeder.address)).eq(0),
       "seeder wrongly given tokens"
     );
 
@@ -3390,8 +2192,8 @@ describe("Trust", async function () {
       balanceOf pool      ${await token.balanceOf(pool.address)}
       balanceOf bPool     ${await token.balanceOf(bPool.address)}
       balanceOf trust     ${await token.balanceOf(trust.address)}
-      balanceOf creator   ${await token.balanceOf(creator)}
-      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf creator   ${await token.balanceOf(creator.address)}
+      balanceOf seeder    ${await token.balanceOf(seeder.address)}
       balanceOf signer 1  ${signer1EndingTokenBalance}
       balanceOf signer 2  ${signer2EndingTokenBalance}
       `
@@ -3425,8 +2227,8 @@ describe("Trust", async function () {
       balanceOf pool      ${await token.balanceOf(pool.address)}
       balanceOf bPool     ${await token.balanceOf(bPool.address)}
       balanceOf trust     ${await token.balanceOf(trust.address)}
-      balanceOf creator   ${await token.balanceOf(creator)}
-      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf creator   ${await token.balanceOf(creator.address)}
+      balanceOf seeder    ${await token.balanceOf(seeder.address)}
       balanceOf signer 1  ${await token.balanceOf(signer1.address)}
       balanceOf signer 2  ${await token.balanceOf(signer2.address)}
       `
@@ -3449,8 +2251,8 @@ describe("Trust", async function () {
       balanceOf pool      ${await token.balanceOf(pool.address)}
       balanceOf bPool     ${await token.balanceOf(bPool.address)}
       balanceOf trust     ${await token.balanceOf(trust.address)}
-      balanceOf creator   ${await token.balanceOf(creator)}
-      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf creator   ${await token.balanceOf(creator.address)}
+      balanceOf seeder    ${await token.balanceOf(seeder.address)}
       balanceOf signer 1  ${await token.balanceOf(signer1.address)}
       balanceOf signer 2  ${await token.balanceOf(signer2.address)}
       `
@@ -3461,6 +2263,7 @@ describe("Trust", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
+
     const signer1 = signers[2];
     const signer2 = signers[3];
 
@@ -3475,11 +2278,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3489,8 +2292,9 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("10000" + Util.sixZeros);
-    const creator = signers[0].address;
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -3502,11 +2306,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -3521,20 +2329,21 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     // seeder needs some cash, give enough to seeder
-    await reserve.transfer(seeder, reserveInit);
-    const seederStartingReserveBalance = await reserve.balanceOf(seeder);
+    await reserve.transfer(seeder.address, reserveInit);
+    const seederStartingReserveBalance = await reserve.balanceOf(
+      seeder.address
+    );
 
     const reserveSeeder = new ethers.Contract(
       reserve.address,
@@ -3555,20 +2364,22 @@ describe("Trust", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const creatorStartingReserveBalance = await reserve.balanceOf(creator);
+    const creatorStartingReserveBalance = await reserve.balanceOf(
+      creator.address
+    );
 
     // BEGIN: users FAIL to hit the minimum raise
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20;
 
     const trustPool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20Pool;
 
     let [crp, bPool] = await Util.poolContracts(signers, trustPool);
@@ -3637,7 +2448,7 @@ describe("Trust", async function () {
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20Pool;
 
     const finalBalance = await reserve.balanceOf(await bPool.address);
@@ -3657,7 +2468,9 @@ describe("Trust", async function () {
 
     await trust.anonEndDistribution();
 
-    const creatorEndingReserveBalance = await reserve.balanceOf(creator);
+    const creatorEndingReserveBalance = await reserve.balanceOf(
+      creator.address
+    );
 
     // Creator has correct final balance
 
@@ -3687,7 +2500,7 @@ describe("Trust", async function () {
 
     const poolDust = await reserve.balanceOf(bPool.address);
     const seederEndExpected = seederStartingReserveBalance.sub(poolDust);
-    const seederEndActual = await reserve.balanceOf(seeder);
+    const seederEndActual = await reserve.balanceOf(seeder.address);
 
     assert(
       seederEndActual.eq(seederEndExpected),
@@ -3746,8 +2559,8 @@ describe("Trust", async function () {
       balanceOf pool      ${await token.balanceOf(pool.address)}
       balanceOf bPool     ${await token.balanceOf(bPool.address)}
       balanceOf trust     ${await token.balanceOf(trust.address)}
-      balanceOf creator   ${await token.balanceOf(creator)}
-      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf creator   ${await token.balanceOf(creator.address)}
+      balanceOf seeder    ${await token.balanceOf(seeder.address)}
       balanceOf signer 1  ${signer1EndingTokenBalance}
       balanceOf signer 2  ${signer2EndingTokenBalance}
       `
@@ -3781,8 +2594,8 @@ describe("Trust", async function () {
       balanceOf pool      ${await token.balanceOf(pool.address)}
       balanceOf bPool     ${await token.balanceOf(bPool.address)}
       balanceOf trust     ${await token.balanceOf(trust.address)}
-      balanceOf creator   ${await token.balanceOf(creator)}
-      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf creator   ${await token.balanceOf(creator.address)}
+      balanceOf seeder    ${await token.balanceOf(seeder.address)}
       balanceOf signer 1  ${await token.balanceOf(signer1.address)}
       balanceOf signer 2  ${await token.balanceOf(signer2.address)}
       `
@@ -3805,8 +2618,8 @@ describe("Trust", async function () {
       balanceOf pool      ${await token.balanceOf(pool.address)}
       balanceOf bPool     ${await token.balanceOf(bPool.address)}
       balanceOf trust     ${await token.balanceOf(trust.address)}
-      balanceOf creator   ${await token.balanceOf(creator)}
-      balanceOf seeder    ${await token.balanceOf(seeder)}
+      balanceOf creator   ${await token.balanceOf(creator.address)}
+      balanceOf seeder    ${await token.balanceOf(seeder.address)}
       balanceOf signer 1  ${await token.balanceOf(signer1.address)}
       balanceOf signer 2  ${await token.balanceOf(signer2.address)}
       `
@@ -3829,11 +2642,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3843,7 +2656,9 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
@@ -3855,11 +2670,15 @@ describe("Trust", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -3874,27 +2693,29 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     // seeder needs some cash, give everything (1 billion USD) to seeder
-    await reserve.transfer(seeder, await reserve.balanceOf(signers[0].address));
+    await reserve.transfer(
+      seeder.address,
+      await reserve.balanceOf(signers[0].address)
+    );
 
     const reserveSeeder = new ethers.Contract(
       reserve.address,
       reserve.interface,
-      signers[1]
+      seeder
     ) as ReserveToken;
 
-    const seederReserveBeforeStart = await reserve.balanceOf(seeder);
+    const seederReserveBeforeStart = await reserve.balanceOf(seeder.address);
 
     await Util.assertError(
       async () => await trust.anonStartDistribution({ gasLimit: 100000000 }),
@@ -3907,357 +2728,11 @@ describe("Trust", async function () {
 
     await trust.anonStartDistribution({ gasLimit: 100000000 });
 
-    const seederReserveAfterStart = await reserve.balanceOf(seeder);
+    const seederReserveAfterStart = await reserve.balanceOf(seeder.address);
 
     assert(
       seederReserveBeforeStart.sub(seederReserveAfterStart).eq(reserveInit),
       `wrong reserve amount moved to pool ${seederReserveBeforeStart} ${seederReserveAfterStart}`
-    );
-  });
-
-  it("should create a token and immediately send all supply to the pool", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 10;
-
-    const trust = (await trustFactory.deploy(
-      {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      }
-    )) as Trust;
-
-    await trust.deployed();
-
-    const redeemableERC20 = new ethers.Contract(
-      await trust.token(),
-      redeemableTokenJson.abi,
-      signers[0]
-    );
-
-    assert((await redeemableERC20.balanceOf(trust.address)).eq(0));
-    assert(
-      (await redeemableERC20.balanceOf(await trust.pool())).eq(totalTokenSupply)
-    );
-  });
-
-  it("should enforce final valuation greater than fundraise success", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 10;
-
-    await Util.assertError(
-      async () =>
-        (await trustFactory.deploy(
-          {
-            creator: signers[0].address,
-            minimumCreatorRaise: minimumCreatorRaise,
-            seeder,
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            minimumTradingDuration,
-            redeemInit,
-          },
-          {
-            name: tokenName,
-            symbol: tokenSymbol,
-            prestige: prestige.address,
-            minimumStatus,
-            totalSupply: totalTokenSupply,
-          },
-          {
-            crpFactory: crpFactory.address,
-            balancerFactory: bFactory.address,
-            reserve: reserve.address,
-            reserveInit,
-            initialValuation,
-            finalValuation: successLevel.sub(1),
-          }
-        )) as Trust,
-      "revert MIN_FINAL_VALUATION",
-      "did not enforce restriction that final valuation larger than success level"
-    );
-  });
-
-  it("should enforce minted tokens to be greater than liquidity", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const minimumTradingDuration = 10;
-
-    await Util.assertError(
-      async () =>
-        (await trustFactory.deploy(
-          {
-            creator: signers[0].address,
-            minimumCreatorRaise: minimumCreatorRaise,
-            seeder,
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            minimumTradingDuration,
-            redeemInit,
-          },
-          {
-            name: tokenName,
-            symbol: tokenSymbol,
-            prestige: prestige.address,
-            minimumStatus,
-            totalSupply: totalTokenSupply,
-          },
-          {
-            crpFactory: crpFactory.address,
-            balancerFactory: bFactory.address,
-            reserve: reserve.address,
-            reserveInit: totalTokenSupply.add(1),
-            initialValuation,
-            finalValuation: redeemInit
-              .add(minimumCreatorRaise)
-              .add(seederFee)
-              .add(reserveInit),
-          }
-        )) as Trust,
-      "revert MIN_TOKEN_SUPPLY",
-      "did not enforce restriction that minted tokens be greater than liquidity"
-    );
-  });
-
-  it("should enforce initial valuation to be higher than final valuation", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seeder = signers[1].address; // seeder is not creator/owner
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const minimumTradingDuration = 10;
-
-    await Util.assertError(
-      async () =>
-        (await trustFactory.deploy(
-          {
-            creator: signers[0].address,
-            minimumCreatorRaise: minimumCreatorRaise,
-            seeder,
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            minimumTradingDuration,
-            redeemInit,
-          },
-          {
-            name: tokenName,
-            symbol: tokenSymbol,
-            prestige: prestige.address,
-            minimumStatus,
-            totalSupply: totalTokenSupply,
-          },
-          {
-            crpFactory: crpFactory.address,
-            balancerFactory: bFactory.address,
-            reserve: reserve.address,
-            reserveInit,
-            initialValuation,
-            // finalValuation: redeemInit.add(minimumCreatorRaise).add(seederFee),
-            finalValuation: initialValuation.add(1),
-          }
-        )) as Trust,
-      "revert MIN_INITIAL_VALUTION",
-      "did not enforce valuation difference restriction (example 1)"
-    );
-
-    await Util.assertError(
-      async () =>
-        (await trustFactory.deploy(
-          {
-            creator: signers[0].address,
-            minimumCreatorRaise: minimumCreatorRaise,
-            seeder,
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            minimumTradingDuration,
-            redeemInit,
-          },
-          {
-            name: tokenName,
-            symbol: tokenSymbol,
-            prestige: prestige.address,
-            minimumStatus,
-            totalSupply: totalTokenSupply,
-          },
-          {
-            crpFactory: crpFactory.address,
-            balancerFactory: bFactory.address,
-            reserve: reserve.address,
-            reserveInit,
-            initialValuation: redeemInit
-              .add(minimumCreatorRaise)
-              .add(seederFee)
-              .add(reserveInit)
-              .sub(1),
-            finalValuation: redeemInit
-              .add(minimumCreatorRaise)
-              .add(seederFee)
-              .add(reserveInit),
-          }
-        )) as Trust,
-      "revert MIN_INITIAL_VALUTION",
-      "did not enforce valuation difference restriction (example 2)"
     );
   });
 
@@ -4277,11 +2752,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4291,18 +2766,30 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seeder = signers[1].address; // seeder is not creator/owner
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
+    const signer1 = signers[3];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
+    const successLevel = reserveInit
+      .add(seederFee)
+      .add(redeemInit)
+      .add(minimumCreatorRaise);
+
     const minimumTradingDuration = 10;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -4317,30 +2804,26 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation: redeemInit
-          .add(minimumCreatorRaise)
-          .add(seederFee)
-          .add(reserveInit),
-      }
-    )) as Trust;
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
     // seeder needs some cash, give everything (1 billion USD) to seeder
     await reserve.transfer(
-      signers[1].address,
+      seeder.address,
       await reserve.balanceOf(signers[0].address)
     );
 
     const reserveSeeder = new ethers.Contract(
       reserve.address,
       reserve.interface,
-      signers[1]
+      seeder
     ) as ReserveToken;
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
@@ -4353,7 +2836,7 @@ describe("Trust", async function () {
     const trust2 = new ethers.Contract(
       trust.address,
       trust.interface,
-      signers[2]
+      signer1
     ) as Trust;
     // some other signer triggers trust to exit before phase change, should fail
     await Util.assertError(
@@ -4367,7 +2850,7 @@ describe("Trust", async function () {
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
     ) {
-      await reserveSeeder.transfer(signers[1].address, 1);
+      await reserveSeeder.transfer(seeder.address, 1);
     }
 
     // some other signer triggers trust to exit after phase change, should succeed
@@ -4396,11 +2879,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4410,19 +2893,31 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const owner = signers[0].address;
-    const seeder = owner;
+    const creator = signers[0];
+    const seeder = signers[1];
+    const deployer = signers[2];
+    const signer1 = signers[3];
+    const signer2 = signers[4];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
+    const successLevel = reserveInit
+      .add(seederFee)
+      .add(redeemInit)
+      .add(minimumCreatorRaise);
+
     const minimumTradingDuration = 50;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
-        minimumCreatorRaise: minimumCreatorRaise,
-        seeder,
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -4437,17 +2932,13 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation: redeemInit
-          .add(minimumCreatorRaise)
-          .add(seederFee)
-          .add(reserveInit),
-      }
-    )) as Trust;
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -4461,25 +2952,25 @@ describe("Trust", async function () {
     // users hit the minimum raise
     const spend1 = ethers.BigNumber.from("300" + Util.sixZeros);
     const spend2 = ethers.BigNumber.from("300" + Util.sixZeros);
-    await reserve.transfer(signers[1].address, spend1.mul(10));
-    await reserve.transfer(signers[2].address, spend2);
+    await reserve.transfer(signer1.address, spend1.mul(10));
+    await reserve.transfer(signer2.address, spend2);
 
     const trustPool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20Pool;
 
     let [crp, bPool] = await Util.poolContracts(signers, trustPool);
 
-    const bPool1 = bPool.connect(signers[1]);
-    const reserve1 = reserve.connect(signers[1]);
+    const bPool1 = bPool.connect(signer1);
+    const reserve1 = reserve.connect(signer1);
 
     const crp1 = new ethers.Contract(
       await trustPool.crp(),
       crpJson.abi,
-      signers[1]
-    );
+      signer1
+    ) as ConfigurableRightsPool;
 
     let i = 0;
     while (i < 10) {
@@ -4495,11 +2986,11 @@ describe("Trust", async function () {
       i++;
     }
 
-    const crp2 = crp.connect(signers[2]);
+    const crp2 = crp.connect(signer2);
     await crp2.pokeWeights();
 
-    const bPool2 = bPool.connect(signers[2]);
-    const reserve2 = reserve.connect(signers[2]);
+    const bPool2 = bPool.connect(signer2);
+    const reserve2 = reserve.connect(signer2);
     await reserve2.approve(bPool2.address, spend2);
 
     await bPool2.swapExactAmountIn(
@@ -4514,32 +3005,32 @@ describe("Trust", async function () {
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
     ) {
-      await reserve.transfer(signers[1].address, 1);
+      await reserve.transfer(signer1.address, 1);
     }
 
-    const ownerBefore = await reserve.balanceOf(signers[0].address);
+    const seederBefore = await reserve.balanceOf(seeder.address);
     await trust.anonEndDistribution();
     const dust = await reserve.balanceOf(bPool.address);
-    const ownerAfter = await reserve.balanceOf(signers[0].address);
-    const ownerDiff = ownerAfter.sub(ownerBefore);
-    // Owner is the seeder so they lose dust here.
-    const expectedOwnerDiff = ethers.BigNumber.from("3300000000").sub(
+    const seederAfter = await reserve.balanceOf(seeder.address);
+    const seederDiff = seederAfter.sub(seederBefore);
+    // Seeder loses dust here.
+    const expectedSeederDiff = ethers.BigNumber.from("2100000000").sub(
       Util.determineReserveDust(dust)
     );
 
     assert(
-      expectedOwnerDiff.eq(ownerDiff),
-      `wrong owner diff
-      ${expectedOwnerDiff} ${ownerDiff}`
+      expectedSeederDiff.eq(seederDiff),
+      `wrong seeder diff
+      ${expectedSeederDiff} ${seederDiff}`
     );
 
     const token1 = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[1]
+      signer1
     ) as RedeemableERC20;
-    await token1.redeem(await token1.balanceOf(signers[1].address));
-    const reserveBalance1 = await reserve.balanceOf(signers[1].address);
+    await token1.redeem(await token1.balanceOf(signer1.address));
+    const reserveBalance1 = await reserve.balanceOf(signer1.address);
     const expectedBalance1 = "1829853948";
     assert(
       ethers.BigNumber.from(expectedBalance1).eq(reserveBalance1),
@@ -4549,10 +3040,10 @@ describe("Trust", async function () {
     const token2 = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[2]
+      signer2
     ) as RedeemableERC20;
-    await token2.redeem(await token2.balanceOf(signers[2].address));
-    const reserveBalance2 = await reserve.balanceOf(signers[2].address);
+    await token2.redeem(await token2.balanceOf(signer2.address));
+    const reserveBalance2 = await reserve.balanceOf(signer2.address);
     const expectedBalance2 = "170146068";
     assert(
       ethers.BigNumber.from(expectedBalance2).eq(reserveBalance2),
@@ -4576,11 +3067,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4592,18 +3083,31 @@ describe("Trust", async function () {
     );
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const seeder = signers[0].address;
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
+    const signer1 = signers[3];
+    const signer2 = signers[4];
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
+    const successLevel = reserveInit
+      .add(seederFee)
+      .add(redeemInit)
+      .add(minimumCreatorRaise);
+
     const minimumTradingDuration = 15;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
+        creator: creator.address,
         minimumCreatorRaise,
-        seeder,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -4618,19 +3122,15 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation: redeemInit
-          .add(minimumCreatorRaise)
-          .add(seederFee)
-          .add(reserveInit),
-      }
-    )) as Trust;
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
 
-    (await trust.deployed()) as Trust;
+    await trust.deployed();
 
     await reserve.transfer(await trust.pool(), reserveInit);
 
@@ -4641,24 +3141,24 @@ describe("Trust", async function () {
 
     // have a few signers buy some tokens
     await reserve.transfer(
-      signers[1].address,
+      signer1.address,
       ethers.BigNumber.from("1000" + Util.sixZeros)
     );
     await reserve.transfer(
-      signers[2].address,
+      signer2.address,
       ethers.BigNumber.from("2000" + Util.sixZeros)
     );
 
     const trustPool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
-      signers[0]
+      creator
     ) as RedeemableERC20Pool;
 
     let [crp, bPool] = await Util.poolContracts(signers, trustPool);
 
-    const bPool1 = bPool.connect(signers[1]);
-    const reserve1 = reserve.connect(signers[1]);
+    const bPool1 = bPool.connect(signer1);
+    const reserve1 = reserve.connect(signer1);
     await reserve1.approve(
       bPool1.address,
       ethers.BigNumber.from("1000" + Util.sixZeros)
@@ -4671,11 +3171,11 @@ describe("Trust", async function () {
       ethers.BigNumber.from("1"),
       ethers.BigNumber.from("1000000" + Util.sixZeros)
     );
-    const crp2 = crp.connect(signers[2]);
+    const crp2 = crp.connect(signer2);
     await crp2.pokeWeights();
 
-    const bPool2 = bPool.connect(signers[2]);
-    const reserve2 = reserve.connect(signers[2]);
+    const bPool2 = bPool.connect(signer2);
+    const reserve2 = reserve.connect(signer2);
     await reserve2.approve(
       bPool2.address,
       ethers.BigNumber.from("2000" + Util.sixZeros)
@@ -4694,7 +3194,7 @@ describe("Trust", async function () {
       (await ethers.provider.getBlockNumber()) <=
       startBlock + minimumTradingDuration
     ) {
-      await reserve.transfer(signers[1].address, 1);
+      await reserve.transfer(signer1.address, 1);
     }
 
     await trust.anonEndDistribution();
@@ -4702,10 +3202,10 @@ describe("Trust", async function () {
     const token1 = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[1]
+      signer1
     ) as RedeemableERC20;
-    await token1.redeem(await token1.balanceOf(signers[1].address));
-    const reserveBalance1 = await reserve.balanceOf(signers[1].address);
+    await token1.redeem(await token1.balanceOf(signer1.address));
+    const reserveBalance1 = await reserve.balanceOf(signer1.address);
     const expectedBalance1 = "841344575";
     assert(
       ethers.BigNumber.from(expectedBalance1).eq(reserveBalance1),
@@ -4715,10 +3215,10 @@ describe("Trust", async function () {
     const token2 = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
-      signers[2]
+      signer2
     ) as RedeemableERC20;
-    await token2.redeem(await token1.balanceOf(signers[2].address));
-    const reserveBalance2 = await reserve.balanceOf(signers[2].address);
+    await token2.redeem(await token1.balanceOf(signer2.address));
+    const reserveBalance2 = await reserve.balanceOf(signer2.address);
     const expectedBalance2 = "2158655434";
     assert(
       ethers.BigNumber.from(expectedBalance2).eq(reserveBalance2),
@@ -4742,11 +3242,11 @@ describe("Trust", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -4758,18 +3258,29 @@ describe("Trust", async function () {
     );
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("0");
-    const seeder = signers[0].address;
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
     const seederFee = ethers.BigNumber.from("0");
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
+    const successLevel = reserveInit
+      .add(seederFee)
+      .add(redeemInit)
+      .add(minimumCreatorRaise);
+
     const minimumTradingDuration = 10;
 
-    const trust = (await trustFactory.deploy(
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
       {
-        creator: signers[0].address,
+        creator: creator.address,
         minimumCreatorRaise,
-        seeder,
+        seeder: seeder.address,
         seederFee,
         seederUnits,
         seederCooldownDuration,
@@ -4784,17 +3295,13 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation: redeemInit
-          .add(minimumCreatorRaise)
-          .add(seederFee)
-          .add(reserveInit),
-      }
-    )) as Trust;
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 

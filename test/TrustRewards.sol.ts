@@ -8,6 +8,7 @@ import { utils } from "ethers";
 import type { Prestige } from "../typechain/Prestige";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import { factoriesDeploy } from "./Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -77,11 +78,11 @@ describe("TrustRewards", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -107,13 +108,11 @@ describe("TrustRewards", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -132,14 +131,13 @@ describe("TrustRewards", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserveA.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -149,7 +147,7 @@ describe("TrustRewards", async function () {
       creator
     ) as RedeemableERC20;
 
-    await trust.connect(creator).creatorAddRedeemable(reserveB.address);
+    await token.connect(creator).addRedeemable(reserveB.address);
 
     const redeemables1 = await token.getRedeemables();
     assert(
@@ -161,7 +159,7 @@ describe("TrustRewards", async function () {
       "wrong redeemable in token redeemables list"
     );
 
-    await trust.connect(creator).creatorAddRedeemable(reserveC.address);
+    await token.connect(creator).addRedeemable(reserveC.address);
 
     const redeemables2 = await token.getRedeemables();
     assert(
@@ -206,11 +204,11 @@ describe("TrustRewards", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -238,13 +236,11 @@ describe("TrustRewards", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -263,14 +259,13 @@ describe("TrustRewards", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserveA.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -348,17 +343,16 @@ describe("TrustRewards", async function () {
     );
 
     // creator adds redeemables to token
-    await trust.connect(creator).creatorAddRedeemable(reserveB.address);
-    await trust.connect(creator).creatorAddRedeemable(reserveC.address);
-    await trust.connect(creator).creatorAddRedeemable(reserveD.address);
+    await token.connect(creator).addRedeemable(reserveB.address);
+    await token.connect(creator).addRedeemable(reserveC.address);
+    await token.connect(creator).addRedeemable(reserveD.address);
 
     await reserveB.transfer(token.address, spend.mul(2));
     await reserveC.transfer(token.address, spend.mul(3));
     await reserveD.transfer(token.address, spend.mul(4));
 
     await Util.assertError(
-      async () =>
-        await trust.connect(creator).creatorAddRedeemable(reserveA.address),
+      async () => await token.connect(creator).addRedeemable(reserveA.address),
       "revert DUPLICATE_REDEEMABLE",
       "added duplicate redeemable"
     );
@@ -514,11 +508,11 @@ describe("TrustRewards", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -542,17 +536,14 @@ describe("TrustRewards", async function () {
       .add(minimumCreatorRaise)
       .add(seederFee)
       .add(reserveInit);
-    const finalValuation = successLevel;
 
     const minimumTradingDuration = 50;
 
-    const trustFactoryDeployer = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = (await trustFactoryDeployer.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -571,14 +562,13 @@ describe("TrustRewards", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation,
-      }
-    )) as Trust;
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -719,11 +709,11 @@ describe("TrustRewards", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -748,17 +738,14 @@ describe("TrustRewards", async function () {
       .add(minimumCreatorRaise)
       .add(seederFee)
       .add(reserveInit);
-    const finalValuation = successLevel;
 
     const minimumTradingDuration = 50;
 
-    const trustFactoryDeployer = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = (await trustFactoryDeployer.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -777,14 +764,13 @@ describe("TrustRewards", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation,
-      }
-    )) as Trust;
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -876,11 +862,11 @@ describe("TrustRewards", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -904,17 +890,14 @@ describe("TrustRewards", async function () {
       .add(minimumCreatorRaise)
       .add(seederFee)
       .add(reserveInit);
-    const finalValuation = successLevel;
 
     const minimumTradingDuration = 50;
 
-    const trustFactoryDeployer = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = (await trustFactoryDeployer.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -933,14 +916,13 @@ describe("TrustRewards", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: reserve.address,
         reserveInit,
         initialValuation,
-        finalValuation,
-      }
-    )) as Trust;
+        finalValuation: successLevel,
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 
@@ -953,21 +935,23 @@ describe("TrustRewards", async function () {
       {}
     )) as ReserveToken;
 
-    const trustCreator = trust.connect(creator);
-    const trustDeployer = trust.connect(deployer);
-    const trustSigner1 = trust.connect(signer1);
+    const token = new ethers.Contract(
+      await trust.token(),
+      redeemableTokenJson.abi,
+      creator
+    ) as RedeemableERC20;
 
     await Util.assertError(
-      async () => await trustDeployer.creatorAddRedeemable(reserve2.address),
-      "revert NOT_CREATOR",
+      async () => await token.connect(deployer).addRedeemable(reserve2.address),
+      "revert ONLY_REDEEMABLE_ADDER",
       "trust deployer wrongly added new redeemable"
     );
 
-    await trustCreator.creatorAddRedeemable(reserve2.address);
+    await token.connect(creator).addRedeemable(reserve2.address);
 
     await Util.assertError(
-      async () => await trustSigner1.creatorAddRedeemable(reserve3.address),
-      "revert NOT_CREATOR",
+      async () => await token.connect(signer1).addRedeemable(reserve3.address),
+      "revert ONLY_REDEEMABLE_ADDER",
       "signer wrongly added new redeemable"
     );
   });

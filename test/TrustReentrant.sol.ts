@@ -10,6 +10,7 @@ import type { BPool } from "../typechain/BPool";
 import type { SeedERC20Reentrant } from "../typechain/SeedERC20Reentrant";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
+import { factoriesDeploy } from "./Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -48,11 +49,11 @@ describe("TrustReentrant", async function () {
     const prestige = (await prestigeFactory.deploy()) as Prestige;
     const minimumStatus = Status.NIL;
 
-    const trustFactory = await ethers.getContractFactory("Trust", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const { trustFactory } = await factoriesDeploy(
+      rightsManager,
+      crpFactory,
+      bFactory
+    );
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -79,13 +80,11 @@ describe("TrustReentrant", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = new ethers.ContractFactory(
-      trustFactory.interface,
-      trustFactory.bytecode,
-      deployer
-    );
+    const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = (await trustFactory1.deploy(
+    const trust = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
       {
         creator: creator.address,
         minimumCreatorRaise,
@@ -104,14 +103,13 @@ describe("TrustReentrant", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        crpFactory: crpFactory.address,
-        balancerFactory: bFactory.address,
         reserve: maliciousReserve.address,
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
-      }
-    )) as Trust;
+      },
+      { gasLimit: 100000000 }
+    );
 
     await trust.deployed();
 

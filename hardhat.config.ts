@@ -2,6 +2,7 @@ import type { HardhatUserConfig } from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 import "hardhat-gas-reporter";
+import "@nomiclabs/hardhat-ethers";
 
 const config: HardhatUserConfig = {
   networks: {
