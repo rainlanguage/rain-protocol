@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: CAL
 pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
@@ -267,11 +267,16 @@ contract Trust is ReentrancyGuard {
     address public immutable seeder;
     /// Seeder fee from the initial config.
     uint256 public immutable seederFee;
+    /// Seeder units from the initial config.
+    uint16 public immutable seederUnits;
+    /// Seeder cooldown duration from the initial config.
+    uint16 public immutable seederCooldownDuration;
     /// Minimum trading duration from the initial config.
     uint256 public immutable minimumTradingDuration;
     /// Redeem init from the initial config.
     uint256 public immutable redeemInit;
-
+    /// SeedERC20Factory from the initial config.
+    SeedERC20Factory public immutable seedERC20Factory;
     /// Balance of the reserve asset in the Balance pool at the moment
     /// `anonEndDistribution` is called. This must be greater than or equal to
     /// `successBalance` for the distribution to succeed.
@@ -335,9 +340,12 @@ contract Trust is ReentrancyGuard {
 
         creator = config_.creator;
         seederFee = config_.seederFee;
+        seederUnits = config_.seederUnits;
+        seederCooldownDuration = config_.seederCooldownDuration;
         minimumTradingDuration = config_.minimumTradingDuration;
         redeemInit = config_.redeemInit;
         minimumCreatorRaise = config_.minimumCreatorRaise;
+        seedERC20Factory = config_.seedERC20Factory;
         successBalance = successBalance_;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
@@ -466,6 +474,21 @@ contract Trust is ReentrancyGuard {
             address(token.tierContract()),
             address(pool.crp()),
             address(pool.crp().bPool())
+        );
+    }
+
+    /// Accessor for the `TrustConfig` of this `Trust`.
+    function getTrustConfig() external view returns(TrustConfig memory) {
+        return TrustConfig(
+            address(creator),
+            minimumCreatorRaise,
+            seedERC20Factory,
+            address(seeder),
+            seederFee,
+            seederUnits,
+            seederCooldownDuration,
+            minimumTradingDuration,
+            redeemInit
         );
     }
 
