@@ -234,3 +234,19 @@ export function blockNumbersToReport(blockNos: number[]): string {
     .map((i) => BigInt(i).toString(16).padStart(8, "0"))
     .join("");
 }
+
+/**
+ * Pads leading zeroes of hex number to hex string length of 32 bytes
+ * @param {BigNumber} hex
+ */
+export function zeroPad32(hex: BigNumber): string {
+  return ethers.utils.hexZeroPad(hex.toHexString(), 32);
+}
+
+/**
+ * Pads leading zeroes of hex number to hex string length of 4 bytes
+ * @param {BigNumber} hex
+ */
+export function zeroPad4(hex: BigNumber): string {
+  return ethers.utils.hexZeroPad(hex.toHexString(), 4);
+}
