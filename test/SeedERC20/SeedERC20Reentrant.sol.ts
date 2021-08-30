@@ -1,9 +1,9 @@
-import * as Util from "./Util";
+import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { SeedERC20Reentrant } from "../typechain/SeedERC20Reentrant";
-import type { SeedERC20 } from "../typechain/SeedERC20";
+import type { SeedERC20Reentrant } from "../../typechain/SeedERC20Reentrant";
+import type { SeedERC20 } from "../../typechain/SeedERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;

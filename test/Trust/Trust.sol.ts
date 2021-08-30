@@ -1,27 +1,27 @@
 import { ethers } from "hardhat";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import type { Trust } from "../typechain/Trust";
-import type { ReserveToken } from "../typechain/ReserveToken";
-import * as Util from "./Util";
-import type { Prestige } from "../typechain/Prestige";
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
-import { factoriesDeploy } from "./Util";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
-import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
-import type { BPool } from "../typechain/BPool";
+import type { Trust } from "../../typechain/Trust";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../Util";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
+import { factoriesDeploy } from "../Util";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { ConfigurableRightsPool } from "../../typechain/ConfigurableRightsPool";
+import type { BPool } from "../../typechain/BPool";
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
-const trustJson = require("../artifacts/contracts/Trust.sol/Trust.json");
-const poolJson = require("../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const bPoolJson = require("../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
-const reserveJson = require("../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
-const redeemableTokenJson = require("../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
+const trustJson = require("../../artifacts/contracts/Trust.sol/Trust.json");
+const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const bPoolJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
+const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
+const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
+const crpJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
 
-enum Status {
+enum Tier {
   NIL,
   COPPER,
   BRONZE,
@@ -67,9 +67,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -120,7 +120,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -233,9 +233,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -286,7 +286,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -386,9 +386,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -439,7 +439,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -537,9 +537,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -590,7 +590,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -710,9 +710,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -760,7 +760,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -839,9 +839,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -889,7 +889,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -948,146 +948,6 @@ describe("Trust", async function () {
     );
   });
 
-  it("should allow third party to deploy trust, independently of creator and seeder, with its configuration publicly accessible", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
-
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 50;
-
-    const trustFactory1 = trustFactory.connect(deployer);
-
-    const trust = await Util.trustDeploy(
-      trustFactory1,
-      creator,
-      {
-        creator: creator.address,
-        minimumCreatorRaise,
-        seeder: seeder.address,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        minimumTradingDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        prestige: prestige.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-      },
-      { gasLimit: 100000000 }
-    );
-
-    await trust.deployed();
-
-    assert((await trust.creator()) === creator.address, "wrong creator");
-    assert((await trust.seeder()) === seeder.address, "wrong seeder");
-    assert(
-      (await trust.minimumCreatorRaise()).eq(minimumCreatorRaise),
-      "wrong minimum raise amount"
-    );
-    assert((await trust.seederFee()).eq(seederFee), "wrong seeder fee");
-    assert(
-      (await trust.minimumTradingDuration()).eq(minimumTradingDuration),
-      "wrong raise duration"
-    );
-    assert((await trust.redeemInit()).eq(redeemInit), "wrong redeem init");
-    assert((await trust.seederUnits()) === seederUnits, "wrong seeder units");
-    assert(
-      (await trust.seederCooldownDuration()) === seederCooldownDuration,
-      "wrong seeder cooldown duration"
-    );
-    assert(
-      ethers.utils.isAddress(await trust.seedERC20Factory()),
-      `seedERC20Factory address was wrong, got ${await trust.seedERC20Factory()}`
-    );
-
-    // using TrustConfig accessor
-    const trustConfig = await trust.getTrustConfig();
-
-    assert(
-      trustConfig.creator === creator.address,
-      "wrong getTrustConfig creator"
-    );
-    assert(
-      trustConfig.seeder === seeder.address,
-      "wrong getTrustConfig seeder"
-    );
-    assert(
-      trustConfig.minimumCreatorRaise.eq(minimumCreatorRaise),
-      "wrong getTrustConfig minimum raise amount"
-    );
-    assert(
-      trustConfig.seederFee.eq(seederFee),
-      "wrong getTrustConfig seeder fee"
-    );
-    assert(
-      trustConfig.minimumTradingDuration.eq(minimumTradingDuration),
-      "wrong getTrustConfig raise duration"
-    );
-    assert(
-      trustConfig.redeemInit.eq(redeemInit),
-      "wrong getTrustConfig redeem init"
-    );
-    assert(
-      trustConfig.seederUnits === seederUnits,
-      "wrong getTrustConfig seeder units"
-    );
-    assert(
-      trustConfig.seederCooldownDuration === seederCooldownDuration,
-      "wrong getTrustConfig seeder cooldown duration"
-    );
-    assert(
-      ethers.utils.isAddress(trustConfig.seedERC20Factory),
-      `seedERC20Factory address was wrong, got ${trustConfig.seedERC20Factory}`
-    );
-  });
-
   it("should set correct phases for token and pool", async function () {
     this.timeout(0);
 
@@ -1100,9 +960,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -1150,7 +1010,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -1278,9 +1138,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -1330,7 +1190,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -1392,9 +1252,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -1444,7 +1304,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -1539,9 +1399,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -1593,7 +1453,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -1658,9 +1518,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -1710,7 +1570,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -1772,9 +1632,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -1822,7 +1682,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -1888,9 +1748,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -1938,7 +1798,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -2274,9 +2134,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -2324,7 +2184,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -2638,9 +2498,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -2688,7 +2548,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -2748,9 +2608,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -2799,7 +2659,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -2875,9 +2735,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -2927,7 +2787,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -3063,9 +2923,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -3117,7 +2977,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -3238,9 +3098,9 @@ describe("Trust", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -3290,7 +3150,7 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },

@@ -1,5 +1,4 @@
 contracts/configurable-rights-pool
-contracts/tv-prestige
 *.md
 artifacts
 cache

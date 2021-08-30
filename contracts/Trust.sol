@@ -20,7 +20,7 @@ import {
     BFactory
 } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
-import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
+import { ITier } from "./tier/ITier.sol";
 
 import { Phase } from "./Phased.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
@@ -47,8 +47,8 @@ struct TrustContracts {
     address redeemableERC20Pool;
     // Address that provides the initial reserve token seed.
     address seeder;
-    // Address that defines and controls prestige levels for users.
-    address prestige;
+    // Address that defines and controls tier levels for users.
+    address tier;
     // The Balancer ConfigurableRightsPool that is built for this distribution.
     address crp;
     // The Balancer pool that holds and trades tokens during the distribution.
@@ -161,10 +161,10 @@ struct TrustRedeemableERC20Config {
     string name;
     // Symbol forwarded to ERC20 constructor.
     string symbol;
-    // Prestige contract to compare statuses against on transfer.
-    IPrestige prestige;
+    // Tier contract to compare statuses against on transfer.
+    ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    IPrestige.Status minimumStatus;
+    ITier.Tier minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
 }
@@ -355,7 +355,7 @@ contract Trust is ReentrancyGuard {
                         address(this),
                         trustRedeemableERC20Config_.name,
                         trustRedeemableERC20Config_.symbol,
-                        trustRedeemableERC20Config_.prestige,
+                        trustRedeemableERC20Config_.tier,
                         trustRedeemableERC20Config_.minimumStatus,
                         trustRedeemableERC20Config_.totalSupply
         ))));
@@ -471,7 +471,7 @@ contract Trust is ReentrancyGuard {
             address(token),
             address(pool),
             address(seeder),
-            address(token.prestige()),
+            address(token.tierContract()),
             address(pool.crp()),
             address(pool.crp().bPool())
         );

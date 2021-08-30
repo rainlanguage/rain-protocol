@@ -1,27 +1,27 @@
 import { ethers } from "hardhat";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import type { Trust } from "../typechain/Trust";
-import type { ReserveToken } from "../typechain/ReserveToken";
-import * as Util from "./Util";
+import type { Trust } from "../../typechain/Trust";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../Util";
 import { utils } from "ethers";
-import type { Prestige } from "../typechain/Prestige";
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
-import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
-import { factoriesDeploy } from "./Util";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { ConfigurableRightsPool } from "../../typechain/ConfigurableRightsPool";
+import { factoriesDeploy } from "../Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
-const trustJson = require("../artifacts/contracts/Trust.sol/Trust.json");
-const poolJson = require("../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const bPoolJson = require("../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
-const reserveJson = require("../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
-const redeemableTokenJson = require("../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
+const trustJson = require("../../artifacts/contracts/Trust.sol/Trust.json");
+const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const bPoolJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
+const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
+const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
+const crpJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
 
-enum Status {
+enum Tier {
   NIL,
   COPPER,
   BRONZE,
@@ -34,7 +34,7 @@ enum Status {
 }
 
 describe("TrustTrade", async function () {
-  it("should allow token transfers before redemption phase if and only if receiver has the minimum prestige level set OR the receiver does NOT have the status but is unfreezable", async function () {
+  it("should allow token transfers before redemption phase if and only if receiver has the minimum tier level set OR the receiver does NOT have the status but is unfreezable", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -46,9 +46,9 @@ describe("TrustTrade", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.GOLD;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -77,11 +77,11 @@ describe("TrustTrade", async function () {
     const signerGold = signers[5];
     const signerPlatinum = signers[6];
 
-    // Set prestige levels
-    await prestige.setStatus(signerBronze.address, Status.BRONZE, []);
-    await prestige.setStatus(signerSilver.address, Status.SILVER, []);
-    await prestige.setStatus(signerGold.address, Status.GOLD, []);
-    await prestige.setStatus(signerPlatinum.address, Status.PLATINUM, []);
+    // Set tier levels
+    await tier.setTier(signerBronze.address, Tier.BRONZE, []);
+    await tier.setTier(signerSilver.address, Tier.SILVER, []);
+    await tier.setTier(signerGold.address, Tier.GOLD, []);
+    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -108,7 +108,7 @@ describe("TrustTrade", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -173,7 +173,7 @@ describe("TrustTrade", async function () {
     // bronze signer attempts swap for tokens
     await Util.assertError(
       async () => await swapReserveForTokens(signerBronze, reserveSpend),
-      "revert MIN_STATUS",
+      "revert MIN_TIER",
       "bronze signer swapped reserve for tokens, despite being below min status of gold"
     );
 
@@ -194,9 +194,9 @@ describe("TrustTrade", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -246,7 +246,7 @@ describe("TrustTrade", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -321,9 +321,9 @@ describe("TrustTrade", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -373,7 +373,7 @@ describe("TrustTrade", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -564,7 +564,7 @@ describe("TrustTrade", async function () {
     // );
   });
 
-  it("should set minimum prestige level for pool, where only members with prestige level or higher can transact in pool", async function () {
+  it("should set minimum tier level for pool, where only members with tier level or higher can transact in pool", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -576,9 +576,9 @@ describe("TrustTrade", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.GOLD;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -606,10 +606,10 @@ describe("TrustTrade", async function () {
     const signerGold = signers[4];
     const signerPlatinum = signers[5];
 
-    // Set prestige levels
-    await prestige.setStatus(signerSilver.address, Status.SILVER, []);
-    await prestige.setStatus(signerGold.address, Status.GOLD, []);
-    await prestige.setStatus(signerPlatinum.address, Status.PLATINUM, []);
+    // Set tier levels
+    await tier.setTier(signerSilver.address, Tier.SILVER, []);
+    await tier.setTier(signerGold.address, Tier.GOLD, []);
+    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -636,7 +636,7 @@ describe("TrustTrade", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
       },
@@ -725,7 +725,7 @@ describe("TrustTrade", async function () {
           reserveSilver,
           bPoolSilver
         ),
-      "revert MIN_STATUS",
+      "revert MIN_TIER",
       "Silver signer swapped reserve for tokens, despite being below min status of Gold"
     );
 
@@ -767,9 +767,9 @@ describe("TrustTrade", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
-    const minimumStatus = Status.NIL;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
       rightsManager,
@@ -853,7 +853,7 @@ describe("TrustTrade", async function () {
           {
             name: tokenName,
             symbol: tokenSymbol,
-            prestige: prestige.address,
+            tier: tier.address,
             minimumStatus,
             totalSupply: totalTokenSupply1,
           },
@@ -901,7 +901,7 @@ describe("TrustTrade", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        prestige: prestige.address,
+        tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply1,
       },

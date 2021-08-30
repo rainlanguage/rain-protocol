@@ -1,15 +1,15 @@
-import * as Util from "./Util";
+import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { Prestige } from "../typechain/Prestige";
-import type { RedeemableERC20Reentrant } from "../typechain/RedeemableERC20Reentrant";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
-enum Status {
+enum Tier {
   NIL,
   COPPER,
   BRONZE,
@@ -44,10 +44,10 @@ describe("RedeemableERC20Reentrant", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
-    const minimumStatus = Status.NIL;
+    const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -66,7 +66,7 @@ describe("RedeemableERC20Reentrant", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
     })) as RedeemableERC20;

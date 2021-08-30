@@ -1,11 +1,11 @@
-import * as Util from "./Util";
+import * as Util from "../Util";
 import chai, { util } from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { ReserveToken } from "../typechain/ReserveToken";
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
-import type { Prestige } from "../typechain/Prestige";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -22,10 +22,10 @@ enum Phase {
   EIGHT,
 }
 
-const trustJson = require("../artifacts/contracts/Trust.sol/Trust.json");
-const poolJson = require("../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const reserveJson = require("../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
-const redeemableTokenJson = require("../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
+const trustJson = require("../../artifacts/contracts/Trust.sol/Trust.json");
+const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
+const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
 
 describe("RedeemableERC20Pool", async function () {
   it("should safely poke weights after minimum trade duration", async function () {
@@ -40,8 +40,8 @@ describe("RedeemableERC20Pool", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -70,7 +70,7 @@ describe("RedeemableERC20Pool", async function () {
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
     })) as RedeemableERC20;
@@ -159,8 +159,8 @@ describe("RedeemableERC20Pool", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -186,7 +186,7 @@ describe("RedeemableERC20Pool", async function () {
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
     })) as RedeemableERC20;
@@ -233,8 +233,8 @@ describe("RedeemableERC20Pool", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -263,7 +263,7 @@ describe("RedeemableERC20Pool", async function () {
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
     })) as RedeemableERC20;
@@ -402,8 +402,8 @@ describe("RedeemableERC20Pool", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -432,7 +432,7 @@ describe("RedeemableERC20Pool", async function () {
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
     })) as RedeemableERC20;
@@ -550,8 +550,8 @@ describe("RedeemableERC20Pool", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -586,7 +586,7 @@ describe("RedeemableERC20Pool", async function () {
       name: tokenName,
       symbol: tokenSymbol,
       reserve: reserve.address,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
     })) as RedeemableERC20;
@@ -696,8 +696,8 @@ describe("RedeemableERC20Pool", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -725,7 +725,7 @@ describe("RedeemableERC20Pool", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
     })) as RedeemableERC20;
@@ -818,8 +818,8 @@ describe("RedeemableERC20Pool", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -844,7 +844,7 @@ describe("RedeemableERC20Pool", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
     })) as RedeemableERC20;
@@ -902,8 +902,8 @@ describe("RedeemableERC20Pool", async function () {
       {}
     )) as ReserveToken;
 
-    const prestigeFactory = await ethers.getContractFactory("Prestige");
-    const prestige = (await prestigeFactory.deploy()) as Prestige;
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -931,7 +931,7 @@ describe("RedeemableERC20Pool", async function () {
       admin: signers[0].address,
       name: tokenName,
       symbol: tokenSymbol,
-      prestige: prestige.address,
+      tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
     })) as RedeemableERC20;
