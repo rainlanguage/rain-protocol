@@ -7,29 +7,29 @@ import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
 import type { BigNumber } from "ethers";
-import type { SmartPoolManager } from '../typechain/SmartPoolManager';
+import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 
 const { expect, assert } = chai;
 
-const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER
+const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
 if (smartPoolManagerAddress) {
-  console.log(`using existing SmartPoolManager: ${smartPoolManagerAddress}`)
+  console.log(`using existing SmartPoolManager: ${smartPoolManagerAddress}`);
 }
-const balancerSafeMathAddress = process.env.BALANCER_SAFE_MATH
+const balancerSafeMathAddress = process.env.BALANCER_SAFE_MATH;
 if (balancerSafeMathAddress) {
-  console.log(`using existing BalancerSafeMath: ${balancerSafeMathAddress}`)
+  console.log(`using existing BalancerSafeMath: ${balancerSafeMathAddress}`);
 }
-const rightsManagerAddress = process.env.BALANCER_RIGHTS_MANAGER
+const rightsManagerAddress = process.env.BALANCER_RIGHTS_MANAGER;
 if (rightsManagerAddress) {
-  console.log(`using existing RightsManager: ${rightsManagerAddress}`)
+  console.log(`using existing RightsManager: ${rightsManagerAddress}`);
 }
-const bFactoryAddress = process.env.BALANCER_BFACTORY
+const bFactoryAddress = process.env.BALANCER_BFACTORY;
 if (bFactoryAddress) {
-  console.log(`using existing BFactory: ${bFactoryAddress}`)
+  console.log(`using existing BFactory: ${bFactoryAddress}`);
 }
-const crpFactoryAddress = process.env.BALANCER_CRP_FACTORY
+const crpFactoryAddress = process.env.BALANCER_CRP_FACTORY;
 if (crpFactoryAddress) {
-  console.log(`using existing CRPFactory: ${crpFactoryAddress}`)
+  console.log(`using existing CRPFactory: ${crpFactoryAddress}`);
 }
 
 export const basicDeploy = async (name, libs) => {
@@ -51,20 +51,19 @@ export const balancerDeploy = async (): Promise<
   if (rightsManagerAddress) {
     rightsManager = new ethers.Contract(
       rightsManagerAddress,
-      (await artifacts.readArtifact('RightsManager')).abi
-    ) as RightsManager
+      (await artifacts.readArtifact("RightsManager")).abi
+    ) as RightsManager;
   } else {
-    rightsManager = (await basicDeploy('RightsManager', {})) as RightsManager
+    rightsManager = (await basicDeploy("RightsManager", {})) as RightsManager;
   }
 
   let balancerSafeMath;
   if (balancerSafeMathAddress) {
     balancerSafeMath = new ethers.Contract(
       balancerSafeMathAddress,
-      (await artifacts.readArtifact('BalancerSafeMath')).abi
-    )
-  }
-  else {
+      (await artifacts.readArtifact("BalancerSafeMath")).abi
+    );
+  } else {
     balancerSafeMath = await basicDeploy("BalancerSafeMath", {});
   }
 
@@ -72,20 +71,22 @@ export const balancerDeploy = async (): Promise<
   if (smartPoolManagerAddress) {
     smartPoolManager = new ethers.Contract(
       smartPoolManagerAddress,
-      (await artifacts.readArtifact('SmartPoolManager')).abi
-    ) as SmartPoolManager
+      (await artifacts.readArtifact("SmartPoolManager")).abi
+    ) as SmartPoolManager;
   } else {
-    smartPoolManager = await basicDeploy("SmartPoolManager", {}) as SmartPoolManager;
+    smartPoolManager = (await basicDeploy(
+      "SmartPoolManager",
+      {}
+    )) as SmartPoolManager;
   }
 
-  let crpFactory: CRPFactory
+  let crpFactory: CRPFactory;
   if (crpFactoryAddress) {
     crpFactory = new ethers.Contract(
       crpFactoryAddress,
-      (await artifacts.readArtifact('CRPFactory')).abi
-    ) as CRPFactory
-  }
-  else {
+      (await artifacts.readArtifact("CRPFactory")).abi
+    ) as CRPFactory;
+  } else {
     crpFactory = (await basicDeploy("CRPFactory", {
       RightsManager: rightsManager.address,
       BalancerSafeMath: balancerSafeMath.address,
@@ -93,14 +94,13 @@ export const balancerDeploy = async (): Promise<
     })) as CRPFactory;
   }
 
-  let bFactory
+  let bFactory;
   if (bFactoryAddress) {
     bFactory = new ethers.Contract(
       bFactoryAddress,
-      (await artifacts.readArtifact('BFactory')).abi
-    ) as BFactory
-  }
-  else {
+      (await artifacts.readArtifact("BFactory")).abi
+    ) as BFactory;
+  } else {
     bFactory = (await basicDeploy("BFactory", {})) as BFactory;
   }
 
