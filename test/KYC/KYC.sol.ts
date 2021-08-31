@@ -115,8 +115,11 @@ describe("KYC", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
+    const approver = signers[2];
 
     const kyc = await kycFactory.deploy(admin.address);
+
+    await kyc.grantRole(await kyc.APPROVER(), approver.address)
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -124,7 +127,7 @@ describe("KYC", async function () {
     await kyc.connect(signer1).add(SESSION_ID0);
 
     // approve KYC session
-    await expect(kyc.approve(SESSION_ID0))
+    await expect(kyc.connect(approver).approve(SESSION_ID0))
       .to.emit(kyc, "Approve")
       .withArgs(SESSION_ID0);
   });
@@ -135,8 +138,11 @@ describe("KYC", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
+    const remover = signers[2];
 
     const kyc = await kycFactory.deploy(admin.address);
+
+    await kyc.grantRole(await kyc.REMOVER(), remover.address)
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -144,7 +150,7 @@ describe("KYC", async function () {
     await kyc.connect(signer1).add(SESSION_ID0);
 
     // admin removes account
-    await expect(kyc.remove(signer1.address))
+    await expect(kyc.connect(remover).remove(signer1.address))
       .to.emit(kyc, "Remove")
       .withArgs(signer1.address);
 
@@ -161,8 +167,11 @@ describe("KYC", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
+    const banner = signers[2];
 
     const kyc = await kycFactory.deploy(admin.address);
+
+    await kyc.grantRole(await kyc.BANNER(), banner.address)
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -170,7 +179,7 @@ describe("KYC", async function () {
     await kyc.connect(signer1).add(SESSION_ID0);
 
     // admin bans KYC session
-    await expect(kyc.ban(SESSION_ID0))
+    await expect(kyc.connect(banner).ban(SESSION_ID0))
       .to.emit(kyc, "Ban")
       .withArgs(SESSION_ID0);
   });
@@ -181,8 +190,11 @@ describe("KYC", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
+    const approver = signers[2];
 
     const kyc = await kycFactory.deploy(admin.address);
+
+    await kyc.grantRole(await kyc.APPROVER(), approver.address)
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -191,7 +203,7 @@ describe("KYC", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    await kyc.approve(SESSION_ID0);
+    await kyc.connect(approver).approve(SESSION_ID0);
 
     const actualApprovedSinceBlock0 = await kyc.accountApprovedSince(
       signer1.address

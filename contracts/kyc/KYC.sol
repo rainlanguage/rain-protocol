@@ -42,6 +42,7 @@ contract KYC is AccessControl {
         ids[msg.sender] = id_;
         approved[id_] = uint256(-1);
         banned[id_] = uint256(-1);
+        emit Add(msg.sender, id_);
     }
 
     function remove(address account_) external {
@@ -72,11 +73,15 @@ contract KYC is AccessControl {
         emit Ban(id_);
     }
 
-    function accountApprovedSince(address account_) external view returns(uint256) {
-        if (banned[ids[account_]] < block.number) {
+    function accountApprovedSince(address account_)
+        external
+        view
+        returns(uint256)
+    {
+        if (banned[ids[account_]] <= block.number) {
             return uint256(-1);
         }
-        else if (approved[ids[account_]] < block.number) {
+        else if (approved[ids[account_]] <= block.number) {
             return approved[ids[account_]];
         }
         else {

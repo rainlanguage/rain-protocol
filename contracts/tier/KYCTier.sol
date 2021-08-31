@@ -3,7 +3,7 @@
 pragma solidity 0.6.12;
 
 import "./ReadOnlyTier.sol";
-import "../../../kyc/KYC.sol";
+import "../kyc/KYC.sol";
 import "../libraries/TierUtil.sol";
 
 contract KYCTier is ReadOnlyTier {
