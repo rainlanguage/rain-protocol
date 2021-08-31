@@ -6,7 +6,7 @@ let
  '';
 
  local-fork = pkgs.writeShellScriptBin "local-fork" ''
- hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/G0Vg_iZFiAuUD6hjXqcVg-Nys-NGiTQy --fork-block-number 11833335
+ hardhat node --fork ''${HARDHAT_RPC} --fork-block-number ''${HARDHAT_FORK_NUMBER}
  '';
 
  local-test = pkgs.writeShellScriptBin "local-test" ''
@@ -88,6 +88,7 @@ pkgs.stdenv.mkDerivation {
  ];
 
  shellHook = ''
+  source .env
   export PATH=$( npm bin ):$PATH
   # keep it fresh
   npm install
