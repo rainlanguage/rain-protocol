@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: CAL
 pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
 import { Factory } from "./Factory.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
-import { ITier } from "./tv-tier/contracts/tier/ITier.sol";
+import { ITier } from "./tier/ITier.sol";
 
 /// @title RedeemableERC20Factory
 /// Factory for creating and registering new RedeemableERC20 contracts.
