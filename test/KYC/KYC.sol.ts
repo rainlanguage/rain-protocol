@@ -119,7 +119,7 @@ describe("KYC", async function () {
 
     const kyc = await kycFactory.deploy(admin.address);
 
-    await kyc.grantRole(await kyc.APPROVER(), approver.address)
+    await kyc.grantRole(await kyc.APPROVER(), approver.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -142,7 +142,7 @@ describe("KYC", async function () {
 
     const kyc = await kycFactory.deploy(admin.address);
 
-    await kyc.grantRole(await kyc.REMOVER(), remover.address)
+    await kyc.grantRole(await kyc.REMOVER(), remover.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -171,7 +171,7 @@ describe("KYC", async function () {
 
     const kyc = await kycFactory.deploy(admin.address);
 
-    await kyc.grantRole(await kyc.BANNER(), banner.address)
+    await kyc.grantRole(await kyc.BANNER(), banner.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -194,7 +194,7 @@ describe("KYC", async function () {
 
     const kyc = await kycFactory.deploy(admin.address);
 
-    await kyc.grantRole(await kyc.APPROVER(), approver.address)
+    await kyc.grantRole(await kyc.APPROVER(), approver.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
