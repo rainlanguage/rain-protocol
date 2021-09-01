@@ -8,8 +8,10 @@ import { TierUtil } from "../libraries/TierUtil.sol";
 /// @title ReadWriteTier
 ///
 /// ReadWriteTier can `setTier` in addition to generating reports.
-/// When `setTier` is called it automatically sets the current blocks in the report for the new tiers.
-/// Lost tiers are scrubbed from the report as tiered addresses move down the tiers.
+/// When `setTier` is called it automatically sets the current blocks in the
+/// report for the new tiers.
+/// Lost tiers are scrubbed from the report as tiered addresses move down the
+/// tiers.
 contract ReadWriteTier is ITier {
     /// account => reports
     mapping(address => uint256) public reports;
@@ -29,7 +31,8 @@ contract ReadWriteTier is ITier {
 
     /// Errors if the user attempts to return to the ZERO tier.
     /// Updates the report from `report` using default `TierUtil` logic.
-    /// Calls `_afterSetTier` that inheriting contracts SHOULD override to enforce status requirements.
+    /// Calls `_afterSetTier` that inheriting contracts SHOULD override to
+    /// enforce status requirements.
     /// Emits `TierChange` event.
     /// @inheritdoc ITier
     function setTier(
@@ -40,12 +43,22 @@ contract ReadWriteTier is ITier {
         external virtual override
     {
         // The user must move to at least ONE.
-        // The ZERO status is reserved for users that have never interacted with the contract.
+        // The ZERO status is reserved for users that have never interacted
+        // with the contract.
         require(endTier_ != Tier.ZERO, "SET_ZERO_TIER");
 
         uint256 report_ = report(account_);
 
-        ITier.Tier startTier_ = TierUtil.tierAtBlockFromReport(report_, block.number);
+        ITier.Tier startTier_ = TierUtil.tierAtBlockFromReport(
+            report_,
+            block.number
+        );
+
+        // It is a noop if the tiers are the same, we don't even want to emit
+        // an event.
+        if (startTier_ == endTier_) {
+            return;
+        }
 
         reports[account_] = TierUtil.updateReportWithTierAtBlock(
             report_,
@@ -57,14 +70,17 @@ contract ReadWriteTier is ITier {
         // Emit this event for ITier.
         emit TierChange(account_, startTier_, endTier_);
 
-        // Call the _afterSetTier hook to allow inheriting contracts to enforce requirements.
-        // The inheriting contract MUST `require` or otherwise enforce its needs to rollback a bad status change.
+        // Call the _afterSetTier hook to allow inheriting contracts to enforce
+        // requirements.
+        // The inheriting contract MUST `require` or otherwise enforce its
+        // needs to rollback a bad status change.
         _afterSetTier(account_, startTier_, endTier_, data_);
     }
 
     /// Inheriting contracts SHOULD override this to enforce requirements.
     ///
-    /// All the internal accounting and state changes are complete at this point.
+    /// All the internal accounting and state changes are complete at this
+    /// point.
     /// Use `require` to enforce additional requirements for tier changes.
     ///
     /// @param account_ The account with the new tier.
