@@ -70,6 +70,10 @@ let
  ci-test = pkgs.writeShellScriptBin "ci-test" ''
  hardhat test
  '';
+
+ generate-docs = pkgs.writeShellScriptBin "generate-docs" ''
+ npm run generate-docs
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
@@ -85,6 +89,7 @@ pkgs.stdenv.mkDerivation {
   security-check
   ci-test
   ci-lint
+  generate-docs
  ];
 
  shellHook = ''
