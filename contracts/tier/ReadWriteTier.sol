@@ -54,11 +54,9 @@ contract ReadWriteTier is ITier {
             block.number
         );
 
-        // It is a noop if the tiers are the same, we don't even want to emit
-        // an event.
-        if (startTier_ == endTier_) {
-            return;
-        }
+        // The start tier MUST NOT equal the end tier.
+        // The caller MUST check and handle this case gracefully.
+        require(startTier_ != endTier_, "SET_SAME_TIER");
 
         reports[account_] = TierUtil.updateReportWithTierAtBlock(
             report_,
