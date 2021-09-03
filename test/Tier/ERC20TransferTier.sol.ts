@@ -86,7 +86,7 @@ describe("ERC20TransferTier", async function () {
     await erc20TransferTier.connect(alice).setTier(alice.address, Tier.ONE, []);
   });
 
-  it("should respect block number on same tier", async () => {
+  it("should correctly handle block number on same tier", async () => {
     const requiredForTier2 = LEVELS[1];
     const aliceErc20TransferTier = erc20TransferTier.connect(alice);
     const bobErc20TransferTier = erc20TransferTier.connect(bob);
@@ -98,34 +98,17 @@ describe("ERC20TransferTier", async function () {
       .approve(erc20TransferTier.address, requiredForTier2);
     await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []);
 
-    const block1 = await ethers.provider.getBlockNumber();
-    const report1 = await aliceErc20TransferTier.report(alice.address);
+    await assertError(
+      async () => await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []),
+      "revert SET_SAME_TIER",
+      "alice wrongly set tier when start and end tiers were equivalent"
+    )
 
-    await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []);
-
-    const block2 = await ethers.provider.getBlockNumber();
-    const report2 = await aliceErc20TransferTier.report(alice.address);
-    assert(
-      block2 === block1 + 1,
-      `block2 not 1 more than block1: ${block1} ${block2}`
-    );
-    assert(
-      report2.eq(report1),
-      `report2 not equal to report1: ${report1} ${report2}`
-    );
-
-    await bobErc20TransferTier.setTier(alice.address, Tier.TWO, []);
-
-    const block3 = await ethers.provider.getBlockNumber();
-    const report3 = await bobErc20TransferTier.report(alice.address);
-    assert(
-      block3 === block2 + 1,
-      `block3 not 1 more than block2: ${block2} ${block3}`
-    );
-    assert(
-      report3.eq(report2),
-      `report3 not equal to report2: ${report2} ${report3}`
-    );
+    await assertError(
+      async () => await bobErc20TransferTier.setTier(alice.address, Tier.TWO, []),
+      "revert SET_SAME_TIER",
+      "bob wrongly set tier when start and end tiers were equivalent"
+    )
   });
 
   it("should restrict setting ZERO tier", async () => {
