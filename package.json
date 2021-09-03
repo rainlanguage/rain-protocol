@@ -6,7 +6,7 @@
     "build": "hardhat compile",
     "test": "hardhat test",
     "prepare": "husky install",
-    "generate-docs": "solidity-docgen -o ./docs/API/ --solc-module solc-0.6"
+    "docgen": "solidity-docgen -o ./docs/api/ --solc-module solc-0.6 --exclude ./contracts/test/,./contracts/tv-prestige/"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

@@ -71,8 +71,20 @@ let
  hardhat test
  '';
 
- generate-docs = pkgs.writeShellScriptBin "generate-docs" ''
- npm run generate-docs
+ docgen = pkgs.writeShellScriptBin "docgen" ''
+ rm -rf docs/api && npm run docgen
+ '';
+
+ docs-start = pkgs.writeShellScriptBin "docs-start" ''
+ docgen && npm run start --prefix docusaurus
+ '';
+
+ docs-build = pkgs.writeShellScriptBin "docs-build" ''
+ docgen && npm run build --prefix docusaurus
+ '';
+
+ docs-serve = pkgs.writeShellScriptBin "docs-serve" ''
+ npm run serve --prefix docusaurus
  '';
 in
 pkgs.stdenv.mkDerivation {
@@ -89,7 +101,10 @@ pkgs.stdenv.mkDerivation {
   security-check
   ci-test
   ci-lint
-  generate-docs
+  docgen
+  docs-start
+  docs-build
+  docs-serve
  ];
 
  shellHook = ''

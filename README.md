@@ -118,6 +118,12 @@ __IMPORTANT: `security-check` applies and removes several patches to balancer to
 
 If you cancel the security check before it is finished your repository may be left in a dirty state.
 
+### Build and serve documentation site
+
+Inside the nix-shell run `docs-build` and then `docs-serve`.
+
+Navigate to http://localhost:3000/ to view the docs site generated with Docusaurus. Documentation files are written in Markdown and can be found under the `/docs` directory in this repo.
+
 ## Definitions
 
 ### Seeder

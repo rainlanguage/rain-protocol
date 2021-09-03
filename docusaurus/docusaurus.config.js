@@ -10,7 +10,7 @@ module.exports = {
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   // favicon: "img/favicon.ico",
-  organizationName: "rain-protocol", // Usually your GitHub org/user name.
+  organizationName: "beehive-innovation", // Usually your GitHub org/user name.
   projectName: "rain-protocol", // Usually your repo name.
   themeConfig: {
     navbar: {
@@ -21,13 +21,13 @@ module.exports = {
       // },
       items: [
         {
-          to: "docs",
-          activeBasePath: "docs",
-          label: "Docs",
+          to: "/API/Trust",
+          // activeBasePath: "/API",
+          label: "API",
           position: "left",
         },
         {
-          href: "https://github.com/rain-protocol/rain-protocol",
+          href: "https://github.com/beehive-innovation/rain-protocol",
           label: "GitHub",
           position: "right",
         },
@@ -36,7 +36,7 @@ module.exports = {
     footer: {
       style: "dark",
       links: [],
-      copyright: `Copyright © ${new Date().getFullYear()} Rain Protocol`,
+      copyright: `Copyright © ${new Date().getFullYear()} Beehive Innovation`,
     },
     prism: {
       theme: lightCodeTheme,
@@ -49,14 +49,24 @@ module.exports = {
       {
         docs: {
           path: "../docs",
+          routeBasePath: "/",
+          exclude: [
+            "**/*/test/**/*.md",
+            "**/*/configurable-rights-pool/**/*.md",
+          ],
           sidebarPath: require.resolve("./sidebars.js"),
-          // Please change this to your repo.
-          editUrl:
-            "https://github.com/rain-protocol/rain-protocol/edit/main/website/",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
         },
+      },
+    ],
+  ],
+  plugins: [
+    [
+      require.resolve("@cmfcmf/docusaurus-search-local"),
+      {
+        docsRouteBasePath: "/",
       },
     ],
   ],
