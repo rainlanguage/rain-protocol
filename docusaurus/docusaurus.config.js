@@ -5,7 +5,7 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 module.exports = {
   title: "Rain Protocol",
   tagline: "Make It Rain",
-  url: "https://github.com/beehive-innovation/",
+  url: "https://beehive-innovation.github.io",
   baseUrl: "/rain-protocol/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",

@@ -87,10 +87,9 @@ let
  npm run serve --prefix docusaurus
  '';
 
-# WIP docs versioning
-#  docs-version = pkgs.writeShellScriptBin "docs-version" ''
-#  docs-build && npm run docusaurus --prefix docusaurus docs:version 0.0.1
-#  '';
+ docs-version = pkgs.writeShellScriptBin "docs-version" ''
+ docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GITHUB_TAG}
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
@@ -110,7 +109,7 @@ pkgs.stdenv.mkDerivation {
   docs-start
   docs-build
   docs-serve
-  # docs-version
+  docs-version
  ];
 
  shellHook = ''
