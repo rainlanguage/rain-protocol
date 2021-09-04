@@ -2,9 +2,9 @@ name: deploy-docusaurus
 
 on:
   push:
-    branches: [main]
+    branches: [main, 2021-08-31-docusaurus]
   pull_request:
-    branches: [main]
+    branches: [main, 2021-08-31-docusaurus]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
