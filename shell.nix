@@ -86,6 +86,11 @@ let
  docs-serve = pkgs.writeShellScriptBin "docs-serve" ''
  npm run serve --prefix docusaurus
  '';
+
+# WIP docs versioning
+#  docs-version = pkgs.writeShellScriptBin "docs-version" ''
+#  docs-build && npm run docusaurus --prefix docusaurus docs:version 0.0.1
+#  '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
@@ -105,11 +110,13 @@ pkgs.stdenv.mkDerivation {
   docs-start
   docs-build
   docs-serve
+  # docs-version
  ];
 
  shellHook = ''
   export PATH=$( npm bin ):$PATH
   # keep it fresh
   npm install
+  npm install --prefix docusaurus
  '';
 }
