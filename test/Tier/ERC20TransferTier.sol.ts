@@ -86,6 +86,48 @@ describe("ERC20TransferTier", async function () {
     await erc20TransferTier.connect(alice).setTier(alice.address, Tier.ONE, []);
   });
 
+  it("should respect block number on same tier", async () => {
+    const requiredForTier2 = LEVELS[1];
+    const aliceErc20TransferTier = erc20TransferTier.connect(alice);
+    const bobErc20TransferTier = erc20TransferTier.connect(bob);
+
+    await reserve.transfer(alice.address, requiredForTier2);
+
+    await reserve
+      .connect(alice)
+      .approve(erc20TransferTier.address, requiredForTier2);
+    await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []);
+
+    const block1 = await ethers.provider.getBlockNumber();
+    const report1 = await aliceErc20TransferTier.report(alice.address);
+
+    await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []);
+
+    const block2 = await ethers.provider.getBlockNumber();
+    const report2 = await aliceErc20TransferTier.report(alice.address);
+    assert(
+      block2 === block1 + 1,
+      `block2 not 1 more than block1: ${block1} ${block2}`
+    );
+    assert(
+      report2.eq(report1),
+      `report2 not equal to report1: ${report1} ${report2}`
+    );
+
+    await bobErc20TransferTier.setTier(alice.address, Tier.TWO, []);
+
+    const block3 = await ethers.provider.getBlockNumber();
+    const report3 = await bobErc20TransferTier.report(alice.address);
+    assert(
+      block3 === block2 + 1,
+      `block3 not 1 more than block2: ${block2} ${block3}`
+    );
+    assert(
+      report3.eq(report2),
+      `report3 not equal to report2: ${report2} ${report3}`
+    );
+  });
+
   it("should restrict setting ZERO tier", async () => {
     await assertError(
       async () =>
