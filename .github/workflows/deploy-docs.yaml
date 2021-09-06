@@ -29,6 +29,9 @@ jobs:
       - name: Autogenerate versioned docs folder with tag
         run: nix-shell --run docs-version
 
+      - name: Checkout tag
+        run: git switch ${{ github.ref }} --recurse-submodules
+
       - name: Commit versioned docs folder
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
