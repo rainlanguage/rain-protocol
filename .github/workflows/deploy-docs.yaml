@@ -2,6 +2,7 @@ name: Deploy Docs
 
 on:
   release:
+    types: [published]
     tags:
       - v*.*.*
 
