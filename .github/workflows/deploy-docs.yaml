@@ -3,8 +3,7 @@ name: Deploy Docs
 on:
   release:
     tags:
-      # Match on semver tags
-      - ^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
+      - v*.*.*
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
