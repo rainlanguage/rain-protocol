@@ -88,7 +88,7 @@ let
  '';
 
  docs-version = pkgs.writeShellScriptBin "docs-version" ''
- docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GITHUB_TAG}
+ docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GIT_TAG}
  '';
 in
 pkgs.stdenv.mkDerivation {
