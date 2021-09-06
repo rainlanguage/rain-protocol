@@ -1,13 +1,9 @@
 name: Deploy Docs
 
 on:
-  push:
-    branches: [main, 2021-08-31-docusaurus]
-  pull_request:
-    branches: [main, 2021-08-31-docusaurus]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  tags:
+    # Match on semver tags
+    - ^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -19,12 +15,23 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
+
       - name: Install nix
         uses: cachix/install-nix-action@v13
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Autogenerate versioned docs folder with tag
+        run: nix-shell --run docs-version
+
+      - name: Commit versioned docs folder
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: update versioned docs folder (automated)
+
       - name: Build Docs site
         run: nix-shell --run docs-build
+
       - name: Deploy to GitHub Pages
         if: success()
         uses: crazy-max/ghaction-github-pages@v2
