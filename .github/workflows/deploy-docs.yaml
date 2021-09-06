@@ -15,7 +15,6 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.ref }}
           submodules: "recursive"
 
       - name: Install nix
@@ -23,14 +22,14 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Get tag
-        run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
+      - run: echo "GIT_TAG=${{ github.ref }}" >> $GITHUB_ENV
+      - run: echo "GIT_BRANCH=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
 
       - name: Autogenerate versioned docs folder with tag
         run: nix-shell --run docs-version
 
       - name: Checkout tag
-        run: git switch ${{ github.ref }} --recurse-submodules
+        run: git switch ${{ env.GIT_BRANCH }} --recurse-submodules
 
       - name: Commit versioned docs folder
         uses: stefanzweifel/git-auto-commit-action@v4
