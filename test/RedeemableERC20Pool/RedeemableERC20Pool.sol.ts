@@ -28,6 +28,12 @@ const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/Res
 const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
 
 describe("RedeemableERC20Pool", async function () {
+  it("should allow anyone to start action", async function () {
+    this.timeout(0);
+
+    throw new Error("UNIMPLEMENTED");
+  })
+
   it("should safely poke weights after minimum trade duration", async function () {
     this.timeout(0);
 
@@ -101,7 +107,7 @@ describe("RedeemableERC20Pool", async function () {
     await reserve.transfer(pool.address, reserveInit);
     await redeemable.approve(pool.address, totalTokenSupply);
 
-    await pool.ownerStartDutchAuction(nextPhaseBlock, {
+    await pool.startDutchAuction({
       gasLimit: 10000000,
     });
 
@@ -299,7 +305,7 @@ describe("RedeemableERC20Pool", async function () {
       `expected phase ${Phase.ZERO} but got ${await pool.currentPhase()}`
     );
 
-    await pool.ownerStartDutchAuction(raiseEndBlock, {
+    await pool.startDutchAuction({
       gasLimit: 10000000,
     });
 
@@ -486,7 +492,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () =>
-        await pool1.ownerStartDutchAuction(raiseEndBlock, {
+        await pool1.startDutchAuction({
           gasLimit: 10000000,
         }),
       "revert Ownable: caller is not the owner",
@@ -495,13 +501,13 @@ describe("RedeemableERC20Pool", async function () {
 
     await reserve.approve(pool.address, reserveInit);
 
-    await pool.ownerStartDutchAuction(raiseEndBlock, { gasLimit: 10000000 });
+    await pool.startDutchAuction({ gasLimit: 10000000 });
 
     await reserve.approve(pool.address, reserveInit);
 
     await Util.assertError(
       async () =>
-        await pool.ownerStartDutchAuction(raiseEndBlock, {
+        await pool.startDutchAuction({
           gasLimit: 10000000,
         }),
       "revert BAD_PHASE",
@@ -642,7 +648,7 @@ describe("RedeemableERC20Pool", async function () {
     await reserve.transfer(pool.address, reserveInit);
     await redeemable.approve(pool.address, totalTokenSupply);
 
-    await pool.ownerStartDutchAuction(phaseOneBlock, {
+    await pool.startDutchAuction({
       gasLimit: 10000000,
     });
 
@@ -781,7 +787,7 @@ describe("RedeemableERC20Pool", async function () {
     await reserve.transfer(pool.address, reserveInit);
     await redeemable.approve(pool.address, totalTokenSupply);
 
-    await pool.ownerStartDutchAuction(phaseOneBlock, {
+    await pool.startDutchAuction({
       gasLimit: 10000000,
     });
 

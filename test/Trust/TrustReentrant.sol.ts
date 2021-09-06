@@ -143,7 +143,7 @@ describe("TrustReentrant", async function () {
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
+    await pool.startDutchAuction({ gasLimit: 100000000 });
 
     const startBlock = await ethers.provider.getBlockNumber();
 

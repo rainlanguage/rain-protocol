@@ -277,10 +277,6 @@ describe("TrustRewards", async function () {
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
-
-    const startBlock = await ethers.provider.getBlockNumber();
-
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
@@ -291,6 +287,11 @@ describe("TrustRewards", async function () {
       poolJson.abi,
       creator
     ) as RedeemableERC20Pool;
+
+    await pool.startDutchAuction({ gasLimit: 100000000 });
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     // raise some funds
@@ -584,8 +585,6 @@ describe("TrustRewards", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
-
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
@@ -596,6 +595,9 @@ describe("TrustRewards", async function () {
       poolJson.abi,
       creator
     ) as RedeemableERC20Pool;
+
+    await pool.startDutchAuction({ gasLimit: 100000000 });
+
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     assert(
@@ -786,10 +788,6 @@ describe("TrustRewards", async function () {
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
-
-    const startBlock = await ethers.provider.getBlockNumber();
-
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
@@ -800,6 +798,11 @@ describe("TrustRewards", async function () {
       poolJson.abi,
       creator
     ) as RedeemableERC20Pool;
+
+    await pool.startDutchAuction({ gasLimit: 100000000 });
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);

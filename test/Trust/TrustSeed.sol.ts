@@ -567,15 +567,21 @@ describe("TrustSeed", async function () {
     // seeders send reserve to seeder contract
     await seederContract1.seed(0, seeder1Units);
 
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+
     await Util.assertError(
-      async () => await trust.anonStartDistribution({ gasLimit: 100000000 }),
+      async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
       "revert ERC20: transfer amount exceeds balance",
       "raise begun with insufficient seed reserve"
     );
 
     await seederContract2.seed(0, seeder2Units);
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
+    await pool.startDutchAuction({ gasLimit: 100000000 });
   });
 
   describe("should allow many seeders to seed trust", async function () {
@@ -711,7 +717,7 @@ describe("TrustSeed", async function () {
       await seederContract1.seed(0, seeder1Units);
 
       await Util.assertError(
-        async () => await trust.anonStartDistribution({ gasLimit: 100000000 }),
+        async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
@@ -751,7 +757,7 @@ describe("TrustSeed", async function () {
       `
       );
 
-      await trust.anonStartDistribution({ gasLimit: 100000000 });
+      await pool.startDutchAuction({ gasLimit: 100000000 });
 
       let [crp, bPool] = await Util.poolContracts(signers, pool);
 
@@ -996,7 +1002,7 @@ describe("TrustSeed", async function () {
       await seederContract1.seed(0, seeder1Units);
 
       await Util.assertError(
-        async () => await trust.anonStartDistribution({ gasLimit: 100000000 }),
+        async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
         "revert ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
@@ -1026,7 +1032,7 @@ describe("TrustSeed", async function () {
       `
       );
 
-      await trust.anonStartDistribution({ gasLimit: 100000000 });
+      await pool.startDutchAuction({ gasLimit: 100000000 });
 
       let [crp, bPool] = await Util.poolContracts(signers, pool);
 

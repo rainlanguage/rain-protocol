@@ -408,7 +408,7 @@ describe("TrustConstruction", async function () {
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
+    await pool.startDutchAuction({ gasLimit: 100000000 });
 
     let [crp2, bPool2] = await Util.poolContracts(signers, pool);
 
@@ -882,7 +882,7 @@ describe("TrustConstruction", async function () {
     `
     );
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
+    await pool.startDutchAuction({ gasLimit: 100000000 });
 
     const distributionProgressTrading: DistributionProgress =
       await trust.getDistributionProgress();
