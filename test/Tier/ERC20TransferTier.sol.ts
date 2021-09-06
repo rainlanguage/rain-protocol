@@ -99,16 +99,18 @@ describe("ERC20TransferTier", async function () {
     await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []);
 
     await assertError(
-      async () => await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []),
+      async () =>
+        await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []),
       "revert SET_SAME_TIER",
       "alice wrongly set tier when start and end tiers were equivalent"
-    )
+    );
 
     await assertError(
-      async () => await bobErc20TransferTier.setTier(alice.address, Tier.TWO, []),
+      async () =>
+        await bobErc20TransferTier.setTier(alice.address, Tier.TWO, []),
       "revert SET_SAME_TIER",
       "bob wrongly set tier when start and end tiers were equivalent"
-    )
+    );
   });
 
   it("should restrict setting ZERO tier", async () => {
