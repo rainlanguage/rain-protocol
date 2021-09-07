@@ -72,10 +72,6 @@ struct TrustFactoryTrustConfig {
     // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
     // but it should be called rarely.
     uint16 seederCooldownDuration;
-    // Minimum duration IN BLOCKS of the trading on Balancer.
-    // The trading does not stop until the `anonEndDistribution` function is
-    // called.
-    uint256 minimumTradingDuration;
     // The amount of reserve to back the redemption initially after trading
     // finishes. Anyone can send more of the reserve to the redemption token at
     // any time to increase redemption value. Successful the redeemInit is sent
@@ -122,6 +118,10 @@ struct TrustFactoryTrustRedeemableERC20PoolConfig {
     // Any trading activity that net deposits reserve funds into the pool will
     // increase the spot price permanently.
     uint256 finalValuation;
+    // Minimum duration IN BLOCKS of the trading on Balancer.
+    // The trading does not stop until the `anonEndDistribution` function is
+    // called.
+    uint256 minimumTradingDuration;
 }
 
 /// @title TrustFactory
@@ -225,7 +225,7 @@ contract TrustFactory is Factory {
                 trustFactoryTrustRedeemableERC20PoolConfig_.reserveInit,
                 trustFactoryTrustRedeemableERC20PoolConfig_.initialValuation,
                 trustFactoryTrustRedeemableERC20PoolConfig_.finalValuation,
-                trustFactoryTrustConfig_.minimumTradingDuration
+                trustFactoryTrustRedeemableERC20PoolConfig_.minimumTradingDuration
             )
         ));
 

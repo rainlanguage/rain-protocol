@@ -103,7 +103,6 @@ describe("TrustDistribute", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -118,6 +117,7 @@ describe("TrustDistribute", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -252,7 +252,6 @@ describe("TrustDistribute", async function () {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit,
           },
           {
@@ -267,6 +266,7 @@ describe("TrustDistribute", async function () {
             reserveInit,
             initialValuation,
             finalValuation,
+            minimumTradingDuration,
           },
           { gasLimit: 100000000 }
         ),
@@ -335,7 +335,6 @@ describe("TrustDistribute", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -350,6 +349,7 @@ describe("TrustDistribute", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -485,7 +485,6 @@ describe("TrustDistribute", async function () {
           seederFee,
           seederUnits,
           seederCooldownDuration,
-          minimumTradingDuration,
           redeemInit,
         },
         {
@@ -500,6 +499,7 @@ describe("TrustDistribute", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
+          minimumTradingDuration,
         },
         { gasLimit: 100000000 }
       );
@@ -665,7 +665,6 @@ describe("TrustDistribute", async function () {
           seederFee,
           seederUnits,
           seederCooldownDuration,
-          minimumTradingDuration,
           redeemInit,
         },
         {
@@ -680,6 +679,7 @@ describe("TrustDistribute", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
+          minimumTradingDuration,
         },
         { gasLimit: 100000000 }
       );
@@ -814,7 +814,6 @@ describe("TrustDistribute", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -829,6 +828,7 @@ describe("TrustDistribute", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -974,7 +974,6 @@ describe("TrustDistribute", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -989,6 +988,7 @@ describe("TrustDistribute", async function () {
         reserveInit,
         initialValuation,
         finalValuation,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1113,7 +1113,6 @@ describe("TrustDistribute", async function () {
           seederFee,
           seederUnits,
           seederCooldownDuration,
-          minimumTradingDuration,
           redeemInit,
         },
         {
@@ -1128,6 +1127,7 @@ describe("TrustDistribute", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
+          minimumTradingDuration,
         },
         { gasLimit: 100000000 }
       );
@@ -1271,7 +1271,6 @@ describe("TrustDistribute", async function () {
           seederFee,
           seederUnits,
           seederCooldownDuration,
-          minimumTradingDuration,
           redeemInit,
         },
         {
@@ -1286,6 +1285,7 @@ describe("TrustDistribute", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
+          minimumTradingDuration,
         },
         { gasLimit: 100000000 }
       );

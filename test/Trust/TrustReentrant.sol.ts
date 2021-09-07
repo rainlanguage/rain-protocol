@@ -92,7 +92,6 @@ describe("TrustReentrant", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -107,6 +106,7 @@ describe("TrustReentrant", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );

@@ -119,7 +119,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -129,6 +128,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -285,7 +285,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -295,6 +294,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -438,7 +438,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -448,6 +447,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -589,7 +589,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -599,6 +598,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -760,7 +760,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -770,6 +769,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -895,7 +895,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -905,6 +904,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1016,7 +1016,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -1026,6 +1025,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1196,7 +1196,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -1206,6 +1205,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1228,23 +1228,23 @@ describe("Trust", async function () {
     await reserveSeeder.transfer(await trust.pool(), reserveInit.sub(1));
 
     // 'anyone'
-    const trust2 = new ethers.Contract(
-      trust.address,
-      trustJson.abi,
+    const pool2 = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
       signers[2]
     ) as Trust;
 
     await Util.assertError(
-      async () => await trust2.anonStartDistribution({ gasLimit: 100000000 }),
+      async () => await pool2.startDutchAuction({ gasLimit: 100000000 }),
       "revert ERC20: transfer amount exceeds balance",
-      "raise wrongly started by someone with insufficent seed reserve liquidity"
+      "raise wrongly started before seeder provided sufficent seed reserve liquidity"
     );
 
     // seeder approves sufficient reserve liquidity
     await reserveSeeder.transfer(await trust.pool(), 1);
 
     // anyone can start distribution
-    await trust2.anonStartDistribution({ gasLimit: 100000000 });
+    await pool2.startDutchAuction({ gasLimit: 100000000 });
   });
 
   it("should only allow trust endRaise to succeed after pool trading ended", async function () {
@@ -1310,7 +1310,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -1320,6 +1319,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1465,7 +1465,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -1475,6 +1474,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1582,7 +1582,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -1592,6 +1591,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1694,7 +1694,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -1704,6 +1703,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1816,7 +1816,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -1826,6 +1825,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -2197,7 +2197,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -2207,6 +2206,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -2555,7 +2555,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -2565,6 +2564,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -2585,20 +2585,20 @@ describe("Trust", async function () {
 
     const seederReserveBeforeStart = await reserve.balanceOf(seeder.address);
 
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+
     await Util.assertError(
-      async () => await trust.anonStartDistribution({ gasLimit: 100000000 }),
+      async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
       "revert ERC20: transfer amount exceeds balance",
       "initiated raise before seeder transferred reserve token"
     );
 
     // seeder must transfer before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
-
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool;
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
@@ -2672,7 +2672,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -2682,6 +2681,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -2701,7 +2701,13 @@ describe("Trust", async function () {
     ) as ReserveToken;
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+
+    await pool.startDutchAuction({
       gasLimit: 100000000,
     });
 
@@ -2800,7 +2806,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -2810,6 +2815,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -2818,7 +2824,13 @@ describe("Trust", async function () {
 
     await reserve.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+
+    await pool.startDutchAuction({
       gasLimit: 100000000,
     });
     const startBlock = await ethers.provider.getBlockNumber();
@@ -2829,19 +2841,13 @@ describe("Trust", async function () {
     await reserve.transfer(signer1.address, spend1.mul(10));
     await reserve.transfer(signer2.address, spend2);
 
-    const trustPool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool;
-
-    let [crp, bPool] = await Util.poolContracts(signers, trustPool);
+    let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const bPool1 = bPool.connect(signer1);
     const reserve1 = reserve.connect(signer1);
 
     const crp1 = new ethers.Contract(
-      await trustPool.crp(),
+      await pool.crp(),
       crpJson.abi,
       signer1
     ) as ConfigurableRightsPool;
@@ -2990,7 +2996,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -3000,6 +3005,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -3008,7 +3014,13 @@ describe("Trust", async function () {
 
     await reserve.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+
+    await pool.startDutchAuction({
       gasLimit: 100000000,
     });
     const startBlock = await ethers.provider.getBlockNumber();
@@ -3023,13 +3035,7 @@ describe("Trust", async function () {
       ethers.BigNumber.from("2000" + Util.sixZeros)
     );
 
-    const trustPool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool;
-
-    let [crp, bPool] = await Util.poolContracts(signers, trustPool);
+    let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const bPool1 = bPool.connect(signer1);
     const reserve1 = reserve.connect(signer1);
@@ -3163,7 +3169,6 @@ describe("Trust", async function () {
       {
         name: tokenName,
         symbol: tokenSymbol,
-        minimumTradingDuration,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -3173,6 +3178,7 @@ describe("Trust", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -3181,7 +3187,13 @@ describe("Trust", async function () {
 
     await reserve.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+
+    await pool.startDutchAuction({
       gasLimit: 100000000,
     });
     const startBlock = await ethers.provider.getBlockNumber();

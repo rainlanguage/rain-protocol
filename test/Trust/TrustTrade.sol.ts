@@ -102,7 +102,6 @@ describe("TrustTrade", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -117,6 +116,7 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -241,7 +241,6 @@ describe("TrustTrade", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -256,6 +255,7 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -369,7 +369,6 @@ describe("TrustTrade", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -384,6 +383,7 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -633,7 +633,6 @@ describe("TrustTrade", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -648,6 +647,7 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -850,7 +850,6 @@ describe("TrustTrade", async function () {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit,
           },
           {
@@ -865,6 +864,7 @@ describe("TrustTrade", async function () {
             reserveInit,
             initialValuation: initialValuation1,
             finalValuation: successLevel,
+            minimumTradingDuration,
           },
           { gasLimit: 100000000 }
         ),
@@ -898,7 +898,6 @@ describe("TrustTrade", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -913,6 +912,7 @@ describe("TrustTrade", async function () {
         reserveInit,
         initialValuation: initialValuation2,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );

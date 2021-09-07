@@ -106,7 +106,6 @@ describe("TrustSeed", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -121,6 +120,7 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -397,7 +397,6 @@ describe("TrustSeed", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -412,6 +411,7 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -522,7 +522,6 @@ describe("TrustSeed", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -537,6 +536,7 @@ describe("TrustSeed", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -651,7 +651,6 @@ describe("TrustSeed", async function () {
           seederFee,
           seederUnits,
           seederCooldownDuration,
-          minimumTradingDuration,
           redeemInit,
         },
         {
@@ -666,6 +665,7 @@ describe("TrustSeed", async function () {
           reserveInit,
           initialValuation,
           finalValuation,
+          minimumTradingDuration,
         },
         { gasLimit: 100000000 }
       );
@@ -943,7 +943,6 @@ describe("TrustSeed", async function () {
           seederFee,
           seederUnits,
           seederCooldownDuration,
-          minimumTradingDuration,
           redeemInit,
         },
         {
@@ -958,6 +957,7 @@ describe("TrustSeed", async function () {
           reserveInit,
           initialValuation,
           finalValuation: successLevel,
+          minimumTradingDuration,
         },
         { gasLimit: 100000000 }
       );
