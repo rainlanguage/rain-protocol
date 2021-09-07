@@ -5,8 +5,8 @@ on:
     branches:
       # - develop
       - 2021-08-31-docusaurus
-    tags:
-      - v*.*.*
+    tags-ignore:
+      - "!v*.*.*" # ignore commits not following v*.*.* pattern
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
