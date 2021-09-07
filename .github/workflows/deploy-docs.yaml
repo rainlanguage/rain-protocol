@@ -1,12 +1,9 @@
 name: Deploy Docs
 
 on:
-  push:
-    branches:
-      # - develop
-      - 2021-08-31-docusaurus
-    tags-ignore:
-      - "!v*.*.*" # ignore commits not following v*.*.* pattern
+  release:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
+    types: ["published"]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -17,8 +14,7 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v2
         with:
-          # ref: develop
-          ref: 2021-08-31-docusaurus
+          ref: develop
           submodules: "recursive"
 
       - name: Install nix
@@ -32,11 +28,13 @@ jobs:
         run: nix-shell --run docs-version
 
       - name: Commit versioned docs folder
+        if: success()
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: update versioned docs folder (automated)
 
       - name: Build Docs site
+        if: success()
         run: nix-shell --run docs-build
 
       - name: Deploy to GitHub Pages
