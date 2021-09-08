@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierUtilTest } from "../../typechain/TierUtilTest";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { assertError, basicDeploy } from "../Util";
+import { assertError, basicDeploy, zeroPad32, zeroPad4 } from "../Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -192,9 +192,9 @@ describe("TierUtil", async function () {
 
   it("should correctly set new blocks based on whether the new tier is higher or lower than the current one", async () => {
     const initialBlock = await ethers.provider.getBlockNumber();
-    const initialBlockHex = ethers.BigNumber.from(initialBlock)
-      .toHexString()
-      .slice(2);
+    const initialBlockHex = zeroPad4(ethers.BigNumber.from(initialBlock)).slice(
+      2
+    );
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
@@ -215,7 +215,8 @@ describe("TierUtil", async function () {
       .connect(signer1)
       .setTier(signer1.address, Tier.EIGHT, []);
 
-    const report = await readWriteTier.report(signer1.address);
+    const reportUnpadded = await readWriteTier.report(signer1.address);
+    const report = zeroPad32(reportUnpadded);
 
     const block1 = await ethers.provider.getBlockNumber();
 
@@ -245,12 +246,14 @@ describe("TierUtil", async function () {
       initialBlock
     );
 
+    const actualFirstSection = zeroPad32(updatedReportSetBlock).slice(2, 26);
+    const expectedFirstSection = report.slice(2, 26);
+
     assert(
-      updatedReportSetBlock.toHexString().slice(0, 24) ===
-        report.toHexString().slice(0, 24),
+      actualFirstSection === expectedFirstSection,
       `first section of updated report (set block) is wrong
-      expected  ${report.toHexString().slice(0, 24)}
-      got       ${updatedReportSetBlock.toHexString().slice(0, 24)}`
+      expected  ${expectedFirstSection}
+      got       ${actualFirstSection}`
     );
 
     const actualSetBlock = updatedReportSetBlock
@@ -266,12 +269,14 @@ describe("TierUtil", async function () {
       got       ${actualSetBlock}`
     );
 
+    const actualLastSection = zeroPad32(updatedReportSetBlock).slice(26 + 8);
+    const expectedLastSection = report.slice(26 + 8);
+
     assert(
-      updatedReportSetBlock.toHexString().slice(24 + 8) ===
-        report.toHexString().slice(24 + 8),
+      actualLastSection === expectedLastSection,
       `last section of updated report (set block) is wrong
-      expected  ${report.toHexString().slice(24 + 8)}
-      got       ${updatedReportSetBlock.toHexString().slice(24 + 8)}`
+      expected  ${expectedLastSection}
+      got       ${actualLastSection}`
     );
   });
 });
