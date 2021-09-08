@@ -355,9 +355,6 @@ describe("RedeemableERC20Pool", async function () {
       await reserve.transfer(signers[1].address, 1);
     }
 
-    console.log(await ethers.provider.getBlockNumber())
-    console.log(raiseEndBlock)
-
     // moves to phase TWO 1 block after trading finishes
     assert(
       (await pool.currentPhase()) === Phase.TWO,
