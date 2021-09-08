@@ -439,9 +439,6 @@ describe("RedeemableERC20Pool", async function () {
 
     const minimumTradingDuration = 50;
 
-    const now = await ethers.provider.getBlockNumber();
-    const raiseEndBlock = now + minimumTradingDuration;
-
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
       name: tokenName,
@@ -505,11 +502,8 @@ describe("RedeemableERC20Pool", async function () {
       gasLimit: 10000000,
     });
 
-    await reserve.approve(pool.address, reserveInit);
-
-    await pool.startDutchAuction({ gasLimit: 10000000 });
-
-    await reserve.approve(pool.address, reserveInit);
+    const now = await ethers.provider.getBlockNumber();
+    const raiseEndBlock = now + minimumTradingDuration;
 
     await Util.assertError(
       async () =>
@@ -537,7 +531,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // create a few blocks by sending some tokens around
-    while ((await ethers.provider.getBlockNumber()) < raiseEndBlock - 1) {
+    while ((await ethers.provider.getBlockNumber()) < raiseEndBlock) {
       await reserve.transfer(signers[2].address, 1);
     }
 
@@ -591,9 +585,6 @@ describe("RedeemableERC20Pool", async function () {
     const tokenSymbol = "RDX";
 
     const minimumTradingDuration = 15;
-
-    const now = await ethers.provider.getBlockNumber();
-    const phaseOneBlock = now + minimumTradingDuration;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
@@ -660,6 +651,9 @@ describe("RedeemableERC20Pool", async function () {
     await pool.startDutchAuction({
       gasLimit: 10000000,
     });
+
+    const now = await ethers.provider.getBlockNumber();
+    const phaseOneBlock = now + minimumTradingDuration;
 
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
@@ -735,9 +729,6 @@ describe("RedeemableERC20Pool", async function () {
 
     const minimumTradingDuration = 15;
 
-    const now = await ethers.provider.getBlockNumber();
-    const phaseOneBlock = now + minimumTradingDuration;
-
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
       name: tokenName,
@@ -802,6 +793,9 @@ describe("RedeemableERC20Pool", async function () {
     await pool.startDutchAuction({
       gasLimit: 10000000,
     });
+
+    const now = await ethers.provider.getBlockNumber();
+    const phaseOneBlock = now + minimumTradingDuration;
 
     // The trust would do this internally but we need to do it here to test.
     let [crp, bPool] = await Util.poolContracts(signers, pool);
