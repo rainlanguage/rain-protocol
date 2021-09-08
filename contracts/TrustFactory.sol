@@ -20,7 +20,10 @@ import {
 import { SeedERC20Factory } from "./SeedERC20Factory.sol";
 import { SeedERC20Config } from "./SeedERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import { TrustRedeemableERC20Config, TrustRedeemableERC20PoolConfig } from "./Trust.sol";
+import {
+    TrustRedeemableERC20Config,
+    TrustRedeemableERC20PoolConfig
+} from "./Trust.sol";
 
 /// Everything required to construct a `TrustFactory`.
 struct TrustFactoryConfig {
