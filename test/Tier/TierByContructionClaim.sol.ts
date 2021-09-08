@@ -158,7 +158,7 @@ describe("TierByConstructionClaim", async function () {
     });
 
     xit("should call _afterClaim hook after claim", async () => {
-      // _afterClaim is currently no-op
+      // TODO: create test contract overriding _afterClaim
     });
 
     it("should emit Claim event when claim occurs", async () => {

@@ -62,8 +62,7 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
-    const firstBlock = await ethers.provider.getBlockNumber();
-    const nextPhaseBlock = firstBlock + 10;
+    const minimumTradingDuration = 10;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
@@ -91,6 +90,7 @@ describe("RedeemableERC20Pool", async function () {
       reserveInit: reserveInit,
       initialValuation: initialValuation,
       finalValuation: finalValuation,
+      minimumTradingDuration,
     })) as RedeemableERC20Pool;
 
     await pool.deployed();
@@ -101,48 +101,52 @@ describe("RedeemableERC20Pool", async function () {
     await reserve.transfer(pool.address, reserveInit);
     await redeemable.approve(pool.address, totalTokenSupply);
 
-    await pool.ownerStartDutchAuction(nextPhaseBlock, {
+    const expectedPhaseOneBlock = (await ethers.provider.getBlockNumber()) + 1;
+    const expectedPhaseTwoBlock =
+      expectedPhaseOneBlock + minimumTradingDuration + 1;
+
+    await pool.startDutchAuction({
       gasLimit: 10000000,
     });
 
-    const expectedStartBlock = await ethers.provider.getBlockNumber();
-    const expectedEndBlock = nextPhaseBlock + 1;
+    const actualPhaseOneBlock = await pool.phaseBlocks(0);
+    const actualPhaseTwoBlock = await pool.phaseBlocks(1);
+
+    assert(
+      expectedPhaseOneBlock === actualPhaseOneBlock,
+      `wrong start block from pool.phaseBlocks
+      expected ${expectedPhaseOneBlock} got ${actualPhaseOneBlock}`
+    );
+
+    assert(
+      expectedPhaseTwoBlock === actualPhaseTwoBlock,
+      `wrong end block from pool.phaseBlocks
+        expected ${expectedPhaseTwoBlock} got ${actualPhaseTwoBlock}`
+    );
 
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
-    const actualStartBlock = await pool.phaseBlocks(0);
-    const actualEndBlock = await pool.phaseBlocks(1);
-
-    assert(
-      expectedStartBlock === actualStartBlock,
-      `wrong start block from pool.phaseBlocks
-      expected ${expectedStartBlock} got ${actualStartBlock}`
-    );
-
-    assert(
-      expectedEndBlock === actualEndBlock,
-      `wrong end block from pool.phaseBlocks
-      expected ${expectedEndBlock} got ${actualEndBlock}`
-    );
-
-    while ((await ethers.provider.getBlockNumber()) <= nextPhaseBlock + 2) {
+    while (
+      (await ethers.provider.getBlockNumber()) <=
+      expectedPhaseTwoBlock + 2
+    ) {
       await crp.pokeWeights();
 
       const actualStartBlock = await pool.phaseBlocks(0);
       const actualEndBlock = await pool.phaseBlocks(1);
 
       assert(
-        actualStartBlock === expectedStartBlock,
+        actualStartBlock === expectedPhaseOneBlock,
         `wrong start block from pool.phaseBlocks after pokeWeights
-        expected ${expectedStartBlock} got ${actualStartBlock}
+        expected ${expectedPhaseOneBlock} got ${actualStartBlock}
         current block ${await ethers.provider.getBlockNumber()}
-        final auction block ${nextPhaseBlock}`
+        final auction block ${expectedPhaseTwoBlock}`
       );
 
       assert(
-        expectedEndBlock === actualEndBlock,
+        expectedPhaseTwoBlock === actualEndBlock,
         `wrong end block from pool.phaseBlocks after pokeWeights
-        expected ${expectedEndBlock} got ${actualEndBlock}`
+        expected ${expectedPhaseTwoBlock} got ${actualEndBlock}`
       );
     }
   });
@@ -181,6 +185,8 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
+    const minimumTradingDuration = 10;
+
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
       name: tokenName,
@@ -207,6 +213,7 @@ describe("RedeemableERC20Pool", async function () {
       reserveInit: reserveInit,
       initialValuation: initialValuation,
       finalValuation: finalValuation,
+      minimumTradingDuration,
     })) as RedeemableERC20Pool;
 
     await pool.deployed();
@@ -255,8 +262,7 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
-    const now = await ethers.provider.getBlockNumber();
-    const raiseEndBlock = now + 50;
+    const minimumTradingDuration = 50;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
@@ -284,6 +290,7 @@ describe("RedeemableERC20Pool", async function () {
       reserveInit: reserveInit,
       initialValuation: initialValuation,
       finalValuation: finalValuation,
+      minimumTradingDuration,
     })) as RedeemableERC20Pool;
 
     await pool.deployed();
@@ -299,9 +306,12 @@ describe("RedeemableERC20Pool", async function () {
       `expected phase ${Phase.ZERO} but got ${await pool.currentPhase()}`
     );
 
-    await pool.ownerStartDutchAuction(raiseEndBlock, {
+    await pool.startDutchAuction({
       gasLimit: 10000000,
     });
+
+    const now = await ethers.provider.getBlockNumber();
+    const raiseEndBlock = now + minimumTradingDuration;
 
     // move to phase ONE immediately
     assert(
@@ -390,7 +400,7 @@ describe("RedeemableERC20Pool", async function () {
     );
   });
 
-  it("should only allow owner to set pool phases and start raise", async function () {
+  it("should only allow owner to set pool phases, and anyone can start raise", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -424,8 +434,7 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
-    const now = await ethers.provider.getBlockNumber();
-    const raiseEndBlock = now + 50;
+    const minimumTradingDuration = 50;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
@@ -453,6 +462,7 @@ describe("RedeemableERC20Pool", async function () {
       reserveInit: reserveInit,
       initialValuation: initialValuation,
       finalValuation: finalValuation,
+      minimumTradingDuration,
     })) as RedeemableERC20Pool;
 
     await pool.deployed();
@@ -484,24 +494,17 @@ describe("RedeemableERC20Pool", async function () {
 
     await reserve1.transfer(pool.address, reserveInit);
 
-    await Util.assertError(
-      async () =>
-        await pool1.ownerStartDutchAuction(raiseEndBlock, {
-          gasLimit: 10000000,
-        }),
-      "revert Ownable: caller is not the owner",
-      "non-owner was wrongly able to start pool trading"
-    );
+    // non-owner able to start pool trading
+    await pool1.startDutchAuction({
+      gasLimit: 10000000,
+    });
 
-    await reserve.approve(pool.address, reserveInit);
-
-    await pool.ownerStartDutchAuction(raiseEndBlock, { gasLimit: 10000000 });
-
-    await reserve.approve(pool.address, reserveInit);
+    const now = await ethers.provider.getBlockNumber();
+    const raiseEndBlock = now + minimumTradingDuration;
 
     await Util.assertError(
       async () =>
-        await pool.ownerStartDutchAuction(raiseEndBlock, {
+        await pool.startDutchAuction({
           gasLimit: 10000000,
         }),
       "revert BAD_PHASE",
@@ -525,7 +528,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // create a few blocks by sending some tokens around
-    while ((await ethers.provider.getBlockNumber()) < raiseEndBlock - 1) {
+    while ((await ethers.provider.getBlockNumber()) < raiseEndBlock) {
       await reserve.transfer(signers[2].address, 1);
     }
 
@@ -578,8 +581,7 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
-    const now = await ethers.provider.getBlockNumber();
-    const phaseOneBlock = now + 15;
+    const minimumTradingDuration = 15;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
@@ -622,6 +624,7 @@ describe("RedeemableERC20Pool", async function () {
       reserveInit: reserveInit,
       initialValuation: initialValuation,
       finalValuation: finalValuation,
+      minimumTradingDuration,
     })) as RedeemableERC20Pool;
 
     await pool.deployed();
@@ -642,9 +645,12 @@ describe("RedeemableERC20Pool", async function () {
     await reserve.transfer(pool.address, reserveInit);
     await redeemable.approve(pool.address, totalTokenSupply);
 
-    await pool.ownerStartDutchAuction(phaseOneBlock, {
+    await pool.startDutchAuction({
       gasLimit: 10000000,
     });
+
+    const now = await ethers.provider.getBlockNumber();
+    const phaseOneBlock = now + minimumTradingDuration;
 
     let [crp, bPool] = await Util.poolContracts(signers, pool);
 
@@ -718,8 +724,7 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
-    const now = await ethers.provider.getBlockNumber();
-    const phaseOneBlock = now + 15;
+    const minimumTradingDuration = 15;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
@@ -761,6 +766,7 @@ describe("RedeemableERC20Pool", async function () {
       reserveInit: reserveInit,
       initialValuation: initialValuation,
       finalValuation: finalValuation,
+      minimumTradingDuration,
     })) as RedeemableERC20Pool;
 
     await pool.deployed();
@@ -781,9 +787,12 @@ describe("RedeemableERC20Pool", async function () {
     await reserve.transfer(pool.address, reserveInit);
     await redeemable.approve(pool.address, totalTokenSupply);
 
-    await pool.ownerStartDutchAuction(phaseOneBlock, {
+    await pool.startDutchAuction({
       gasLimit: 10000000,
     });
+
+    const now = await ethers.provider.getBlockNumber();
+    const phaseOneBlock = now + minimumTradingDuration;
 
     // The trust would do this internally but we need to do it here to test.
     let [crp, bPool] = await Util.poolContracts(signers, pool);
@@ -840,6 +849,8 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
+    const minimumTradingDuration = 15;
+
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
       name: tokenName,
@@ -882,6 +893,7 @@ describe("RedeemableERC20Pool", async function () {
           reserveInit: reserveInit,
           initialValuation: initialValuation,
           finalValuation: finalValuation,
+          minimumTradingDuration,
         })) as RedeemableERC20Pool;
         await pool.deployed();
       },
@@ -924,8 +936,7 @@ describe("RedeemableERC20Pool", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
 
-    const now = await ethers.provider.getBlockNumber();
-    const phaseOneBlock = now + 15;
+    const minimumTradingDuration = 15;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
@@ -967,6 +978,7 @@ describe("RedeemableERC20Pool", async function () {
       reserveInit: reserveInit,
       initialValuation: initialValuation,
       finalValuation: finalValuation,
+      minimumTradingDuration,
     })) as RedeemableERC20Pool;
   });
 });
