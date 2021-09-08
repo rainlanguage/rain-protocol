@@ -125,7 +125,7 @@ describe("Account tier", async function () {
     let n = 0;
     while (o < tiers.length) {
       n = Math.max(
-        1,
+        2,
         Math.min(o + Math.floor(Math.random() * tiers.length), tiers.length - 1)
       );
       await readWriteTier.setTier(signers[0].address, n, []);
