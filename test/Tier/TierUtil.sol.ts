@@ -253,8 +253,12 @@ describe("TierUtil", async function () {
       got       ${updatedReportSetBlock.toHexString().slice(0, 24)}`
     );
 
-    const actualSetBlock = updatedReportSetBlock.toHexString().slice(-40).slice(0, 8)
-    const expectedSetBlock = "0".repeat(8 - initialBlockHex.length) + initialBlockHex
+    const actualSetBlock = updatedReportSetBlock
+      .toHexString()
+      .slice(-40)
+      .slice(0, 8);
+    const expectedSetBlock =
+      "0".repeat(8 - initialBlockHex.length) + initialBlockHex;
     assert(
       actualSetBlock === expectedSetBlock,
       `set block was wrong
