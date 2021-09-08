@@ -264,9 +264,6 @@ describe("RedeemableERC20Pool", async function () {
 
     const minimumTradingDuration = 50;
 
-    const now = await ethers.provider.getBlockNumber();
-    const raiseEndBlock = now + minimumTradingDuration;
-
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
       name: tokenName,
@@ -313,6 +310,9 @@ describe("RedeemableERC20Pool", async function () {
       gasLimit: 10000000,
     });
 
+    const now = await ethers.provider.getBlockNumber();
+    const raiseEndBlock = now + minimumTradingDuration;
+
     // move to phase ONE immediately
     assert(
       (await pool.currentPhase()) === Phase.ONE,
@@ -354,6 +354,9 @@ describe("RedeemableERC20Pool", async function () {
     while ((await ethers.provider.getBlockNumber()) < raiseEndBlock + 1) {
       await reserve.transfer(signers[1].address, 1);
     }
+
+    console.log(await ethers.provider.getBlockNumber())
+    console.log(raiseEndBlock)
 
     // moves to phase TWO 1 block after trading finishes
     assert(
