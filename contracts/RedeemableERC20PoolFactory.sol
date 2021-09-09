@@ -66,6 +66,10 @@ struct RedeemableERC20PoolFactoryRedeemableERC20PoolConfig {
     // Any trading activity that net deposits reserve funds into the pool will
     // increase the spot price permanently.
     uint256 finalValuation;
+    // Minimum duration IN BLOCKS of the trading on Balancer.
+    // The trading does not stop until the `anonEndDistribution` function is
+    // called.
+    uint256 minimumTradingDuration;
 }
 
 /// @title RedeemableERC20PoolFactory
@@ -107,7 +111,8 @@ contract RedeemableERC20PoolFactory is Factory {
                 config_.token,
                 config_.reserveInit,
                 config_.initialValuation,
-                config_.finalValuation
+                config_.finalValuation,
+                config_.minimumTradingDuration
             )
         );
         /// Transfer Balancer pool ownership to sender (e.g. Trust).

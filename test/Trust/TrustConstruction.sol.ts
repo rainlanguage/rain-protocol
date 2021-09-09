@@ -123,7 +123,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -138,6 +137,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -152,7 +152,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -167,6 +166,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -243,7 +243,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -258,6 +257,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -335,7 +335,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -350,6 +349,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -408,7 +408,7 @@ describe("TrustConstruction", async function () {
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
+    await pool.startDutchAuction({ gasLimit: 100000000 });
 
     let [crp2, bPool2] = await Util.poolContracts(signers, pool);
 
@@ -481,7 +481,6 @@ describe("TrustConstruction", async function () {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit,
           },
           {
@@ -496,6 +495,7 @@ describe("TrustConstruction", async function () {
             reserveInit,
             initialValuation,
             finalValuation: successLevel,
+            minimumTradingDuration,
           },
           { gasLimit: 100000000 }
         ),
@@ -565,7 +565,6 @@ describe("TrustConstruction", async function () {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit,
           },
           {
@@ -580,6 +579,7 @@ describe("TrustConstruction", async function () {
             reserveInit,
             initialValuation,
             finalValuation: successLevel,
+            minimumTradingDuration,
           },
           { gasLimit: 100000000 }
         ),
@@ -649,7 +649,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -664,6 +663,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -728,7 +728,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -743,6 +742,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -882,7 +882,7 @@ describe("TrustConstruction", async function () {
     `
     );
 
-    await trust.anonStartDistribution({ gasLimit: 100000000 });
+    await pool.startDutchAuction({ gasLimit: 100000000 });
 
     const distributionProgressTrading: DistributionProgress =
       await trust.getDistributionProgress();
@@ -1072,7 +1072,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -1087,6 +1086,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1159,7 +1159,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -1174,6 +1173,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1187,10 +1187,6 @@ describe("TrustConstruction", async function () {
       "wrong minimum raise amount"
     );
     assert((await trust.seederFee()).eq(seederFee), "wrong seeder fee");
-    assert(
-      (await trust.minimumTradingDuration()).eq(minimumTradingDuration),
-      "wrong raise duration"
-    );
     assert((await trust.redeemInit()).eq(redeemInit), "wrong redeem init");
   });
 
@@ -1252,7 +1248,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -1267,6 +1262,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1343,7 +1339,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -1358,6 +1353,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1438,7 +1434,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -1453,6 +1448,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1538,7 +1534,6 @@ describe("TrustConstruction", async function () {
         seederFee,
         seederUnits,
         seederCooldownDuration,
-        minimumTradingDuration,
         redeemInit,
       },
       {
@@ -1553,6 +1548,7 @@ describe("TrustConstruction", async function () {
         reserveInit,
         initialValuation,
         finalValuation: successLevel,
+        minimumTradingDuration,
       },
       { gasLimit: 100000000 }
     );
@@ -1622,7 +1618,6 @@ describe("TrustConstruction", async function () {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit,
           },
           {
@@ -1637,6 +1632,7 @@ describe("TrustConstruction", async function () {
             reserveInit,
             initialValuation,
             finalValuation: successLevel.sub(1),
+            minimumTradingDuration,
           },
           { gasLimit: 100000000 }
         ),
@@ -1703,7 +1699,6 @@ describe("TrustConstruction", async function () {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit,
           },
           {
@@ -1718,6 +1713,7 @@ describe("TrustConstruction", async function () {
             reserveInit: totalTokenSupply.add(1),
             initialValuation,
             finalValuation: successLevel,
+            minimumTradingDuration,
           },
           { gasLimit: 100000000 }
         ),
@@ -1779,7 +1775,6 @@ describe("TrustConstruction", async function () {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit,
           },
           {
@@ -1794,6 +1789,7 @@ describe("TrustConstruction", async function () {
             reserveInit,
             initialValuation,
             finalValuation: initialValuation.add(1),
+            minimumTradingDuration,
           },
           { gasLimit: 100000000 }
         ),
@@ -1813,7 +1809,6 @@ describe("TrustConstruction", async function () {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit,
           },
           {
@@ -1835,6 +1830,7 @@ describe("TrustConstruction", async function () {
               .add(minimumCreatorRaise)
               .add(seederFee)
               .add(reserveInit),
+            minimumTradingDuration,
           },
           { gasLimit: 100000000 }
         ),

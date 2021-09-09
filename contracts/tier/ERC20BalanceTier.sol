@@ -43,7 +43,10 @@ contract ERC20BalanceTier is ReadOnlyTier, ValueTier {
     /// of at `report` time.
     /// @param tierValues_ 8 values corresponding to minimum erc20
     /// balances for tiers ONE through EIGHT.
-    constructor(IERC20 erc20_, uint256[8] memory tierValues_) public ValueTier(tierValues_) {
+    constructor(IERC20 erc20_, uint256[8] memory tierValues_)
+        public
+        ValueTier(tierValues_)
+    {
         erc20 = erc20_;
     }
 

@@ -58,7 +58,14 @@ contract ReadWriteTier is ITier {
 
         uint256 report_ = report(account_);
 
-        ITier.Tier startTier_ = TierUtil.tierAtBlockFromReport(report_, block.number);
+        ITier.Tier startTier_ = TierUtil.tierAtBlockFromReport(
+            report_,
+            block.number
+        );
+
+        // The start tier MUST NOT equal the end tier.
+        // The caller MUST check and handle this case gracefully.
+        require(startTier_ != endTier_, "SET_SAME_TIER");
 
         reports[account_] = TierUtil.updateReportWithTierAtBlock(
             report_,

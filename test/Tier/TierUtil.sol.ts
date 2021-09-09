@@ -256,10 +256,12 @@ describe("TierUtil", async function () {
       got       ${actualFirstSection}`
     );
 
-    const actualSetBlock = zeroPad32(updatedReportSetBlock).slice(26, 26 + 8);
+    const actualSetBlock = updatedReportSetBlock
+      .toHexString()
+      .slice(-40)
+      .slice(0, 8);
     const expectedSetBlock =
       "0".repeat(8 - initialBlockHex.length) + initialBlockHex;
-
     assert(
       actualSetBlock === expectedSetBlock,
       `set block was wrong

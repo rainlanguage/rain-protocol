@@ -125,7 +125,7 @@ describe("Account tier", async function () {
     let n = 0;
     while (o < tiers.length) {
       n = Math.max(
-        1,
+        2,
         Math.min(o + Math.floor(Math.random() * tiers.length), tiers.length - 1)
       );
       await readWriteTier.setTier(signers[0].address, n, []);
@@ -231,10 +231,10 @@ describe("Account tier", async function () {
 
   it("will return the original block number if tier 1 is called again", async function () {
     const [signers, readWriteTier] = await setup();
-    // change the tier to anything
+    // change the tier to anything above 1
     await readWriteTier.setTier(
       signers[0].address,
-      Math.max(1, Math.floor(Math.random() * tiers.length)),
+      Math.max(2, Math.floor(Math.random() * tiers.length)),
       []
     );
     const originalBlock = await readWriteTier.provider.getBlockNumber();

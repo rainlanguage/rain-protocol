@@ -59,7 +59,10 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
     /// from/to during `setTier`.
     /// @param tierValues_ 8 values corresponding to minimum erc20
     /// balances for tiers ONE through EIGHT.
-    constructor(IERC20 erc20_, uint256[8] memory tierValues_) public ValueTier(tierValues_) {
+    constructor(IERC20 erc20_, uint256[8] memory tierValues_)
+        public
+        ValueTier(tierValues_)
+    {
         erc20 = erc20_;
     }
 
@@ -86,7 +89,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
         /// sender` and `account_` are the same if the end tier is lower.
         // Anyone can increase anyone else's tier as the `msg.sender`
         /// is responsible to pay the difference.
-        if (endTier_ < startTier_) {
+        if (endTier_ <= startTier_) {
             require(msg.sender == account_, "DELEGATED_TIER_LOSS");
         }
 
