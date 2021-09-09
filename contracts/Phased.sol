@@ -16,7 +16,30 @@ enum Phase {
 }
 
 /// @title Phased
-/// `Phased` contracts have a defined timeline with available functionality
+/// @notice `Phased` is an abstract contract that defines up to `9`
+/// phases that an implementing contract moves through.
+///
+/// `Phase.ZERO` is always the first phase and does not need to be
+/// set expicitly.
+///
+/// Each subsequent phase `Phase.ONE` through `Phase.EIGHT` must be
+/// scheduled sequentially.
+///
+/// Only the immediate next phase can be scheduled with
+/// `scheduleNextPhase`, it is not possible to schedule multiple phases.
+///
+/// Multiple phases can be scheduled in a single block if each
+/// scheduled phase is scheduled for the current block.
+/// Several utility functions and modifiers are provided.
+///
+/// A single hook `_beforeScheduleNextPhase` is provided so contracts
+/// can implement additional phase shift checks.
+///
+/// One event `PhaseShiftScheduled` is emitted each time a phase
+/// shift is scheduled.
+///
+/// @dev `Phased` contracts have a defined timeline with available
+/// functionality
 /// grouped into phases.
 /// Every `Phased` contract starts at `Phase.ZERO` and moves sequentially
 /// through phases `ONE` to `EIGHT`.

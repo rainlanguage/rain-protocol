@@ -42,7 +42,26 @@ struct RedeemableERC20Config {
 }
 
 /// @title RedeemableERC20
-/// `RedeemableERC20` is an ERC20 with 2 phases.
+/// @notice This is the ERC20 token that is minted and distributed.
+///
+/// During `Phase.ZERO` the token can be traded and so compatible
+/// with the Balancer pool mechanics.
+///
+/// During `Phase.ONE` the token is frozen and no longer able to be
+/// traded on any AMM or directly.
+///
+/// The token can be redeemed during `Phase.ONE` which burns the
+/// token in exchange for pro-rata erc20 tokens held by the
+/// `RedeemableERC20` contract itself.
+///
+/// The token balances can be used indirectly for other claims,
+/// promotions and events as a proof of participation in the original
+/// distribution by token holders.
+///
+/// The token can optionally be restricted by the `Tier` contract to
+/// only allow receipients with a specified membership status.
+///
+/// @dev `RedeemableERC20` is an ERC20 with 2 phases.
 ///
 /// `Phase.ZERO` is the distribution phase where the token can be freely
 /// transfered but not redeemed.

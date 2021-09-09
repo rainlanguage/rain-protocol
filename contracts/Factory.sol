@@ -7,7 +7,7 @@ import { IFactory } from "./IFactory.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /// @title Factory
-/// Base contract for creating and registering deployed
+/// @notice Base contract for creating and registering deployed
 /// child contracts.
 abstract contract Factory is IFactory, ReentrancyGuard {
     mapping(address => bool) private contracts;

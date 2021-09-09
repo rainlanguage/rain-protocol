@@ -41,7 +41,28 @@ struct SeedERC20Config {
 }
 
 /// @title SeedERC20
-/// Facilitates a pool of reserve funds to forward to a named recipient
+/// @notice Facilitates raising seed reserve from an open set of seeders.
+///
+/// When a single seeder address cannot be specified at the time the
+/// `Trust` is constructed a `SeedERC20` will be deployed.
+///
+/// The `SeedERC20` has two phases:
+///
+/// - `Phase.ZERO`: Can swap seed tokens for reserve assets with
+/// `seed` and `unseed`
+/// - `Phase.ONE`: Can redeem seed tokens pro-rata for reserve assets
+///
+/// When the last seed token is distributed the `SeedERC20`
+/// immediately moves to `Phase.ONE` atomically within that
+/// transaction and forwards all reserve to the configured recipient.
+///
+/// For our use-case the recipient is a `Trust` contract but
+/// `SeedERC20` could be used as a mini-fundraise contract for many
+/// purposes. In the case that a recipient is not a `Trust` the
+/// recipient will need to be careful not to fall afoul of KYC and
+/// securities law.
+///
+/// @dev Facilitates a pool of reserve funds to forward to a named recipient
 /// contract.
 /// The funds to raise and the recipient is fixed at construction.
 /// The total is calculated as ( seedPrice * seedUnits ) and so is a fixed

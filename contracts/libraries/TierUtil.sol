@@ -5,22 +5,38 @@ pragma solidity 0.6.12;
 import { ITier } from "../tier/ITier.sol";
 
 /// @title TierUtil
-/// Utilities to consistently read, write and manipulate tiers in reports.
-/// The low-level bit shifting can be difficult to get right so this factors that out.
+/// @notice `TierUtil` implements several pure functions that can be
+/// used to interface with reports.
+/// - `tierAtBlockFromReport`: Returns the highest status achieved
+/// relative to a block number and report.
+/// - `tierBlock`: Returns the block that a given tier has been held
+/// since according to a report.
+/// - `truncateTiersAbove`: Resets all the tiers above the reference tier.
+/// - `updateBlocksForTierRange`: Updates a report with a block
+/// number for every tier in a range.
+/// - `updateReportWithTierAtBlock`: Updates a report to a new tier.
+/// @dev Utilities to consistently read, write and manipulate tiers in reports.
+/// The low-level bit shifting can be difficult to get right so this
+/// factors that out.
 library TierUtil {
 
     /// UNINITIALIZED report is 0xFF.. as no tier has been held.
     uint256 constant public UNINITIALIZED = uint256(-1);
 
-    /// Returns the highest tier achieved relative to a block number and report.
+    /// Returns the highest tier achieved relative to a block number
+    /// and report.
     ///
-    /// Note that typically the report will be from the _current_ contract state.
-    /// When the `report` comes from a later block than the `blockNumber` this means
-    /// the user must have held the tier continuously from `blockNumber` _through_ to the report block.
+    /// Note that typically the report will be from the _current_
+    /// contract state.
+    /// When the `report` comes from a later block than the
+    /// `blockNumber` this means
+    /// the user must have held the tier continuously from
+    /// `blockNumber` _through_ to the report block.
     /// I.e. NOT a snapshot.
     /// @param report_ A report as per `ITier`.
     /// @param blockNumber_ The block number to check the tiers against.
-    /// @return The highest tier held since `blockNumber` according to `report`.
+    /// @return The highest tier held since `blockNumber` according
+    /// to `report`.
     function tierAtBlockFromReport(
         uint256 report_,
         uint256 blockNumber_
@@ -35,7 +51,8 @@ library TierUtil {
         return ITier.Tier(8);
     }
 
-    /// Returns the block that a given tier has been held since according to a report.
+    /// Returns the block that a given tier has been held since
+    /// according to a report.
     ///
     /// The report SHOULD encode "never" as 0xFFFFFFFF.
     /// @param report_ The report to read a block number from.
@@ -72,13 +89,15 @@ library TierUtil {
         return report_ | mask_;
     }
 
-    /// Updates a report with a block number for every status integer in a range.
+    /// Updates a report with a block number for every status integer
+    /// in a range.
     ///
     /// Does nothing if the end status is equal or less than the start status.
     /// @param report_ The report to update.
     /// @param startTier_ The tierInt_ at the start of the range (exclusive).
     /// @param endTier_ The tierInt_ at the end of the range (inclusive).
-    /// @param blockNumber_ The block number to set for every status in the range.
+    /// @param blockNumber_ The block number to set for every status
+    /// in the range.
     /// @return The updated report.
     function updateBlocksForTierRange(
         uint256 report_,
@@ -98,10 +117,13 @@ library TierUtil {
 
     /// Updates a report to a new status.
     ///
-    /// Internally dispatches to `truncateTiersAbove` and `updateBlocksForTierRange`.
-    /// The dispatch is based on whether the new tier is above or below the current tier.
+    /// Internally dispatches to `truncateTiersAbove` and
+    /// `updateBlocksForTierRange`.
+    /// The dispatch is based on whether the new tier is above or
+    /// below the current tier.
     /// The `startTier_` MUST match the result of `tierAtBlockFromReport`.
-    /// It is expected the caller will know the current tier when calling this function
+    /// It is expected the caller will know the current tier when
+    /// calling this function
     /// and need to do other things in the calling scope with it.
     /// @param report_ The report to update.
     /// @param startTier_ The current tier according to the report.

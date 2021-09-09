@@ -11,16 +11,9 @@
 
 module.exports = {
   tutorialSidebar: [
-    // Can group some introductory docs into category
-    // {
-    //   type: "category",
-    //   label: "Getting Started",
-    //   items: ["index"],
-    // },
-    {
-      type: "doc",
-      id: "Introduction",
-    },
+    "introduction",
+    "glossary",
+    "risk-mitigation",
     {
       type: "category",
       label: "API",

@@ -2,7 +2,27 @@
 pragma solidity ^0.6.12;
 
 /// @title Cooldown
-/// Base contract for anything that enforces a cooldown delay on functions.
+/// @notice `Cooldown` is an abstract contract that rate limits functions
+/// on the contract per `msg.sender`.
+///
+/// Each time a function with the `onlyAfterCooldown` modifier is
+/// called the `msg.sender` must wait X blocks before calling any
+/// modified function.
+///
+/// This does nothing to prevent sybils who can generate an
+/// arbitrary number of `msg.sender` values in parallel to spam
+/// a contract.
+///
+/// `Cooldown` is intended to prevent rapid state cycling to grief a contract,
+/// such as rapidly locking and unlocking a large amount of
+/// capital in the `SeedERC20` contract.
+///
+/// Attaching significant economic stake to state changes with a
+/// long cooldown may help to mitigate sybils by forcing
+/// an opportunity cost on participants.
+///
+/// @dev Base contract for anything that enforces a cooldown delay on
+/// functions.
 /// Cooldown requires a minimum time in blocks to elapse between actions that
 /// cooldown. The modifier `onlyAfterCooldown` both enforces and resets the
 /// cooldown. There is a single cooldown across all functions per-contract

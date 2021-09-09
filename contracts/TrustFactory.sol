@@ -128,7 +128,12 @@ struct TrustFactoryTrustRedeemableERC20PoolConfig {
 }
 
 /// @title TrustFactory
-/// Factory for creating and registering new Trust contracts.
+/// @notice The `TrustFactory` contract is the only contract that the
+/// deployer uses to deploy all contracts for a single project
+/// fundraising event. It takes references to
+/// `RedeemableERC20Factory`, `RedeemableERC20PoolFactory` and
+/// `SeedERC20Factory` contracts, and builds a new `Trust` contract.
+/// @dev Factory for creating and registering new Trust contracts.
 contract TrustFactory is Factory {
     using SafeMath for uint256;
     using SafeERC20 for RedeemableERC20;

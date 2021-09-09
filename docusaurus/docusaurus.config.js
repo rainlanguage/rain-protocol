@@ -21,6 +21,11 @@ module.exports = {
       // },
       items: [
         {
+          to: "/glossary",
+          label: "Glossary",
+          position: "left",
+        },
+        {
           to: "/API/Trust",
           // activeBasePath: "/API",
           label: "API",

@@ -77,8 +77,26 @@ struct RedeemableERC20PoolConfig {
 }
 
 /// @title RedeemableERC20Pool
+/// @notice The Balancer functionality is wrapped by the
+/// `RedeemableERC20Pool` contract.
 ///
-/// Deployer and controller for a Balancer ConfigurableRightsPool.
+/// Balancer pools require significant configuration so this contract
+/// helps decouple the implementation from the `Trust`.
+///
+/// It also ensures the pool tokens created during the initialization
+/// of the Balancer LBP are owned by the `RedeemableERC20Pool` and
+/// never touch either the `Trust` nor an externally owned account (EOA).
+///
+/// `RedeemableERC20Pool` has several phases:
+///
+/// - `Phase.ZERO`: Deployed not trading but can be by owner calling
+/// `ownerStartDutchAuction`
+/// - `Phase.ONE`: Trading open
+/// - `Phase.TWO`: Trading open but can be closed by owner calling
+/// `ownerEndDutchAuction`
+/// - `Phase.THREE`: Trading closed
+///
+/// @dev Deployer and controller for a Balancer ConfigurableRightsPool.
 /// This contract is intended in turn to be owned by a `Trust`.
 ///
 /// Responsibilities of `RedeemableERC20Pool`:

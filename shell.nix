@@ -75,7 +75,7 @@ let
  rm -rf docs/api && npm run docgen
  '';
 
- docs-start = pkgs.writeShellScriptBin "docs-start" ''
+ docs-dev = pkgs.writeShellScriptBin "docs-dev" ''
  docgen && npm run start --prefix docusaurus
  '';
 
@@ -106,7 +106,7 @@ pkgs.stdenv.mkDerivation {
   ci-test
   ci-lint
   docgen
-  docs-start
+  docs-dev
   docs-build
   docs-serve
   docs-version
