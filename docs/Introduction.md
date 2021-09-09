@@ -4,7 +4,7 @@ slug: /
 title: Introduction
 ---
 
-Rain Protocol is a multi-phase `Trust` contract to facilitate creators distributing event and project tokens to fans.
+Rain Protocol supports fair value capture for intangible or physical assets in a permissionless way in any decentralised environment.
 
 We use Balancer's [Liquidity Bootstrapping Pool](https://docs.balancer.finance/smart-contracts/smart-pools/liquidity-bootstrapping-faq) to distribute the tokens.
 

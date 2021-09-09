@@ -17,3 +17,5 @@ build
 venv
 !dist/**/artifacts
 docs/api
+
+*.hbs

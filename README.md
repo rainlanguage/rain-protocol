@@ -1,6 +1,6 @@
 # Rain Protocol
 
-Rain Protocol is a multi-phase `Trust` contract to facilitate creators distributing event and project tokens to fans.
+Rain Protocol supports fair value capture for intangible or physical assets in a permissionless way in any decentralised environment.
 
 Documentation can be found [here](https://beehive-innovation.github.io/rain-protocol).
 
