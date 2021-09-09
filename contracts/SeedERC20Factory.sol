@@ -7,7 +7,7 @@ import { Factory } from "./Factory.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
 /// @title SeedERC20Factory
-/// Factory for creating and registering new SeedERC20 contracts.
+/// @notice Factory for creating and registering new SeedERC20 contracts.
 contract SeedERC20Factory is Factory {
 
     /// Decodes the arbitrary data_ parameter for SeedERC20 constructor,

@@ -8,7 +8,7 @@ import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { ITier } from "./tier/ITier.sol";
 
 /// @title RedeemableERC20Factory
-/// Factory for creating and registering new RedeemableERC20 contracts.
+/// @notice Factory for creating and registering new RedeemableERC20 contracts.
 contract RedeemableERC20Factory is Factory {
 
     /// Decodes the arbitrary data_ parameter for RedeemableERC20 constructor,

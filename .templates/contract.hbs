@@ -1,0 +1,50 @@
+{{{natspec.userdoc}}}
+
+{{#if natspec.devdoc}}
+## Details
+{{{natspec.devdoc}}}
+{{/if}}
+
+{{#if ownVariables}}
+## Variables
+{{#each ownVariables}}
+### `{{type}}` `{{name}}`
+
+{{/each}}
+{{/if}}
+
+{{#if ownEvents}}
+## Events
+{{#each ownEvents}}
+### `{{name}}({{args}})`
+
+{{{natspec.userdoc}}}
+
+{{{natspec.devdoc}}}
+
+{{/each}}
+{{/if}}
+
+{{#if ownModifiers}}
+## Modifiers
+{{#each ownModifiers}}
+### `{{name}}({{args}})`
+
+{{{natspec.userdoc}}}
+
+{{{natspec.devdoc}}}
+
+{{/each}}
+{{/if}}
+
+{{#if ownFunctions}}
+## Functions
+{{#each ownFunctions}}
+### `{{name}}({{args}}){{#if outputs}} → {{outputs}}{{/if}}` ({{visibility}})
+
+{{{natspec.userdoc}}}
+
+{{{natspec.devdoc}}}
+
+{{/each}}
+{{/if}}

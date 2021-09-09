@@ -9,3 +9,5 @@ build
 venv
 bin
 !dist/**/artifacts
+docs/api
+bin

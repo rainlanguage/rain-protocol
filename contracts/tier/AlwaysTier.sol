@@ -5,8 +5,11 @@ pragma solidity 0.6.12;
 import "./ReadOnlyTier.sol";
 
 /// @title AlwaysTier
+/// @notice `AlwaysTier` inherits from `ReadOnlyTier`.
 ///
-/// `AlwaysTier` is intended as a primitive for combining tier contracts.
+/// Always returns every tier, i.e. `0x00000000` for every address and tier.
+///
+/// @dev `AlwaysTier` is intended as a primitive for combining tier contracts.
 ///
 /// As the name implies:
 /// - `AlwaysTier` is `ReadOnlyTier` and so can never call `setTier`.

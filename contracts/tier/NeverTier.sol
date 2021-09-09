@@ -5,8 +5,11 @@ pragma solidity 0.6.12;
 import "./ReadOnlyTier.sol";
 
 /// @title NeverTier
+/// @notice `NeverTier` inherits from `ReadOnlyTier`.
 ///
-/// `NeverTier` is intended as a primitive for combining tier contracts.
+/// Never returns any tier, i.e. `0xFFFFFFFF` for every address and tier.
+///
+/// @dev `NeverTier` is intended as a primitive for combining tier contracts.
 ///
 /// As the name implies:
 /// - `NeverTier` is `ReadOnlyTier` and so can never call `setTier`.

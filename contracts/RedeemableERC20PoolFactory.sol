@@ -73,7 +73,7 @@ struct RedeemableERC20PoolFactoryRedeemableERC20PoolConfig {
 }
 
 /// @title RedeemableERC20PoolFactory
-/// Factory for creating and registering new RedeemableERC20Pool contracts.
+/// @notice Factory for creating and registering new RedeemableERC20Pool contracts.
 contract RedeemableERC20PoolFactory is Factory {
     /// ConfigurableRightsPool factory.
     CRPFactory public immutable crpFactory;

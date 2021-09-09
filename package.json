@@ -5,7 +5,8 @@
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "docgen": "solidity-docgen -o ./docs/api/ --solc-module solc-0.6 --exclude ./contracts/test/,./contracts/tv-prestige/ -t ./.templates/"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
@@ -40,7 +41,9 @@
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
     "simple-statistics": "^7.7.0",
+    "solc-0.6": "npm:solc@^0.6.12",
     "solhint": "^3.3.4",
+    "solidity-docgen": "^0.5.13",
     "svelte": "^3.0.0",
     "svelte-check": "^1.0.0",
     "svelte-preprocess": "^4.0.0",
