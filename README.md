@@ -1,4 +1,4 @@
-# Trust x Balancer
+# Rain Protocol (Trust x Balancer)
 
 A multi-phase `Trust` contract to facilitate creators distributing event and project tokens to fans.
 
