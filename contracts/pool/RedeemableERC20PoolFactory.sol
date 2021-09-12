@@ -3,19 +3,19 @@ pragma solidity ^0.6.12;
 
 pragma experimental ABIEncoderV2;
 
-import { Factory } from "./Factory.sol";
+import { Factory } from "../factory/Factory.sol";
 import {
     RedeemableERC20Pool,
     RedeemableERC20PoolConfig
 } from "./RedeemableERC20Pool.sol";
 import {
     CRPFactory
-} from "./configurable-rights-pool/contracts/CRPFactory.sol";
+} from "../configurable-rights-pool/contracts/CRPFactory.sol";
 import {
     BFactory
-} from "./configurable-rights-pool/contracts/test/BFactory.sol";
+} from "../configurable-rights-pool/contracts/test/BFactory.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { RedeemableERC20 } from "./RedeemableERC20.sol";
+import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 
 /// Everything required to construct a `RedeemableERC20PoolFactory`.
 struct RedeemableERC20PoolFactoryConfig {
@@ -73,7 +73,8 @@ struct RedeemableERC20PoolFactoryRedeemableERC20PoolConfig {
 }
 
 /// @title RedeemableERC20PoolFactory
-/// @notice Factory for creating and registering new RedeemableERC20Pool contracts.
+/// @notice Factory for creating and registering new `RedeemableERC20Pool`
+/// contracts.
 contract RedeemableERC20PoolFactory is Factory {
     /// ConfigurableRightsPool factory.
     CRPFactory public immutable crpFactory;

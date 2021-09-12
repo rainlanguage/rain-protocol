@@ -4,7 +4,9 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import { IFactory } from "./IFactory.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {
+    ReentrancyGuard
+} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /// @title Factory
 /// @notice Base contract for creating and registering deployed

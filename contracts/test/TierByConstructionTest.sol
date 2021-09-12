@@ -6,14 +6,20 @@ import { ITier } from "../tier/ITier.sol";
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
 
 /// @title TierByConstructionTest
-/// An empty contract that facilitates tests enumerating behaviour of the modifiers at each tier.
+/// An empty contract that facilitates tests enumerating behaviour of the
+/// modifiers at each tier.
 contract TierByConstructionTest is TierByConstruction {
 
     /// @param tier_ The tier contract for `TierByConstruction`.
-    constructor(ITier tier_) public TierByConstruction(tier_) { } // solhint-disable-line no-empty-blocks
+    constructor(ITier tier_)
+        public
+        TierByConstruction(tier_) { } // solhint-disable-line no-empty-blocks
 
     /// External function with no modifier to use as a control for testing.
-    function unlimited() external view { } // solhint-disable-line no-empty-blocks
+    function unlimited()
+        external
+        view
+    { } // solhint-disable-line no-empty-blocks
 
     /// Requires Tier.ZERO to call.
     function ifZero()

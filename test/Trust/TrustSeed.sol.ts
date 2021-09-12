@@ -37,12 +37,12 @@ enum Phase {
   EIGHT,
 }
 
-const trustJson = require("../../artifacts/contracts/Trust.sol/Trust.json");
-const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const seedERC20Json = require("../../artifacts/contracts/SeedERC20.sol/SeedERC20.json");
+const trustJson = require("../../artifacts/contracts/trust/Trust.sol/Trust.json");
+const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/SeedERC20.json");
 const bPoolJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
 const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
-const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
+const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 const crpJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
 
 describe("TrustSeed", async function () {

@@ -19,11 +19,11 @@ const BANNER_ADMIN = ethers.utils.keccak256(
 );
 const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
-let kycFactory;
+let verifyFactory;
 
-describe("KYC", async function () {
+describe("Verify", async function () {
   before(async () => {
-    kycFactory = await ethers.getContractFactory("KYC");
+    verifyFactory = await ethers.getContractFactory("Verify");
   });
 
   it("should hold correct public constants", async function () {
@@ -32,25 +32,25 @@ describe("KYC", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
 
-    const kyc = await kycFactory.deploy(admin.address);
+    const verify = await verifyFactory.deploy(admin.address);
 
     assert(
-      (await kyc.APPROVER_ADMIN()) === APPROVER_ADMIN,
+      (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
       "wrong APPROVER_ADMIN hash value"
     );
-    assert((await kyc.APPROVER()) === APPROVER, "wrong APPROVER hash value");
+    assert((await verify.APPROVER()) === APPROVER, "wrong APPROVER hash value");
 
     assert(
-      (await kyc.REMOVER_ADMIN()) === REMOVER_ADMIN,
+      (await verify.REMOVER_ADMIN()) === REMOVER_ADMIN,
       "wrong REMOVER_ADMIN hash value"
     );
-    assert((await kyc.REMOVER()) === REMOVER, "wrong REMOVER hash value");
+    assert((await verify.REMOVER()) === REMOVER, "wrong REMOVER hash value");
 
     assert(
-      (await kyc.BANNER_ADMIN()) === BANNER_ADMIN,
+      (await verify.BANNER_ADMIN()) === BANNER_ADMIN,
       "wrong BANNER_ADMIN hash value"
     );
-    assert((await kyc.BANNER()) === BANNER, "wrong BANNER hash value");
+    assert((await verify.BANNER()) === BANNER, "wrong BANNER hash value");
   });
 
   it("should correctly set up access control roles for admin in constructor", async function () {
@@ -59,57 +59,57 @@ describe("KYC", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
 
-    const kyc = await kycFactory.deploy(admin.address);
+    const verify = await verifyFactory.deploy(admin.address);
 
     // admin (specified in constructor) has all roles
     assert(
-      await kyc.hasRole(APPROVER_ADMIN, admin.address),
+      await verify.hasRole(APPROVER_ADMIN, admin.address),
       "admin did not have APPROVER_ADMIN role after construction"
     );
     assert(
-      await kyc.hasRole(REMOVER_ADMIN, admin.address),
+      await verify.hasRole(REMOVER_ADMIN, admin.address),
       "admin did not have REMOVER_ADMIN role after construction"
     );
     assert(
-      await kyc.hasRole(BANNER_ADMIN, admin.address),
+      await verify.hasRole(BANNER_ADMIN, admin.address),
       "admin did not have BANNER_ADMIN role after construction"
     );
   });
 
-  it("should allow anyone to map their account to a KYC session id", async function () {
+  it("should allow anyone to map their account to a Verify session id", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
 
-    const kyc = await kycFactory.deploy(admin.address);
+    const verify = await verifyFactory.deploy(admin.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
     const SESSION_ID1 = ethers.BigNumber.from("12345678901234567901");
 
-    // signer1 generates KYC session id
-    await expect(kyc.connect(signer1).add(SESSION_ID0))
-      .to.emit(kyc, "Add")
+    // signer1 generates verify session id
+    await expect(verify.connect(signer1).add(SESSION_ID0))
+      .to.emit(verify, "Add")
       .withArgs(signer1.address, SESSION_ID0);
 
-    // check that signer1 is mapped to KYC session
+    // check that signer1 is mapped to verify session
     assert(
-      (await kyc.ids(signer1.address)).eq(SESSION_ID0),
-      "signer1 was not mapped to KYC session after adding"
+      (await verify.ids(signer1.address)).eq(SESSION_ID0),
+      "signer1 was not mapped to verify session after adding"
     );
 
-    // prevent creating new KYC session id if one exists
+    // prevent creating new verify session id if one exists
     await Util.assertError(
       async () => {
-        await kyc.connect(signer1).add(SESSION_ID1);
+        await verify.connect(signer1).add(SESSION_ID1);
       },
       "revert SESSION_EXISTS",
-      "created new KYC for signer1 despite one existing"
+      "created new verify for signer1 despite one existing"
     );
   });
 
-  it("should allow admin to approve KYC sessions", async function () {
+  it("should allow admin to approve verify sessions", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -117,18 +117,18 @@ describe("KYC", async function () {
     const signer1 = signers[1];
     const approver = signers[2];
 
-    const kyc = await kycFactory.deploy(admin.address);
+    const verify = await verifyFactory.deploy(admin.address);
 
-    await kyc.grantRole(await kyc.APPROVER(), approver.address);
+    await verify.grantRole(await verify.APPROVER(), approver.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates KYC session id
-    await kyc.connect(signer1).add(SESSION_ID0);
+    // signer1 generates verify session id
+    await verify.connect(signer1).add(SESSION_ID0);
 
-    // approve KYC session
-    await expect(kyc.connect(approver).approve(SESSION_ID0))
-      .to.emit(kyc, "Approve")
+    // approve verify session
+    await expect(verify.connect(approver).approve(SESSION_ID0))
+      .to.emit(verify, "Approve")
       .withArgs(SESSION_ID0);
   });
 
@@ -140,28 +140,28 @@ describe("KYC", async function () {
     const signer1 = signers[1];
     const remover = signers[2];
 
-    const kyc = await kycFactory.deploy(admin.address);
+    const verify = await verifyFactory.deploy(admin.address);
 
-    await kyc.grantRole(await kyc.REMOVER(), remover.address);
+    await verify.grantRole(await verify.REMOVER(), remover.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates KYC session id
-    await kyc.connect(signer1).add(SESSION_ID0);
+    // signer1 generates verify session id
+    await verify.connect(signer1).add(SESSION_ID0);
 
     // admin removes account
-    await expect(kyc.connect(remover).remove(signer1.address))
-      .to.emit(kyc, "Remove")
+    await expect(verify.connect(remover).remove(signer1.address))
+      .to.emit(verify, "Remove")
       .withArgs(signer1.address);
 
     // check that signer1 has been deleted
     assert(
-      (await kyc.ids(signer1.address)).isZero(),
-      "failed to remove address from KYC session map"
+      (await verify.ids(signer1.address)).isZero(),
+      "failed to remove address from verify session map"
     );
   });
 
-  it("should allow admin to ban KYC sessions", async function () {
+  it("should allow admin to ban verify sessions", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -169,18 +169,18 @@ describe("KYC", async function () {
     const signer1 = signers[1];
     const banner = signers[2];
 
-    const kyc = await kycFactory.deploy(admin.address);
+    const verify = await verifyFactory.deploy(admin.address);
 
-    await kyc.grantRole(await kyc.BANNER(), banner.address);
+    await verify.grantRole(await verify.BANNER(), banner.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates KYC session id
-    await kyc.connect(signer1).add(SESSION_ID0);
+    // signer1 generates verify session id
+    await verify.connect(signer1).add(SESSION_ID0);
 
-    // admin bans KYC session
-    await expect(kyc.connect(banner).ban(SESSION_ID0))
-      .to.emit(kyc, "Ban")
+    // admin bans verify session
+    await expect(verify.connect(banner).ban(SESSION_ID0))
+      .to.emit(verify, "Ban")
       .withArgs(SESSION_ID0);
   });
 
@@ -192,20 +192,20 @@ describe("KYC", async function () {
     const signer1 = signers[1];
     const approver = signers[2];
 
-    const kyc = await kycFactory.deploy(admin.address);
+    const verify = await verifyFactory.deploy(admin.address);
 
-    await kyc.grantRole(await kyc.APPROVER(), approver.address);
+    await verify.grantRole(await verify.APPROVER(), approver.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates KYC session id
-    await kyc.connect(signer1).add(SESSION_ID0);
+    // signer1 generates verify session id
+    await verify.connect(signer1).add(SESSION_ID0);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    await kyc.connect(approver).approve(SESSION_ID0);
+    await verify.connect(approver).approve(SESSION_ID0);
 
-    const actualApprovedSinceBlock0 = await kyc.accountApprovedSince(
+    const actualApprovedSinceBlock0 = await verify.accountApprovedSince(
       signer1.address
     );
     const expectedApprovedSinceBlock0 = startBlock + 1;

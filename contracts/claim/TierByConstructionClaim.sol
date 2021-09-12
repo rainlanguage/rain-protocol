@@ -3,8 +3,8 @@
 pragma solidity 0.6.12;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { ITier } from "../ITier.sol";
-import { TierByConstruction } from "../TierByConstruction.sol";
+import { ITier } from "../tier/ITier.sol";
+import { TierByConstruction } from "../tier/TierByConstruction.sol";
 
 /// @title TierByConstructionClaim
 /// @notice `TierByConstructionClaim` is a base contract for other

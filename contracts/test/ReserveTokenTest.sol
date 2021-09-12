@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /// @title ReserveToken
 /// An example token that can be used as a reserve asset.
-/// On mainnet this would likely be some brand of stablecoin but can be anything.
+/// On mainnet this would likely be some stablecoin but can be anything.
 contract ReserveTokenTest is ERC20 {
     /// How many tokens to mint initially.
     // One _billion_ dollars 👷😈

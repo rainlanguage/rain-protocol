@@ -3,7 +3,7 @@ pragma solidity ^0.6.12;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract KYC is AccessControl {
+contract Verify is AccessControl {
 
     event Add(address indexed account, uint256 indexed id);
     event Remove(address indexed account);
@@ -19,10 +19,10 @@ contract KYC is AccessControl {
     bytes32 public constant BANNER_ADMIN = keccak256("BANNER_ADMIN");
     bytes32 public constant BANNER = keccak256("BANNER");
 
-    // account => KYC session ID
+    // account => Verification session ID
     mapping (address => uint256) public ids;
 
-    // KYC session ID => approval
+    // Verification session ID => approval
     mapping (uint256 => uint256) public approved;
     mapping (uint256 => uint256) public banned;
 

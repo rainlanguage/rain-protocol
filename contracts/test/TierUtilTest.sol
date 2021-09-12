@@ -6,7 +6,7 @@ import {ITier} from "../tier/ITier.sol";
 import {TierUtil} from "../libraries/TierUtil.sol";
 
 /// @title TierUtilTest
-/// Thin wrapper around the `TierUtil` library to facilitate hardhat unit testing.
+/// Thin wrapper around the `TierUtil` library for hardhat unit testing.
 contract TierUtilTest {
     /// Wraps `TierUtil.tierAtBlockFromReport`.
     /// @param report_ Forwarded to TierUtil.

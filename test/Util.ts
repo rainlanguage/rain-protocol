@@ -13,7 +13,7 @@ import type { BPool } from "../typechain/BPool";
 import type { BigNumber } from "ethers";
 import type { Trust } from "../typechain/Trust";
 
-const trustJson = require("../artifacts/contracts/Trust.sol/Trust.json");
+const trustJson = require("../artifacts/contracts/trust/Trust.sol/Trust.json");
 
 const { expect, assert } = chai;
 
