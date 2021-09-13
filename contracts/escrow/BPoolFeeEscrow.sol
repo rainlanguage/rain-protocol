@@ -13,11 +13,20 @@ import {
     ConfigurableRightsPool
 } from "../configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 
+import "@openzeppelin/contracts/utils/EnumerableSet.sol";
+
+
 contract BPoolFeeEscrow {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     TrustFactory public immutable trustFactory;
+
+    mapping(address => uint256) public minFees;
+
+    using EnumerableSet for EnumerableSet.AddressSet;
+    // fe => trust
+    mapping(address => EnumerableSet.AddressSet) private feeBatches;
 
     // trust => recipient => amount
     mapping(address => mapping(address => uint256)) public fees;
@@ -28,7 +37,28 @@ contract BPoolFeeEscrow {
         trustFactory = trustFactory_;
     }
 
-    function feesClaim(Trust trust_, address feeRecipient_) external {
+    function setMinFees(uint256 minFees_)
+        external
+    {
+        require(minFees_ > 0, "MIN_FEES");
+        minFees[msg.sender] = minFees_;
+    }
+
+    function batchFeesClaim(address feeRecipient_, uint256 batchSize_)
+        external
+    {
+        uint256 claimLength_ = feeBatches[feeRecipient_].length();
+        uint256 i_ = 0;
+        while (i_ < claimLength_ && i_ <= batchSize_) {
+            feesClaim(
+                Trust(feeBatches[feeRecipient_].at(0)),
+                feeRecipient_
+            );
+            i_ = i_ + 1;
+        }
+    }
+
+    function feesClaim(Trust trust_, address feeRecipient_) public {
         require(trustFactory.isChild(address(trust_)), "NOT_FACTORY");
         require(
             trust_.getDistributionStatus() == DistributionStatus.Success,
@@ -44,6 +74,8 @@ contract BPoolFeeEscrow {
         // If any fees are claimed it is no longer possible for the trust to
         // claim. These are mutually exclusive outcomes.
         delete(totalFees[address(trust_)]);
+
+        feeBatches[feeRecipient_].remove(address(trust_));
 
         TrustContracts memory trustContracts_ = trust_.getContracts();
         IERC20(trustContracts_.reserveERC20).safeTransfer(
@@ -80,10 +112,13 @@ contract BPoolFeeEscrow {
         uint256 fee_
     ) external returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(trustFactory.isChild(address(trust_)), "NOT_FACTORY");
+        require(fee_ > 0, "ZERO_FEE");
+        require(fee_ >= minFees[feeRecipient_], "MIN_FEE");
 
         fees[address(trust_)][feeRecipient_] =
             fees[address(trust_)][feeRecipient_].add(fee_);
         totalFees[address(trust_)] = totalFees[address(trust_)].add(fee_);
+        feeBatches[feeRecipient_].add(address(trust_));
 
         TrustContracts memory trustContracts_ = trust_.getContracts();
 
