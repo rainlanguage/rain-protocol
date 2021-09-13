@@ -22,7 +22,8 @@ contract BPoolFeeEscrow {
 
     TrustFactory public immutable trustFactory;
 
-    mapping(address => uint256) public minFees;
+    // recipient => reserve => amount
+    mapping(address => mapping(address => uint256)) public minFees;
 
     using EnumerableSet for EnumerableSet.AddressSet;
     // fe => trust
@@ -37,11 +38,13 @@ contract BPoolFeeEscrow {
         trustFactory = trustFactory_;
     }
 
-    function setMinFees(uint256 minFees_)
-        external
-    {
+    function setMinFees(address reserve_, uint256 minFees_) external {
         require(minFees_ > 0, "MIN_FEES");
-        minFees[msg.sender] = minFees_;
+        minFees[msg.sender][reserve_] = minFees_;
+    }
+
+    function unsetMinFees(address reserve_) external {
+        delete(minFees[msg.sender][reserve_]);
     }
 
     function batchFeesClaim(address feeRecipient_, uint256 batchSize_)
@@ -113,7 +116,6 @@ contract BPoolFeeEscrow {
     ) external returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         require(trustFactory.isChild(address(trust_)), "NOT_FACTORY");
         require(fee_ > 0, "ZERO_FEE");
-        require(fee_ >= minFees[feeRecipient_], "MIN_FEE");
 
         fees[address(trust_)][feeRecipient_] =
             fees[address(trust_)][feeRecipient_].add(fee_);
@@ -121,6 +123,10 @@ contract BPoolFeeEscrow {
         feeBatches[feeRecipient_].add(address(trust_));
 
         TrustContracts memory trustContracts_ = trust_.getContracts();
+        require(
+            fee_ >= minFees[feeRecipient_][trustContracts_.reserveERC20],
+            "MIN_FEE"
+        );
 
         IERC20(trustContracts_.reserveERC20).safeTransferFrom(
             msg.sender,
