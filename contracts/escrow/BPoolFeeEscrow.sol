@@ -9,6 +9,9 @@ import { BPool } from "../configurable-rights-pool/contracts/test/BPool.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {
+    ConfigurableRightsPool
+} from "../configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 
 contract BPoolFeeEscrow {
     using SafeMath for uint256;
@@ -89,6 +92,8 @@ contract BPoolFeeEscrow {
             address(this),
             reserveAmountIn_.add(fee_)
         );
+
+        ConfigurableRightsPool(trustContracts_.crp).pokeWeights();
 
         (uint256 tokenAmountOut_, uint256 spotPriceAfter_) =
             BPool(trustContracts_.pool).swapExactAmountIn(
