@@ -1,7 +1,27 @@
 {
-  "name": "tv-balancer",
+  "name": "rain-protocol",
+  "description": "Fair value capture for intangible or physical assets in a permissionless way in any decentralised environment",
   "version": "1.0.0",
+  "files": [
+    "/contracts/*.sol",
+    "/contracts/kyc/*.sol",
+    "/contracts/libraries/*.sol",
+    "/contracts/tier/*.sol",
+    "/artifacts/*.json",
+    "/typechain/*.d.ts",
+    "/typechain/**/*.ts"
+  ],
+  "author": "Beehive Innovation",
   "license": "CAL",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/beehive-innovation/rain-protocol.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/beehive-innovation/rain-protocol/issues"
+  },
+  "homepage": "http://beehive-innovation.github.io/rain-protocol/",
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",

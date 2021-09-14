@@ -90,6 +90,25 @@ let
  docs-version = pkgs.writeShellScriptBin "docs-version" ''
  docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GIT_TAG}
  '';
+
+ prepack = pkgs.writeShellScriptBin "prepack" ''
+ set -euo pipefail
+ shopt -s globstar
+
+ npm run build
+
+ cp artifacts/contracts/**/*.json artifacts
+ rm artifacts/*.dbg.json
+ rm artifacts/*Test*
+ rm artifacts/*Reentrant*
+ rm artifacts/*ForceSendEther*
+ rm artifacts/*Mock*
+
+ rm typechain/**/*Test*
+ rm typechain/**/*Reentrant*
+ rm typechain/**/*ForceSendEther*
+ rm typechain/**/*Mock*
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
@@ -110,6 +129,7 @@ pkgs.stdenv.mkDerivation {
   docs-build
   docs-serve
   docs-version
+  prepack
  ];
 
  shellHook = ''
