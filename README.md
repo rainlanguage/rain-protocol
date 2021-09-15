@@ -40,16 +40,6 @@ Documentation can be found [here](https://beehive-innovation.github.io/rain-prot
 
 ## Development setup (for contributors)
 
-### Git submodules
-
-As we are wrapping balancer contracts, we have git submodules pointing to their repositories.
-
-When you clone this repository make sure to use `--recurse-submodules`
-
-```
-git clone --recurse-submodules git@github.com:beehive-innovation/rain-protocol.git
-```
-
 ### Nix Shell
 
 Install the nix shell if you haven't already.
