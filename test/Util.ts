@@ -148,8 +148,8 @@ export const assertError = async (f: Function, s: string, e: string) => {
   assert(didError, e);
 };
 
-export const crpJson = require("../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
-export const bPoolJson = require("../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
+export const crpJson = require("configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
+export const bPoolJson = require("configurable-rights-pool/artifacts/BPool.json");
 
 export const poolContracts = async (
   signers: any,
