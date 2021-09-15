@@ -128,9 +128,8 @@ contract BPoolFeeEscrow {
             if (fees[address(trust_)][feeRecipient_] > 0) {
                 delete(fees[address(trust_)][feeRecipient_]);
                 if (distributionStatus_ == DistributionStatus.Success) {
-                    // A successful Trust is not eligible for refund.
-                    // This MAY already be cleared by a refund or another claim.
-                    TrustContracts memory trustContracts_ = trust_.getContracts();
+                    TrustContracts memory trustContracts_ = trust_
+                        .getContracts();
                     IERC20(trustContracts_.reserveERC20).safeTransfer(
                         feeRecipient_,
                         fees[address(trust_)][feeRecipient_]
