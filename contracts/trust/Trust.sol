@@ -657,10 +657,6 @@ contract Trust is ReentrancyGuard {
             // This will be transferred to the token holders below.
             creatorPay_ = availableBalance_.sub(seederPay_.add(redeemInit));
         }
-        // Raise failed so also recoup volume fees for the redeemable token.
-        else {
-            bPoolFeeEscrow.trustClaim();
-        }
 
         if (creatorPay_ > 0) {
             pool.reserve().safeTransfer(
