@@ -120,21 +120,22 @@ contract BPoolFeeEscrow {
         // If there IS a clear success/fail we process the claim either way,
         // clearing out the escrow contract state for the claim.
         // Tokens are only sent to the recipient on success.
-        if(distributionStatus_ == DistributionStatus.Success
+        if (distributionStatus_ == DistributionStatus.Success
             || distributionStatus_ == DistributionStatus.Fail) {
             // The claim is no longer pending as we're processing it now.
             pending[feeRecipient_].remove(address(trust_));
 
-            if (fees[address(trust_)][feeRecipient_] > 0
-                && distributionStatus_ == DistributionStatus.Success) {
+            if (fees[address(trust_)][feeRecipient_] > 0) {
                 delete(fees[address(trust_)][feeRecipient_]);
-                // A successful Trust is not eligible for refund.
-                // This MAY already be cleared by a refund or another claim.
-                TrustContracts memory trustContracts_ = trust_.getContracts();
-                IERC20(trustContracts_.reserveERC20).safeTransfer(
-                    feeRecipient_,
-                    fees[address(trust_)][feeRecipient_]
-                );
+                if (distributionStatus_ == DistributionStatus.Success) {
+                    // A successful Trust is not eligible for refund.
+                    // This MAY already be cleared by a refund or another claim.
+                    TrustContracts memory trustContracts_ = trust_.getContracts();
+                    IERC20(trustContracts_.reserveERC20).safeTransfer(
+                        feeRecipient_,
+                        fees[address(trust_)][feeRecipient_]
+                    );
+                }
             }
         }
     }
