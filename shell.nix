@@ -109,6 +109,11 @@ let
  rm typechain/**/*ForceSendEther*
  rm typechain/**/*Mock*
  '';
+
+ publish = pkgs.writeShellScriptBin "publish" ''
+ npm pack
+ npm publish ./rain-protocol-0.0.1.tgz --access public
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
@@ -130,6 +135,7 @@ pkgs.stdenv.mkDerivation {
   docs-serve
   docs-version
   prepack
+  publish
  ];
 
  shellHook = ''

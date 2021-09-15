@@ -11,3 +11,4 @@ bin
 !dist/**/artifacts
 docs/api
 bin
+*.tgz
