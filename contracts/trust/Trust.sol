@@ -540,7 +540,8 @@ contract Trust is ReentrancyGuard {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            redeemInit
+            redeemInit,
+            bPoolFeeEscrow
         );
     }
 
