@@ -54,17 +54,17 @@ let
  pip install slither-analyzer
 
  # Run slither against all our contracts.
- # Disable npx as nix-shell already handles availability of what we nee.
+ # Disable npx as nix-shell already handles availability of what we need.
  # Some contracts are explicitly out of scope for slither:
- # - The balancer configurable-rights-pool git submodule
+ # - configurable-rights-pool contracts
  # - The test contracts that only exist so the test harness can drive unit tests and will never be deployed
  # - Open Zeppelin contracts
- slither . --npx-disable --filter-paths="contracts/configurable-rights-pool|contracts/test|openzeppelin" --exclude-dependencies
+ slither . --npx-disable --filter-paths="configurable-rights-pool|contracts/test|openzeppelin" --exclude-dependencies
 
  # Rollback all the slither specific patches.
- patch -R -p1 < slither-hack-local-pool-params.patch
- patch -R -p1 < slither-hack-balancer-pool-params.patch
  patch -R -p1 < slither-hack-balancer-ierc20.patch
+ patch -R -p1 < slither-hack-balancer-pool-params.patch
+ patch -R -p1 < slither-hack-local-pool-params.patch
  '';
 
  ci-test = pkgs.writeShellScriptBin "ci-test" ''

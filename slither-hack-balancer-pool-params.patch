@@ -1,8 +1,7 @@
-Submodule contracts/configurable-rights-pool contains modified content
-diff --git a/contracts/configurable-rights-pool/contracts/CRPFactory.sol b/contracts/configurable-rights-pool/contracts/CRPFactory.sol
+diff --git a/node_modules/configurable-rights-pool/contracts/CRPFactory.sol b/node_modules/configurable-rights-pool/contracts/CRPFactory.sol
 index 52ef23b..532f5a1 100644
---- a/contracts/configurable-rights-pool/contracts/CRPFactory.sol
-+++ b/contracts/configurable-rights-pool/contracts/CRPFactory.sol
+--- a/node_modules/configurable-rights-pool/contracts/CRPFactory.sol
++++ b/node_modules/configurable-rights-pool/contracts/CRPFactory.sol
 @@ -49,7 +49,7 @@ contract CRPFactory {
       */
      function newCrp(
@@ -12,14 +11,14 @@ index 52ef23b..532f5a1 100644
          RightsManager.Rights calldata rights
      )
          external
-diff --git a/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol b/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
+diff --git a/node_modules/configurable-rights-pool/contracts/ConfigurableRightsPool.sol b/node_modules/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
 index e3df626..e98f5c7 100644
---- a/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
-+++ b/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
+--- a/node_modules/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
++++ b/node_modules/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
 @@ -18,6 +18,17 @@ import { RightsManager } from "../libraries/RightsManager.sol";
  import "../libraries/SmartPoolManager.sol";
  import "../libraries/SafeApprove.sol";
- 
+
 +struct PoolParams {
 +    // Balancer Pool Token (representing shares of the pool)
 +    string poolTokenSymbol;
@@ -32,12 +31,12 @@ index e3df626..e98f5c7 100644
 +}
 +
  // Contracts
- 
+
  /**
 @@ -44,16 +55,7 @@ contract ConfigurableRightsPool is PCToken, BalancerOwnable, BalancerReentrancyG
- 
+
      // Type declarations
- 
+
 -    struct PoolParams {
 -        // Balancer Pool Token (representing shares of the pool)
 -        string poolTokenSymbol;
@@ -49,13 +48,13 @@ index e3df626..e98f5c7 100644
 -        uint swapFee;
 -    }
 +
- 
+
      // State variables
 
-diff --git a/contracts/configurable-rights-pool/contracts/templates/ESPFactory.sol b/contracts/configurable-rights-pool/contracts/templates/ESPFactory.sol
+diff --git a/node_modules/configurable-rights-pool/contracts/templates/ESPFactory.sol b/node_modules/configurable-rights-pool/contracts/templates/ESPFactory.sol
 index 6fe5b44..8a3fa1e 100644
---- a/contracts/configurable-rights-pool/contracts/templates/ESPFactory.sol
-+++ b/contracts/configurable-rights-pool/contracts/templates/ESPFactory.sol
+--- a/node_modules/configurable-rights-pool/contracts/templates/ESPFactory.sol
++++ b/node_modules/configurable-rights-pool/contracts/templates/ESPFactory.sol
 @@ -48,7 +48,7 @@ contract ESPFactory {
       */
      function newEsp(
@@ -65,10 +64,10 @@ index 6fe5b44..8a3fa1e 100644
          RightsManager.Rights calldata rights
      )
          external
-diff --git a/contracts/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol b/contracts/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
+diff --git a/node_modules/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol b/node_modules/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
 index 9d58e72..c183f1e 100644
---- a/contracts/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
-+++ b/contracts/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
+--- a/node_modules/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
++++ b/node_modules/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
 @@ -88,7 +88,7 @@ contract ElasticSupplyPool is ConfigurableRightsPool {
       */
      constructor(
