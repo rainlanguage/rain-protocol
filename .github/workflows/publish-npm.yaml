@@ -8,6 +8,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
