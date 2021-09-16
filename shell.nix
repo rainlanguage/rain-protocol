@@ -110,9 +110,9 @@ let
  rm typechain/**/*Mock*
  '';
 
- publish = pkgs.writeShellScriptBin "publish" ''
- npm pack
- npm publish ./rain-protocol-0.0.1.tgz --access public
+ prepublish = pkgs.writeShellScriptBin "prepublish" ''
+ npm config set sign-git-tag true
+ npm version patch
  '';
 in
 pkgs.stdenv.mkDerivation {
@@ -135,7 +135,7 @@ pkgs.stdenv.mkDerivation {
   docs-serve
   docs-version
   prepack
-  publish
+  prepublish
  ];
 
  shellHook = ''
