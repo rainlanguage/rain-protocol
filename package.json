@@ -4,9 +4,7 @@
   "version": "0.0.0",
   "files": [
     "/contracts/*.sol",
-    "/contracts/kyc/*.sol",
-    "/contracts/libraries/*.sol",
-    "/contracts/tier/*.sol",
+    "/contracts/**/*.sol",
     "/artifacts/*.json",
     "/typechain/*.d.ts",
     "/typechain/**/*.ts"
