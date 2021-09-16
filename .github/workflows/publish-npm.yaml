@@ -18,5 +18,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
+      - name: Prepack for npm
+        run: nix-shell --run prepack
+
       - name: Publish to npm
         run: nix-shell --run publish
