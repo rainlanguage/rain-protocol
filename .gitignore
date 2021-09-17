@@ -12,3 +12,4 @@ bin
 docs/api
 bin
 *.tgz
+.npmrc
