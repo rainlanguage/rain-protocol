@@ -147,7 +147,6 @@ pkgs.stdenv.mkDerivation {
     prepack
     prepublish
     publish
-    foo
   ];
 
   shellHook = ''
