@@ -116,6 +116,8 @@ let
   '';
 
   publish = pkgs.writeShellScriptBin "publish" ''
+    echo "//registry.npmjs.org/:_authToken=''${NPM_TOKEN}" > .npmrc
+
     PACKAGE_NAME=$(node -p "require('./package.json').name")
     PACKAGE_VERSION=$(node -p "require('./package.json').version")
     npm pack
@@ -145,6 +147,7 @@ pkgs.stdenv.mkDerivation {
     prepack
     prepublish
     publish
+    foo
   ];
 
   shellHook = ''
