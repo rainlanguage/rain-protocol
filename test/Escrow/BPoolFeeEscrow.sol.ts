@@ -155,7 +155,7 @@ describe("BPoolFeeEscrow", async function () {
 
       await reserveSigner.approve(escrow.address, spend.add(fee));
 
-      await escrow.buyToken(
+      await escrow.connect(signer).buyToken(
         trust.address,
         spend,
         ethers.BigNumber.from("1"),

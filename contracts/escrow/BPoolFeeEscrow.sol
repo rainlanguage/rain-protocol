@@ -56,9 +56,9 @@ contract BPoolFeeEscrow {
         _;
     }
 
-    function setMinFees(address reserve_, uint256 minFees_) external {
+    function setMinFees(IERC20 reserve_, uint256 minFees_) external {
         require(minFees_ > 0, "MIN_FEES");
-        minFees[msg.sender][reserve_] = minFees_;
+        minFees[msg.sender][address(reserve_)] = minFees_;
     }
 
     function unsetMinFees(address reserve_) external {
@@ -213,6 +213,12 @@ contract BPoolFeeEscrow {
         );
 
         ConfigurableRightsPool(trustContracts_.crp).pokeWeights();
+
+        if (IERC20(trustContracts_.reserveERC20)
+            .allowance(address(this), trustContracts_.pool) < uint256(-1)) {
+            IERC20(trustContracts_.reserveERC20)
+                .approve(trustContracts_.pool, uint256(-1));
+        }
 
         (uint256 tokenAmountOut_, uint256 spotPriceAfter_) =
             BPool(trustContracts_.pool).swapExactAmountIn(
