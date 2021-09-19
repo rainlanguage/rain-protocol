@@ -2,21 +2,29 @@
 
 pragma solidity 0.6.12;
 
+pragma experimental ABIEncoderV2;
+
 import "./ReadOnlyTier.sol";
-import "../verify/Verify.sol";
+import { State, Status, Verify } from "../verify/Verify.sol";
 import "../libraries/TierUtil.sol";
 
-contract VerifyCTier is ReadOnlyTier {
+contract VerifyTier is ReadOnlyTier {
     Verify public immutable verify;
     constructor(Verify verify_) public {
         verify = verify_;
     }
     function report(address account_) public override view returns (uint256) {
-        return TierUtil.updateBlocksForTierRange(
-            0,
-            Tier.ONE,
-            Tier.EIGHT,
-            uint32(verify.accountApprovedSince(account_))
-        );
+        State memory state_ = verify.state(account_);
+        if (state_.status == Status.Approved) {
+            return TierUtil.updateBlocksForTierRange(
+                0,
+                Tier.ONE,
+                Tier.EIGHT,
+                state_.since
+            );
+        }
+        else {
+            return uint256(-1);
+        }
     }
 }
