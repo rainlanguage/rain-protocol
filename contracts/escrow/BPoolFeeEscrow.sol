@@ -16,7 +16,6 @@ import {
 
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
-
 contract BPoolFeeEscrow {
     using SafeMath for uint256;
     using Math for uint256;
