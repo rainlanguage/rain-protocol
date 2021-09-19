@@ -18,28 +18,50 @@ import {
 } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 import {
-    PrestigeByConstruction
-} from "./tv-prestige/contracts/PrestigeByConstruction.sol";
-import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
+    TierByConstruction
+} from "./tier/TierByConstruction.sol";
+import { ITier } from "./tier/ITier.sol";
 
 import { Phase, Phased } from "./Phased.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
+    // Account that will be the admin for the `RedeemableERC20` contract.
+    // Useful for factory contracts etc.
+    address admin;
     // Name forwarded to ERC20 constructor.
     string name;
     // Symbol forwarded to ERC20 constructor.
     string symbol;
-    // Prestige contract to compare statuses against on transfer.
-    IPrestige prestige;
+    // Tier contract to compare statuses against on transfer.
+    ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    IPrestige.Status minimumStatus;
+    ITier.Tier minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
 }
 
 /// @title RedeemableERC20
-/// `RedeemableERC20` is an ERC20 with 2 phases.
+/// @notice This is the ERC20 token that is minted and distributed.
+///
+/// During `Phase.ZERO` the token can be traded and so compatible
+/// with the Balancer pool mechanics.
+///
+/// During `Phase.ONE` the token is frozen and no longer able to be
+/// traded on any AMM or directly.
+///
+/// The token can be redeemed during `Phase.ONE` which burns the
+/// token in exchange for pro-rata erc20 tokens held by the
+/// `RedeemableERC20` contract itself.
+///
+/// The token balances can be used indirectly for other claims,
+/// promotions and events as a proof of participation in the original
+/// distribution by token holders.
+///
+/// The token can optionally be restricted by the `Tier` contract to
+/// only allow receipients with a specified membership status.
+///
+/// @dev `RedeemableERC20` is an ERC20 with 2 phases.
 ///
 /// `Phase.ZERO` is the distribution phase where the token can be freely
 /// transfered but not redeemed.
@@ -93,7 +115,7 @@ struct RedeemableERC20Config {
 contract RedeemableERC20 is
     AccessControl,
     Phased,
-    PrestigeByConstruction,
+    TierByConstruction,
     ERC20,
     ReentrancyGuard,
     ERC20Burnable
@@ -104,6 +126,8 @@ contract RedeemableERC20 is
 
     bytes32 public constant SENDER = keccak256("SENDER");
     bytes32 public constant RECEIVER = keccak256("RECEIVER");
+    bytes32 public constant DISTRIBUTOR_BURNER = keccak256("DISTRIBUTOR_BURNER");
+    bytes32 public constant REDEEMABLE_ADDER = keccak256("REDEEMABLE_ADDER");
 
     /// Redeemable token burn amount.
     event Redeem(
@@ -133,11 +157,11 @@ contract RedeemableERC20 is
 
     /// The minimum status that a user must hold to receive transfers during
     /// `Phase.ZERO`.
-    /// The prestige contract passed to `PrestigeByConstruction` determines if
+    /// The tier contract passed to `TierByConstruction` determines if
     /// the status is held during `_beforeTokenTransfer`.
     /// Not immutable because it is read during the constructor by the `_mint`
     /// call.
-    IPrestige.Status public minimumPrestigeStatus;
+    ITier.Tier public minimumTier;
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions.
@@ -147,24 +171,18 @@ contract RedeemableERC20 is
     )
         public
         ERC20(config_.name, config_.symbol)
-        PrestigeByConstruction(config_.prestige)
+        TierByConstruction(config_.tier)
     {
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
             "MINIMUM_INITIAL_SUPPLY"
         );
-        minimumPrestigeStatus = config_.minimumStatus;
+        minimumTier = config_.minimumStatus;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(RECEIVER, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, config_.admin);
+        _setupRole(RECEIVER, config_.admin);
 
-        _mint(msg.sender, config_.totalSupply);
-    }
-
-    /// Ensure that `msg.sender` has the admin role.
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "ONLY_ADMIN");
-        _;
+        _mint(config_.admin, config_.totalSupply);
     }
 
     /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
@@ -177,11 +195,14 @@ contract RedeemableERC20 is
     /// For example, Balancer needs the paired erc20 tokens to exist before the
     /// trading pool can be built.
     /// @param distributorAccount_ The distributor according to the admin.
-    function adminBurnDistributor(address distributorAccount_)
+    function burnDistributor(address distributorAccount_)
         external
-        onlyAdmin
         onlyPhase(Phase.ZERO)
     {
+        require(
+            hasRole(DISTRIBUTOR_BURNER, msg.sender),
+            "ONLY_DISTRIBUTOR_BURNER"
+        );
         scheduleNextPhase(uint32(block.number));
         _burn(distributorAccount_, balanceOf(distributorAccount_));
     }
@@ -192,7 +213,8 @@ contract RedeemableERC20 is
     /// If the admin adds a non-compliant or malicious IERC20 address then
     /// token holders can override the list with `redeemSpecific`.
     /// @param newRedeemable_ The redeemable contract address to add.
-    function adminAddRedeemable(IERC20 newRedeemable_) external onlyAdmin {
+    function addRedeemable(IERC20 newRedeemable_) external {
+        require(hasRole(REDEEMABLE_ADDER, msg.sender), "ONLY_REDEEMABLE_ADDER");
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and
@@ -297,7 +319,7 @@ contract RedeemableERC20 is
     }
 
     /// Apply phase sensitive transfer restrictions.
-    /// During `Phase.ZERO` only prestige requirements apply.
+    /// During `Phase.ZERO` only tier requirements apply.
     /// During `Phase.ONE` all transfers except burns are prevented.
     /// If a transfer involves either a sender or receiver with the relevant
     /// `unfreezables` state it will ignore these restrictions.
@@ -325,11 +347,11 @@ contract RedeemableERC20 is
             // The sender and receiver lists bypass all access restrictions.
             && !(hasRole(SENDER, sender_) || hasRole(RECEIVER, receiver_))) {
             // During `Phase.ZERO` transfers are only restricted by the
-            // prestige of the recipient.
+            // tier of the recipient.
             if (currentPhase() == Phase.ZERO) {
                 require(
-                    isStatus(receiver_, minimumPrestigeStatus),
-                    "MIN_STATUS"
+                    isTier(receiver_, minimumTier),
+                    "MIN_TIER"
                 );
             }
             // During `Phase.ONE` only token burns are allowed.

@@ -20,7 +20,7 @@ import {
     BFactory
 } from "./configurable-rights-pool/contracts/test/BFactory.sol";
 
-import { IPrestige } from "./tv-prestige/contracts/IPrestige.sol";
+import { ITier } from "./tier/ITier.sol";
 
 import { Phase } from "./Phased.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
@@ -28,6 +28,14 @@ import {
     RedeemableERC20Pool, RedeemableERC20PoolConfig
 } from "./RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
+import { RedeemableERC20Factory } from "./RedeemableERC20Factory.sol";
+import {
+    RedeemableERC20PoolFactory,
+    RedeemableERC20PoolFactoryRedeemableERC20PoolConfig
+} from "./RedeemableERC20PoolFactory.sol";
+import {
+    SeedERC20Factory
+} from "./SeedERC20Factory.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -39,8 +47,8 @@ struct TrustContracts {
     address redeemableERC20Pool;
     // Address that provides the initial reserve token seed.
     address seeder;
-    // Address that defines and controls prestige levels for users.
-    address prestige;
+    // Address that defines and controls tier levels for users.
+    address tier;
     // The Balancer ConfigurableRightsPool that is built for this distribution.
     address crp;
     // The Balancer pool that holds and trades tokens during the distribution.
@@ -109,6 +117,8 @@ struct TrustConfig {
     // On success the creator receives these funds.
     // On failure the creator receives `0`.
     uint256 minimumCreatorRaise;
+    // The SeedERC20Factory on the current network.
+    SeedERC20Factory seedERC20Factory;
     // Either an EOA (externally owned address) or `address(0)`.
     // If an EOA the seeder account must transfer seed funds to the newly
     // constructed `Trust` before distribution can start.
@@ -120,16 +130,19 @@ struct TrustConfig {
     // An absolute value, so percentages etc. must be calculated off-chain and
     // passed in to the constructor.
     uint256 seederFee;
-    // Number of units minted by the newly built `SeedERC20` contract.
-    // IGNORED IF the `seeder` contract is an EOA.
+    // Total seed units to be mint and sold.
+    // 100% of all seed units must be sold for seeding to complete.
+    // Recommended to keep seed units to a small value (single-triple digits).
+    // The ability for users to buy/sell or not buy/sell dust seed quantities
+    // is likely NOT desired.
     uint16 seederUnits;
-    // Cooldown duration of the newly built `SeedERC20` contract.
-    // IGNORED IF the `seeder` contract is an EOA.
+    // Cooldown duration in blocks for seed/unseed cycles.
+    // Seeding requires locking funds for at least the cooldown period.
+    // Ideally `unseed` is never called and `seed` leaves funds in the contract
+    // until all seed tokens are sold out.
+    // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
+    // but it should be called rarely.
     uint16 seederCooldownDuration;
-    // Minimum duration IN BLOCKS of the trading on Balancer.
-    // The trading does not stop until the `anonEndDistribution` function is
-    // called.
-    uint256 minimumTradingDuration;
     // The amount of reserve to back the redemption initially after trading
     // finishes. Anyone can send more of the reserve to the redemption token at
     // any time to increase redemption value. Successful the redeemInit is sent
@@ -137,21 +150,101 @@ struct TrustConfig {
     uint256 redeemInit;
 }
 
-/// Configuration passed through to the `RedeemableERC20Pool` constructor.
-/// All params as per `RedeemableERC20PoolConfig`.
-/// @see RedeemableERC20PoolConfig
+struct TrustRedeemableERC20Config {
+    // The RedeemableERC20Factory on the current network.
+    RedeemableERC20Factory redeemableERC20Factory;
+    // Name forwarded to ERC20 constructor.
+    string name;
+    // Symbol forwarded to ERC20 constructor.
+    string symbol;
+    // Tier contract to compare statuses against on transfer.
+    ITier tier;
+    // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
+    ITier.Tier minimumStatus;
+    // Number of redeemable tokens to mint.
+    uint256 totalSupply;
+}
+
 struct TrustRedeemableERC20PoolConfig {
-    CRPFactory crpFactory;
-    BFactory balancerFactory;
+    // The RedeemableERC20PoolFactory on the current network.
+    RedeemableERC20PoolFactory redeemableERC20PoolFactory;
+    // The reserve erc20 token.
+    // The reserve token anchors our newly minted redeemable tokens to an
+    // existant value system.
+    // The weights and balances of the reserve token and the minted token
+    // define a dynamic spot price in the AMM.
     IERC20 reserve;
+    // Amount of reserve token to initialize the pool.
+    // The starting/final weights are calculated against this.
     uint256 reserveInit;
+    // Initial marketcap of the token according to the balancer pool
+    // denominated in reserve token.
+    // Th spot price of the token is ( market cap / token supply ) where market
+    // cap is defined in terms of the reserve.
+    // The spot price of a balancer pool token is a function of both the
+    // amounts of each token and their weights.
+    // This bonding curve is described in the balancer whitepaper.
+    // We define a valuation of newly minted tokens in terms of the deposited
+    // reserve. The reserve weight is set to the minimum allowable value to
+    // achieve maximum capital efficiency for the fund raising.
     uint256 initialValuation;
+    // Final valuation is treated the same as initial valuation.
+    // The final valuation will ONLY be achieved if NO TRADING OCCURS.
+    // Any trading activity that net deposits reserve funds into the pool will
+    // increase the spot price permanently.
     uint256 finalValuation;
+    // Minimum duration IN BLOCKS of the trading on Balancer.
+    // The trading does not stop until the `anonEndDistribution` function is
+    // called.
+    uint256 minimumTradingDuration;
 }
 
 /// @title Trust
-/// Mediates stakeholders and creates internal Balancer pools and tokens for a
-/// distribution.
+/// @notice Coordinates the mediation and distribution of tokens
+/// between stakeholders.
+///
+/// The `Trust` contract is responsible for configuring the
+/// `RedeemableERC20` token, `RedeemableERC20Pool` Balancer wrapper
+/// and the `SeedERC20` contract.
+///
+/// Internally the `TrustFactory` calls several admin/owner only
+/// functions on its children and these may impose additional
+/// restrictions such as `Phased` limits.
+///
+/// The `Trust` builds and references `RedeemableERC20`,
+/// `RedeemableERC20Pool` and `SeedERC20` contracts internally and
+/// manages all access-control functionality.
+///
+/// The major functions of the `Trust` contract, apart from building
+/// and configuring the other contracts, is to start and end the
+/// fundraising event, and mediate the distribution of funds to the
+/// correct stakeholders:
+///
+/// - On `Trust` construction, all minted `RedeemableERC20` tokens
+/// are sent to the `RedeemableERC20Pool`
+///
+/// - `anonStartDistribution` can be called by anyone to begin the
+/// Dutch Auction. If this is called before seeder reserve funds are
+/// available on the `Trust`, this will revert
+///
+/// - `anonEndDistribution` can be called by anyone (only when
+/// `RedeemableERC20Pool` is in `Phase.TWO`) to end the Dutch Auction
+/// and distribute funds to the correct stakeholders, depending on
+/// whether or not the auction met the fundraising target.
+///   - On successful raise
+///     - seed funds are returned to `seeder` address along with
+/// additional `seederFee` if configured
+///     - `redeemInit` is sent to the `redeemableERC20` address, to
+/// back redemptions
+///     - the `creator` gets the remaining balance, which should
+/// equal or exceed `minimumCreatorRaise`
+///   - On failed raise
+///     - seed funds are returned to `seeder` address
+///     - the remaining balance is sent to the `redeemableERC20`
+/// address, to back redemptions
+///     - the `creator` gets nothing
+/// @dev Mediates stakeholders and creates internal Balancer pools
+/// and tokens for a distribution.
 ///
 /// The goals of a distribution:
 /// - Mint and distribute a `RedeemableERC20` as fairly as possible,
@@ -200,9 +293,7 @@ struct TrustRedeemableERC20PoolConfig {
 /// Importantly the `Trust` contract is the owner/admin of the contracts it
 /// creates. The `Trust` never transfers ownership so it directly controls all
 /// internal workflows. No stakeholder, even the deployer or creator, can act
-/// as owner of the internals. There is one function `creatorAddRedeemable` on
-/// the `Trust` with a simple access check locked to the creator defined at
-/// construction.
+/// as owner of the internals.
 contract Trust is ReentrancyGuard {
 
     using SafeMath for uint256;
@@ -223,11 +314,10 @@ contract Trust is ReentrancyGuard {
     uint16 public immutable seederUnits;
     /// Seeder cooldown duration from the initial config.
     uint16 public immutable seederCooldownDuration;
-    /// Minimum trading duration from the initial config.
-    uint256 public immutable minimumTradingDuration;
     /// Redeem init from the initial config.
     uint256 public immutable redeemInit;
-
+    /// SeedERC20Factory from the initial config.
+    SeedERC20Factory public immutable seedERC20Factory;
     /// Balance of the reserve asset in the Balance pool at the moment
     /// `anonEndDistribution` is called. This must be greater than or equal to
     /// `successBalance` for the distribution to succeed.
@@ -267,14 +357,10 @@ contract Trust is ReentrancyGuard {
     /// https://github.com/crytic/slither/issues/887
     ///
     /// @param config_ Config for the Trust.
-    /// @param redeemableERC20Config_ RedeemableERC20 Config for constructed
-    ///        redeemable token.
-    /// @param poolConfig_ RedeemableERC20Pool Config for constructed
-    ///        redeemable pool contract.
     constructor (
         TrustConfig memory config_,
-        RedeemableERC20Config memory redeemableERC20Config_,
-        TrustRedeemableERC20PoolConfig memory poolConfig_
+        TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
+        TrustRedeemableERC20PoolConfig memory trustRedeemableERC20PoolConfig_
     ) public {
         require(config_.creator != address(0), "CREATOR_0");
         // There are additional minimum reserve init and token supply
@@ -283,87 +369,139 @@ contract Trust is ReentrancyGuard {
         // valuations will be in a sensible range according to the internal
         // assumptions made by Balancer etc.
         require(
-            redeemableERC20Config_.totalSupply >= poolConfig_.reserveInit,
+            trustRedeemableERC20Config_.totalSupply
+            >= trustRedeemableERC20PoolConfig_.reserveInit,
             "MIN_TOKEN_SUPPLY"
         );
-        require(
-            poolConfig_.initialValuation >= poolConfig_.finalValuation,
-            "MIN_INITIAL_VALUTION"
-        );
 
-        uint256 successBalance_ = poolConfig_.reserveInit
+        uint256 successBalance_ = trustRedeemableERC20PoolConfig_.reserveInit
             .add(config_.seederFee)
             .add(config_.redeemInit)
             .add(config_.minimumCreatorRaise);
-        require(
-            poolConfig_.finalValuation >= successBalance_,
-            "MIN_FINAL_VALUATION"
-        );
-        successBalance = successBalance_;
 
         creator = config_.creator;
         seederFee = config_.seederFee;
         seederUnits = config_.seederUnits;
         seederCooldownDuration = config_.seederCooldownDuration;
-        minimumTradingDuration = config_.minimumTradingDuration;
         redeemInit = config_.redeemInit;
         minimumCreatorRaise = config_.minimumCreatorRaise;
+        seedERC20Factory = config_.seedERC20Factory;
+        successBalance = successBalance_;
 
-        RedeemableERC20 token_ =  new RedeemableERC20(
-            redeemableERC20Config_
-        );
-        token = token_;
+        RedeemableERC20 redeemableERC20_ = RedeemableERC20(
+            trustRedeemableERC20Config_.redeemableERC20Factory
+                .createChild(abi.encode(
+                    RedeemableERC20Config(
+                        address(this),
+                        trustRedeemableERC20Config_.name,
+                        trustRedeemableERC20Config_.symbol,
+                        trustRedeemableERC20Config_.tier,
+                        trustRedeemableERC20Config_.minimumStatus,
+                        trustRedeemableERC20Config_.totalSupply
+        ))));
 
-        RedeemableERC20Pool pool_ = new RedeemableERC20Pool(
-            RedeemableERC20PoolConfig(
-                poolConfig_.crpFactory,
-                poolConfig_.balancerFactory,
-                poolConfig_.reserve,
-                token_,
-                poolConfig_.reserveInit,
-                poolConfig_.initialValuation,
-                poolConfig_.finalValuation
-            )
+        RedeemableERC20Pool redeemableERC20Pool_ = RedeemableERC20Pool(
+            trustRedeemableERC20PoolConfig_.redeemableERC20PoolFactory
+                .createChild(abi.encode(
+                    RedeemableERC20PoolFactoryRedeemableERC20PoolConfig(
+                        trustRedeemableERC20PoolConfig_.reserve,
+                        redeemableERC20_,
+                        trustRedeemableERC20PoolConfig_.reserveInit,
+                        trustRedeemableERC20PoolConfig_.initialValuation,
+                        trustRedeemableERC20PoolConfig_.finalValuation,
+                        trustRedeemableERC20PoolConfig_.minimumTradingDuration
+        ))));
+
+        token = redeemableERC20_;
+        pool = redeemableERC20Pool_;
+
+        require(
+            redeemableERC20Pool_.finalValuation() >= successBalance_,
+            "MIN_FINAL_VALUATION"
         );
-        pool = pool_;
 
         if (config_.seeder == address(0)) {
             require(
-                poolConfig_.reserveInit.mod(config_.seederUnits) == 0,
-                "SEED_PRICE_MULTIPLIER"
+                trustRedeemableERC20PoolConfig_
+                    .reserveInit
+                    .mod(
+                        config_.seederUnits) == 0,
+                        "SEED_PRICE_MULTIPLIER"
+                    );
+            config_.seeder = address(config_.seedERC20Factory
+                .createChild(abi.encode(SeedERC20Config(
+                    trustRedeemableERC20PoolConfig_.reserve,
+                    address(redeemableERC20Pool_),
+                    // seed price.
+                    redeemableERC20Pool_
+                        .reserveInit()
+                        .div(config_.seederUnits),
+                    config_.seederUnits,
+                    config_.seederCooldownDuration,
+                    "",
+                    ""
+                )))
             );
-            config_.seeder = address(new SeedERC20(SeedERC20Config(
-                poolConfig_.reserve,
-                address(pool_),
-                // seed price.
-                poolConfig_.reserveInit.div(config_.seederUnits),
-                config_.seederUnits,
-                config_.seederCooldownDuration,
-                "",
-                ""
-            )));
         }
         seeder = config_.seeder;
 
         // Need to grant transfers for a few balancer addresses to facilitate
-        // exits.
-        token_.grantRole(
-            token_.RECEIVER(),
-            address(poolConfig_.balancerFactory)
+        // setup and exits.
+        redeemableERC20_.grantRole(
+            redeemableERC20_.RECEIVER(),
+            address(redeemableERC20Pool_.crp().bFactory())
         );
-        token_.grantRole(token_.RECEIVER(), address(pool_.crp()));
-        token_.grantRole(token_.RECEIVER(), address(pool_));
-        token_.grantRole(token_.SENDER(), address(pool_.crp()));
+        redeemableERC20_.grantRole(
+            redeemableERC20_.RECEIVER(),
+            address(redeemableERC20Pool_.crp())
+        );
+        redeemableERC20_.grantRole(
+            redeemableERC20_.RECEIVER(),
+            address(redeemableERC20Pool_)
+        );
+        redeemableERC20_.grantRole(
+            redeemableERC20_.SENDER(),
+            address(redeemableERC20Pool_.crp())
+        );
+
+        // Need to grant creator ability to add redeemables.
+        redeemableERC20_.grantRole(
+            redeemableERC20_.REDEEMABLE_ADDER(),
+            config_.creator
+        );
+        redeemableERC20_.grantRole(
+            redeemableERC20_.REDEEMABLE_ADDER(),
+            address(this)
+        );
+
+        // The trust needs the ability to burn the distributor.
+        redeemableERC20_.grantRole(
+            redeemableERC20_.DISTRIBUTOR_BURNER(),
+            address(this)
+        );
 
         // The pool reserve must always be one of the redeemable assets.
-        token_.adminAddRedeemable(poolConfig_.reserve);
+        redeemableERC20_.addRedeemable(
+            trustRedeemableERC20PoolConfig_.reserve
+        );
+
+        // There is no longer any reason for the redeemableERC20 to have an
+        // admin.
+        redeemableERC20_.renounceRole(
+            redeemableERC20_.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        redeemableERC20_.renounceRole(
+            redeemableERC20_.REDEEMABLE_ADDER(),
+            address(this)
+        );
 
         // Send all tokens to the pool immediately.
-        // When the seed funds are raised `anonStartDistribution` will build a
-        // pool from these.
-        token_.safeTransfer(
-            address(pool_),
-            redeemableERC20Config_.totalSupply
+        // When the seed funds are raised `anonStartDistribution` on the
+        // `Trust` will build a pool from these.
+        redeemableERC20_.safeTransfer(
+            address(redeemableERC20Pool_),
+            trustRedeemableERC20Config_.totalSupply
         );
     }
 
@@ -374,7 +512,7 @@ contract Trust is ReentrancyGuard {
             address(token),
             address(pool),
             address(seeder),
-            address(token.prestige()),
+            address(token.tierContract()),
             address(pool.crp()),
             address(pool.crp().bPool())
         );
@@ -385,11 +523,11 @@ contract Trust is ReentrancyGuard {
         return TrustConfig(
             address(creator),
             minimumCreatorRaise,
+            seedERC20Factory,
             address(seeder),
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            minimumTradingDuration,
             redeemInit
         );
     }
@@ -453,29 +591,6 @@ contract Trust is ReentrancyGuard {
         }
     }
 
-    /// Allow the creator to add a redeemable erc20 to the internal
-    /// `RedeemableERC20` token.
-    /// This is a thin wrapper that proxies the creator to act as the admin for
-    /// this function call.
-    /// @param redeemable_ Redeemable erc20 passed directly to
-    ///        `adminAddRedeemable`.
-    function creatorAddRedeemable(IERC20 redeemable_) external {
-        // Not using the Open Zepplin RBAC system here as it would be overkill
-        // for this one check.
-        // This contract has no other access controls.
-        require(msg.sender == creator, "NOT_CREATOR");
-        token.adminAddRedeemable(redeemable_);
-    }
-
-    /// Anyone can start the distribution.
-    /// The requirement is that BOTH the reserve and redeemable tokens have
-    /// already been sent to the Balancer pool.
-    /// If the pool has the required funds it will set the weight curve and
-    /// start the dutch auction.
-    function anonStartDistribution() external {
-        pool.ownerStartDutchAuction(block.number + minimumTradingDuration);
-    }
-
     /// Anyone can end the distribution.
     /// The requirement is that the `minimumTradingDuration` has elapsed.
     /// If the `successBalance` is reached then the creator receives the raise
@@ -489,7 +604,9 @@ contract Trust is ReentrancyGuard {
         // Burning the distributor moves the token to its `Phase.ONE` and
         // unlocks redemptions.
         // The distributor is the `bPool` itself.
-        token.adminBurnDistributor(
+        // Requires that the `Trust` has been granted `ONLY_DISTRIBUTOR_BURNER`
+        // role on the `redeemableERC20`.
+        token.burnDistributor(
             address(pool.crp().bPool())
         );
 

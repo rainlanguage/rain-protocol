@@ -3,11 +3,17 @@ import type { RightsManager } from "../typechain/RightsManager";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
+import type { TrustFactory } from "../typechain/TrustFactory";
+import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
+import type { RedeemableERC20PoolFactory } from "../typechain/RedeemableERC20PoolFactory";
+import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
 import type { BigNumber } from "ethers";
-import type { SmartPoolManager } from "../typechain/SmartPoolManager";
+import type { Trust } from "../typechain/Trust";
+
+const trustJson = require("../artifacts/contracts/Trust.sol/Trust.json");
 
 const { expect, assert } = chai;
 
@@ -107,6 +113,63 @@ export const balancerDeploy = async (): Promise<
   return [rightsManager, crpFactory, bFactory];
 };
 
+export interface Factories {
+  redeemableERC20Factory: RedeemableERC20Factory;
+  redeemableERC20PoolFactory: RedeemableERC20PoolFactory;
+  seedERC20Factory: SeedERC20Factory;
+  trustFactory: TrustFactory;
+}
+
+export const factoriesDeploy = async (
+  rightsManager: RightsManager,
+  crpFactory: CRPFactory,
+  balancerFactory: BFactory
+): Promise<Factories> => {
+  const redeemableERC20FactoryFactory = await ethers.getContractFactory(
+    "RedeemableERC20Factory"
+  );
+  const redeemableERC20Factory =
+    (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
+  await redeemableERC20Factory.deployed();
+
+  const redeemableERC20PoolFactoryFactory = await ethers.getContractFactory(
+    "RedeemableERC20PoolFactory",
+    {
+      libraries: {
+        RightsManager: rightsManager.address,
+      },
+    }
+  );
+  const redeemableERC20PoolFactory =
+    (await redeemableERC20PoolFactoryFactory.deploy({
+      crpFactory: crpFactory.address,
+      balancerFactory: balancerFactory.address,
+    })) as RedeemableERC20PoolFactory;
+  await redeemableERC20PoolFactory.deployed();
+
+  const seedERC20FactoryFactory = await ethers.getContractFactory(
+    "SeedERC20Factory"
+  );
+  const seedERC20Factory =
+    (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory;
+  await seedERC20Factory.deployed();
+
+  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
+  const trustFactory = (await trustFactoryFactory.deploy({
+    redeemableERC20Factory: redeemableERC20Factory.address,
+    redeemableERC20PoolFactory: redeemableERC20PoolFactory.address,
+    seedERC20Factory: seedERC20Factory.address,
+  })) as TrustFactory;
+  await trustFactory.deployed();
+
+  return {
+    redeemableERC20Factory,
+    redeemableERC20PoolFactory,
+    seedERC20Factory,
+    trustFactory,
+  };
+};
+
 export const zeroAddress = ethers.constants.AddressZero;
 export const oneAddress = "0x0000000000000000000000000000000000000001";
 export const eighteenZeros = "000000000000000000";
@@ -169,3 +232,98 @@ export const poolContracts = async (
   ) as BPool;
   return [crp, bPool];
 };
+
+export const trustDeploy = async (
+  trustFactory: TrustFactory,
+  creator: any,
+  ...args
+): Promise<Trust> => {
+  const tx = await trustFactory[
+    "createChild((address,uint256,address,uint256,uint16,uint16,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256,uint256))"
+  ](...args);
+  const receipt = await tx.wait();
+
+  const trust = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        receipt.events?.filter(
+          (x) => x.event == "NewContract" && x.address == trustFactory.address
+        )[0].topics[1]
+      ),
+      20 // address bytes length
+    ),
+    trustJson.abi,
+    creator
+  ) as Trust;
+
+  if (!ethers.utils.isAddress(trust.address)) {
+    throw new Error(
+      `invalid trust address: ${trust.address} (${trust.address.length} chars)`
+    );
+  }
+
+  await trust.deployed();
+
+  return trust;
+};
+
+export const createEmptyBlock = async (count?: number): Promise<void> => {
+  const signers = await ethers.getSigners();
+  const tx = { to: signers[1].address };
+  if (count > 0) {
+    for (let i = 0; i < count; i++) {
+      await signers[0].sendTransaction(tx);
+    }
+  } else {
+    await signers[0].sendTransaction(tx);
+  }
+};
+
+/**
+ * Utility function that transforms a hexadecimal number from the output of the ITier contract report
+ * @param report String with Hexadecimal containing the array data
+ * @returns number[] Block array of the reports
+ */
+export function tierReport(report: string): number[] {
+  let parsedReport: number[] = [];
+  let arrStatus = [0, 1, 2, 3, 4, 5, 6, 7]
+    .map((i) =>
+      BigInt(report)
+        .toString(16)
+        .padStart(64, "0")
+        .slice(i * 8, i * 8 + 8)
+    )
+    .reverse();
+  //arrStatus = arrStatus.reverse();
+
+  for (let i in arrStatus) {
+    parsedReport.push(parseInt("0x" + arrStatus[i]));
+  }
+
+  return parsedReport;
+}
+
+export function blockNumbersToReport(blockNos: number[]): string {
+  assert(blockNos.length === 8);
+
+  return [...blockNos]
+    .reverse()
+    .map((i) => BigInt(i).toString(16).padStart(8, "0"))
+    .join("");
+}
+
+/**
+ * Pads leading zeroes of hex number to hex string length of 32 bytes
+ * @param {BigNumber} hex
+ */
+export function zeroPad32(hex: BigNumber): string {
+  return ethers.utils.hexZeroPad(hex.toHexString(), 32);
+}
+
+/**
+ * Pads leading zeroes of hex number to hex string length of 4 bytes
+ * @param {BigNumber} hex
+ */
+export function zeroPad4(hex: BigNumber): string {
+  return ethers.utils.hexZeroPad(hex.toHexString(), 4);
+}

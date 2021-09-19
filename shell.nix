@@ -70,6 +70,26 @@ let
  ci-test = pkgs.writeShellScriptBin "ci-test" ''
  hardhat test
  '';
+
+ docgen = pkgs.writeShellScriptBin "docgen" ''
+ rm -rf docs/api && npm run docgen
+ '';
+
+ docs-dev = pkgs.writeShellScriptBin "docs-dev" ''
+ docgen && npm run start --prefix docusaurus
+ '';
+
+ docs-build = pkgs.writeShellScriptBin "docs-build" ''
+ docgen && npm run build --prefix docusaurus
+ '';
+
+ docs-serve = pkgs.writeShellScriptBin "docs-serve" ''
+ npm run serve --prefix docusaurus
+ '';
+
+ docs-version = pkgs.writeShellScriptBin "docs-version" ''
+ docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GIT_TAG}
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
@@ -85,6 +105,11 @@ pkgs.stdenv.mkDerivation {
   security-check
   ci-test
   ci-lint
+  docgen
+  docs-dev
+  docs-build
+  docs-serve
+  docs-version
  ];
 
  shellHook = ''
@@ -92,5 +117,6 @@ pkgs.stdenv.mkDerivation {
   export PATH=$( npm bin ):$PATH
   # keep it fresh
   npm install
+  npm install --prefix docusaurus
  '';
 }
