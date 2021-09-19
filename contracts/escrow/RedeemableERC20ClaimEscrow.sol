@@ -77,7 +77,7 @@ contract RedeemableERC20ClaimEscrow {
             = totalDeposits[address(trust_)][address(token_)].sub(amount_);
 
         require(
-            trust.getDistributionStatus() == DistributionStatus.Fail,
+            trust_.getDistributionStatus() == DistributionStatus.Fail,
             "ONLY_FAIL"
         );
 
