@@ -63,10 +63,6 @@ contract ReadWriteTier is ITier {
             block.number
         );
 
-        // The start tier MUST NOT equal the end tier.
-        // The caller MUST check and handle this case gracefully.
-        require(startTier_ != endTier_, "SET_SAME_TIER");
-
         reports[account_] = TierUtil.updateReportWithTierAtBlock(
             report_,
             startTier_,
