@@ -138,7 +138,7 @@ let
   '';
 
   publish = pkgs.writeShellScriptBin "publish" ''
-    echo "//registry.npmjs.org/:_authToken=''${NPM_TOKEN}" > .npmrc
+    echo //registry.npmjs.org/:_authToken=''${NPM_TOKEN} > .npmrc
 
     PACKAGE_NAME=$(node -p "require('./package.json').name")
     PACKAGE_VERSION=$(node -p "require('./package.json').version")
