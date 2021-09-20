@@ -141,6 +141,7 @@ let
     PACKAGE_NAME=$(node -p "require('./package.json').name" | tr -d @ | tr / -)
     PACKAGE_VERSION=$(node -p "require('./package.json').version")
     npm pack
+    npm login
     npm publish ./$PACKAGE_NAME-$PACKAGE_VERSION.tgz --access public
   '';
 in
