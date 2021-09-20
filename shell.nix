@@ -140,8 +140,8 @@ let
   publish = pkgs.writeShellScriptBin "publish" ''
     echo //registry.npmjs.org/:_authToken=''${NPM_TOKEN} > .npmrc
 
-    PACKAGE_NAME=$(node -p "require('./package.json').name")
-    PACKAGE_VERSION=$(node -p "require('./package.json').version")
+    echo PACKAGE_NAME=$(node -p "require('./package.json').name") | tr -d @ | tr / -
+    echo PACKAGE_VERSION=$(node -p "require('./package.json').version")
     npm pack
     npm publish ./$PACKAGE_NAME-$PACKAGE_VERSION.tgz --access public
   '';
