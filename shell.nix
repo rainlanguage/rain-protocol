@@ -138,8 +138,6 @@ let
   '';
 
   publish = pkgs.writeShellScriptBin "publish" ''
-    echo //registry.npmjs.org/:_authToken=''${NPM_TOKEN} > .npmrc
-
     PACKAGE_NAME=$(node -p "require('./package.json').name" | tr -d @ | tr / -)
     PACKAGE_VERSION=$(node -p "require('./package.json').version")
     npm pack
