@@ -81,6 +81,27 @@ Navigate to http://localhost:3000/ to view the docs site generated with Docusaur
 
 Documentation files are written in Markdown and can be found under the `docs/` directory in this repo. The main config file can be found at `docusaurus/docusaurus.config.js`, and sidebar config at `docusaurus/siderbars.js`
 
+### Publish npm Package
+
+Inside nix-shell run `prepublish`
+
+This will bump package version for to a new patch version,
+
+Please manually commit this change, and push up to the GitHub repo.
+
+Now, you can either tag this commit locally and push it up, or directly cut a release on the GitHub repo (if you're having issues tagging the commit locally)
+
+Locally:
+e.g.
+```
+git tag v0.0.1 -am "0.0.1"
+git push origin v0.0.1
+```
+
+Remotely:
+Go to Releases -> Draft a new release
+Select this branch and create a new tag for this commit e.g. `v0.0.1`
+
 ### Audits
 
 Audits can be found in the `audits` folder.

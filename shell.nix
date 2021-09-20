@@ -98,21 +98,40 @@ let
     npm run build
 
     cp artifacts/contracts/**/*.json artifacts
-    rm artifacts/*.dbg.json
-    rm artifacts/*Test*
-    rm artifacts/*Reentrant*
-    rm artifacts/*ForceSendEther*
-    rm artifacts/*Mock*
+    rm -rf artifacts/*.dbg.json
+    rm -rf artifacts/*Test*
+    rm -rf artifacts/*Reentrant*
+    rm -rf artifacts/*ForceSendEther*
+    rm -rf artifacts/*Mock*
 
-    rm typechain/**/*Test*
-    rm typechain/**/*Reentrant*
-    rm typechain/**/*ForceSendEther*
-    rm typechain/**/*Mock*
+    rm -rf typechain/**/*Test*
+    rm -rf typechain/**/*Reentrant*
+    rm -rf typechain/**/*ForceSendEther*
+    rm -rf typechain/**/*Mock*
   '';
 
   prepublish = pkgs.writeShellScriptBin "prepublish" ''
     npm version patch --no-git-tag-version
-    # manually commit and tag
+    PACKAGE_NAME=$(node -p "require('./package.json').name")
+    PACKAGE_VERSION=$(node -p "require('./package.json').version")
+    cat << EOF
+    Package version for $PACKAGE_NAME bumped to $PACKAGE_VERSION
+
+    Please manually commit this change, and push up to the GitHub repo.
+
+    Now, you can either tag this commit locally and push it up, or directly cut a release on the GitHub repo (if you're having issues tagging the commit locally)
+
+    Locally:
+    e.g.
+    ```
+    git tag v$PACKAGE_VERSION -am "$PACKAGE_VERSION"
+    git push origin v$PACKAGE_VERSION
+    ```
+
+    Remotely:
+    Go to Releases -> Draft a new release
+    Select this branch and create a new `v0.0.1` tag for this commit
+    EOF
   '';
 
   publish = pkgs.writeShellScriptBin "publish" ''
