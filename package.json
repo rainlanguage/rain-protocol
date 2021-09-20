@@ -1,7 +1,7 @@
 {
   "name": "@beehive-innovation/rain-protocol",
   "description": "Fair value capture for intangible or physical assets in a permissionless way in any decentralised environment",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "files": [
     "/contracts/*.sol",
     "/contracts/**/*.sol",

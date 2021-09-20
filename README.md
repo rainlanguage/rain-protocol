@@ -87,13 +87,17 @@ Inside nix-shell run `prepublish`
 
 This will bump package version for to a new patch version,
 
-Please manually commit this change, and push up to the GitHub repo.
+Please manually commit this change, and push up to the GitHub repo:
+
+```console
+$ git commit -am "0.0.1"
+$ git push
+```
 
 Now, you can either tag this commit locally and push it up, or directly cut a release on the GitHub repo (if you're having issues tagging the commit locally)
 
 Locally:
-e.g.
-```
+```console
 git tag v0.0.1 -am "0.0.1"
 git push origin v0.0.1
 ```

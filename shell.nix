@@ -119,7 +119,10 @@ let
 
     Package version for $PACKAGE_NAME bumped to $PACKAGE_VERSION
 
-    Please manually commit this change, and push up to the GitHub repo.
+    Please manually commit this change, and push up to the GitHub repo:
+
+    $ git commit -am "$PACKAGE_VERSION"
+    $ git push
 
     Now, you should either:
     - tag this commit locally and push it up
