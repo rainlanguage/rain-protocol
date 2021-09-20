@@ -111,8 +111,8 @@ let
   '';
 
   prepublish = pkgs.writeShellScriptBin "prepublish" ''
-    npm config set sign-git-tag true
-    npm version patch
+    npm version patch --no-git-tag-version
+    # manually commit and tag
   '';
 
   publish = pkgs.writeShellScriptBin "publish" ''
