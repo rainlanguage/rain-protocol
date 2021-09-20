@@ -2,19 +2,43 @@
 
 Rain Protocol supports fair value capture for intangible or physical assets in a permissionless way in any decentralised environment.
 
+## Installation
+
+```console
+npm install rain-protocol
+```
+
+## Usage
+
+### Importing contracts
+
+```solidity
+pragma solidity ^0.6.12;
+
+import "rain-protocol/contracts/ReadWriteTier.sol";
+
+contract MyContract is ReadWriteTier {
+  ...
+}
+```
+
+### Importing contract [artifact](https://hardhat.org/guides/compile-contracts.html#artifacts) (e.g. abi, bytecode)
+
+```typescript
+const trustJson = require("rain-protocol/artifacts/Trust.json");
+```
+
+### Using with [TypeChain](https://github.com/dethcrypto/TypeChain)
+
+```typescript
+import type { Trust } from "rain-protocol/typechain/Trust";
+```
+
+## Documentation
+
 Documentation can be found [here](https://beehive-innovation.github.io/rain-protocol).
 
-## Development setup (contributors)
-
-### Git submodules
-
-As we are wrapping balancer contracts, we have git submodules pointing to their repositories.
-
-When you clone this repository make sure to use `--recurse-submodules`
-
-```
-git clone --recurse-submodules git@github.com:thedavidmeister/tv-balancer.git
-```
+## Development setup (for contributors)
 
 ### Nix Shell
 

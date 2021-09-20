@@ -40,10 +40,10 @@ enum Phase {
 const trustJson = require("../../artifacts/contracts/Trust.sol/Trust.json");
 const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const seedERC20Json = require("../../artifacts/contracts/SeedERC20.sol/SeedERC20.json");
-const bPoolJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
+const bPoolJson = require("configurable-rights-pool/artifacts/BPool.json");
 const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
 const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
+const crpJson = require("configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
 
 describe("TrustSeed", async function () {
   it("should allow unseeding only after unseed delay period", async function () {

@@ -1,38 +1,37 @@
-Submodule contracts/configurable-rights-pool contains modified content
-diff --git a/contracts/configurable-rights-pool/contracts/PCToken.sol b/contracts/configurable-rights-pool/contracts/PCToken.sol
+diff --git a/node_modules/configurable-rights-pool/contracts/PCToken.sol b/node_modules/configurable-rights-pool/contracts/PCToken.sol
 index 6017bf7..eeb4fbe 100644
---- a/contracts/configurable-rights-pool/contracts/PCToken.sol
-+++ b/contracts/configurable-rights-pool/contracts/PCToken.sol
+--- a/node_modules/configurable-rights-pool/contracts/PCToken.sol
++++ b/node_modules/configurable-rights-pool/contracts/PCToken.sol
 @@ -4,7 +4,7 @@ pragma solidity 0.6.12;
  // Imports
- 
+
  import "../libraries/BalancerSafeMath.sol";
 -import "../interfaces/IERC20.sol";
 +import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
- 
+
  // Contracts
- 
-diff --git a/contracts/configurable-rights-pool/libraries/SafeApprove.sol b/contracts/configurable-rights-pool/libraries/SafeApprove.sol
+
+diff --git a/node_modules/configurable-rights-pool/libraries/SafeApprove.sol b/node_modules/configurable-rights-pool/libraries/SafeApprove.sol
 index 6cbe34f..9b8fbcc 100644
---- a/contracts/configurable-rights-pool/libraries/SafeApprove.sol
-+++ b/contracts/configurable-rights-pool/libraries/SafeApprove.sol
+--- a/node_modules/configurable-rights-pool/libraries/SafeApprove.sol
++++ b/node_modules/configurable-rights-pool/libraries/SafeApprove.sol
 @@ -3,7 +3,7 @@ pragma solidity 0.6.12;
- 
+
  // Imports
- 
+
 -import "../interfaces/IERC20.sol";
 +import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
- 
+
  // Libraries
- 
-diff --git a/contracts/configurable-rights-pool/libraries/SmartPoolManager.sol b/contracts/configurable-rights-pool/libraries/SmartPoolManager.sol
+
+diff --git a/node_modules/configurable-rights-pool/libraries/SmartPoolManager.sol b/node_modules/configurable-rights-pool/libraries/SmartPoolManager.sol
 index f26ee15..68e3580 100644
---- a/contracts/configurable-rights-pool/libraries/SmartPoolManager.sol
-+++ b/contracts/configurable-rights-pool/libraries/SmartPoolManager.sol
+--- a/node_modules/configurable-rights-pool/libraries/SmartPoolManager.sol
++++ b/node_modules/configurable-rights-pool/libraries/SmartPoolManager.sol
 @@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
- 
+
  // Imports
- 
+
 -import "../interfaces/IERC20.sol";
 +import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  import "../interfaces/IConfigurableRightsPool.sol";
