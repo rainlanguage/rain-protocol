@@ -2,7 +2,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type { TierUtilTest } from "../../typechain/TierUtilTest";
+import type { TierReportTest } from "../../typechain/TierReportTest";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
 import { assertError, basicDeploy, zeroPad32, zeroPad4 } from "../Util";
 
@@ -21,12 +21,12 @@ enum Tier {
   EIGHT,
 }
 
-describe("TierUtil", async function () {
+describe("TierReport", async function () {
   let owner: any;
   let signer1: any;
   let readWriteTier: ReadWriteTier;
   let reserve: ReserveTokenTest;
-  let tierUtil: TierUtilTest;
+  let tierReport: TierReportTest;
 
   beforeEach(async () => {
     [owner, signer1] = await ethers.getSigners();
@@ -35,7 +35,7 @@ describe("TierUtil", async function () {
     readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
     await readWriteTier.deployed();
 
-    tierUtil = (await basicDeploy("TierUtilTest", {})) as TierUtilTest;
+    tierReport = (await basicDeploy("TierReportTest", {})) as TierReportTest;
 
     reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest;
   });
@@ -57,12 +57,12 @@ describe("TierUtil", async function () {
 
     const report = await readWriteTier.report(signer1.address);
 
-    const tierBlockReport1 = await tierUtil.tierAtBlockFromReport(
+    const tierBlockReport1 = await tierReport.tierAtBlockFromReport(
       report,
       initialBlock + 5
     );
 
-    const tierBlockReport2 = await tierUtil.tierAtBlockFromReport(
+    const tierBlockReport2 = await tierReport.tierAtBlockFromReport(
       report,
       initialBlock + 15
     );
@@ -95,10 +95,10 @@ describe("TierUtil", async function () {
     // get latest report
     const report = await readWriteTier.report(signer1.address);
 
-    const tierBlock0 = await tierUtil.tierBlock(report, Tier.ZERO);
-    const tierBlock1 = await tierUtil.tierBlock(report, Tier.ONE);
-    const tierBlock2 = await tierUtil.tierBlock(report, Tier.TWO);
-    const tierBlock3 = await tierUtil.tierBlock(report, Tier.THREE);
+    const tierBlock0 = await tierReport.tierBlock(report, Tier.ZERO);
+    const tierBlock1 = await tierReport.tierBlock(report, Tier.ONE);
+    const tierBlock2 = await tierReport.tierBlock(report, Tier.TWO);
+    const tierBlock3 = await tierReport.tierBlock(report, Tier.THREE);
 
     assert(tierBlock0.isZero(), "did not return block 0");
 
@@ -131,7 +131,7 @@ describe("TierUtil", async function () {
 
     const report = await readWriteTier.report(signer1.address);
 
-    const truncatedReport = await tierUtil.truncateTiersAbove(report, Tier.ONE);
+    const truncatedReport = await tierReport.truncateTiersAbove(report, Tier.ONE);
 
     const expectedTruncatedReport =
       "0x" + "f".repeat(7 * 8) + report.toHexString().slice(-8);
@@ -153,7 +153,7 @@ describe("TierUtil", async function () {
 
     const targetBlock = initialBlock + 1000;
 
-    const updatedReportBadRange = await tierUtil.updateBlocksForTierRange(
+    const updatedReportBadRange = await tierReport.updateBlocksForTierRange(
       report,
       Tier.SEVEN,
       Tier.SIX,
@@ -163,7 +163,7 @@ describe("TierUtil", async function () {
     // bad range should return original report
     assert(updatedReportBadRange.eq(report), "changed report with bad range");
 
-    const updatedReport = await tierUtil.updateBlocksForTierRange(
+    const updatedReport = await tierReport.updateBlocksForTierRange(
       report,
       Tier.SIX, // smaller number first
       Tier.SEVEN,
@@ -220,7 +220,7 @@ describe("TierUtil", async function () {
 
     const block1 = await ethers.provider.getBlockNumber();
 
-    const updatedReportTruncated = await tierUtil.updateReportWithTierAtBlock(
+    const updatedReportTruncated = await tierReport.updateReportWithTierAtBlock(
       report,
       Tier.EIGHT,
       Tier.FOUR,
@@ -239,7 +239,7 @@ describe("TierUtil", async function () {
     }
 
     // set tier FIVE block to initialBlock
-    const updatedReportSetBlock = await tierUtil.updateReportWithTierAtBlock(
+    const updatedReportSetBlock = await tierReport.updateReportWithTierAtBlock(
       report,
       Tier.FOUR,
       Tier.FIVE,

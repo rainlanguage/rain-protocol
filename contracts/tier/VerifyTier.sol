@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 
 import "./ReadOnlyTier.sol";
 import { State, Status, Verify } from "../verify/Verify.sol";
-import "../libraries/TierUtil.sol";
+import "./libraries/TierReport.sol";
 
 contract VerifyTier is ReadOnlyTier {
     Verify public immutable verify;
@@ -16,7 +16,7 @@ contract VerifyTier is ReadOnlyTier {
     function report(address account_) public override view returns (uint256) {
         State memory state_ = verify.state(account_);
         if (state_.status == Status.Approved) {
-            return TierUtil.updateBlocksForTierRange(
+            return TierReport.updateBlocksForTierRange(
                 0,
                 Tier.ONE,
                 Tier.EIGHT,

@@ -3,7 +3,7 @@
 pragma solidity 0.6.12;
 
 import { ITier } from "./ITier.sol";
-import { TierUtil } from "../libraries/TierUtil.sol";
+import { TierReport } from "./libraries/TierReport.sol";
 
 /// @title ReadWriteTier
 /// @notice `ReadWriteTier` is a base contract that other contracts
@@ -35,11 +35,12 @@ contract ReadWriteTier is ITier {
         returns (uint256)
     {
         // Inequality here to silence slither warnings.
-        return reports[account_] > 0 ? reports[account_] : TierUtil.UNINITIALIZED;
+        return reports[account_] > 0
+            ? reports[account_] : TierReport.UNINITIALIZED;
     }
 
     /// Errors if the user attempts to return to the ZERO tier.
-    /// Updates the report from `report` using default `TierUtil` logic.
+    /// Updates the report from `report` using default `TierReport` logic.
     /// Calls `_afterSetTier` that inheriting contracts SHOULD
     /// override to enforce status requirements.
     /// Emits `TierChange` event.
@@ -58,12 +59,12 @@ contract ReadWriteTier is ITier {
 
         uint256 report_ = report(account_);
 
-        ITier.Tier startTier_ = TierUtil.tierAtBlockFromReport(
+        ITier.Tier startTier_ = TierReport.tierAtBlockFromReport(
             report_,
             block.number
         );
 
-        reports[account_] = TierUtil.updateReportWithTierAtBlock(
+        reports[account_] = TierReport.updateReportWithTierAtBlock(
             report_,
             startTier_,
             endTier_,

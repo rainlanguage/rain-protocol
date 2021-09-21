@@ -5,7 +5,7 @@ pragma solidity 0.6.12;
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import { TierUtil } from "../libraries/TierUtil.sol";
+import { TierReport } from "./libraries/TierReport.sol";
 import { ValueTier } from "./ValueTier.sol";
 import "./ReadWriteTier.sol";
 

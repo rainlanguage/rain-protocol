@@ -2,10 +2,10 @@
 
 pragma solidity 0.6.12;
 
-import { ITier } from "../tier/ITier.sol";
+import { ITier } from "../ITier.sol";
 
-/// @title TierUtil
-/// @notice `TierUtil` implements several pure functions that can be
+/// @title TierReport
+/// @notice `TierReport` implements several pure functions that can be
 /// used to interface with reports.
 /// - `tierAtBlockFromReport`: Returns the highest status achieved
 /// relative to a block number and report.
@@ -18,7 +18,7 @@ import { ITier } from "../tier/ITier.sol";
 /// @dev Utilities to consistently read, write and manipulate tiers in reports.
 /// The low-level bit shifting can be difficult to get right so this
 /// factors that out.
-library TierUtil {
+library TierReport {
 
     /// UNINITIALIZED report is 0xFF.. as no tier has been held.
     uint256 constant public UNINITIALIZED = uint256(-1);
@@ -63,7 +63,8 @@ library TierUtil {
         pure
         returns (uint256)
     {
-        // ZERO is a special case. Everyone has always been at least ZERO, since block 0.
+        // ZERO is a special case. Everyone has always been at least ZERO,
+        // since block 0.
         if (tier_ == ITier.Tier.ZERO) { return 0; }
 
         uint256 offset_ = (uint256(tier_) - 1) * 32;

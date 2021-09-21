@@ -2,46 +2,46 @@
 
 pragma solidity 0.6.12;
 
-import {ITier} from "../tier/ITier.sol";
-import {TierUtil} from "../libraries/TierUtil.sol";
+import { ITier } from "../tier/ITier.sol";
+import { TierReport } from "../tier/libraries/TierReport.sol";
 
-/// @title TierUtilTest
-/// Thin wrapper around the `TierUtil` library for hardhat unit testing.
-contract TierUtilTest {
-    /// Wraps `TierUtil.tierAtBlockFromReport`.
-    /// @param report_ Forwarded to TierUtil.
-    /// @param blockNumber_ Forwarded to TierUtil.
+/// @title TierReportTest
+/// Thin wrapper around the `TierReport` library for hardhat unit testing.
+contract TierReportTest {
+    /// Wraps `TierReport.tierAtBlockFromReport`.
+    /// @param report_ Forwarded to TierReport.
+    /// @param blockNumber_ Forwarded to TierReport.
     function tierAtBlockFromReport(uint256 report_, uint256 blockNumber_)
         external
         pure
         returns (ITier.Tier)
     {
-        return TierUtil.tierAtBlockFromReport(report_, blockNumber_);
+        return TierReport.tierAtBlockFromReport(report_, blockNumber_);
     }
 
-    /// Wraps `TierUtil.tierBlock`.
-    /// @param report_ Forwarded to TierUtil.
-    /// @param tier_ Forwarded to TierUtil.
+    /// Wraps `TierReport.tierBlock`.
+    /// @param report_ Forwarded to TierReport.
+    /// @param tier_ Forwarded to TierReport.
     function tierBlock(uint256 report_, ITier.Tier tier_)
         external
         pure
         returns (uint256)
     {
-        return TierUtil.tierBlock(report_, tier_);
+        return TierReport.tierBlock(report_, tier_);
     }
 
-    /// Wraps `TierUtil.truncateTiersAbove`.
-    /// @param report_ Forwarded to TierUtil.
-    /// @param tier_ Forwarded to TierUtil.
+    /// Wraps `TierReport.truncateTiersAbove`.
+    /// @param report_ Forwarded to TierReport.
+    /// @param tier_ Forwarded to TierReport.
     function truncateTiersAbove(uint256 report_, ITier.Tier tier_)
         external
         pure
         returns (uint256)
     {
-        return TierUtil.truncateTiersAbove(report_, tier_);
+        return TierReport.truncateTiersAbove(report_, tier_);
     }
 
-    /// Wraps `TierUtil.updateBlocksForTierRange`.
+    /// Wraps `TierReport.updateBlocksForTierRange`.
     /// @param report_ Forwarded to TestUtil.
     /// @param startTier_ Forwarded to TestUtil.
     /// @param endTier_ Forwarded to TestUtil.
@@ -53,7 +53,7 @@ contract TierUtilTest {
         uint256 blockNumber_
     ) external pure returns (uint256) {
         return
-            TierUtil.updateBlocksForTierRange(
+            TierReport.updateBlocksForTierRange(
                 report_,
                 startTier_,
                 endTier_,
@@ -61,7 +61,7 @@ contract TierUtilTest {
             );
     }
 
-    /// Wraps `TierUtil.updateReportWithTierAtBlock`.
+    /// Wraps `TierReport.updateReportWithTierAtBlock`.
     /// @param report_ Forwarded to TestUtil.
     /// @param startTier_ Forwarded to TestUtil.
     /// @param endTier_ Forwarded to TestUtil.
@@ -73,7 +73,7 @@ contract TierUtilTest {
         uint256 blockNumber_
     ) external pure returns (uint256) {
         return
-            TierUtil.updateReportWithTierAtBlock(
+            TierReport.updateReportWithTierAtBlock(
                 report_,
                 startTier_,
                 endTier_,
