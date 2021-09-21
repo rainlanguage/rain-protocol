@@ -1,7 +1,7 @@
 diff --git a/contracts/RedeemableERC20Pool.sol b/contracts/RedeemableERC20Pool.sol
 index 354a491..efb13c3 100644
---- a/contracts/RedeemableERC20Pool.sol
-+++ b/contracts/RedeemableERC20Pool.sol
+--- a/contracts/pool/RedeemableERC20Pool.sol
++++ b/contracts/pool/RedeemableERC20Pool.sol
 @@ -18,7 +18,7 @@ import {
      BalancerConstants
  } from "@beehiveinnovation/configurable-rights-pool/libraries/BalancerConstants.sol";
