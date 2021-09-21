@@ -102,8 +102,14 @@ describe("ERC20TransferTier", async function () {
     await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []);
     const report3 = await aliceErc20TransferTier.report(alice.address);
 
-    assert(!report1.eq(report2), `report1 equals report2 ${report1} ${report2}`)
-    assert(report2.eq(report3), `report2 not equals report3 ${report2} ${report3}`)
+    assert(
+      !report1.eq(report2),
+      `report1 equals report2 ${report1} ${report2}`
+    );
+    assert(
+      report2.eq(report3),
+      `report2 not equals report3 ${report2} ${report3}`
+    );
 
     await assertError(
       async () =>
