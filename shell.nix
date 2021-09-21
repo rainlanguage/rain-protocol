@@ -139,14 +139,6 @@ let
 
     EOF
   '';
-
-  publish = pkgs.writeShellScriptBin "publish" ''
-    PACKAGE_NAME=$(node -p "require('./package.json').name" | tr -d @ | tr / -)
-    PACKAGE_VERSION=$(node -p "require('./package.json').version")
-    npm pack
-    npm adduser rainprotocol
-    npm publish ./$PACKAGE_NAME-$PACKAGE_VERSION.tgz --access public
-  '';
 in
 pkgs.stdenv.mkDerivation {
   name = "shell";
@@ -170,7 +162,6 @@ pkgs.stdenv.mkDerivation {
     docs-version
     prepack
     prepublish
-    publish
   ];
 
   shellHook = ''
