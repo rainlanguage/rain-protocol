@@ -81,9 +81,9 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^3.3.0",
-    "balancer-core": "0.0.8",
-    "configurable-rights-pool": "0.0.2"
+    "@beehiveinnovation/balancer-core": "0.0.7",
+    "@beehiveinnovation/configurable-rights-pool": "0.0.1",
+    "@openzeppelin/contracts": "^3.3.0"
   },
   "husky": {
     "hooks": {

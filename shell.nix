@@ -59,7 +59,7 @@ let
     # - configurable-rights-pool contracts
     # - The test contracts that only exist so the test harness can drive unit tests and will never be deployed
     # - Open Zeppelin contracts
-    slither . --npx-disable --filter-paths="configurable-rights-pool|contracts/test|openzeppelin" --exclude-dependencies
+    slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies
 
     # Rollback all the slither specific patches.
     patch -R -p1 < slither-hack-balancer-ierc20.patch

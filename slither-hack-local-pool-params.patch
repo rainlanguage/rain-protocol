@@ -4,11 +4,11 @@ index 354a491..efb13c3 100644
 +++ b/contracts/RedeemableERC20Pool.sol
 @@ -18,7 +18,7 @@ import {
      BalancerConstants
- } from "configurable-rights-pool/libraries/BalancerConstants.sol";
+ } from "@beehiveinnovation/configurable-rights-pool/libraries/BalancerConstants.sol";
  import {
 -    ConfigurableRightsPool
 +    ConfigurableRightsPool, PoolParams
- } from "configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
+ } from "@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
  import {
      CRPFactory
 @@ -202,7 +202,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
