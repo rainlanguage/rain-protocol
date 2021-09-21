@@ -56,7 +56,7 @@ contract Verify is AccessControl {
     }
 
     function add(uint256 id_) external {
-        require(ids[msg.sender] == 0, "OVERWITE_ID");
+        require(ids[msg.sender] == 0, "OVERWRITE_ID");
         require(states[id_].status == Status.Nil, "CURRENT_STATUS");
         ids[msg.sender] = id_;
         states[id_] = State (

@@ -96,19 +96,19 @@ describe("ERC20TransferTier", async function () {
     await reserve
       .connect(alice)
       .approve(erc20TransferTier.address, requiredForTier2);
+    const report1 = await aliceErc20TransferTier.report(alice.address);
     await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []);
+    const report2 = await aliceErc20TransferTier.report(alice.address);
+    await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []);
+    const report3 = await aliceErc20TransferTier.report(alice.address);
 
-    await assertError(
-      async () =>
-        await aliceErc20TransferTier.setTier(alice.address, Tier.TWO, []),
-      "revert SET_SAME_TIER",
-      "alice wrongly set tier when start and end tiers were equivalent"
-    );
+    assert(!report1.eq(report2), `report1 equals report2 ${report1} ${report2}`)
+    assert(report2.eq(report3), `report2 not equals report3 ${report2} ${report3}`)
 
     await assertError(
       async () =>
         await bobErc20TransferTier.setTier(alice.address, Tier.TWO, []),
-      "revert SET_SAME_TIER",
+      "revert DELEGATED_TIER_LOSS",
       "bob wrongly set tier when start and end tiers were equivalent"
     );
   });
