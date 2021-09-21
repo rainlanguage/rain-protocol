@@ -10,10 +10,10 @@ import {
 } from "./RedeemableERC20Pool.sol";
 import {
     CRPFactory
-} from "configurable-rights-pool/contracts/CRPFactory.sol";
+} from "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
 import {
     BFactory
-} from "configurable-rights-pool/contracts/test/BFactory.sol";
+} from "@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { RedeemableERC20 } from "./RedeemableERC20.sol";
 

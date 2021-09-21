@@ -1,7 +1,7 @@
-diff --git a/node_modules/configurable-rights-pool/contracts/CRPFactory.sol b/node_modules/configurable-rights-pool/contracts/CRPFactory.sol
+diff --git a/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol b/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol
 index 52ef23b..532f5a1 100644
---- a/node_modules/configurable-rights-pool/contracts/CRPFactory.sol
-+++ b/node_modules/configurable-rights-pool/contracts/CRPFactory.sol
+--- a/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol
++++ b/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol
 @@ -49,7 +49,7 @@ contract CRPFactory {
       */
      function newCrp(
@@ -11,10 +11,10 @@ index 52ef23b..532f5a1 100644
          RightsManager.Rights calldata rights
      )
          external
-diff --git a/node_modules/configurable-rights-pool/contracts/ConfigurableRightsPool.sol b/node_modules/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
+diff --git a/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol b/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
 index e3df626..e98f5c7 100644
---- a/node_modules/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
-+++ b/node_modules/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
+--- a/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
++++ b/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol
 @@ -18,6 +18,17 @@ import { RightsManager } from "../libraries/RightsManager.sol";
  import "../libraries/SmartPoolManager.sol";
  import "../libraries/SafeApprove.sol";
@@ -51,10 +51,10 @@ index e3df626..e98f5c7 100644
 
      // State variables
 
-diff --git a/node_modules/configurable-rights-pool/contracts/templates/ESPFactory.sol b/node_modules/configurable-rights-pool/contracts/templates/ESPFactory.sol
+diff --git a/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/templates/ESPFactory.sol b/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/templates/ESPFactory.sol
 index 6fe5b44..8a3fa1e 100644
---- a/node_modules/configurable-rights-pool/contracts/templates/ESPFactory.sol
-+++ b/node_modules/configurable-rights-pool/contracts/templates/ESPFactory.sol
+--- a/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/templates/ESPFactory.sol
++++ b/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/templates/ESPFactory.sol
 @@ -48,7 +48,7 @@ contract ESPFactory {
       */
      function newEsp(
@@ -64,10 +64,10 @@ index 6fe5b44..8a3fa1e 100644
          RightsManager.Rights calldata rights
      )
          external
-diff --git a/node_modules/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol b/node_modules/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
+diff --git a/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol b/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
 index 9d58e72..c183f1e 100644
---- a/node_modules/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
-+++ b/node_modules/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
+--- a/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
++++ b/node_modules/@beehiveinnovation/configurable-rights-pool/contracts/templates/ElasticSupplyPool.sol
 @@ -88,7 +88,7 @@ contract ElasticSupplyPool is ConfigurableRightsPool {
       */
      constructor(
