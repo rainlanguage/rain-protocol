@@ -16,9 +16,9 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const bPoolJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/test/BPool.sol/BPool.json");
+const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("../../artifacts/contracts/configurable-rights-pool/contracts/ConfigurableRightsPool.sol/ConfigurableRightsPool.json");
+const crpJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
 
 enum Tier {
   NIL,

@@ -2,19 +2,43 @@
 
 Rain Protocol supports fair value capture for intangible or physical assets in a permissionless way in any decentralised environment.
 
+## Installation
+
+```console
+npm install @beehiveinnovation/rain-protocol
+```
+
+## Usage
+
+### Importing contracts
+
+```solidity
+pragma solidity ^0.6.12;
+
+import "@beehiveinnovation/rain-protocol/contracts/ReadWriteTier.sol";
+
+contract MyContract is ReadWriteTier {
+  ...
+}
+```
+
+### Importing contract [artifact](https://hardhat.org/guides/compile-contracts.html#artifacts) (e.g. abi, bytecode)
+
+```typescript
+const trustJson = require("@beehiveinnovation/rain-protocol/artifacts/Trust.json");
+```
+
+### Using with [TypeChain](https://github.com/dethcrypto/TypeChain)
+
+```typescript
+import type { Trust } from "@beehiveinnovation/rain-protocol/typechain/Trust";
+```
+
+## Documentation
+
 Documentation can be found [here](https://beehive-innovation.github.io/rain-protocol).
 
-## Development setup (contributors)
-
-### Git submodules
-
-As we are wrapping balancer contracts, we have git submodules pointing to their repositories.
-
-When you clone this repository make sure to use `--recurse-submodules`
-
-```
-git clone --recurse-submodules git@github.com:thedavidmeister/tv-balancer.git
-```
+## Development setup (for contributors)
 
 ### Nix Shell
 
@@ -56,6 +80,31 @@ Inside the nix-shell run `docs-dev`. If you want to see search functionality, yo
 Navigate to http://localhost:3000/ to view the docs site generated with Docusaurus.
 
 Documentation files are written in Markdown and can be found under the `docs/` directory in this repo. The main config file can be found at `docusaurus/docusaurus.config.js`, and sidebar config at `docusaurus/siderbars.js`
+
+### Publish npm Package
+
+Inside nix-shell run `prepublish`
+
+This will bump package version for to a new patch version,
+
+Please manually commit this change, and push up to the GitHub repo:
+
+```console
+$ git commit -am "0.0.1"
+$ git push
+```
+
+Now, you can either tag this commit locally and push it up, or directly cut a release on the GitHub repo (if you're having issues tagging the commit locally)
+
+Locally:
+```console
+git tag v0.0.1 -am "0.0.1"
+git push origin v0.0.1
+```
+
+Remotely:
+Go to Releases -> Draft a new release
+Select this branch and create a new tag for this commit e.g. `v0.0.1`
 
 ### Audits
 
