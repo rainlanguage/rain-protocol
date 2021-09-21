@@ -5,7 +5,7 @@ Rain Protocol supports fair value capture for intangible or physical assets in a
 ## Installation
 
 ```console
-npm install rain-protocol
+npm install @beehiveinnovation/rain-protocol
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ npm install rain-protocol
 ```solidity
 pragma solidity ^0.6.12;
 
-import "rain-protocol/contracts/ReadWriteTier.sol";
+import "@beehiveinnovation/rain-protocol/contracts/ReadWriteTier.sol";
 
 contract MyContract is ReadWriteTier {
   ...
@@ -25,13 +25,13 @@ contract MyContract is ReadWriteTier {
 ### Importing contract [artifact](https://hardhat.org/guides/compile-contracts.html#artifacts) (e.g. abi, bytecode)
 
 ```typescript
-const trustJson = require("rain-protocol/artifacts/Trust.json");
+const trustJson = require("@beehiveinnovation/rain-protocol/artifacts/Trust.json");
 ```
 
 ### Using with [TypeChain](https://github.com/dethcrypto/TypeChain)
 
 ```typescript
-import type { Trust } from "rain-protocol/typechain/Trust";
+import type { Trust } from "@beehiveinnovation/rain-protocol/typechain/Trust";
 ```
 
 ## Documentation
