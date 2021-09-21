@@ -22,10 +22,10 @@ enum Phase {
   EIGHT,
 }
 
-const trustJson = require("../../artifacts/contracts/Trust.sol/Trust.json");
-const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const trustJson = require("../../artifacts/contracts/trust/Trust.sol/Trust.json");
+const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
-const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
+const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 describe("RedeemableERC20Pool", async function () {
   it("should safely poke weights after minimum trade duration", async function () {

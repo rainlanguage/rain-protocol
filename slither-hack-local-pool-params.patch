@@ -1,18 +1,19 @@
-diff --git a/contracts/RedeemableERC20Pool.sol b/contracts/RedeemableERC20Pool.sol
-index 354a491..efb13c3 100644
---- a/contracts/RedeemableERC20Pool.sol
-+++ b/contracts/RedeemableERC20Pool.sol
-@@ -18,7 +18,7 @@ import {
-     BalancerConstants
- } from "@beehiveinnovation/configurable-rights-pool/libraries/BalancerConstants.sol";
+diff --git a/contracts/pool/RedeemableERC20Pool.sol b/contracts/pool/RedeemableERC20Pool.sol
+index 7334229..89da700 100644
+--- a/contracts/pool/RedeemableERC20Pool.sol
++++ b/contracts/pool/RedeemableERC20Pool.sol
+@@ -24,7 +24,8 @@ import {
+ } from
+ "@beehiveinnovation/configurable-rights-pool/libraries/BalancerConstants.sol";
  import {
 -    ConfigurableRightsPool
-+    ConfigurableRightsPool, PoolParams
++    ConfigurableRightsPool,
++    PoolParams
+ // solhint-disable-next-line max-line-length
  } from "@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
  import {
-     CRPFactory
-@@ -202,7 +202,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
-
+@@ -211,7 +212,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
+ 
          ConfigurableRightsPool crp_ = config_.crpFactory.newCrp(
              address(config_.balancerFactory),
 -            ConfigurableRightsPool.PoolParams(

@@ -80,6 +80,7 @@ contract TierByConstruction {
     /// rentrant `ITier` code.
     /// Also `report` from `ITier` is `view` so the compiler will
     /// error on attempted state modification.
+    // solhint-disable-next-line max-line-length
     /// https://consensys.github.io/smart-contract-best-practices/recommendations/#use-modifiers-only-for-checks
     ///
     /// Do NOT use this to guard setting the tier on an ITier

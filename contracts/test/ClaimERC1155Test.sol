@@ -5,17 +5,28 @@ pragma solidity 0.6.12;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import { ERC20BalanceTier } from "../tier/ERC20BalanceTier.sol";
-import { TierByConstructionClaim } from "../tier/claim/TierByConstructionClaim.sol";
+import {
+    TierByConstructionClaim
+} from "../claim/TierByConstructionClaim.sol";
 import { ITier } from "../tier/ITier.sol";
 
 /// @title ClaimERC1155Test
-/// Contract that implements claiming an erc1155 contingent on tiers for testing and demonstration purposes.
-/// The contract is `ERC20BalanceTier`, `TierByConstructionClaim` and `ERC1155` from open zeppelin:
-/// - The balance tier compares the current holdings of an erc20 against preset values.
-/// - The tier by construction ensures the claim is restricted to anyone tier THREE and above.
-/// - The tier by construction also exposes `isTier` to provide further goodies to tier FIVE and above.
+/// Contract that implements claiming an erc1155 contingent on tiers for
+/// testing and demonstration purposes.
+/// The contract is `ERC20BalanceTier`, `TierByConstructionClaim` and `ERC1155`
+/// from open zeppelin:
+/// - The balance tier compares the current holdings of an erc20 against preset
+///   values.
+/// - The tier by construction ensures the claim is restricted to anyone tier
+///   THREE and above.
+/// - The tier by construction also exposes `isTier` to provide further goodies
+///   to tier FIVE and above.
 /// - The erc1155 enables and tracks minted NFTs.
-contract ClaimERC1155Test is ERC20BalanceTier, TierByConstructionClaim, ERC1155 {
+contract ClaimERC1155Test is
+    ERC20BalanceTier,
+    TierByConstructionClaim,
+    ERC1155
+{
     uint256 public constant ART = 0;
     uint256 public constant GOOD_ART = 1;
 
@@ -23,7 +34,8 @@ contract ClaimERC1155Test is ERC20BalanceTier, TierByConstructionClaim, ERC1155 
         public
         ERC1155("https://example.com/{id}.json")
         TierByConstructionClaim(this, ITier.Tier.THREE)
-        ERC20BalanceTier(redeemableToken_, tierValues_) { } // solhint-disable-line no-empty-blocks
+        // solhint-disable-next-line no-empty-blocks
+        ERC20BalanceTier(redeemableToken_, tierValues_) { }
 
     function _afterClaim(
         address account_,
@@ -42,7 +54,8 @@ contract ClaimERC1155Test is ERC20BalanceTier, TierByConstructionClaim, ERC1155 
         amounts_[0] = isFive_ ? 2 : 1;
         amounts_[1] = isFive_ ? 1 : 0;
 
-        // _mintBatch to avoid Reentrancy interleaved with state change from multiple _mint calls.
+        // _mintBatch to avoid Reentrancy interleaved with state change from
+        // multiple _mint calls.
         // The reentrancy comes from the erc1155 receiver.
         _mintBatch(account_, ids_, amounts_, "");
     }

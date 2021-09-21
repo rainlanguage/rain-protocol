@@ -63,7 +63,8 @@ library TierUtil {
         pure
         returns (uint256)
     {
-        // ZERO is a special case. Everyone has always been at least ZERO, since block 0.
+        // ZERO is a special case. Everyone has always been at least ZERO,
+        // since block 0.
         if (tier_ == ITier.Tier.ZERO) { return 0; }
 
         uint256 offset_ = (uint256(tier_) - 1) * 32;
@@ -110,7 +111,9 @@ library TierUtil {
         uint256 offset_;
         for (uint256 i_ = uint256(startTier_); i_ < uint256(endTier_); i_++) {
             offset_ = i_ * 32;
-            report_ = (report_ & ~uint256(uint256(uint32(UNINITIALIZED)) << offset_)) | uint256(blockNumber_ << offset_);
+            report_ =
+                (report_ & ~uint256(uint256(uint32(UNINITIALIZED)) << offset_))
+                | uint256(blockNumber_ << offset_);
         }
         return report_;
     }
@@ -138,7 +141,14 @@ library TierUtil {
     )
         internal pure returns (uint256)
     {
-        return endTier_ < startTier_ ? truncateTiersAbove(report_, endTier_) : updateBlocksForTierRange(report_, startTier_, endTier_, blockNumber_);
+        return endTier_ < startTier_
+            ? truncateTiersAbove(report_, endTier_)
+            : updateBlocksForTierRange(
+                report_,
+                startTier_,
+                endTier_,
+                blockNumber_
+            );
     }
 
 }

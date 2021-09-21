@@ -6,19 +6,25 @@ pragma experimental ABIEncoderV2;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import { ITier } from "./tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
-import { Factory } from "./Factory.sol";
-import { Trust, TrustConfig } from "./Trust.sol";
-import { RedeemableERC20Factory } from "./RedeemableERC20Factory.sol";
-import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
-import { RedeemableERC20PoolFactory } from "./RedeemableERC20PoolFactory.sol";
+import { Factory } from "../factory/Factory.sol";
+import { Trust, TrustConfig } from "../trust/Trust.sol";
+import {
+    RedeemableERC20Factory
+} from "../redeemableERC20/RedeemableERC20Factory.sol";
+import {
+    RedeemableERC20, RedeemableERC20Config
+} from "../redeemableERC20/RedeemableERC20.sol";
+import {
+    RedeemableERC20PoolFactory
+} from "../pool/RedeemableERC20PoolFactory.sol";
 import {
     RedeemableERC20Pool,
     RedeemableERC20PoolConfig
-} from "./RedeemableERC20Pool.sol";
-import { SeedERC20Factory } from "./SeedERC20Factory.sol";
-import { SeedERC20Config } from "./SeedERC20.sol";
+} from "../pool/RedeemableERC20Pool.sol";
+import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
+import { SeedERC20Config } from "../seed/SeedERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {
     TrustRedeemableERC20Config,
@@ -29,15 +35,15 @@ import {
 struct TrustFactoryConfig {
     // The RedeemableERC20Factory on the current network.
     // This is an address published by Beehive Trust or deployed locally
-    /// during testing.
+    // during testing.
     RedeemableERC20Factory redeemableERC20Factory;
     // The RedeemableERC20PoolFactory on the current network.
     // This is an address published by Beehive Trust or deployed locally
-    /// during testing.
+    // during testing.
     RedeemableERC20PoolFactory redeemableERC20PoolFactory;
     // The SeedERC20Factory on the current network.
     // This is an address published by Beehive Trust or deployed locally
-    /// during testing.
+    // during testing.
     SeedERC20Factory seedERC20Factory;
 }
 
@@ -233,7 +239,8 @@ contract TrustFactory is Factory {
                 trustFactoryTrustRedeemableERC20PoolConfig_.reserveInit,
                 trustFactoryTrustRedeemableERC20PoolConfig_.initialValuation,
                 trustFactoryTrustRedeemableERC20PoolConfig_.finalValuation,
-                trustFactoryTrustRedeemableERC20PoolConfig_.minimumTradingDuration
+                trustFactoryTrustRedeemableERC20PoolConfig_
+                    .minimumTradingDuration
             )
         ));
 

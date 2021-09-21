@@ -10,8 +10,8 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import { Phase, Phased } from "./Phased.sol";
-import { Cooldown } from "./Cooldown.sol";
+import { Phase, Phased } from "../phased/Phased.sol";
+import { Cooldown } from "../cooldown/Cooldown.sol";
 
 /// Everything required to construct a `SeedERC20` contract.
 struct SeedERC20Config {

@@ -19,10 +19,10 @@ import {
 
 import {
     TierByConstruction
-} from "./tier/TierByConstruction.sol";
-import { ITier } from "./tier/ITier.sol";
+} from "../tier/TierByConstruction.sol";
+import { ITier } from "../tier/ITier.sol";
 
-import { Phase, Phased } from "./Phased.sol";
+import { Phase, Phased } from "../phased/Phased.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
@@ -126,7 +126,8 @@ contract RedeemableERC20 is
 
     bytes32 public constant SENDER = keccak256("SENDER");
     bytes32 public constant RECEIVER = keccak256("RECEIVER");
-    bytes32 public constant DISTRIBUTOR_BURNER = keccak256("DISTRIBUTOR_BURNER");
+    bytes32 public constant DISTRIBUTOR_BURNER =
+        keccak256("DISTRIBUTOR_BURNER");
     bytes32 public constant REDEEMABLE_ADDER = keccak256("REDEEMABLE_ADDER");
 
     /// Redeemable token burn amount.
@@ -214,7 +215,10 @@ contract RedeemableERC20 is
     /// token holders can override the list with `redeemSpecific`.
     /// @param newRedeemable_ The redeemable contract address to add.
     function addRedeemable(IERC20 newRedeemable_) external {
-        require(hasRole(REDEEMABLE_ADDER, msg.sender), "ONLY_REDEEMABLE_ADDER");
+        require(
+            hasRole(REDEEMABLE_ADDER, msg.sender),
+            "ONLY_REDEEMABLE_ADDER"
+        );
         // Somewhat arbitrary but we limit the length of redeemables to 8.
         // 8 is actually a lot.
         // Consider that every `redeem` call must loop a `balanceOf` and

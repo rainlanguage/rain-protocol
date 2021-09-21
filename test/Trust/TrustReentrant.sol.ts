@@ -15,9 +15,9 @@ import { factoriesDeploy } from "../Util";
 chai.use(solidity);
 const { expect, assert } = chai;
 
-const poolJson = require("../../artifacts/contracts/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
-const redeemableTokenJson = require("../../artifacts/contracts/RedeemableERC20.sol/RedeemableERC20.json");
+const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 const crpJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
 
 enum Tier {

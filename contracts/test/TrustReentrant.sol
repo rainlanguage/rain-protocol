@@ -2,7 +2,7 @@
 pragma solidity ^0.6.12;
 
 import { ReserveToken, ERC20 } from "./ReserveToken.sol";
-import { Trust } from "../Trust.sol";
+import { Trust } from "../trust/Trust.sol";
 
 /// @title TrustReentrant
 /// Test contract that attempts to call reentrant code on `Trust`.

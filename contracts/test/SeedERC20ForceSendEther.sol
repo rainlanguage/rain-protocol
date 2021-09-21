@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.6.12;
 
-import { SeedERC20 } from "../SeedERC20.sol";
+import { SeedERC20 } from "../seed/SeedERC20.sol";
 
 /// @title SeedERC20ForceSendEther
 /// Test contract that can selfdestruct and forcibly send ether to the target

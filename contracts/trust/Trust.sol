@@ -18,24 +18,30 @@ import {
 } from "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
 import {
     BFactory
-} from "@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
+} from
+"@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
 
-import { ITier } from "./tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
-import { Phase } from "./Phased.sol";
-import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
+import { Phase } from "../phased/Phased.sol";
+import {
+    RedeemableERC20,
+    RedeemableERC20Config
+} from "../redeemableERC20/RedeemableERC20.sol";
 import {
     RedeemableERC20Pool, RedeemableERC20PoolConfig
-} from "./RedeemableERC20Pool.sol";
-import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
-import { RedeemableERC20Factory } from "./RedeemableERC20Factory.sol";
+} from "../pool/RedeemableERC20Pool.sol";
+import { SeedERC20, SeedERC20Config } from "../seed/SeedERC20.sol";
+import {
+    RedeemableERC20Factory
+} from "../redeemableERC20/RedeemableERC20Factory.sol";
 import {
     RedeemableERC20PoolFactory,
     RedeemableERC20PoolFactoryRedeemableERC20PoolConfig
-} from "./RedeemableERC20PoolFactory.sol";
+} from "../pool/RedeemableERC20PoolFactory.sol";
 import {
     SeedERC20Factory
-} from "./SeedERC20Factory.sol";
+} from "../seed/SeedERC20Factory.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
