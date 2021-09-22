@@ -48,6 +48,7 @@ interface SetupVars {
   pool: RedeemableERC20Pool;
   crp: ConfigurableRightsPool;
   bPool: BPool;
+  minimumTradingDuration: number;
 }
 
 const basicSetup = async (): Promise<SetupVars> => {
@@ -149,12 +150,13 @@ const basicSetup = async (): Promise<SetupVars> => {
     creator
   ) as RedeemableERC20Pool;
 
-  const [crp, bPool] = await Util.poolContracts(signers, pool);
-
   // seeder must transfer funds to pool
   await reserveSeeder.transfer(poolAddress, reserveInit);
 
   await pool.startDutchAuction({ gasLimit: 100000000 });
+
+  // crp and bPool are now defined
+  const [crp, bPool] = await Util.poolContracts(signers, pool);
 
   return {
     signers,
@@ -167,23 +169,23 @@ const basicSetup = async (): Promise<SetupVars> => {
     pool,
     crp,
     bPool,
+    minimumTradingDuration,
   };
 };
 
-describe("BPoolFeeEscrow", async function () {
+describe.only("BPoolFeeEscrow", async function () {
   it("should allow recipient to claim fees upon successful raise", async function () {
     this.timeout(0);
 
     const {
-      signers,
       reserve,
       escrow,
       trust,
       recipient,
       signer1,
       successLevel,
-      pool,
       bPool,
+      minimumTradingDuration,
     } = await basicSetup();
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -209,35 +211,58 @@ describe("BPoolFeeEscrow", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    // reach successful raise
+    // raise all necessary funds
     let buyCount = 0;
-    while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
+    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
       await buyTokensViaEscrow(signer1, spend, fee);
       buyCount++;
-
-      console.log(`
-      buyCount  ${buyCount}
-      bPool     ${await reserve.balanceOf(bPool.address)}
-      `);
-
-      if (spend.mul(buyCount).gt(successLevel)) {
-        throw new Error(`bPool not receiving reserve.
-        total spend     ${spend.mul(buyCount)}
-        bPool expected  ${successLevel}
-        bPool actual    ${await reserve.balanceOf(bPool.address)}`);
-      }
     }
+
+    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
+    const emptyBlocks =
+      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+
+    // create empty blocks to end of raise duration
+    await Util.createEmptyBlock(emptyBlocks);
+
+    assert(
+      (await trust.getDistributionStatus()) ===
+        DistributionStatus.TRADINGCANEND,
+      "raise incomplete"
+    );
+
+    // cannot claim before successful raise is closed
+    await escrow.connect(recipient).claimFees(trust.address, recipient.address);
+
+    const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
+
+    assert(
+      reserveBalanceRecipient1.isZero(),
+      `wrong recipient claim amount
+      expected      0
+      got           ${reserveBalanceRecipient1}
+      reserveEscrow ${await reserve.balanceOf(escrow.address)}`
+    );
+
+    // actually end raise
+    await trust.anonEndDistribution();
+
+    assert(
+      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
+      "raise wasn't successful"
+    );
 
     await escrow.connect(recipient).claimFees(trust.address, recipient.address);
 
-    const reserveBalanceRecipient1 = await reserve.balanceOf(recipient);
+    const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
 
     // recipient should have claimed fees after calling `claimFees` after successful raise
     assert(
-      reserveBalanceRecipient1.eq(fee.mul(buyCount)),
+      reserveBalanceRecipient2.eq(fee.mul(buyCount)),
       `wrong recipient claim amount
-      expected  ${fee.mul(buyCount)}
-      got       ${reserveBalanceRecipient1}`
+      expected      ${fee.mul(buyCount)}
+      got           ${reserveBalanceRecipient2}
+      reserveEscrow ${await reserve.balanceOf(escrow.address)}`
     );
   });
 
