@@ -5,14 +5,17 @@ pragma experimental ABIEncoderV2;
 
 import { TrustFactory } from "../trust/TrustFactory.sol";
 import { Trust, TrustContracts, DistributionStatus } from "../trust/Trust.sol";
-import { BPool } from "../configurable-rights-pool/contracts/test/BPool.sol";
+import { BPool }
+from "@beehiveinnovation/configurable-rights-pool/contracts/test/BPool.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {
     ConfigurableRightsPool
-} from "../configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
+}
+// solhint-disable-next-line max-line-length
+from "@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
@@ -125,13 +128,14 @@ contract BPoolFeeEscrow {
             pending[feeRecipient_].remove(address(trust_));
 
             if (fees[address(trust_)][feeRecipient_] > 0) {
+                uint256 claimableFee_ = fees[address(trust_)][feeRecipient_];
                 delete(fees[address(trust_)][feeRecipient_]);
                 if (distributionStatus_ == DistributionStatus.Success) {
                     TrustContracts memory trustContracts_ = trust_
                         .getContracts();
                     IERC20(trustContracts_.reserveERC20).safeTransfer(
                         feeRecipient_,
-                        fees[address(trust_)][feeRecipient_]
+                        claimableFee_
                     );
                 }
             }
