@@ -192,9 +192,7 @@ describe("BPoolFeeEscrow", async function () {
       // give signer some reserve
       await reserve.transfer(signer.address, spend.add(fee));
 
-      const reserveSigner = reserve.connect(signer);
-
-      await reserveSigner.approve(escrow.address, spend.add(fee));
+      await reserve.connect(signer).approve(escrow.address, spend.add(fee));
 
       await escrow
         .connect(signer)
@@ -217,10 +215,16 @@ describe("BPoolFeeEscrow", async function () {
       await buyTokensViaEscrow(signer1, spend, fee);
       buyCount++;
 
+      console.log(`
+      buyCount  ${buyCount}
+      bPool     ${await reserve.balanceOf(bPool.address)}
+      `);
+
       if (spend.mul(buyCount).gt(successLevel)) {
         throw new Error(`bPool not receiving reserve.
-        expected at least ${successLevel}
-        got               ${await reserve.balanceOf(bPool.address)}`);
+        total spend     ${spend.mul(buyCount)}
+        bPool expected  ${successLevel}
+        bPool actual    ${await reserve.balanceOf(bPool.address)}`);
       }
     }
 
