@@ -5,17 +5,19 @@ pragma experimental ABIEncoderV2;
 
 import { TrustFactory } from "../trust/TrustFactory.sol";
 import { Trust, TrustContracts, DistributionStatus } from "../trust/Trust.sol";
-import { BPool } from "../configurable-rights-pool/contracts/test/BPool.sol";
+import { BPool }
+from "@beehiveinnovation/configurable-rights-pool/contracts/test/BPool.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {
     ConfigurableRightsPool
-} from "../configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
+}
+// solhint-disable-next-line max-line-length
+from "@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
-
 
 contract BPoolFeeEscrow {
     using SafeMath for uint256;
