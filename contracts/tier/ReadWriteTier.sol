@@ -36,7 +36,8 @@ contract ReadWriteTier is ITier {
     {
         // Inequality here to silence slither warnings.
         return reports[account_] > 0
-            ? reports[account_] : TierReport.UNINITIALIZED;
+            ? reports[account_]
+            : TierReport.UNINITIALIZED;
     }
 
     /// Errors if the user attempts to return to the ZERO tier.

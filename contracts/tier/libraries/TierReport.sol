@@ -111,7 +111,9 @@ library TierReport {
         uint256 offset_;
         for (uint256 i_ = uint256(startTier_); i_ < uint256(endTier_); i_++) {
             offset_ = i_ * 32;
-            report_ = (report_ & ~uint256(uint256(uint32(UNINITIALIZED)) << offset_)) | uint256(blockNumber_ << offset_);
+            report_ =
+                (report_ & ~uint256(uint256(uint32(UNINITIALIZED)) << offset_))
+                | uint256(blockNumber_ << offset_);
         }
         return report_;
     }
@@ -139,7 +141,14 @@ library TierReport {
     )
         internal pure returns (uint256)
     {
-        return endTier_ < startTier_ ? truncateTiersAbove(report_, endTier_) : updateBlocksForTierRange(report_, startTier_, endTier_, blockNumber_);
+        return endTier_ < startTier_
+            ? truncateTiersAbove(report_, endTier_)
+            : updateBlocksForTierRange(
+                report_,
+                startTier_,
+                endTier_,
+                blockNumber_
+            );
     }
 
 }

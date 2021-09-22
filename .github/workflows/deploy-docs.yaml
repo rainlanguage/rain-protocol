@@ -15,7 +15,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: develop
-          submodules: "recursive"
 
       - name: Install nix
         uses: cachix/install-nix-action@v13
