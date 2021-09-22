@@ -51,7 +51,7 @@ curl -L https://nixos.org/nix/install | sh
 Drop into a nix-shell.
 
 ```
-cd tv-balancer
+cd rain-protocol
 nix-shell
 ```
 
