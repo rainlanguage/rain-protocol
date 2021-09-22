@@ -9,23 +9,32 @@ import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import { IBPool } from "../configurable-rights-pool/contracts/IBFactory.sol";
-import { BPool } from "../configurable-rights-pool/contracts/test/BPool.sol";
+import {
+    IBPool
+} from "@beehiveinnovation/configurable-rights-pool/contracts/IBFactory.sol";
+import {
+    BPool
+} from "@beehiveinnovation/configurable-rights-pool/contracts/test/BPool.sol";
 import {
     RightsManager
-} from "../configurable-rights-pool/libraries/RightsManager.sol";
+} from
+"@beehiveinnovation/configurable-rights-pool/libraries/RightsManager.sol";
 import {
     BalancerConstants
-} from "../configurable-rights-pool/libraries/BalancerConstants.sol";
+} from
+"@beehiveinnovation/configurable-rights-pool/libraries/BalancerConstants.sol";
 import {
     ConfigurableRightsPool
-} from "../configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
+// solhint-disable-next-line max-line-length
+} from "@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
 import {
     CRPFactory
-} from "../configurable-rights-pool/contracts/CRPFactory.sol";
+} from
+"@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
 import {
     BFactory
-} from "../configurable-rights-pool/contracts/test/BFactory.sol";
+} from
+"@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";

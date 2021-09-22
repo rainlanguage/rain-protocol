@@ -36,15 +36,15 @@ import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
 struct TrustFactoryConfig {
     // The RedeemableERC20Factory on the current network.
     // This is an address published by Beehive Trust or deployed locally
-    /// during testing.
+    // during testing.
     RedeemableERC20Factory redeemableERC20Factory;
     // The RedeemableERC20PoolFactory on the current network.
     // This is an address published by Beehive Trust or deployed locally
-    /// during testing.
+    // during testing.
     RedeemableERC20PoolFactory redeemableERC20PoolFactory;
     // The SeedERC20Factory on the current network.
     // This is an address published by Beehive Trust or deployed locally
-    /// during testing.
+    // during testing.
     SeedERC20Factory seedERC20Factory;
 }
 

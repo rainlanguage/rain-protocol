@@ -104,7 +104,7 @@ describe("Verify", async function () {
       async () => {
         await verify.connect(signer1).add(SESSION_ID1);
       },
-      "revert SESSION_EXISTS",
+      "revert OVERWRITE_ID",
       "created new verify for signer1 despite one existing"
     );
   });
@@ -182,49 +182,5 @@ describe("Verify", async function () {
     await expect(verify.connect(banner).ban(SESSION_ID0))
       .to.emit(verify, "Ban")
       .withArgs(SESSION_ID0);
-  });
-
-  it("should track how many blocks since KYC session was approved", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-    const admin = signers[0];
-    const signer1 = signers[1];
-    const approver = signers[2];
-
-    const verify = await verifyFactory.deploy(admin.address);
-
-    await verify.grantRole(await verify.APPROVER(), approver.address);
-
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
-
-    // signer1 generates verify session id
-    await verify.connect(signer1).add(SESSION_ID0);
-
-    const startBlock = await ethers.provider.getBlockNumber();
-
-    await verify.connect(approver).approve(SESSION_ID0);
-
-    const actualApprovedSinceBlock0 = await verify.accountApprovedSince(
-      signer1.address
-    );
-    const expectedApprovedSinceBlock0 = startBlock + 1;
-
-    assert(
-      actualApprovedSinceBlock0.eq(expectedApprovedSinceBlock0),
-      `wrong account approval block number,
-      expected  ${expectedApprovedSinceBlock0}
-      got       ${actualApprovedSinceBlock0}`
-    );
-
-    // creating empty blocks should make no difference
-    await Util.createEmptyBlock(5);
-
-    assert(
-      actualApprovedSinceBlock0.eq(expectedApprovedSinceBlock0),
-      `wrong account approval block number (after waiting 5 blocks),
-      expected  ${expectedApprovedSinceBlock0}
-      got       ${actualApprovedSinceBlock0}`
-    );
   });
 });
