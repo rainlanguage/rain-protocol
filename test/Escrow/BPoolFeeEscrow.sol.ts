@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type { BPoolFeeEscrow } from "../../typechain/BPoolFeeEscrow";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { Trust } from "../../typechain/Trust";
 import type { BigNumber } from "ethers";
@@ -12,6 +13,7 @@ import type { ConfigurableRightsPool } from "../../typechain/ConfigurableRightsP
 import type { BPool } from "../../typechain/BPool";
 
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
+const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -49,6 +51,7 @@ interface SetupVars {
   crp: ConfigurableRightsPool;
   bPool: BPool;
   minimumTradingDuration: number;
+  redeemableERC20: RedeemableERC20;
 }
 
 const basicSetup = async (): Promise<SetupVars> => {
@@ -142,8 +145,14 @@ const basicSetup = async (): Promise<SetupVars> => {
     seeder
   ) as ReserveToken;
 
+  const redeemableERC20Address = await trust.token();
   const poolAddress = await trust.pool();
 
+  const redeemableERC20 = new ethers.Contract(
+    redeemableERC20Address,
+    tokenJson.abi,
+    creator
+  ) as RedeemableERC20;
   const pool = new ethers.Contract(
     poolAddress,
     poolJson.abi,
@@ -170,10 +179,101 @@ const basicSetup = async (): Promise<SetupVars> => {
     crp,
     bPool,
     minimumTradingDuration,
+    redeemableERC20,
   };
 };
 
-describe.only("BPoolFeeEscrow", async function () {
+describe("BPoolFeeEscrow", async function () {
+  it("should refund fees (via token contract) upon failed raise", async function () {
+    this.timeout(0);
+
+    const {
+      reserve,
+      escrow,
+      trust,
+      recipient,
+      signer1,
+      minimumTradingDuration,
+      redeemableERC20,
+    } = await basicSetup();
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
+    const buyTokensViaEscrow = async (signer, spend, fee) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend.add(fee));
+
+      await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+
+      await escrow
+        .connect(signer)
+        .buyToken(
+          trust.address,
+          spend,
+          ethers.BigNumber.from("1"),
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+          recipient.address,
+          fee
+        );
+    };
+
+    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
+    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+    // raise unsufficient funds
+    await buyTokensViaEscrow(signer1, spend, fee);
+
+    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
+    const emptyBlocks =
+      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+
+    // create empty blocks to end of raise duration
+    await Util.createEmptyBlock(emptyBlocks);
+
+    assert(
+      (await trust.getDistributionStatus()) ===
+        DistributionStatus.TRADINGCANEND,
+      "raise incomplete"
+    );
+
+    // actually end raise
+    await trust.anonEndDistribution();
+
+    assert(
+      (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
+      "raise wasn't failure"
+    );
+
+    // attempting claim fees is no-op.
+    await escrow.connect(recipient).claimFees(trust.address, recipient.address);
+
+    const reserveRedeemableERC20_1 = await reserve.balanceOf(
+      redeemableERC20.address
+    );
+
+    // anyone can trigger refund.
+    await escrow.connect(signer1).refundFees(trust.address);
+
+    const reserveRedeemableERC20_2 = await reserve.balanceOf(
+      redeemableERC20.address
+    );
+
+    const reserveOnTokenDifference = reserveRedeemableERC20_2.sub(
+      reserveRedeemableERC20_1
+    );
+
+    console.log(`
+    reserveOnTokenBefore      ${reserveRedeemableERC20_1}
+    reserveOnTokenAfter       ${reserveRedeemableERC20_2}
+    reserveOnTokenDifference  ${reserveOnTokenDifference}
+    `);
+
+    assert(
+      !reserveOnTokenDifference.isZero(),
+      "difference was zero, no refund given"
+    );
+  });
+
   it("should allow recipient to claim fees upon successful raise", async function () {
     this.timeout(0);
 
@@ -252,9 +352,26 @@ describe.only("BPoolFeeEscrow", async function () {
       "raise wasn't successful"
     );
 
+    // check fees are registered for trust and recipient
+    const recipientFees1 = await escrow.fees(trust.address, recipient.address);
+    assert(
+      recipientFees1.eq(fee.mul(buyCount)),
+      "wrong registered fee amount for trust and recipient"
+    );
+
+    // Attempting refund is no-op.
+    await escrow.connect(signer1).refundFees(trust.address);
+
     await escrow.connect(recipient).claimFees(trust.address, recipient.address);
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
+
+    // check fees are deleted for trust and recipient
+    const recipientFees2 = await escrow.fees(trust.address, recipient.address);
+    assert(
+      recipientFees2.isZero(),
+      "did not delete fee amount for trust and recipient"
+    );
 
     // recipient should have claimed fees after calling `claimFees` after successful raise
     assert(

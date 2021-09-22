@@ -126,13 +126,14 @@ contract BPoolFeeEscrow {
             pending[feeRecipient_].remove(address(trust_));
 
             if (fees[address(trust_)][feeRecipient_] > 0) {
+                uint256 claimableFee_ = fees[address(trust_)][feeRecipient_];
                 delete(fees[address(trust_)][feeRecipient_]);
                 if (distributionStatus_ == DistributionStatus.Success) {
                     TrustContracts memory trustContracts_ = trust_
                         .getContracts();
                     IERC20(trustContracts_.reserveERC20).safeTransfer(
                         feeRecipient_,
-                        fees[address(trust_)][feeRecipient_]
+                        claimableFee_
                     );
                 }
             }
