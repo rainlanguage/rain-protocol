@@ -19,6 +19,8 @@ from "@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPo
 
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
+import "hardhat/console.sol";
+
 contract BPoolFeeEscrow {
     using SafeMath for uint256;
     using Math for uint256;
@@ -97,9 +99,11 @@ contract BPoolFeeEscrow {
         external
     {
         limit_ = limit_.min(pending[feeRecipient_].length());
+        console.log(limit_);
         uint256 i_ = 0;
         while (i_ < limit_)
         {
+            console.log(pending[feeRecipient_].at(0));
             claimFees(
                 // Keep hitting 0 because `pending` is mutated by `claimFees`
                 // each iteration removing the processed claim.
@@ -159,7 +163,7 @@ contract BPoolFeeEscrow {
             (distributionStatus_ == DistributionStatus.Fail
                 || distributionStatus_ == DistributionStatus.Success)) {
             if (distributionStatus_ == DistributionStatus.Fail) {
-                refund_.add(failureRefunds[address(trust_)]);
+                refund_ = refund_.add(failureRefunds[address(trust_)]);
             }
             delete(failureRefunds[address(trust_)]);
         }
