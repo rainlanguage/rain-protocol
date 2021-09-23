@@ -97,6 +97,8 @@ let
 
     npm run build
 
+    mkdir -p dist/v6 && cp -rf artifacts/ dist/v6
+
     cp artifacts/contracts/**/*.json artifacts
     rm -rf artifacts/*.dbg.json
     rm -rf artifacts/*Test*

@@ -7,7 +7,8 @@
     "/contracts/**/*.sol",
     "/artifacts/*.json",
     "/typechain/*.d.ts",
-    "/typechain/**/*.ts"
+    "/typechain/**/*.ts",
+    "/dist"
   ],
   "author": "Beehive Innovation",
   "license": "CAL",
