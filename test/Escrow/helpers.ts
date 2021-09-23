@@ -168,9 +168,7 @@ export const basicSetup = async (signers, trustFactory, tier) => {
   };
 };
 
-export const successfulRaise = async (signers) => {
-  const { escrow, trustFactory, tier } = await deployGlobals();
-
+export const successfulRaise = async (signers, escrow, trustFactory, tier) => {
   const {
     reserve,
     trust,

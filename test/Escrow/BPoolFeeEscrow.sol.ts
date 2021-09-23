@@ -29,12 +29,12 @@ enum DistributionStatus {
 }
 
 describe("BPoolFeeEscrow", async function () {
-  xit("should allow recipient to batch claim fees", async function () {
+  it("should allow recipient to batch claim fees", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const { escrow } = await deployGlobals();
+    const { escrow, trustFactory, tier } = await deployGlobals();
 
     // do first raise
     const {
@@ -42,11 +42,14 @@ describe("BPoolFeeEscrow", async function () {
       recipient,
       fee,
       buyCount: buyCount1,
-    } = await successfulRaise(signers);
+    } = await successfulRaise(signers, escrow, trustFactory, tier);
 
     // do second raise
     const { reserve: reserve2, buyCount: buyCount2 } = await successfulRaise(
-      signers
+      signers,
+      escrow,
+      trustFactory,
+      tier
     );
 
     // recipient batch claims fees
