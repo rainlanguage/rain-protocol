@@ -2,7 +2,11 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import { basicSetup, deployGlobals, successfulRaise } from "./helpers";
+import {
+  basicSetup,
+  deployGlobals,
+  successfulRaise,
+} from "./BPoolFeeEscrowUtil";
 
 chai.use(solidity);
 const { expect, assert } = chai;
