@@ -7,75 +7,118 @@ import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
 import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 
 contract CombineTier is ReadOnlyTier, RainCompiler {
-    uint8 constant OPCODE_AND_OLD = 3;
-    uint8 constant OPCODE_AND_NEW = 4;
-    uint8 constant OPCODE_AND_LEFT = 5;
-    uint8 constant OPCODE_OR_OLD = 6;
-    uint8 constant OPCODE_OR_NEW = 7;
-    uint8 constant OPCODE_OR_LEFT = 8;
+    uint8 public constant OPCODE_ACCOUNT = 0 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_REPORT = 1 + OPCODE_RESERVED_MAX;
+
+    uint8 public constant OPCODE_AND_OLD = 2 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_AND_NEW = 3 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_AND_LEFT = 4 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_OR_OLD = 5 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_OR_NEW = 6 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_OR_LEFT = 7 + OPCODE_RESERVED_MAX;
 
     constructor(bytes memory source_)
         public
+        // solhint-disable-next-line no-empty-blocks
         RainCompiler(source_) { }
 
-    function runCompiledAddressToInt(address tierAddress_, bytes memory data_)
-        internal
-        override
-        view
-        returns (uint256)
-    {
-        address account_ = abi.decode(data_, (address));
-        return ITier(tierAddress_).report(account_);
-    }
-
-    function runCompiledDispatch(
+    function applyOpcode(
+        bytes memory context_,
+        uint256[32] memory stack_,
+        uint8 stackIndex_,
         uint8 opcode_,
-        uint256[] memory args_,
-        bytes memory
+        uint8 operand_
     )
         internal
         override
         view
-        returns (uint256)
+        returns (uint256[32] memory, uint8)
     {
+        if (opcode_ == OPCODE_ACCOUNT) {
+            (address account_) = abi.decode(context_, (address));
+            stack_[stackIndex_] = uint256(account_);
+            stackIndex_++;
+        }
+        if (opcode_ == OPCODE_REPORT) {
+            stackIndex_ -= 2;
+            stack_[stackIndex_] = ITier(stack_[stackIndex_ + 1])
+                .report(address(stack_[stackIndex_]));
+            stackIndex_++;
+        }
         if (opcode_ == OPCODE_AND_NEW) {
-            return TierwiseCombine.andNew(
+            stackIndex_ -= operand_;
+            uint256[] memory args_ = new uint256[](operand_ - 1);
+            for (uint256 a_ = 0; a_ < args_.length; a_++) {
+                args_[a_] = stack_[stackIndex_ + a_];
+            }
+
+            stack_[stackIndex_] = TierwiseCombine.andNew(
                 args_,
-                block.number
+                stack_[stackIndex_ + operand_ - 1]
             );
         }
         if (opcode_ == OPCODE_AND_OLD) {
-            return TierwiseCombine.andOld(
+            stackIndex_ -= operand_;
+            uint256[] memory args_ = new uint256[](operand_ - 1);
+            for (uint256 a_ = 0; a_ < args_.length; a_++) {
+                args_[a_] = stack_[stackIndex_ + a_];
+            }
+
+            stack_[stackIndex_] = TierwiseCombine.andOld(
                 args_,
-                block.number
+                stack_[stackIndex_ + operand_ - 1]
             );
         }
         if (opcode_ == OPCODE_AND_LEFT) {
-            return TierwiseCombine.andLeft(
+            stackIndex_ -= operand_;
+            uint256[] memory args_ = new uint256[](operand_ - 1);
+            for (uint256 a_ = 0; a_ < args_.length; a_++) {
+                args_[a_] = stack_[stackIndex_ + a_];
+            }
+
+            stack_[stackIndex_] = TierwiseCombine.andLeft(
                 args_,
-                block.number
+                stack_[stackIndex_ + operand_ - 1]
             );
         }
         if (opcode_ == OPCODE_OR_NEW) {
-            return TierwiseCombine.orNew(
+            stackIndex_ -= operand_;
+            uint256[] memory args_ = new uint256[](operand_ - 1);
+            for (uint256 a_ = 0; a_ < args_.length; a_++) {
+                args_[a_] = stack_[stackIndex_ + a_];
+            }
+
+            stack_[stackIndex_] = TierwiseCombine.orNew(
                 args_,
-                block.number
+                stack_[stackIndex_ + operand_ - 1]
             );
         }
         if (opcode_ == OPCODE_OR_OLD) {
-            return TierwiseCombine.orOld(
+            stackIndex_ -= operand_;
+            uint256[] memory args_ = new uint256[](operand_ - 1);
+            for (uint256 a_ = 0; a_ < args_.length; a_++) {
+                args_[a_] = stack_[stackIndex_ + a_];
+            }
+
+            stack_[stackIndex_] = TierwiseCombine.orOld(
                 args_,
-                block.number
+                stack_[stackIndex_ + operand_ - 1]
             );
         }
         if (opcode_ == OPCODE_OR_LEFT) {
-            return TierwiseCombine.orLeft(
+            stackIndex_ -= operand_;
+            uint256[] memory args_ = new uint256[](operand_ - 1);
+            for (uint256 a_ = 0; a_ < args_.length; a_++) {
+                args_[a_] = stack_[stackIndex_ + a_];
+            }
+
+            stack_[stackIndex_] = TierwiseCombine.orLeft(
                 args_,
-                block.number
+                stack_[stackIndex_ + operand_ - 1]
             );
         }
-        // Some opcode we don't know about.
-        assert(false);
+
+        return (stack_, stackIndex_);
     }
 
     function report(address account_)
@@ -85,9 +128,15 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
         virtual
         returns (uint256)
     {
-        return runCompiled(
+        uint256[32] memory stack_;
+        uint8 stackIndex_;
+        (stack_, stackIndex_) = eval(
             abi.encode(account_),
-            new bytes(0)
+            stack_,
+            stackIndex_,
+            source(),
+            vals()
         );
+        return stack_[stackIndex_ - 1];
     }
 }
