@@ -4,6 +4,39 @@ pragma solidity ^0.6.12;
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+struct CompileIO {
+    uint8 inputOpcode;
+    uint8 inputOperand;
+    uint8 outputOpcode;
+    uint8 outputOperand;
+}
+
+struct CompiledSource {
+    uint256[4] source;
+    uint[16] vals;
+}
+
+struct SourceCursor {
+    uint8 item;
+    uint8 index;
+}
+
+struct CallSize {
+    uint8 fnSize;
+    uint8 loopSize;
+    uint8 argSize;
+}
+
+struct Stack {
+    uint256[32] vals;
+    uint8 index;
+}
+
+struct Op {
+    uint8 code;
+    uint8 val;
+}
+
 abstract contract RainCompiler {
     using Math for uint256;
     using SafeMath for uint256;
@@ -48,48 +81,42 @@ abstract contract RainCompiler {
         bytes memory source_
     )
     public {
-        (
-            uint256[4] memory compiledSource_,
-            uint256[16] memory vals_
-        ) = compile(
+        CompiledSource memory compiledSource_ = compile(
             source_,
             new uint256[](0)
         );
 
-        val0 = vals_[0];
-        val1 = vals_[1];
-        val2 = vals_[2];
-        val3 = vals_[3];
-        val4 = vals_[4];
-        val5 = vals_[5];
-        val6 = vals_[6];
-        val7 = vals_[7];
-        val8 = vals_[8];
-        val9 = vals_[9];
-        val10 = vals_[10];
-        val11 = vals_[11];
-        val12 = vals_[12];
-        val13 = vals_[13];
-        val14 = vals_[14];
-        val15 = vals_[15];
+        val0 = compiledSource_.vals[0];
+        val1 = compiledSource_.vals[1];
+        val2 = compiledSource_.vals[2];
+        val3 = compiledSource_.vals[3];
+        val4 = compiledSource_.vals[4];
+        val5 = compiledSource_.vals[5];
+        val6 = compiledSource_.vals[6];
+        val7 = compiledSource_.vals[7];
+        val8 = compiledSource_.vals[8];
+        val9 = compiledSource_.vals[9];
+        val10 = compiledSource_.vals[10];
+        val11 = compiledSource_.vals[11];
+        val12 = compiledSource_.vals[12];
+        val13 = compiledSource_.vals[13];
+        val14 = compiledSource_.vals[14];
+        val15 = compiledSource_.vals[15];
 
-        source0 = compiledSource_[0];
-        source1 = compiledSource_[1];
-        source2 = compiledSource_[2];
-        source3 = compiledSource_[3];
+        source0 = compiledSource_.source[0];
+        source1 = compiledSource_.source[1];
+        source2 = compiledSource_.source[2];
+        source3 = compiledSource_.source[3];
     }
 
-    function source() internal view returns(uint256[4] memory) {
-        return [
+    function compiledSource() internal view returns(CompiledSource memory) {
+        return CompiledSource([
             source0,
             source1,
             source2,
             source3
-        ];
-    }
-
-    function vals() internal view returns (uint256[16] memory) {
-        return [
+        ],
+        [
             val0,
             val1,
             val2,
@@ -106,24 +133,15 @@ abstract contract RainCompiler {
             val13,
             val14,
             val15
-        ];
-    }
-
-    struct CompileIO {
-        uint8 inputOpcode;
-        uint8 inputOperand;
-        uint8 outputOpcode;
-        uint8 outputOperand;
+        ]);
     }
 
     function compile(
         bytes memory inputSource_,
         uint256[] memory args_
-    ) internal pure returns (uint256[4] memory, uint256[16] memory) {
-        uint256[16] memory vals_;
+    ) internal pure returns (CompiledSource memory) {
+        CompiledSource memory compiledSource_;
         uint8 valsIndex_ = 0;
-
-        uint256[4] memory outputSource_;
 
         for (uint256 i_ = 0; i_ < inputSource_.length; i_ = i_ + 2) {
             CompileIO memory compileIO_ = CompileIO(
@@ -172,7 +190,7 @@ abstract contract RainCompiler {
                     compileIO_.outputOpcode = OPCODE_VAL;
                 }
 
-                vals_[valsIndex_] = val_;
+                compiledSource_.vals[valsIndex_] = val_;
                 compileIO_.outputOperand = valsIndex_;
                 valsIndex_++;
             }
@@ -181,8 +199,7 @@ abstract contract RainCompiler {
                 compileIO_.outputOperand = compileIO_.inputOperand;
             }
 
-            outputSource_[outputSourceItem_] = outputSource_[outputSourceItem_]
-            | uint256(
+            compiledSource_.source[outputSourceItem_] |= uint256(
                 uint256(
                     compileIO_.outputOpcode << 8
                     | compileIO_.outputOperand
@@ -190,105 +207,83 @@ abstract contract RainCompiler {
                 << 16 - outputSourceIndex_
             );
         }
-        return (outputSource_, vals_);
+        return compiledSource_;
     }
 
-    struct CallSize {
-        uint8 fnSize;
-        uint8 loopSize;
-        uint8 argSize;
-    }
+    function call(
+        CallSize memory callSize_
+    )
 
     function eval(
         bytes memory context_,
-        uint256[32] memory stack_,
-        uint8 stackIndex_,
-        uint256[4] memory source_,
-        uint256[16] memory vals_
-    ) internal view returns (uint256[32] memory, uint8) {
+        Stack memory stack_,
+        CompiledSource memory compiledSource_
+    ) internal view returns (Stack memory) {
         for (uint256 i_ = 0; i_ < MAX_COMPILED_SOURCE_LENGTH; i_ = i_ + 2) {
-            uint256 sourceItem_ = i_.div(16);
-            uint256 sourceIndex_ = i_.mod(16);
-
-            uint8 opcode_ = uint8(
-                uint256(source_[sourceItem_] >> (32 - (sourceIndex_ + 8)))
-            );
-            uint8 operand_ = uint8(
-                uint256(source_[sourceItem_] >> (32 - (sourceIndex_ + 1 + 8)))
+            SourceCursor memory sourceCursor_ = SourceCursor(
+                uint8(i_.div(16)),
+                uint8(i_.mod(16))
             );
 
-            if (opcode_ == OPCODE_VAL) {
-                stack_[stackIndex_] = vals_[operand_];
-                stackIndex_++;
+            Op memory op_ = Op(uint8(
+                uint256(compiledSource_.source[sourceCursor_.item]
+                    >> (32 - (sourceCursor_.index + 8)))
+            ),
+            uint8(
+                uint256(compiledSource_.source[sourceCursor_.item]
+                    >> (32 - (sourceCursor_.index + 1 + 8)))
+            ));
+
+            if (op_.code == OPCODE_VAL) {
+                stack_.vals[stack_.index] = compiledSource_.vals[op_.val];
+                stack_.index++;
             }
 
-            else if (opcode_ == OPCODE_CALL) {
+            else if (op_.code == OPCODE_CALL) {
                 CallSize memory callSize_ = CallSize(
-                    operand_ & 0x03, // 00000011
-                    operand_ & 0x1C, // 00011100
-                    operand_ & 0xE0 // 11100000
+                    op_.val & 0x03, // 00000011
+                    op_.val & 0x1C, // 00011100
+                    op_.val & 0xE0 // 11100000
                 );
 
-                stackIndex_ -= (callSize_.fnSize + callSize_.argSize + 2);
+                stack_.index -= (callSize_.fnSize + callSize_.argSize + 2);
                 bytes memory mapSource_;
+                uint256 fnIndex_ = stack_.index + callSize_.argSize + 1;
                 if (callSize_.fnSize == 0) {
                     mapSource_ = abi.encodePacked(
-                        stack_[stackIndex_ + callSize_.argSize + 1]
+                        stack_.vals[fnIndex_]
                     );
                 }
                 else if (callSize_.fnSize == 1) {
                     mapSource_ = abi.encodePacked(
-                        stack_[stackIndex_ + callSize_.argSize + 1],
-                        stack_[stackIndex_ + callSize_.argSize + 2]
+                        stack_.vals[fnIndex_],
+                        stack_.vals[fnIndex_ + 1]
                     );
                 }
                 else if (callSize_.fnSize == 2) {
                     mapSource_ = abi.encodePacked(
-                        stack_[stackIndex_ + callSize_.argSize + 1],
-                        stack_[stackIndex_ + callSize_.argSize + 2],
-                        stack_[stackIndex_ + callSize_.argSize + 3]
+                        stack_.vals[fnIndex_],
+                        stack_.vals[fnIndex_ + 1],
+                        stack_.vals[fnIndex_ + 2]
                     );
                 }
                 else if (callSize_.fnSize == 3) {
                     mapSource_ = abi.encodePacked(
-                        stack_[stackIndex_ + callSize_.argSize + 1],
-                        stack_[stackIndex_ + callSize_.argSize + 2],
-                        stack_[stackIndex_ + callSize_.argSize + 3],
-                        stack_[stackIndex_ + callSize_.argSize + 4]
+                        stack_.vals[fnIndex_],
+                        stack_.vals[fnIndex_ + 1],
+                        stack_.vals[fnIndex_ + 2],
+                        stack_.vals[fnIndex_ + 3]
                     );
                 }
                 uint256[] memory baseArgs_ = new uint256[](
                     callSize_.argSize + 1
                 );
                 for (uint256 a_ = 0; a_ < callSize_.argSize + 1; a_++) {
-                    baseArgs_[a_] = stack_[stackIndex_ + a_];
+                    baseArgs_[a_] = stack_.vals[stack_.index + a_];
                 }
 
-                uint256 stepSize_;
-                if (callSize_.loopSize == 0) {
-                    stepSize_ = 256;
-                }
-                else if (callSize_.loopSize == 1) {
-                    stepSize_ = 128;
-                }
-                else if (callSize_.loopSize == 2) {
-                    stepSize_ = 64;
-                }
-                else if (callSize_.loopSize == 3) {
-                    stepSize_ = 32;
-                }
-                else if (callSize_.loopSize == 4) {
-                    stepSize_ = 16;
-                }
-                else if (callSize_.loopSize == 5) {
-                    stepSize_ = 8;
-                }
-                else if (callSize_.loopSize == 6) {
-                    stepSize_ = 4;
-                }
-                else if (callSize_.loopSize == 7) {
-                    stepSize_ = 2;
-                }
+                // Each loop size halves the item size.
+                uint256 stepSize_ = 256 >> callSize_.loopSize;
 
                 uint256[] memory args_ = new uint256[](baseArgs_.length);
                 for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
@@ -298,59 +293,49 @@ abstract contract RainCompiler {
                             >> 256 - stepSize_
                         );
                     }
-                    (
-                        uint256[4] memory mapCompiledSource_,
-                        uint256[16] memory mapVals_
-                    ) = compile(
+                    CompiledSource memory mapCompiledSource_ = compile(
                         mapSource_,
                         args_
                     );
-                    uint256[32] memory mapStack_;
-                    uint8 mapStackIndex_;
-                    (mapStack_, mapStackIndex_) = eval(
+                    Stack memory mapStack_;
+                    mapStack_ = eval(
                         context_,
                         mapStack_,
-                        mapStackIndex_,
-                        mapCompiledSource_,
-                        mapVals_
+                        mapCompiledSource_
                     );
 
-                    for (uint256 m_ = 0; m_ < mapStackIndex_; m_++) {
-                        stack_[stackIndex_ + m_] = mapStack_[m_];
+                    for (uint256 m_ = 0; m_ < mapStack_.index; m_++) {
+                        stack_.vals[stack_.index + m_] = mapStack_.vals[m_];
                     }
-                    stackIndex_ = stackIndex_ + mapStackIndex_;
+                    stack_.index = stack_.index + mapStack_.index;
                 }
             }
 
-            else if (opcode_ == OPCODE_BLOCK_NUMBER) {
-                stack_[stackIndex_] = block.number;
-                stackIndex_++;
+            else if (op_.code == OPCODE_BLOCK_NUMBER) {
+                stack_.vals[stack_.index] = block.number;
+                stack_.index++;
             }
 
             else {
-                (stack_, stackIndex_) = applyOpcode(
+                stack_ = applyOp(
                     context_,
                     stack_,
-                    stackIndex_,
-                    opcode_,
-                    operand_
+                    op_
                 );
             }
         }
 
-        return(stack_, stackIndex_);
+        return stack_;
     }
 
-    function applyOpcode(
+    function applyOp(
         bytes memory context_,
-        uint256[32] memory stack_,
-        uint8 stackIndex_,
-        uint8 opcode_,
-        uint8 operand_
+        Stack memory stack_,
+        Op memory op_
     )
     internal
     virtual
     view
     // solhint-disable-next-line no-empty-blocks
-    returns (uint256[32] memory, uint8) { }
+    returns (Stack memory) { }
 }

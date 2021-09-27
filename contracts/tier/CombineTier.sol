@@ -2,7 +2,7 @@
 
 pragma solidity 0.6.12;
 
-import { RainCompiler } from "../compiler/RainCompiler.sol";
+import { RainCompiler, Stack, Op } from "../compiler/RainCompiler.sol";
 import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
 import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 
@@ -22,103 +22,101 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
         // solhint-disable-next-line no-empty-blocks
         RainCompiler(source_) { }
 
-    function applyOpcode(
+    function applyOp(
         bytes memory context_,
-        uint256[32] memory stack_,
-        uint8 stackIndex_,
-        uint8 opcode_,
-        uint8 operand_
+        Stack memory stack_,
+        Op memory op_
     )
         internal
         override
         view
-        returns (uint256[32] memory, uint8)
+        returns (Stack memory)
     {
-        if (opcode_ == OPCODE_ACCOUNT) {
+        if (op_.code == OPCODE_ACCOUNT) {
             (address account_) = abi.decode(context_, (address));
-            stack_[stackIndex_] = uint256(account_);
-            stackIndex_++;
+            stack_.vals[stack_.index] = uint256(account_);
+            stack_.index++;
         }
-        if (opcode_ == OPCODE_REPORT) {
-            stackIndex_ -= 2;
-            stack_[stackIndex_] = ITier(stack_[stackIndex_ + 1])
-                .report(address(stack_[stackIndex_]));
-            stackIndex_++;
+        if (op_.code == OPCODE_REPORT) {
+            stack_.index -= 2;
+            stack_.vals[stack_.index] = ITier(stack_.vals[stack_.index + 1])
+                .report(address(stack_.vals[stack_.index]));
+            stack_.index++;
         }
-        if (opcode_ == OPCODE_AND_NEW) {
-            stackIndex_ -= operand_;
-            uint256[] memory args_ = new uint256[](operand_ - 1);
+        if (op_.code == OPCODE_AND_NEW) {
+            stack_.index -= op_.val;
+            uint256[] memory args_ = new uint256[](op_.val - 1);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_[stackIndex_ + a_];
+                args_[a_] = stack_.vals[stack_.index + a_];
             }
 
-            stack_[stackIndex_] = TierwiseCombine.andNew(
+            stack_.vals[stack_.index] = TierwiseCombine.andNew(
                 args_,
-                stack_[stackIndex_ + operand_ - 1]
+                stack_.vals[stack_.index + op_.val - 1]
             );
         }
-        if (opcode_ == OPCODE_AND_OLD) {
-            stackIndex_ -= operand_;
-            uint256[] memory args_ = new uint256[](operand_ - 1);
+        if (op_.code == OPCODE_AND_OLD) {
+            stack_.index -= op_.val;
+            uint256[] memory args_ = new uint256[](op_.val - 1);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_[stackIndex_ + a_];
+                args_[a_] = stack_.vals[stack_.index + a_];
             }
 
-            stack_[stackIndex_] = TierwiseCombine.andOld(
+            stack_.vals[stack_.index] = TierwiseCombine.andOld(
                 args_,
-                stack_[stackIndex_ + operand_ - 1]
+                stack_.vals[stack_.index + op_.val - 1]
             );
         }
-        if (opcode_ == OPCODE_AND_LEFT) {
-            stackIndex_ -= operand_;
-            uint256[] memory args_ = new uint256[](operand_ - 1);
+        if (op_.code == OPCODE_AND_LEFT) {
+            stack_.index -= op_.val;
+            uint256[] memory args_ = new uint256[](op_.val - 1);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_[stackIndex_ + a_];
+                args_[a_] = stack_.vals[stack_.index + a_];
             }
 
-            stack_[stackIndex_] = TierwiseCombine.andLeft(
+            stack_.vals[stack_.index] = TierwiseCombine.andLeft(
                 args_,
-                stack_[stackIndex_ + operand_ - 1]
+                stack_.vals[stack_.index + op_.val - 1]
             );
         }
-        if (opcode_ == OPCODE_OR_NEW) {
-            stackIndex_ -= operand_;
-            uint256[] memory args_ = new uint256[](operand_ - 1);
+        if (op_.code == OPCODE_OR_NEW) {
+            stack_.index -= op_.val;
+            uint256[] memory args_ = new uint256[](op_.val - 1);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_[stackIndex_ + a_];
+                args_[a_] = stack_.vals[stack_.index + a_];
             }
 
-            stack_[stackIndex_] = TierwiseCombine.orNew(
+            stack_.vals[stack_.index] = TierwiseCombine.orNew(
                 args_,
-                stack_[stackIndex_ + operand_ - 1]
+                stack_.vals[stack_.index + op_.val - 1]
             );
         }
-        if (opcode_ == OPCODE_OR_OLD) {
-            stackIndex_ -= operand_;
-            uint256[] memory args_ = new uint256[](operand_ - 1);
+        if (op_.code == OPCODE_OR_OLD) {
+            stack_.index -= op_.val;
+            uint256[] memory args_ = new uint256[](op_.val - 1);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_[stackIndex_ + a_];
+                args_[a_] = stack_.vals[stack_.index + a_];
             }
 
-            stack_[stackIndex_] = TierwiseCombine.orOld(
+            stack_.vals[stack_.index] = TierwiseCombine.orOld(
                 args_,
-                stack_[stackIndex_ + operand_ - 1]
+                stack_.vals[stack_.index + op_.val - 1]
             );
         }
-        if (opcode_ == OPCODE_OR_LEFT) {
-            stackIndex_ -= operand_;
-            uint256[] memory args_ = new uint256[](operand_ - 1);
+        if (op_.code == OPCODE_OR_LEFT) {
+            stack_.index -= op_.val;
+            uint256[] memory args_ = new uint256[](op_.val - 1);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_[stackIndex_ + a_];
+                args_[a_] = stack_.vals[stack_.index + a_];
             }
 
-            stack_[stackIndex_] = TierwiseCombine.orLeft(
+            stack_.vals[stack_.index] = TierwiseCombine.orLeft(
                 args_,
-                stack_[stackIndex_ + operand_ - 1]
+                stack_.vals[stack_.index + op_.val - 1]
             );
         }
 
-        return (stack_, stackIndex_);
+        return stack_;
     }
 
     function report(address account_)
@@ -128,15 +126,12 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
         virtual
         returns (uint256)
     {
-        uint256[32] memory stack_;
-        uint8 stackIndex_;
-        (stack_, stackIndex_) = eval(
+        Stack memory stack_;
+        stack_ = eval(
             abi.encode(account_),
             stack_,
-            stackIndex_,
-            source(),
-            vals()
+            compiledSource()
         );
-        return stack_[stackIndex_ - 1];
+        return stack_.vals[stack_.index - 1];
     }
 }
