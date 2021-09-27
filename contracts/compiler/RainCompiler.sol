@@ -351,5 +351,6 @@ abstract contract RainCompiler {
     internal
     virtual
     view
+    // solhint-disable-next-line no-empty-blocks
     returns (uint256[32] memory, uint8) { }
 }
