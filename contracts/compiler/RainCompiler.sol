@@ -211,40 +211,11 @@ abstract contract RainCompiler {
     }
 
     function call(
-        CallSize memory callSize_
-    )
-
-    function eval(
-        bytes memory context_,
+        bytes context_,
         Stack memory stack_,
-        CompiledSource memory compiledSource_
-    ) internal view returns (Stack memory) {
-        for (uint256 i_ = 0; i_ < MAX_COMPILED_SOURCE_LENGTH; i_ = i_ + 2) {
-            SourceCursor memory sourceCursor_ = SourceCursor(
-                uint8(i_.div(16)),
-                uint8(i_.mod(16))
-            );
+        CallSize memory callSize_,
 
-            Op memory op_ = Op(uint8(
-                uint256(compiledSource_.source[sourceCursor_.item]
-                    >> (32 - (sourceCursor_.index + 8)))
-            ),
-            uint8(
-                uint256(compiledSource_.source[sourceCursor_.item]
-                    >> (32 - (sourceCursor_.index + 1 + 8)))
-            ));
-
-            if (op_.code == OPCODE_VAL) {
-                stack_.vals[stack_.index] = compiledSource_.vals[op_.val];
-                stack_.index++;
-            }
-
-            else if (op_.code == OPCODE_CALL) {
-                CallSize memory callSize_ = CallSize(
-                    op_.val & 0x03, // 00000011
-                    op_.val & 0x1C, // 00011100
-                    op_.val & 0xE0 // 11100000
-                );
+    ) returns (Stack memory) {
 
                 stack_.index -= (callSize_.fnSize + callSize_.argSize + 2);
                 bytes memory mapSource_;
@@ -309,6 +280,44 @@ abstract contract RainCompiler {
                     }
                     stack_.index = stack_.index + mapStack_.index;
                 }
+        return stack_;
+    }
+
+    function eval(
+        bytes memory context_,
+        Stack memory stack_,
+        CompiledSource memory compiledSource_
+    ) internal view returns (Stack memory) {
+        for (uint256 i_ = 0; i_ < MAX_COMPILED_SOURCE_LENGTH; i_ = i_ + 2) {
+            SourceCursor memory sourceCursor_ = SourceCursor(
+                uint8(i_.div(16)),
+                uint8(i_.mod(16))
+            );
+
+            Op memory op_ = Op(uint8(
+                uint256(compiledSource_.source[sourceCursor_.item]
+                    >> (32 - (sourceCursor_.index + 8)))
+            ),
+            uint8(
+                uint256(compiledSource_.source[sourceCursor_.item]
+                    >> (32 - (sourceCursor_.index + 1 + 8)))
+            ));
+
+            if (op_.code == OPCODE_VAL) {
+                stack_.vals[stack_.index] = compiledSource_.vals[op_.val];
+                stack_.index++;
+            }
+
+            else if (op_.code == OPCODE_CALL) {
+                stack_ = call(
+                    context_,
+                    stack,
+                    CallSize(
+                        op_.val & 0x03, // 00000011
+                        op_.val & 0x1C, // 00011100
+                        op_.val & 0xE0 // 11100000
+                    )
+                );
             }
 
             else if (op_.code == OPCODE_BLOCK_NUMBER) {
