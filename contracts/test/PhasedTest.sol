@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.6.12;
 
-import { Phase, Phased } from "../Phased.sol";
+import { Phase, Phased } from "../phased/Phased.sol";
 
 /// @title PhasedTest
 /// Empty contract for tests enumerating behaviour of the `Phased` modifiers.

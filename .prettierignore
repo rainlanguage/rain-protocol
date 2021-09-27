@@ -5,3 +5,17 @@ artifacts
 cache
 typechain
 venv
+
+.nix-node
+node_modules
+public/build
+.env
+cache
+typechain
+artifacts
+build
+venv
+dist
+docs/api
+
+*.hbs

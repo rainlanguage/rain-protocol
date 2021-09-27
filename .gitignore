@@ -7,5 +7,9 @@ typechain
 artifacts
 build
 venv
-!dist/**/artifacts
 bin
+!dist/**/artifacts
+docs/api
+bin
+*.tgz
+.npmrc
