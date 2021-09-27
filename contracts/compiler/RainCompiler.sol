@@ -13,7 +13,7 @@ struct CompileIO {
 
 struct CompiledSource {
     uint256[4] source;
-    uint[16] vals;
+    uint256[16] vals;
 }
 
 struct SourceCursor {
@@ -294,37 +294,38 @@ abstract contract RainCompiler {
                 uint8(i_.mod(16))
             );
 
-            Op memory op_ = Op(uint8(
-                uint256(compiledSource_.source[sourceCursor_.item]
-                    >> (32 - (sourceCursor_.index + 8)))
-            ),
-            uint8(
-                uint256(compiledSource_.source[sourceCursor_.item]
-                    >> (32 - (sourceCursor_.index + 1 + 8)))
-            ));
+            Op memory op_ = Op(
+                uint8(
+                    uint256(compiledSource_.source[sourceCursor_.item]
+                        >> (32 - (sourceCursor_.index + 8)))
+                ),
+                uint8(
+                    uint256(compiledSource_.source[sourceCursor_.item]
+                        >> (32 - (sourceCursor_.index + 1 + 8)))
+                )
+            );
 
-            if (op_.code == OPCODE_VAL) {
-                stack_.vals[stack_.index] = compiledSource_.vals[op_.val];
-                stack_.index++;
+            if (op_.code <= OPCODE_RESERVED_MAX) {
+                if (op_.code == OPCODE_VAL) {
+                    stack_.vals[stack_.index] = compiledSource_.vals[op_.val];
+                    stack_.index++;
+                }
+                else if (op_.code == OPCODE_CALL) {
+                    stack_ = call(
+                        context_,
+                        stack_,
+                        CallSize(
+                            op_.val & 0x03, // 00000011
+                            op_.val & 0x1C, // 00011100
+                            op_.val & 0xE0 // 11100000
+                        )
+                    );
+                }
+                else if (op_.code == OPCODE_BLOCK_NUMBER) {
+                    stack_.vals[stack_.index] = block.number;
+                    stack_.index++;
+                }
             }
-
-            else if (op_.code == OPCODE_CALL) {
-                stack_ = call(
-                    context_,
-                    stack_,
-                    CallSize(
-                        op_.val & 0x03, // 00000011
-                        op_.val & 0x1C, // 00011100
-                        op_.val & 0xE0 // 11100000
-                    )
-                );
-            }
-
-            else if (op_.code == OPCODE_BLOCK_NUMBER) {
-                stack_.vals[stack_.index] = block.number;
-                stack_.index++;
-            }
-
             else {
                 stack_ = applyOp(
                     context_,

@@ -37,83 +37,57 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
             stack_.vals[stack_.index] = uint256(account_);
             stack_.index++;
         }
-        if (op_.code == OPCODE_REPORT) {
+        else if (op_.code == OPCODE_REPORT) {
             stack_.index -= 2;
             stack_.vals[stack_.index] = ITier(stack_.vals[stack_.index + 1])
                 .report(address(stack_.vals[stack_.index]));
             stack_.index++;
         }
-        if (op_.code == OPCODE_AND_NEW) {
+        else if (OPCODE_AND_NEW <= op_.code && op_.code <= OPCODE_OR_LEFT) {
             stack_.index -= op_.val;
             uint256[] memory args_ = new uint256[](op_.val - 1);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {
                 args_[a_] = stack_.vals[stack_.index + a_];
             }
 
-            stack_.vals[stack_.index] = TierwiseCombine.andNew(
-                args_,
-                stack_.vals[stack_.index + op_.val - 1]
-            );
-        }
-        if (op_.code == OPCODE_AND_OLD) {
-            stack_.index -= op_.val;
-            uint256[] memory args_ = new uint256[](op_.val - 1);
-            for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_.vals[stack_.index + a_];
-            }
+            uint256 blockNumber_ = stack_.vals[stack_.index + op_.val - 1];
 
-            stack_.vals[stack_.index] = TierwiseCombine.andOld(
-                args_,
-                stack_.vals[stack_.index + op_.val - 1]
-            );
-        }
-        if (op_.code == OPCODE_AND_LEFT) {
-            stack_.index -= op_.val;
-            uint256[] memory args_ = new uint256[](op_.val - 1);
-            for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_.vals[stack_.index + a_];
+            if (op_.code == OPCODE_AND_NEW) {
+                stack_.vals[stack_.index] = TierwiseCombine.andNew(
+                    args_,
+                    blockNumber_
+                );
             }
-
-            stack_.vals[stack_.index] = TierwiseCombine.andLeft(
-                args_,
-                stack_.vals[stack_.index + op_.val - 1]
-            );
-        }
-        if (op_.code == OPCODE_OR_NEW) {
-            stack_.index -= op_.val;
-            uint256[] memory args_ = new uint256[](op_.val - 1);
-            for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_.vals[stack_.index + a_];
+            else if (op_.code == OPCODE_AND_OLD) {
+                stack_.vals[stack_.index] = TierwiseCombine.andOld(
+                    args_,
+                    blockNumber_
+                );
             }
-
-            stack_.vals[stack_.index] = TierwiseCombine.orNew(
-                args_,
-                stack_.vals[stack_.index + op_.val - 1]
-            );
-        }
-        if (op_.code == OPCODE_OR_OLD) {
-            stack_.index -= op_.val;
-            uint256[] memory args_ = new uint256[](op_.val - 1);
-            for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_.vals[stack_.index + a_];
+            else if (op_.code == OPCODE_AND_LEFT) {
+                stack_.vals[stack_.index] = TierwiseCombine.andLeft(
+                    args_,
+                    blockNumber_
+                );
             }
-
-            stack_.vals[stack_.index] = TierwiseCombine.orOld(
-                args_,
-                stack_.vals[stack_.index + op_.val - 1]
-            );
-        }
-        if (op_.code == OPCODE_OR_LEFT) {
-            stack_.index -= op_.val;
-            uint256[] memory args_ = new uint256[](op_.val - 1);
-            for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_.vals[stack_.index + a_];
+            else if (op_.code == OPCODE_OR_NEW) {
+                stack_.vals[stack_.index] = TierwiseCombine.orNew(
+                    args_,
+                    blockNumber_
+                );
             }
-
-            stack_.vals[stack_.index] = TierwiseCombine.orLeft(
-                args_,
-                stack_.vals[stack_.index + op_.val - 1]
-            );
+            else if (op_.code == OPCODE_OR_OLD) {
+                stack_.vals[stack_.index] = TierwiseCombine.orOld(
+                    args_,
+                    blockNumber_
+                );
+            }
+            else if (op_.code == OPCODE_OR_LEFT) {
+                stack_.vals[stack_.index] = TierwiseCombine.orLeft(
+                    args_,
+                    blockNumber_
+                );
+            }
         }
 
         return stack_;
