@@ -43,6 +43,7 @@ abstract contract RainCompiler {
 
     // 32 bytes * 4 items.
     uint8 public constant MAX_COMPILED_SOURCE_LENGTH = 128;
+    uint8 public constant LIT_SIZE_BYTES = 32;
 
     uint8 public constant OPCODE_END = 0;
     uint8 public constant OPCODE_LIT = 1;
@@ -174,13 +175,14 @@ abstract contract RainCompiler {
                 // Literal opcode means copy the 32 bytes after the operand
                 // byte out of the source and into vals_.
                 if (compileIO_.inputOpcode == OPCODE_LIT) {
-                    for (uint j_ = 1; j_ <= 32; j_++) {
+                    for (uint j_ = 1; j_ <= LIT_SIZE_BYTES; j_++) {
                         val_ = val_ | uint256(
-                            uint256(uint8(inputSource_[i_ + j_])) << (32 - j_)
+                            uint256(uint8(inputSource_[i_ + j_]))
+                                << (LIT_SIZE_BYTES - j_)
                         );
                     }
                     // Move i_ forward 32 to compensate for the literal bytes.
-                    i_ = i_ + 32;
+                    i_ = i_ + LIT_SIZE_BYTES;
 
                     compileIO_.outputOpcode = OPCODE_VAL;
                 }
@@ -211,75 +213,73 @@ abstract contract RainCompiler {
     }
 
     function call(
-        bytes context_,
+        bytes memory context_,
         Stack memory stack_,
-        CallSize memory callSize_,
+        CallSize memory callSize_
+    ) internal view returns (Stack memory) {
+        stack_.index -= (callSize_.fnSize + callSize_.argSize + 2);
+        bytes memory mapSource_;
+        uint256 fnIndex_ = stack_.index + callSize_.argSize + 1;
+        if (callSize_.fnSize == 0) {
+            mapSource_ = abi.encodePacked(
+                stack_.vals[fnIndex_]
+            );
+        }
+        else if (callSize_.fnSize == 1) {
+            mapSource_ = abi.encodePacked(
+                stack_.vals[fnIndex_],
+                stack_.vals[fnIndex_ + 1]
+            );
+        }
+        else if (callSize_.fnSize == 2) {
+            mapSource_ = abi.encodePacked(
+                stack_.vals[fnIndex_],
+                stack_.vals[fnIndex_ + 1],
+                stack_.vals[fnIndex_ + 2]
+            );
+        }
+        else if (callSize_.fnSize == 3) {
+            mapSource_ = abi.encodePacked(
+                stack_.vals[fnIndex_],
+                stack_.vals[fnIndex_ + 1],
+                stack_.vals[fnIndex_ + 2],
+                stack_.vals[fnIndex_ + 3]
+            );
+        }
+        uint256[] memory baseArgs_ = new uint256[](
+            callSize_.argSize + 1
+        );
+        for (uint256 a_ = 0; a_ < callSize_.argSize + 1; a_++) {
+            baseArgs_[a_] = stack_.vals[stack_.index + a_];
+        }
 
-    ) returns (Stack memory) {
+        // Each loop size halves the item size.
+        uint256 stepSize_ = 256 >> callSize_.loopSize;
 
-                stack_.index -= (callSize_.fnSize + callSize_.argSize + 2);
-                bytes memory mapSource_;
-                uint256 fnIndex_ = stack_.index + callSize_.argSize + 1;
-                if (callSize_.fnSize == 0) {
-                    mapSource_ = abi.encodePacked(
-                        stack_.vals[fnIndex_]
-                    );
-                }
-                else if (callSize_.fnSize == 1) {
-                    mapSource_ = abi.encodePacked(
-                        stack_.vals[fnIndex_],
-                        stack_.vals[fnIndex_ + 1]
-                    );
-                }
-                else if (callSize_.fnSize == 2) {
-                    mapSource_ = abi.encodePacked(
-                        stack_.vals[fnIndex_],
-                        stack_.vals[fnIndex_ + 1],
-                        stack_.vals[fnIndex_ + 2]
-                    );
-                }
-                else if (callSize_.fnSize == 3) {
-                    mapSource_ = abi.encodePacked(
-                        stack_.vals[fnIndex_],
-                        stack_.vals[fnIndex_ + 1],
-                        stack_.vals[fnIndex_ + 2],
-                        stack_.vals[fnIndex_ + 3]
-                    );
-                }
-                uint256[] memory baseArgs_ = new uint256[](
-                    callSize_.argSize + 1
+        uint256[] memory args_ = new uint256[](baseArgs_.length);
+        for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
+            for (uint256 a_ = 0; a_ < args_.length; a_++) {
+                args_[a_] = uint256(
+                    uint256(baseArgs_[a_] << step_)
+                    >> 256 - stepSize_
                 );
-                for (uint256 a_ = 0; a_ < callSize_.argSize + 1; a_++) {
-                    baseArgs_[a_] = stack_.vals[stack_.index + a_];
-                }
+            }
+            CompiledSource memory mapCompiledSource_ = compile(
+                mapSource_,
+                args_
+            );
+            Stack memory mapStack_;
+            mapStack_ = eval(
+                context_,
+                mapStack_,
+                mapCompiledSource_
+            );
 
-                // Each loop size halves the item size.
-                uint256 stepSize_ = 256 >> callSize_.loopSize;
-
-                uint256[] memory args_ = new uint256[](baseArgs_.length);
-                for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-                    for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                        args_[a_] = uint256(
-                            uint256(baseArgs_[a_] << step_)
-                            >> 256 - stepSize_
-                        );
-                    }
-                    CompiledSource memory mapCompiledSource_ = compile(
-                        mapSource_,
-                        args_
-                    );
-                    Stack memory mapStack_;
-                    mapStack_ = eval(
-                        context_,
-                        mapStack_,
-                        mapCompiledSource_
-                    );
-
-                    for (uint256 m_ = 0; m_ < mapStack_.index; m_++) {
-                        stack_.vals[stack_.index + m_] = mapStack_.vals[m_];
-                    }
-                    stack_.index = stack_.index + mapStack_.index;
-                }
+            for (uint256 m_ = 0; m_ < mapStack_.index; m_++) {
+                stack_.vals[stack_.index + m_] = mapStack_.vals[m_];
+            }
+            stack_.index = stack_.index + mapStack_.index;
+        }
         return stack_;
     }
 
@@ -311,7 +311,7 @@ abstract contract RainCompiler {
             else if (op_.code == OPCODE_CALL) {
                 stack_ = call(
                     context_,
-                    stack,
+                    stack_,
                     CallSize(
                         op_.val & 0x03, // 00000011
                         op_.val & 0x1C, // 00011100
