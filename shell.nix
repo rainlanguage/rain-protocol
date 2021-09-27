@@ -70,6 +70,19 @@ let
  ci-test = pkgs.writeShellScriptBin "ci-test" ''
  hardhat test
  '';
+
+ cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
+    rm -rf artifacts
+    rm -rf cache
+    rm -rf node_modules
+    rm -rf typechain
+    npm install
+    hardhat compile --force
+    dir=`git rev-parse HEAD`
+    mkdir -p ''${dir}
+    mv artifacts "dist/''${dir}/"
+    # solt write contracts --npm --runs 100000
+ '';
 in
 pkgs.stdenv.mkDerivation {
  name = "shell";
@@ -85,6 +98,7 @@ pkgs.stdenv.mkDerivation {
   security-check
   ci-test
   ci-lint
+  cut-dist
  ];
 
  shellHook = ''
