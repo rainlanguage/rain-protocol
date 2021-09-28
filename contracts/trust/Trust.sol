@@ -16,10 +16,6 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {
     CRPFactory
 } from "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
-// import {
-//     BFactory
-// } from
-// "@beehiveinnovation/balancer-core/contracts/BFactory.sol";
 
 import { ITier } from "../tier/ITier.sol";
 
