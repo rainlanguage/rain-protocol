@@ -13,10 +13,6 @@ import {
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import {
-    CRPFactory
-} from "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
-
 import { ITier } from "../tier/ITier.sol";
 
 import { Phase } from "../phased/Phased.sol";
@@ -451,7 +447,7 @@ contract Trust is ReentrancyGuard {
         // setup and exits.
         redeemableERC20_.grantRole(
             redeemableERC20_.RECEIVER(),
-            address(redeemableERC20Pool_.crp().bFactory())
+            redeemableERC20Pool_.crp().bFactory()
         );
         redeemableERC20_.grantRole(
             redeemableERC20_.RECEIVER(),

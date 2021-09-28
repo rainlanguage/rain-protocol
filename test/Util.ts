@@ -1,5 +1,5 @@
 import { ethers, artifacts } from "hardhat";
-import type { RightsManager } from "../typechain/RightsManager";
+// import type { RightsManager } from "@beehiveinnovation/configurable-rights-pool/typechain/RightsManager";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
@@ -52,16 +52,16 @@ export const basicDeploy = async (name, libs) => {
 };
 
 export const balancerDeploy = async (): Promise<
-  [RightsManager, CRPFactory, BFactory]
+  [CRPFactory, BFactory]
 > => {
-  let rightsManager: RightsManager;
+  let rightsManager;
   if (rightsManagerAddress) {
     rightsManager = new ethers.Contract(
       rightsManagerAddress,
       (await artifacts.readArtifact("RightsManager")).abi
-    ) as RightsManager;
+    );
   } else {
-    rightsManager = (await basicDeploy("RightsManager", {})) as RightsManager;
+    rightsManager = await basicDeploy("RightsManager", {});
   }
 
   let balancerSafeMath;
@@ -111,7 +111,7 @@ export const balancerDeploy = async (): Promise<
     bFactory = (await basicDeploy("BFactory", {})) as BFactory;
   }
 
-  return [rightsManager, crpFactory, bFactory];
+  return [crpFactory, bFactory];
 };
 
 export interface Factories {
@@ -122,7 +122,6 @@ export interface Factories {
 }
 
 export const factoriesDeploy = async (
-  rightsManager: RightsManager,
   crpFactory: CRPFactory,
   balancerFactory: BFactory
 ): Promise<Factories> => {
@@ -134,12 +133,7 @@ export const factoriesDeploy = async (
   await redeemableERC20Factory.deployed();
 
   const redeemableERC20PoolFactoryFactory = await ethers.getContractFactory(
-    "RedeemableERC20PoolFactory",
-    {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    }
+    "RedeemableERC20PoolFactory"
   );
   const redeemableERC20PoolFactory =
     (await redeemableERC20PoolFactoryFactory.deploy({
@@ -214,8 +208,8 @@ export const assertError = async (f: Function, s: string, e: string) => {
   assert(didError, e);
 };
 
-export const crpJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
-export const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
+export const crpJson = require("../artifacts/contracts/pool/IConfigurableRightsPool.sol/IConfigurableRightsPool.json");
+export const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/IBPool.json");
 
 export const poolContracts = async (
   signers: any,

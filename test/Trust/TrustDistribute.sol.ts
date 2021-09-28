@@ -19,7 +19,7 @@ const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol
 const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
 const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
+const crpJson = require("../../artifacts/contracts/pool/IConfigurableRightsPool.sol/IConfigurableRightsPool.json");
 
 enum Tier {
   NIL,

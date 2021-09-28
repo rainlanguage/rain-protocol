@@ -34,12 +34,12 @@ let
     # Slither does not like there being two IERC20.
     # One is from Balancer the other is from Open Zeppelin.
     # This patch swaps all the Balancer IERC20 imports with an Open Zeppelin IERC20 import.
-    patch -p1 < slither-hack-balancer-ierc20.patch
+    # patch -p1 < slither-hack-balancer-ierc20.patch
 
     # Balancer has PoolParams struct defined inside a contract which slither does not like.
     # This patch moves PoolParams outside the contract and upates import references to it.
-    patch -p1 < slither-hack-balancer-pool-params.patch
-    patch -p1 < slither-hack-local-pool-params.patch
+    # patch -p1 < slither-hack-balancer-pool-params.patch
+    # patch -p1 < slither-hack-local-pool-params.patch
 
     # Workaround a slither bug due to stale compiled artifacts.
     # https://github.com/crytic/slither/issues/860
@@ -62,9 +62,9 @@ let
     slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies
 
     # Rollback all the slither specific patches.
-    patch -R -p1 < slither-hack-balancer-ierc20.patch
-    patch -R -p1 < slither-hack-balancer-pool-params.patch
-    patch -R -p1 < slither-hack-local-pool-params.patch
+    # patch -R -p1 < slither-hack-balancer-ierc20.patch
+    # patch -R -p1 < slither-hack-balancer-pool-params.patch
+    # patch -R -p1 < slither-hack-local-pool-params.patch
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''

@@ -28,6 +28,7 @@
     "docgen": "solidity-docgen -o ./docs/api/ --solc-module solc-0.6 --exclude ./contracts/test/,./contracts/tv-prestige/ -t ./.templates/"
   },
   "devDependencies": {
+    "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@maticnetwork/maticjs": "^2.0.22",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -65,10 +66,10 @@
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
     "simple-statistics": "^7.7.0",
+    "sirv-cli": "^1.0.0",
     "solc-0.6": "npm:solc@^0.6.12",
     "solhint": "^3.3.4",
     "solidity-docgen": "^0.5.13",
-    "sirv-cli": "^1.0.0",
     "svelte": "^3.0.0",
     "svelte-check": "^1.0.0",
     "svelte-preprocess": "^4.0.0",
@@ -82,7 +83,6 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@openzeppelin/contracts": "^3.3.0"
   },
   "husky": {
