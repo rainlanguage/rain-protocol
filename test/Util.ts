@@ -1,5 +1,4 @@
 import { ethers, artifacts } from "hardhat";
-// import type { RightsManager } from "@beehiveinnovation/configurable-rights-pool/typechain/RightsManager";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
@@ -13,8 +12,6 @@ import type { BPool } from "../typechain/BPool";
 import type { BigNumber } from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
-
-const trustJson = require("../artifacts/contracts/trust/Trust.sol/Trust.json");
 
 const { expect, assert } = chai;
 
@@ -208,21 +205,18 @@ export const assertError = async (f: Function, s: string, e: string) => {
   assert(didError, e);
 };
 
-export const crpJson = require("../artifacts/contracts/pool/IConfigurableRightsPool.sol/IConfigurableRightsPool.json");
-export const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/IBPool.json");
-
 export const poolContracts = async (
   signers: any,
   pool: RedeemableERC20Pool
 ): Promise<[ConfigurableRightsPool, BPool]> => {
   const crp = new ethers.Contract(
     await pool.crp(),
-    crpJson.abi,
+    (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
     signers[0]
   ) as ConfigurableRightsPool;
   const bPool = new ethers.Contract(
     await crp.bPool(),
-    bPoolJson.abi,
+    (await artifacts.readArtifact("BPool")).abi,
     signers[0]
   ) as BPool;
   return [crp, bPool];
@@ -247,7 +241,7 @@ export const trustDeploy = async (
       ),
       20 // address bytes length
     ),
-    trustJson.abi,
+    (await artifacts.readArtifact("Trust")).abi,
     creator
   ) as Trust;
 

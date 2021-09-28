@@ -28,6 +28,7 @@
     "docgen": "solidity-docgen -o ./docs/api/ --solc-module solc-0.6 --exclude ./contracts/test/,./contracts/tv-prestige/ -t ./.templates/"
   },
   "devDependencies": {
+    "@beehiveinnovation/balancer-core": "0.0.7",
     "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@maticnetwork/maticjs": "^2.0.22",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
