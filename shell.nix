@@ -52,6 +52,20 @@ let
     slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies
   '';
 
+  cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
+      rm -rf artifacts
+      rm -rf cache
+      rm -rf node_modules
+      rm -rf typechain
+      npm install
+      hardhat compile --force
+      dir=`git rev-parse HEAD`
+      mkdir -p ''${dir}
+      mv artifacts "dist/''${dir}/"
+      mv typechain "dist/''${dir}/"
+      # solt write contracts --npm --runs 100000
+  '';
+
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
     hardhat test
   '';
@@ -142,6 +156,7 @@ pkgs.stdenv.mkDerivation {
     security-check
     ci-test
     ci-lint
+    cut-dist
     docgen
     docs-dev
     docs-build
