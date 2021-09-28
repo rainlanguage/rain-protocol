@@ -8,7 +8,7 @@ artifacts
 build
 venv
 bin
-!dist/**/artifacts
+!dist/**
 docs/api
 bin
 *.tgz
