@@ -16,10 +16,10 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {
     CRPFactory
 } from "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
-import {
-    BFactory
-} from
-"@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
+// import {
+//     BFactory
+// } from
+// "@beehiveinnovation/balancer-core/contracts/BFactory.sol";
 
 import { ITier } from "../tier/ITier.sol";
 
@@ -88,10 +88,10 @@ struct DistributionProgress {
     // `DistributionStatus` as above.
     DistributionStatus distributionStatus;
     // First block that the distribution can be traded.
-    // Will be `0` before trading.
+    // Will be `-1` before trading.
     uint32 distributionStartBlock;
     // First block that the distribution can be ended.
-    // Will be `0` before trading.
+    // Will be `-1` before trading.
     uint32 distributionEndBlock;
     // Current reserve balance in the Balancer pool.
     // Will be `0` before trading.

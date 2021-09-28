@@ -13,9 +13,6 @@ import {
     IBPool
 } from "@beehiveinnovation/configurable-rights-pool/contracts/IBFactory.sol";
 import {
-    BPool
-} from "@beehiveinnovation/configurable-rights-pool/contracts/test/BPool.sol";
-import {
     RightsManager
 } from
 "@beehiveinnovation/configurable-rights-pool/libraries/RightsManager.sol";
@@ -31,10 +28,6 @@ import {
     CRPFactory
 } from
 "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
-import {
-    BFactory
-} from
-"@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
@@ -44,11 +37,11 @@ struct RedeemableERC20PoolConfig {
     // The CRPFactory on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
-    CRPFactory crpFactory;
+    address crpFactory;
     // The BFactory on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
-    BFactory balancerFactory;
+    address balancerFactory;
     // The reserve erc20 token.
     // The reserve token anchors our newly minted redeemable tokens to an
     // existant value system.
@@ -209,8 +202,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
         rights_[2] = true;
         rights_[4] = true;
 
-        ConfigurableRightsPool crp_ = config_.crpFactory.newCrp(
-            address(config_.balancerFactory),
+        ConfigurableRightsPool crp_ = CRPFactory(config_.crpFactory).newCrp(
+            config_.balancerFactory,
             ConfigurableRightsPool.PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",

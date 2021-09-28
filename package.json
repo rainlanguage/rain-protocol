@@ -82,7 +82,6 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "@beehiveinnovation/balancer-core": "0.0.7",
     "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@openzeppelin/contracts": "^3.3.0"
   },
