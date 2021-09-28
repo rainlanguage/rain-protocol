@@ -38,7 +38,7 @@ describe("TrustReentrant", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const maliciousReserve = (await Util.basicDeploy(
       "TrustReentrant",
@@ -50,7 +50,6 @@ describe("TrustReentrant", async function () {
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
-      rightsManager,
       crpFactory,
       bFactory
     );

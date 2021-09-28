@@ -59,7 +59,7 @@ describe("TrustRewards", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserveA = (await Util.basicDeploy(
       "ReserveToken",
@@ -79,7 +79,6 @@ describe("TrustRewards", async function () {
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
-      rightsManager,
       crpFactory,
       bFactory
     );
@@ -181,7 +180,7 @@ describe("TrustRewards", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserveA = (await Util.basicDeploy(
       "ReserveToken",
@@ -205,7 +204,6 @@ describe("TrustRewards", async function () {
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
-      rightsManager,
       crpFactory,
       bFactory
     );
@@ -498,7 +496,7 @@ describe("TrustRewards", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -510,7 +508,6 @@ describe("TrustRewards", async function () {
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
-      rightsManager,
       crpFactory,
       bFactory
     );
@@ -700,7 +697,7 @@ describe("TrustRewards", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -712,7 +709,6 @@ describe("TrustRewards", async function () {
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
-      rightsManager,
       crpFactory,
       bFactory
     );
@@ -854,7 +850,7 @@ describe("TrustRewards", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -866,7 +862,6 @@ describe("TrustRewards", async function () {
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(
-      rightsManager,
       crpFactory,
       bFactory
     );
