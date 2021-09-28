@@ -9,32 +9,16 @@ import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
+import { Rights } from "./IRightsManager.sol";
+import { ICRPFactory } from "./ICRPFactory.sol";
 import {
-    IBPool
-} from "@beehiveinnovation/configurable-rights-pool/contracts/IBFactory.sol";
-import {
-    BPool
-} from "@beehiveinnovation/configurable-rights-pool/contracts/test/BPool.sol";
-import {
-    RightsManager
-} from
-"@beehiveinnovation/configurable-rights-pool/libraries/RightsManager.sol";
+    PoolParams, IConfigurableRightsPool
+} from "./IConfigurableRightsPool.sol";
+
 import {
     BalancerConstants
 } from
-"@beehiveinnovation/configurable-rights-pool/libraries/BalancerConstants.sol";
-import {
-    ConfigurableRightsPool
-// solhint-disable-next-line max-line-length
-} from "@beehiveinnovation/configurable-rights-pool/contracts/ConfigurableRightsPool.sol";
-import {
-    CRPFactory
-} from
-"@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
-import {
-    BFactory
-} from
-"@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
+"./IBalancerConstants.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
@@ -44,11 +28,11 @@ struct RedeemableERC20PoolConfig {
     // The CRPFactory on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
-    CRPFactory crpFactory;
+    address crpFactory;
     // The BFactory on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
-    BFactory balancerFactory;
+    address balancerFactory;
     // The reserve erc20 token.
     // The reserve token anchors our newly minted redeemable tokens to an
     // existant value system.
@@ -150,7 +134,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     uint256 public immutable reserveInit;
 
     /// The `ConfigurableRightsPool` built during construction.
-    ConfigurableRightsPool public immutable crp;
+    IConfigurableRightsPool public immutable crp;
 
     /// The final weight on the last block of the raise.
     /// Note the spot price is unknown until the end because we don't know
@@ -198,20 +182,9 @@ contract RedeemableERC20Pool is Ownable, Phased {
             config_.initialValuation
         );
 
-        // 0. Pause
-        // 1. Change fee
-        // 2. Change weights (`true` needed to set gradual weight schedule)
-        // 3. Add/remove tokens
-        // 4. Whitelist LPs (default behaviour for `true` is that nobody can
-        //    `joinPool`)
-        // 5. Change cap
-        bool[] memory rights_ = new bool[](6);
-        rights_[2] = true;
-        rights_[4] = true;
-
-        ConfigurableRightsPool crp_ = config_.crpFactory.newCrp(
-            address(config_.balancerFactory),
-            ConfigurableRightsPool.PoolParams(
+        address crp_ = ICRPFactory(config_.crpFactory).newCrp(
+            config_.balancerFactory,
+            PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",
                 poolAddresses_,
@@ -219,9 +192,24 @@ contract RedeemableERC20Pool is Ownable, Phased {
                 initialWeights_,
                 BalancerConstants.MIN_FEE
             ),
-            RightsManager.constructRights(rights_)
+            Rights(
+                // 0. Pause
+                false,
+                // 1. Change fee
+                false,
+                // 2. Change weights
+                // (`true` needed to set gradual weight schedule)
+                true,
+                // 3. Add/remove tokens
+                false,
+                // 4. Whitelist LPs (default behaviour for `true` is that
+                //    nobody can `joinPool`)
+                true,
+                // 5. Change cap
+                false
+            )
         );
-        crp = crp_;
+        crp = IConfigurableRightsPool(crp_);
 
         // Preapprove all tokens and reserve for the CRP.
         require(
@@ -335,12 +323,12 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // - The LP token supply implied by the token
         uint256 minReservePoolTokens = MIN_BALANCER_POOL_BALANCE
             .mul(BalancerConstants.MAX_POOL_SUPPLY)
-            .div(reserve.balanceOf(address(crp.bPool())));
+            .div(reserve.balanceOf(crp.bPool()));
         // The minimum redeemable token supply is 10 ** 18 so it is near
         // impossible to hit this before the reserve or global pool minimums.
         uint256 minRedeemablePoolTokens = MIN_BALANCER_POOL_BALANCE
             .mul(BalancerConstants.MAX_POOL_SUPPLY)
-            .div(token.balanceOf(address(crp.bPool())));
+            .div(token.balanceOf(crp.bPool()));
         uint256 minPoolSupply_ = BalancerConstants.MIN_POOL_SUPPLY
             .max(minReservePoolTokens)
             .max(minRedeemablePoolTokens);
@@ -350,7 +338,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // The redeemable token will be burned when it moves to its
         // `Phase.ONE`.
         crp.exitPool(
-            crp.balanceOf(address(this)) - minPoolSupply_,
+            IERC20(address(crp)).balanceOf(address(this)) - minPoolSupply_,
             new uint256[](2)
         );
 

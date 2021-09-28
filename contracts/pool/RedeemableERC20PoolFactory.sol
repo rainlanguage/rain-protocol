@@ -8,13 +8,6 @@ import {
     RedeemableERC20Pool,
     RedeemableERC20PoolConfig
 } from "./RedeemableERC20Pool.sol";
-import {
-    CRPFactory
-} from "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
-import {
-    BFactory
-} from
-"@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 
@@ -23,11 +16,11 @@ struct RedeemableERC20PoolFactoryConfig {
     // The CRPFactory on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
-    CRPFactory crpFactory;
+    address crpFactory;
     // The BFactory on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
-    BFactory balancerFactory;
+    address balancerFactory;
 }
 
 /// Everything else required to construct new `RedeemableERC20Pool` child
@@ -78,9 +71,9 @@ struct RedeemableERC20PoolFactoryRedeemableERC20PoolConfig {
 /// contracts.
 contract RedeemableERC20PoolFactory is Factory {
     /// ConfigurableRightsPool factory.
-    CRPFactory public immutable crpFactory;
+    address public immutable crpFactory;
     /// Balancer factory.
-    BFactory public immutable balancerFactory;
+    address public immutable balancerFactory;
 
     /// @param config_ All configuration for the `RedeemableERC20PoolFactory`.
     constructor(RedeemableERC20PoolFactoryConfig memory config_) public {

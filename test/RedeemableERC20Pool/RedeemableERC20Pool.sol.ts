@@ -33,7 +33,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -76,11 +76,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await redeemable.deployed();
 
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
 
     const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
@@ -156,7 +152,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -199,11 +195,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await redeemable.deployed();
 
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
 
     const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
@@ -233,7 +225,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -276,11 +268,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await redeemable.deployed();
 
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
 
     const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
@@ -405,7 +393,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -448,11 +436,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await redeemable.deployed();
 
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
 
     const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
@@ -546,7 +530,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -610,11 +594,7 @@ describe("RedeemableERC20Pool", async function () {
       } on construction, got ${await redeemable.currentPhase()}`
     );
 
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
 
     const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
@@ -695,7 +675,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -752,11 +732,7 @@ describe("RedeemableERC20Pool", async function () {
       } on construction, got ${await redeemable.currentPhase()}`
     );
 
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
 
     const pool = (await poolFactory.deploy({
       crpFactory: crpFactory.address,
@@ -820,7 +796,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -877,11 +853,7 @@ describe("RedeemableERC20Pool", async function () {
       } on construction, got ${await redeemable.currentPhase()}`
     );
 
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
 
     await Util.assertError(
       async () => {
@@ -907,7 +879,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -964,11 +936,7 @@ describe("RedeemableERC20Pool", async function () {
       } on construction, got ${await redeemable.currentPhase()}`
     );
 
-    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool", {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    });
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
 
     (await poolFactory.deploy({
       crpFactory: crpFactory.address,

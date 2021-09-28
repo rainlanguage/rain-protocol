@@ -1,7 +1,7 @@
 import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import { ethers } from "hardhat";
+import { ethers, artifacts } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TrustReentrant } from "../../typechain/TrustReentrant";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
@@ -14,11 +14,6 @@ import { factoriesDeploy } from "../Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;
-
-const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
-const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
 
 enum Tier {
   NIL,
@@ -38,7 +33,7 @@ describe("TrustReentrant", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const maliciousReserve = (await Util.basicDeploy(
       "TrustReentrant",
@@ -49,11 +44,7 @@ describe("TrustReentrant", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -115,17 +106,17 @@ describe("TrustReentrant", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
     const crp = new ethers.Contract(
       await pool.crp(),
-      crpJson.abi,
+      (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
       creator
     ) as ConfigurableRightsPool;
 
@@ -149,7 +140,7 @@ describe("TrustReentrant", async function () {
 
     const bPool = new ethers.Contract(
       await crp.bPool(),
-      bPoolJson.abi,
+      (await artifacts.readArtifact("BPool")).abi,
       creator
     ) as BPool;
 
