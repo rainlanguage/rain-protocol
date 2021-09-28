@@ -48,9 +48,7 @@ export const basicDeploy = async (name, libs) => {
   return contract;
 };
 
-export const balancerDeploy = async (): Promise<
-  [CRPFactory, BFactory]
-> => {
+export const balancerDeploy = async (): Promise<[CRPFactory, BFactory]> => {
   let rightsManager;
   if (rightsManagerAddress) {
     rightsManager = new ethers.Contract(

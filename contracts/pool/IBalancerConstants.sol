@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity 0.6.12;
 
+// solhint-disable-next-line max-line-length
 // https://github.com/balancer-labs/configurable-rights-pool/blob/master/libraries/BalancerConstants.sol
 library BalancerConstants {
     uint public constant BONE = 10**18;

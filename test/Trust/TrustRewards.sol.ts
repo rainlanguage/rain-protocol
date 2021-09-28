@@ -78,10 +78,7 @@ describe("TrustRewards", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -203,10 +200,7 @@ describe("TrustRewards", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -507,10 +501,7 @@ describe("TrustRewards", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -708,10 +699,7 @@ describe("TrustRewards", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -861,10 +849,7 @@ describe("TrustRewards", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
