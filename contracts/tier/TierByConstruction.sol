@@ -49,14 +49,13 @@ contract TierByConstruction {
         constructionBlock = block.number;
     }
 
-    /// Check if an account has held AT LEAST the given tier
-    /// according to `tierContract` since construction.
-    /// The account MUST have held the tier continuously from
-    /// construction until the "current" state according to `report`.
-    /// Note that `report` PROBABLY is current as at the block this
-    /// function is called but MAYBE NOT.
-    /// The `ITier` contract is free to manage reports however makes
-    /// sense to it.
+    /// Check if an account has held AT LEAST the given tier according to
+    /// `tierContract` since construction.
+    /// The account MUST have held the tier continuously from construction
+    /// until the "current" state according to `report`.
+    /// Note that `report` PROBABLY is current as at the block this function is
+    /// called but MAYBE NOT.
+    /// The `ITier` contract is free to manage reports however makes sense.
     ///
     /// @param account_ Account to check status of.
     /// @param minimumTier_ Minimum tier for the account.
@@ -72,19 +71,18 @@ contract TierByConstruction {
         );
     }
 
-    /// Modifier that restricts access to functions depending on the
-    /// tier required by the function.
+    /// Modifier that restricts access to functions depending on the tier
+    /// required by the function.
     ///
     /// `isTier` involves an external call to tierContract.report.
-    /// `require` happens AFTER the modified function to avoid
-    /// rentrant `ITier` code.
-    /// Also `report` from `ITier` is `view` so the compiler will
-    /// error on attempted state modification.
+    /// `require` happens AFTER the modified function to avoid rentrant
+    /// `ITier` code.
+    /// Also `report` from `ITier` is `view` so the compiler will error on
+    /// attempted state modification.
     // solhint-disable-next-line max-line-length
     /// https://consensys.github.io/smart-contract-best-practices/recommendations/#use-modifiers-only-for-checks
     ///
-    /// Do NOT use this to guard setting the tier on an ITier
-    /// contract.
+    /// Do NOT use this to guard setting the tier on an `ITier` contract.
     /// The initial tier would be checked AFTER it has already been
     /// modified which is unsafe.
     ///

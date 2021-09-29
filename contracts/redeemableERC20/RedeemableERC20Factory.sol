@@ -8,15 +8,15 @@ import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { ITier } from "../tier/ITier.sol";
 
 /// @title RedeemableERC20Factory
-/// @notice Factory for creating and registering new RedeemableERC20 contracts.
+/// @notice Factory for deploying and registering `RedeemableERC20` contracts.
 contract RedeemableERC20Factory is Factory {
 
-    /// Decodes the arbitrary data_ parameter for RedeemableERC20 constructor,
-    /// which expects a RedeemableERC20Config type.
+    /// Decodes the arbitrary `data_` parameter for `RedeemableERC20`
+    /// constructor, which expects a RedeemableERC20Config type.
     ///
-    /// @param data_ Encoded data to pass down to child RedeemableERC20
+    /// @param data_ Encoded data to pass down to child `RedeemableERC20`
     /// contract constructor.
-    /// @return New RedeemableERC20 child contract address.
+    /// @return New `RedeemableERC20` child contract address.
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
@@ -28,12 +28,12 @@ contract RedeemableERC20Factory is Factory {
         return address(redeemableERC20_);
     }
 
-    /// Allows calling `createChild` with RedeemableERC20Config struct.
-    /// Can use original Factory `createChild` function signature if function
+    /// Allows calling `createChild` with `RedeemableERC20Config` struct.
+    /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ RedeemableERC20 constructor configuration.
-    /// @return New RedeemableERC20 child contract address.
+    /// @param config_ `RedeemableERC20` constructor configuration.
+    /// @return New `RedeemableERC20` child contract address.
     function createChild(RedeemableERC20Config calldata config_)
         external
         returns(address)

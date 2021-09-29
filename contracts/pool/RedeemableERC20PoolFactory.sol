@@ -13,11 +13,11 @@ import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 
 /// Everything required to construct a `RedeemableERC20PoolFactory`.
 struct RedeemableERC20PoolFactoryConfig {
-    // The CRPFactory on the current network.
+    // The `CRPFactory` on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
     address crpFactory;
-    // The BFactory on the current network.
+    // The `BFactory` on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
     address balancerFactory;
@@ -81,12 +81,12 @@ contract RedeemableERC20PoolFactory is Factory {
         balancerFactory = config_.balancerFactory;
     }
 
-    /// Decodes the arbitrary data_ parameter for RedeemableERC20Pool
-    /// constructor, which expects a RedeemableERC20PoolConfig type.
+    /// Decodes the arbitrary `data_` parameter for `RedeemableERC20Pool`
+    /// constructor, which expects a `RedeemableERC20PoolConfig` type.
     ///
-    /// @param data_ Encoded data to pass down to child RedeemableERC20Pool
+    /// @param data_ Encoded data to pass down to child `RedeemableERC20Pool`
     /// contract constructor.
-    /// @return New RedeemableERC20Pool child contract address.
+    /// @return New `RedeemableERC20Pool` child contract address.
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
@@ -110,7 +110,7 @@ contract RedeemableERC20PoolFactory is Factory {
                 config_.minimumTradingDuration
             )
         );
-        /// Transfer Balancer pool ownership to sender (e.g. Trust).
+        /// Transfer Balancer pool ownership to sender (e.g. `Trust`).
         pool_.transferOwnership(msg.sender);
         return address(pool_);
     }
@@ -120,8 +120,8 @@ contract RedeemableERC20PoolFactory is Factory {
     /// Can use original Factory `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ RedeemableERC20Pool constructor configuration.
-    /// @return New RedeemableERC20Pool child contract address.
+    /// @param config_ `RedeemableERC20Pool` constructor configuration.
+    /// @return New `RedeemableERC20Pool` child contract address.
     function createChild(
         RedeemableERC20PoolFactoryRedeemableERC20PoolConfig
         calldata

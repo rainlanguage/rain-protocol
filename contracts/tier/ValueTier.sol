@@ -6,15 +6,14 @@ import { ITier } from "./ITier.sol";
 
 /// @title ValueTier
 ///
-/// @dev A contract that is `ValueTier` expects to derive
-/// tiers from explicit values.
-/// For example an address must send or hold an amount of
-/// something to reach a given tier.
+/// @dev A contract that is `ValueTier` expects to derive tiers from explicit
+/// values. For example an address must send or hold an amount of something to
+/// reach a given tier.
 /// Anything with predefined values that map to tiers can be a `ValueTier`.
 ///
 /// Note that `ValueTier` does NOT implement `ITier`.
-/// `ValueTier` does include state however, to track the
-/// `tierValues` so is not a library.
+/// `ValueTier` does include state however, to track the `tierValues` so is not
+/// a library.
 contract ValueTier {
     uint256 private immutable tierOne;
     uint256 private immutable tierTwo;
@@ -38,8 +37,8 @@ contract ValueTier {
     }
 
     /// Complements the default solidity accessor for `tierValues`.
-    /// Returns all the values in a list rather than
-    /// requiring an index be specified.
+    /// Returns all the values in a list rather than requiring an index be
+    /// specified.
     /// @return tierValues_ The immutable `tierValues`.
     function tierValues() public view returns(uint256[8] memory tierValues_) {
         tierValues_[0] = tierOne;
@@ -54,7 +53,7 @@ contract ValueTier {
     }
 
     /// Converts a Tier to the minimum value it requires.
-    /// Tier ZERO is always value 0 as it is the fallback.
+    /// `Tier.ZERO` is always value 0 as it is the fallback.
     function tierToValue(ITier.Tier tier_) internal view returns(uint256) {
         return tier_ > ITier.Tier.ZERO ? tierValues()[uint256(tier_) - 1] : 0;
     }
