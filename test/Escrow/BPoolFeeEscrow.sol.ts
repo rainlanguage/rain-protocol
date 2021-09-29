@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import {
   basicSetup,
   deployGlobals,
+  failedRaise,
   successfulRaise,
 } from "./BPoolFeeEscrowUtil";
 
@@ -32,7 +33,81 @@ enum DistributionStatus {
   FAIL,
 }
 
-describe("BPoolFeeEscrow", async function () {
+describe.only("BPoolFeeEscrow", async function () {
+  it.only("should still refund abandoned fees on failed raise", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { recipient, trust, spend, fee, reserve, signer1, redeemableERC20 } =
+      await failedRaise(signers, escrow, trustFactory, tier);
+
+    // should have correct fee in escrow
+    assert((await escrow.fees(trust.address, recipient.address)).eq(fee));
+    assert((await escrow.abandoned(trust.address)).isZero());
+    assert((await escrow.failureRefunds(trust.address)).eq(fee));
+
+    await escrow.connect(recipient).abandonTrust(trust.address);
+
+    assert((await escrow.fees(trust.address, recipient.address)).isZero());
+    assert((await escrow.abandoned(trust.address)).eq(fee));
+    assert((await escrow.failureRefunds(trust.address)).isZero());
+
+    const reserveOnTokenBefore = await reserve.balanceOf(
+      redeemableERC20.address
+    );
+
+    // a recipient abandoning fees should not prevent them being refunded after a failed raise
+    await escrow.connect(signer1).refundFees(trust.address);
+
+    const reserveOnTokenAfter = await reserve.balanceOf(
+      redeemableERC20.address
+    );
+
+    const expectedRefund = spend.add(fee);
+    const actualRefund = reserveOnTokenAfter.sub(reserveOnTokenBefore);
+
+    assert(
+      expectedRefund.eq(actualRefund),
+      `wrong amount refunded to token
+      expected  ${expectedRefund}
+      got       ${actualRefund}`
+    );
+  });
+
+  it("should allow recipient to abandon claimable fees", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { recipient, trust, totalFee, reserve } = await successfulRaise(
+      signers,
+      escrow,
+      trustFactory,
+      tier
+    );
+
+    // recipient has claimable fees for this trust
+    assert((await escrow.fees(trust.address, recipient.address)).eq(totalFee));
+    assert((await escrow.abandoned(trust.address)).isZero());
+
+    await escrow.connect(recipient).abandonTrust(trust.address);
+
+    // recipient no longer has claimable fees for this trust
+    assert((await escrow.fees(trust.address, recipient.address)).isZero());
+    assert((await escrow.abandoned(trust.address)).eq(totalFee));
+
+    assert((await reserve.balanceOf(recipient.address)).isZero());
+
+    await escrow.connect(recipient).claimFees(trust.address, recipient.address);
+
+    assert((await reserve.balanceOf(recipient.address)).isZero());
+  });
+
   it("should allow recipient to batch claim fees", async function () {
     this.timeout(0);
 

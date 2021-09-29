@@ -5,6 +5,7 @@ import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
+import type { TrustFactory } from "../../typechain/TrustFactory";
 
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
@@ -168,15 +169,23 @@ export const basicSetup = async (signers, trustFactory, tier) => {
   };
 };
 
-export const successfulRaise = async (signers, escrow, trustFactory, tier) => {
+export const successfulRaise = async (
+  signers,
+  escrow: BPoolFeeEscrow,
+  trustFactory: TrustFactory,
+  tier: ReadWriteTier
+) => {
   const {
     reserve,
     trust,
     recipient,
     signer1,
     successLevel,
+    pool,
+    crp,
     bPool,
     minimumTradingDuration,
+    redeemableERC20,
   } = await basicSetup(signers, trustFactory, tier);
 
   const startBlock = await ethers.provider.getBlockNumber();
@@ -209,6 +218,9 @@ export const successfulRaise = async (signers, escrow, trustFactory, tier) => {
     buyCount++;
   }
 
+  const totalSpend = spend.mul(buyCount);
+  const totalFee = fee.mul(buyCount);
+
   const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
   const emptyBlocks =
     startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
@@ -230,5 +242,83 @@ export const successfulRaise = async (signers, escrow, trustFactory, tier) => {
     minimumTradingDuration,
     fee,
     buyCount,
+    totalSpend,
+    totalFee,
+    pool,
+    crp,
+    redeemableERC20,
+  };
+};
+
+export const failedRaise = async (
+  signers,
+  escrow: BPoolFeeEscrow,
+  trustFactory: TrustFactory,
+  tier: ReadWriteTier,
+  afterBuyToken?: Function
+) => {
+  const {
+    reserve,
+    trust,
+    recipient,
+    signer1,
+    successLevel,
+    bPool,
+    minimumTradingDuration,
+    pool,
+    crp,
+    redeemableERC20,
+  } = await basicSetup(signers, trustFactory, tier);
+
+  const startBlock = await ethers.provider.getBlockNumber();
+
+  const buyTokensViaEscrow = async (signer, spend, fee) => {
+    // give signer some reserve
+    await reserve.transfer(signer.address, spend.add(fee));
+
+    await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+
+    await escrow
+      .connect(signer)
+      .buyToken(
+        trust.address,
+        spend,
+        ethers.BigNumber.from("1"),
+        ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+        recipient.address,
+        fee
+      );
+  };
+
+  const spend = ethers.BigNumber.from("250" + Util.sixZeros);
+  const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+  // raise all necessary funds
+  await buyTokensViaEscrow(signer1, spend, fee);
+
+  const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
+  const emptyBlocks =
+    startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+
+  // create empty blocks to end of raise duration
+  await Util.createEmptyBlock(emptyBlocks);
+
+  // actually end raise
+  await trust.anonEndDistribution();
+
+  return {
+    reserve,
+    escrow,
+    trust,
+    recipient,
+    signer1,
+    successLevel,
+    bPool,
+    minimumTradingDuration,
+    fee,
+    spend,
+    pool,
+    crp,
+    redeemableERC20,
   };
 };
