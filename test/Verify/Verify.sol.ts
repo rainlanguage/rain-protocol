@@ -6,6 +6,13 @@ import { ethers } from "hardhat";
 chai.use(solidity);
 const { expect, assert } = chai;
 
+enum Status {
+  Nil,
+  Added,
+  Approved,
+  Banned,
+}
+
 const APPROVER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("APPROVER_ADMIN")
 );
@@ -19,11 +26,93 @@ const BANNER_ADMIN = ethers.utils.keccak256(
 );
 const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
-let verifyFactory;
+/**
+ * TODO: test the following
+ *
+ * requires:
+ * 0_ACCOUNT
+ * CURRENT_STATUS
+ * ONLY_REMOVER
+ * ONLY_APPROVER
+ * ONLY_BANNER
+ */
 
 describe("Verify", async function () {
-  before(async () => {
-    verifyFactory = await ethers.getContractFactory("Verify");
+  it("should require non-zero admin address", async function () {
+    this.timeout(0);
+
+    const verifyFactory = await ethers.getContractFactory("Verify");
+
+    await Util.assertError(
+      async () => await verifyFactory.deploy(Util.zeroAddress),
+      "revert 0_ACCOUNT",
+      "wrongly constructed Verify with admin as zero address"
+    );
+  });
+
+  it("should return correct state for a given account", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const admin = signers[0];
+    const verifier = signers[1];
+    const signer1 = signers[2];
+
+    const verifyFactory = await ethers.getContractFactory("Verify");
+
+    const verify = await verifyFactory.deploy(admin.address);
+
+    const state0 = await verify.state(signer1.address);
+    assert(
+      state0.status === Status.Nil,
+      "status should be uninitialized (Nil)"
+    );
+    assert(state0.since === 0, "since should be uninitialized");
+
+    await verify.grantRole(await verify.APPROVER(), verifier.address);
+    await verify.grantRole(await verify.BANNER(), verifier.address);
+    await verify.grantRole(await verify.REMOVER(), verifier.address);
+
+    // signer1 generates and adds verify session id
+    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    await verify.connect(signer1).add(SESSION_ID0);
+
+    const block1 = await ethers.provider.getBlockNumber();
+    const state1 = await verify.state(signer1.address);
+    assert(state1.status === Status.Added, "status should be Added");
+    assert(
+      state1.since === block1,
+      `expected block1 ${block1} got ${state1.since}`
+    );
+
+    // approve verify session
+    await verify.connect(verifier).approve(SESSION_ID0);
+
+    const block2 = await ethers.provider.getBlockNumber();
+    const state2 = await verify.state(signer1.address);
+    assert(state2.status === Status.Approved, "status should be Approved");
+    assert(
+      state2.since === block2,
+      `expected block2 ${block2} got ${state2.since}`
+    );
+
+    // ban verify session
+    await verify.connect(verifier).ban(SESSION_ID0);
+
+    const block3 = await ethers.provider.getBlockNumber();
+    const state3 = await verify.state(signer1.address);
+    assert(state3.status === Status.Banned, "status should be Banned");
+    assert(
+      state3.since === block3,
+      `expected block3 ${block3} got ${state3.since}`
+    );
+
+    // remove account
+    await verify.connect(verifier).remove(signer1.address);
+
+    const state4 = await verify.state(signer1.address);
+    assert(state4.status === Status.Nil, "status should be deleted");
+    assert(state4.since === 0, "since should be deleted");
   });
 
   it("should hold correct public constants", async function () {
@@ -31,6 +120,8 @@ describe("Verify", async function () {
 
     const signers = await ethers.getSigners();
     const admin = signers[0];
+
+    const verifyFactory = await ethers.getContractFactory("Verify");
 
     const verify = await verifyFactory.deploy(admin.address);
 
@@ -59,6 +150,8 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
 
+    const verifyFactory = await ethers.getContractFactory("Verify");
+
     const verify = await verifyFactory.deploy(admin.address);
 
     // admin (specified in constructor) has all roles
@@ -83,12 +176,14 @@ describe("Verify", async function () {
     const admin = signers[0];
     const signer1 = signers[1];
 
+    const verifyFactory = await ethers.getContractFactory("Verify");
+
     const verify = await verifyFactory.deploy(admin.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
     const SESSION_ID1 = ethers.BigNumber.from("12345678901234567901");
 
-    // signer1 generates verify session id
+    // signer1 generates and adds verify session id
     await expect(verify.connect(signer1).add(SESSION_ID0))
       .to.emit(verify, "Add")
       .withArgs(signer1.address, SESSION_ID0);
@@ -117,13 +212,15 @@ describe("Verify", async function () {
     const signer1 = signers[1];
     const approver = signers[2];
 
+    const verifyFactory = await ethers.getContractFactory("Verify");
+
     const verify = await verifyFactory.deploy(admin.address);
 
     await verify.grantRole(await verify.APPROVER(), approver.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates verify session id
+    // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
 
     // approve verify session
@@ -140,13 +237,15 @@ describe("Verify", async function () {
     const signer1 = signers[1];
     const remover = signers[2];
 
+    const verifyFactory = await ethers.getContractFactory("Verify");
+
     const verify = await verifyFactory.deploy(admin.address);
 
     await verify.grantRole(await verify.REMOVER(), remover.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates verify session id
+    // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
 
     // admin removes account
@@ -169,13 +268,15 @@ describe("Verify", async function () {
     const signer1 = signers[1];
     const banner = signers[2];
 
+    const verifyFactory = await ethers.getContractFactory("Verify");
+
     const verify = await verifyFactory.deploy(admin.address);
 
     await verify.grantRole(await verify.BANNER(), banner.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates verify session id
+    // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
 
     // admin bans verify session
