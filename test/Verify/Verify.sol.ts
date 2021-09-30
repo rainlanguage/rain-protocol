@@ -71,14 +71,16 @@ describe("Verify", async function () {
 
     // Approve
     await verify.connect(verifier).approve(SESSION_ID0);
-    const tierReportApproved = await verifyTier.report(signer1.address);
+    const tierReportApprovedActual = Util.zeroPad32(
+      await verifyTier.report(signer1.address)
+    );
     const tierReportApprovedExpected =
       "0x0000000700000007000000070000000700000007000000070000000700000007";
     assert(
-      tierReportApproved.toHexString() === tierReportApprovedExpected,
+      tierReportApprovedActual === tierReportApprovedExpected,
       `Approved status did not return correct report
       expected  ${tierReportApprovedExpected}
-      got       ${tierReportApproved.toHexString()}`
+      got       ${tierReportApprovedActual}`
     );
 
     // Ban

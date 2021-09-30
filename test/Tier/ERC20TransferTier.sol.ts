@@ -49,6 +49,8 @@ describe("ERC20TransferTier", async function () {
     await erc20TransferTier.deployed();
   });
 
+  xit("should have no hysteresis on balance when repeatedly shifting tiers", async () => {});
+
   it("should allow delegating tier upgrades", async () => {
     const requiredForTier2 = LEVELS[1];
 
