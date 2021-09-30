@@ -18,7 +18,7 @@ contract VerifyTier is ReadOnlyTier {
         if (state_.status == Status.Approved) {
             return TierUtil.updateBlocksForTierRange(
                 0,
-                Tier.ONE,
+                Tier.ZERO,
                 Tier.EIGHT,
                 state_.since
             );

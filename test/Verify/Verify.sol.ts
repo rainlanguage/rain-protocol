@@ -2,6 +2,8 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
+import type { VerifyTier } from "../../typechain/VerifyTier";
+import type { Verify } from "../../typechain/Verify";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -33,6 +35,73 @@ describe("Verify", async function () {
     verifyFactory = await ethers.getContractFactory("Verify");
   });
 
+  it("should correctly verify tier", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const admin = signers[0];
+    const verifier = signers[1];
+    const signer1 = signers[2];
+
+    const tierFactory = await ethers.getContractFactory("VerifyTier");
+
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+
+    const verifyTier = (await tierFactory.deploy(verify.address)) as VerifyTier;
+
+    await verify.grantRole(await verify.APPROVER(), verifier.address);
+    await verify.grantRole(await verify.BANNER(), verifier.address);
+    await verify.grantRole(await verify.REMOVER(), verifier.address);
+
+    const tierReportNil = await verifyTier.report(signer1.address);
+    assert(
+      tierReportNil.eq(Util.max_uint256),
+      "Nil status did not return max uint256"
+    );
+
+    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+
+    // Add
+    await verify.connect(signer1).add(SESSION_ID0);
+    const tierReportAdded = await verifyTier.report(signer1.address);
+    assert(
+      tierReportAdded.eq(Util.max_uint256),
+      "Added status did not return max uint256"
+    );
+
+    // Approve
+    await verify.connect(verifier).approve(SESSION_ID0);
+    const blockApproved = await ethers.provider.getBlockNumber();
+    const tierReportApprovedActual = Util.zeroPad32(
+      await verifyTier.report(signer1.address)
+    );
+    const tierReportApprovedExpected =
+      "0x" +
+      Util.zeroPad4(ethers.BigNumber.from(blockApproved)).slice(2).repeat(8);
+    assert(
+      tierReportApprovedActual === tierReportApprovedExpected,
+      `Approved status did not return correct report
+      expected  ${tierReportApprovedExpected}
+      got       ${tierReportApprovedActual}`
+    );
+
+    // Ban
+    await verify.connect(verifier).ban(SESSION_ID0);
+    const tierReportBanned = await verifyTier.report(signer1.address);
+    assert(
+      tierReportBanned.eq(Util.max_uint256),
+      "Banned status did not return max uint256"
+    );
+
+    // Remove
+    await verify.connect(verifier).remove(signer1.address);
+    const tierReportRemoved = await verifyTier.report(signer1.address);
+    assert(
+      tierReportRemoved.eq(Util.max_uint256),
+      "Nil status (removed) did not return max uint256"
+    );
+  });
+
   it("should require correct min/max status", async function () {
     this.timeout(0);
 
@@ -41,7 +110,7 @@ describe("Verify", async function () {
     const verifier = signers[1];
     const signer1 = signers[2];
 
-    const verify = await verifyFactory.deploy(admin.address);
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
     await verify.grantRole(await verify.APPROVER(), verifier.address);
     await verify.grantRole(await verify.BANNER(), verifier.address);
@@ -124,7 +193,7 @@ describe("Verify", async function () {
     const verifier = signers[1];
     const signer1 = signers[2];
 
-    const verify = await verifyFactory.deploy(admin.address);
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
     const state0 = await verify.state(signer1.address);
     assert(
@@ -185,7 +254,7 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
 
-    const verify = await verifyFactory.deploy(admin.address);
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
     assert(
       (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
@@ -212,7 +281,7 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
 
-    const verify = await verifyFactory.deploy(admin.address);
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
     // admin (specified in constructor) has all roles
     assert(
@@ -236,7 +305,7 @@ describe("Verify", async function () {
     const admin = signers[0];
     const signer1 = signers[1];
 
-    const verify = await verifyFactory.deploy(admin.address);
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
     const SESSION_ID1 = ethers.BigNumber.from("12345678901234567901");
@@ -271,7 +340,7 @@ describe("Verify", async function () {
     const approver = signers[2];
     const nonApprover = signers[3];
 
-    const verify = await verifyFactory.deploy(admin.address);
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
     await verify.grantRole(await verify.APPROVER(), approver.address);
 
@@ -301,7 +370,7 @@ describe("Verify", async function () {
     const remover = signers[2];
     const nonRemover = signers[3];
 
-    const verify = await verifyFactory.deploy(admin.address);
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
     await verify.grantRole(await verify.REMOVER(), remover.address);
 
@@ -337,7 +406,7 @@ describe("Verify", async function () {
     const banner = signers[2];
     const nonBanner = signers[3];
 
-    const verify = await verifyFactory.deploy(admin.address);
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
     await verify.grantRole(await verify.BANNER(), banner.address);
 
