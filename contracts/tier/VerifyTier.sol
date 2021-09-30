@@ -21,16 +21,21 @@ contract VerifyTier is ReadOnlyTier {
         verify = verify_;
     }
 
-    ///
+    /// Every tier will be the `State.since` block if `account_` is approved
+    /// otherwise every tier will be uninitialized.
     /// @inheritdoc ITier
     function report(address account_) public override view returns (uint256) {
         State memory state_ = verify.state(account_);
-        if (state_.status == Status.Approved) {
+        if (
+            verify.statusAtBlock(
+                state_,
+                uint32(block.number)
+            ) == Status.Approved) {
             return TierUtil.updateBlocksForTierRange(
                 0,
                 Tier.ZERO,
                 Tier.EIGHT,
-                state_.since
+                state_.approvedSince
             );
         }
         else {

@@ -11,12 +11,7 @@ import { ITier } from "../tier/ITier.sol";
 /// @notice Factory for deploying and registering `RedeemableERC20` contracts.
 contract RedeemableERC20Factory is Factory {
 
-    /// Decodes the arbitrary `data_` parameter for `RedeemableERC20`
-    /// constructor, which expects a RedeemableERC20Config type.
-    ///
-    /// @param data_ Encoded data to pass down to child `RedeemableERC20`
-    /// contract constructor.
-    /// @return New `RedeemableERC20` child contract address.
+    /// @inheritdoc Factory
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {

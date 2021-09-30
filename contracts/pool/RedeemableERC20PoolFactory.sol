@@ -81,12 +81,7 @@ contract RedeemableERC20PoolFactory is Factory {
         balancerFactory = config_.balancerFactory;
     }
 
-    /// Decodes the arbitrary `data_` parameter for `RedeemableERC20Pool`
-    /// constructor, which expects a `RedeemableERC20PoolConfig` type.
-    ///
-    /// @param data_ Encoded data to pass down to child `RedeemableERC20Pool`
-    /// contract constructor.
-    /// @return New `RedeemableERC20Pool` child contract address.
+    /// @inheritdoc Factory
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
@@ -116,7 +111,7 @@ contract RedeemableERC20PoolFactory is Factory {
     }
 
     /// Allows calling `createChild` with
-    /// RedeemableERC20PoolFactoryRedeemableERC20PoolConfig struct.
+    /// `RedeemableERC20PoolFactoryRedeemableERC20PoolConfig` struct.
     /// Can use original Factory `createChild` function signature if function
     /// parameters are already encoded.
     ///
