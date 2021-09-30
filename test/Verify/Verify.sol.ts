@@ -26,22 +26,88 @@ const BANNER_ADMIN = ethers.utils.keccak256(
 );
 const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
-/**
- * TODO: test the following
- *
- * requires:
- * 0_ACCOUNT
- * CURRENT_STATUS
- * ONLY_REMOVER
- * ONLY_APPROVER
- * ONLY_BANNER
- */
+let verifyFactory;
 
 describe("Verify", async function () {
-  it("should require non-zero admin address", async function () {
+  before(async () => {
+    verifyFactory = await ethers.getContractFactory("Verify");
+  });
+
+  it("should require correct min/max status", async function () {
     this.timeout(0);
 
-    const verifyFactory = await ethers.getContractFactory("Verify");
+    const signers = await ethers.getSigners();
+    const admin = signers[0];
+    const verifier = signers[1];
+    const signer1 = signers[2];
+
+    const verify = await verifyFactory.deploy(admin.address);
+
+    await verify.grantRole(await verify.APPROVER(), verifier.address);
+    await verify.grantRole(await verify.BANNER(), verifier.address);
+    await verify.grantRole(await verify.REMOVER(), verifier.address);
+
+    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+
+    await Util.assertError(
+      async () => await verify.connect(verifier).approve(SESSION_ID0),
+      "revert CURRENT_STATUS",
+      "wrongly approved when Status equals Nil"
+    );
+    await Util.assertError(
+      async () => await verify.connect(verifier).ban(SESSION_ID0),
+      "revert CURRENT_STATUS",
+      "wrongly banned when Status equals Nil"
+    );
+
+    // Add
+    await verify.connect(signer1).add(SESSION_ID0);
+
+    await Util.assertError(
+      async () => await verify.connect(verifier).add(SESSION_ID0),
+      "revert CURRENT_STATUS",
+      "wrongly added when Status equals Added"
+    );
+
+    // Approve
+    await verify.connect(verifier).approve(SESSION_ID0);
+
+    await Util.assertError(
+      async () => await verify.connect(verifier).add(SESSION_ID0),
+      "revert CURRENT_STATUS",
+      "wrongly added when Status equals Approved"
+    );
+    await Util.assertError(
+      async () => await verify.connect(verifier).approve(SESSION_ID0),
+      "revert CURRENT_STATUS",
+      "wrongly approved when Status equals Approved"
+    );
+
+    // Ban
+    await verify.connect(verifier).ban(SESSION_ID0);
+
+    await Util.assertError(
+      async () => await verify.connect(verifier).add(SESSION_ID0),
+      "revert CURRENT_STATUS",
+      "wrongly added when Status equals Banned"
+    );
+    await Util.assertError(
+      async () => await verify.connect(verifier).approve(SESSION_ID0),
+      "revert CURRENT_STATUS",
+      "wrongly approved when Status equals Banned"
+    );
+    await Util.assertError(
+      async () => await verify.connect(verifier).ban(SESSION_ID0),
+      "revert CURRENT_STATUS",
+      "wrongly banned when Status equals Banned"
+    );
+
+    // Remove
+    await verify.connect(verifier).remove(signer1.address);
+  });
+
+  it("should require non-zero admin address", async function () {
+    this.timeout(0);
 
     await Util.assertError(
       async () => await verifyFactory.deploy(Util.zeroAddress),
@@ -57,8 +123,6 @@ describe("Verify", async function () {
     const admin = signers[0];
     const verifier = signers[1];
     const signer1 = signers[2];
-
-    const verifyFactory = await ethers.getContractFactory("Verify");
 
     const verify = await verifyFactory.deploy(admin.address);
 
@@ -121,8 +185,6 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
 
-    const verifyFactory = await ethers.getContractFactory("Verify");
-
     const verify = await verifyFactory.deploy(admin.address);
 
     assert(
@@ -150,8 +212,6 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
 
-    const verifyFactory = await ethers.getContractFactory("Verify");
-
     const verify = await verifyFactory.deploy(admin.address);
 
     // admin (specified in constructor) has all roles
@@ -175,8 +235,6 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
-
-    const verifyFactory = await ethers.getContractFactory("Verify");
 
     const verify = await verifyFactory.deploy(admin.address);
 
@@ -204,15 +262,14 @@ describe("Verify", async function () {
     );
   });
 
-  it("should allow admin to approve verify sessions", async function () {
+  it("should allow only admin to approve verify sessions", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
     const approver = signers[2];
-
-    const verifyFactory = await ethers.getContractFactory("Verify");
+    const nonApprover = signers[3];
 
     const verify = await verifyFactory.deploy(admin.address);
 
@@ -223,21 +280,26 @@ describe("Verify", async function () {
     // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
 
+    await Util.assertError(
+      async () => await verify.connect(nonApprover).approve(SESSION_ID0),
+      "revert ONLY_APPROVER",
+      "non-approver wrongly approved session"
+    );
+
     // approve verify session
     await expect(verify.connect(approver).approve(SESSION_ID0))
       .to.emit(verify, "Approve")
       .withArgs(SESSION_ID0);
   });
 
-  it("should allow admin to remove accounts", async function () {
+  it("should allow only admin to remove accounts", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
     const remover = signers[2];
-
-    const verifyFactory = await ethers.getContractFactory("Verify");
+    const nonRemover = signers[3];
 
     const verify = await verifyFactory.deploy(admin.address);
 
@@ -247,6 +309,12 @@ describe("Verify", async function () {
 
     // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
+
+    await Util.assertError(
+      async () => await verify.connect(nonRemover).remove(signer1.address),
+      "revert ONLY_REMOVER",
+      "non-remover wrongly removed account"
+    );
 
     // admin removes account
     await expect(verify.connect(remover).remove(signer1.address))
@@ -260,15 +328,14 @@ describe("Verify", async function () {
     );
   });
 
-  it("should allow admin to ban verify sessions", async function () {
+  it("should allow only admin to ban verify sessions", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
     const banner = signers[2];
-
-    const verifyFactory = await ethers.getContractFactory("Verify");
+    const nonBanner = signers[3];
 
     const verify = await verifyFactory.deploy(admin.address);
 
@@ -278,6 +345,12 @@ describe("Verify", async function () {
 
     // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
+
+    await Util.assertError(
+      async () => await verify.connect(nonBanner).ban(SESSION_ID0),
+      "revert ONLY_BANNER",
+      "non-banner wrongly banned session"
+    );
 
     // admin bans verify session
     await expect(verify.connect(banner).ban(SESSION_ID0))
