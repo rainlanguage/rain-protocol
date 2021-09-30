@@ -3,6 +3,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionClaim } from "../../typechain/TierByConstructionClaim";
+import type { TierByConstructionClaimTest } from "../../typechain/TierByConstructionClaimTest";
 import { assertError } from "../Util";
 
 chai.use(solidity);
@@ -157,8 +158,30 @@ describe("TierByConstructionClaim", async function () {
       );
     });
 
-    xit("should call _afterClaim hook after claim", async () => {
-      // TODO: create test contract overriding _afterClaim
+    it("should call _afterClaim hook after claim", async () => {
+      await readWriteTier.connect(alice).setTier(alice.address, Tier.FOUR, []); // before construction
+
+      const tierByConstructionClaimTestFactory =
+        await ethers.getContractFactory("TierByConstructionClaimTest");
+
+      const tierByConstructionClaimTest =
+        (await tierByConstructionClaimTestFactory.deploy(
+          readWriteTier.address
+        )) as TierByConstructionClaimTest;
+
+      await tierByConstructionClaimTest.deployed();
+
+      assert(
+        (await tierByConstructionClaimTest.balanceOf(alice.address)).isZero(),
+        "expected zero balance"
+      );
+
+      await tierByConstructionClaimTest.claim(alice.address, "0xff");
+
+      assert(
+        (await tierByConstructionClaimTest.balanceOf(alice.address)).eq(100),
+        "expected balance of 100 (minted)"
+      );
     });
 
     it("should emit Claim event when claim occurs", async () => {
