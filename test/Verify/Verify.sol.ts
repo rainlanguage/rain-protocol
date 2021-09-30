@@ -71,11 +71,13 @@ describe("Verify", async function () {
 
     // Approve
     await verify.connect(verifier).approve(SESSION_ID0);
+    const blockApproved = await ethers.provider.getBlockNumber();
     const tierReportApprovedActual = Util.zeroPad32(
       await verifyTier.report(signer1.address)
     );
     const tierReportApprovedExpected =
-      "0x0000000700000007000000070000000700000007000000070000000700000007";
+      "0x" +
+      Util.zeroPad4(ethers.BigNumber.from(blockApproved)).slice(2).repeat(8);
     assert(
       tierReportApprovedActual === tierReportApprovedExpected,
       `Approved status did not return correct report
