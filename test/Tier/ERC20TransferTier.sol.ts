@@ -49,6 +49,67 @@ describe("ERC20TransferTier", async function () {
     await erc20TransferTier.deployed();
   });
 
+  it("should have no hysteresis on balance when repeatedly shifting tiers", async () => {
+    const requiredTierFour = LEVELS[3];
+    const requiredTierFive = LEVELS[4];
+
+    // give Alice exact amount for Tier FIVE
+    await reserve.transfer(alice.address, requiredTierFive);
+
+    // Alice sets Tier FIVE
+    await reserve
+      .connect(alice)
+      .approve(erc20TransferTier.address, requiredTierFive);
+    await erc20TransferTier
+      .connect(alice)
+      .setTier(alice.address, Tier.FIVE, []);
+
+    assert(
+      (await reserve.balanceOf(erc20TransferTier.address)).eq(requiredTierFive),
+      "wrong reserve balance on tier"
+    );
+    assert(
+      (await reserve.balanceOf(alice.address)).isZero(),
+      "wrong reserve balance for alice"
+    );
+
+    // Alice downgrades to Tier FOUR, receives refund
+    await erc20TransferTier
+      .connect(alice)
+      .setTier(alice.address, Tier.FOUR, []);
+
+    assert(
+      (await reserve.balanceOf(erc20TransferTier.address)).eq(requiredTierFour),
+      "wrong reserve balance on tier"
+    );
+    assert(
+      (await reserve.balanceOf(alice.address)).eq(
+        requiredTierFive.sub(requiredTierFour)
+      ),
+      "wrong reserve balance for alice"
+    );
+
+    // Alice upgrades from FOUR back up to FIVE
+    await reserve
+      .connect(alice)
+      .approve(
+        erc20TransferTier.address,
+        requiredTierFive.sub(requiredTierFour)
+      );
+    await erc20TransferTier
+      .connect(alice)
+      .setTier(alice.address, Tier.FIVE, []);
+
+    assert(
+      (await reserve.balanceOf(erc20TransferTier.address)).eq(requiredTierFive),
+      "wrong reserve balance on tier"
+    );
+    assert(
+      (await reserve.balanceOf(alice.address)).isZero(),
+      "wrong reserve balance for alice"
+    );
+  });
+
   it("should allow delegating tier upgrades", async () => {
     const requiredForTier2 = LEVELS[1];
 
