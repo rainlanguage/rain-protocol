@@ -7,15 +7,15 @@ import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
 import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 
 contract CombineTier is ReadOnlyTier, RainCompiler {
-    uint8 public constant OPCODE_ACCOUNT = 0 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_REPORT = 1 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_ACCOUNT = 1 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_REPORT = 2 + OPCODE_RESERVED_MAX;
 
-    uint8 public constant OPCODE_AND_OLD = 2 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_AND_NEW = 3 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_AND_LEFT = 4 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_OR_OLD = 5 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_OR_NEW = 6 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_OR_LEFT = 7 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_AND_OLD = 3 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_AND_NEW = 4 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_AND_LEFT = 5 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_OR_OLD = 6 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_OR_NEW = 7 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_OR_LEFT = 8 + OPCODE_RESERVED_MAX;
 
     constructor(bytes memory source_)
         public
