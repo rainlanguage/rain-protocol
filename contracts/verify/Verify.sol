@@ -42,13 +42,16 @@ contract Verify is AccessControl {
     mapping (uint256 => State) public states;
 
     constructor (address admin_) public {
-        require(admin_ != address(0), "0_ACCOUNT");
         _setRoleAdmin(APPROVER, APPROVER_ADMIN);
         _setupRole(APPROVER_ADMIN, admin_);
         _setRoleAdmin(REMOVER, REMOVER_ADMIN);
         _setupRole(REMOVER_ADMIN, admin_);
         _setRoleAdmin(BANNER, BANNER_ADMIN);
         _setupRole(BANNER_ADMIN, admin_);
+
+        // This is at the end of the constructor because putting it at the
+        // start seems to break the source map from the compiler 🙈
+        require(admin_ != address(0), "0_ACCOUNT");
     }
 
     function state(address account_) external view returns (State memory) {
