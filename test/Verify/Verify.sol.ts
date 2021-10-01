@@ -4,6 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { VerifyTier } from "../../typechain/VerifyTier";
 import type { Verify } from "../../typechain/Verify";
+import { max_uint32 } from "../Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -120,12 +121,12 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () => await verify.connect(verifier).approve(SESSION_ID0),
-      "revert CURRENT_STATUS",
+      "revert NOT_ADDED",
       "wrongly approved when Status equals Nil"
     );
     await Util.assertError(
       async () => await verify.connect(verifier).ban(SESSION_ID0),
-      "revert CURRENT_STATUS",
+      "revert NOT_ADDED",
       "wrongly banned when Status equals Nil"
     );
 
@@ -134,7 +135,7 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () => await verify.connect(verifier).add(SESSION_ID0),
-      "revert CURRENT_STATUS",
+      "revert PRIOR_ADD",
       "wrongly added when Status equals Added"
     );
 
@@ -143,12 +144,12 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () => await verify.connect(verifier).add(SESSION_ID0),
-      "revert CURRENT_STATUS",
+      "revert PRIOR_ADD",
       "wrongly added when Status equals Approved"
     );
     await Util.assertError(
       async () => await verify.connect(verifier).approve(SESSION_ID0),
-      "revert CURRENT_STATUS",
+      "revert PRIOR_APPROVE",
       "wrongly approved when Status equals Approved"
     );
 
@@ -157,17 +158,17 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () => await verify.connect(verifier).add(SESSION_ID0),
-      "revert CURRENT_STATUS",
+      "revert PRIOR_ADD",
       "wrongly added when Status equals Banned"
     );
     await Util.assertError(
       async () => await verify.connect(verifier).approve(SESSION_ID0),
-      "revert CURRENT_STATUS",
+      "revert PRIOR_APPROVE",
       "wrongly approved when Status equals Banned"
     );
     await Util.assertError(
       async () => await verify.connect(verifier).ban(SESSION_ID0),
-      "revert CURRENT_STATUS",
+      "revert PRIOR_BAN",
       "wrongly banned when Status equals Banned"
     );
 
@@ -197,10 +198,18 @@ describe("Verify", async function () {
 
     const state0 = await verify.state(signer1.address);
     assert(
-      state0.status === Status.Nil,
-      "status should be uninitialized (Nil)"
+      (await verify.statusAtBlock(
+        state0,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Nil,
+      "status should be Nil"
     );
-    assert(state0.since === 0, "since should be uninitialized");
+    assert(state0.addedSince === 0, `addedSince should be 0, got ${state0}`);
+    assert(
+      state0.approvedSince === 0,
+      `approvedSince should be 0, got ${state0}`
+    );
+    assert(state0.bannedSince === 0, `bannedSince should be 0, got ${state0}`);
 
     await verify.grantRole(await verify.APPROVER(), verifier.address);
     await verify.grantRole(await verify.BANNER(), verifier.address);
@@ -212,10 +221,24 @@ describe("Verify", async function () {
 
     const block1 = await ethers.provider.getBlockNumber();
     const state1 = await verify.state(signer1.address);
-    assert(state1.status === Status.Added, "status should be Added");
     assert(
-      state1.since === block1,
-      `expected block1 ${block1} got ${state1.since}`
+      (await verify.statusAtBlock(
+        state1,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Added,
+      "status should be Added"
+    );
+    assert(
+      state1.addedSince === block1,
+      `addedSince: expected block1 ${block1} got ${state1.addedSince}`
+    );
+    assert(
+      max_uint32.eq(state1.approvedSince),
+      `approvedSince should be uninitialized, got ${state1.approvedSince}`
+    );
+    assert(
+      max_uint32.eq(state1.bannedSince),
+      `bannedSince should be uninitialized, got ${state1.bannedSince}`
     );
 
     // approve verify session
@@ -223,10 +246,24 @@ describe("Verify", async function () {
 
     const block2 = await ethers.provider.getBlockNumber();
     const state2 = await verify.state(signer1.address);
-    assert(state2.status === Status.Approved, "status should be Approved");
     assert(
-      state2.since === block2,
-      `expected block2 ${block2} got ${state2.since}`
+      (await verify.statusAtBlock(
+        state2,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Approved,
+      "status should be Approved"
+    );
+    assert(
+      state2.addedSince === block1,
+      `addedSince: expected block1 ${block1} got ${state2.addedSince}`
+    );
+    assert(
+      state2.approvedSince === block2,
+      `approvedSince: expected block2 ${block2} got ${state2.approvedSince}`
+    );
+    assert(
+      max_uint32.eq(state2.bannedSince),
+      `bannedSince should be uninitialized, got ${state1.bannedSince}`
     );
 
     // ban verify session
@@ -234,18 +271,40 @@ describe("Verify", async function () {
 
     const block3 = await ethers.provider.getBlockNumber();
     const state3 = await verify.state(signer1.address);
-    assert(state3.status === Status.Banned, "status should be Banned");
     assert(
-      state3.since === block3,
-      `expected block3 ${block3} got ${state3.since}`
+      (await verify.statusAtBlock(
+        state3,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Banned,
+      "status should be Banned"
+    );
+    assert(
+      state3.addedSince === block1,
+      `addedSince: expected block1 ${block1} got ${state3.addedSince}`
+    );
+    assert(
+      state3.approvedSince === block2,
+      `approvedSince: expected block2 ${block2} got ${state3.approvedSince}`
+    );
+    assert(
+      state3.bannedSince === block3,
+      `expected block3 ${block3} got ${state3.bannedSince}`
     );
 
     // remove account
     await verify.connect(verifier).remove(signer1.address);
 
     const state4 = await verify.state(signer1.address);
-    assert(state4.status === Status.Nil, "status should be deleted");
-    assert(state4.since === 0, "since should be deleted");
+    assert(
+      (await verify.statusAtBlock(
+        state4,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Nil,
+      "status should be cleared"
+    );
+    assert(state4.addedSince === 0, "addedSince should be cleared");
+    assert(state4.approvedSince === 0, "approvedSince should be cleared");
+    assert(state4.bannedSince === 0, "bannedSince should be cleared");
   });
 
   it("should hold correct public constants", async function () {
@@ -310,6 +369,15 @@ describe("Verify", async function () {
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
     const SESSION_ID1 = ethers.BigNumber.from("12345678901234567901");
 
+    // prevent adding session ID of 0
+    await Util.assertError(
+      async () => {
+        await verify.connect(signer1).add(0);
+      },
+      "revert 0_ID",
+      "wrongly created new verify session with ID of 0"
+    );
+
     // signer1 generates and adds verify session id
     await expect(verify.connect(signer1).add(SESSION_ID0))
       .to.emit(verify, "Add")
@@ -326,8 +394,8 @@ describe("Verify", async function () {
       async () => {
         await verify.connect(signer1).add(SESSION_ID1);
       },
-      "revert OVERWRITE_ID",
-      "created new verify for signer1 despite one existing"
+      "revert PRIOR_ADD",
+      "wrongly created new verify session for signer1 despite one existing"
     );
   });
 
@@ -348,6 +416,13 @@ describe("Verify", async function () {
 
     // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
+
+    // prevent approving session ID of 0
+    await Util.assertError(
+      async () => await verify.connect(approver).approve(0),
+      "revert 0_ID",
+      "wrongly approved session with ID of 0"
+    );
 
     await Util.assertError(
       async () => await verify.connect(nonApprover).approve(SESSION_ID0),
@@ -378,6 +453,13 @@ describe("Verify", async function () {
 
     // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
+
+    // prevent removing account of address 0
+    await Util.assertError(
+      async () => await verify.connect(remover).remove(Util.zeroAddress),
+      "revert 0_ADDRESS",
+      "wrongly removed account with address of 0"
+    );
 
     await Util.assertError(
       async () => await verify.connect(nonRemover).remove(signer1.address),
@@ -414,6 +496,13 @@ describe("Verify", async function () {
 
     // signer1 generates and adds verify session id
     await verify.connect(signer1).add(SESSION_ID0);
+
+    // prevent banning session ID of 0
+    await Util.assertError(
+      async () => await verify.connect(banner).ban(0),
+      "revert 0_ID",
+      "wrongly banning session ID of 0"
+    );
 
     await Util.assertError(
       async () => await verify.connect(nonBanner).ban(SESSION_ID0),

@@ -239,8 +239,10 @@ contract Verify is AccessControl {
         // as it would lead to griefing.
         // A mistaken add requires an appeal to a REMOVER to restart the
         // process OR a new `msg.sender` (i.e. different wallet address).
+        require(id_ != 0, "0_ID");
         require(ids[msg.sender] == 0, "PRIOR_ADD");
         ids[msg.sender] = id_;
+        require(states[id_].addedSince == 0, "PRIOR_ADD");
         states[id_] = State (
             uint32(block.number),
             UNINITIALIZED,
