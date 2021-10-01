@@ -135,7 +135,6 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [
     pkgs.nixpkgs-fmt
     pkgs.nodejs-14_x
-    pkgs.python310
     pkgs.slither-analyzer
     local-node
     local-fork
