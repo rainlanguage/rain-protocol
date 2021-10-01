@@ -162,6 +162,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
             config_.finalValuation
         );
         finalValuation = config_.finalValuation;
+
+        require(config_.minimumTradingDuration > 0, "0_TRADING_DURATION");
         minimumTradingDuration = config_.minimumTradingDuration;
 
         // Build the CRP.
