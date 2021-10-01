@@ -353,6 +353,9 @@ contract Trust is ReentrancyGuard {
     /// https://github.com/crytic/slither/issues/887
     ///
     /// @param config_ Config for the Trust.
+    // Slither false positive. Constructors cannot be reentrant.
+    // https://github.com/crytic/slither/issues/887
+    // slither-disable-next-line reentrancy-benign
     constructor (
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,

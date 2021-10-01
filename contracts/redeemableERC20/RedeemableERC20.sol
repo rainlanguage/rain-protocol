@@ -233,7 +233,7 @@ contract RedeemableERC20 is
     /// clear bounds on gas etc.
     /// @return Dynamic `redeemables` mapped to a fixed size array.
     function getRedeemables() external view returns (address[8] memory) {
-        // Slither false positive here.
+        // Slither false positive here due to a bug in slither.
         // https://github.com/crytic/slither/issues/884
         // slither-disable-next-line uninitialized-local
         address[8] memory redeemablesArray_;
@@ -315,6 +315,9 @@ contract RedeemableERC20 is
 
     /// Sanity check to ensure `Phase.ONE` is the final phase.
     /// @inheritdoc Phased
+    // Slither false positive. This is overriding an Open Zeppelin hook.
+    // https://github.com/crytic/slither/issues/929
+    // slither-disable-next-line dead-code
     function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
         internal
         override
@@ -330,6 +333,9 @@ contract RedeemableERC20 is
     /// If a transfer involves either a sender or receiver with the relevant
     /// `unfreezables` state it will ignore these restrictions.
     /// @inheritdoc ERC20
+    // Slither false positive. This is overriding an Open Zeppelin hook.
+    // https://github.com/crytic/slither/issues/929
+    // slither-disable-next-line dead-code
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
