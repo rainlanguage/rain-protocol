@@ -71,7 +71,7 @@ describe("Verify", async function () {
     );
 
     // Approve
-    await verify.connect(verifier).approve(SESSION_ID0);
+    await verify.connect(verifier).approve(signer1.address);
     const blockApproved = await ethers.provider.getBlockNumber();
     const tierReportApprovedActual = Util.zeroPad32(
       await verifyTier.report(signer1.address)
@@ -87,7 +87,7 @@ describe("Verify", async function () {
     );
 
     // Ban
-    await verify.connect(verifier).ban(SESSION_ID0);
+    await verify.connect(verifier).ban(signer1.address);
     const tierReportBanned = await verifyTier.report(signer1.address);
     assert(
       tierReportBanned.eq(Util.max_uint256),
@@ -120,12 +120,12 @@ describe("Verify", async function () {
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
     await Util.assertError(
-      async () => await verify.connect(verifier).approve(SESSION_ID0),
+      async () => await verify.connect(verifier).approve(signer1.address),
       "revert NOT_ADDED",
       "wrongly approved when Status equals Nil"
     );
     await Util.assertError(
-      async () => await verify.connect(verifier).ban(SESSION_ID0),
+      async () => await verify.connect(verifier).ban(signer1.address),
       "revert NOT_ADDED",
       "wrongly banned when Status equals Nil"
     );
@@ -134,24 +134,24 @@ describe("Verify", async function () {
     await verify.connect(signer1).add(SESSION_ID0);
 
     // Approve
-    await verify.connect(verifier).approve(SESSION_ID0);
+    await verify.connect(verifier).approve(signer1.address);
 
     await Util.assertError(
-      async () => await verify.connect(verifier).approve(SESSION_ID0),
+      async () => await verify.connect(verifier).approve(signer1.address),
       "revert PRIOR_APPROVE",
       "wrongly approved when Status equals Approved"
     );
 
     // Ban
-    await verify.connect(verifier).ban(SESSION_ID0);
+    await verify.connect(verifier).ban(signer1.address);
 
     await Util.assertError(
-      async () => await verify.connect(verifier).approve(SESSION_ID0),
+      async () => await verify.connect(verifier).approve(signer1.address),
       "revert PRIOR_APPROVE",
       "wrongly approved when Status equals Banned"
     );
     await Util.assertError(
-      async () => await verify.connect(verifier).ban(SESSION_ID0),
+      async () => await verify.connect(verifier).ban(signer1.address),
       "revert PRIOR_BAN",
       "wrongly banned when Status equals Banned"
     );
@@ -199,7 +199,7 @@ describe("Verify", async function () {
     await verify.grantRole(await verify.BANNER(), verifier.address);
     await verify.grantRole(await verify.REMOVER(), verifier.address);
 
-    // signer1 generates and adds verify session id
+    // signer1 adds arbitrary session id
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
     await verify.connect(signer1).add(SESSION_ID0);
 
@@ -225,8 +225,8 @@ describe("Verify", async function () {
       `bannedSince should be uninitialized, got ${state1.bannedSince}`
     );
 
-    // approve verify session
-    await verify.connect(verifier).approve(SESSION_ID0);
+    // approve account
+    await verify.connect(verifier).approve(signer1.address);
 
     const block2 = await ethers.provider.getBlockNumber();
     const state2 = await verify.state(signer1.address);
@@ -250,8 +250,8 @@ describe("Verify", async function () {
       `bannedSince should be uninitialized, got ${state1.bannedSince}`
     );
 
-    // ban verify session
-    await verify.connect(verifier).ban(SESSION_ID0);
+    // ban account
+    await verify.connect(verifier).ban(signer1.address);
 
     const block3 = await ethers.provider.getBlockNumber();
     const state3 = await verify.state(signer1.address);
@@ -341,7 +341,7 @@ describe("Verify", async function () {
     );
   });
 
-  it("should allow anyone to map their account to a Verify session id", async function () {
+  it("should allow anyone to map their account to a session id", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -363,15 +363,15 @@ describe("Verify", async function () {
       "wrongly created new verify session with ID of 0"
     );
 
-    // signer1 generates and adds verify session id
+    // signer1 adds session id
     await expect(verify.connect(signer1).add(SESSION_ID0))
       .to.emit(verify, "Add")
       .withArgs(signer1.address, SESSION_ID0);
 
     // check that signer1 is mapped to verify session
     assert(
-      (await verify.ids(signer1.address)).eq(SESSION_ID0),
-      "signer1 was not mapped to verify session after adding"
+      (await verify.state(signer1.address)).id.eq(SESSION_ID0),
+      "signer1 was not mapped to session id after adding"
     );
 
     const state0 = await verify.state(signer1.address);
@@ -383,23 +383,22 @@ describe("Verify", async function () {
       "signer1 wiped their own state"
     );
 
+    // another signer should be able to map to the same session id
+    await verify.connect(signer2).add(SESSION_ID0);
+
+    // signer2 adding same id for their account should not wipe state for signer1
     const state2 = await verify.state(signer1.address);
-
     for (let index = 0; index < state0.length; index++) {
-      const propertyLeft = state0[index];
-      const propertyRight = state2[index];
-
+      const propertyLeft = `${state0[index]}`;
+      const propertyRight = `${state2[index]}`;
       assert(
         propertyLeft === propertyRight,
         `state not equivalent at position ${index}. Left ${propertyLeft}, Right ${propertyRight}`
       );
     }
-
-    // another signer should be able to map to the same session id
-    await verify.connect(signer2).add(SESSION_ID0);
   });
 
-  it("should allow only admin to approve verify sessions", async function () {
+  it("should allow only admin to approve accounts", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -414,26 +413,33 @@ describe("Verify", async function () {
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates and adds verify session id
+    // signer1 adds session id
     await verify.connect(signer1).add(SESSION_ID0);
 
-    // prevent approving session ID of 0
+    // prevent approving zero address
     await Util.assertError(
-      async () => await verify.connect(approver).approve(0),
-      "revert 0_ID",
-      "wrongly approved session with ID of 0"
+      async () => await verify.connect(approver).approve(Util.zeroAddress),
+      "revert 0_ADDRESS",
+      "wrongly approved account with address of 0"
     );
 
     await Util.assertError(
-      async () => await verify.connect(nonApprover).approve(SESSION_ID0),
+      async () => await verify.connect(nonApprover).approve(signer1.address),
       "revert ONLY_APPROVER",
-      "non-approver wrongly approved session"
+      "non-approver wrongly approved account"
     );
 
-    // approve verify session
-    await expect(verify.connect(approver).approve(SESSION_ID0))
+    // approve account
+    await expect(verify.connect(approver).approve(signer1.address))
       .to.emit(verify, "Approve")
-      .withArgs(SESSION_ID0);
+      .withArgs(signer1.address);
+
+    // check that signer1 has been approved
+    const stateApproved = await verify.state(signer1.address);
+    assert(
+      stateApproved.approvedSince === (await ethers.provider.getBlockNumber()),
+      "not approved"
+    );
   });
 
   it("should allow only admin to remove accounts", async function () {
@@ -451,7 +457,7 @@ describe("Verify", async function () {
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates and adds verify session id
+    // signer1 adds session id
     await verify.connect(signer1).add(SESSION_ID0);
 
     // prevent removing account of address 0
@@ -472,11 +478,9 @@ describe("Verify", async function () {
       .to.emit(verify, "Remove")
       .withArgs(signer1.address);
 
-    // check that signer1 has been deleted
-    assert(
-      (await verify.ids(signer1.address)).isZero(),
-      "failed to remove address from verify session map"
-    );
+    // check that signer1 has been removed
+    const stateRemoved = await verify.state(signer1.address);
+    assert(stateRemoved.addedSince === 0, "not removed");
   });
 
   it("should allow only admin to ban verify sessions", async function () {
@@ -494,25 +498,32 @@ describe("Verify", async function () {
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
-    // signer1 generates and adds verify session id
+    // signer1 adds session id
     await verify.connect(signer1).add(SESSION_ID0);
 
-    // prevent banning session ID of 0
+    // prevent banning zero address
     await Util.assertError(
-      async () => await verify.connect(banner).ban(0),
-      "revert 0_ID",
-      "wrongly banning session ID of 0"
+      async () => await verify.connect(banner).ban(Util.zeroAddress),
+      "revert 0_ADDRESS",
+      "wrongly banning zero address"
     );
 
     await Util.assertError(
-      async () => await verify.connect(nonBanner).ban(SESSION_ID0),
+      async () => await verify.connect(nonBanner).ban(signer1.address),
       "revert ONLY_BANNER",
       "non-banner wrongly banned session"
     );
 
-    // admin bans verify session
-    await expect(verify.connect(banner).ban(SESSION_ID0))
+    // admin bans account
+    await expect(verify.connect(banner).ban(signer1.address))
       .to.emit(verify, "Ban")
-      .withArgs(SESSION_ID0);
+      .withArgs(signer1.address);
+
+    // check that signer1 has been banned
+    const stateBanned = await verify.state(signer1.address);
+    assert(
+      stateBanned.bannedSince === (await ethers.provider.getBlockNumber()),
+      "not banned"
+    );
   });
 });
