@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity 0.6.12;
 
+// Mirrors all the constants from Balancer `configurable-rights-pool` repo.
+// As we do not include balancer contracts as a dependency, we need to ensure
+// that any calculations or values that cross the interface to their system are
+// identical.
 // solhint-disable-next-line max-line-length
-// https://github.com/balancer-labs/configurable-rights-pool/blob/master/libraries/BalancerConstants.sol
-library BalancerConstants {
+// https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/libraries/BalancerConstants.sol#L9
+library IBalancerConstants {
     uint public constant BONE = 10**18;
     uint public constant MIN_WEIGHT = BONE;
     uint public constant MAX_WEIGHT = BONE * 50;

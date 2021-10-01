@@ -9,9 +9,9 @@ import { SeedERC20 } from "../seed/SeedERC20.sol";
 /// None of this should do anything as `SeedERC20` deals only with erc20
 /// tokens.
 contract SeedERC20ForceSendEther {
-    /// Destroy and send current ether balance to SeedERC20 contract address.
+    /// Destroy and send current ether balance to `SeedERC20` contract address.
     /// @param seedERC20Contract_ Seed contract to send current ether balance
-    ///        to.
+    /// to.
     function destroy(SeedERC20 seedERC20Contract_) external {
         address payable victimAddress = payable(address(seedERC20Contract_));
         selfdestruct(victimAddress);

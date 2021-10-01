@@ -17,10 +17,10 @@ import { ITier } from "../tier/ITier.sol";
 /// from open zeppelin:
 /// - The balance tier compares the current holdings of an erc20 against preset
 ///   values.
-/// - The tier by construction ensures the claim is restricted to anyone tier
-///   THREE and above.
+/// - The tier by construction ensures the claim is restricted to anyone
+///   `Tier.THREE` and above.
 /// - The tier by construction also exposes `isTier` to provide further goodies
-///   to tier FIVE and above.
+///   to `Tier.FIVE` and above.
 /// - The erc1155 enables and tracks minted NFTs.
 contract ClaimERC1155Test is
     ERC20BalanceTier,
@@ -42,7 +42,7 @@ contract ClaimERC1155Test is
         uint256,
         bytes memory
     ) internal override {
-        // Anyone above tier FIVE gets more art and some good art.
+        // Anyone above `Tier.FIVE` gets more art and some good art.
         bool isFive_ = isTier(account_, Tier.FIVE);
 
         uint256[] memory ids_ = new uint256[](2);
@@ -54,8 +54,8 @@ contract ClaimERC1155Test is
         amounts_[0] = isFive_ ? 2 : 1;
         amounts_[1] = isFive_ ? 1 : 0;
 
-        // _mintBatch to avoid Reentrancy interleaved with state change from
-        // multiple _mint calls.
+        // `_mintBatch` to avoid Reentrancy interleaved with state change from
+        // multiple `_mint` calls.
         // The reentrancy comes from the erc1155 receiver.
         _mintBatch(account_, ids_, amounts_, "");
     }
