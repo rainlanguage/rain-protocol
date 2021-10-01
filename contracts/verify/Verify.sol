@@ -105,7 +105,9 @@ struct State {
 ///   review and approve an application. If the user is forced to submit their
 ///   application directly to one SPECIFIC approver we lose this property. In
 ///   the gasless model the user must then rely on their specific approver both
-///   being online and not to censor the request.
+///   being online and not to censor the request. It's also possible that many
+///   accounts add the same ID, after all the ID will be public onchain, so it
+///   is important for approvers to verify the PAIRING between account and ID.
 /// - ANY account with the `APPROVER` role can review the added ID against the
 ///   records in the system referenced by the ID. IF the ID is valid then the
 ///   `approve` function should be called by the approver.
@@ -247,7 +249,7 @@ contract Verify is AccessControl {
         emit Add(msg.sender, id_);
     }
 
-    // A `REMOVER` can scrub the id and state mappings from an account.
+    // A `REMOVER` can scrub state mapping from an account.
     // A malicious account MUST be banned rather than removed.
     // Removal is useful to reset the whole process in case of some mistake.
     function remove(address account_) external {
@@ -257,7 +259,7 @@ contract Verify is AccessControl {
         emit Remove(account_);
     }
 
-    // An `APPROVER` can review an added session ID and approve the session.
+    // An `APPROVER` can review an added session ID and approve the account.
     function approve(address account_) external {
         require(account_ != address(0), "0_ADDRESS");
         require(hasRole(APPROVER, msg.sender), "ONLY_APPROVER");
@@ -277,7 +279,7 @@ contract Verify is AccessControl {
         emit Approve(account_);
     }
 
-    // A `BANNER` can ban an added OR approved session.
+    // A `BANNER` can ban an added OR approved account.
     function ban(address account_) external {
         require(account_ != address(0), "0_ADDRESS");
         require(hasRole(BANNER, msg.sender), "ONLY_BANNER");
