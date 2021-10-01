@@ -347,7 +347,7 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
-    const signer2 = signers[1];
+    const signer2 = signers[2];
 
     const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
