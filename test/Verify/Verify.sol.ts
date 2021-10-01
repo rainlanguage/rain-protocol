@@ -133,20 +133,9 @@ describe("Verify", async function () {
     // Add
     await verify.connect(signer1).add(SESSION_ID0);
 
-    await Util.assertError(
-      async () => await verify.connect(verifier).add(SESSION_ID0),
-      "revert PRIOR_ADD",
-      "wrongly added when Status equals Added"
-    );
-
     // Approve
     await verify.connect(verifier).approve(SESSION_ID0);
 
-    await Util.assertError(
-      async () => await verify.connect(verifier).add(SESSION_ID0),
-      "revert PRIOR_ADD",
-      "wrongly added when Status equals Approved"
-    );
     await Util.assertError(
       async () => await verify.connect(verifier).approve(SESSION_ID0),
       "revert PRIOR_APPROVE",
@@ -156,11 +145,6 @@ describe("Verify", async function () {
     // Ban
     await verify.connect(verifier).ban(SESSION_ID0);
 
-    await Util.assertError(
-      async () => await verify.connect(verifier).add(SESSION_ID0),
-      "revert PRIOR_ADD",
-      "wrongly added when Status equals Banned"
-    );
     await Util.assertError(
       async () => await verify.connect(verifier).approve(SESSION_ID0),
       "revert PRIOR_APPROVE",
@@ -363,6 +347,7 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const signer1 = signers[1];
+    const signer2 = signers[1];
 
     const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
@@ -389,14 +374,29 @@ describe("Verify", async function () {
       "signer1 was not mapped to verify session after adding"
     );
 
-    // prevent creating new verify session id if one exists
+    const state0 = await verify.state(signer1.address);
+
+    // signer1 cannot wipe their own mapping between address -> session id
     await Util.assertError(
-      async () => {
-        await verify.connect(signer1).add(SESSION_ID1);
-      },
+      async () => await verify.connect(signer1).add(SESSION_ID1),
       "revert PRIOR_ADD",
-      "wrongly created new verify session for signer1 despite one existing"
+      "signer1 wiped their own state"
     );
+
+    const state2 = await verify.state(signer1.address);
+
+    for (let index = 0; index < state0.length; index++) {
+      const propertyLeft = state0[index];
+      const propertyRight = state2[index];
+
+      assert(
+        propertyLeft === propertyRight,
+        `state not equivalent at position ${index}. Left ${propertyLeft}, Right ${propertyRight}`
+      );
+    }
+
+    // another signer should be able to map to the same session id
+    await verify.connect(signer2).add(SESSION_ID0);
   });
 
   it("should allow only admin to approve verify sessions", async function () {
