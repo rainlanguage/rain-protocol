@@ -90,6 +90,16 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20Pool;
 
     await pool.deployed();
+
+    // Trust normally does this internally.
+    await redeemable.transfer(pool.address, await redeemable.totalSupply());
+
+    await reserve.transfer(pool.address, reserveInit);
+    await redeemable.approve(pool.address, totalTokenSupply);
+
+    await pool.startDutchAuction({
+      gasLimit: 10000000,
+    });
   });
   it("should revert construction with minimum trading duration of 0", async function () {
     this.timeout(0);
