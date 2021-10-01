@@ -2,7 +2,6 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { VerifyTier } from "../../typechain/VerifyTier";
 import type { Verify } from "../../typechain/Verify";
 import { max_uint32 } from "../Util";
 
@@ -36,7 +35,7 @@ describe("Verify", async function () {
     verifyFactory = await ethers.getContractFactory("Verify");
   });
 
-  it("should correctly verify tier", async function () {
+  it("statusAtBlock should return correct status for any given state & block number", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -44,62 +43,68 @@ describe("Verify", async function () {
     const verifier = signers[1];
     const signer1 = signers[2];
 
-    const tierFactory = await ethers.getContractFactory("VerifyTier");
-
     const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
-    const verifyTier = (await tierFactory.deploy(verify.address)) as VerifyTier;
+    const state0 = await verify.state(signer1.address);
+    assert(
+      (await verify.statusAtBlock(
+        state0,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Nil,
+      "status should be Nil"
+    );
 
     await verify.grantRole(await verify.APPROVER(), verifier.address);
     await verify.grantRole(await verify.BANNER(), verifier.address);
     await verify.grantRole(await verify.REMOVER(), verifier.address);
 
-    const tierReportNil = await verifyTier.report(signer1.address);
-    assert(
-      tierReportNil.eq(Util.max_uint256),
-      "Nil status did not return max uint256"
-    );
-
+    // signer1 adds arbitrary session id
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
-
-    // Add
     await verify.connect(signer1).add(SESSION_ID0);
-    const tierReportAdded = await verifyTier.report(signer1.address);
+
+    const state1 = await verify.state(signer1.address);
     assert(
-      tierReportAdded.eq(Util.max_uint256),
-      "Added status did not return max uint256"
+      (await verify.statusAtBlock(
+        state1,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Added,
+      "status should be Added"
     );
 
-    // Approve
+    // approve account
     await verify.connect(verifier).approve(signer1.address);
-    const blockApproved = await ethers.provider.getBlockNumber();
-    const tierReportApprovedActual = Util.zeroPad32(
-      await verifyTier.report(signer1.address)
-    );
-    const tierReportApprovedExpected =
-      "0x" +
-      Util.zeroPad4(ethers.BigNumber.from(blockApproved)).slice(2).repeat(8);
+
+    const state2 = await verify.state(signer1.address);
     assert(
-      tierReportApprovedActual === tierReportApprovedExpected,
-      `Approved status did not return correct report
-      expected  ${tierReportApprovedExpected}
-      got       ${tierReportApprovedActual}`
+      (await verify.statusAtBlock(
+        state2,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Approved,
+      "status should be Approved"
     );
 
-    // Ban
+    // ban account
     await verify.connect(verifier).ban(signer1.address);
-    const tierReportBanned = await verifyTier.report(signer1.address);
+
+    const state3 = await verify.state(signer1.address);
     assert(
-      tierReportBanned.eq(Util.max_uint256),
-      "Banned status did not return max uint256"
+      (await verify.statusAtBlock(
+        state3,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Banned,
+      "status should be Banned"
     );
 
-    // Remove
+    // remove account
     await verify.connect(verifier).remove(signer1.address);
-    const tierReportRemoved = await verifyTier.report(signer1.address);
+
+    const state4 = await verify.state(signer1.address);
     assert(
-      tierReportRemoved.eq(Util.max_uint256),
-      "Nil status (removed) did not return max uint256"
+      (await verify.statusAtBlock(
+        state4,
+        await ethers.provider.getBlockNumber()
+      )) === Status.Nil,
+      "status should be cleared"
     );
   });
 
