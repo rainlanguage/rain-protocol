@@ -481,6 +481,9 @@ describe("Verify", async function () {
     // check that signer1 has been removed
     const stateRemoved = await verify.state(signer1.address);
     assert(stateRemoved.addedSince === 0, "not removed");
+    assert(stateRemoved.approvedSince === 0, "not removed");
+    assert(stateRemoved.bannedSince === 0, "not removed");
+    assert(stateRemoved.id.isZero(), "not removed");
   });
 
   it("should allow only admin to ban verify sessions", async function () {
