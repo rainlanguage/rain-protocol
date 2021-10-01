@@ -241,7 +241,6 @@ contract Verify is AccessControl {
         // process OR a new `msg.sender` (i.e. different wallet address).
         require(id_ != 0, "0_ID");
         require(ids[msg.sender] == 0, "PRIOR_ADD");
-        require(states[id_].addedSince == 0, "PRIOR_ADD");
         ids[msg.sender] = id_;
         states[id_] = State (
             uint32(block.number),
