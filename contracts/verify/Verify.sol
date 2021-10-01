@@ -24,6 +24,7 @@ enum Status {
 /// Most accounts will never be banned so most accounts will never reach every
 /// status, which is a good thing.
 struct State {
+    uint256 id;
     uint32 addedSince;
     uint32 approvedSince;
     uint32 bannedSince;
@@ -152,9 +153,9 @@ contract Verify is AccessControl {
     /// Emitted when a session ID is first associated with an account.
     event Add(address indexed account, uint256 indexed id);
     /// Emitted when a previously added account is approved.
-    event Approve(uint256 indexed id);
+    event Approve(address indexed account);
     /// Emitted when an added or approved account is banned.
-    event Ban(uint256 indexed id);
+    event Ban(address indexed account);
     /// Emitted when an account is scrubbed from blockchain state.
     event Remove(address indexed account);
 
@@ -173,11 +174,8 @@ contract Verify is AccessControl {
     /// Role for `BANNER`.
     bytes32 public constant BANNER = keccak256("BANNER");
 
-    // Account => Verification session ID.
-    mapping (address => uint256) public ids;
-
-    // Verification session ID => State
-    mapping (uint256 => State) public states;
+    // Account => State
+    mapping (address => State) public states;
 
     /// Defines RBAC logic for each role under Open Zeppelin.
     constructor (address admin_) public {
@@ -193,10 +191,9 @@ contract Verify is AccessControl {
         require(admin_ != address(0), "0_ACCOUNT");
     }
 
-    /// Atomic accessor for the `State` of each account.
-    /// Routes through both `ids` and `states` in a single call.
+    /// Typed accessor into states.
     function state(address account_) external view returns (State memory) {
-        return states[ids[account_]];
+        return states[account_];
     }
 
     /// Derives a single `Status` from a `State` and a reference block number.
@@ -240,10 +237,9 @@ contract Verify is AccessControl {
         // A mistaken add requires an appeal to a REMOVER to restart the
         // process OR a new `msg.sender` (i.e. different wallet address).
         require(id_ != 0, "0_ID");
-        require(ids[msg.sender] == 0, "PRIOR_ADD");
-        require(states[id_].addedSince == 0, "PRIOR_ADD");
-        ids[msg.sender] = id_;
-        states[id_] = State (
+        require(states[msg.sender].addedSince == 0, "PRIOR_ADD");
+        states[msg.sender] = State(
+            id_,
             uint32(block.number),
             UNINITIALIZED,
             UNINITIALIZED
@@ -257,35 +253,43 @@ contract Verify is AccessControl {
     function remove(address account_) external {
         require(account_ != address(0), "0_ADDRESS");
         require(hasRole(REMOVER, msg.sender), "ONLY_REMOVER");
-        delete(states[ids[account_]]);
-        delete(ids[account_]);
+        delete(states[account_]);
         emit Remove(account_);
     }
 
     // An `APPROVER` can review an added session ID and approve the session.
-    function approve(uint256 id_) external {
-        require(id_ != 0, "0_ID");
+    function approve(address account_) external {
+        require(account_ != address(0), "0_ADDRESS");
         require(hasRole(APPROVER, msg.sender), "ONLY_APPROVER");
         // In theory we should also check the `addedSince` is lte the current
         // `block.number` but in practise no code path produces a future
         // `addedSince`.
-        require(states[id_].addedSince > 0, "NOT_ADDED");
-        require(states[id_].approvedSince == UNINITIALIZED, "PRIOR_APPROVE");
-        require(states[id_].bannedSince == UNINITIALIZED, "PRIOR_BAN");
-        states[id_].approvedSince = uint32(block.number);
-        emit Approve(id_);
+        require(states[account_].addedSince > 0, "NOT_ADDED");
+        require(
+            states[account_].approvedSince == UNINITIALIZED,
+            "PRIOR_APPROVE"
+        );
+        require(
+            states[account_].bannedSince == UNINITIALIZED,
+            "PRIOR_BAN"
+        );
+        states[account_].approvedSince = uint32(block.number);
+        emit Approve(account_);
     }
 
     // A `BANNER` can ban an added OR approved session.
-    function ban(uint256 id_) external {
-        require(id_ != 0, "0_ID");
+    function ban(address account_) external {
+        require(account_ != address(0), "0_ADDRESS");
         require(hasRole(BANNER, msg.sender), "ONLY_BANNER");
         // In theory we should also check the `addedSince` is lte the current
         // `block.number` but in practise no code path produces a future
         // `addedSince`.
-        require(states[id_].addedSince > 0, "NOT_ADDED");
-        require(states[id_].bannedSince == UNINITIALIZED, "PRIOR_BAN");
-        states[id_].bannedSince = uint32(block.number);
-        emit Ban(id_);
+        require(states[account_].addedSince > 0, "NOT_ADDED");
+        require(
+            states[account_].bannedSince == UNINITIALIZED,
+            "PRIOR_BAN"
+        );
+        states[account_].bannedSince = uint32(block.number);
+        emit Ban(account_);
     }
 }
