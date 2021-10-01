@@ -35,6 +35,13 @@ let
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
+    rm -rf artifacts
+    rm -rf cache
+    rm -rf node_modules
+    rm -rf typechain
+    rm -rf bin
+    npm install
+
     # Run slither against all our contracts.
     # Disable npx as nix-shell already handles availability of what we need.
     # Dependencies and tests are out of scope.
