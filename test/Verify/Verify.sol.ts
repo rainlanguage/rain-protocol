@@ -58,6 +58,8 @@ describe("Verify", async function () {
     await verify.grantRole(await verify.BANNER(), verifier.address);
     await verify.grantRole(await verify.REMOVER(), verifier.address);
 
+    const blockBeforeAdd = await ethers.provider.getBlockNumber();
+
     // signer1 adds arbitrary session id
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
     await verify.connect(signer1).add(SESSION_ID0);
@@ -71,6 +73,8 @@ describe("Verify", async function () {
       "status should be Added"
     );
 
+    const blockBeforeApprove = await ethers.provider.getBlockNumber();
+
     // approve account
     await verify.connect(verifier).approve(signer1.address);
 
@@ -83,6 +87,8 @@ describe("Verify", async function () {
       "status should be Approved"
     );
 
+    const blockBeforeBan = await ethers.provider.getBlockNumber();
+
     // ban account
     await verify.connect(verifier).ban(signer1.address);
 
@@ -93,6 +99,20 @@ describe("Verify", async function () {
         await ethers.provider.getBlockNumber()
       )) === Status.Banned,
       "status should be Banned"
+    );
+
+    // interrogate history using latest state, before being cleared with `.remove()`
+    assert(
+      (await verify.statusAtBlock(state3, blockBeforeAdd)) === Status.Nil,
+      "status should be Nil before add"
+    );
+    assert(
+      (await verify.statusAtBlock(state3, blockBeforeApprove)) === Status.Added,
+      "status should be Added before approve"
+    );
+    assert(
+      (await verify.statusAtBlock(state3, blockBeforeBan)) === Status.Approved,
+      "status should be Approved before ban"
     );
 
     // remove account
