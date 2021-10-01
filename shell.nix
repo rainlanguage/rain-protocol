@@ -1,5 +1,9 @@
 let
-  pkgs = import <nixpkgs> { };
+  pkgs = import (builtins.fetchTarball {
+    name = "nixos-unstable-2021-10-01";
+    url = "https://github.com/nixos/nixpkgs/archive/82155ff501c7622cb2336646bb62f7624261f6d7.tar.gz";
+    sha256 = "0xv47cpgaxb4j46ggjx9gkg299m9cdfzar27xw5h5k2lg5d3dljg";
+  }) { };
 
   local-node = pkgs.writeShellScriptBin "local-node" ''
     hardhat node
@@ -31,24 +35,9 @@ let
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
-    # Workaround a slither bug due to stale compiled artifacts.
-    # https://github.com/crytic/slither/issues/860
-    rm -rf artifacts
-    rm -rf typechain
-    rm -rf cache
-
-    # Install slither to a fresh tmp dir to workaround nix-shell immutability.
-    export td=$(mktemp -d)
-    python3 -m venv ''${td}/venv
-    source ''${td}/venv/bin/activate
-    pip install slither-analyzer
-
     # Run slither against all our contracts.
     # Disable npx as nix-shell already handles availability of what we need.
-    # Some contracts are explicitly out of scope for slither:
-    # - configurable-rights-pool contracts
-    # - The test contracts that only exist so the test harness can drive unit tests and will never be deployed
-    # - Open Zeppelin contracts
+    # Dependencies and tests are out of scope.
     slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies
   '';
 
@@ -146,7 +135,8 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [
     pkgs.nixpkgs-fmt
     pkgs.nodejs-14_x
-    pkgs.python3
+    pkgs.python310
+    pkgs.slither-analyzer
     local-node
     local-fork
     local-test

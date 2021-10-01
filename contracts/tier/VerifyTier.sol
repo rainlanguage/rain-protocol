@@ -27,6 +27,8 @@ contract VerifyTier is ReadOnlyTier {
     function report(address account_) public override view returns (uint256) {
         State memory state_ = verify.state(account_);
         if (
+            // SLITHER FALSE POSITIVE: incorrect-equality
+            // This is comparing an enum variant so it must be equal.
             verify.statusAtBlock(
                 state_,
                 uint32(block.number)

@@ -239,7 +239,10 @@ contract Verify is AccessControl {
         // A mistaken add requires an appeal to a REMOVER to restart the
         // process OR a new `msg.sender` (i.e. different wallet address).
         require(id_ != 0, "0_ID");
-        require(states[msg.sender].addedSince == 0, "PRIOR_ADD");
+        // The awkward < 1 here is to silence slither complaining about
+        // equality checks against `0`. The intent is to ensure that
+        // `addedSince` is not already set before we set it.
+        require(states[msg.sender].addedSince < 1, "PRIOR_ADD");
         states[msg.sender] = State(
             id_,
             uint32(block.number),

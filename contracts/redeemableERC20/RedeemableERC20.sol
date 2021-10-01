@@ -233,6 +233,9 @@ contract RedeemableERC20 is
     /// clear bounds on gas etc.
     /// @return Dynamic `redeemables` mapped to a fixed size array.
     function getRedeemables() external view returns (address[8] memory) {
+        // Slither false positive here.
+        // https://github.com/crytic/slither/issues/884
+        // slither-disable-next-line uninitialized-local
         address[8] memory redeemablesArray_;
         for(uint256 i_ = 0;i_<redeemables.length;i_++) {
             redeemablesArray_[i_] = address(redeemables[i_]);
