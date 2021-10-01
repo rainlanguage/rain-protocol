@@ -118,6 +118,9 @@ contract TierByConstructionClaim is TierByConstruction {
     }
 
     /// Implementing contracts need to define what is claimed.
+    // Slither false positive. This is intended to overridden.
+    // https://github.com/crytic/slither/issues/929
+    // slither-disable-next-line dead-code
     function _afterClaim(
         address account_,
         uint256 report_,

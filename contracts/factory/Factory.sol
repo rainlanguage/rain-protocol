@@ -25,6 +25,9 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     /// arguments and pass them to this function directly.
     ///
     /// @param data_ ABI encoded data to pass to child contract constructor.
+    // Slither false positive. This is intended to overridden.
+    // https://github.com/crytic/slither/issues/929
+    // slither-disable-next-line dead-code
     function _createChild(bytes calldata data_)
         internal
         virtual

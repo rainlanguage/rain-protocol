@@ -90,6 +90,9 @@ contract ReadWriteTier is ITier {
     /// @param startTier_ The tier the account had before this update.
     /// @param endTier_ The tier the account will have after this update.
     /// @param data_ Additional arbitrary data to inform update requirements.
+    // Slither false positive. This is intended to overridden.
+    // https://github.com/crytic/slither/issues/929
+    // slither-disable-next-line dead-code
     function _afterSetTier(
         address account_,
         Tier startTier_,

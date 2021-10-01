@@ -143,6 +143,9 @@ contract RedeemableERC20Pool is Ownable, Phased {
     uint256 public immutable finalValuation;
 
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
+    // Slither false positive. Constructors cannot be reentrant.
+    // https://github.com/crytic/slither/issues/887
+    // slither-disable-next-line reentrancy-benign
     constructor (RedeemableERC20PoolConfig memory config_) public {
         require(
             config_.reserveInit >= MIN_RESERVE_INIT,
