@@ -376,30 +376,11 @@ describe("Verify", async function () {
 
     const state0 = await verify.state(signer1.address);
 
-    // another signer adding same session id should not wipe existing state
-    await Util.assertError(
-      async () => await verify.connect(signer2).add(SESSION_ID0),
-      "revert PRIOR_ADD",
-      "signer2 added verification session ID which was already added by signer1"
-    );
-
-    const state1 = await verify.state(signer1.address);
-
-    for (let index = 0; index < state0.length; index++) {
-      const propertyLeft = state0[index];
-      const propertyRight = state1[index];
-
-      assert(
-        propertyLeft === propertyRight,
-        `state not equivalent at position ${index}. Left ${propertyLeft}, Right ${propertyRight}`
-      );
-    }
-
     // signer1 cannot wipe their own mapping between address -> session id
     await Util.assertError(
       async () => await verify.connect(signer1).add(SESSION_ID1),
       "revert PRIOR_ADD",
-      "signer2 added verification session ID which was already added by signer1"
+      "signer1 wiped their own state"
     );
 
     const state2 = await verify.state(signer1.address);
@@ -413,6 +394,9 @@ describe("Verify", async function () {
         `state not equivalent at position ${index}. Left ${propertyLeft}, Right ${propertyRight}`
       );
     }
+
+    // another signer should be able to map to the same session id
+    await verify.connect(signer2).add(SESSION_ID0);
   });
 
   it("should allow only admin to approve verify sessions", async function () {
