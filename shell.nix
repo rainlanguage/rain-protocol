@@ -63,7 +63,7 @@ let
 
       hardhat compile --force
       dir=`git rev-parse HEAD`
-      mkdir -p ''${dir}
+      mkdir -p "dist/''${dir}"
       mv artifacts "dist/''${dir}/"
       mv typechain "dist/''${dir}/"
 
