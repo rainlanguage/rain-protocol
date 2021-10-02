@@ -34,13 +34,17 @@ let
     prettier-check
   '';
 
+  flush-all = pkgs.writeShellScriptBin "flush-all" ''
+  rm -rf artifacts
+  rm -rf cache
+  rm -rf node_modules
+  rm -rf typechain
+  rm -rf bin
+  npm install
+  '';
+
   security-check = pkgs.writeShellScriptBin "security-check" ''
-    rm -rf artifacts
-    rm -rf cache
-    rm -rf node_modules
-    rm -rf typechain
-    rm -rf bin
-    npm install
+    flush-all
 
     # Run slither against all our contracts.
     # Disable npx as nix-shell already handles availability of what we need.
@@ -48,18 +52,23 @@ let
     slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies
   '';
 
+  solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
+  mkdir -p solt
+  find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
+  mv solc-* solt
+  '';
+
   cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
-      rm -rf artifacts
-      rm -rf cache
-      rm -rf node_modules
-      rm -rf typechain
-      npm install
+      flush-all
+
       hardhat compile --force
       dir=`git rev-parse HEAD`
       mkdir -p ''${dir}
       mv artifacts "dist/''${dir}/"
       mv typechain "dist/''${dir}/"
-      # solt write contracts --npm --runs 100000
+
+      solt-the-earth
+      mv solt "dist/''${dir}/"
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
@@ -160,6 +169,8 @@ pkgs.stdenv.mkDerivation {
     docs-version
     prepack
     prepublish
+    solt-the-earth
+    flush-all
   ];
 
   shellHook = ''
