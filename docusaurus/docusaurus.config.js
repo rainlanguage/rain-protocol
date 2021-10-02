@@ -26,7 +26,7 @@ module.exports = {
           position: "left",
         },
         {
-          to: "/API/Trust",
+          to: "/api/trust/Trust",
           // activeBasePath: "/API",
           label: "API",
           position: "left",
