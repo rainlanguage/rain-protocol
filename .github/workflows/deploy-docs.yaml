@@ -23,6 +23,8 @@ jobs:
 
       - name: Autogenerate versioned docs folder with tag
         run: nix-shell --run docs-version
+        env:
+          GIT_TAG: ${{ env.GIT_TAG }}
 
       - name: Commit versioned docs folder
         if: success()
