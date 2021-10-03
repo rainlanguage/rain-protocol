@@ -1,9 +1,11 @@
 let
-  pkgs = import (builtins.fetchTarball {
-    name = "nixos-unstable-2021-10-01";
-    url = "https://github.com/nixos/nixpkgs/archive/82155ff501c7622cb2336646bb62f7624261f6d7.tar.gz";
-    sha256 = "0xv47cpgaxb4j46ggjx9gkg299m9cdfzar27xw5h5k2lg5d3dljg";
-  }) { };
+  pkgs = import
+    (builtins.fetchTarball {
+      name = "nixos-unstable-2021-10-01";
+      url = "https://github.com/nixos/nixpkgs/archive/82155ff501c7622cb2336646bb62f7624261f6d7.tar.gz";
+      sha256 = "0xv47cpgaxb4j46ggjx9gkg299m9cdfzar27xw5h5k2lg5d3dljg";
+    })
+    { };
 
   local-node = pkgs.writeShellScriptBin "local-node" ''
     hardhat node
@@ -35,12 +37,12 @@ let
   '';
 
   flush-all = pkgs.writeShellScriptBin "flush-all" ''
-  rm -rf artifacts
-  rm -rf cache
-  rm -rf node_modules
-  rm -rf typechain
-  rm -rf bin
-  npm install
+    rm -rf artifacts
+    rm -rf cache
+    rm -rf node_modules
+    rm -rf typechain
+    rm -rf bin
+    npm install
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -53,22 +55,22 @@ let
   '';
 
   solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
-  mkdir -p solt
-  find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
-  mv solc-* solt
+    mkdir -p solt
+    find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
+    mv solc-* solt
   '';
 
   cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
-      flush-all
+    flush-all
 
-      hardhat compile --force
-      dir=`git rev-parse HEAD`
-      mkdir -p "dist/''${dir}"
-      mv artifacts "dist/''${dir}/"
-      mv typechain "dist/''${dir}/"
+    hardhat compile --force
+    dir=`git rev-parse HEAD`
+    mkdir -p "dist/''${dir}"
+    mv artifacts "dist/''${dir}/"
+    mv typechain "dist/''${dir}/"
 
-      solt-the-earth
-      mv solt "dist/''${dir}/"
+    solt-the-earth
+    mv solt "dist/''${dir}/"
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
@@ -93,6 +95,8 @@ let
 
   docs-version = pkgs.writeShellScriptBin "docs-version" ''
     docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GIT_TAG}
+    # run again so docusaurus-search-local can index newly added version
+    npm run build --prefix docusaurus
   '';
 
   prepack = pkgs.writeShellScriptBin "prepack" ''
