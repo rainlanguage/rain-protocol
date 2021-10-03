@@ -150,11 +150,11 @@ The current roadmap towards this goal:
 - [x] Audit and open source everything in a combined public repository
 - [x] Create factory contracts that register deployed contracts and allow for
       automatic verification of the authenticity of a `Trust`
+- [x] More KYC/AML tools for creators
 - [ ] Create SDKs and incentives to foster global permissionless CURATION of
       raises across many independent GUIs, platforms and blockchains
 - [ ] Facilitate Token Lists and Kleros style layers of additional CURATION to
       protect users and platforms from illicit activities
-- [x] More KYC/AML tools for creators
 - [ ] More distribution mechanisms
 - [ ] Data analytics and tools for better CURATION
 - [ ] RainVM compiler for building small smart contract DSLs
