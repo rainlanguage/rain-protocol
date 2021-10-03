@@ -99,9 +99,9 @@ let
     set -euo pipefail
     shopt -s globstar
 
-    npm run build
+    flush-all
 
-    mkdir -p dist/v6 && cp -rf artifacts/ dist/v6
+    npm run build
 
     cp artifacts/contracts/**/*.json artifacts
     rm -rf artifacts/*.dbg.json
