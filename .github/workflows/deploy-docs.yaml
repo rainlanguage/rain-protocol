@@ -19,7 +19,10 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Autogenerate versioned docs folder with tag
-        run: GIT_TAG=`echo $(git describe --tags --abbrev=0)` nix-shell --run docs-version
+        run: |
+          GIT_TAG=`echo $(git describe --tags --abbrev=0)`
+          echo "$GIT_TAG"
+          nix-shell --run docs-version
 
       - name: Commit versioned docs folder
         if: success()
