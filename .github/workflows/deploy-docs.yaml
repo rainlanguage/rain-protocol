@@ -18,13 +18,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Setup GIT_TAG environment variable
-        run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-
       - name: Autogenerate versioned docs folder with tag
-        run: nix-shell --run docs-version
-        env:
-          GIT_TAG: ${{ env.GIT_TAG }}
+        run: GIT_TAG=`echo $(git describe --tags --abbrev=0)` nix-shell --run docs-version
 
       - name: Commit versioned docs folder
         if: success()
