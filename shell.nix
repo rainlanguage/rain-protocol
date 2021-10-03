@@ -95,7 +95,7 @@ let
 
   docs-version = pkgs.writeShellScriptBin "docs-version" ''
     docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GIT_TAG}
-    # run again so docusaurus-search-local can index newly added version
+    # build again so docusaurus-search-local can index newly added version
     npm run build --prefix docusaurus
   '';
 

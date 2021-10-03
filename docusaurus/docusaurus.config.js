@@ -32,6 +32,10 @@ module.exports = {
           position: "left",
         },
         {
+          type: "docsVersionDropdown",
+          position: "left",
+        },
+        {
           href: "https://github.com/beehive-innovation/rain-protocol",
           label: "GitHub",
           position: "right",
