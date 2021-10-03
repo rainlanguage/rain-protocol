@@ -136,3 +136,25 @@ All functionality is unit tested. The tests are in the `test` folder.
 
 If some functionality or potential exploit is missing a test this is a bug and
 so an issue and/or PR should be raised.
+
+## Roadmap
+
+Our goal is to build a free and open source system that makes it as easy and
+affordable as possible for creators to deploy `Trust` contracts that are secure
+and can meet local laws and regulations, without positioning ourselves as the
+gatekeeper of every possible use-case.
+
+The current roadmap towards this goal:
+
+- [x] Create the basic contracts needed to facilitate each phase
+- [x] Audit and open source everything in a combined public repository
+- [x] Create factory contracts that register deployed contracts and allow for
+      automatic verification of the authenticity of a `Trust`
+- [ ] Create SDKs and incentives to foster global permissionless CURATION of
+      raises across many independent GUIs, platforms and blockchains
+- [ ] Facilitate Token Lists and Kleros style layers of additional CURATION to
+      protect users and platforms from illicit activities
+- [x] More KYC/AML tools for creators
+- [ ] More distribution mechanisms
+- [ ] Data analytics and tools for better CURATION
+- [ ] RainVM compiler for building small smart contract DSLs
