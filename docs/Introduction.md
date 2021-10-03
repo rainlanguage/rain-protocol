@@ -67,18 +67,3 @@ Of course, the same system could be used to facilitate something that is probabl
 In this case it is hard to see how the fundraise is not simply a public sale of an investment contract, by an American, for Americans, but with weird extra steps by using `Trust`. The creator, as an American, would need to ensure (presumably offchain somehow) that they are meeting their local regulatory requirements.
 
 The nature of data in a public blockchain is no different to a public Google spreadsheet. That is to say, it has no knowledge of or control over what the numbers and balances it calculates represent in the real world. This can only be made visible and accountable through curation by humans. The `Trust` contract is simply tracking the flow of existing tokens towards the creator and newly minted tokens distributed away from the creator, then frozen so the creator can reference them later.
-
-## Roadmap
-
-Our goal is to build a free and open source system that makes it as easy and affordable as possible for creators to deploy `Trust` contracts that are secure and can meet local laws and regulations, without positioning ourselves as the gatekeeper of every possible use-case.
-
-The current roadmap towards this goal:
-
-- [x] Create the basic contracts needed to facilitate each phase
-- [x] Audit and open source everything in a combined public repository
-- [x] Create factory contracts that register deployed contracts and allow for automatic verification of the authenticity of a `Trust`
-- [ ] Create SDKs and incentives to foster global permissionless CURATION of raises across many independent GUIs, platforms and blockchains
-- [ ] Facilitate Token Lists and Kleros style layers of additional CURATION to protect users and platforms from illicit activities
-- [ ] More KYC/AML tools for creators
-- [ ] More distribution mechanisms
-- [ ] Data analytics and tools for better CURATION
