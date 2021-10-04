@@ -129,7 +129,7 @@ contract RedeemableERC20 is
         keccak256("DISTRIBUTOR_BURNER");
     bytes32 public constant REDEEMABLE_ADDER = keccak256("REDEEMABLE_ADDER");
 
-    /// Redeemable token burn amount.
+    /// Redeemable token burn for reserve.
     event Redeem(
         // Account burning and receiving.
         address indexed redeemer,

@@ -98,6 +98,16 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
+    // Seed token burn for reserve.
+    event Redeem(
+        // Account burning and receiving.
+        address indexed redeemer,
+        // Number of seed tokens burned.
+        // Number of reserve redeemed for burned seed tokens.
+        // `[seedAmount, reserveAmount]`
+        uint256[2] redeemAmounts
+    );
+
     /// Reserve erc20 token contract used to purchase seed tokens.
     IERC20 public immutable reserve;
     /// Recipient address for all reserve funds raised when seeding is
@@ -231,11 +241,16 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         // Guard against someone accidentally calling redeem before any reserve
         // has been returned.
         require(_currentReserveBalance > 0, "RESERVE_BALANCE");
+        uint256 reserveAmount_ = units_
+            .mul(_currentReserveBalance)
+            .div(_supplyBeforeBurn);
+        emit Redeem(
+            msg.sender,
+            [units_, reserveAmount_]
+        );
         reserve.safeTransfer(
             msg.sender,
-            units_
-                .mul(_currentReserveBalance)
-                .div(_supplyBeforeBurn)
+            reserveAmount_
         );
     }
 
