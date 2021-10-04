@@ -1,0 +1,31 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "./contracts/cooldown/Cooldown.sol": {
+            "content": "// SPDX-License-Identifier: CAL\npragma solidity ^0.6.12;\n\n/// @title Cooldown\n/// @notice `Cooldown` is an abstract contract that rate limits functions on\n/// the contract per `msg.sender`.\n///\n/// Each time a function with the `onlyAfterCooldown` modifier is called the\n/// `msg.sender` must wait N blocks before calling any modified function.\n///\n/// This does nothing to prevent sybils who can generate an arbitrary number of\n/// `msg.sender` values in parallel to spam a contract.\n///\n/// `Cooldown` is intended to prevent rapid state cycling to grief a contract,\n/// such as rapidly locking and unlocking a large amount of capital in the\n/// `SeedERC20` contract.\n///\n/// Requiring a lock/deposit of significant economic stake that sybils will not\n/// have access to AND applying a cooldown IS a sybil mitigation. The economic\n/// stake alone is NOT sufficient if gas is cheap as sybils can cycle the same\n/// stake between each other. The cooldown alone is NOT sufficient as many\n/// sybils can be created, each as a new `msg.sender`.\n///\n/// @dev Base for anything that enforces a cooldown delay on functions.\n/// Cooldown requires a minimum time in blocks to elapse between actions that\n/// cooldown. The modifier `onlyAfterCooldown` both enforces and triggers the\n/// cooldown. There is a single cooldown across all functions per-contract\n/// so any function call that requires a cooldown will also trigger it for\n/// all other functions.\n///\n/// Cooldown is NOT an effective sybil resistance alone, as the cooldown is\n/// per-address only. It is always possible for many accounts to be created\n/// to spam a contract with dust in parallel.\n/// Cooldown is useful to stop a single account rapidly cycling contract\n/// state in a way that can be disruptive to peers. Cooldown works best when\n/// coupled with economic stake associated with each state change so that\n/// peers must lock capital during the cooldown. Cooldown tracks the first\n/// `msg.sender` it sees for a call stack so cooldowns are enforced across\n/// reentrant code.\nabstract contract Cooldown {\n    /// Time in blocks to restrict access to modified functions.\n    uint16 public immutable cooldownDuration;\n\n    /// Every address has its own cooldown state.\n    mapping (address => uint256) public cooldowns;\n    address private caller;\n\n    /// The cooldown duration is global to the contract.\n    /// Cooldown duration must be greater than 0.\n    /// @param cooldownDuration_ The global cooldown duration.\n    constructor(uint16 cooldownDuration_) public {\n        require(cooldownDuration_ > 0, \"COOLDOWN_0\");\n        cooldownDuration = cooldownDuration_;\n    }\n\n    /// Modifies a function to enforce the cooldown for `msg.sender`.\n    /// Saves the original caller so that cooldowns are enforced across\n    /// reentrant code.\n    modifier onlyAfterCooldown() {\n        address caller_ = caller == address(0) ? caller = msg.sender : caller;\n        require(cooldowns[caller_] <= block.number, \"COOLDOWN\");\n        // Every action that requires a cooldown also triggers a cooldown.\n        cooldowns[caller_] = block.number + cooldownDuration;\n        _;\n        delete caller;\n    }\n}"
+        }
+    },
+    "settings": {
+        "metadata": {
+            "useLiteralContent": true
+        },
+        "optimizer": {
+            "enabled": true,
+            "runs": 100000
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "evm.bytecode",
+                    "evm.deployedBytecode",
+                    "evm.methodIdentifiers"
+                ],
+                "": [
+                    "id",
+                    "ast"
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "./contracts/pool/IBalancerConstants.sol": {
+            "content": "// SPDX-License-Identifier: CAL\npragma solidity 0.6.12;\n\n// Mirrors all the constants from Balancer `configurable-rights-pool` repo.\n// As we do not include balancer contracts as a dependency, we need to ensure\n// that any calculations or values that cross the interface to their system are\n// identical.\n// solhint-disable-next-line max-line-length\n// https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/libraries/BalancerConstants.sol#L9\nlibrary IBalancerConstants {\n    uint public constant BONE = 10**18;\n    uint public constant MIN_WEIGHT = BONE;\n    uint public constant MAX_WEIGHT = BONE * 50;\n    uint public constant MAX_TOTAL_WEIGHT = BONE * 50;\n    uint public constant MIN_BALANCE = BONE / 10**6;\n    uint public constant MAX_BALANCE = BONE * 10**12;\n    uint public constant MIN_POOL_SUPPLY = BONE * 100;\n    uint public constant MAX_POOL_SUPPLY = BONE * 10**9;\n    uint public constant MIN_FEE = BONE / 10**6;\n    uint public constant MAX_FEE = BONE / 10;\n    uint public constant EXIT_FEE = 0;\n    uint public constant MAX_IN_RATIO = BONE / 2;\n    uint public constant MAX_OUT_RATIO = (BONE / 3) + 1 wei;\n    uint public constant MIN_ASSET_LIMIT = 2;\n    uint public constant MAX_ASSET_LIMIT = 8;\n    uint public constant MAX_UINT = uint(-1);\n}"
+        }
+    },
+    "settings": {
+        "metadata": {
+            "useLiteralContent": true
+        },
+        "optimizer": {
+            "enabled": true,
+            "runs": 100000
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "evm.bytecode",
+                    "evm.deployedBytecode",
+                    "evm.methodIdentifiers"
+                ],
+                "": [
+                    "id",
+                    "ast"
+                ]
+            }
+        }
+    }
+}
