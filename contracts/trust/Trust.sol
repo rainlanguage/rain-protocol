@@ -13,14 +13,6 @@ import {
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import {
-    CRPFactory
-} from "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
-import {
-    BFactory
-} from
-"@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
-
 import { ITier } from "../tier/ITier.sol";
 
 import { Phase } from "../phased/Phased.sol";
@@ -58,7 +50,7 @@ struct TrustContracts {
     address seeder;
     // Address that defines and controls tier levels for users.
     address tier;
-    // The Balancer ConfigurableRightsPool that is built for this distribution.
+    // The Balancer `ConfigurableRightsPool` deployed for this distribution.
     address crp;
     // The Balancer pool that holds and trades tokens during the distribution.
     address pool;
@@ -91,10 +83,10 @@ struct DistributionProgress {
     // `DistributionStatus` as above.
     DistributionStatus distributionStatus;
     // First block that the distribution can be traded.
-    // Will be `0` before trading.
+    // Will be `-1` before trading.
     uint32 distributionStartBlock;
     // First block that the distribution can be ended.
-    // Will be `0` before trading.
+    // Will be `-1` before trading.
     uint32 distributionEndBlock;
     // Current reserve balance in the Balancer pool.
     // Will be `0` before trading.
@@ -126,7 +118,7 @@ struct TrustConfig {
     // On success the creator receives these funds.
     // On failure the creator receives `0`.
     uint256 minimumCreatorRaise;
-    // The SeedERC20Factory on the current network.
+    // The `SeedERC20Factory` on the current network.
     SeedERC20Factory seedERC20Factory;
     // Either an EOA (externally owned address) or `address(0)`.
     // If an EOA the seeder account must transfer seed funds to the newly
@@ -161,13 +153,13 @@ struct TrustConfig {
 }
 
 struct TrustRedeemableERC20Config {
-    // The RedeemableERC20Factory on the current network.
+    // The `RedeemableERC20Factory` on the current network.
     RedeemableERC20Factory redeemableERC20Factory;
-    // Name forwarded to ERC20 constructor.
+    // Name forwarded to `ERC20` constructor.
     string name;
-    // Symbol forwarded to ERC20 constructor.
+    // Symbol forwarded to `ERC20` constructor.
     string symbol;
-    // Tier contract to compare statuses against on transfer.
+    // `ITier` contract to compare statuses against on transfer.
     ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
     ITier.Tier minimumStatus;
@@ -176,7 +168,7 @@ struct TrustRedeemableERC20Config {
 }
 
 struct TrustRedeemableERC20PoolConfig {
-    // The RedeemableERC20PoolFactory on the current network.
+    // The `RedeemableERC20PoolFactory` on the current network.
     RedeemableERC20PoolFactory redeemableERC20PoolFactory;
     // The reserve erc20 token.
     // The reserve token anchors our newly minted redeemable tokens to an
@@ -231,30 +223,28 @@ struct TrustRedeemableERC20PoolConfig {
 /// correct stakeholders:
 ///
 /// - On `Trust` construction, all minted `RedeemableERC20` tokens
-/// are sent to the `RedeemableERC20Pool`
-///
+///   are sent to the `RedeemableERC20Pool`
 /// - `anonStartDistribution` can be called by anyone to begin the
-/// Dutch Auction. If this is called before seeder reserve funds are
-/// available on the `Trust`, this will revert
-///
+///   Dutch Auction. This will revert if this is called before seeder reserve
+///   funds are available on the `Trust`.
 /// - `anonEndDistribution` can be called by anyone (only when
-/// `RedeemableERC20Pool` is in `Phase.TWO`) to end the Dutch Auction
-/// and distribute funds to the correct stakeholders, depending on
-/// whether or not the auction met the fundraising target.
+///   `RedeemableERC20Pool` is in `Phase.TWO`) to end the Dutch Auction
+///   and distribute funds to the correct stakeholders, depending on
+///   whether or not the auction met the fundraising target.
 ///   - On successful raise
 ///     - seed funds are returned to `seeder` address along with
-/// additional `seederFee` if configured
-///     - `redeemInit` is sent to the `redeemableERC20` address, to
-/// back redemptions
+///       additional `seederFee` if configured
+///     - `redeemInit` is sent to the `redeemableERC20` address, to back
+///       redemptions
 ///     - the `creator` gets the remaining balance, which should
-/// equal or exceed `minimumCreatorRaise`
+///       equal or exceed `minimumCreatorRaise`
 ///   - On failed raise
 ///     - seed funds are returned to `seeder` address
-///     - the remaining balance is sent to the `redeemableERC20`
-/// address, to back redemptions
+///     - the remaining balance is sent to the `redeemableERC20` address, to
+///       back redemptions
 ///     - the `creator` gets nothing
-/// @dev Mediates stakeholders and creates internal Balancer pools
-/// and tokens for a distribution.
+/// @dev Mediates stakeholders and creates internal Balancer pools and tokens
+/// for a distribution.
 ///
 /// The goals of a distribution:
 /// - Mint and distribute a `RedeemableERC20` as fairly as possible,
@@ -369,6 +359,9 @@ contract Trust is ReentrancyGuard {
     /// https://github.com/crytic/slither/issues/887
     ///
     /// @param config_ Config for the Trust.
+    // Slither false positive. Constructors cannot be reentrant.
+    // https://github.com/crytic/slither/issues/887
+    // slither-disable-next-line reentrancy-benign
     constructor (
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
@@ -462,7 +455,7 @@ contract Trust is ReentrancyGuard {
         // setup and exits.
         redeemableERC20_.grantRole(
             redeemableERC20_.RECEIVER(),
-            address(redeemableERC20Pool_.crp().bFactory())
+            redeemableERC20Pool_.crp().bFactory()
         );
         redeemableERC20_.grantRole(
             redeemableERC20_.RECEIVER(),

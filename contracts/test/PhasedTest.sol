@@ -10,7 +10,7 @@ contract PhasedTest is Phased {
     bool public hookCondition = true;
 
     /// Exposes `scheduleNextPhase` for testing.
-    /// @param nextPhaseBlock_ As per `scheduleNestPhase`.
+    /// @param nextPhaseBlock_ As per `scheduleNextPhase`.
     function testScheduleNextPhase(uint32 nextPhaseBlock_) external {
         scheduleNextPhase(nextPhaseBlock_);
     }
@@ -30,7 +30,7 @@ contract PhasedTest is Phased {
     /// This function wraps `onlyAtLeastPhase` modifier, passing phase directly
     /// into modifier argument.
     /// @param phase_ Modifier MUST error if current phase is not AT LEAST
-    ///        `phase_`.
+    /// `phase_`.
     /// @return Always true if not error.
     function runsOnlyAtLeastPhase(Phase phase_)
         external

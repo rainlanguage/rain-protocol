@@ -1,0 +1,31 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "./contracts/pool/IConfigurableRightsPool.sol": {
+            "content": "// SPDX-License-Identifier: CAL\npragma solidity 0.6.12;\n\npragma experimental ABIEncoderV2;\n\n/// Mirrors the `PoolParams` struct normally internal to a Balancer\n/// `ConfigurableRightsPool`.\n/// If nothing else, this fixes errors that prevent slither from compiling when\n/// running the security scan.\n// solhint-disable-next-line max-line-length\n/// https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L47\nstruct PoolParams {\n    string poolTokenSymbol;\n    string poolTokenName;\n    address[] constituentTokens;\n    uint[] tokenBalances;\n    uint[] tokenWeights;\n    uint swapFee;\n}\n\n/// Mirrors the Balancer `ConfigurableRightsPool` functions relevant to\n/// bootstrapping a pool. This is the minimal interface required for\n/// `RedeemableERC20Pool` to function, much of the Balancer contract is elided\n/// intentionally. Clients should use Balancer code directly.\n// solhint-disable-next-line max-line-length\n/// https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L41\ninterface IConfigurableRightsPool {\n    // solhint-disable-next-line max-line-length\n    // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L61\n    function bPool() external view returns (address);\n\n    // solhint-disable-next-line max-line-length\n    // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L60\n    function bFactory() external view returns (address);\n\n    // solhint-disable-next-line max-line-length\n    // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L318\n    function createPool(\n        uint initialSupply,\n        uint minimumWeightChangeBlockPeriodParam,\n        uint addTokenTimeLockInBlocksParam\n    ) external;\n\n    // solhint-disable-next-line max-line-length\n    // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L393\n    function updateWeightsGradually(\n        uint[] calldata newWeights,\n        uint startBlock,\n        uint endBlock\n    ) external;\n\n    // solhint-disable-next-line max-line-length\n    // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L581\n    function exitPool(uint poolAmountIn, uint[] calldata minAmountsOut)\n        external;\n}"
+        }
+    },
+    "settings": {
+        "metadata": {
+            "useLiteralContent": true
+        },
+        "optimizer": {
+            "enabled": true,
+            "runs": 100000
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "evm.bytecode",
+                    "evm.deployedBytecode",
+                    "evm.methodIdentifiers"
+                ],
+                "": [
+                    "id",
+                    "ast"
+                ]
+            }
+        }
+    }
+}

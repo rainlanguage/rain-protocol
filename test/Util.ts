@@ -1,5 +1,4 @@
-import { ethers } from "hardhat";
-import type { RightsManager } from "../typechain/RightsManager";
+import { ethers, artifacts } from "hardhat";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
@@ -12,10 +11,30 @@ import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool
 import type { BPool } from "../typechain/BPool";
 import type { BigNumber } from "ethers";
 import type { Trust } from "../typechain/Trust";
-
-const trustJson = require("../artifacts/contracts/trust/Trust.sol/Trust.json");
+import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 
 const { expect, assert } = chai;
+
+const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
+if (smartPoolManagerAddress) {
+  console.log(`using existing SmartPoolManager: ${smartPoolManagerAddress}`);
+}
+const balancerSafeMathAddress = process.env.BALANCER_SAFE_MATH;
+if (balancerSafeMathAddress) {
+  console.log(`using existing BalancerSafeMath: ${balancerSafeMathAddress}`);
+}
+const rightsManagerAddress = process.env.BALANCER_RIGHTS_MANAGER;
+if (rightsManagerAddress) {
+  console.log(`using existing RightsManager: ${rightsManagerAddress}`);
+}
+const bFactoryAddress = process.env.BALANCER_BFACTORY;
+if (bFactoryAddress) {
+  console.log(`using existing BFactory: ${bFactoryAddress}`);
+}
+const crpFactoryAddress = process.env.BALANCER_CRP_FACTORY;
+if (crpFactoryAddress) {
+  console.log(`using existing CRPFactory: ${crpFactoryAddress}`);
+}
 
 export const basicDeploy = async (name, libs) => {
   const factory = await ethers.getContractFactory(name, {
@@ -29,23 +48,65 @@ export const basicDeploy = async (name, libs) => {
   return contract;
 };
 
-export const balancerDeploy = async (): Promise<
-  [RightsManager, CRPFactory, BFactory]
-> => {
-  const rightsManager = (await basicDeploy(
-    "RightsManager",
-    {}
-  )) as RightsManager;
-  const balancerSafeMath = await basicDeploy("BalancerSafeMath", {});
-  const smartPoolManager = await basicDeploy("SmartPoolManager", {});
-  const crpFactory = (await basicDeploy("CRPFactory", {
-    RightsManager: rightsManager.address,
-    BalancerSafeMath: balancerSafeMath.address,
-    SmartPoolManager: smartPoolManager.address,
-  })) as CRPFactory;
-  const bFactory = (await basicDeploy("BFactory", {})) as BFactory;
+export const balancerDeploy = async (): Promise<[CRPFactory, BFactory]> => {
+  let rightsManager;
+  if (rightsManagerAddress) {
+    rightsManager = new ethers.Contract(
+      rightsManagerAddress,
+      (await artifacts.readArtifact("RightsManager")).abi
+    );
+  } else {
+    rightsManager = await basicDeploy("RightsManager", {});
+  }
 
-  return [rightsManager, crpFactory, bFactory];
+  let balancerSafeMath;
+  if (balancerSafeMathAddress) {
+    balancerSafeMath = new ethers.Contract(
+      balancerSafeMathAddress,
+      (await artifacts.readArtifact("BalancerSafeMath")).abi
+    );
+  } else {
+    balancerSafeMath = await basicDeploy("BalancerSafeMath", {});
+  }
+
+  let smartPoolManager: SmartPoolManager;
+  if (smartPoolManagerAddress) {
+    smartPoolManager = new ethers.Contract(
+      smartPoolManagerAddress,
+      (await artifacts.readArtifact("SmartPoolManager")).abi
+    ) as SmartPoolManager;
+  } else {
+    smartPoolManager = (await basicDeploy(
+      "SmartPoolManager",
+      {}
+    )) as SmartPoolManager;
+  }
+
+  let crpFactory: CRPFactory;
+  if (crpFactoryAddress) {
+    crpFactory = new ethers.Contract(
+      crpFactoryAddress,
+      (await artifacts.readArtifact("CRPFactory")).abi
+    ) as CRPFactory;
+  } else {
+    crpFactory = (await basicDeploy("CRPFactory", {
+      RightsManager: rightsManager.address,
+      BalancerSafeMath: balancerSafeMath.address,
+      SmartPoolManager: smartPoolManager.address,
+    })) as CRPFactory;
+  }
+
+  let bFactory;
+  if (bFactoryAddress) {
+    bFactory = new ethers.Contract(
+      bFactoryAddress,
+      (await artifacts.readArtifact("BFactory")).abi
+    ) as BFactory;
+  } else {
+    bFactory = (await basicDeploy("BFactory", {})) as BFactory;
+  }
+
+  return [crpFactory, bFactory];
 };
 
 export interface Factories {
@@ -56,7 +117,6 @@ export interface Factories {
 }
 
 export const factoriesDeploy = async (
-  rightsManager: RightsManager,
   crpFactory: CRPFactory,
   balancerFactory: BFactory
 ): Promise<Factories> => {
@@ -68,12 +128,7 @@ export const factoriesDeploy = async (
   await redeemableERC20Factory.deployed();
 
   const redeemableERC20PoolFactoryFactory = await ethers.getContractFactory(
-    "RedeemableERC20PoolFactory",
-    {
-      libraries: {
-        RightsManager: rightsManager.address,
-      },
-    }
+    "RedeemableERC20PoolFactory"
   );
   const redeemableERC20PoolFactory =
     (await redeemableERC20PoolFactoryFactory.deploy({
@@ -148,21 +203,18 @@ export const assertError = async (f: Function, s: string, e: string) => {
   assert(didError, e);
 };
 
-export const crpJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
-export const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
-
 export const poolContracts = async (
   signers: any,
   pool: RedeemableERC20Pool
 ): Promise<[ConfigurableRightsPool, BPool]> => {
   const crp = new ethers.Contract(
     await pool.crp(),
-    crpJson.abi,
+    (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
     signers[0]
   ) as ConfigurableRightsPool;
   const bPool = new ethers.Contract(
     await crp.bPool(),
-    bPoolJson.abi,
+    (await artifacts.readArtifact("BPool")).abi,
     signers[0]
   ) as BPool;
   return [crp, bPool];
@@ -187,7 +239,7 @@ export const trustDeploy = async (
       ),
       20 // address bytes length
     ),
-    trustJson.abi,
+    (await artifacts.readArtifact("Trust")).abi,
     creator
   ) as Trust;
 

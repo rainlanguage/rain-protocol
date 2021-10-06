@@ -1,0 +1,31 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "./contracts/factory/IFactory.sol": {
+            "content": "// SPDX-License-Identifier: CAL\npragma solidity ^0.6.12;\n\npragma experimental ABIEncoderV2;\n\ninterface IFactory {\n    /// Whenever a new child contract is deployed, a `NewContract` event\n    /// containing the new child contract address MUST be emitted.\n    event NewContract(address indexed _contract);\n\n    /// Creates a new child contract.\n    ///\n    /// @param data_ Domain specific data for the child contract constructor.\n    /// @return New child contract address.\n    function createChild(bytes calldata data_) external returns(address);\n\n    /// Checks if address is registered as a child contract of this factory.\n    ///\n    /// Addresses that were not deployed by `createChild` MUST NOT return\n    /// `true` from `isChild`. This is CRITICAL to the security guarantees for\n    /// any contract implementing `IFactory`.\n    ///\n    /// @param maybeChild_ Address to check registration for.\n    /// @return `true` if address was deployed by this contract factory,\n    /// otherwise `false`.\n    function isChild(address maybeChild_) external returns(bool);\n}"
+        }
+    },
+    "settings": {
+        "metadata": {
+            "useLiteralContent": true
+        },
+        "optimizer": {
+            "enabled": true,
+            "runs": 100000
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "evm.bytecode",
+                    "evm.deployedBytecode",
+                    "evm.methodIdentifiers"
+                ],
+                "": [
+                    "id",
+                    "ast"
+                ]
+            }
+        }
+    }
+}

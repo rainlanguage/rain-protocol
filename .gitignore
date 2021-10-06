@@ -8,8 +8,8 @@ artifacts
 build
 venv
 bin
-!dist/**/artifacts
 docs/api
-bin
 *.tgz
 .npmrc
+solt
+!dist/**

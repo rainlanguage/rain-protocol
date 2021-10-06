@@ -1,6 +1,7 @@
 # Rain Protocol
 
-Rain Protocol supports fair value capture for intangible or physical assets in a permissionless way in any decentralised environment.
+Rain Protocol supports permissionless and fair value capture for intangible or
+physical assets in on any EVM compatible chain with sufficiently low fees.
 
 ## Installation
 
@@ -18,7 +19,7 @@ pragma solidity ^0.6.12;
 import "@beehiveinnovation/rain-protocol/contracts/ReadWriteTier.sol";
 
 contract MyContract is ReadWriteTier {
-  ...
+  // ...
 }
 ```
 
@@ -69,17 +70,19 @@ Inside the nix-shell you can just run `hardhat test` as normal.
 
 Inside the nix-shell run `security-check`.
 
-**IMPORTANT: `security-check` applies and removes several patches to balancer to get slither compiling**
-
-If you cancel the security check before it is finished your repository may be left in a dirty state.
-
 ### Build and serve documentation site
 
-Inside the nix-shell run `docs-dev`. If you want to see search functionality, you'll need to manually build and serve with `docs-build` and then `docs-serve` since search indexing only runs for production builds.
+Inside the nix-shell run `docs-dev`. If you want to see search functionality,
+you'll need to manually build and serve with `docs-build` and then `docs-serve`
+since search indexing only runs for production builds.
 
-Navigate to http://localhost:3000/ to view the docs site generated with Docusaurus.
+Navigate to http://localhost:3000/ to view the docs site generated with
+Docusaurus.
 
-Documentation files are written in Markdown and can be found under the `docs/` directory in this repo. The main config file can be found at `docusaurus/docusaurus.config.js`, and sidebar config at `docusaurus/siderbars.js`
+Documentation files are written in Markdown and can be found under the `docs/`
+directory in this repo. The main config file can be found at
+`docusaurus/docusaurus.config.js`, and sidebar config at
+`docusaurus/siderbars.js`
 
 ### Publish npm Package
 
@@ -112,16 +115,46 @@ Audits can be found in the `audits` folder.
 
 ### Gas optimisations
 
-Hardhat is configured to leverage the solidity compiler optimizer and report on gas usage for all test runs.
+Hardhat is configured to leverage the solidity compiler optimizer and report on
+gas usage for all test runs.
 
-In general clarity and reuse of existing standard functionality, such as Open Zeppelin RBAC access controls, is preferred over micro-optimisation of gas costs.
+In general clarity and reuse of existing standard functionality, such as
+Open Zeppelin RBAC access controls, is preferred over micro-optimisation of gas
+costs.
 
-For many desirable use-cases, such as small independent artists or rural communities, the gas costs on ethereum mainnet will ALWAYS be unaffordable no matter how much we optimise these contracts.
+For many desirable use-cases, such as small independent artists or rural
+communities, the gas costs on ethereum mainnet will ALWAYS be unaffordable no
+matter how much we optimise these contracts.
 
-The intent is to keep a reasonable balance between cost and clarity then deploy the contracts to L2 solutions such as Polygon where the baseline gas cost is several orders of magnitude cheaper.
+The intent is to keep a reasonable balance between cost and clarity then deploy
+the contracts to L2 solutions such as Polygon where the baseline gas cost is
+several orders of magnitude cheaper.
 
 ### Unit tests
 
 All functionality is unit tested. The tests are in the `test` folder.
 
-If some functionality or potential exploit is missing a test this is a bug and so an issue and/or PR should be raised.
+If some functionality or potential exploit is missing a test this is a bug and
+so an issue and/or PR should be raised.
+
+## Roadmap
+
+Our goal is to build a free and open source system that makes it as easy and
+affordable as possible for creators to deploy `Trust` contracts that are secure
+and can meet local laws and regulations, without positioning ourselves as the
+gatekeeper of every possible use-case.
+
+The current roadmap towards this goal:
+
+- [x] Create the basic contracts needed to facilitate each phase
+- [x] Audit and open source everything in a combined public repository
+- [x] Create factory contracts that register deployed contracts and allow for
+      automatic verification of the authenticity of a `Trust`
+- [x] More KYC/AML tools for creators
+- [ ] Create SDKs and incentives to foster global permissionless CURATION of
+      raises across many independent GUIs, platforms and blockchains
+- [ ] Facilitate Token Lists and Kleros style layers of additional CURATION to
+      protect users and platforms from illicit activities
+- [ ] More distribution mechanisms
+- [ ] Data analytics and tools for better CURATION
+- [ ] RainVM compiler for building small smart contract DSLs

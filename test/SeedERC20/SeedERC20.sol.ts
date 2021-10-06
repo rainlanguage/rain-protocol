@@ -10,6 +10,97 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 describe("SeedERC20", async function () {
+  it("should emit Redeem event", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const alice = signers[0];
+    const bob = signers[1];
+    const carol = signers[2];
+    const dave = signers[3];
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const aliceReserve = reserve.connect(alice);
+    const bobReserve = reserve.connect(bob);
+    const carolReserve = reserve.connect(carol);
+    const daveReserve = reserve.connect(dave);
+
+    const seedPrice = ethers.BigNumber.from(100);
+    const seedUnits = ethers.BigNumber.from(10);
+    const cooldownDuration = 1;
+
+    const bobUnits = ethers.BigNumber.from(6);
+    const carolUnits = ethers.BigNumber.from(4);
+
+    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
+    const seedERC20 = (await seedERC20Factory.deploy({
+      reserve: reserve.address,
+      recipient: dave.address,
+      seedPrice,
+      seedUnits,
+      cooldownDuration,
+      name: "seed",
+      symbol: "SD",
+    })) as SeedERC20;
+
+    const aliceSeed = seedERC20.connect(alice);
+    const bobSeed = seedERC20.connect(bob);
+    const carolSeed = seedERC20.connect(carol);
+    const daveSeed = seedERC20.connect(dave);
+
+    await aliceReserve.transfer(bob.address, bobUnits.mul(seedPrice));
+    await aliceReserve.transfer(carol.address, carolUnits.mul(seedPrice));
+
+    // Bob and carol co-fund the seed round.
+
+    await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
+    await bobSeed.seed(0, bobUnits);
+    await bobSeed.unseed(2);
+
+    await bobReserve.approve(seedERC20.address, seedPrice.mul(2));
+    await bobSeed.seed(0, 2);
+
+    await carolReserve.approve(seedERC20.address, carolUnits.mul(seedPrice));
+    await carolSeed.seed(0, carolUnits);
+
+    // Dave gets 10% extra reserve from somewhere.
+
+    await aliceReserve.transfer(dave.address, seedPrice.mul(seedUnits).div(10));
+
+    // Dave sends reserve back to the seed contract.
+
+    await daveReserve.transfer(
+      seedERC20.address,
+      await daveReserve.balanceOf(dave.address)
+    );
+
+    // Bob and carol can redeem their seed tokens.
+
+    const reserve0 = await reserve.balanceOf(seedERC20.address);
+    const totalSupply0 = await seedERC20.totalSupply();
+
+    await expect(bobSeed.redeem(bobUnits))
+      .to.emit(seedERC20, "Redeem")
+      .withArgs(bob.address, [
+        bobUnits,
+        bobUnits.mul(reserve0).div(totalSupply0),
+      ]);
+
+    const reserve1 = await reserve.balanceOf(seedERC20.address);
+    const totalSupply1 = await seedERC20.totalSupply();
+
+    await expect(carolSeed.redeem(carolUnits))
+      .to.emit(seedERC20, "Redeem")
+      .withArgs(carol.address, [
+        carolUnits,
+        carolUnits.mul(reserve1).div(totalSupply1),
+      ]);
+  });
+
   it("shouldn't be affected by attacker forcibly sending ether to contract", async function () {
     this.timeout(0);
 
