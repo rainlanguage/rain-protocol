@@ -33,8 +33,8 @@ enum DistributionStatus {
   FAIL,
 }
 
-describe.only("BPoolFeeEscrow", async function () {
-  it.only("should still refund abandoned fees on failed raise", async function () {
+describe("BPoolFeeEscrow", async function () {
+  it("should still refund abandoned fees on failed raise", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();

@@ -32,16 +32,12 @@ enum DistributionStatus {
 }
 
 export const deployGlobals = async () => {
-  const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+  const [crpFactory, bFactory] = await Util.balancerDeploy();
 
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
-  const { trustFactory } = await Util.factoriesDeploy(
-    rightsManager,
-    crpFactory,
-    bFactory
-  );
+  const { trustFactory } = await Util.factoriesDeploy(crpFactory, bFactory);
 
   // Deploy global Escrow contract
   const escrowFactory = await ethers.getContractFactory("BPoolFeeEscrow");
@@ -50,7 +46,6 @@ export const deployGlobals = async () => {
   )) as BPoolFeeEscrow;
 
   return {
-    rightsManager,
     crpFactory,
     bFactory,
     tierFactory,
