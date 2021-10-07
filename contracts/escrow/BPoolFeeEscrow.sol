@@ -87,9 +87,12 @@ contract BPoolFeeEscrow {
     // abandoned. The sender MAY pay the gas to call `blockAccount` on the
     // trust explicitly before calling `abandonTrust`.
     function abandonTrust(Trust trust_) external {
-        abandoned[address(trust_)] = abandoned[address(trust_)]
-            .add(fees[address(trust_)][msg.sender]);
+        uint256 abandonedFee_ = fees[address(trust_)][msg.sender];
         delete(fees[address(trust_)][msg.sender]);
+        abandoned[address(trust_)] = abandoned[address(trust_)]
+            .add(abandonedFee_);
+        failureRefunds[address(trust_)] = failureRefunds[address(trust_)]
+            .sub(abandonedFee_);
         pending[msg.sender].remove(address(trust_));
     }
 
@@ -159,13 +162,19 @@ contract BPoolFeeEscrow {
             (distributionStatus_ == DistributionStatus.Fail
                 || distributionStatus_ == DistributionStatus.Success)) {
             if (distributionStatus_ == DistributionStatus.Fail) {
-                refund_.add(failureRefunds[address(trust_)]);
+                refund_ = refund_.add(failureRefunds[address(trust_)]);
             }
             delete(failureRefunds[address(trust_)]);
         }
 
         if (refund_ > 0) {
             TrustContracts memory trustContracts_ = trust_.getContracts();
+            if (IERC20(trustContracts_.reserveERC20)
+                .allowance(address(this), trustContracts_.redeemableERC20) <
+                uint256(-1)) {
+                IERC20(trustContracts_.reserveERC20)
+                    .approve(trustContracts_.redeemableERC20, uint256(-1));
+            }
             IERC20(trustContracts_.reserveERC20).safeTransfer(
                 trustContracts_.redeemableERC20,
                 refund_

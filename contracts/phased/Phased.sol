@@ -16,44 +16,43 @@ enum Phase {
 }
 
 /// @title Phased
-/// @notice `Phased` is an abstract contract that defines up to `9`
-/// phases that an implementing contract moves through.
+/// @notice `Phased` is an abstract contract that defines up to `9` phases that
+/// an implementing contract moves through.
 ///
-/// `Phase.ZERO` is always the first phase and does not need to be
-/// set expicitly.
+/// `Phase.ZERO` is always the first phase and does not, and cannot, be set
+/// expicitly. Effectively it is implied that `Phase.ZERO` has been active
+/// since block zero.
 ///
 /// Each subsequent phase `Phase.ONE` through `Phase.EIGHT` must be
-/// scheduled sequentially.
+/// scheduled sequentially and explicitly at a block number.
 ///
-/// Only the immediate next phase can be scheduled with
-/// `scheduleNextPhase`, it is not possible to schedule multiple phases.
+/// Only the immediate next phase can be scheduled with `scheduleNextPhase`,
+/// it is not possible to schedule multiple phases ahead.
 ///
-/// Multiple phases can be scheduled in a single block if each
-/// scheduled phase is scheduled for the current block.
+/// Multiple phases can be scheduled in a single block if each scheduled phase
+/// is scheduled for the current block.
+///
 /// Several utility functions and modifiers are provided.
 ///
-/// A single hook `_beforeScheduleNextPhase` is provided so contracts
-/// can implement additional phase shift checks.
+/// A single hook `_beforeScheduleNextPhase` is provided so contracts can
+/// implement additional phase shift checks.
 ///
-/// One event `PhaseShiftScheduled` is emitted each time a phase
-/// shift is scheduled.
+/// One event `PhaseShiftScheduled` is emitted each time a phase shift is
+/// scheduled (not when the scheduled phase is reached).
 ///
 /// @dev `Phased` contracts have a defined timeline with available
-/// functionality
-/// grouped into phases.
+/// functionality grouped into phases.
 /// Every `Phased` contract starts at `Phase.ZERO` and moves sequentially
 /// through phases `ONE` to `EIGHT`.
 /// Every `Phase` other than `Phase.ZERO` is optional, there is no requirement
 /// that all 9 phases are implemented.
 /// Phases can never be revisited, the inheriting contract always moves through
-/// every phase.
+/// each achieved phase linearly.
 /// This is enforced by only allowing `scheduleNextPhase` to be called once per
 /// phase.
 /// It is possible to call `scheduleNextPhase` several times in a single block
-/// but the `block.number` must be passed each time to explicitly move through
-/// each phase.
-/// It is not possible to schedule any phase other than the immediate next
-/// phase.
+/// but the `block.number` for each phase must be reached each time to schedule
+/// the next phase.
 /// Importantly there are events and several modifiers and checks available to
 /// ensure that functionality is limited to the current phase.
 /// The full history of each phase shift block is recorded as a fixed size
@@ -66,8 +65,7 @@ abstract contract Phased {
     /// `PhaseShiftScheduled` is emitted when the next phase is scheduled.
     event PhaseShiftScheduled(uint32 indexed newPhaseBlock_);
 
-    /// Solidity compiler should optimise this to 32 bytes as it has fixed
-    /// size.
+    /// 8 phases each as 32 bits to fit a single 32 byte word.
     uint32[8] public phaseBlocks = [
         UNINITIALIZED,
         UNINITIALIZED,
@@ -89,9 +87,9 @@ abstract contract Phased {
     /// returned.
     /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
     /// @param blockNumber_ Determine the relevant phase relative to this block
-    ///        number.
+    /// number.
     /// @return The "current" phase relative to the block number and phase
-    ///         blocks list.
+    /// blocks list.
     function phaseAtBlockNumber(
         uint32[8] memory phaseBlocks_,
         uint32 blockNumber_
@@ -121,12 +119,7 @@ abstract contract Phased {
         pure
         returns(uint32)
     {
-        if (phase_ == Phase.ZERO) {
-            return 0;
-        }
-        else {
-            return phaseBlocks_[uint(phase_) - 1];
-        }
+        return phase_ > Phase.ZERO ? phaseBlocks_[uint(phase_) - 1] : 0;
     }
 
     /// Impure read-only function to return the "current" phase from internal
@@ -138,8 +131,6 @@ abstract contract Phased {
     }
 
     /// Modifies functions to only be callable in a specific phase.
-    /// This is usually what you want as phases should typically be isolated in
-    /// their functionality.
     /// @param phase_ Modified functions can only be called during this phase.
     modifier onlyPhase(Phase phase_) {
         require(currentPhase() == phase_, "BAD_PHASE");
@@ -148,10 +139,8 @@ abstract contract Phased {
 
     /// Modifies functions to only be callable in a specific phase OR if the
     /// specified phase has passed.
-    /// It may be desirable to "unlock" some functionality indefinitely
-    /// starting from some phase.
-    /// @param phase_ Modified function can only be called during or after this
-    ///        phase.
+    /// @param phase_ Modified function only callable during or after this
+    /// phase.
     modifier onlyAtLeastPhase(Phase phase_) {
         require(currentPhase() >= phase_, "MIN_PHASE");
         _;
@@ -183,7 +172,9 @@ abstract contract Phased {
     /// change.
     /// Note this is called when scheduling the phase change, not on the block
     /// the phase change occurs.
-    /// Works as Open Zeppelin hooks.
+    /// This is called before the phase change so that all functionality that
+    /// is behind a phase gate is still available at the moment of applying the
+    /// hook for scheduling the next phase.
     /// @param nextPhaseBlock_ The block for the next phase.
     function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
         internal

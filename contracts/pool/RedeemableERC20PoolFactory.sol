@@ -8,26 +8,19 @@ import {
     RedeemableERC20Pool,
     RedeemableERC20PoolConfig
 } from "./RedeemableERC20Pool.sol";
-import {
-    CRPFactory
-} from "@beehiveinnovation/configurable-rights-pool/contracts/CRPFactory.sol";
-import {
-    BFactory
-} from
-"@beehiveinnovation/configurable-rights-pool/contracts/test/BFactory.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 
 /// Everything required to construct a `RedeemableERC20PoolFactory`.
 struct RedeemableERC20PoolFactoryConfig {
-    // The CRPFactory on the current network.
+    // The `CRPFactory` on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
-    CRPFactory crpFactory;
-    // The BFactory on the current network.
+    address crpFactory;
+    // The `BFactory` on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
-    BFactory balancerFactory;
+    address balancerFactory;
 }
 
 /// Everything else required to construct new `RedeemableERC20Pool` child
@@ -78,9 +71,9 @@ struct RedeemableERC20PoolFactoryRedeemableERC20PoolConfig {
 /// contracts.
 contract RedeemableERC20PoolFactory is Factory {
     /// ConfigurableRightsPool factory.
-    CRPFactory public immutable crpFactory;
+    address public immutable crpFactory;
     /// Balancer factory.
-    BFactory public immutable balancerFactory;
+    address public immutable balancerFactory;
 
     /// @param config_ All configuration for the `RedeemableERC20PoolFactory`.
     constructor(RedeemableERC20PoolFactoryConfig memory config_) public {
@@ -88,12 +81,7 @@ contract RedeemableERC20PoolFactory is Factory {
         balancerFactory = config_.balancerFactory;
     }
 
-    /// Decodes the arbitrary data_ parameter for RedeemableERC20Pool
-    /// constructor, which expects a RedeemableERC20PoolConfig type.
-    ///
-    /// @param data_ Encoded data to pass down to child RedeemableERC20Pool
-    /// contract constructor.
-    /// @return New RedeemableERC20Pool child contract address.
+    /// @inheritdoc Factory
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
@@ -117,18 +105,18 @@ contract RedeemableERC20PoolFactory is Factory {
                 config_.minimumTradingDuration
             )
         );
-        /// Transfer Balancer pool ownership to sender (e.g. Trust).
+        /// Transfer Balancer pool ownership to sender (e.g. `Trust`).
         pool_.transferOwnership(msg.sender);
         return address(pool_);
     }
 
     /// Allows calling `createChild` with
-    /// RedeemableERC20PoolFactoryRedeemableERC20PoolConfig struct.
+    /// `RedeemableERC20PoolFactoryRedeemableERC20PoolConfig` struct.
     /// Can use original Factory `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ RedeemableERC20Pool constructor configuration.
-    /// @return New RedeemableERC20Pool child contract address.
+    /// @param config_ `RedeemableERC20Pool` constructor configuration.
+    /// @return New `RedeemableERC20Pool` child contract address.
     function createChild(
         RedeemableERC20PoolFactoryRedeemableERC20PoolConfig
         calldata

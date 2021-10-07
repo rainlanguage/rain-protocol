@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, artifacts } from "hardhat";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import type { Trust } from "../../typechain/Trust";
@@ -13,13 +13,6 @@ import type { BPool } from "../../typechain/BPool";
 
 chai.use(solidity);
 const { expect, assert } = chai;
-
-const trustJson = require("../../artifacts/contracts/trust/Trust.sol/Trust.json");
-const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
-const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
-const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/ConfigurableRightsPool.json");
 
 enum Tier {
   NIL,
@@ -60,7 +53,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -71,11 +64,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -137,17 +126,17 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
     const crp = new ethers.Contract(
       await pool.crp(),
-      crpJson.abi,
+      (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
       creator
     ) as ConfigurableRightsPool;
 
@@ -169,7 +158,11 @@ describe("Trust", async function () {
 
     const bPool = new ethers.Contract(
       await crp.bPool(),
-      bPoolJson.abi,
+      (
+        await artifacts.readArtifact(
+          "@beehiveinnovation/balancer-core/contracts/BPool.sol:BPool"
+        )
+      ).abi,
       creator
     ) as BPool;
 
@@ -226,7 +219,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -237,11 +230,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -303,17 +292,17 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
     const crp = new ethers.Contract(
       await pool.crp(),
-      crpJson.abi,
+      (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
       creator
     ) as ConfigurableRightsPool;
 
@@ -335,7 +324,11 @@ describe("Trust", async function () {
 
     const bPool = new ethers.Contract(
       await crp.bPool(),
-      bPoolJson.abi,
+      (
+        await artifacts.readArtifact(
+          "@beehiveinnovation/balancer-core/contracts/BPool.sol:BPool"
+        )
+      ).abi,
       creator
     ) as BPool;
 
@@ -379,7 +372,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -390,11 +383,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -468,12 +457,12 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -530,7 +519,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -541,11 +530,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -619,12 +604,12 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -704,7 +689,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -715,11 +700,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -778,7 +759,7 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
 
@@ -801,7 +782,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -839,7 +820,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -850,11 +831,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -913,7 +890,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
     let [crp, bPool] = await Util.poolContracts(signers, pool);
@@ -960,7 +937,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -971,11 +948,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1034,12 +1007,12 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -1138,7 +1111,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -1149,11 +1122,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1230,7 +1199,7 @@ describe("Trust", async function () {
     // 'anyone'
     const pool2 = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       signers[2]
     ) as Trust;
 
@@ -1252,7 +1221,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -1263,11 +1232,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1341,7 +1306,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -1356,7 +1321,7 @@ describe("Trust", async function () {
 
     const trust2 = new ethers.Contract(
       trust.address,
-      trustJson.abi,
+      (await artifacts.readArtifact("Trust")).abi,
       signers[2]
     ) as Trust;
 
@@ -1373,7 +1338,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -1416,11 +1381,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1483,7 +1444,7 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
 
@@ -1524,7 +1485,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -1535,11 +1496,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1600,7 +1557,7 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
 
@@ -1620,7 +1577,7 @@ describe("Trust", async function () {
 
     const token1 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signers[2]
     ) as RedeemableERC20;
 
@@ -1638,7 +1595,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -1649,11 +1606,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1729,7 +1682,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -1760,7 +1713,7 @@ describe("Trust", async function () {
     const signer1 = signers[2];
     const signer2 = signers[3];
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -1771,11 +1724,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -1860,13 +1809,13 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -2077,12 +2026,12 @@ describe("Trust", async function () {
 
     const token1 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signers[2]
     ) as RedeemableERC20;
     const token2 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signers[3]
     ) as RedeemableERC20;
 
@@ -2141,7 +2090,7 @@ describe("Trust", async function () {
     const signer1 = signers[2];
     const signer2 = signers[3];
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -2152,11 +2101,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2236,13 +2181,13 @@ describe("Trust", async function () {
 
     const token = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
     ) as RedeemableERC20;
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -2438,12 +2383,12 @@ describe("Trust", async function () {
 
     const token1 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signers[2]
     ) as RedeemableERC20;
     const token2 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signers[3]
     ) as RedeemableERC20;
 
@@ -2499,7 +2444,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -2510,11 +2455,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2587,7 +2528,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -2615,7 +2556,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -2626,11 +2567,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2703,7 +2640,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -2748,7 +2685,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -2759,11 +2696,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -2826,7 +2759,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -2848,7 +2781,7 @@ describe("Trust", async function () {
 
     const crp1 = new ethers.Contract(
       await pool.crp(),
-      crpJson.abi,
+      (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
       signer1
     ) as ConfigurableRightsPool;
 
@@ -2906,7 +2839,7 @@ describe("Trust", async function () {
 
     const token1 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer1
     ) as RedeemableERC20;
     await token1.redeem(await token1.balanceOf(signer1.address));
@@ -2919,7 +2852,7 @@ describe("Trust", async function () {
 
     const token2 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer2
     ) as RedeemableERC20;
     await token2.redeem(await token2.balanceOf(signer2.address));
@@ -2936,7 +2869,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -2947,11 +2880,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3016,7 +2945,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 
@@ -3081,7 +3010,7 @@ describe("Trust", async function () {
 
     const token1 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer1
     ) as RedeemableERC20;
     await token1.redeem(await token1.balanceOf(signer1.address));
@@ -3094,7 +3023,7 @@ describe("Trust", async function () {
 
     const token2 = new ethers.Contract(
       await trust.token(),
-      redeemableTokenJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer2
     ) as RedeemableERC20;
     await token2.redeem(await token1.balanceOf(signer2.address));
@@ -3111,7 +3040,7 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const [rightsManager, crpFactory, bFactory] = await Util.balancerDeploy();
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -3122,11 +3051,7 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      rightsManager,
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const tokenName = "Token";
     const tokenSymbol = "TKN";
@@ -3189,7 +3114,7 @@ describe("Trust", async function () {
 
     const pool = new ethers.Contract(
       await trust.pool(),
-      poolJson.abi,
+      (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool;
 

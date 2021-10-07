@@ -56,21 +56,20 @@ struct SeedERC20Config {
 /// immediately moves to `Phase.ONE` atomically within that
 /// transaction and forwards all reserve to the configured recipient.
 ///
-/// For our use-case the recipient is a `Trust` contract but
-/// `SeedERC20` could be used as a mini-fundraise contract for many
-/// purposes. In the case that a recipient is not a `Trust` the
-/// recipient will need to be careful not to fall afoul of KYC and
-/// securities law.
+/// For our use-case the recipient is a `Trust` contract but `SeedERC20`
+/// could be used as a mini-fundraise contract for many purposes. In the case
+/// that a recipient is not a `Trust` the recipient will need to be careful not
+/// to fall afoul of KYC and securities law.
 ///
 /// @dev Facilitates a pool of reserve funds to forward to a named recipient
 /// contract.
 /// The funds to raise and the recipient is fixed at construction.
-/// The total is calculated as ( seedPrice * seedUnits ) and so is a fixed
-/// amount.
-/// It is recommended to keep seedUnits relatively small so that each unit
-/// represents a meaningful contribution to keep dust out of the system.
+/// The total is calculated as `( seedPrice * seedUnits )` and so is a fixed
+/// amount. It is recommended to keep seedUnits relatively small so that each
+/// unit represents a meaningful contribution to keep dust out of the system.
 ///
-/// The contract lifecycle is split into two phases.
+/// The contract lifecycle is split into two phases:
+///
 /// - `Phase.ZERO`: the `seed` and `unseed` functions are callable by anyone.
 /// - `Phase.ONE`: holders of the seed erc20 token can redeem any reserve funds
 ///   in the contract pro-rata.
@@ -82,6 +81,7 @@ struct SeedERC20Config {
 ///
 /// When the last `seed` token is transferred to an external address the
 /// `SeedERC20` contract immediately:
+///
 /// - Moves to `Phase.ONE`, disabling both `seed` and `unseed`
 /// - Transfers the full balance of reserve from itself to the recipient
 ///   address.
@@ -97,6 +97,16 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     using SafeMath for uint256;
     using Math for uint256;
     using SafeERC20 for IERC20;
+
+    // Seed token burn for reserve.
+    event Redeem(
+        // Account burning and receiving.
+        address indexed redeemer,
+        // Number of seed tokens burned.
+        // Number of reserve redeemed for burned seed tokens.
+        // `[seedAmount, reserveAmount]`
+        uint256[2] redeemAmounts
+    );
 
     /// Reserve erc20 token contract used to purchase seed tokens.
     IERC20 public immutable reserve;
@@ -124,9 +134,10 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         _mint(address(this), config_.seedUnits);
     }
 
-    /// Take reserve from seeder as units * seedPrice.
+    /// Take reserve from seeder as `units * seedPrice`.
     ///
     /// When the final unit is sold the contract immediately:
+    ///
     /// - enters `Phase.ONE`
     /// - transfers its entire reserve balance to the recipient
     ///
@@ -141,7 +152,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// their reserve balance.
     /// Seeding enforces the cooldown configured in the constructor.
     /// @param minimumUnits_ The minimum units the caller will accept for a
-    ///        successful `seed` call.
+    /// successful `seed` call.
     /// @param desiredUnits_ The maximum units the caller is willing to fund.
     function seed(uint256 minimumUnits_, uint256 desiredUnits_)
         external
@@ -155,7 +166,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
 
         uint256 units_ = desiredUnits_.min(remainingStock_);
 
-        // If remainingStock_ is less than units then the transfer below will
+        // If `remainingStock_` is less than units then the transfer below will
         // fail and rollback.
         if (remainingStock_ == units_) {
             scheduleNextPhase(uint32(block.number));
@@ -172,8 +183,9 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         // recipient.
         // This avoids the situation where a seeder immediately redeems their
         // units before the recipient can withdraw.
-        // If this fails then everyone can call `unseed` after their individual
-        // cooldowns.
+        // It also introduces a failure case where the reserve errors on
+        // transfer. If this fails then everyone can call `unseed` after their
+        // individual cooldowns to exit.
         if (currentPhase() == Phase.ONE) {
             reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
         }
@@ -203,8 +215,11 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     }
 
     /// Burn seed tokens for pro-rata reserve assets.
+    ///
+    /// ```
     /// (units * reserve held by seed contract) / total seed token supply
     /// = reserve transfer to `msg.sender`
+    /// ```
     ///
     /// The recipient or someone else must first transfer reserve assets to the
     /// `SeedERC20` contract.
@@ -217,7 +232,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// For example, if `SeedERC20` is used as a seeder for a `Trust` contract
     /// (in this repo) it will receive a refund or refund + fee.
     /// @param units_ Amount of seed units to burn and redeem for reserve
-    ///        assets.
+    /// assets.
     function redeem(uint256 units_) external onlyPhase(Phase.ONE) {
         uint256 _supplyBeforeBurn = totalSupply();
         _burn(msg.sender, units_);
@@ -226,11 +241,16 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         // Guard against someone accidentally calling redeem before any reserve
         // has been returned.
         require(_currentReserveBalance > 0, "RESERVE_BALANCE");
+        uint256 reserveAmount_ = units_
+            .mul(_currentReserveBalance)
+            .div(_supplyBeforeBurn);
+        emit Redeem(
+            msg.sender,
+            [units_, reserveAmount_]
+        );
         reserve.safeTransfer(
             msg.sender,
-            units_
-                .mul(_currentReserveBalance)
-                .div(_supplyBeforeBurn)
+            reserveAmount_
         );
     }
 

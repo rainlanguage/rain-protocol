@@ -1,5 +1,11 @@
 let
-  pkgs = import <nixpkgs> { };
+  pkgs = import
+    (builtins.fetchTarball {
+      name = "nixos-unstable-2021-10-01";
+      url = "https://github.com/nixos/nixpkgs/archive/82155ff501c7622cb2336646bb62f7624261f6d7.tar.gz";
+      sha256 = "0xv47cpgaxb4j46ggjx9gkg299m9cdfzar27xw5h5k2lg5d3dljg";
+    })
+    { };
 
   local-node = pkgs.writeShellScriptBin "local-node" ''
     hardhat node
@@ -30,41 +36,41 @@ let
     prettier-check
   '';
 
-  security-check = pkgs.writeShellScriptBin "security-check" ''
-    # Slither does not like there being two IERC20.
-    # One is from Balancer the other is from Open Zeppelin.
-    # This patch swaps all the Balancer IERC20 imports with an Open Zeppelin IERC20 import.
-    patch -p1 < slither-hack-balancer-ierc20.patch
-
-    # Balancer has PoolParams struct defined inside a contract which slither does not like.
-    # This patch moves PoolParams outside the contract and upates import references to it.
-    patch -p1 < slither-hack-balancer-pool-params.patch
-    patch -p1 < slither-hack-local-pool-params.patch
-
-    # Workaround a slither bug due to stale compiled artifacts.
-    # https://github.com/crytic/slither/issues/860
+  flush-all = pkgs.writeShellScriptBin "flush-all" ''
     rm -rf artifacts
-    rm -rf typechain
     rm -rf cache
+    rm -rf node_modules
+    rm -rf typechain
+    rm -rf bin
+    npm install
+  '';
 
-    # Install slither to a fresh tmp dir to workaround nix-shell immutability.
-    export td=$(mktemp -d)
-    python3 -m venv ''${td}/venv
-    source ''${td}/venv/bin/activate
-    pip install slither-analyzer
+  security-check = pkgs.writeShellScriptBin "security-check" ''
+    flush-all
 
     # Run slither against all our contracts.
     # Disable npx as nix-shell already handles availability of what we need.
-    # Some contracts are explicitly out of scope for slither:
-    # - configurable-rights-pool contracts
-    # - The test contracts that only exist so the test harness can drive unit tests and will never be deployed
-    # - Open Zeppelin contracts
+    # Dependencies and tests are out of scope.
     slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies
+  '';
 
-    # Rollback all the slither specific patches.
-    patch -R -p1 < slither-hack-balancer-ierc20.patch
-    patch -R -p1 < slither-hack-balancer-pool-params.patch
-    patch -R -p1 < slither-hack-local-pool-params.patch
+  solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
+    mkdir -p solt
+    find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
+    mv solc-* solt
+  '';
+
+  cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
+    flush-all
+
+    hardhat compile --force
+    dir=`git rev-parse HEAD`
+    mkdir -p "dist/''${dir}"
+    mv artifacts "dist/''${dir}/"
+    mv typechain "dist/''${dir}/"
+
+    solt-the-earth
+    mv solt "dist/''${dir}/"
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
@@ -89,11 +95,15 @@ let
 
   docs-version = pkgs.writeShellScriptBin "docs-version" ''
     docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GIT_TAG}
+    # build again so docusaurus-search-local can index newly added version
+    npm run build --prefix docusaurus
   '';
 
   prepack = pkgs.writeShellScriptBin "prepack" ''
     set -euo pipefail
     shopt -s globstar
+
+    flush-all
 
     npm run build
 
@@ -145,7 +155,7 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [
     pkgs.nixpkgs-fmt
     pkgs.nodejs-14_x
-    pkgs.python3
+    pkgs.slither-analyzer
     local-node
     local-fork
     local-test
@@ -155,6 +165,7 @@ pkgs.stdenv.mkDerivation {
     security-check
     ci-test
     ci-lint
+    cut-dist
     docgen
     docs-dev
     docs-build
@@ -162,6 +173,8 @@ pkgs.stdenv.mkDerivation {
     docs-version
     prepack
     prepublish
+    solt-the-earth
+    flush-all
   ];
 
   shellHook = ''

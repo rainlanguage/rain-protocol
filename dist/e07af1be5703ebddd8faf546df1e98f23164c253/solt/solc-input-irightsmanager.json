@@ -1,0 +1,31 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "./contracts/pool/IRightsManager.sol": {
+            "content": "// SPDX-License-Identifier: CAL\npragma solidity 0.6.12;\n\npragma experimental ABIEncoderV2;\n\n// Mirrors `Rights` from Balancer `configurable-rights-pool` repo.\n// As we do not include balancer contracts as a dependency, we need to ensure\n// that any calculations or values that cross the interface to their system are\n// identical.\n// solhint-disable-next-line max-line-length\n// https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/libraries/RightsManager.sol#L29\nstruct Rights {\n    bool canPauseSwapping;\n    bool canChangeSwapFee;\n    bool canChangeWeights;\n    bool canAddRemoveTokens;\n    bool canWhitelistLPs;\n    bool canChangeCap;\n}"
+        }
+    },
+    "settings": {
+        "metadata": {
+            "useLiteralContent": true
+        },
+        "optimizer": {
+            "enabled": true,
+            "runs": 100000
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "evm.bytecode",
+                    "evm.deployedBytecode",
+                    "evm.methodIdentifiers"
+                ],
+                "": [
+                    "id",
+                    "ast"
+                ]
+            }
+        }
+    }
+}

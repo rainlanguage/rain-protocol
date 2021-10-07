@@ -9,8 +9,8 @@ import {TierUtil} from "../libraries/TierUtil.sol";
 /// Thin wrapper around the `TierUtil` library for hardhat unit testing.
 contract TierUtilTest {
     /// Wraps `TierUtil.tierAtBlockFromReport`.
-    /// @param report_ Forwarded to TierUtil.
-    /// @param blockNumber_ Forwarded to TierUtil.
+    /// @param report_ Forwarded to `TierUtil`.
+    /// @param blockNumber_ Forwarded to `TierUtil`.
     function tierAtBlockFromReport(uint256 report_, uint256 blockNumber_)
         external
         pure
@@ -20,8 +20,8 @@ contract TierUtilTest {
     }
 
     /// Wraps `TierUtil.tierBlock`.
-    /// @param report_ Forwarded to TierUtil.
-    /// @param tier_ Forwarded to TierUtil.
+    /// @param report_ Forwarded to `TierUtil`.
+    /// @param tier_ Forwarded to `TierUtil`.
     function tierBlock(uint256 report_, ITier.Tier tier_)
         external
         pure
@@ -31,8 +31,8 @@ contract TierUtilTest {
     }
 
     /// Wraps `TierUtil.truncateTiersAbove`.
-    /// @param report_ Forwarded to TierUtil.
-    /// @param tier_ Forwarded to TierUtil.
+    /// @param report_ Forwarded to `TierUtil`.
+    /// @param tier_ Forwarded to `TierUtil`.
     function truncateTiersAbove(uint256 report_, ITier.Tier tier_)
         external
         pure
@@ -42,10 +42,10 @@ contract TierUtilTest {
     }
 
     /// Wraps `TierUtil.updateBlocksForTierRange`.
-    /// @param report_ Forwarded to TestUtil.
-    /// @param startTier_ Forwarded to TestUtil.
-    /// @param endTier_ Forwarded to TestUtil.
-    /// @param blockNumber_ Forwarded to TestUtil.
+    /// @param report_ Forwarded to `TierUtil`.
+    /// @param startTier_ Forwarded to `TierUtil`.
+    /// @param endTier_ Forwarded to `TierUtil`.
+    /// @param blockNumber_ Forwarded to `TierUtil`.
     function updateBlocksForTierRange(
         uint256 report_,
         ITier.Tier startTier_,
@@ -62,10 +62,10 @@ contract TierUtilTest {
     }
 
     /// Wraps `TierUtil.updateReportWithTierAtBlock`.
-    /// @param report_ Forwarded to TestUtil.
-    /// @param startTier_ Forwarded to TestUtil.
-    /// @param endTier_ Forwarded to TestUtil.
-    /// @param blockNumber_ Forwarded to TestUtil.
+    /// @param report_ Forwarded to `TierUtil`.
+    /// @param startTier_ Forwarded to `TierUtil`.
+    /// @param endTier_ Forwarded to `TierUtil`.
+    /// @param blockNumber_ Forwarded to `TierUtil`.
     function updateReportWithTierAtBlock(
         uint256 report_,
         ITier.Tier startTier_,
