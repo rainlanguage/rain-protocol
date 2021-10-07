@@ -18,10 +18,9 @@ struct PoolParams {
     uint swapFee;
 }
 
-/// Mirrors the Balancer `ConfigurableRightsPool` functions relevant to
-/// bootstrapping a pool. This is the minimal interface required for
-/// `RedeemableERC20Pool` to function, much of the Balancer contract is elided
-/// intentionally. Clients should use Balancer code directly.
+/// Mirrors the Balancer `ConfigurableRightsPool` functions relevant to Rain.
+/// Much of the Balancer contract is elided intentionally.
+/// Clients should use Balancer code directly for full functionality.
 // solhint-disable-next-line max-line-length
 /// https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L41
 interface IConfigurableRightsPool {
@@ -53,4 +52,8 @@ interface IConfigurableRightsPool {
     // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L581
     function exitPool(uint poolAmountIn, uint[] calldata minAmountsOut)
         external;
+
+    // solhint-disable-next-line max-line-length
+    // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L426
+    function pokeWeights() external;
 }
