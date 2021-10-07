@@ -242,6 +242,7 @@ export const successfulRaise = async (
     pool,
     crp,
     redeemableERC20,
+    spend,
   };
 };
 
@@ -249,8 +250,7 @@ export const failedRaise = async (
   signers,
   escrow: BPoolFeeEscrow,
   trustFactory: TrustFactory,
-  tier: ReadWriteTier,
-  afterBuyToken?: Function
+  tier: ReadWriteTier
 ) => {
   const {
     reserve,
