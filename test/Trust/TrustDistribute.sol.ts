@@ -43,6 +43,117 @@ enum RaiseStatus {
 }
 
 describe("TrustDistribute", async function () {
+  it("should end distribution if minimum tier is non-zero", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const minimumStatus = Tier.SILVER;
+
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+
+    const tokenName = "Token";
+    const tokenSymbol = "TKN";
+
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederUnits = 0;
+    const seederCooldownDuration = 0;
+
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+
+    const successLevel = redeemInit
+      .add(minimumCreatorRaise)
+      .add(seederFee)
+      .add(reserveInit);
+    const finalValuation = successLevel;
+
+    const minimumTradingDuration = 50;
+
+    const trustFactoryDeployer = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
+      {
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        seederCooldownDuration,
+        redeemInit,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        tier: tier.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation,
+        minimumTradingDuration,
+      },
+      { gasLimit: 100000000 }
+    );
+
+    await trust.deployed();
+
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder.address, reserveInit);
+
+    const reserveSeeder = new ethers.Contract(
+      reserve.address,
+      reserve.interface,
+      seeder
+    ) as ReserveToken;
+
+    // seeder must transfer seed funds before pool can init
+    await reserveSeeder.transfer(await trust.pool(), reserveInit);
+
+    const pool = new ethers.Contract(
+      await trust.pool(),
+      poolJson.abi,
+      creator
+    ) as RedeemableERC20Pool;
+
+    await pool.startDutchAuction({ gasLimit: 100000000 });
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
+    let [crp, bPool] = await Util.poolContracts(signers, pool);
+
+    // create empty transfer blocks until reaching next phase, so distribution can end
+    while (
+      (await ethers.provider.getBlockNumber()) <=
+      startBlock + minimumTradingDuration
+    ) {
+      await reserve.transfer(signers[9].address, 0);
+    }
+
+    await trust.anonEndDistribution();
+  });
+
   it("should exit with absolute minimum token balance when using min reserve init", async function () {
     this.timeout(0);
 
