@@ -3,6 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { basicSetup, deployGlobals } from "./ClaimUtil";
+import type { ReserveToken } from "../../typechain/ReserveToken";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -16,8 +17,11 @@ enum DistributionStatus {
   FAIL,
 }
 
-// TESTS
-// Multiple withdrawals
+/* TESTS
+Withdrawal behaviour:
+- Multiple RedeemableERC20 holders
+- Successive deposits and withdrawals for single sender
+*/
 
 describe("RedeemableERC20ClaimEscrow", async function () {
   it("should allow withdrawing redeemable tokens on successful raise", async function () {
@@ -37,6 +41,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       minimumTradingDuration,
       successLevel,
     } = await basicSetup(signers, trustFactory, tier);
+
+    // some other token to put into the escrow
+    const claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -70,23 +80,26 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not TRADING"
     );
 
-    // deposit all RedeemableERC20 tokens
-    const depositAmount = await redeemableERC20.balanceOf(signer1.address);
+    // deposit claimable tokens
+    const depositAmount = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableToken.decimals())
+    );
 
-    await redeemableERC20
-      .connect(signer1)
-      .approve(claim.address, depositAmount);
+    // signer1 obtains tokens somehow
+    await claimableToken.transfer(signer1.address, depositAmount);
+
+    await claimableToken.connect(signer1).approve(claim.address, depositAmount);
 
     await claim
       .connect(signer1)
-      .deposit(trust.address, redeemableERC20.address, depositAmount);
+      .deposit(trust.address, claimableToken.address, depositAmount);
 
     // prevent withdraw until status Success
     await Util.assertError(
       async () =>
         await claim
           .connect(signer1)
-          .withdraw(trust.address, redeemableERC20.address),
+          .withdraw(trust.address, claimableToken.address),
       "revert ONLY_SUCCESS",
       "wrongly withrew during Trading"
     );
@@ -108,7 +121,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       async () =>
         await claim
           .connect(signer1)
-          .withdraw(trust.address, redeemableERC20.address),
+          .withdraw(trust.address, claimableToken.address),
       "revert ONLY_SUCCESS",
       "wrongly withdrew during TradingCanEnd"
     );
@@ -123,12 +136,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claim
       .connect(signer1)
-      .withdraw(trust.address, redeemableERC20.address);
+      .withdraw(trust.address, claimableToken.address);
 
-    const withdrawnAmount = await redeemableERC20.balanceOf(signer1.address);
-
-    console.log(withdrawnAmount);
-    throw new Error("UNTESTED WITHDRAWAL AMOUNT");
+    // not testing withdraw behaviour here
   });
 
   it("should allow undepositing redeemable tokens on failed raise", async function () {
@@ -147,6 +157,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
     } = await basicSetup(signers, trustFactory, tier);
+
+    // some other token to put into the escrow
+    const claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -180,21 +196,23 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not TRADING"
     );
 
-    // deposit all RedeemableERC20 tokens
-    const depositAmount0 = await redeemableERC20.balanceOf(signer1.address);
+    // deposit claimable tokens
+    const depositAmount0 = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableToken.decimals())
+    );
 
-    await redeemableERC20
+    await claimableToken
       .connect(signer1)
       .approve(claim.address, depositAmount0);
 
     await claim
       .connect(signer1)
-      .deposit(trust.address, redeemableERC20.address, depositAmount0);
+      .deposit(trust.address, claimableToken.address, depositAmount0);
 
     // read registered value
     const deposited0 = await claim.deposits(
       trust.address,
-      redeemableERC20.address,
+      claimableToken.address,
       signer1.address
     );
 
@@ -210,7 +228,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       async () =>
         await claim
           .connect(signer1)
-          .undeposit(trust.address, redeemableERC20.address),
+          .undeposit(trust.address, claimableToken.address),
       "revert ONLY_FAIL",
       "wrongly undeposited during Trading"
     );
@@ -226,7 +244,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       async () =>
         await claim
           .connect(signer1)
-          .undeposit(trust.address, redeemableERC20.address),
+          .undeposit(trust.address, claimableToken.address),
       "revert ONLY_FAIL",
       "wrongly undeposited during TradingCanEnd"
     );
@@ -242,16 +260,16 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // undeposit RedeemableERC20 tokens
     await claim
       .connect(signer1)
-      .undeposit(trust.address, redeemableERC20.address);
+      .undeposit(trust.address, claimableToken.address);
 
     // read registered value
     const deposited1 = await claim.deposits(
       trust.address,
-      redeemableERC20.address,
+      claimableToken.address,
       signer1.address
     );
 
-    const signer1TokensAfterUndeposit = await redeemableERC20.balanceOf(
+    const signer1TokensAfterUndeposit = await claimableToken.balanceOf(
       signer1.address
     );
 
