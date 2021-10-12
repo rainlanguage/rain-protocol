@@ -38,29 +38,36 @@ pragma solidity ^0.6.12;
 /// `msg.sender` it sees for a call stack so cooldowns are enforced across
 /// reentrant code.
 abstract contract Cooldown {
-    /// Time in blocks to restrict access to modified functions.
-    uint16 public immutable cooldownDuration;
-
     /// Every address has its own cooldown state.
-    mapping (address => uint256) public cooldowns;
+    mapping (uint256 => mapping (address => uint256)) public cooldowns;
+    mapping (uint256 => uint256) public durations;
     address private caller;
 
-    /// The cooldown duration is global to the contract.
-    /// Cooldown duration must be greater than 0.
-    /// @param cooldownDuration_ The global cooldown duration.
-    constructor(uint16 cooldownDuration_) public {
-        require(cooldownDuration_ > 0, "COOLDOWN_0");
-        cooldownDuration = cooldownDuration_;
+    function _setCooldownDuration(uint256 id_, uint256 duration_) internal {
+        require(duration_ > 0, "0_COOLDOWN_DURATION");
+        durations[id_] = duration_;
+    }
+
+    function _unsetCooldownDuration(uint256 id_) internal {
+        if (durations[id_] > 0) {
+            delete durations[id_];
+        }
+    }
+
+    function _unsetCooldown(uint256 id_, address account_) internal {
+        if (cooldowns[id_][account_] > 0) {
+            delete cooldowns[id_][account_];
+        }
     }
 
     /// Modifies a function to enforce the cooldown for `msg.sender`.
     /// Saves the original caller so that cooldowns are enforced across
     /// reentrant code.
-    modifier onlyAfterCooldown() {
+    modifier onlyAfterCooldown(uint256 id_) {
         address caller_ = caller == address(0) ? caller = msg.sender : caller;
-        require(cooldowns[caller_] <= block.number, "COOLDOWN");
+        require(cooldowns[id_][caller_] <= block.number, "COOLDOWN");
         // Every action that requires a cooldown also triggers a cooldown.
-        cooldowns[caller_] = block.number + cooldownDuration;
+        cooldowns[id_][caller_] = block.number + durations[id_];
         _;
         delete caller;
     }

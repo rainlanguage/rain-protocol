@@ -7,33 +7,19 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {
-    ReentrancyGuard
-} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import { ITier } from "../tier/ITier.sol";
+import {ITier} from "../tier/ITier.sol";
 
-import { Phase } from "../phased/Phased.sol";
-import {
-    RedeemableERC20,
-    RedeemableERC20Config
-} from "../redeemableERC20/RedeemableERC20.sol";
-import {
-    RedeemableERC20Pool, RedeemableERC20PoolConfig
-} from "../pool/RedeemableERC20Pool.sol";
-import { SeedERC20, SeedERC20Config } from "../seed/SeedERC20.sol";
-import {
-    RedeemableERC20Factory
-} from "../redeemableERC20/RedeemableERC20Factory.sol";
-import {
-    RedeemableERC20PoolFactory,
-    RedeemableERC20PoolFactoryRedeemableERC20PoolConfig
-} from "../pool/RedeemableERC20PoolFactory.sol";
-import {
-    SeedERC20Factory
-} from "../seed/SeedERC20Factory.sol";
+import {Phase} from "../phased/Phased.sol";
+import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
+import {RedeemableERC20Pool, RedeemableERC20PoolConfig} from "../pool/RedeemableERC20Pool.sol";
+import {SeedERC20, SeedERC20Config} from "../seed/SeedERC20.sol";
+import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
+import {RedeemableERC20PoolFactory, RedeemableERC20PoolFactoryRedeemableERC20PoolConfig} from "../pool/RedeemableERC20PoolFactory.sol";
+import {SeedERC20Factory} from "../seed/SeedERC20Factory.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -115,8 +101,6 @@ struct TrustConfig {
     // On success the creator receives these funds.
     // On failure the creator receives `0`.
     uint256 minimumCreatorRaise;
-    // The `SeedERC20Factory` on the current network.
-    SeedERC20Factory seedERC20Factory;
     // Either an EOA (externally owned address) or `address(0)`.
     // If an EOA the seeder account must transfer seed funds to the newly
     // constructed `Trust` before distribution can start.
@@ -128,19 +112,6 @@ struct TrustConfig {
     // An absolute value, so percentages etc. must be calculated off-chain and
     // passed in to the constructor.
     uint256 seederFee;
-    // Total seed units to be mint and sold.
-    // 100% of all seed units must be sold for seeding to complete.
-    // Recommended to keep seed units to a small value (single-triple digits).
-    // The ability for users to buy/sell or not buy/sell dust seed quantities
-    // is likely NOT desired.
-    uint16 seederUnits;
-    // Cooldown duration in blocks for seed/unseed cycles.
-    // Seeding requires locking funds for at least the cooldown period.
-    // Ideally `unseed` is never called and `seed` leaves funds in the contract
-    // until all seed tokens are sold out.
-    // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
-    // but it should be called rarely.
-    uint16 seederCooldownDuration;
     // The amount of reserve to back the redemption initially after trading
     // finishes. Anyone can send more of the reserve to the redemption token at
     // any time to increase redemption value. Successful the redeemInit is sent
@@ -291,7 +262,6 @@ struct TrustRedeemableERC20PoolConfig {
 /// internal workflows. No stakeholder, even the deployer or creator, can act
 /// as owner of the internals.
 contract Trust is ReentrancyGuard {
-
     using SafeMath for uint256;
     using Math for uint256;
 
@@ -302,18 +272,12 @@ contract Trust is ReentrancyGuard {
     address public immutable creator;
     /// minimum creator raise from the initial config.
     uint256 public immutable minimumCreatorRaise;
-    /// Seeder from the initial config.
     address public immutable seeder;
-    /// Seeder fee from the initial config.
     uint256 public immutable seederFee;
-    /// Seeder units from the initial config.
-    uint16 public immutable seederUnits;
-    /// Seeder cooldown duration from the initial config.
-    uint16 public immutable seederCooldownDuration;
+
     /// Redeem init from the initial config.
     uint256 public immutable redeemInit;
-    /// SeedERC20Factory from the initial config.
-    SeedERC20Factory public immutable seedERC20Factory;
+
     /// Balance of the reserve asset in the Balance pool at the moment
     /// `anonEndDistribution` is called. This must be greater than or equal to
     /// `successBalance` for the distribution to succeed.
@@ -334,6 +298,10 @@ contract Trust is ReentrancyGuard {
     RedeemableERC20 public immutable token;
     /// The `RedeemableERC20Pool` pool created for trading.
     RedeemableERC20Pool public immutable pool;
+
+    uint256 public creatorPay;
+    uint256 public seederPay;
+    uint256 public tokenPay;
 
     /// Sanity checks configuration.
     /// Creates the `RedeemableERC20` contract and mints the redeemable ERC20
@@ -356,7 +324,7 @@ contract Trust is ReentrancyGuard {
     // Slither false positive. Constructors cannot be reentrant.
     // https://github.com/crytic/slither/issues/887
     // slither-disable-next-line reentrancy-benign
-    constructor (
+    constructor(
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
         TrustRedeemableERC20PoolConfig memory trustRedeemableERC20PoolConfig_
@@ -368,28 +336,27 @@ contract Trust is ReentrancyGuard {
         // valuations will be in a sensible range according to the internal
         // assumptions made by Balancer etc.
         require(
-            trustRedeemableERC20Config_.totalSupply
-            >= trustRedeemableERC20PoolConfig_.reserveInit,
+            trustRedeemableERC20Config_.totalSupply >=
+                trustRedeemableERC20PoolConfig_.reserveInit,
             "MIN_TOKEN_SUPPLY"
         );
 
-        uint256 successBalance_ = trustRedeemableERC20PoolConfig_.reserveInit
+        uint256 successBalance_ = trustRedeemableERC20PoolConfig_
+            .reserveInit
             .add(config_.seederFee)
             .add(config_.redeemInit)
             .add(config_.minimumCreatorRaise);
 
         creator = config_.creator;
-        seederFee = config_.seederFee;
-        seederUnits = config_.seederUnits;
-        seederCooldownDuration = config_.seederCooldownDuration;
         redeemInit = config_.redeemInit;
         minimumCreatorRaise = config_.minimumCreatorRaise;
-        seedERC20Factory = config_.seedERC20Factory;
         successBalance = successBalance_;
+        seeder = config_.seeder;
+        seederFee = config_.seederFee;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
-            trustRedeemableERC20Config_.redeemableERC20Factory
-                .createChild(abi.encode(
+            trustRedeemableERC20Config_.redeemableERC20Factory.createChild(
+                abi.encode(
                     RedeemableERC20Config(
                         address(this),
                         trustRedeemableERC20Config_.name,
@@ -397,19 +364,28 @@ contract Trust is ReentrancyGuard {
                         trustRedeemableERC20Config_.tier,
                         trustRedeemableERC20Config_.minimumStatus,
                         trustRedeemableERC20Config_.totalSupply
-        ))));
+                    )
+                )
+            )
+        );
 
         RedeemableERC20Pool redeemableERC20Pool_ = RedeemableERC20Pool(
-            trustRedeemableERC20PoolConfig_.redeemableERC20PoolFactory
-                .createChild(abi.encode(
-                    RedeemableERC20PoolFactoryRedeemableERC20PoolConfig(
-                        trustRedeemableERC20PoolConfig_.reserve,
-                        redeemableERC20_,
-                        trustRedeemableERC20PoolConfig_.reserveInit,
-                        trustRedeemableERC20PoolConfig_.initialValuation,
-                        trustRedeemableERC20PoolConfig_.finalValuation,
-                        trustRedeemableERC20PoolConfig_.minimumTradingDuration
-        ))));
+            trustRedeemableERC20PoolConfig_
+                .redeemableERC20PoolFactory
+                .createChild(
+                    abi.encode(
+                        RedeemableERC20PoolFactoryRedeemableERC20PoolConfig(
+                            trustRedeemableERC20PoolConfig_.reserve,
+                            redeemableERC20_,
+                            trustRedeemableERC20PoolConfig_.reserveInit,
+                            trustRedeemableERC20PoolConfig_.initialValuation,
+                            trustRedeemableERC20PoolConfig_.finalValuation,
+                            trustRedeemableERC20PoolConfig_
+                                .minimumTradingDuration
+                        )
+                    )
+                )
+        );
 
         token = redeemableERC20_;
         pool = redeemableERC20Pool_;
@@ -418,31 +394,6 @@ contract Trust is ReentrancyGuard {
             redeemableERC20Pool_.finalValuation() >= successBalance_,
             "MIN_FINAL_VALUATION"
         );
-
-        if (config_.seeder == address(0)) {
-            require(
-                trustRedeemableERC20PoolConfig_
-                    .reserveInit
-                    .mod(
-                        config_.seederUnits) == 0,
-                        "SEED_PRICE_MULTIPLIER"
-                    );
-            config_.seeder = address(config_.seedERC20Factory
-                .createChild(abi.encode(SeedERC20Config(
-                    trustRedeemableERC20PoolConfig_.reserve,
-                    address(redeemableERC20Pool_),
-                    // seed price.
-                    redeemableERC20Pool_
-                        .reserveInit()
-                        .div(config_.seederUnits),
-                    config_.seederUnits,
-                    config_.seederCooldownDuration,
-                    "",
-                    ""
-                )))
-            );
-        }
-        seeder = config_.seeder;
 
         // Need to grant transfers for a few balancer addresses to facilitate
         // setup and exits.
@@ -480,9 +431,8 @@ contract Trust is ReentrancyGuard {
         );
 
         // The pool reserve must always be one of the redeemable assets.
-        redeemableERC20_.addRedeemable(
-            trustRedeemableERC20PoolConfig_.reserve
-        );
+        redeemableERC20_
+            .addRedeemable(trustRedeemableERC20PoolConfig_.reserve);
 
         // There is no longer any reason for the redeemableERC20 to have an
         // admin.
@@ -505,37 +455,36 @@ contract Trust is ReentrancyGuard {
     }
 
     /// Accessor for the `TrustContracts` of this `Trust`.
-    function getContracts() external view returns(TrustContracts memory) {
-        return TrustContracts(
-            address(pool.reserve()),
-            address(token),
-            address(pool),
-            address(seeder),
-            address(token.tierContract()),
-            address(pool.crp()),
-            address(pool.crp().bPool())
-        );
+    function getContracts() external view returns (TrustContracts memory) {
+        return
+            TrustContracts(
+                address(pool.reserve()),
+                address(token),
+                address(pool),
+                address(seeder),
+                address(token.tierContract()),
+                address(pool.crp()),
+                address(pool.crp().bPool())
+            );
     }
 
     /// Accessor for the `TrustConfig` of this `Trust`.
-    function getTrustConfig() external view returns(TrustConfig memory) {
-        return TrustConfig(
-            address(creator),
-            minimumCreatorRaise,
-            seedERC20Factory,
-            address(seeder),
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            redeemInit
-        );
+    function getTrustConfig() external view returns (TrustConfig memory) {
+        return
+            TrustConfig(
+                address(creator),
+                minimumCreatorRaise,
+                address(seeder),
+                seederFee,
+                redeemInit
+            );
     }
 
     /// Accessor for the `DistributionProgress` of this `Trust`.
     function getDistributionProgress()
         external
         view
-        returns(DistributionProgress memory)
+        returns (DistributionProgress memory)
     {
         address balancerPool_ = address(pool.crp().bPool());
         uint256 poolReserveBalance_;
@@ -543,48 +492,43 @@ contract Trust is ReentrancyGuard {
         if (balancerPool_ != address(0)) {
             poolReserveBalance_ = pool.reserve().balanceOf(balancerPool_);
             poolTokenBalance_ = token.balanceOf(balancerPool_);
-        }
-        else {
+        } else {
             poolReserveBalance_ = 0;
             poolTokenBalance_ = 0;
         }
 
-        return DistributionProgress(
-            getDistributionStatus(),
-            pool.phaseBlocks(0),
-            pool.phaseBlocks(1),
-            poolReserveBalance_,
-            poolTokenBalance_,
-            pool.reserveInit(),
-            minimumCreatorRaise,
-            seederFee,
-            redeemInit
-        );
+        return
+            DistributionProgress(
+                getDistributionStatus(),
+                pool.phaseBlocks(0),
+                pool.phaseBlocks(1),
+                poolReserveBalance_,
+                poolTokenBalance_,
+                pool.reserveInit(),
+                minimumCreatorRaise,
+                seederFee,
+                redeemInit
+            );
     }
 
     /// Accessor for the `DistributionStatus` of this `Trust`.
     function getDistributionStatus() public view returns (DistributionStatus) {
         Phase poolPhase_ = pool.currentPhase();
         if (poolPhase_ == Phase.ZERO) {
-            if (
-                pool.reserve().balanceOf(address(pool)) >= pool.reserveInit()
-            ) {
+            if (pool.reserve().balanceOf(address(pool)) >= pool.reserveInit())
+            {
                 return DistributionStatus.Seeded;
             } else {
                 return DistributionStatus.Pending;
             }
-        }
-        else if (poolPhase_ == Phase.ONE) {
+        } else if (poolPhase_ == Phase.ONE) {
             return DistributionStatus.Trading;
-        }
-        else if (poolPhase_ == Phase.TWO) {
+        } else if (poolPhase_ == Phase.TWO) {
             return DistributionStatus.TradingCanEnd;
-        }
-        else if (poolPhase_ == Phase.THREE) {
+        } else if (poolPhase_ == Phase.THREE) {
             if (finalBalance >= successBalance) {
                 return DistributionStatus.Success;
-            }
-            else {
+            } else {
                 return DistributionStatus.Fail;
             }
         }
@@ -605,13 +549,12 @@ contract Trust is ReentrancyGuard {
         // The distributor is the `bPool` itself.
         // Requires that the `Trust` has been granted `ONLY_DISTRIBUTOR_BURNER`
         // role on the `redeemableERC20`.
-        token.burnDistributor(
-            address(pool.crp().bPool())
-        );
+        token.burnDistributor(address(pool.crp().bPool()));
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
-        uint256 poolDust_ = pool.reserve()
-            .balanceOf(address(pool.crp().bPool()));
+        uint256 poolDust_ = pool.reserve().balanceOf(
+            address(pool.crp().bPool())
+        );
         // The dust is included in the final balance for UX reasons.
         // We don't want to fail the raise due to dust, even if technically it
         // was a failure.
@@ -620,8 +563,8 @@ contract Trust is ReentrancyGuard {
         uint256 availableBalance_ = pool.reserve().balanceOf(address(this));
 
         // Base payments for each fundraiser.
-        uint256 seederPay_ = pool.reserveInit().sub(poolDust_);
         uint256 creatorPay_ = 0;
+        uint256 seederPay_ = pool.reserveInit().sub(poolDust_);
 
         // Set aside the redemption and seed fee if we reached the minimum.
         if (finalBalance >= successBalance) {
@@ -642,31 +585,34 @@ contract Trust is ReentrancyGuard {
             //
             // Implied is the remainder of finalBalance_ as redeemInit
             // This will be transferred to the token holders below.
-            creatorPay_ = availableBalance_.sub(seederPay_.add(redeemInit));
+            creatorPay = availableBalance_.sub(seederPay_.add(redeemInit));
         }
 
-        if (creatorPay_ > 0) {
-            pool.reserve().safeTransfer(
-                creator,
-                creatorPay_
-            );
-        }
-
-        pool.reserve().safeTransfer(
-            seeder,
-            seederPay_
-        );
+        creatorPay = creatorPay_;
+        seederPay = seederPay_;
 
         // Send everything left to the token holders.
         // Implicitly the remainder of the finalBalance_ is:
         // - the redeem init if successful
         // - whatever users deposited in the AMM if unsuccessful
-        uint256 remainder_ = pool.reserve().balanceOf(address(this));
-        if (remainder_ > 0) {
-            pool.reserve().safeTransfer(
-                address(token),
-                remainder_
-            );
-        }
+        tokenPay = pool.reserve().balanceOf(address(this));
+    }
+
+    function creatorClaim() external {
+        uint256 creatorPay_ = creatorPay;
+        delete (creatorPay);
+        pool.reserve().safeTransfer(creator, creatorPay_);
+    }
+
+    function seederClaim() external {
+        uint256 seederPay_ = seederPay;
+        delete (seederPay);
+        pool.reserve().safeTransfer(seeder, seederPay_);
+    }
+
+    function tokenClaim() external {
+        uint256 tokenPay_ = tokenPay;
+        delete (tokenPay);
+        pool.reserve().safeTransfer(address(token), tokenPay_);
     }
 }
