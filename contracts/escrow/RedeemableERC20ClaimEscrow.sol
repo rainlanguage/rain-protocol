@@ -51,7 +51,8 @@ contract RedeemableERC20ClaimEscrow {
         onlyFactoryTrust(trust_)
     {
         deposits[address(trust_)][address(token_)][msg.sender]
-            = amount_;
+            = deposits[address(trust_)][address(token_)][msg.sender]
+                .add(amount_);
         totalDeposits[address(trust_)][address(token_)]
             = totalDeposits[address(trust_)][address(token_)].add(amount_);
 
