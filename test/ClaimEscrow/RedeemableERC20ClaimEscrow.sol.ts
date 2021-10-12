@@ -18,9 +18,8 @@ enum DistributionStatus {
 }
 
 /* TESTS
-Withdrawal behaviour:
-- Multiple RedeemableERC20 holders
-- Successive deposits and withdrawals for single sender
+- Multiple RedeemableERC20 holders and prorata withdrawals
+- Successive deposits and withdrawals (path-dependent behaviour)
 */
 
 describe("RedeemableERC20ClaimEscrow", async function () {
@@ -30,6 +29,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
 
     const { claim, trustFactory, tier } = await deployGlobals();
+
+    // some other token to put into the escrow
+    const claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
 
     const {
       redeemableERC20,
@@ -41,12 +46,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       minimumTradingDuration,
       successLevel,
     } = await basicSetup(signers, trustFactory, tier);
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -148,6 +147,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const { claim, trustFactory, tier } = await deployGlobals();
 
+    // some other token to put into the escrow
+    const claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
     const {
       redeemableERC20,
       trust,
@@ -157,12 +162,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
     } = await basicSetup(signers, trustFactory, tier);
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -200,6 +199,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const depositAmount0 = ethers.BigNumber.from(
       "100" + "0".repeat(await claimableToken.decimals())
     );
+
+    // signer1 obtains tokens somehow
+    await claimableToken.transfer(signer1.address, depositAmount0);
 
     await claimableToken
       .connect(signer1)
@@ -257,7 +259,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not FAIL"
     );
 
-    // undeposit RedeemableERC20 tokens
+    // undeposit claimable tokens
     await claim
       .connect(signer1)
       .undeposit(trust.address, claimableToken.address);
@@ -287,6 +289,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
 
     const { claim, trustFactory, tier } = await deployGlobals();
+
+    // some other token to put into the escrow
+    const claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
 
     const {
       redeemableERC20,
@@ -330,23 +338,26 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not TRADING"
     );
 
-    // deposit some RedeemableERC20 tokens
-    const depositAmount0 = (
-      await redeemableERC20.balanceOf(signer1.address)
-    ).div(2);
+    // deposit claimable tokens
+    const depositAmount0 = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableToken.decimals())
+    );
 
-    await redeemableERC20
+    // signer1 obtains tokens somehow
+    await claimableToken.transfer(signer1.address, depositAmount0);
+
+    await claimableToken
       .connect(signer1)
       .approve(claim.address, depositAmount0);
 
     await claim
       .connect(signer1)
-      .deposit(trust.address, redeemableERC20.address, depositAmount0);
+      .deposit(trust.address, claimableToken.address, depositAmount0);
 
     // read registered value
     const deposited0 = await claim.deposits(
       trust.address,
-      redeemableERC20.address,
+      claimableToken.address,
       signer1.address
     );
 
@@ -370,10 +381,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not FAIL"
     );
 
-    // deposit remaining RedeemableERC20 tokens
-    const depositAmount1 = await redeemableERC20.balanceOf(signer1.address);
+    const depositAmount1 = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableToken.decimals())
+    );
 
-    await redeemableERC20
+    // signer1 obtains claimable tokens somehow
+    await claimableToken.transfer(signer1.address, depositAmount1);
+
+    await claimableToken
       .connect(signer1)
       .approve(claim.address, depositAmount1);
 
@@ -381,7 +396,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       async () =>
         await claim
           .connect(signer1)
-          .deposit(trust.address, redeemableERC20.address, depositAmount1),
+          .deposit(trust.address, claimableToken.address, depositAmount1),
       "revert FAIL_DEPOSIT",
       "wrongly deposited when distribution status was Fail"
     );
@@ -393,6 +408,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
 
     const { claim, trustFactory, tier } = await deployGlobals();
+
+    // some other token to put into the escrow
+    const claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
 
     const {
       redeemableERC20,
@@ -437,23 +458,26 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not TRADING"
     );
 
-    // deposit some RedeemableERC20 tokens
-    const depositAmount0 = (
-      await redeemableERC20.balanceOf(signer1.address)
-    ).div(2);
+    // deposit some claimable tokens
+    const depositAmount0 = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableToken.decimals())
+    );
 
-    await redeemableERC20
+    // signer1 obtains claimable tokens somehow
+    await claimableToken.transfer(signer1.address, depositAmount0);
+
+    await claimableToken
       .connect(signer1)
       .approve(claim.address, depositAmount0);
 
     await claim
       .connect(signer1)
-      .deposit(trust.address, redeemableERC20.address, depositAmount0);
+      .deposit(trust.address, claimableToken.address, depositAmount0);
 
     // read registered value
     const deposited0 = await claim.deposits(
       trust.address,
-      redeemableERC20.address,
+      claimableToken.address,
       signer1.address
     );
 
@@ -481,34 +505,36 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not TRADINGCANEND"
     );
 
-    // deposit some RedeemableERC20 tokens
-    const depositAmount1 = (
-      await redeemableERC20.balanceOf(signer1.address)
-    ).div(2);
+    // deposit some claimable tokens
+    const depositAmount1 = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableToken.decimals())
+    );
 
-    await redeemableERC20
+    // signer1 obtains claimable tokens somehow
+    await claimableToken.transfer(signer1.address, depositAmount1);
+
+    await claimableToken
       .connect(signer1)
       .approve(claim.address, depositAmount1);
 
     await claim
       .connect(signer1)
-      .deposit(trust.address, redeemableERC20.address, depositAmount1);
+      .deposit(trust.address, claimableToken.address, depositAmount1);
 
     // read registered value
     const deposited1 = await claim.deposits(
       trust.address,
-      redeemableERC20.address,
+      claimableToken.address,
       signer1.address
     );
 
     assert(
-      !deposited1.eq(depositAmount1),
-      "new deposit amount overrode registered value"
-    );
-
-    assert(
       deposited1.eq(depositAmount1.add(depositAmount0)),
-      "actual tokens deposited and registered amount do not match (1)"
+      `actual tokens deposited by sender and registered amount do not match (1)
+      expected  ${depositAmount1.add(
+        depositAmount0
+      )} = ${depositAmount1} + ${depositAmount0}
+      got       ${deposited1}`
     );
 
     await trust.anonEndDistribution();
@@ -519,38 +545,46 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not SUCCESS"
     );
 
-    // deposit remaining RedeemableERC20 tokens
-    const depositAmount2 = await redeemableERC20.balanceOf(signer1.address);
+    // deposit some claimable tokens
+    const depositAmount2 = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableToken.decimals())
+    );
 
-    await redeemableERC20
+    // signer1 obtains claimable tokens somehow
+    await claimableToken.transfer(signer1.address, depositAmount2);
+
+    await claimableToken
       .connect(signer1)
       .approve(claim.address, depositAmount2);
 
     await claim
       .connect(signer1)
-      .deposit(trust.address, redeemableERC20.address, depositAmount2);
+      .deposit(trust.address, claimableToken.address, depositAmount2);
 
     // read registered value
     const deposited2 = await claim.deposits(
       trust.address,
-      redeemableERC20.address,
+      claimableToken.address,
       signer1.address
     );
 
     assert(
       deposited2.eq(depositAmount2.add(depositAmount1.add(depositAmount0))),
-      "actual tokens deposited and registered amount do not match (2)"
+      `actual tokens deposited by sender and registered amount do not match (2)
+      expected  ${depositAmount2.add(
+        depositAmount1.add(depositAmount0)
+      )} = ${depositAmount2} + ${depositAmount1} + ${depositAmount0}
+      got       ${deposited2}`
     );
 
-    // one check for total deposits
     const totalDeposits = await claim.totalDeposits(
       trust.address,
-      redeemableERC20.address
+      claimableToken.address
     );
 
     assert(
       totalDeposits.eq(depositAmount2.add(depositAmount1.add(depositAmount0))),
-      "actual tokens depositing and registered total amount do not match"
+      "actual total tokens deposited and registered total amount do not match (3)"
     );
   });
 
@@ -559,26 +593,33 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { claim, trustFactory, tier } = await deployGlobals();
+    const { claim } = await deployGlobals();
 
-    const { redeemableERC20 } = await basicSetup(signers, trustFactory, tier);
+    // some other token to put into the escrow
+    const claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
 
-    // bad trust address
     await Util.assertError(
       async () =>
-        await claim.deposit(signers[19].address, redeemableERC20.address, 0),
+        await claim.deposit(
+          signers[19].address, // bad trust address
+          claimableToken.address,
+          0
+        ),
       "revert FACTORY_CONTRACT",
       "did not check trust is child of trust factory"
     );
     await Util.assertError(
       async () =>
-        await claim.undeposit(signers[19].address, redeemableERC20.address),
+        await claim.undeposit(signers[19].address, claimableToken.address),
       "revert FACTORY_CONTRACT",
       "did not check trust is child of trust factory"
     );
     await Util.assertError(
       async () =>
-        await claim.withdraw(signers[19].address, redeemableERC20.address),
+        await claim.withdraw(signers[19].address, claimableToken.address),
       "revert FACTORY_CONTRACT",
       "did not check trust is child of trust factory"
     );
