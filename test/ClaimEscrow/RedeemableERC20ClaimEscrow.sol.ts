@@ -17,12 +17,175 @@ enum DistributionStatus {
   FAIL,
 }
 
-/* TESTS
-- Multiple RedeemableERC20 holders and prorata withdrawals
-- Successive deposits and withdrawals (path-dependent behaviour)
-*/
-
 describe("RedeemableERC20ClaimEscrow", async function () {
+  it("should support multiple withdrawals per sender if more claimable tokens are deposited after a withdraw", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const signer1 = signers[3];
+    const signer2 = signers[4];
+
+    const { claim, trustFactory, tier } = await deployGlobals();
+
+    // some other token to put into the escrow
+    const claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    const {
+      redeemableERC20,
+      trust,
+      reserve,
+      crp,
+      bPool,
+      minimumTradingDuration,
+      successLevel,
+    } = await basicSetup(signers, trustFactory, tier);
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
+
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
+
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
+        reserve.address,
+        spend,
+        redeemableERC20.address,
+        ethers.BigNumber.from("1"),
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
+      );
+    };
+
+    const spend1 = ethers.BigNumber.from("25" + Util.sixZeros);
+    const spend2 = ethers.BigNumber.from("75" + Util.sixZeros);
+
+    // raise all necessary funds
+    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
+      await swapReserveForTokens(signer1, spend1);
+      await swapReserveForTokens(signer2, spend2);
+    }
+
+    // deposit claimable tokens
+    const depositAmount = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableToken.decimals())
+    );
+
+    await claimableToken.approve(claim.address, depositAmount);
+    // creator deposits claimable tokens
+    await claim.deposit(trust.address, claimableToken.address, depositAmount);
+
+    const claimableTokensInEscrowDeposit0 = await claimableToken.balanceOf(
+      claim.address
+    );
+
+    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
+    const emptyBlocks =
+      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+
+    // create empty blocks to end of raise duration
+    await Util.createEmptyBlock(emptyBlocks);
+
+    await trust.anonEndDistribution();
+
+    // Distribution Status is Success
+    assert(
+      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
+      "Distribution Status was not SUCCESS"
+    );
+
+    // calculate real RedeemableERC20 proportions
+
+    const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
+      .mul(Util.ONE)
+      .div(await redeemableERC20.totalSupply());
+
+    const signer2Prop = (await redeemableERC20.balanceOf(signer2.address))
+      .mul(Util.ONE)
+      .div(await redeemableERC20.totalSupply());
+
+    // signer1 should withdraw roughly 25% of claimable tokens in escrow
+    await claim
+      .connect(signer1)
+      .withdraw(trust.address, claimableToken.address);
+
+    const expectedSigner1Withdrawal0 = claimableTokensInEscrowDeposit0
+      .sub(0) // signer1 hasn't withdrawn anything yet
+      .mul(signer1Prop)
+      .div(Util.ONE);
+
+    const actualSigner1Withdrawal0 = await claimableToken.balanceOf(
+      signer1.address
+    );
+
+    assert(
+      expectedSigner1Withdrawal0.eq(actualSigner1Withdrawal0),
+      `wrong amount of claimable tokens withdrawn (0)
+      signer1Prop   ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
+        .toString()
+        .slice(3)}%
+      totalInEscrow ${claimableTokensInEscrowDeposit0}
+      expected      ${expectedSigner1Withdrawal0}
+      got           ${actualSigner1Withdrawal0}`
+    );
+
+    const signer1TokensBefore2ndWithdraw = await claimableToken.balanceOf(
+      signer1.address
+    );
+    // signer1 2nd withdraw
+    // instantly withdrawing again is effectively a no-op
+    await claim
+      .connect(signer1)
+      .withdraw(trust.address, claimableToken.address);
+    const signer1TokensAfter2ndWithdraw = await claimableToken.balanceOf(
+      signer1.address
+    );
+    assert(
+      signer1TokensBefore2ndWithdraw.eq(signer1TokensAfter2ndWithdraw),
+      "signer1 wrongly withdrew more tokens on successive withdraw before more tokens were deposited"
+    );
+
+    // more claimable tokens are deposited by creator
+    await claimableToken.approve(claim.address, depositAmount);
+    await claim.deposit(trust.address, claimableToken.address, depositAmount);
+
+    const claimableTokensInEscrowDeposit1 = await claimableToken.balanceOf(
+      claim.address
+    );
+
+    // signer1 3rd withdraw
+    await claim
+      .connect(signer1)
+      .withdraw(trust.address, claimableToken.address);
+
+    const expectedSigner1Withdrawal1 = claimableTokensInEscrowDeposit1
+      .sub(actualSigner1Withdrawal0)
+      .mul(signer1Prop)
+      .div(Util.ONE);
+
+    const actualSigner1Withdrawal1 = await claimableToken.balanceOf(
+      signer1.address
+    );
+
+    assert(
+      expectedSigner1Withdrawal1.eq(actualSigner1Withdrawal1),
+      `wrong amount of claimable tokens withdrawn (1)
+      signer1Prop   ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
+        .toString()
+        .slice(3)}%
+      totalInEscrow ${claimableTokensInEscrowDeposit0}
+      expected      ${expectedSigner1Withdrawal1}
+      got           ${actualSigner1Withdrawal1}`
+    );
+  });
+
   it("should allocate token withdrawals pro rata (sender's proportion of RedeemableERC20 total supply)", async function () {
     this.timeout(0);
 
@@ -103,9 +266,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not SUCCESS"
     );
 
-    const signer1RedeemableERC20Proportion = (
-      await redeemableERC20.balanceOf(signer1.address)
-    )
+    const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
 
@@ -114,7 +275,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     const expectedWithdrawal = claimableTokensInEscrow
-      .mul(signer1RedeemableERC20Proportion)
+      .mul(signer1Prop)
       .div(Util.ONE);
 
     // signer1 should withdraw roughly 25% of claimable tokens in escrow
@@ -127,7 +288,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     assert(
       expectedWithdrawal.eq(actualWithdrawal),
       `wrong amount of claimable tokens withdrawn
-      signer1Prop   ~${signer1RedeemableERC20Proportion.toString().slice(0, 2)}%
+      signer1Prop   ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
+        .toString()
+        .slice(3)}%
       totalInEscrow ${claimableTokensInEscrow}
       expected      ${expectedWithdrawal}
       got           ${actualWithdrawal}`
@@ -143,10 +306,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     assert(
-      finalEscrowClaimableTokenBalance.isZero(),
-      `wrong final tokens in escrow
-      expected  0
-      got       ${finalEscrowClaimableTokenBalance}`
+      finalEscrowClaimableTokenBalance.eq(0) ||
+        finalEscrowClaimableTokenBalance.eq(1), // rounding error might leave 1 token
+      `wrong final claimable tokens in escrow, got ${finalEscrowClaimableTokenBalance}`
     );
   });
 
@@ -260,7 +422,19 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       .connect(signer1)
       .withdraw(trust.address, claimableToken.address);
 
-    // not testing withdrawal behaviour here
+    const registeredWithdrawnAmountSigner1 = await claim.withdrawals(
+      trust.address,
+      claimableToken.address,
+      signer1.address
+    );
+
+    // total amount withdrawn and registered value should match
+    assert(
+      registeredWithdrawnAmountSigner1.eq(depositAmount),
+      "wrong registered withdrawal value for signer1"
+    );
+
+    // not testing further withdrawal behaviour here
   });
 
   it("should allow undepositing redeemable tokens on failed raise", async function () {
