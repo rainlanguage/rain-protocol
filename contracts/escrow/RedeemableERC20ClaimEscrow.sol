@@ -116,7 +116,16 @@ contract RedeemableERC20ClaimEscrow {
                     RedeemableERC20(trustContracts_.redeemableERC20)
                         .totalSupply()
                 )
-                // Guard against rounding errors trapping the last withdraw.
+                // Guard against rounding errors blocking the last withdraw.
+                // The issue would be if rounding errors in the withdrawal
+                // trigger an attempt to withdraw more redeemable than is owned
+                // by the escrow.
+                // IMPORTANT: Rounding errors in the inverse direction, i.e.
+                // that leave dust trapped in the escrow after all accounts
+                // have fully withdrawn are NOT guarded against.
+                // For example, if 100 tokens are split between 3 accounts then
+                // each account will receive 33 tokens, effectively burning 1
+                // token as it cannot be withdrawn from the escrow contract.
                 .min(
                     token_.balanceOf(address(this))
                 )
