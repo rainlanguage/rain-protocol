@@ -266,7 +266,7 @@ export const trustDeploy = async (
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
-  if (!count) count = 1;
+  if (!count || count <= 0) count = 1;
   const signers = await ethers.getSigners();
   const txNoOp = { to: signers[1].address };
   for (let i = 0; i < count; i++) {

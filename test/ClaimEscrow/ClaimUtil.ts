@@ -74,8 +74,6 @@ export const basicSetup = async (signers, trustFactory, tier) => {
   const creator = signers[0];
   const seeder = signers[1]; // seeder is not creator/owner
   const deployer = signers[2]; // deployer is not creator
-  const recipient = signers[3];
-  const signer1 = signers[4];
 
   const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
   const seederUnits = 0;
@@ -153,15 +151,17 @@ export const basicSetup = async (signers, trustFactory, tier) => {
   const [crp, bPool] = await Util.poolContracts(signers, pool);
 
   return {
+    creator,
+    seeder,
+    deployer,
     reserve,
     trust,
-    recipient,
-    signer1,
     successLevel,
     pool,
     crp,
     bPool,
     minimumTradingDuration,
     redeemableERC20,
+    minimumCreatorRaise,
   };
 };
