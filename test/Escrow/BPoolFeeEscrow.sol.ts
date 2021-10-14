@@ -63,7 +63,9 @@ describe("BPoolFeeEscrow", async function () {
     // attempt to 'unabandon' trust account
     await escrow.connect(recipient).recipientUnblockAccount(trust.address);
 
-    await escrow.connect(recipient).anonClaimFees(trust.address, recipient.address);
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
 
     // should not claim anything after attempting to 'unabandon' trust
     assert((await reserve.balanceOf(recipient.address)).isZero());
@@ -227,7 +229,9 @@ describe("BPoolFeeEscrow", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee.mul(2));
+    await escrow
+      .connect(recipient)
+      .recipientSetMinFees(reserve.address, fee.mul(2));
 
     const buyTokensViaEscrow = async (signer, spend, fee) => {
       // give signer some reserve
@@ -262,7 +266,9 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // set min fee less than provided fee
-    await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee.div(2));
+    await escrow
+      .connect(recipient)
+      .recipientSetMinFees(reserve.address, fee.div(2));
     await buyTokensViaEscrow(signer1, spend, fee);
 
     // set min fee equal to provided fee
@@ -348,7 +354,9 @@ describe("BPoolFeeEscrow", async function () {
 
     assert((await reserve.balanceOf(recipient.address)).isZero());
 
-    await escrow.connect(recipient).anonClaimFees(trust.address, recipient.address);
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
 
     assert((await reserve.balanceOf(recipient.address)).isZero());
   });
@@ -470,7 +478,9 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // attempting claim fees is no-op.
-    await escrow.connect(recipient).anonClaimFees(trust.address, recipient.address);
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
 
     const reserveRedeemableERC20_1 = await reserve.balanceOf(
       redeemableERC20.address
@@ -578,7 +588,9 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // cannot claim before successful raise is closed
-    await escrow.connect(recipient).anonClaimFees(trust.address, recipient.address);
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
 
     const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
 
@@ -608,7 +620,9 @@ describe("BPoolFeeEscrow", async function () {
     // Attempting refund is no-op.
     await escrow.connect(signer1).anonRefundFees(trust.address);
 
-    await escrow.connect(recipient).anonClaimFees(trust.address, recipient.address);
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
 
@@ -681,7 +695,9 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // no-op claim if raise is still ongoing
-    await escrow.connect(recipient).anonClaimFees(trust.address, recipient.address);
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
 
     const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
 
