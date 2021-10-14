@@ -74,6 +74,7 @@ let
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
+    hardhat compile --force
     hardhat test
   '';
 
