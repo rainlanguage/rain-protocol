@@ -49,11 +49,11 @@ contract BPoolFeeEscrow {
     // - lying about reserve and redeemable tokens
     // - some kind of reentrancy or hard to reason about state change
     modifier onlyFactoryTrust(Trust trust_) {
-        _;
         // False positive from slither on this reentrant call happening before
         // the modified code.
         // https://github.com/crytic/slither/issues/735
         require(trustFactory.isChild(address(trust_)), "FACTORY_TRUST");
+        _;
     }
 
     // Recipient can set the minimum fees they will accept per-reserve.

@@ -162,9 +162,13 @@ describe("BPoolFeeEscrow", async function () {
       "wrongly bought token with insufficient fee amount"
     );
 
-    // unset min fee so any non-zero fee amount is okay
+    // unset min fee to block all token sales using this reserve
     await escrow.connect(recipient).unsetMinFees(reserve.address);
-    await buyTokensViaEscrow(signer1, spend, 1);
+    await Util.assertError(
+      async () => await buyTokensViaEscrow(signer1, spend, fee),
+      "revert UNSET_FEE",
+      "wrongly bought token when min fee was unset"
+    );
 
     // set min fee less than provided fee
     await escrow.connect(recipient).setMinFees(reserve.address, fee.div(2));
@@ -347,6 +351,9 @@ describe("BPoolFeeEscrow", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).setMinFees(reserve.address, fee);
+
     // raise unsufficient funds
     await buyTokensViaEscrow(signer1, spend, fee);
 
@@ -456,6 +463,9 @@ describe("BPoolFeeEscrow", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).setMinFees(reserve.address, fee);
+
     // raise all necessary funds
     let buyCount = 0;
     while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
@@ -564,6 +574,9 @@ describe("BPoolFeeEscrow", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).setMinFees(reserve.address, fee);
+
     // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
     await buyTokensViaEscrow(signer1, spend, fee);
 
@@ -614,16 +627,14 @@ describe("BPoolFeeEscrow", async function () {
         // onlyFactoryTrust modifier catches if trust address is not child of factory
         await Util.assertError(
           async () =>
-            await escrow
-              .connect(signer)
-              .buyToken(
-                signers[19].address,
-                spend,
-                ethers.BigNumber.from("1"),
-                ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-                recipient.address,
-                fee
-              ),
+            await escrow.connect(signer).buyToken(
+              signers[19].address, // bad trust address
+              spend,
+              ethers.BigNumber.from("1"),
+              ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+              recipient.address,
+              fee
+            ),
           "revert FACTORY_TRUST",
           "buyToken proceeded despite trust address not being child of factory"
         );
@@ -642,6 +653,9 @@ describe("BPoolFeeEscrow", async function () {
 
       const spend = ethers.BigNumber.from("250" + Util.sixZeros);
       const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+      // set min fee for the reserve that signer1 will be using
+      await escrow.connect(recipient).setMinFees(reserve.address, fee);
 
       // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
       await buyTokensViaEscrow(signer1, spend, fee);
