@@ -82,8 +82,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // creator deposits claimable tokens
     await claim.deposit(trust.address, claimableToken.address, depositAmount);
 
-    const claimableTokensInEscrowDeposit0 = await claimableToken.balanceOf(
-      claim.address
+    const claimableTokensInEscrowDeposit0 = await claim.totalDeposits(
+      trust.address,
+      claimableToken.address
     );
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
@@ -128,12 +129,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     assert(
       expectedSigner1Withdrawal0.eq(actualSigner1Withdrawal0),
       `wrong amount of claimable tokens withdrawn (0)
-      signer1Prop   ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
+      signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
-      totalInEscrow ${claimableTokensInEscrowDeposit0}
-      expected      ${expectedSigner1Withdrawal0}
-      got           ${actualSigner1Withdrawal0}`
+      totalDeposits   ${claimableTokensInEscrowDeposit0}
+      expected        ${expectedSigner1Withdrawal0}
+      got             ${actualSigner1Withdrawal0}`
     );
 
     const signer1TokensBefore2ndWithdraw = await claimableToken.balanceOf(
@@ -149,15 +150,19 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
     assert(
       signer1TokensBefore2ndWithdraw.eq(signer1TokensAfter2ndWithdraw),
-      "signer1 wrongly withdrew more tokens on successive withdraw before more tokens were deposited"
+      `signer1 wrongly withdrew more tokens on successive withdraw before more tokens were deposited
+      before      ${signer1TokensBefore2ndWithdraw}
+      after       ${signer1TokensAfter2ndWithdraw}
+      `
     );
 
     // more claimable tokens are deposited by creator
     await claimableToken.approve(claim.address, depositAmount);
     await claim.deposit(trust.address, claimableToken.address, depositAmount);
 
-    const claimableTokensInEscrowDeposit1 = await claimableToken.balanceOf(
-      claim.address
+    const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
+      trust.address,
+      claimableToken.address
     );
 
     // signer1 3rd withdraw
@@ -170,19 +175,19 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       .mul(signer1Prop)
       .div(Util.ONE);
 
-    const actualSigner1Withdrawal1 = await claimableToken.balanceOf(
-      signer1.address
-    );
+    const actualSigner1Withdrawal1 = (
+      await claimableToken.balanceOf(signer1.address)
+    ).sub(actualSigner1Withdrawal0);
 
     assert(
       expectedSigner1Withdrawal1.eq(actualSigner1Withdrawal1),
       `wrong amount of claimable tokens withdrawn (1)
-      signer1Prop   ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
+      signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
-      totalInEscrow ${claimableTokensInEscrowDeposit0}
-      expected      ${expectedSigner1Withdrawal1}
-      got           ${actualSigner1Withdrawal1}`
+      totalDeposits   ${claimableTokensInEscrowDeposit1}
+      expected        ${expectedSigner1Withdrawal1}
+      got             ${actualSigner1Withdrawal1}`
     );
   });
 
@@ -270,8 +275,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
 
-    const claimableTokensInEscrow = await claimableToken.balanceOf(
-      claim.address
+    const claimableTokensInEscrow = await claim.totalDeposits(
+      trust.address,
+      claimableToken.address
     );
 
     const expectedWithdrawal = claimableTokensInEscrow
@@ -288,12 +294,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     assert(
       expectedWithdrawal.eq(actualWithdrawal),
       `wrong amount of claimable tokens withdrawn
-      signer1Prop   ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
+      signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
-      totalInEscrow ${claimableTokensInEscrow}
-      expected      ${expectedWithdrawal}
-      got           ${actualWithdrawal}`
+      totalDeposits   ${claimableTokensInEscrow}
+      expected        ${expectedWithdrawal}
+      got             ${actualWithdrawal}`
     );
 
     // signer2 should withdraw remaining claimable tokens in escrow
