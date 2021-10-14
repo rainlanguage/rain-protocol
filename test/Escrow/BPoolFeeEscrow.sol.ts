@@ -34,6 +34,91 @@ enum DistributionStatus {
 }
 
 describe("BPoolFeeEscrow", async function () {
+  it("should not allow using unblockAccount to unabandon abandoned trust", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { recipient, trust, totalFee, reserve } = await successfulRaise(
+      signers,
+      escrow,
+      trustFactory,
+      tier
+    );
+
+    // recipient has claimable fees for this trust
+    assert((await escrow.fees(trust.address, recipient.address)).eq(totalFee));
+    assert((await escrow.abandoned(trust.address)).isZero());
+
+    await escrow.connect(recipient).abandonTrust(trust.address);
+
+    // recipient no longer has claimable fees for this trust
+    assert((await escrow.fees(trust.address, recipient.address)).isZero());
+    assert((await escrow.abandoned(trust.address)).eq(totalFee));
+
+    assert((await reserve.balanceOf(recipient.address)).isZero());
+
+    // attempt to 'unabandon' trust account
+    await escrow.connect(recipient).unblockAccount(trust.address);
+
+    await escrow.connect(recipient).claimFees(trust.address, recipient.address);
+
+    // should not claim anything after attempting to 'unabandon' trust
+    assert((await reserve.balanceOf(recipient.address)).isZero());
+  });
+
+  it("should allow recipient to unblock a blocked sender", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { reserve, trust, recipient, signer1 } = await basicSetup(
+      signers,
+      trustFactory,
+      tier
+    );
+
+    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
+    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).setMinFees(reserve.address, fee);
+
+    await escrow.connect(recipient).blockAccount(signer1.address);
+
+    const buyTokensViaEscrow = async (signer, spend, fee) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend.add(fee));
+
+      await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+
+      await escrow
+        .connect(signer)
+        .buyToken(
+          trust.address,
+          spend,
+          ethers.BigNumber.from("1"),
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+          recipient.address,
+          fee
+        );
+    };
+
+    await Util.assertError(
+      async () => await buyTokensViaEscrow(signer1, spend, fee),
+      "revert BLOCKED_SENDER",
+      "wrongly bought token when sender was blocked by recipient"
+    );
+
+    await escrow.connect(recipient).unblockAccount(signer1.address);
+
+    await buyTokensViaEscrow(signer1, spend, fee);
+  });
+
   it("should allow recipient to block a sender", async function () {
     this.timeout(0);
 
@@ -49,6 +134,9 @@ describe("BPoolFeeEscrow", async function () {
 
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).setMinFees(reserve.address, fee);
 
     await escrow.connect(recipient).blockAccount(signer1.address);
 
@@ -92,6 +180,9 @@ describe("BPoolFeeEscrow", async function () {
 
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).setMinFees(reserve.address, fee);
 
     await escrow.connect(recipient).blockAccount(trust.address);
 
