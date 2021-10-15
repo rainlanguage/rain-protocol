@@ -4,6 +4,9 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { basicSetup, deployGlobals } from "./ClaimUtil";
 import type { ReserveToken } from "../../typechain/ReserveToken";
+import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { TrustFactory } from "../../typechain/TrustFactory";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -17,21 +20,30 @@ enum DistributionStatus {
   FAIL,
 }
 
+let claim: RedeemableERC20ClaimEscrow,
+  trustFactory: TrustFactory,
+  tier: ReadWriteTier,
+  claimableToken: ReserveToken;
+
 describe("RedeemableERC20ClaimEscrow", async function () {
-  it("should support multiple withdrawals per sender if more claimable tokens are deposited after a withdraw", async function () {
+  before(async () => {
+    ({ claim, trustFactory, tier } = await deployGlobals());
+  });
+
+  beforeEach(async () => {
+    // some other token to put into the escrow
+    claimableToken = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+  });
+
+  it("should support multiple withdrawals per sender if more claimable tokens are deposited after a withdrawal", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
     const signer2 = signers[4];
-
-    const { claim, trustFactory, tier } = await deployGlobals();
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const {
       redeemableERC20,
@@ -198,14 +210,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signer1 = signers[3];
     const signer2 = signers[4];
 
-    const { claim, trustFactory, tier } = await deployGlobals();
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
     const {
       redeemableERC20,
       trust,
@@ -324,14 +328,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
 
-    const { claim, trustFactory, tier } = await deployGlobals();
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
     const {
       redeemableERC20,
       trust,
@@ -448,14 +444,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
-
-    const { claim, trustFactory, tier } = await deployGlobals();
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const {
       redeemableERC20,
@@ -593,14 +581,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
 
-    const { claim, trustFactory, tier } = await deployGlobals();
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-
     const {
       redeemableERC20,
       trust,
@@ -702,14 +682,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
-
-    const { claim, trustFactory, tier } = await deployGlobals();
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const {
       redeemableERC20,
@@ -868,14 +840,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-
-    const { claim } = await deployGlobals();
-
-    // some other token to put into the escrow
-    const claimableToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     await Util.assertError(
       async () =>
