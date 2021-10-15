@@ -54,7 +54,9 @@ struct ClaimedFees {
 ///   set aside by this escrow.
 /// - Recipients MUST OPT IN to every reserve type they want to accept by first
 ///   setting a min fee. The escrow will not set aside garbage shitcoins for
-///   recipients unless they explicitly ask for it.
+///   recipients unless they explicitly ask for it. The escrow cannot prevent
+///   garbage shitcoins from being sent to the recipient outside the escrow but
+///   it can refuse to facilitate the process with its own precious storage.
 /// - ANYONE can process a claim for a recipient and/or a refund for a trust.
 ///   Recipients SHOULD ONLY accept reserve currencies that they'd be willing
 ///   have processed unconditionally at any time by anyone.
