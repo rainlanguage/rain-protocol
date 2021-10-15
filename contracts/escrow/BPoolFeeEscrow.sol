@@ -121,12 +121,10 @@ contract BPoolFeeEscrow {
         uint256 fee
     );
 
-    /// This TrustFactory is checked on every call to ensure that only trusts
-    /// with the same bytecode can be used by this escrow.
+    /// This TrustFactory is checked on every `buyToken` call to ensure that
+    /// only trusts with the same bytecode can be used by this escrow.
     /// REQUIRED because a malicious or buggy `Trust` can drain the escrow of
     /// all funds by cycling between success/failure states.
-    /// Also the `TrustFactory` MUST correctly implement `isChild` or a
-    /// malicious factory can behave reentrantly against `onlyFactoryTrust`.
     TrustFactory public immutable trustFactory;
 
     /// recipient => reserve => amount
@@ -338,7 +336,7 @@ contract BPoolFeeEscrow {
     /// Anyone can pay the gas to refund fees for a `Trust`.
     ///
     /// Refunding forwards the fees as `Trust` reserve to its redeemable token.
-    /// Refunding does NOT directly return fees to the sendor nor directly to
+    /// Refunding does NOT directly return fees to the sender nor directly to
     /// the `Trust`.
     ///
     /// The refund will forward BOTH:
@@ -389,7 +387,7 @@ contract BPoolFeeEscrow {
         return totalRefund_;
     }
 
-    /// Unidirectional wrapper around `swapExactAmountIn` for "buying tokens".
+    /// Unidirectional wrapper around `swapExactAmountIn` for 'buying tokens'.
     /// In this context, buying tokens means swapping the reserve token IN to
     /// the underlying balancer pool and withdrawing the minted token OUT.
     ///
@@ -400,10 +398,10 @@ contract BPoolFeeEscrow {
     /// source in an escrow and allow each receipient to claim their fees when
     /// ready. This avoids issues like wash trading to siphon fees etc.
     ///
-    /// The end-user "chooses" (read: The FE sets the parameters for them) a
+    /// The end-user 'chooses' (read: The FE sets the parameters for them) a
     /// recipient (the FE) and fee to be _added_ to their trade.
     ///
-    /// Of course, the end-user can "simply" bypass the `buyToken` function
+    /// Of course, the end-user can 'simply' bypass the `buyToken` function
     /// call and interact with the pool themselves, but if a client front-end
     /// presents this to a user it's most likely they will just use it.
     ///
@@ -418,7 +416,7 @@ contract BPoolFeeEscrow {
     /// Sadly this is gas intensive, it works out to a bit under double what it
     /// would cost to directly poke weights and do a swap as two actions. Doing
     /// the weights poke atomically with the trade has some nebulous benefit as
-    /// it reduces the chance that someone else "uses" the benefit of the poke
+    /// it reduces the chance that someone else 'uses' the benefit of the poke
     /// but overall it has to be said the gas situation is something to be
     /// mindful of. It certainly makes little sense to be doing this on L1.
     ///

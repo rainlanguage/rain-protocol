@@ -34,6 +34,224 @@ enum DistributionStatus {
 }
 
 describe("BPoolFeeEscrow", async function () {
+<<<<<<< HEAD
+=======
+  it("should return pending claims via getter by index", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { recipient, trust } = await successfulRaise(
+      signers,
+      escrow,
+      trustFactory,
+      tier
+    );
+
+    const pendingTrust = await escrow.getPending(recipient.address, 0);
+
+    assert(
+      pendingTrust.toLowerCase() === trust.address.toLowerCase(),
+      `did not return correct pending trust address for recipient
+      expected  ${trust.address.toLowerCase()}
+      got       ${pendingTrust.toLowerCase()}`
+    );
+
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
+
+    let pendingTrustOutOfBounds: string;
+    await Util.assertError(
+      async () => {
+        pendingTrustOutOfBounds = await escrow.getPending(recipient.address, 0);
+      },
+      "revert EnumerableSet: index out of bounds",
+      `did not error, should be out of bounds, got value ${pendingTrustOutOfBounds}`
+    );
+  });
+
+  it("should not allow using recipientUnblockAccount to unabandon abandoned trust", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { recipient, trust, totalFee, reserve } = await successfulRaise(
+      signers,
+      escrow,
+      trustFactory,
+      tier
+    );
+
+    // recipient has claimable fees for this trust
+    assert((await escrow.fees(trust.address, recipient.address)).eq(totalFee));
+    assert((await escrow.abandoned(trust.address)).isZero());
+
+    await escrow.connect(recipient).recipientAbandonTrust(trust.address);
+
+    // recipient no longer has claimable fees for this trust
+    assert((await escrow.fees(trust.address, recipient.address)).isZero());
+    assert((await escrow.abandoned(trust.address)).eq(totalFee));
+
+    assert((await reserve.balanceOf(recipient.address)).isZero());
+
+    // attempt to 'unabandon' trust account
+    await escrow.connect(recipient).recipientUnblockAccount(trust.address);
+
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
+
+    // should not claim anything after attempting to 'unabandon' trust
+    assert((await reserve.balanceOf(recipient.address)).isZero());
+  });
+
+  it("should allow recipient to unblock a blocked sender", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { reserve, trust, recipient, signer1 } = await basicSetup(
+      signers,
+      trustFactory,
+      tier
+    );
+
+    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
+    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
+
+    await escrow.connect(recipient).recipientBlockAccount(signer1.address);
+
+    const buyTokensViaEscrow = async (signer, spend, fee) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend.add(fee));
+
+      await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+
+      await escrow
+        .connect(signer)
+        .buyToken(
+          trust.address,
+          spend,
+          ethers.BigNumber.from("1"),
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+          recipient.address,
+          fee
+        );
+    };
+
+    await Util.assertError(
+      async () => await buyTokensViaEscrow(signer1, spend, fee),
+      "revert BLOCKED_SENDER",
+      "wrongly bought token when sender was blocked by recipient"
+    );
+
+    await escrow.connect(recipient).recipientUnblockAccount(signer1.address);
+
+    await buyTokensViaEscrow(signer1, spend, fee);
+  });
+
+  it("should allow recipient to block a sender", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { reserve, trust, recipient, signer1 } = await basicSetup(
+      signers,
+      trustFactory,
+      tier
+    );
+
+    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
+    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
+
+    await escrow.connect(recipient).recipientBlockAccount(signer1.address);
+
+    const buyTokensViaEscrow = async (signer, spend, fee) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend.add(fee));
+
+      await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+
+      await escrow
+        .connect(signer)
+        .buyToken(
+          trust.address,
+          spend,
+          ethers.BigNumber.from("1"),
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+          recipient.address,
+          fee
+        );
+    };
+
+    await Util.assertError(
+      async () => await buyTokensViaEscrow(signer1, spend, fee),
+      "revert BLOCKED_SENDER",
+      "wrongly bought token when sender was blocked by recipient"
+    );
+  });
+
+  it("should allow recipient to block a trust", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { reserve, trust, recipient, signer1 } = await basicSetup(
+      signers,
+      trustFactory,
+      tier
+    );
+
+    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
+    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
+
+    await escrow.connect(recipient).recipientBlockAccount(trust.address);
+
+    const buyTokensViaEscrow = async (signer, spend, fee) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend.add(fee));
+
+      await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+
+      await escrow
+        .connect(signer)
+        .buyToken(
+          trust.address,
+          spend,
+          ethers.BigNumber.from("1"),
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+          recipient.address,
+          fee
+        );
+    };
+
+    await Util.assertError(
+      async () => await buyTokensViaEscrow(signer1, spend, fee),
+      "revert BLOCKED_TRUST",
+      "wrongly bought token when trust was blocked by recipient"
+    );
+  });
+>>>>>>> 88473b751732c16d1adc4b5f196653e72b20a066
 
   it("should allow recipient to enforce min fee amount per reserve", async function () {
     this.timeout(0);
@@ -531,20 +749,20 @@ describe("BPoolFeeEscrow", async function () {
     );
   });
 
-  describe("Modifiers", async function () {
-    it("should check that trust address is child of trust factory", async function () {
-      this.timeout(0);
+  it("should check that trust address is child of trust factory when buying tokens", async function () {
+    this.timeout(0);
 
-      const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners();
 
-      const { escrow, trustFactory, tier } = await deployGlobals();
+    const { escrow, trustFactory, tier } = await deployGlobals();
 
-      const { reserve, trust, recipient, signer1 } = await basicSetup(
-        signers,
-        trustFactory,
-        tier
-      );
+    const { reserve, trust, recipient, signer1 } = await basicSetup(
+      signers,
+      trustFactory,
+      tier
+    );
 
+<<<<<<< HEAD
       const buyTokensViaEscrow = async (signer, spend, fee) => {
         // give signer some reserve
         await reserve.transfer(signer.address, spend.add(fee));
@@ -579,15 +797,55 @@ describe("BPoolFeeEscrow", async function () {
             ethers.BigNumber.from("1000000" + Util.eighteenZeros)
           );
       };
+=======
+    const buyTokensViaEscrow = async (signer, spend, fee) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend.add(fee));
 
-      const spend = ethers.BigNumber.from("250" + Util.sixZeros);
-      const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+      const reserveSigner = reserve.connect(signer);
 
-      // set min fee for the reserve that signer1 will be using
-      await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
+      await reserveSigner.approve(escrow.address, spend.add(fee));
 
+      await Util.assertError(
+        async () =>
+          await escrow.connect(signer).buyToken(
+            signers[19].address, // bad trust address
+            spend,
+            ethers.BigNumber.from("1"),
+            ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+            recipient.address,
+            fee
+          ),
+        "revert FACTORY_TRUST",
+        "buyToken proceeded despite trust address not being child of factory"
+      );
+>>>>>>> 88473b751732c16d1adc4b5f196653e72b20a066
+
+      await escrow
+        .connect(signer)
+        .buyToken(
+          trust.address,
+          spend,
+          ethers.BigNumber.from("1"),
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+          recipient.address,
+          fee
+        );
+    };
+
+    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
+    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+<<<<<<< HEAD
       // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
       await buyTokensViaEscrow(signer1, spend, fee);
     });
+=======
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
+
+    // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
+    await buyTokensViaEscrow(signer1, spend, fee);
+>>>>>>> 88473b751732c16d1adc4b5f196653e72b20a066
   });
 });
