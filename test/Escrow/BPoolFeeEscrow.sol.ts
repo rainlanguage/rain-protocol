@@ -746,98 +746,60 @@ describe("BPoolFeeEscrow", async function () {
     );
   });
 
-  describe("Modifiers", async function () {
-    it("should check that trust address is child of trust factory", async function () {
-      this.timeout(0);
+  it("should check that trust address is child of trust factory when buying tokens", async function () {
+    this.timeout(0);
 
-      const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners();
 
-      const { escrow, trustFactory, tier } = await deployGlobals();
+    const { escrow, trustFactory, tier } = await deployGlobals();
 
-      const { reserve, trust, recipient, signer1 } = await basicSetup(
-        signers,
-        trustFactory,
-        tier
-      );
+    const { reserve, trust, recipient, signer1 } = await basicSetup(
+      signers,
+      trustFactory,
+      tier
+    );
 
-      const buyTokensViaEscrow = async (signer, spend, fee) => {
-        // give signer some reserve
-        await reserve.transfer(signer.address, spend.add(fee));
+    const buyTokensViaEscrow = async (signer, spend, fee) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend.add(fee));
 
-        const reserveSigner = reserve.connect(signer);
+      const reserveSigner = reserve.connect(signer);
 
-        await reserveSigner.approve(escrow.address, spend.add(fee));
+      await reserveSigner.approve(escrow.address, spend.add(fee));
 
-        // onlyFactoryTrust modifier catches if trust address is not child of factory
-        await Util.assertError(
-          async () =>
-            await escrow.connect(signer).buyToken(
-              signers[19].address, // bad trust address
-              spend,
-              ethers.BigNumber.from("1"),
-              ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-              recipient.address,
-              fee
-            ),
-          "revert FACTORY_TRUST",
-          "buyToken proceeded despite trust address not being child of factory"
-        );
-
-        await escrow
-          .connect(signer)
-          .buyToken(
-            trust.address,
+      await Util.assertError(
+        async () =>
+          await escrow.connect(signer).buyToken(
+            signers[19].address, // bad trust address
             spend,
             ethers.BigNumber.from("1"),
             ethers.BigNumber.from("1000000" + Util.eighteenZeros),
             recipient.address,
             fee
-          );
-      };
+          ),
+        "revert FACTORY_TRUST",
+        "buyToken proceeded despite trust address not being child of factory"
+      );
 
-      const spend = ethers.BigNumber.from("250" + Util.sixZeros);
-      const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+      await escrow
+        .connect(signer)
+        .buyToken(
+          trust.address,
+          spend,
+          ethers.BigNumber.from("1"),
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+          recipient.address,
+          fee
+        );
+    };
 
-      // set min fee for the reserve that signer1 will be using
-      await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
+    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
+    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
-      // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
-      await buyTokensViaEscrow(signer1, spend, fee);
+    // set min fee for the reserve that signer1 will be using
+    await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
 
-      // const reserveBalanceEscrow1 = await reserve.balanceOf(escrow.address);
-
-      // assert(
-      //   reserveBalanceEscrow1.eq(fee),
-      //   `wrong escrow reserve balance
-      // expected  ${fee}
-      // got       ${reserveBalanceEscrow1}`
-      // );
-
-      // // no-op claim if raise is still ongoing
-      // await escrow
-      //   .connect(recipient)
-      //   .anonClaimFees(trust.address, recipient.address);
-
-      // const reserveBalanceRecipient1 = await reserve.balanceOf(
-      //   recipient.address
-      // );
-
-      // assert(
-      //   reserveBalanceRecipient1.isZero(),
-      //   `wrong recipient reserve balance
-      // expected  0 (no fee claimed)
-      // got       ${reserveBalanceRecipient1}`
-      // );
-
-      // // onlyFactoryTrust modifier catches if trust address is not child of factory
-      // await Util.assertError(
-      //   async () =>
-      //     await escrow
-      //       .connect(recipient)
-      //       .anonClaimFees(signers[19].address, recipient.address),
-      //   "revert FACTORY_TRUST",
-      //   "anonClaimFees proceeded despite trust address not being child of factory"
-      // );
-    });
+    // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
+    await buyTokensViaEscrow(signer1, spend, fee);
   });
 });
