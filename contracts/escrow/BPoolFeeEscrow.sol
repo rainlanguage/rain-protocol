@@ -75,10 +75,10 @@ struct ClaimedFees {
 /// A set of functions for recipients to manage their own incoming fees are
 /// provided on the escrow contract:
 /// - Set/unset min fees per-reserve
-/// - Block trusts and senders on a per-address basis
 /// - Abandon fees set aside for them on a per-trust basis
+///
 /// There are no admin roles for the escrow, every recipient must manage their
-/// reserves, trust and claims themselves.
+/// incoming reserves, trusts and claims themselves.
 contract BPoolFeeEscrow {
     using SafeMath for uint256;
     using Math for uint256;
@@ -94,12 +94,6 @@ contract BPoolFeeEscrow {
         // [oldMinFees, newMinFees]
         uint256[2] minFeesDiff
     );
-    /// The recipient has blocked a sender or a trust.
-    /// ONLY emitted if the blockee was NOT already blocked.
-    event Block(address indexed recipient, address indexed blockee);
-    /// The recipient has unblocked a sender or a trust.
-    /// ONLY emitted if the blockee was already blocked.
-    event Unblock(address indexed recipient, address indexed blockee);
     /// The recipient has abandoned a trust.
     /// ONLY emitted if non-zero fees were abandoned.
     event AbandonTrust(
@@ -149,9 +143,6 @@ contract BPoolFeeEscrow {
     mapping(address => uint256) public failureRefunds;
     /// trust => amount
     mapping(address => uint256) public abandoned;
-
-    /// blocker => blockee => bool
-    mapping(address => mapping(address => bool)) public blocked;
 
     /// @param trustFactory_ `TrustFactory` that every `Trust` MUST be a child
     /// of. The security model of the escrow REQUIRES that the `TrustFactory`
@@ -214,33 +205,6 @@ contract BPoolFeeEscrow {
         return oldMinFees_;
     }
 
-    /// Recipient can block any address, either a trust or fee sender, and the
-    /// escrow will not accept fees originating from either.
-    /// Blocking an already blocked account is a noop.
-    /// @param blockee_ The address to block sending funds to the recipient.
-    /// @return Whether the account was previously blocked.
-    function recipientBlockAccount(address blockee_) external returns (bool) {
-        bool wasBlocked_ = blocked[msg.sender][blockee_];
-        if (!wasBlocked_) {
-            blocked[msg.sender][blockee_] = true;
-            emit Block(msg.sender, blockee_);
-        }
-        return wasBlocked_;
-    }
-
-    /// Recipient can unblock an account. Inverse of `recipientblockAccount`.
-    /// @param blockee_ The address to no longer block.
-    function recipientUnblockAccount(address blockee_)
-        external
-        returns (bool) {
-        bool wasBlocked_ = blocked[msg.sender][blockee_];
-        if (wasBlocked_) {
-            delete blocked[msg.sender][blockee_];
-            emit Unblock(msg.sender, blockee_);
-        }
-        return wasBlocked_;
-    }
-
     /// Recipient can abandon fees from troublesome trusts with no function
     /// calls to external contracts.
     ///
@@ -249,9 +213,12 @@ contract BPoolFeeEscrow {
     /// - Gas griefing due to low min-fees
     /// - Regulatory/reputational concerns
     ///
-    /// The trust is NOT automatically blocked when the current fees are
-    /// abandoned. The sender MAY pay the gas to call `recipientBlockAccount`
-    /// on the trust explicitly before calling `recipientAbandonTrust`.
+    /// It is important that this function does not call external contracts.
+    /// Recipient MUST be able to safely walk away from malicious contracts.
+    /// In the case of a malicious reserve the recipient SHOULD also unset the
+    /// min fees for that reserve to prevent future malicious fees. In the case
+    /// of a malicious trust the recipient should walk away from this escrow
+    /// contract entirely as that implies a malicious `TrustFactory`.
     ///
     /// Abandoned fees become payable to the redeemable token.
     /// Abandoning `0` fees is a noop.
@@ -342,8 +309,8 @@ contract BPoolFeeEscrow {
 
             // Greater than zero rather than the current min fee as a recipient
             // may have recently changed their min fee to a number greater than
-            // is waiting for them to claim. Recipient is free to abandon and
-            // even block a trust to completely opt out of a claim.
+            // is waiting for them to claim. Recipient is free to abandon a
+            // trust to completely opt out of a claim.
             claimableFee_ = fees[address(trust_)][feeRecipient_];
             if (claimableFee_ > 0) {
                 delete fees[address(trust_)][feeRecipient_];
@@ -442,7 +409,6 @@ contract BPoolFeeEscrow {
     ///
     /// This function does a lot of heavy lifting:
     /// - Ensure the `Trust` is a child of the factory this escrow is bound to
-    /// - Ensure the fee recipient has not blocked the sender or the trust
     /// - Internal accounting to track fees for the fee recipient
     /// - Ensure the fee meets the minimum requirements of the receiver
     /// - Taking enough reserve tokens to cover the trade and the fee
@@ -480,17 +446,6 @@ contract BPoolFeeEscrow {
         /// - lying about reserve and redeemable tokens
         /// - with some kind of reentrancy or hard to reason about state change
         require(trustFactory.isChild(address(trust_)), "FACTORY_TRUST");
-
-        // The fee recipient MUST NOT have blocked the sender.
-        require(
-            !blocked[feeRecipient_][msg.sender],
-            "BLOCKED_SENDER"
-        );
-        // The fee recipient MUST NOT have blocked the trust.
-        require(
-            !blocked[feeRecipient_][address(trust_)],
-            "BLOCKED_TRUST"
-        );
 
         fees[address(trust_)][feeRecipient_] = fees[address(trust_)][
             feeRecipient_
