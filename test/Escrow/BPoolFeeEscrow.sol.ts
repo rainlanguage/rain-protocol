@@ -65,7 +65,7 @@ describe("BPoolFeeEscrow", async function () {
 
     await escrow
       .connect(recipient)
-      .anonClaimFees(trust.address, recipient.address);
+      .anonClaimFees(recipient.address, trust.address);
 
     // should not claim anything after attempting to 'unabandon' trust
     assert((await reserve.balanceOf(recipient.address)).isZero());
@@ -101,12 +101,12 @@ describe("BPoolFeeEscrow", async function () {
       await escrow
         .connect(signer)
         .buyToken(
+          recipient.address,
           trust.address,
+          fee,
           spend,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-          recipient.address,
-          fee
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
     };
 
@@ -151,12 +151,12 @@ describe("BPoolFeeEscrow", async function () {
       await escrow
         .connect(signer)
         .buyToken(
+          recipient.address,
           trust.address,
+          fee,
           spend,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-          recipient.address,
-          fee
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
     };
 
@@ -197,12 +197,12 @@ describe("BPoolFeeEscrow", async function () {
       await escrow
         .connect(signer)
         .buyToken(
+          recipient.address,
           trust.address,
+          fee,
           spend,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-          recipient.address,
-          fee
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
     };
 
@@ -242,12 +242,12 @@ describe("BPoolFeeEscrow", async function () {
       await escrow
         .connect(signer)
         .buyToken(
+          recipient.address,
           trust.address,
+          fee,
           spend,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-          recipient.address,
-          fee
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
     };
 
@@ -356,7 +356,7 @@ describe("BPoolFeeEscrow", async function () {
 
     await escrow
       .connect(recipient)
-      .anonClaimFees(trust.address, recipient.address);
+      .anonClaimFees(recipient.address, trust.address);
 
     assert((await reserve.balanceOf(recipient.address)).isZero());
   });
@@ -438,12 +438,12 @@ describe("BPoolFeeEscrow", async function () {
       await escrow
         .connect(signer)
         .buyToken(
+          recipient.address,
           trust.address,
+          fee,
           spend,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-          recipient.address,
-          fee
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
     };
 
@@ -480,7 +480,7 @@ describe("BPoolFeeEscrow", async function () {
     // attempting claim fees is no-op.
     await escrow
       .connect(recipient)
-      .anonClaimFees(trust.address, recipient.address);
+      .anonClaimFees(recipient.address, trust.address);
 
     const reserveRedeemableERC20_1 = await reserve.balanceOf(
       redeemableERC20.address
@@ -552,12 +552,12 @@ describe("BPoolFeeEscrow", async function () {
       await escrow
         .connect(signer)
         .buyToken(
+          recipient.address,
           trust.address,
+          fee,
           spend,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-          recipient.address,
-          fee
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
     };
 
@@ -590,7 +590,7 @@ describe("BPoolFeeEscrow", async function () {
     // cannot claim before successful raise is closed
     await escrow
       .connect(recipient)
-      .anonClaimFees(trust.address, recipient.address);
+      .anonClaimFees(recipient.address, trust.address);
 
     const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
 
@@ -622,7 +622,7 @@ describe("BPoolFeeEscrow", async function () {
 
     await escrow
       .connect(recipient)
-      .anonClaimFees(trust.address, recipient.address);
+      .anonClaimFees(recipient.address, trust.address);
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
 
@@ -667,12 +667,12 @@ describe("BPoolFeeEscrow", async function () {
       await escrow
         .connect(signer)
         .buyToken(
+          recipient.address,
           trust.address,
+          fee,
           spend,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-          recipient.address,
-          fee
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
     };
 
@@ -697,7 +697,7 @@ describe("BPoolFeeEscrow", async function () {
     // no-op claim if raise is still ongoing
     await escrow
       .connect(recipient)
-      .anonClaimFees(trust.address, recipient.address);
+      .anonClaimFees(recipient.address, trust.address);
 
     const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
 
@@ -735,12 +735,12 @@ describe("BPoolFeeEscrow", async function () {
         await Util.assertError(
           async () =>
             await escrow.connect(signer).buyToken(
+              recipient.address,
               signers[19].address, // bad trust address
+              fee,
               spend,
               ethers.BigNumber.from("1"),
-              ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-              recipient.address,
-              fee
+              ethers.BigNumber.from("1000000" + Util.eighteenZeros)
             ),
           "revert FACTORY_TRUST",
           "buyToken proceeded despite trust address not being child of factory"
@@ -749,12 +749,12 @@ describe("BPoolFeeEscrow", async function () {
         await escrow
           .connect(signer)
           .buyToken(
+            recipient.address,
             trust.address,
+            fee,
             spend,
             ethers.BigNumber.from("1"),
-            ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-            recipient.address,
-            fee
+            ethers.BigNumber.from("1000000" + Util.eighteenZeros)
           );
       };
 
@@ -766,41 +766,6 @@ describe("BPoolFeeEscrow", async function () {
 
       // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
       await buyTokensViaEscrow(signer1, spend, fee);
-
-      // const reserveBalanceEscrow1 = await reserve.balanceOf(escrow.address);
-
-      // assert(
-      //   reserveBalanceEscrow1.eq(fee),
-      //   `wrong escrow reserve balance
-      // expected  ${fee}
-      // got       ${reserveBalanceEscrow1}`
-      // );
-
-      // // no-op claim if raise is still ongoing
-      // await escrow
-      //   .connect(recipient)
-      //   .anonClaimFees(trust.address, recipient.address);
-
-      // const reserveBalanceRecipient1 = await reserve.balanceOf(
-      //   recipient.address
-      // );
-
-      // assert(
-      //   reserveBalanceRecipient1.isZero(),
-      //   `wrong recipient reserve balance
-      // expected  0 (no fee claimed)
-      // got       ${reserveBalanceRecipient1}`
-      // );
-
-      // // onlyFactoryTrust modifier catches if trust address is not child of factory
-      // await Util.assertError(
-      //   async () =>
-      //     await escrow
-      //       .connect(recipient)
-      //       .anonClaimFees(signers[19].address, recipient.address),
-      //   "revert FACTORY_TRUST",
-      //   "anonClaimFees proceeded despite trust address not being child of factory"
-      // );
     });
   });
 });

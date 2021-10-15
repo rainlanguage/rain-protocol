@@ -194,12 +194,12 @@ export const successfulRaise = async (
     await escrow
       .connect(signer)
       .buyToken(
+        recipient.address,
         trust.address,
+        fee,
         spend,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-        recipient.address,
-        fee
+        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
       );
   };
 
@@ -279,12 +279,12 @@ export const failedRaise = async (
     await escrow
       .connect(signer)
       .buyToken(
+        recipient.address,
         trust.address,
+        fee,
         spend,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-        recipient.address,
-        fee
+        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
       );
   };
 

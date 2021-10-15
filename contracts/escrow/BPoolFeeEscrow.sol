@@ -14,11 +14,118 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
 
+struct ClaimedFees {
+    address trust;
+    uint256 claimedFees;
+}
+
+/// Escrow contract for fees IN ADDITION TO BPool fees.
+/// The goal is to set aside some revenue for curators, infrastructure, and
+/// anyone else who can convince an end-user to part with some extra tokens and
+/// gas for escrow internal accounting on top of the basic balancer swap. This
+/// is Rain's "pay it forward" revenue model, rather than trying to capture and
+/// pull funds back to the protocol somehow. The goal is to incentivise many
+/// ecosystems that are nourished by Rain but are not themselves Rain.
+///
+/// Technically this might look like a website/front-end prefilling an address
+/// the maintainers own and some nominal fee like 1% of each trade. The fee is
+/// in absolute numbers on this contract but a GUI is free to calculate this
+/// value in any way it deems appropriate. The assumption is that end-users of
+/// a GUI will not manually alter the fee, because if they would do that it
+/// makes more sense that they would simply call the balancer swap function
+/// directly and avoid even paying the gas required by the escrow contract.
+///
+/// Balancer pool fees natively set aside prorata for LPs ONLY. Our `Trust`
+/// requires that 100% of the LP tokens and token supply are held by the
+/// managing pool contract that the `Trust` deploys. Naively we could set a
+/// fee on the balancer pool and have the contract that owns the LP tokens
+/// attempt to divvy the volume fees out to FEs from some registry. The issue
+/// is that the Balancer contracts are all outside our control so we have no
+/// way to prevent a malicious end-user or FE lying about how they interact
+/// with the Balancer pool. The only way to ensure that every trade accurately
+/// sets aside fees is to put a contract in between the buyer and the pool
+/// that can execute the trade sans fees on the buyers's behalf.
+///
+/// Some important things to note about fee handling:
+/// - Fees are NOT forwarded if the raise fails according to the trust. Instead
+///   they are forwarded to the redeemable token so buyers can redeem a refund.
+/// - Fees are ONLY collected when tokens are purchased, thus contributing to
+///   the success of a raise. When tokens are sold there are no additional fees
+///   set aside by this escrow.
+/// - Recipients MUST OPT IN to every reserve type they want to accept by first
+///   setting a min fee. The escrow will not set aside garbage shitcoins for
+///   recipients unless they explicitly ask for it.
+/// - ANYONE can process a claim for a recipient and/or a refund for a trust.
+///   Recipients SHOULD ONLY accept reserve currencies that they'd be willing
+///   have processed unconditionally at any time by anyone.
+/// - The security of the escrow is only as good as the implementation of the
+///   `TrustFactory` it is deployed for. A malicious trust can "double spend"
+///   funds from the escrow by lying about its pass/fail status to BOTH process
+///   a "refund" to the "token" that can be any address it wants AND to forward
+///   fees to the nominated recipient. An attacker could roll out many bad
+///   trusts to drain the escrow. For this reason non-zero fees will only ever
+///   be set aside by `buyToken` for trusts that are a child of the known trust
+///   factory, and zero-fee claims are always noops, so malicious trusts can
+///   only ever "double spend" 0 tokens.
+///
+/// We cannot prevent FEs implementing their own smart contracts to take fees
+/// outside the scope of the escrow, but we aren't encouraging or implementing
+/// it for them either.
+///
+/// A set of functions for recipients to manage their own incoming fees are
+/// provided on the escrow contract:
+/// - Set/unset min fees per-reserve
+/// - Block trusts and senders on a per-address basis
+/// - Abandon fees set aside for them on a per-trust basis
+/// There are no admin roles for the escrow, every recipient must manage their
+/// reserves, trust and claims themselves.
 contract BPoolFeeEscrow {
     using SafeMath for uint256;
     using Math for uint256;
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    /// The recipieint has set minimum fees for the given reserve.
+    /// A minFees value of `0` means the minimum fee was unset.
+    /// ONLY emitted if the min fees changed value.
+    event MinFeesChange(
+        address indexed recipient,
+        address indexed reserve,
+        // [oldMinFees, newMinFees]
+        uint256[2] minFeesDiff
+    );
+    /// The recipient has blocked a sender or a trust.
+    /// ONLY emitted if the blockee was NOT already blocked.
+    event Block(address indexed recipient, address indexed blockee);
+    /// The recipient has unblocked a sender or a trust.
+    /// ONLY emitted if the blockee was already blocked.
+    event Unblock(address indexed recipient, address indexed blockee);
+    /// The recipient has abandoned a trust.
+    /// ONLY emitted if non-zero fees were abandoned.
+    event AbandonTrust(
+        address indexed recipient,
+        address indexed trust,
+        uint256 abandonedFees
+    );
+    /// A claim has been processed for a recipient.
+    /// ONLY emitted if the trust has success/fail distribution status.
+    event ClaimFees(
+        address indexed recipient,
+        address indexed trust,
+        uint256 claimedFees
+    );
+    /// A refund has been processed for a trust.
+    /// ONLY emitted if non-zero fees were refunded.
+    event RefundFees(
+        address indexed trust,
+        uint256 refundedFees
+    );
+    /// A fee has been set aside for a recipient.
+    event Fee(
+        address indexed recipient,
+        address indexed trust,
+        uint256 fee
+    );
 
     /// This TrustFactory is checked on every call to ensure that only trusts
     /// with the same bytecode can be used by this escrow.
@@ -46,11 +153,18 @@ contract BPoolFeeEscrow {
     /// blocker => blockee => bool
     mapping(address => mapping(address => bool)) public blocked;
 
+    /// @param trustFactory_ `TrustFactory` that every `Trust` MUST be a child
+    /// of. The security model of the escrow REQUIRES that the `TrustFactory`
+    /// implements `IFactory` correctly and that the `Trust` contracts that it
+    /// deploys are not buggy or malicious re: tracking distribution status.
     constructor(TrustFactory trustFactory_) public {
         trustFactory = trustFactory_;
     }
 
     /// Public accessor by index for pending.
+    /// Allows access into the private struct.
+    /// @param feeRecipient_ The recipient claims are pending for.
+    /// @param index_ The index of the pending claim.
     function getPending(address feeRecipient_, uint256 index_)
         external
         view
@@ -63,31 +177,68 @@ contract BPoolFeeEscrow {
     /// This setting applies to all trusts and fee senders using this reserve.
     /// This has the effect of signalling the recipient accepts this reserve.
     /// Reserves that have no min fee cannot be forwarded to this recipient.
+    /// Setting the fees to what they already are is a noop.
     /// @param reserve_ The token to a set minimium fees for.
-    /// @param minFees_ The amount of reserve token to require a fee to be.
-    function recipientSetMinFees(address reserve_, uint256 minFees_) external {
-        require(minFees_ > 0, "MIN_FEES");
-        minFees[msg.sender][reserve_] = minFees_;
+    /// @param newMinFees_ The amount of reserve token to require a fee to be.
+    /// @return The old min fees.
+    function recipientSetMinFees(address reserve_, uint256 newMinFees_)
+        external
+        returns (uint256)
+    {
+        require(newMinFees_ > 0, "MIN_FEES");
+        uint256 oldMinFees_ = minFees[msg.sender][reserve_];
+        if (oldMinFees_ != newMinFees_) {
+            minFees[msg.sender][reserve_] = newMinFees_;
+            emit MinFeesChange(
+                msg.sender,
+                reserve_,
+                [oldMinFees_, newMinFees_]
+            );
+        }
+        return oldMinFees_;
     }
 
     /// Receipient can unset the fees for a reserve, thus opting out of further
-    /// payments in that token.
+    /// payments in that token. Unsetting fees that are already 0 is a noop.
     /// @param reserve_ The reserve to stop accepting.
-    function recipientUnsetMinFees(address reserve_) external {
-        delete minFees[msg.sender][reserve_];
+    /// @return The fees before they were unset.
+    function recipientUnsetMinFees(address reserve_)
+        external
+        returns (uint256)
+    {
+        uint256 oldMinFees_ = minFees[msg.sender][reserve_];
+        if (oldMinFees_ > 0) {
+            delete minFees[msg.sender][reserve_];
+            emit MinFeesChange(msg.sender, reserve_, [oldMinFees_, 0]);
+        }
+        return oldMinFees_;
     }
 
     /// Recipient can block any address, either a trust or fee sender, and the
     /// escrow will not accept fees originating from either.
+    /// Blocking an already blocked account is a noop.
     /// @param blockee_ The address to block sending funds to the recipient.
-    function recipientBlockAccount(address blockee_) external {
-        blocked[msg.sender][blockee_] = true;
+    /// @return Whether the account was previously blocked.
+    function recipientBlockAccount(address blockee_) external returns (bool) {
+        bool wasBlocked_ = blocked[msg.sender][blockee_];
+        if (!wasBlocked_) {
+            blocked[msg.sender][blockee_] = true;
+            emit Block(msg.sender, blockee_);
+        }
+        return wasBlocked_;
     }
 
     /// Recipient can unblock an account. Inverse of `recipientblockAccount`.
     /// @param blockee_ The address to no longer block.
-    function recipientUnblockAccount(address blockee_) external {
-        delete blocked[msg.sender][blockee_];
+    function recipientUnblockAccount(address blockee_)
+        external
+        returns (bool) {
+        bool wasBlocked_ = blocked[msg.sender][blockee_];
+        if (wasBlocked_) {
+            delete blocked[msg.sender][blockee_];
+            emit Unblock(msg.sender, blockee_);
+        }
+        return wasBlocked_;
     }
 
     /// Recipient can abandon fees from troublesome trusts with no function
@@ -103,19 +254,25 @@ contract BPoolFeeEscrow {
     /// on the trust explicitly before calling `recipientAbandonTrust`.
     ///
     /// Abandoned fees become payable to the redeemable token.
+    /// Abandoning `0` fees is a noop.
     /// @param trust_ The trust to abandon.
-    function recipientAbandonTrust(Trust trust_) external {
-        uint256 abandonedFee_ = fees[address(trust_)][msg.sender];
-        delete fees[address(trust_)][msg.sender];
-        abandoned[address(trust_)] = abandoned[address(trust_)].add(
-            abandonedFee_
-        );
-        failureRefunds[address(trust_)] = failureRefunds[address(trust_)].sub(
-            abandonedFee_
-        );
-        // Ignore this because it doesn't represent success/fail of remove.
-        bool didRemove_;
-        didRemove_ = pending[msg.sender].remove(address(trust_));
+    /// @return The amount of fees abandoned.
+    function recipientAbandonTrust(Trust trust_) external returns (uint256) {
+        uint256 oldFees_ = fees[address(trust_)][msg.sender];
+        if (oldFees_ > 0) {
+            uint256 abandonedFee_ = fees[address(trust_)][msg.sender];
+            delete fees[address(trust_)][msg.sender];
+            abandoned[address(trust_)] = abandoned[address(trust_)].add(
+                abandonedFee_
+            );
+            failureRefunds[address(trust_)] = failureRefunds[address(trust_)]
+                .sub(abandonedFee_);
+            // Ignore this because it doesn't represent success/fail of remove.
+            bool didRemove_;
+            didRemove_ = pending[msg.sender].remove(address(trust_));
+            emit AbandonTrust(msg.sender, address(trust_), oldFees_);
+        }
+        return oldFees_;
     }
 
     /// Batch wrapper that loops over `anonClaimFees` up to an iteration limit.
@@ -123,20 +280,26 @@ contract BPoolFeeEscrow {
     /// many pending fees.
     /// @param feeRecipient_ Recipient to claim fees for.
     /// @param limit_ Maximum number of claims to process in this batch.
+    /// @return All the claimed fees from the inner loop.
     function anonClaimFeesMulti(address feeRecipient_, uint256 limit_)
         external
+        returns (ClaimedFees[] memory)
     {
         limit_ = limit_.min(pending[feeRecipient_].length());
+        ClaimedFees[] memory claimedFees_ = new ClaimedFees[](limit_);
         uint256 i_ = 0;
+        address trust_ = address(0);
         while (i_ < limit_) {
-            anonClaimFees(
+            trust_ = pending[feeRecipient_].at(0);
+            claimedFees_[i_] = ClaimedFees(trust_, anonClaimFees(
                 // Keep hitting 0 because `pending` is mutated by `claimFees`
                 // each iteration removing the processed claim.
-                Trust(pending[feeRecipient_].at(0)),
-                feeRecipient_
-            );
+                feeRecipient_,
+                Trust(trust_)
+            ));
             i_++;
         }
+        return claimedFees_;
     }
 
     /// Anyone can pay the gas to send all claimable fees to any recipient.
@@ -152,11 +315,16 @@ contract BPoolFeeEscrow {
     /// fees to the recipient.
     /// Processing a claim in the success/fail state removes it from the
     /// pending state.
+    /// @param feeRecipient_ The recipient of the fees.
     /// @param trust_ The trust to process claims for.
-    ///
-    function anonClaimFees(Trust trust_, address feeRecipient_) public {
+    /// @return The fees claimed.
+    function anonClaimFees(address feeRecipient_, Trust trust_)
+        public
+        returns (uint256)
+    {
         DistributionStatus distributionStatus_
             = Trust(trust_).getDistributionStatus();
+        uint256 claimableFee_ = 0;
 
         // If the distribution status has not reached a clear success/fail then
         // don't touch any escrow contract state. No-op.
@@ -176,8 +344,8 @@ contract BPoolFeeEscrow {
             // may have recently changed their min fee to a number greater than
             // is waiting for them to claim. Recipient is free to abandon and
             // even block a trust to completely opt out of a claim.
-            if (fees[address(trust_)][feeRecipient_] > 0) {
-                uint256 claimableFee_ = fees[address(trust_)][feeRecipient_];
+            claimableFee_ = fees[address(trust_)][feeRecipient_];
+            if (claimableFee_ > 0) {
                 delete fees[address(trust_)][feeRecipient_];
                 if (distributionStatus_ == DistributionStatus.Success) {
                     TrustContracts memory trustContracts_ = trust_
@@ -187,8 +355,17 @@ contract BPoolFeeEscrow {
                         claimableFee_
                     );
                 }
+                else {
+                    // If the distribution status is a fail then in real the
+                    // claimable fee is 0. We've just deleted the recorded fee
+                    // to earn the gas refund and NOT transferred anything at
+                    // this point.
+                    claimableFee_ = 0;
+                }
             }
+            emit ClaimFees(feeRecipient_, address(trust_), claimableFee_);
         }
+        return claimableFee_;
     }
 
     /// Anyone can pay the gas to refund fees for a `Trust`.
@@ -208,34 +385,41 @@ contract BPoolFeeEscrow {
     /// claiming a fail, then ALSO claiming fees for a success.
     ///
     /// @param trust_ The `Trust` to refund for.
-    function anonRefundFees(Trust trust_) external {
+    /// @return The total refund.
+    function anonRefundFees(Trust trust_) external returns (uint256) {
         DistributionStatus distributionStatus_
             = trust_.getDistributionStatus();
 
-        uint256 refund_ = abandoned[address(trust_)];
+        uint256 totalRefund_ = 0;
+        uint256 abandoned_ = abandoned[address(trust_)];
+        uint256 failureRefund_ = failureRefunds[address(trust_)];
 
-        if (refund_ > 0) {
+        if (abandoned_ > 0) {
             delete abandoned[address(trust_)];
+            totalRefund_ = totalRefund_.add(abandoned_);
         }
 
         if (
-            failureRefunds[address(trust_)] > 0 &&
+            failureRefund_ > 0 &&
             (distributionStatus_ == DistributionStatus.Fail ||
                 distributionStatus_ == DistributionStatus.Success)
         ) {
             if (distributionStatus_ == DistributionStatus.Fail) {
-                refund_ = refund_.add(failureRefunds[address(trust_)]);
+                totalRefund_ = totalRefund_.add(failureRefund_);
             }
+            // Clear out the failure refund even if the raise was a success.
             delete failureRefunds[address(trust_)];
         }
 
-        if (refund_ > 0) {
+        if (totalRefund_ > 0) {
             TrustContracts memory trustContracts_ = trust_.getContracts();
             IERC20(trustContracts_.reserveERC20).safeTransfer(
                 trustContracts_.redeemableERC20,
-                refund_
+                totalRefund_
             );
+            emit RefundFees(address(trust_), totalRefund_);
         }
+        return totalRefund_;
     }
 
     /// Unidirectional wrapper around `swapExactAmountIn` for "buying tokens".
@@ -279,12 +463,12 @@ contract BPoolFeeEscrow {
     /// @param feeRecipient_ The recipient of the fee as `Trust` reserve.
     /// @param fee_ The amount of the fee.
     function buyToken(
+        address feeRecipient_,
         Trust trust_,
+        uint256 fee_,
         uint256 reserveAmountIn_,
         uint256 minTokenAmountOut_,
-        uint256 maxPrice_,
-        address feeRecipient_,
-        uint256 fee_
+        uint256 maxPrice_
     )
         external
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
@@ -373,6 +557,8 @@ contract BPoolFeeEscrow {
             msg.sender,
             tokenAmountOut_
         );
+
+        emit Fee(feeRecipient_, address(trust_), fee_);
 
         return ((tokenAmountOut_, spotPriceAfter_));
     }
