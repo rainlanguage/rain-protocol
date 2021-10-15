@@ -34,6 +34,43 @@ enum DistributionStatus {
 }
 
 describe("BPoolFeeEscrow", async function () {
+  it("should return pending claims via getter by index", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+
+    const { recipient, trust } = await successfulRaise(
+      signers,
+      escrow,
+      trustFactory,
+      tier
+    );
+
+    const pendingTrust = await escrow.getPending(recipient.address, 0);
+
+    assert(
+      pendingTrust.toLowerCase() === trust.address.toLowerCase(),
+      `did not return correct pending trust address for recipient
+      expected  ${trust.address.toLowerCase()}
+      got       ${pendingTrust.toLowerCase()}`
+    );
+
+    await escrow
+      .connect(recipient)
+      .anonClaimFees(trust.address, recipient.address);
+
+    let pendingTrustOutOfBounds: string;
+    await Util.assertError(
+      async () => {
+        pendingTrustOutOfBounds = await escrow.getPending(recipient.address, 0);
+      },
+      "revert EnumerableSet: index out of bounds",
+      `did not error, should be out of bounds, got value ${pendingTrustOutOfBounds}`
+    );
+  });
+
   it("should not allow using recipientUnblockAccount to unabandon abandoned trust", async function () {
     this.timeout(0);
 
