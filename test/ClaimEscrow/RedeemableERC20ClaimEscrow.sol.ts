@@ -94,11 +94,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // creator deposits claimable tokens
     await claim.deposit(trust.address, claimableToken.address, depositAmount);
 
-    const claimableTokensInEscrowDeposit0 = await claim.totalDeposits(
-      trust.address,
-      claimableToken.address
-    );
-
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
     const emptyBlocks =
       startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
@@ -115,14 +110,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     // calculate real RedeemableERC20 proportions
-
     const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
 
-    const signer2Prop = (await redeemableERC20.balanceOf(signer2.address))
-      .mul(Util.ONE)
-      .div(await redeemableERC20.totalSupply());
+    const claimableTokensInEscrowDeposit0 = await claim.totalDeposits(
+      trust.address,
+      claimableToken.address
+    );
 
     // signer1 should withdraw roughly 25% of claimable tokens in escrow
     await claim
@@ -140,7 +135,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     assert(
       expectedSigner1Withdrawal0.eq(actualSigner1Withdrawal0),
-      `wrong amount of claimable tokens withdrawn (0)
+      `wrong amount of claimable tokens withdrawn (first withdrawal)
       signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
@@ -162,7 +157,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
     assert(
       signer1TokensBefore2ndWithdraw.eq(signer1TokensAfter2ndWithdraw),
-      `signer1 wrongly withdrew more tokens on successive withdraw before more tokens were deposited
+      `signer1 wrongly withdrew more tokens on successive withdraw before more tokens were deposited (second withdrawal)
       before      ${signer1TokensBefore2ndWithdraw}
       after       ${signer1TokensAfter2ndWithdraw}
       `
@@ -193,7 +188,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     assert(
       expectedSigner1Withdrawal1.eq(actualSigner1Withdrawal1),
-      `wrong amount of claimable tokens withdrawn (1)
+      `wrong amount of claimable tokens withdrawn (third withdrawal)
       signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
