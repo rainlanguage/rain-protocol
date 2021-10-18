@@ -34,6 +34,107 @@ enum DistributionStatus {
 }
 
 describe("BPoolFeeEscrow", async function () {
+  it("should not change contract state if unknown trust is claimed against", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { escrow, trustFactory, tier } = await deployGlobals();
+    const { trustFactory: trustFactory2 } = await deployGlobals();
+
+    const { reserve, recipient, trust } = await basicSetup(
+      signers,
+      trustFactory,
+      tier
+    );
+    const { trust: unknownTrust } = await basicSetup(
+      signers,
+      trustFactory2,
+      tier
+    );
+
+    const minFees0 = await escrow.minFees(recipient.address, reserve.address);
+    const fees0 = await escrow.fees(trust.address, recipient.address);
+    const feesUnknown0 = await escrow.fees(
+      unknownTrust.address,
+      recipient.address
+    );
+    const failureRefunds0 = await escrow.failureRefunds(trust.address);
+    const failureRefundsUnknown0 = await escrow.failureRefunds(
+      unknownTrust.address
+    );
+    const abandoned0 = await escrow.abandoned(trust.address);
+    const abandonedUnknown0 = await escrow.abandoned(unknownTrust.address);
+
+    let pendingTrustOutOfBounds0: string;
+    await Util.assertError(
+      async () => {
+        pendingTrustOutOfBounds0 = await escrow.getPending(
+          recipient.address,
+          0
+        );
+      },
+      "revert EnumerableSet: index out of bounds",
+      `did not error, should be out of bounds, got value ${pendingTrustOutOfBounds0}`
+    );
+
+    await escrow.connect(recipient).anonClaimFees(
+      recipient.address,
+      unknownTrust.address // unknown trust created by different trust factory
+    );
+
+    const minFees1 = await escrow.minFees(recipient.address, reserve.address);
+    const fees1 = await escrow.fees(trust.address, recipient.address);
+    const feesUnknown1 = await escrow.fees(
+      unknownTrust.address,
+      recipient.address
+    );
+    const failureRefunds1 = await escrow.failureRefunds(trust.address);
+    const failureRefundsUnknown1 = await escrow.failureRefunds(
+      unknownTrust.address
+    );
+    const abandoned1 = await escrow.abandoned(trust.address);
+    const abandonedUnknown1 = await escrow.abandoned(unknownTrust.address);
+
+    let pendingTrustOutOfBounds1: string;
+    await Util.assertError(
+      async () => {
+        pendingTrustOutOfBounds1 = await escrow.getPending(
+          recipient.address,
+          0
+        );
+      },
+      "revert EnumerableSet: index out of bounds",
+      `did not error, should be out of bounds, got value ${pendingTrustOutOfBounds1}`
+    );
+
+    const beforeState = [
+      minFees0,
+      fees0,
+      feesUnknown0,
+      failureRefunds0,
+      failureRefundsUnknown0,
+      abandoned0,
+      abandonedUnknown0,
+    ];
+    const afterState = [
+      minFees1,
+      fees1,
+      feesUnknown1,
+      failureRefunds1,
+      failureRefundsUnknown1,
+      abandoned1,
+      abandonedUnknown1,
+    ];
+
+    for (let i = 0; i < beforeState.length; i++) {
+      const before = beforeState[i];
+      const after = afterState[i];
+
+      assert(before.eq(after), `${before} did not match ${after}, index ${i}`);
+    }
+  });
+
   it("should return pending claims via getter by index", async function () {
     this.timeout(0);
 
@@ -596,7 +697,7 @@ describe("BPoolFeeEscrow", async function () {
             fee,
             spend,
             ethers.BigNumber.from("1"),
-            ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+            ethers.BigNumber.from("1000000" + Util.eighteenZeros)
           ),
         "revert FACTORY_TRUST",
         "buyToken proceeded despite trust address not being child of factory"
@@ -610,14 +711,14 @@ describe("BPoolFeeEscrow", async function () {
           fee,
           spend,
           ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros),
+          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
     };
 
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
-  // set min fee for the reserve that signer1 will be using
+    // set min fee for the reserve that signer1 will be using
     await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
 
     // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
