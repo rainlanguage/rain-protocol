@@ -8,6 +8,7 @@ import {
   failedRaise,
   successfulRaise,
 } from "./BPoolFeeEscrowUtil";
+import { getAddress } from "ethers/lib/utils";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -188,9 +189,17 @@ describe("BPoolFeeEscrow", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    await escrow
+    const setMinFeesPromise = escrow
       .connect(recipient)
       .recipientSetMinFees(reserve.address, fee.mul(2));
+
+    // MinFeesChange event (set)
+    await expect(setMinFeesPromise)
+      .to.emit(escrow, "MinFeesChange")
+      .withArgs(recipient.address, getAddress(reserve.address), [
+        0,
+        fee.mul(2),
+      ]);
 
     const buyTokensViaEscrow = async (signer, spend, fee) => {
       // give signer some reserve
@@ -216,8 +225,21 @@ describe("BPoolFeeEscrow", async function () {
       "wrongly bought token with insufficient fee amount"
     );
 
+    const oldMinFees = await escrow.minFees(recipient.address, reserve.address);
+
     // unset min fee to block all token sales using this reserve
-    await escrow.connect(recipient).recipientUnsetMinFees(reserve.address);
+    const unsetMinFeesPromise = escrow
+      .connect(recipient)
+      .recipientUnsetMinFees(reserve.address);
+
+    // MinFeesChange event (unset)
+    await expect(unsetMinFeesPromise)
+      .to.emit(escrow, "MinFeesChange")
+      .withArgs(recipient.address, getAddress(reserve.address), [
+        oldMinFees,
+        0,
+      ]);
+
     await Util.assertError(
       async () => await buyTokensViaEscrow(signer1, spend, fee),
       "revert UNSET_FEE",
@@ -305,7 +327,16 @@ describe("BPoolFeeEscrow", async function () {
     assert((await escrow.fees(trust.address, recipient.address)).eq(totalFee));
     assert((await escrow.abandoned(trust.address)).isZero());
 
-    await escrow.connect(recipient).recipientAbandonTrust(trust.address);
+    const oldFees = await escrow.fees(trust.address, recipient.address);
+
+    const abandonTrustPromise = escrow
+      .connect(recipient)
+      .recipientAbandonTrust(trust.address);
+
+    // AbandonTrust event
+    await expect(abandonTrustPromise)
+      .to.emit(escrow, "AbandonTrust")
+      .withArgs(recipient.address, getAddress(trust.address), oldFees);
 
     // recipient no longer has claimable fees for this trust
     assert((await escrow.fees(trust.address, recipient.address)).isZero());
@@ -445,8 +476,17 @@ describe("BPoolFeeEscrow", async function () {
       redeemableERC20.address
     );
 
+    const totalRefund = await escrow.failureRefunds(trust.address);
+
     // anyone can trigger refund.
-    await escrow.connect(signer1).anonRefundFees(trust.address);
+    const refundFeesPromise = escrow
+      .connect(signer1)
+      .anonRefundFees(trust.address);
+
+    // RefundFees event
+    await expect(refundFeesPromise)
+      .to.emit(escrow, "RefundFees")
+      .withArgs(getAddress(trust.address), totalRefund);
 
     const reserveRedeemableERC20_2 = await reserve.balanceOf(
       redeemableERC20.address
@@ -524,7 +564,14 @@ describe("BPoolFeeEscrow", async function () {
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
     // set min fee for the reserve that signer1 will be using
-    await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
+    const setMinFeesPromise = escrow
+      .connect(recipient)
+      .recipientSetMinFees(reserve.address, fee);
+
+    // MinFeesChange event (set)
+    await expect(setMinFeesPromise)
+      .to.emit(escrow, "MinFeesChange")
+      .withArgs(recipient.address, getAddress(reserve.address), [0, fee]);
 
     // raise all necessary funds
     let buyCount = 0;
@@ -579,9 +626,16 @@ describe("BPoolFeeEscrow", async function () {
     // Attempting refund is no-op.
     await escrow.connect(signer1).anonRefundFees(trust.address);
 
-    await escrow
+    const claimableFee = await escrow.fees(trust.address, recipient.address);
+
+    const claimFeesPromise = escrow
       .connect(recipient)
       .anonClaimFees(recipient.address, trust.address);
+
+    // ClaimFees event
+    await expect(claimFeesPromise)
+      .to.emit(escrow, "ClaimFees")
+      .withArgs(recipient.address, getAddress(trust.address), claimableFee);
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
 
@@ -623,7 +677,7 @@ describe("BPoolFeeEscrow", async function () {
 
       await reserveSigner.approve(escrow.address, spend.add(fee));
 
-      await escrow
+      const buyTokenPromise = escrow
         .connect(signer)
         .buyToken(
           recipient.address,
@@ -633,6 +687,11 @@ describe("BPoolFeeEscrow", async function () {
           ethers.BigNumber.from("1"),
           ethers.BigNumber.from("1000000" + Util.eighteenZeros)
         );
+
+      // Fee event
+      await expect(buyTokenPromise)
+        .to.emit(escrow, "Fee")
+        .withArgs(recipient.address, getAddress(trust.address), fee);
     };
 
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
