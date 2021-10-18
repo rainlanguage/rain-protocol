@@ -617,7 +617,7 @@ describe("BPoolFeeEscrow", async function () {
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
-  // set min fee for the reserve that signer1 will be using
+    // set min fee for the reserve that signer1 will be using
     await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
 
     // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
