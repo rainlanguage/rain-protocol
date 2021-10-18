@@ -14,6 +14,15 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
+        version: "0.6.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 100000,
+          },
+        },
+      },
+      {
         version: "0.5.12",
         settings: {
           optimizer: {
@@ -21,15 +30,6 @@ const config: HardhatUserConfig = {
             runs: 100,
           },
           evmVersion: "byzantium",
-        },
-      },
-      {
-        version: "0.6.12",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 100000,
-          },
         },
       },
     ],

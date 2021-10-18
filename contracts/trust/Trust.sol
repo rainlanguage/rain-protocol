@@ -34,6 +34,9 @@ import {
 import {
     SeedERC20Factory
 } from "../seed/SeedERC20Factory.sol";
+import {
+    BPoolFeeEscrow
+} from "../escrow/BPoolFeeEscrow.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -146,6 +149,7 @@ struct TrustConfig {
     // any time to increase redemption value. Successful the redeemInit is sent
     // to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
+    BPoolFeeEscrow bPoolFeeEscrow;
 }
 
 struct TrustRedeemableERC20Config {
@@ -298,6 +302,8 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
+    BPoolFeeEscrow public immutable bPoolFeeEscrow;
+
     /// Creator from the initial config.
     address public immutable creator;
     /// minimum creator raise from the initial config.
@@ -386,6 +392,7 @@ contract Trust is ReentrancyGuard {
         minimumCreatorRaise = config_.minimumCreatorRaise;
         seedERC20Factory = config_.seedERC20Factory;
         successBalance = successBalance_;
+        bPoolFeeEscrow = config_.bPoolFeeEscrow;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             trustRedeemableERC20Config_.redeemableERC20Factory
@@ -527,7 +534,8 @@ contract Trust is ReentrancyGuard {
             seederFee,
             seederUnits,
             seederCooldownDuration,
-            redeemInit
+            redeemInit,
+            bPoolFeeEscrow
         );
     }
 

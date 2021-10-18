@@ -100,10 +100,17 @@ export const balancerDeploy = async (): Promise<[CRPFactory, BFactory]> => {
   if (bFactoryAddress) {
     bFactory = new ethers.Contract(
       bFactoryAddress,
-      (await artifacts.readArtifact("BFactory")).abi
+      (
+        await artifacts.readArtifact(
+          "@beehiveinnovation/balancer-core/contracts/BFactory.sol:BFactory"
+        )
+      ).abi
     ) as BFactory;
   } else {
-    bFactory = (await basicDeploy("BFactory", {})) as BFactory;
+    bFactory = (await basicDeploy(
+      "@beehiveinnovation/balancer-core/contracts/BFactory.sol:BFactory",
+      {}
+    )) as BFactory;
   }
 
   return [crpFactory, bFactory];
@@ -214,7 +221,11 @@ export const poolContracts = async (
   ) as ConfigurableRightsPool;
   const bPool = new ethers.Contract(
     await crp.bPool(),
-    (await artifacts.readArtifact("BPool")).abi,
+    (
+      await artifacts.readArtifact(
+        "@beehiveinnovation/balancer-core/contracts/BPool.sol:BPool"
+      )
+    ).abi,
     signers[0]
   ) as BPool;
   return [crp, bPool];
@@ -255,14 +266,11 @@ export const trustDeploy = async (
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
+  if (!count) count = 1;
   const signers = await ethers.getSigners();
-  const tx = { to: signers[1].address };
-  if (count > 0) {
-    for (let i = 0; i < count; i++) {
-      await signers[0].sendTransaction(tx);
-    }
-  } else {
-    await signers[0].sendTransaction(tx);
+  const txNoOp = { to: signers[1].address };
+  for (let i = 0; i < count; i++) {
+    await signers[0].sendTransaction(txNoOp);
   }
 };
 

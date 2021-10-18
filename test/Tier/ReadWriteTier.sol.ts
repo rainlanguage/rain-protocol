@@ -128,6 +128,7 @@ describe("Account tier", async function () {
         1,
         Math.min(o + Math.floor(Math.random() * tiers.length), tiers.length - 1)
       );
+
       await readWriteTier.setTier(signers[0].address, n, []);
       let block = await ethers.provider.getBlockNumber();
       expected = expected.map((item: number, index: number) =>
