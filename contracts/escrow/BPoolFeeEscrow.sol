@@ -14,8 +14,14 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
 
+/// Represents fees as they are claimed by a recipient on a per-trust basis.
+/// Used to work around a limitation in the EVM re: how return values can be
+/// structured in a dynamic length array when bulk-claiming.
 struct ClaimedFees {
+    // The trust that fees were claimed for.
     address trust;
+    // The amount of fees that were claimed.
+    // This is denominated in the reserve currency/token of the trust.
     uint256 claimedFees;
 }
 
@@ -51,7 +57,9 @@ struct ClaimedFees {
 ///   they are forwarded to the redeemable token so buyers can redeem a refund.
 /// - Fees are ONLY collected when tokens are purchased, thus contributing to
 ///   the success of a raise. When tokens are sold there are no additional fees
-///   set aside by this escrow.
+///   set aside by this escrow. Repeatedly buying/selling does NOT allow for
+///   wash trading to claim additional fees as the user must pay the fee in
+///   full in addition to the token spot price for every round-trip.
 /// - Recipients MUST OPT IN to every reserve type they want to accept by first
 ///   setting a min fee. The escrow will not set aside garbage shitcoins for
 ///   recipients unless they explicitly ask for it. The escrow cannot prevent
@@ -87,7 +95,7 @@ contract BPoolFeeEscrow {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    /// The recipieint has set minimum fees for the given reserve.
+    /// The recipient has set minimum fees for the given reserve.
     /// A minFees value of `0` means the minimum fee was unset.
     /// ONLY emitted if the min fees changed value.
     event MinFeesChange(
@@ -227,13 +235,11 @@ contract BPoolFeeEscrow {
     function recipientAbandonTrust(Trust trust_) external returns (uint256) {
         uint256 oldFees_ = fees[address(trust_)][msg.sender];
         if (oldFees_ > 0) {
-            uint256 abandonedFee_ = fees[address(trust_)][msg.sender];
             delete fees[address(trust_)][msg.sender];
-            abandoned[address(trust_)] = abandoned[address(trust_)].add(
-                abandonedFee_
-            );
+            abandoned[address(trust_)] = abandoned[address(trust_)]
+                .add(oldFees_);
             failureRefunds[address(trust_)] = failureRefunds[address(trust_)]
-                .sub(abandonedFee_);
+                .sub(oldFees_);
             // Ignore this because it doesn't represent success/fail of remove.
             bool didRemove_;
             didRemove_ = pending[msg.sender].remove(address(trust_));
@@ -257,10 +263,10 @@ contract BPoolFeeEscrow {
         uint256 i_ = 0;
         address trust_ = address(0);
         while (i_ < limit_) {
+            // Keep hitting 0 because `pending` is mutated by `claimFees`
+            // each iteration removing the processed claim.
             trust_ = pending[feeRecipient_].at(0);
             claimedFees_[i_] = ClaimedFees(trust_, anonClaimFees(
-                // Keep hitting 0 because `pending` is mutated by `claimFees`
-                // each iteration removing the processed claim.
                 feeRecipient_,
                 Trust(trust_)
             ));
@@ -272,7 +278,7 @@ contract BPoolFeeEscrow {
     /// Anyone can pay the gas to send all claimable fees to any recipient.
     /// Security of delegated claims assumes the recipient only opts in to
     /// reserves that aren't going to try and do something "weird" like
-    /// non-linear transfers.
+    /// non-linear transfers, external mint/burn or rebasing/elastic balances.
     /// Claims are processed on a per-trust basis.
     /// Processing a claim before the trust distribution has reached either a
     /// success/fail state is a no-op.
@@ -346,6 +352,7 @@ contract BPoolFeeEscrow {
     /// - All other fees collected if the raise fails
     ///
     /// This can be called many times to continue to forward abandoned fees.
+    /// A failed raise will only refund fees once.
     ///
     /// It is critical that a `Trust` never oscillates between Fail/Success.
     /// If this invariant is violated the escrow funds can be drained by first
@@ -422,12 +429,12 @@ contract BPoolFeeEscrow {
     /// but overall it has to be said the gas situation is something to be
     /// mindful of. It certainly makes little sense to be doing this on L1.
     ///
+    /// @param feeRecipient_ The recipient of the fee as `Trust` reserve.
     /// @param trust_ The `Trust` to buy tokens from.
+    /// @param fee_ The amount of the fee.
     /// @param reserveAmountIn_ As per balancer.
     /// @param minTokenAmountOut_ As per balancer.
     /// @param maxPrice_ As per balancer.
-    /// @param feeRecipient_ The recipient of the fee as `Trust` reserve.
-    /// @param fee_ The amount of the fee.
     function buyToken(
         address feeRecipient_,
         Trust trust_,
@@ -450,23 +457,17 @@ contract BPoolFeeEscrow {
         fees[address(trust_)][feeRecipient_] = fees[address(trust_)][
             feeRecipient_
         ].add(fee_);
-        failureRefunds[address(trust_)] = failureRefunds[address(trust_)].add(
-            fee_
-        );
+        failureRefunds[address(trust_)] = failureRefunds[address(trust_)]
+        .add(fee_);
         // Ignore this because it doesn't represent success/fail of add.
         bool didAdd_;
         didAdd_ = pending[feeRecipient_].add(address(trust_));
 
         TrustContracts memory trustContracts_ = trust_.getContracts();
-        require(
-            fee_ > 0 &&
-                fee_ >= minFees[feeRecipient_][trustContracts_.reserveERC20],
-            "MIN_FEE"
-        );
-        require(
-            minFees[feeRecipient_][trustContracts_.reserveERC20] > 0,
-            "UNSET_FEE"
-        );
+        uint256 minFees_ =
+            minFees[feeRecipient_][trustContracts_.reserveERC20];
+        require(fee_ > 0 && fee_ >= minFees_, "MIN_FEE");
+        require(minFees_ > 0, "UNSET_FEE");
 
         IERC20(trustContracts_.reserveERC20).safeTransferFrom(
             msg.sender,
@@ -499,15 +500,15 @@ contract BPoolFeeEscrow {
             ), "APPROVE_FAIL");
         }
 
-        (uint256 tokenAmountOut_, uint256 spotPriceAfter_) = IBPool(
-            trustContracts_.pool
-        ).swapExactAmountIn(
-                trustContracts_.reserveERC20,
-                reserveAmountIn_,
-                trustContracts_.redeemableERC20,
-                minTokenAmountOut_,
-                maxPrice_
-            );
+        (uint256 tokenAmountOut_, uint256 spotPriceAfter_) =
+            IBPool(trustContracts_.pool)
+                .swapExactAmountIn(
+                    trustContracts_.reserveERC20,
+                    reserveAmountIn_,
+                    trustContracts_.redeemableERC20,
+                    minTokenAmountOut_,
+                    maxPrice_
+                );
         IERC20(trustContracts_.redeemableERC20).safeTransfer(
             msg.sender,
             tokenAmountOut_
