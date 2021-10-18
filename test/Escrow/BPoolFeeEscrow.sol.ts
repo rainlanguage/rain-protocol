@@ -734,6 +734,13 @@ describe("BPoolFeeEscrow", async function () {
 
     const { escrow, trustFactory, tier } = await deployGlobals();
 
+    const registeredTrustFactory = await escrow.trustFactory();
+
+    assert(
+      registeredTrustFactory === getAddress(trustFactory.address),
+      "trust factory was not correctly registered on construction"
+    );
+
     const { reserve, trust, recipient, signer1 } = await basicSetup(
       signers,
       trustFactory,
