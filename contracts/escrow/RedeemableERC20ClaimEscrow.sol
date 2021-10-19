@@ -32,7 +32,7 @@ contract RedeemableERC20ClaimEscrow {
         trustFactory = trustFactory_;
     }
 
-    function deposit(Trust trust_, IERC20 token_, uint256 amount_) public {
+    function deposit(Trust trust_, IERC20 token_, uint256 amount_) external {
         require(
             trustFactory.isChild(address(trust_)),
             "FACTORY_CONTRACT"
@@ -51,7 +51,7 @@ contract RedeemableERC20ClaimEscrow {
         token_.safeTransferFrom(msg.sender, address(this), amount_);
     }
 
-    function undeposit(Trust trust_, IERC20 token_) public {
+    function undeposit(Trust trust_, IERC20 token_) external {
         uint256 amount_
             = deposits[address(trust_)][address(token_)][msg.sender];
         if (amount_ > 0) {
@@ -68,7 +68,7 @@ contract RedeemableERC20ClaimEscrow {
         }
     }
 
-    function withdraw(Trust trust_, IERC20 token_) public {
+    function withdraw(Trust trust_, IERC20 token_) external {
         uint256 totalDeposit_
             = totalDeposits[address(trust_)][address(token_)];
         uint256 withdrawn_
