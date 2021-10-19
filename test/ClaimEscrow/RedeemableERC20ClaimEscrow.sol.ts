@@ -177,8 +177,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       .connect(signer1)
       .withdraw(trust.address, claimableToken.address);
 
-    const expectedSigner1Withdrawal1 = claimableTokensInEscrowDeposit1
-      .sub(actualSigner1Withdrawal0)
+    const expectedSigner1Withdrawal1 = depositAmount
       .mul(signer1Prop)
       .div(Util.ONE);
 

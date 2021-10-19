@@ -32,24 +32,11 @@ contract RedeemableERC20ClaimEscrow {
         trustFactory = trustFactory_;
     }
 
-    modifier onlyFactoryTrust(
-        Trust trust_
-    ) {
+    function deposit(Trust trust_, IERC20 token_, uint256 amount_) public {
         require(
             trustFactory.isChild(address(trust_)),
             "FACTORY_CONTRACT"
         );
-        _;
-    }
-
-    function deposit(
-        Trust trust_,
-        IERC20 token_,
-        uint256 amount_
-    )
-        public
-        onlyFactoryTrust(trust_)
-    {
         deposits[address(trust_)][address(token_)][msg.sender]
             = deposits[address(trust_)][address(token_)][msg.sender]
                 .add(amount_);
@@ -64,34 +51,24 @@ contract RedeemableERC20ClaimEscrow {
         token_.safeTransferFrom(msg.sender, address(this), amount_);
     }
 
-    function undeposit(
-        Trust trust_,
-        IERC20 token_
-    )
-        public
-        onlyFactoryTrust(trust_)
-    {
+    function undeposit(Trust trust_, IERC20 token_) public {
         uint256 amount_
             = deposits[address(trust_)][address(token_)][msg.sender];
-        delete(deposits[address(trust_)][address(token_)][msg.sender]);
-        totalDeposits[address(trust_)][address(token_)]
-            = totalDeposits[address(trust_)][address(token_)].sub(amount_);
+        if (amount_ > 0) {
+            delete deposits[address(trust_)][address(token_)][msg.sender];
+            totalDeposits[address(trust_)][address(token_)]
+                = totalDeposits[address(trust_)][address(token_)].sub(amount_);
 
-        require(
-            trust_.getDistributionStatus() == DistributionStatus.Fail,
-            "ONLY_FAIL"
-        );
+            require(
+                trust_.getDistributionStatus() == DistributionStatus.Fail,
+                "ONLY_FAIL"
+            );
 
-        token_.safeTransfer(msg.sender, amount_);
+            token_.safeTransfer(msg.sender, amount_);
+        }
     }
 
-    function withdraw(
-        Trust trust_,
-        IERC20 token_
-    )
-        public
-        onlyFactoryTrust(trust_)
-    {
+    function withdraw(Trust trust_, IERC20 token_) public {
         uint256 totalDeposit_
             = totalDeposits[address(trust_)][address(token_)];
         uint256 withdrawn_
