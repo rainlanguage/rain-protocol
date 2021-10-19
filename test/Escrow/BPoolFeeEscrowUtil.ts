@@ -194,17 +194,20 @@ export const successfulRaise = async (
     await escrow
       .connect(signer)
       .buyToken(
+        recipient.address,
         trust.address,
+        fee,
         spend,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-        recipient.address,
-        fee
+        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
       );
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
   const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+  // set min fee for the reserve that signer1 will be using
+  await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
 
   // raise all necessary funds
   let buyCount = 0;
@@ -276,17 +279,20 @@ export const failedRaise = async (
     await escrow
       .connect(signer)
       .buyToken(
+        recipient.address,
         trust.address,
+        fee,
         spend,
         ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.eighteenZeros),
-        recipient.address,
-        fee
+        ethers.BigNumber.from("1000000" + Util.eighteenZeros)
       );
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
   const fee = ethers.BigNumber.from("10" + Util.sixZeros);
+
+  // set min fee for the reserve that signer1 will be using
+  await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
 
   // raise all necessary funds
   await buyTokensViaEscrow(signer1, spend, fee);
