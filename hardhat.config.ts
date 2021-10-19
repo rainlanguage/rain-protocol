@@ -22,6 +22,16 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      {
+        version: "0.5.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 100,
+          },
+          evmVersion: "byzantium",
+        },
+      },
     ],
   },
 };

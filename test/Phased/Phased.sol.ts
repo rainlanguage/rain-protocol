@@ -3,6 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { PhasedTest } from "../../typechain/PhasedTest";
+import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 
 chai.use(solidity);
@@ -76,6 +77,29 @@ describe("Phased", async function () {
   });
 
   describe("Schedule next phase", async function () {
+    it("should have correct phase state (Phase X) in schedule phase hook, even if the next phase (Phase X + 1) has been set to the current block", async function () {
+      this.timeout(0);
+
+      const phasedScheduleTest = (await Util.basicDeploy(
+        "PhasedScheduleTest",
+        {}
+      )) as PhasedScheduleTest;
+
+      assert(
+        (await phasedScheduleTest.currentPhase()) === 0,
+        "wrong initial phase, must be Phase.ZERO"
+      );
+
+      const currentBlock = await ethers.provider.getBlockNumber();
+
+      await phasedScheduleTest.testScheduleNextPhase(currentBlock + 1);
+
+      assert(
+        (await phasedScheduleTest.currentPhase()) === 1,
+        "wrong phase, should have scheduled change to Phase.ONE at this block"
+      );
+    });
+
     it("cannot schedule the next phase in the past", async function () {
       this.timeout(0);
 

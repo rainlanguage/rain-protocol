@@ -7,15 +7,10 @@ import { Factory } from "../factory/Factory.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
 /// @title SeedERC20Factory
-/// @notice Factory for creating and registering new SeedERC20 contracts.
+/// @notice Factory for creating and deploying `SeedERC20` contracts.
 contract SeedERC20Factory is Factory {
 
-    /// Decodes the arbitrary data_ parameter for SeedERC20 constructor,
-    /// which expects a SeedERC20Config type.
-    ///
-    /// @param data_ Encoded data to pass down to child SeedERC20
-    /// contract constructor.
-    /// @return New SeedERC20 child contract address.
+    /// @inheritdoc Factory
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
@@ -26,12 +21,12 @@ contract SeedERC20Factory is Factory {
         return address(new SeedERC20(config_));
     }
 
-    /// Allows calling `createChild` with SeedERC20Config struct.
-    /// Can use original Factory `createChild` function signature if function
+    /// Allows calling `createChild` with `SeedERC20Config` struct.
+    /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ SeedERC20 constructor configuration.
-    /// @return New SeedERC20 child contract address.
+    /// @param config_ `SeedERC20` constructor configuration.
+    /// @return New `SeedERC20` child contract address.
     function createChild(SeedERC20Config calldata config_)
         external
         returns(address)

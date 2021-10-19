@@ -1,13 +1,14 @@
 {
   "name": "@beehiveinnovation/rain-protocol",
   "description": "Fair value capture for intangible or physical assets in a permissionless way in any decentralised environment",
-  "version": "0.0.3",
+  "version": "0.0.13",
   "files": [
     "/contracts/*.sol",
     "/contracts/**/*.sol",
     "/artifacts/*.json",
     "/typechain/*.d.ts",
-    "/typechain/**/*.ts"
+    "/typechain/**/*.ts",
+    "/dist"
   ],
   "author": "Beehive Innovation",
   "license": "CAL",
@@ -27,6 +28,8 @@
     "docgen": "solidity-docgen -o ./docs/api/ --solc-module solc-0.6 --exclude ./contracts/test/,./contracts/tv-prestige/ -t ./.templates/"
   },
   "devDependencies": {
+    "@beehiveinnovation/balancer-core": "0.0.7",
+    "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@maticnetwork/maticjs": "^2.0.22",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -64,10 +67,10 @@
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
     "simple-statistics": "^7.7.0",
+    "sirv-cli": "^1.0.0",
     "solc-0.6": "npm:solc@^0.6.12",
     "solhint": "^3.3.4",
     "solidity-docgen": "^0.5.13",
-    "sirv-cli": "^1.0.0",
     "svelte": "^3.0.0",
     "svelte-check": "^1.0.0",
     "svelte-preprocess": "^4.0.0",
@@ -78,11 +81,16 @@
     "ts-node": "^9.1.1",
     "tslib": "^2.0.0",
     "typechain": "^4.0.1",
-    "typescript": "^3.9.3"
+    "typescript": "^3.9.3",
+    "ansi-regex": ">=5.0.1",
+    "nth-check": ">=2.0.1",
+    "prismjs": ">=1.25.0",
+    "set-value": ">=4.0.1",
+    "immer": ">=9.0.6",
+    "axios": ">=0.21.2",
+    "trim": ">=0.0.3"
   },
   "dependencies": {
-    "@beehiveinnovation/balancer-core": "0.0.7",
-    "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@openzeppelin/contracts": "^3.3.0"
   },
   "husky": {

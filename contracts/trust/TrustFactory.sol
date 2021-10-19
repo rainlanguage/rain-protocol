@@ -188,13 +188,7 @@ contract TrustFactory is Factory {
         ));
     }
 
-    /// Decodes the arbitrary data_ parameter for Trust
-    /// constructor, which expects 3 parameters: TrustConfig,
-    /// TrustRedeemableERC20Config and TrustRedeemableERC20PoolConfig.
-    ///
-    /// @param data_ Encoded data to pass down to child Trust
-    /// contract constructor.
-    /// @return New Trust child contract address.
+    /// @inheritdoc Factory
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {

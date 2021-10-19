@@ -1,0 +1,32 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "SeedERC20ForceSendEther",
+  "sourceName": "contracts/test/SeedERC20ForceSendEther.sol",
+  "abi": [
+    {
+      "stateMutability": "payable",
+      "type": "fallback"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract SeedERC20",
+          "name": "seedERC20Contract_",
+          "type": "address"
+        }
+      ],
+      "name": "destroy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    }
+  ],
+  "bytecode": "0x6080604052348015600f57600080fd5b5060988061001e6000396000f3fe608060405260043610601e5760003560e01c8062f55d9d146026576024565b36602457005b005b348015603157600080fd5b50602460048036036020811015604657600080fd5b503573ffffffffffffffffffffffffffffffffffffffff168080fffea2646970667358221220e5e6106862c7679a9a51b1c035df8217c2427913375e7faf59e02c07aa8298a664736f6c634300060c0033",
+  "deployedBytecode": "0x608060405260043610601e5760003560e01c8062f55d9d146026576024565b36602457005b005b348015603157600080fd5b50602460048036036020811015604657600080fd5b503573ffffffffffffffffffffffffffffffffffffffff168080fffea2646970667358221220e5e6106862c7679a9a51b1c035df8217c2427913375e7faf59e02c07aa8298a664736f6c634300060c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
