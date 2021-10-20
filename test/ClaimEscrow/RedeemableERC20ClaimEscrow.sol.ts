@@ -124,8 +124,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       .connect(signer1)
       .withdraw(trust.address, claimableToken.address);
 
-    const expectedSigner1Withdrawal0 = claimableTokensInEscrowDeposit0
-      .sub(0) // signer1 hasn't withdrawn anything yet
+    const expectedSigner1Withdrawal0 = depositAmount
       .mul(signer1Prop)
       .div(Util.ONE);
 
@@ -278,9 +277,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableToken.address
     );
 
-    const expectedWithdrawal = claimableTokensInEscrow
-      .mul(signer1Prop)
-      .div(Util.ONE);
+    const expectedWithdrawal = depositAmount.mul(signer1Prop).div(Util.ONE);
 
     // signer1 should withdraw roughly 25% of claimable tokens in escrow
     await claim
@@ -830,7 +827,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
   });
 
-  it("should check that trust address is child of trust factory", async function () {
+  it("should check that trust address is child of trust factory when depositing", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -842,18 +839,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
           claimableToken.address,
           0
         ),
-      "revert FACTORY_CONTRACT",
-      "did not check trust is child of trust factory"
-    );
-    await Util.assertError(
-      async () =>
-        await claim.undeposit(signers[19].address, claimableToken.address),
-      "revert FACTORY_CONTRACT",
-      "did not check trust is child of trust factory"
-    );
-    await Util.assertError(
-      async () =>
-        await claim.withdraw(signers[19].address, claimableToken.address),
       "revert FACTORY_CONTRACT",
       "did not check trust is child of trust factory"
     );
