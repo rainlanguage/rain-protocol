@@ -27,6 +27,22 @@ const enum Opcode {
 }
 
 describe("CombineTier", async function () {
+  xit("should compile a basic program (store some source code)", async () => {
+    this.timeout(0);
+
+    const source = concat([
+      //
+      hexlify(Opcode.END),
+    ]);
+
+    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTier = (await combineTierFactory.deploy(
+      source
+    )) as CombineTier;
+
+    console.log(`${hexlify(await combineTier.source0())}`);
+  });
+
   it("should compile a basic program (store some numbers in val0 and val1)", async () => {
     this.timeout(0);
 
@@ -44,19 +60,16 @@ describe("CombineTier", async function () {
       hexlify(Opcode.END),
     ]);
 
-    console.log(hexlify(source));
-
     const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy(
       source
     )) as CombineTier;
 
-    console.log(await getConstants(combineTier));
-
     const actualVal0 = await combineTier.val0();
     assert(
       actualVal0.eq(value0),
       `wrong val0
+      source    ${hexlify(source)}
       expected  ${value0}
       got       ${actualVal0}`
     );
@@ -64,6 +77,7 @@ describe("CombineTier", async function () {
     assert(
       actualVal1.eq(value1),
       `wrong val1
+      source    ${hexlify(source)}
       expected  ${value1}
       got       ${actualVal1}`
     );
@@ -76,21 +90,23 @@ describe("CombineTier", async function () {
 
     const litVal0 = zeroPad(hexlify(BigNumber.from(value0)), 32);
 
-    const source = concat([hexlify(Opcode.LIT), litVal0, hexlify(Opcode.END)]);
-
-    console.log(hexlify(source));
+    const source = concat([
+      //
+      hexlify(Opcode.LIT),
+      litVal0,
+      hexlify(Opcode.END),
+    ]);
 
     const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy(
       source
     )) as CombineTier;
 
-    console.log(await getConstants(combineTier));
-
     const actualVal0 = await combineTier.val0();
     assert(
       actualVal0.eq(value0),
       `wrong val0
+      source    ${hexlify(source)}
       expected  ${value0}
       got       ${actualVal0}`
     );
@@ -103,21 +119,23 @@ describe("CombineTier", async function () {
 
     const litVal0 = zeroPad(hexlify(BigNumber.from(value0)), 32);
 
-    const source = concat([hexlify(Opcode.LIT), litVal0, hexlify(Opcode.END)]);
-
-    console.log(hexlify(source));
+    const source = concat([
+      //
+      hexlify(Opcode.LIT),
+      litVal0,
+      hexlify(Opcode.END),
+    ]);
 
     const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy(
       source
     )) as CombineTier;
 
-    console.log(await getConstants(combineTier));
-
     const actualVal0 = await combineTier.val0();
     assert(
       actualVal0.eq(value0),
       `wrong val0
+      source    ${hexlify(source)}
       expected  ${value0}
       got       ${actualVal0}`
     );
@@ -133,7 +151,7 @@ describe("CombineTier", async function () {
       source
     )) as CombineTier;
 
-    console.log(await getConstants(combineTier));
+    await getConstants(combineTier);
   });
 });
 
