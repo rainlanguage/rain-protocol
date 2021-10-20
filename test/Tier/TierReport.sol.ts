@@ -131,7 +131,10 @@ describe("TierReport", async function () {
 
     const report = await readWriteTier.report(signer1.address);
 
-    const truncatedReport = await tierReport.truncateTiersAbove(report, Tier.ONE);
+    const truncatedReport = await tierReport.truncateTiersAbove(
+      report,
+      Tier.ONE
+    );
 
     const expectedTruncatedReport =
       "0x" + "f".repeat(7 * 8) + report.toHexString().slice(-8);

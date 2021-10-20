@@ -60,7 +60,7 @@ describe("CombineTier", async function () {
       hexlify(0),
       litVal1,
       hexlify(Opcode.END),
-      hexlify(0)
+      hexlify(0),
     ]);
 
     const combineTierFactory = await ethers.getContractFactory("CombineTier");
