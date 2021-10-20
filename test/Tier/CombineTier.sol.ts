@@ -3,7 +3,8 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../typechain/CombineTier";
-import { hexlify } from "ethers/lib/utils";
+import { concat, hexlify, zeroPad } from "ethers/lib/utils";
+import { BigNumber } from "ethers/lib/ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -26,12 +27,24 @@ const enum Opcode {
 }
 
 describe("CombineTier", async function () {
-  it("should compile a basic program (store some number in val0)", async () => {
+  it("should compile a basic program (store some numbers in val0 and val1)", async () => {
     this.timeout(0);
 
-    const source = hexlify(Opcode.END);
+    const value0 = 123;
+    const value1 = 1234;
 
-    console.log(source);
+    const litVal0 = zeroPad(hexlify(BigNumber.from(value0)), 32);
+    const litVal1 = zeroPad(hexlify(BigNumber.from(value1)), 32);
+
+    const source = concat([
+      hexlify(Opcode.LIT),
+      litVal0,
+      hexlify(Opcode.LIT),
+      litVal1,
+      hexlify(Opcode.END),
+    ]);
+
+    console.log(hexlify(source));
 
     const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy(
@@ -81,6 +94,21 @@ describe("CombineTier", async function () {
     source1                     ${await combineTier.source1()}
     source2                     ${await combineTier.source2()}
     source3                     ${await combineTier.source3()}`);
+
+    const actualVal0 = await combineTier.val0();
+    assert(
+      actualVal0.eq(value0),
+      `wrong val0
+      expected  ${value0}
+      got       ${actualVal0}`
+    );
+    const actualVal1 = await combineTier.val1();
+    assert(
+      actualVal1.eq(value1),
+      `wrong val1
+      expected  ${value1}
+      got       ${actualVal1}`
+    );
   });
 
   it("should make constants publically available on construction", async () => {
