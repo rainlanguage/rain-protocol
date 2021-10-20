@@ -141,7 +141,10 @@ abstract contract RainCompiler {
         bytes memory inputSource_,
         uint256[] memory args_
     ) internal pure returns (CompiledSource memory) {
-        CompiledSource memory compiledSource_;
+        // SourceCursor memory inputSourceCursor_;
+        CompiledSource memory outputSource_;
+        SourceCursor memory outputSourceCursor_;
+        uint256 o_ = 0;
         uint8 valsIndex_ = 0;
 
         for (uint256 i_ = 0; i_ < inputSource_.length; i_ = i_ + 2) {
@@ -151,9 +154,9 @@ abstract contract RainCompiler {
                 0,
                 0
             );
-
-            uint256 outputSourceItem_ = i_.div(16);
-            uint256 outputSourceIndex_ = i_.mod(16);
+            outputSourceCursor_.item = uint8(o_.div(16));
+            outputSourceCursor_.index = uint8(o_.mod(16));
+            o_ += 2;
 
             if (compileIO_.inputOpcode == OPCODE_END) {
                 break;
@@ -175,14 +178,14 @@ abstract contract RainCompiler {
                 // Literal opcode means copy the 32 bytes after the operand
                 // byte out of the source and into vals_.
                 if (compileIO_.inputOpcode == OPCODE_LIT) {
-                    for (uint j_ = 1; j_ <= LIT_SIZE_BYTES; j_++) {
-                        val_ = val_ | uint256(
-                            uint256(uint8(inputSource_[i_ + j_]))
-                                << (LIT_SIZE_BYTES - j_)
+                    for (uint j_ = 0; j_ < LIT_SIZE_BYTES; j_++) {
+                        val_ |= uint256(
+                            uint256(uint8(inputSource_[i_ + j_ + 2]))
+                                << (256 - (8 * (j_ + 1)))
                         );
                     }
                     // Move i_ forward 32 to compensate for the literal bytes.
-                    i_ = i_ + LIT_SIZE_BYTES;
+                    i_ += LIT_SIZE_BYTES;
 
                     compileIO_.outputOpcode = OPCODE_VAL;
                 }
@@ -192,7 +195,7 @@ abstract contract RainCompiler {
                     compileIO_.outputOpcode = OPCODE_VAL;
                 }
 
-                compiledSource_.vals[valsIndex_] = val_;
+                outputSource_.vals[valsIndex_] = val_;
                 compileIO_.outputOperand = valsIndex_;
                 valsIndex_++;
             }
@@ -201,15 +204,18 @@ abstract contract RainCompiler {
                 compileIO_.outputOperand = compileIO_.inputOperand;
             }
 
-            compiledSource_.source[outputSourceItem_] |= uint256(
-                uint256(
-                    compileIO_.outputOpcode << 8
-                    | compileIO_.outputOperand
-                )
-                << 16 - outputSourceIndex_
-            );
+            outputSource_.source[outputSourceCursor_.item]
+                ^= uint256(
+                    uint256(compileIO_.outputOpcode)
+                        << (256 - ((outputSourceCursor_.index + 1) * 8))
+                );
+            outputSource_.source[outputSourceCursor_.item]
+                ^= uint256(
+                    uint256(compileIO_.outputOperand)
+                        << (256 - ((outputSourceCursor_.index + 2) * 8))
+                );
         }
-        return compiledSource_;
+        return outputSource_;
     }
 
     function call(
