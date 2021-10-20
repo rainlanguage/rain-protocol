@@ -31,7 +31,7 @@ describe("CombineTier", async function () {
     this.timeout(0);
 
     const value0 = 255;
-    const value1 = 255;
+    const value1 = 256;
 
     const litVal0 = zeroPad(hexlify(BigNumber.from(value0)), 32);
     const litVal1 = zeroPad(hexlify(BigNumber.from(value1)), 32);
