@@ -2,9 +2,9 @@
 
 pragma solidity 0.6.12;
 
-import "hardhat/console.sol";
+pragma experimental ABIEncoderV2;
 
-import { RainCompiler, Stack, Op } from "../compiler/RainCompiler.sol";
+import { RainCompiler, Source, Stack, Op } from "../compiler/RainCompiler.sol";
 
 contract CalculatorTest is RainCompiler {
     uint8 public constant OPCODE_ADD = 1 + OPCODE_RESERVED_MAX;
@@ -13,10 +13,10 @@ contract CalculatorTest is RainCompiler {
     uint8 public constant OPCODE_DIV = 4 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_MOD = 5 + OPCODE_RESERVED_MAX;
 
-    constructor(bytes memory source_, uint256[] memory args_)
+    constructor(Source memory source_)
         public
         // solhint-disable-next-line no-empty-blocks
-        RainCompiler(source_, args_) { }
+        RainCompiler(source_) { }
 
     function applyOp(
         bytes memory context_,
@@ -62,8 +62,8 @@ contract CalculatorTest is RainCompiler {
         bytes memory context_ = new bytes(0);
         stack_ = eval(
             context_,
-            stack_,
-            compiledSource()
+            source(),
+            stack_
         );
 
         return stack_.vals[stack_.index - 1];

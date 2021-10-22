@@ -2,7 +2,9 @@
 
 pragma solidity 0.6.12;
 
-import { RainCompiler, Stack, Op } from "../compiler/RainCompiler.sol";
+pragma experimental ABIEncoderV2;
+
+import { RainCompiler, Stack, Op, Source } from "../compiler/RainCompiler.sol";
 import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
 import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 
@@ -17,10 +19,10 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
     uint8 public constant OPCODE_OR_NEW = 7 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_OR_LEFT = 8 + OPCODE_RESERVED_MAX;
 
-    constructor(bytes memory source_, uint256[] memory args_)
+    constructor(Source memory source_)
         public
         // solhint-disable-next-line no-empty-blocks
-        RainCompiler(source_, args_) { }
+        RainCompiler(source_) { }
 
     function applyOp(
         bytes memory context_,
@@ -103,8 +105,8 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
         Stack memory stack_;
         stack_ = eval(
             abi.encode(account_),
-            stack_,
-            compiledSource()
+            source(),
+            stack_
         );
         return stack_.vals[stack_.index - 1];
     }
