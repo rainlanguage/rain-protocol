@@ -9,9 +9,10 @@ import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
-import type { BigNumber } from "ethers";
+import type { BigNumber, BytesLike } from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
+import { Hexable, hexlify, hexValue, zeroPad } from "ethers/lib/utils";
 
 const { expect, assert } = chai;
 
@@ -321,4 +322,18 @@ export function zeroPad32(hex: BigNumber): string {
  */
 export function zeroPad4(hex: BigNumber): string {
   return ethers.utils.hexZeroPad(hex.toHexString(), 4);
+}
+
+/**
+ * Converts a value to raw bytes representation. Assumes `value` is less than or equal to 1 byte, unless a desired `bytesLength` is specified.
+ *
+ * @param value - value to convert to raw bytes format
+ * @param bytesLength - (default = 1 byte) number of bytes to left pad if `value` doesn't completely fill the desired amount of memory. Will throw `InvalidArgument` error if value already exceeds bytes length.
+ * @returns {Uint8Array} - raw bytes representation
+ */
+export function bytify(
+  value: number | BytesLike | Hexable,
+  bytesLength: number = 1
+): BytesLike {
+  return zeroPad(hexlify(value), bytesLength);
 }

@@ -2,9 +2,10 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
+import { concat, hexlify } from "ethers/lib/utils";
+import { bytify } from "../Util";
+
 import type { CombineTier } from "../../typechain/CombineTier";
-import { concat, hexlify, zeroPad } from "ethers/lib/utils";
-import { BigNumber } from "ethers/lib/ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -26,144 +27,7 @@ const enum Opcode {
   OR_LEFT,
 }
 
-describe("CombineTier", async function () {
-  xit("should compile a basic program (store some source code)", async () => {
-    this.timeout(0);
-
-    const source = concat([
-      //
-      hexlify(Opcode.END),
-    ]);
-
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
-    const combineTier = (await combineTierFactory.deploy(
-      source
-    )) as CombineTier;
-
-    console.log(`${hexlify(await combineTier.source0())}`);
-  });
-
-  it("should compile a basic program (store some numbers in val0 and val1)", async () => {
-    this.timeout(0);
-
-    const value0 = 255;
-    const value1 = 256;
-
-    const litVal0 = zeroPad(hexlify(BigNumber.from(value0)), 32);
-    const litVal1 = zeroPad(hexlify(BigNumber.from(value1)), 32);
-
-    const source = concat([
-      hexlify(Opcode.LIT),
-      hexlify(0),
-      litVal0,
-      hexlify(Opcode.LIT),
-      hexlify(0),
-      litVal1,
-      hexlify(Opcode.END),
-      hexlify(0),
-    ]);
-
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
-    const combineTier = (await combineTierFactory.deploy(
-      source
-    )) as CombineTier;
-
-    const actualVal0 = await combineTier.val0();
-    const compiledSource = await combineTier.source0();
-    assert(
-      actualVal0.eq(value0),
-      `wrong val0
-      source    ${hexlify(source)}
-      compiled  ${hexlify(compiledSource)}
-      expected  ${hexlify(value0)}
-      got       ${hexlify(actualVal0)}`
-    );
-    const actualVal1 = await combineTier.val1();
-    assert(
-      actualVal1.eq(value1),
-      `wrong val1
-      source    ${hexlify(source)}
-      compiled  ${hexlify(compiledSource)}
-      expected  ${hexlify(value1)}
-      got       ${hexlify(actualVal1)}`
-    );
-  });
-
-  it("should compile a basic program (store a large number in val0)", async () => {
-    this.timeout(0);
-
-    const value0 = 123456789;
-
-    const litVal0 = zeroPad(hexlify(BigNumber.from(value0)), 32);
-
-    const source = concat([
-      //
-      hexlify(Opcode.LIT),
-      hexlify(0),
-      litVal0,
-      hexlify(Opcode.END),
-      hexlify(0),
-    ]);
-
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
-    const combineTier = (await combineTierFactory.deploy(
-      source
-    )) as CombineTier;
-
-    const actualVal0 = await combineTier.val0();
-    assert(
-      actualVal0.eq(value0),
-      `wrong val0
-      source    ${hexlify(source)}
-      expected  ${value0}
-      got       ${actualVal0}`
-    );
-  });
-
-  it("should compile a basic program (store a small number in val0)", async () => {
-    this.timeout(0);
-
-    const value0 = 255;
-
-    const litVal0 = zeroPad(hexlify(BigNumber.from(value0)), 32);
-
-    const source = concat([
-      //
-      hexlify(Opcode.LIT),
-      hexlify(0),
-      litVal0,
-      hexlify(Opcode.END),
-      hexlify(0),
-    ]);
-
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
-    const combineTier = (await combineTierFactory.deploy(
-      source
-    )) as CombineTier;
-
-    const actualVal0 = await combineTier.val0();
-    assert(
-      actualVal0.eq(value0),
-      `wrong val0
-      source    ${hexlify(source)}
-      expected  ${value0}
-      got       ${actualVal0}`
-    );
-  });
-
-  it("should make constants publically available on construction", async () => {
-    this.timeout(0);
-
-    const source = new Uint8Array([]);
-
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
-    const combineTier = (await combineTierFactory.deploy(
-      source
-    )) as CombineTier;
-
-    await getConstants(combineTier);
-  });
-});
+describe("CombineTier", async function () {});
 
 const getConstants = async (combineTier: CombineTier) => `Constants:
 MAX_COMPILED_SOURCE_LENGTH  ${await combineTier.MAX_COMPILED_SOURCE_LENGTH()}
