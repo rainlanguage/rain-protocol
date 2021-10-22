@@ -13,10 +13,10 @@ contract CalculatorTest is RainCompiler {
     uint8 public constant OPCODE_DIV = 4 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_MOD = 5 + OPCODE_RESERVED_MAX;
 
-    constructor(bytes memory source_)
+    constructor(bytes memory source_, uint256[] memory args_)
         public
         // solhint-disable-next-line no-empty-blocks
-        RainCompiler(source_) { }
+        RainCompiler(source_, args_) { }
 
     function applyOp(
         bytes memory context_,
@@ -29,11 +29,15 @@ contract CalculatorTest is RainCompiler {
         returns (Stack memory)
     {
         if (op_.code == OPCODE_ADD) {
-            // uint256[] memory sequence_ = new uint256[](op_.val);
-            // for (uint256 a_ = 0; a_ < sequence_.length; a_++) {
-            //     sequence_[a_] = sequence_[a_].add(sequence_[a_ + 1]);
-            // }
-            console.log("ADD");
+            stack_.index -= op_.val;
+            uint256 accumulator_ = 0;
+            for (uint256 a_ = 0; a_ < op_.val; a_++) {
+                // Addition is commutative so it doesn't matter that we're
+                // technically iterating the inputs backwards here.
+                accumulator_ = accumulator_
+                    .add(stack_.vals[stack_.index + a_]);
+            }
+            stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
         } else if (op_.code == OPCODE_SUB) {
             stack_.index++;
@@ -55,15 +59,12 @@ contract CalculatorTest is RainCompiler {
         returns (uint256)
     {
         Stack memory stack_;
+        bytes memory context_ = new bytes(0);
         stack_ = eval(
-            abi.encode(),
+            context_,
             stack_,
             compiledSource()
         );
-
-        for (uint256 index = 0; index < stack_.vals.length; index++) {
-            console.log(stack_.vals[index]);
-        }
 
         return stack_.vals[stack_.index - 1];
     }

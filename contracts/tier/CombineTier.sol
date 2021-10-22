@@ -17,10 +17,10 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
     uint8 public constant OPCODE_OR_NEW = 7 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_OR_LEFT = 8 + OPCODE_RESERVED_MAX;
 
-    constructor(bytes memory source_)
+    constructor(bytes memory source_, uint256[] memory args_)
         public
         // solhint-disable-next-line no-empty-blocks
-        RainCompiler(source_) { }
+        RainCompiler(source_, args_) { }
 
     function applyOp(
         bytes memory context_,

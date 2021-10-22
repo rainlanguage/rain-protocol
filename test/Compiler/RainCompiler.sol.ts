@@ -69,31 +69,35 @@ describe("RainCompiler", async function () {
   it("should add a sequence of numbers together", async () => {
     this.timeout(0);
 
+    const args = [
+      3,
+      2,
+      1,
+    ];
+
     const source = concat([
       // (+ 1 2 3)
       bytify(Opcode.ADD), //  06
       bytify(3), //           03
-      bytify(Opcode.LIT), //  03
-      bytify(0), //           00
-      bytify(1, 32), //       -> val0
-      bytify(Opcode.LIT), //  03
-      bytify(0), //           01
-      bytify(2, 32), //       -> val1
-      bytify(Opcode.LIT), //  03
+      bytify(Opcode.ARG), //  03
+      bytify(2), //           00
+      bytify(Opcode.ARG), //  03
+      bytify(1), //           01
+      bytify(Opcode.ARG), //  03
       bytify(0), //           02
-      bytify(3, 32), //       -> val2
-      bytify(Opcode.END), //  00
-      bytify(0), //           00
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy(
-      source
+      source,
+      args
     )) as CalculatorTest;
 
     const result = await calculator.run();
 
-    console.log(`result ${hexlify(result)}`);
+    assert(
+      result.eq(6)
+    );
   });
 
   it("should compile a basic program (store some numbers in val0 and val1)", async () => {
