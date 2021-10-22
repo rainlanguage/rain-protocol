@@ -12,8 +12,6 @@ const { expect, assert } = chai;
 
 const enum Opcode {
   END,
-  LIT,
-  ARG,
   VAL,
   CALL,
   BLOCK_NUMBER,
@@ -28,6 +26,11 @@ describe("RainCompiler", async function () {
   it("should calculate a mathematical expression (division, product, summation)", async () => {
     this.timeout(0);
 
+    const vals = [
+      2,
+      3,
+    ];
+
     const source = concat([
       // (/ (* (+ 2 2 2) 3) 2 3)
       bytify(Opcode.DIV),
@@ -36,31 +39,24 @@ describe("RainCompiler", async function () {
       bytify(2),
       bytify(Opcode.ADD),
       bytify(3),
-      bytify(Opcode.LIT),
+      bytify(Opcode.VAL),
       bytify(0),
-      bytify(2, 32),
-      bytify(Opcode.LIT),
+      bytify(Opcode.VAL),
       bytify(0),
-      bytify(2, 32),
-      bytify(Opcode.LIT),
+      bytify(Opcode.VAL),
       bytify(0),
-      bytify(2, 32),
-      bytify(Opcode.LIT),
+      bytify(Opcode.VAL),
+      bytify(1),
+      bytify(Opcode.VAL),
       bytify(0),
-      bytify(3, 32),
-      bytify(Opcode.LIT),
-      bytify(0),
-      bytify(2, 32),
-      bytify(Opcode.LIT),
-      bytify(0),
-      bytify(3, 32),
-      bytify(Opcode.END),
-      bytify(0),
+      bytify(Opcode.VAL),
+      bytify(1),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy(
-      source
+      source,
+      vals
     )) as CalculatorTest;
 
     console.log(`${hexlify(await calculator.source0())}`);
@@ -69,7 +65,7 @@ describe("RainCompiler", async function () {
   it("should add a sequence of numbers together", async () => {
     this.timeout(0);
 
-    const args = [
+    const vals = [
       3,
       2,
       1,
@@ -77,71 +73,67 @@ describe("RainCompiler", async function () {
 
     const source = concat([
       // (+ 1 2 3)
-      bytify(Opcode.ADD), //  06
+      bytify(Opcode.ADD), //  04
       bytify(3), //           03
-      bytify(Opcode.ARG), //  03
-      bytify(2), //           00
-      bytify(Opcode.ARG), //  03
+      bytify(Opcode.VAL), //  01
+      bytify(2), //           02
+      bytify(Opcode.VAL), //  01
       bytify(1), //           01
-      bytify(Opcode.ARG), //  03
-      bytify(0), //           02
+      bytify(Opcode.VAL), //  01
+      bytify(0), //           00
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy(
       source,
-      args
+      vals
     )) as CalculatorTest;
 
     const result = await calculator.run();
-
+    const expected = 6
     assert(
-      result.eq(6)
+      result.eq(expected),
+      `wrong summation ${expected} ${result}`
     );
   });
 
   it("should compile a basic program (store some numbers in val0 and val1)", async () => {
     this.timeout(0);
 
-    const value0 = 255;
-    const value1 = 256;
-
-    const litVal0 = bytify(value0, 32);
-    const litVal1 = bytify(value1, 32);
+    const vals = [
+      255,
+      256,
+    ];
 
     const source = concat([
-      bytify(Opcode.LIT),
+      bytify(Opcode.VAL),
       bytify(0),
-      litVal0,
-      bytify(Opcode.LIT),
-      bytify(0),
-      litVal1,
-      bytify(Opcode.END),
-      bytify(0),
+      bytify(Opcode.VAL),
+      bytify(1),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy(
-      source
+      source, vals
     )) as CalculatorTest;
 
     const actualVal0 = await calculator.val0();
     const compiledSource = await calculator.source0();
     assert(
-      actualVal0.eq(value0),
+      actualVal0.eq(vals[0]),
       `wrong val0
       source    ${hexlify(source)}
       compiled  ${hexlify(compiledSource)}
-      expected  ${hexlify(value0)}
+      expected  ${hexlify(vals[0])}
       got       ${hexlify(actualVal0)}`
     );
     const actualVal1 = await calculator.val1();
     assert(
-      actualVal1.eq(value1),
+      actualVal1.eq(vals[1]),
       `wrong val1
       source    ${hexlify(source)}
       compiled  ${hexlify(compiledSource)}
-      expected  ${hexlify(value1)}
+      expected  ${hexlify(vals[1])}
       got       ${hexlify(actualVal1)}`
     );
   });
@@ -149,29 +141,26 @@ describe("RainCompiler", async function () {
   it("should compile a basic program (store a large number in val0)", async () => {
     this.timeout(0);
 
-    const value0 = 123456789;
-
-    const litVal0 = bytify(value0, 32);
+    const vals = [
+      123456789
+    ]
 
     const source = concat([
-      bytify(Opcode.LIT),
-      bytify(0),
-      litVal0,
-      bytify(Opcode.END),
+      bytify(Opcode.VAL),
       bytify(0),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy(
-      source
+      source, vals
     )) as CalculatorTest;
 
     const actualVal0 = await calculator.val0();
     assert(
-      actualVal0.eq(value0),
+      actualVal0.eq(vals[0]),
       `wrong val0
       source    ${hexlify(source)}
-      expected  ${value0}
+      expected  ${vals[0]}
       got       ${actualVal0}`
     );
   });
@@ -179,29 +168,26 @@ describe("RainCompiler", async function () {
   it("should compile a basic program (store a small number in val0)", async () => {
     this.timeout(0);
 
-    const value0 = 255;
-
-    const litVal0 = bytify(value0, 32);
+    const vals = [
+      255
+    ]
 
     const source = concat([
-      bytify(Opcode.LIT),
-      bytify(0),
-      litVal0,
-      bytify(Opcode.END),
+      bytify(Opcode.VAL),
       bytify(0),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy(
-      source
+      source, vals
     )) as CalculatorTest;
 
     const actualVal0 = await calculator.val0();
     assert(
-      actualVal0.eq(value0),
+      actualVal0.eq(vals[0]),
       `wrong val0
       source    ${hexlify(source)}
-      expected  ${value0}
+      expected  ${vals[0]}
       got       ${actualVal0}`
     );
   });
@@ -210,10 +196,11 @@ describe("RainCompiler", async function () {
     this.timeout(0);
 
     const source = new Uint8Array([]);
+    const vals = []
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy(
-      source
+      source, vals
     )) as CalculatorTest;
 
     await getConstants(calculator);
@@ -221,12 +208,9 @@ describe("RainCompiler", async function () {
 });
 
 const getConstants = async (calculator: CalculatorTest) => `Constants:
-MAX_COMPILED_SOURCE_LENGTH  ${await calculator.MAX_COMPILED_SOURCE_LENGTH()}
-LIT_SIZE_BYTES              ${await calculator.LIT_SIZE_BYTES()}
+MAX_SOURCE_LENGTH           ${await calculator.MAX_SOURCE_LENGTH()}
 
 OPCODE_END                  ${await calculator.OPCODE_END()}
-OPCODE_LIT                  ${await calculator.OPCODE_LIT()}
-OPCODE_ARG                  ${await calculator.OPCODE_ARG()}
 
 OPCODE_VAL                  ${await calculator.OPCODE_VAL()}
 OPCODE_CALL                 ${await calculator.OPCODE_CALL()}

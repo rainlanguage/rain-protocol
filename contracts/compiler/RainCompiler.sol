@@ -42,19 +42,15 @@ abstract contract RainCompiler {
     using SafeMath for uint256;
 
     // 32 bytes * 4 items.
-    uint8 public constant MAX_COMPILED_SOURCE_LENGTH = 128;
-    uint8 public constant LIT_SIZE_BYTES = 32;
+    uint8 public constant MAX_SOURCE_LENGTH = 128;
 
     uint8 public constant OPCODE_END = 0;
-    uint8 public constant OPCODE_LIT = 1;
-    uint8 public constant OPCODE_ARG = 2;
+    uint8 public constant OPCODE_VAL = 1;
+    uint8 public constant OPCODE_CALL = 2;
 
-    uint8 public constant OPCODE_VAL = 3;
-    uint8 public constant OPCODE_CALL = 4;
+    uint8 public constant OPCODE_BLOCK_NUMBER = 3;
 
-    uint8 public constant OPCODE_BLOCK_NUMBER = 5;
-
-    uint8 public constant OPCODE_RESERVED_MAX = 5;
+    uint8 public constant OPCODE_RESERVED_MAX = 3;
 
     uint256 public immutable val0;
     uint256 public immutable val1;
@@ -80,12 +76,12 @@ abstract contract RainCompiler {
 
     constructor(
         bytes memory source_,
-        uint256[] memory args_
+        uint256[] memory vals_
     )
     public {
         CompiledSource memory compiledSource_ = compile(
             source_,
-            args_
+            vals_
         );
 
         val0 = compiledSource_.vals[0];
@@ -140,84 +136,34 @@ abstract contract RainCompiler {
 
     function compile(
         bytes memory inputSource_,
-        uint256[] memory args_
+        uint256[] memory vals_
     ) internal view returns (CompiledSource memory) {
-        // SourceCursor memory inputSourceCursor_;
         CompiledSource memory outputSource_;
         SourceCursor memory outputSourceCursor_;
         uint256 o_ = 0;
-        uint8 valsIndex_ = 0;
+
+        for (uint256 i_ = 0; i_ < vals_.length; i_++) {
+            outputSource_.vals[i_] = vals_[i_];
+        }
 
         uint256 rtl_ = (inputSource_.length - 2);
         for (uint256 i_ = 0; i_ < inputSource_.length; i_ = i_ + 2) {
-            CompileIO memory compileIO_ = CompileIO(
-                Op(
-                    uint8(inputSource_[rtl_ - i_]),
-                    uint8(inputSource_[rtl_ - i_ + 1])
-                ),
-                Op(
-                    0,
-                    0
-                )
+            Op memory op_ = Op(
+                uint8(inputSource_[rtl_ - i_]),
+                uint8(inputSource_[rtl_ - i_ + 1])
             );
             outputSourceCursor_.item = uint8(o_.div(16));
             outputSourceCursor_.index = uint8(o_.mod(16));
             o_ += 2;
 
-            if (compileIO_.input.code == OPCODE_END) {
-                break;
-            }
-
-            // OPCODE_VAL can ONLY be an output opcode.
-            require(compileIO_.input.code != OPCODE_VAL, "INPUT_OPCODE_VAL");
-
-            // OPCODE_LIT and OPCODE_ARG are special opcodes that can only
-            // exist at compile time. Both compile to OPCODE_VAL and place a
-            // single uint256 value into vals_ to be referenced by OPCODE_VAL.
-            // OPCODE_LIT takes the uint256 directly from the following 32
-            // bytes in the source code. The OPCODE_LIT operand is ignored.
-            // OPCODE_ARG takes the uint256 from the `args_` to `compile`.
-            // The OPCODE_ARG operand is the index into `args_`.
-            if (compileIO_.input.code == OPCODE_LIT
-                || compileIO_.input.code == OPCODE_ARG) {
-                uint256 val_ = 0;
-                // Literal opcode means copy the 32 bytes after the operand
-                // byte out of the source and into vals_.
-                if (compileIO_.input.code == OPCODE_LIT) {
-                    for (uint j_ = 0; j_ < LIT_SIZE_BYTES; j_++) {
-                        val_ |= uint256(
-                            uint256(uint8(inputSource_[i_ + j_ + 2]))
-                                << (256 - (8 * (j_ + 1)))
-                        );
-                    }
-                    // Move i_ forward 32 to compensate for the literal bytes.
-                    i_ += LIT_SIZE_BYTES;
-
-                    compileIO_.output.code = OPCODE_VAL;
-                }
-
-                if (compileIO_.input.code == OPCODE_ARG) {
-                    val_ = args_[compileIO_.input.val];
-                    compileIO_.output.code = OPCODE_VAL;
-                }
-
-                outputSource_.vals[valsIndex_] = val_;
-                compileIO_.output.val = valsIndex_;
-                valsIndex_++;
-            }
-            else {
-                compileIO_.output.code = compileIO_.input.code;
-                compileIO_.output.val = compileIO_.input.val;
-            }
-
             outputSource_.source[outputSourceCursor_.item]
                 ^= uint256(
-                    uint256(compileIO_.output.code)
+                    uint256(op_.code)
                         << (outputSourceCursor_.index * 8)
                 );
             outputSource_.source[outputSourceCursor_.item]
                 ^= uint256(
-                    uint256(compileIO_.output.val)
+                    uint256(op_.val)
                         << ((outputSourceCursor_.index + 1) * 8)
                 );
         }
@@ -300,7 +246,7 @@ abstract contract RainCompiler {
         Stack memory stack_,
         CompiledSource memory compiledSource_
     ) internal view returns (Stack memory) {
-        for (uint256 i_ = 0; i_ < MAX_COMPILED_SOURCE_LENGTH; i_ = i_ + 2) {
+        for (uint256 i_ = 0; i_ < MAX_SOURCE_LENGTH; i_ = i_ + 2) {
             SourceCursor memory sourceCursor_ = SourceCursor(
                 uint8(i_.div(32)),
                 uint8(i_.mod(32))
@@ -320,7 +266,10 @@ abstract contract RainCompiler {
             );
 
             if (op_.code <= OPCODE_RESERVED_MAX) {
-                if (op_.code == OPCODE_VAL) {
+                if (op_.code == OPCODE_END) {
+                    break;
+                }
+                else if (op_.code == OPCODE_VAL) {
                     stack_.vals[stack_.index] = compiledSource_.vals[op_.val];
                     stack_.index++;
                 }
