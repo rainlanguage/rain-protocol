@@ -60,6 +60,11 @@ contract CalculatorTest is RainCompiler {
             stack_,
             compiledSource()
         );
+
+        for (uint256 index = 0; index < stack_.vals.length; index++) {
+            console.log(stack_.vals[index]);
+        }
+
         return stack_.vals[stack_.index - 1];
     }
 }

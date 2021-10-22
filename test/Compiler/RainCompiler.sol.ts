@@ -77,7 +77,7 @@ describe("RainCompiler", async function () {
       bytify(0), //           00
       bytify(1, 32), //       -> val0
       bytify(Opcode.LIT), //  03
-      bytify(0), // ->        01
+      bytify(0), //           01
       bytify(2, 32), //       -> val1
       bytify(Opcode.LIT), //  03
       bytify(0), //           02
@@ -91,11 +91,9 @@ describe("RainCompiler", async function () {
       source
     )) as CalculatorTest;
 
-    console.log(`${hexlify(await calculator.source0())}`);
-
     const result = await calculator.run();
 
-    console.log(`${hexlify(result)}`);
+    console.log(`result ${hexlify(result)}`);
   });
 
   it("should compile a basic program (store some numbers in val0 and val1)", async () => {
