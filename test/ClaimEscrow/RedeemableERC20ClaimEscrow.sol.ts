@@ -990,7 +990,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
           claimableToken.address,
           0
         ),
-      "revert FACTORY_CONTRACT",
+      "revert NOT_TRUSTED_CHILD",
       "did not check trust is child of trust factory"
     );
   });

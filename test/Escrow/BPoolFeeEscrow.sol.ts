@@ -765,7 +765,7 @@ describe("BPoolFeeEscrow", async function () {
             ethers.BigNumber.from("1"),
             ethers.BigNumber.from("1000000" + Util.eighteenZeros)
           ),
-        "revert FACTORY_TRUST",
+        "revert NOT_TRUSTED_CHILD",
         "buyToken proceeded despite trust address not being child of factory"
       );
 
