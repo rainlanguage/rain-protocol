@@ -734,7 +734,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const { escrow, trustFactory, tier } = await deployGlobals();
 
-    const registeredTrustFactory = await escrow.trustFactory();
+    const registeredTrustFactory = await escrow.trustedFactory();
 
     assert(
       registeredTrustFactory === getAddress(trustFactory.address),
