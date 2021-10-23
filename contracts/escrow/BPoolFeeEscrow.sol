@@ -135,17 +135,11 @@ contract BPoolFeeEscrow is FactoryTruster {
     /// recipient => reserve => amount
     mapping(address => mapping(address => uint256)) public minFees;
 
-    /// @dev recipient => trust
-    /// @dev private due to compiler constraints.
-    mapping(address => EnumerableSet.AddressSet) private pending;
-
     /// trust => recipient => amount
     mapping(address => mapping(address => uint256)) public fees;
 
     /// trust => amount
-    mapping(address => uint256) public failureRefunds;
-    /// trust => amount
-    mapping(address => uint256) public abandoned;
+    mapping(address => uint256) public aggregateFees;
 
     /// @param trustFactory_ `TrustFactory` that every `Trust` MUST be a child
     /// of. The security model of the escrow REQUIRES that the `TrustFactory`
@@ -155,18 +149,6 @@ contract BPoolFeeEscrow is FactoryTruster {
         public
         FactoryTruster(trustFactory_)
         {} //solhint-disable-line no-empty-blocks
-
-    /// Public accessor by index for pending.
-    /// Allows access into the private struct.
-    /// @param feeRecipient_ The recipient claims are pending for.
-    /// @param index_ The index of the pending claim.
-    function getPending(address feeRecipient_, uint256 index_)
-        external
-        view
-        returns(address)
-    {
-        return pending[feeRecipient_].at(index_);
-    }
 
     /// Recipient can set the minimum fees they will accept per-reserve.
     /// This setting applies to all trusts and fee senders using this reserve.
@@ -209,62 +191,21 @@ contract BPoolFeeEscrow is FactoryTruster {
         return oldMinFees_;
     }
 
-    /// Recipient can abandon fees from troublesome trusts with no function
-    /// calls to external contracts.
-    ///
-    /// Catch-all solution for situations such as:
-    /// - Malicious/buggy reserves
-    /// - Gas griefing due to low min-fees
-    /// - Regulatory/reputational concerns
-    ///
-    /// It is important that this function does not call external contracts.
-    /// Recipient MUST be able to safely walk away from malicious contracts.
-    /// In the case of a malicious reserve the recipient SHOULD also unset the
-    /// min fees for that reserve to prevent future malicious fees. In the case
-    /// of a malicious trust the recipient should walk away from this escrow
-    /// contract entirely as that implies a malicious `TrustFactory`.
-    ///
-    /// Abandoned fees become payable to the redeemable token.
-    /// Abandoning `0` fees is a noop.
-    /// @param trust_ The trust to abandon.
-    /// @return The amount of fees abandoned.
-    function recipientAbandonTrust(Trust trust_) external returns (uint256) {
-        uint256 oldFees_ = fees[address(trust_)][msg.sender];
-        if (oldFees_ > 0) {
-            delete fees[address(trust_)][msg.sender];
-            abandoned[address(trust_)] = abandoned[address(trust_)]
-                .add(oldFees_);
-            failureRefunds[address(trust_)] = failureRefunds[address(trust_)]
-                .sub(oldFees_);
-            // Ignore this because it doesn't represent success/fail of remove.
-            bool didRemove_;
-            didRemove_ = pending[msg.sender].remove(address(trust_));
-            emit AbandonTrust(msg.sender, address(trust_), oldFees_);
-        }
-        return oldFees_;
-    }
-
-    /// Batch wrapper that loops over `anonClaimFees` up to an iteration limit.
+    /// Batch wrapper that loops over `anonClaimFees` for all passed trusts.
     /// The iteration limit exists to keep gas under control in the case of
     /// many pending fees.
     /// @param feeRecipient_ Recipient to claim fees for.
-    /// @param limit_ Maximum number of claims to process in this batch.
+    /// @param trusts_ Trusts to claim fees for.
     /// @return All the claimed fees from the inner loop.
-    function anonClaimFeesMulti(address feeRecipient_, uint256 limit_)
+    function anonClaimFeesMulti(address feeRecipient_, Trust[] memory trusts_)
         external
         returns (ClaimedFees[] memory)
     {
-        limit_ = limit_.min(pending[feeRecipient_].length());
-        ClaimedFees[] memory claimedFees_ = new ClaimedFees[](limit_);
-        uint256 i_ = 0;
-        address trust_ = address(0);
-        while (i_ < limit_) {
-            // Keep hitting 0 because `pending` is mutated by `claimFees`
-            // each iteration removing the processed claim.
-            trust_ = pending[feeRecipient_].at(0);
-            claimedFees_[i_] = ClaimedFees(trust_, anonClaimFees(
+        ClaimedFees[] memory claimedFees_ = new ClaimedFees[](trusts_.length);
+        for (uint256 i_ = 0; i_ < trusts_.length; i_++) {
+            claimedFees_[i_] = ClaimedFees(address(trusts_[i_]), anonClaimFees(
                 feeRecipient_,
-                Trust(trust_)
+                trusts_[i_]
             ));
             i_++;
         }
@@ -304,11 +245,6 @@ contract BPoolFeeEscrow is FactoryTruster {
             distributionStatus_ == DistributionStatus.Success ||
             distributionStatus_ == DistributionStatus.Fail
         ) {
-            // Ignore this because it doesn't represent success/fail of remove.
-            bool didRemove_;
-            // The claim is no longer pending as we're processing it now.
-            didRemove_ = pending[feeRecipient_].remove(address(trust_));
-
             // Greater than zero rather than the current min fee as a recipient
             // may have recently changed their min fee to a number greater than
             // is waiting for them to claim. Recipient is free to abandon a
@@ -357,39 +293,28 @@ contract BPoolFeeEscrow is FactoryTruster {
     /// @param trust_ The `Trust` to refund for.
     /// @return The total refund.
     function anonRefundFees(Trust trust_) external returns (uint256) {
-        DistributionStatus distributionStatus_
-            = trust_.getDistributionStatus();
+        uint256 refund_ = aggregateFees[address(trust_)];
 
-        uint256 totalRefund_ = 0;
-        uint256 abandoned_ = abandoned[address(trust_)];
-        uint256 failureRefund_ = failureRefunds[address(trust_)];
+        if (refund_ > 0) {
+            DistributionStatus distributionStatus_
+                = trust_.getDistributionStatus();
+            if (distributionStatus_ == DistributionStatus.Fail ||
+                distributionStatus_ == DistributionStatus.Success) {
+                // Clear out the failure refund even if the raise succeeded.
+                delete aggregateFees[address(trust_)];
 
-        if (abandoned_ > 0) {
-            delete abandoned[address(trust_)];
-            totalRefund_ = totalRefund_.add(abandoned_);
-        }
-
-        if (
-            failureRefund_ > 0 &&
-            (distributionStatus_ == DistributionStatus.Fail ||
-                distributionStatus_ == DistributionStatus.Success)
-        ) {
-            if (distributionStatus_ == DistributionStatus.Fail) {
-                totalRefund_ = totalRefund_.add(failureRefund_);
+                if (distributionStatus_ == DistributionStatus.Fail) {
+                    TrustContracts memory trustContracts_ = trust_
+                        .getContracts();
+                    IERC20(trustContracts_.reserveERC20).safeTransfer(
+                        trustContracts_.redeemableERC20,
+                        refund_
+                    );
+                    emit RefundFees(address(trust_), refund_);
+                }
             }
-            // Clear out the failure refund even if the raise was a success.
-            delete failureRefunds[address(trust_)];
         }
-
-        if (totalRefund_ > 0) {
-            TrustContracts memory trustContracts_ = trust_.getContracts();
-            IERC20(trustContracts_.reserveERC20).safeTransfer(
-                trustContracts_.redeemableERC20,
-                totalRefund_
-            );
-            emit RefundFees(address(trust_), totalRefund_);
-        }
-        return totalRefund_;
+        return refund_;
     }
 
     /// Unidirectional wrapper around `swapExactAmountIn` for 'buying tokens'.
@@ -449,14 +374,10 @@ contract BPoolFeeEscrow is FactoryTruster {
         onlyTrustedFactoryChild(address(trust_))
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
     {
-        fees[address(trust_)][feeRecipient_] = fees[address(trust_)][
-            feeRecipient_
-        ].add(fee_);
-        failureRefunds[address(trust_)] = failureRefunds[address(trust_)]
-        .add(fee_);
-        // Ignore this because it doesn't represent success/fail of add.
-        bool didAdd_;
-        didAdd_ = pending[feeRecipient_].add(address(trust_));
+        fees[address(trust_)][feeRecipient_]
+            = fees[address(trust_)][feeRecipient_].add(fee_);
+        aggregateFees[address(trust_)] = aggregateFees[address(trust_)]
+            .add(fee_);
 
         TrustContracts memory trustContracts_ = trust_.getContracts();
         uint256 minFees_ =

@@ -33,11 +33,11 @@ contract RedeemableERC20Reentrant is ReserveToken {
             sender_ != address(0)
             && sender_ == address(redeemableERC20Contract)
         ) {
-            IERC20[] memory specificRedeemables_ = new IERC20[](1);
-            specificRedeemables_[0] = IERC20(address(this));
+            IERC20[] memory redeemables_ = new IERC20[](1);
+            redeemables_[0] = IERC20(address(this));
             // This call MUST fail.
-            redeemableERC20Contract.redeemSpecific(
-                specificRedeemables_,
+            redeemableERC20Contract.redeem(
+                redeemables_,
                 amount_
             );
         }

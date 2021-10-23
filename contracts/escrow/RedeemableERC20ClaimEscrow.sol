@@ -75,6 +75,27 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
+    event Deposit(
+        address indexed trust,
+        address indexed token,
+        address indexed depositor,
+        uint256 amount
+    );
+
+    event Undeposit(
+        address indexed trust,
+        address indexed token,
+        address indexed undepositor,
+        uint256 amount
+    );
+
+    event Withdraw(
+        address indexed trust,
+        address indexed token,
+        address indexed withdrawer,
+        uint256 amount
+    );
+
     /// trust => withdrawn token => withdrawer => amount
     mapping(address => mapping(address => mapping(address => uint256)))
         public withdrawals;
@@ -124,6 +145,8 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
         );
 
         token_.safeTransferFrom(msg.sender, address(this), amount_);
+
+        emit Deposit(address(trust_), address(token_), msg.sender, amount_);
     }
 
     /// The inverse of `deposit`.
@@ -158,6 +181,13 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
             );
 
             token_.safeTransfer(msg.sender, amount_);
+
+            emit Undeposit(
+                address(trust_),
+                address(token_),
+                msg.sender,
+                amount_
+            );
         }
     }
 
@@ -198,9 +228,7 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
                 "ONLY_SUCCESS"
             );
             TrustContracts memory trustContracts_ = trust_.getContracts();
-            token_.safeTransfer(
-                msg.sender,
-                totalDeposit_.sub(withdrawn_).mul(
+            uint256 amount_ = totalDeposit_.sub(withdrawn_).mul(
                     RedeemableERC20(trustContracts_.redeemableERC20)
                         .balanceOf(msg.sender)
                 )
@@ -221,7 +249,16 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
                 // token as it cannot be withdrawn from the escrow contract.
                 .min(
                     token_.balanceOf(address(this))
-                )
+                );
+            token_.safeTransfer(
+                msg.sender,
+                amount_
+            );
+            emit Withdraw(
+                address(trust_),
+                address(token_),
+                msg.sender,
+                amount_
             );
         }
     }

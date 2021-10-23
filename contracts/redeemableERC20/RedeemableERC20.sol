@@ -129,6 +129,14 @@ contract RedeemableERC20 is
         keccak256("DISTRIBUTOR_BURNER");
     bytes32 public constant REDEEMABLE_ADDER = keccak256("REDEEMABLE_ADDER");
 
+    /// A new Redeemable has been added to the contract.
+    event Redeemable(
+        // Account adding the redeemable.
+        address indexed adder,
+        // Redeemable token added.
+        address indexed redeemable
+    );
+
     /// Redeemable token burn for reserve.
     event Redeem(
         // Account burning and receiving.
@@ -217,30 +225,7 @@ contract RedeemableERC20 is
             hasRole(REDEEMABLE_ADDER, msg.sender),
             "ONLY_REDEEMABLE_ADDER"
         );
-        // Somewhat arbitrary but we limit the length of redeemables to 8.
-        // 8 is actually a lot. Consider that every `redeem` call must loop a
-        // `balanceOf` and `safeTransfer` per redeemable.
-        require(redeemables.length<MAX_REDEEMABLES, "MAX_REDEEMABLES");
-        for (uint256 i_ = 0; i_<redeemables.length;i_++) {
-            require(redeemables[i_] != newRedeemable_, "DUPLICATE_REDEEMABLE");
-        }
-        redeemables.push(newRedeemable_);
-    }
-
-    /// Public getter for underlying registered redeemables as a fixed sized
-    /// array.
-    /// The underlying array is dynamic but fixed size return values provide
-    /// clear bounds on gas etc.
-    /// @return Dynamic `redeemables` mapped to a fixed size array.
-    function getRedeemables() external view returns (address[8] memory) {
-        // Slither false positive here due to a bug in slither.
-        // https://github.com/crytic/slither/issues/884
-        // slither-disable-next-line uninitialized-local
-        address[8] memory redeemablesArray_;
-        for(uint256 i_ = 0;i_<redeemables.length;i_++) {
-            redeemablesArray_[i_] = address(redeemables[i_]);
-        }
-        return redeemablesArray_;
+        emit Redeemable(msg.sender, address(newRedeemable_));
     }
 
     /// Redeem tokens.
@@ -263,8 +248,8 @@ contract RedeemableERC20 is
     /// Note: Any tokens held by `address(0)` are burned defensively.
     ///       This is because transferring directly to `address(0)` will
     ///       succeed but the `totalSupply` won't reflect it.
-    function redeemSpecific(
-        IERC20[] memory specificRedeemables_,
+    function redeem(
+        IERC20[] memory redeemables_,
         uint256 redeemAmount_
     )
         public
@@ -282,8 +267,8 @@ contract RedeemableERC20 is
         // This function is `nonReentrant` but we burn before redeeming anyway.
         _burn(msg.sender, redeemAmount_);
 
-        for(uint256 i_ = 0; i_ < specificRedeemables_.length; i_++) {
-            IERC20 ithRedeemable_ = specificRedeemables_[i_];
+        for(uint256 i_ = 0; i_ < redeemables_.length; i_++) {
+            IERC20 ithRedeemable_ = redeemables_[i_];
             uint256 tokenAmount_ = ithRedeemable_
                 .balanceOf(address(this))
                 .mul(redeemAmount_)
@@ -298,19 +283,6 @@ contract RedeemableERC20 is
                 tokenAmount_
             );
         }
-    }
-
-    /// Default redemption behaviour.
-    /// Thin wrapper for `redeemSpecific`.
-    /// `msg.sender` specifies an amount of their own redeemable token to
-    /// redeem.
-    /// Each redeemable token specified by this contract's admin will be sent
-    /// to the sender pro-rata.
-    /// The sender's tokens are burned in the process.
-    /// @param redeemAmount_ The amount of the sender's redeemable erc20 to
-    /// burn.
-    function redeem(uint256 redeemAmount_) external {
-        redeemSpecific(redeemables, redeemAmount_);
     }
 
     /// Sanity check to ensure `Phase.ONE` is the final phase.
