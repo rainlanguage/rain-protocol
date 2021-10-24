@@ -96,22 +96,6 @@ contract BPoolFeeEscrow is FactoryTruster {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    /// The recipient has set minimum fees for the given reserve.
-    /// A minFees value of `0` means the minimum fee was unset.
-    /// ONLY emitted if the min fees changed value.
-    event MinFeesChange(
-        address indexed recipient,
-        address indexed reserve,
-        // [oldMinFees, newMinFees]
-        uint256[2] minFeesDiff
-    );
-    /// The recipient has abandoned a trust.
-    /// ONLY emitted if non-zero fees were abandoned.
-    event AbandonTrust(
-        address indexed recipient,
-        address indexed trust,
-        uint256 abandonedFees
-    );
     /// A claim has been processed for a recipient.
     /// ONLY emitted if the trust has success/fail distribution status.
     event ClaimFees(
@@ -132,9 +116,6 @@ contract BPoolFeeEscrow is FactoryTruster {
         uint256 fee
     );
 
-    /// recipient => reserve => amount
-    mapping(address => mapping(address => uint256)) public minFees;
-
     /// trust => recipient => amount
     mapping(address => mapping(address => uint256)) public fees;
 
@@ -149,47 +130,6 @@ contract BPoolFeeEscrow is FactoryTruster {
         public
         FactoryTruster(trustFactory_)
         {} //solhint-disable-line no-empty-blocks
-
-    /// Recipient can set the minimum fees they will accept per-reserve.
-    /// This setting applies to all trusts and fee senders using this reserve.
-    /// This has the effect of signalling the recipient accepts this reserve.
-    /// Reserves that have no min fee cannot be forwarded to this recipient.
-    /// Setting the fees to what they already are is a noop.
-    /// @param reserve_ The token to a set minimium fees for.
-    /// @param newMinFees_ The amount of reserve token to require a fee to be.
-    /// @return The old min fees.
-    function recipientSetMinFees(address reserve_, uint256 newMinFees_)
-        external
-        returns (uint256)
-    {
-        require(newMinFees_ > 0, "MIN_FEES");
-        uint256 oldMinFees_ = minFees[msg.sender][reserve_];
-        if (oldMinFees_ != newMinFees_) {
-            minFees[msg.sender][reserve_] = newMinFees_;
-            emit MinFeesChange(
-                msg.sender,
-                reserve_,
-                [oldMinFees_, newMinFees_]
-            );
-        }
-        return oldMinFees_;
-    }
-
-    /// Receipient can unset the fees for a reserve, thus opting out of further
-    /// payments in that token. Unsetting fees that are already 0 is a noop.
-    /// @param reserve_ The reserve to stop accepting.
-    /// @return The fees before they were unset.
-    function recipientUnsetMinFees(address reserve_)
-        external
-        returns (uint256)
-    {
-        uint256 oldMinFees_ = minFees[msg.sender][reserve_];
-        if (oldMinFees_ > 0) {
-            delete minFees[msg.sender][reserve_];
-            emit MinFeesChange(msg.sender, reserve_, [oldMinFees_, 0]);
-        }
-        return oldMinFees_;
-    }
 
     /// Batch wrapper that loops over `anonClaimFees` for all passed trusts.
     /// The iteration limit exists to keep gas under control in the case of
@@ -380,10 +320,6 @@ contract BPoolFeeEscrow is FactoryTruster {
             .add(fee_);
 
         TrustContracts memory trustContracts_ = trust_.getContracts();
-        uint256 minFees_ =
-            minFees[feeRecipient_][trustContracts_.reserveERC20];
-        require(fee_ > 0 && fee_ >= minFees_, "MIN_FEE");
-        require(minFees_ > 0, "UNSET_FEE");
 
         IERC20(trustContracts_.reserveERC20).safeTransferFrom(
             msg.sender,
