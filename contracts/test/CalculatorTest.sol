@@ -40,12 +40,58 @@ contract CalculatorTest is RainCompiler {
             stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
         } else if (op_.code == OPCODE_SUB) {
+            stack_.index -= op_.val;
+            // Set initial value as first number.
+            uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
+            for (uint256 a_ = 0; a_ < op_.val - 1; a_++) {
+                // Iterate backwards through inputs, subtracting each one from
+                // the current value, being careful not to subtract the first
+                // number from itself.
+                accumulator_ = accumulator_
+                    .sub(stack_.vals[stack_.index + a_]);
+            }
+            stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
         } else if (op_.code == OPCODE_MUL) {
+            stack_.index -= op_.val;
+            // Set initial value as first number.
+            uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
+            for (uint256 a_ = 0; a_ < op_.val - 1; a_++) {
+                // Iterate backwards through inputs, multiplying the current
+                // value by each one, being careful not to multiply the first
+                // number again.
+                accumulator_ = accumulator_
+                    .mul(stack_.vals[stack_.index + a_]);
+            }
+            stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
         } else if (op_.code == OPCODE_DIV) {
+            stack_.index -= op_.val;
+            // Set initial value as first number.
+            uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
+            for (uint256 a_ = 0; a_ < op_.val - 1; a_++) {
+                // Iterate backwards through inputs, dividing the current
+                // value by each one, being careful not to divide by the first
+                // number again.
+                accumulator_ = accumulator_
+                    .div(stack_.vals[stack_.index + a_]);
+            }
+            stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
         } else if (op_.code == OPCODE_MOD) {
+            stack_.index -= op_.val;
+            // Set numerator value as first number.
+            uint256 numerator_ = stack_.vals[stack_.index + op_.val - 1];
+            // Set initial denominator value as second number.
+            uint256 denominator_ = stack_.vals[stack_.index + op_.val - 2];
+            for (uint256 a_ = 0; a_ < op_.val - 2; a_++) {
+                // Iterate backwards through inputs, calculating the total
+                // denominator, being careful not to multiply by the initial
+                // denominator value again.
+                denominator_ = denominator_
+                    .mul(stack_.vals[stack_.index + a_]);
+            }
+            stack_.vals[stack_.index] = numerator_.mod(denominator_);
             stack_.index++;
         }
 

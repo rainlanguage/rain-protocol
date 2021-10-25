@@ -29,31 +29,27 @@ describe("RainCompiler", async function () {
     const vals = [2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
     const source = [
-      hexlify(
-        concat(
-          [
-            // (/ (* (+ 2 2 2) 3) 2 3)
-            bytify(3),
-            bytify(Opcode.DIV),
-            bytify(2),
-            bytify(Opcode.MUL),
-            bytify(3),
-            bytify(Opcode.ADD),
-            bytify(0),
-            bytify(Opcode.VAL),
-            bytify(0),
-            bytify(Opcode.VAL),
-            bytify(0),
-            bytify(Opcode.VAL),
-            bytify(1),
-            bytify(Opcode.VAL),
-            bytify(0),
-            bytify(Opcode.VAL),
-            bytify(1),
-            bytify(Opcode.VAL),
-          ].reverse()
-        )
-      ),
+      concat([
+        // (/ (* (+ 2 2 2) 3) 2 3)
+        bytify(3),
+        bytify(Opcode.DIV),
+        bytify(2),
+        bytify(Opcode.MUL),
+        bytify(3),
+        bytify(Opcode.ADD),
+        bytify(0),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+      ]),
       0,
       0,
       0,
@@ -65,7 +61,166 @@ describe("RainCompiler", async function () {
       vals,
     })) as CalculatorTest;
 
-    console.log(`${hexlify(await calculator.source0())}`);
+    const result = await calculator.run();
+    const expected = 3;
+    assert(
+      result.eq(expected),
+      `wrong solution to (/ (* (+ 2 2 2) 3) 2 3)
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should return remainder of dividing an initial number by the product of a sequence of numbers", async () => {
+    this.timeout(0);
+
+    const vals = [3, 2, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        // (% 13 2 3)
+        bytify(3),
+        bytify(Opcode.MOD),
+        bytify(2),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.VAL),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest;
+
+    const result = await calculator.run();
+    const expected = 1;
+    assert(
+      result.eq(expected),
+      `wrong remainder
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should divide an initial number by the product of a sequence of numbers", async () => {
+    this.timeout(0);
+
+    const vals = [3, 2, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        // (/ 12 2 3)
+        bytify(3),
+        bytify(Opcode.DIV),
+        bytify(2),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.VAL),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest;
+
+    const result = await calculator.run();
+    const expected = 2;
+    assert(
+      result.eq(expected),
+      `wrong division
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should multiply a sequence of numbers together", async () => {
+    this.timeout(0);
+
+    const vals = [5, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        // (* 3 4 5)
+        bytify(3),
+        bytify(Opcode.MUL),
+        bytify(2),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.VAL),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest;
+
+    const result = await calculator.run();
+    const expected = 60;
+    assert(
+      result.eq(expected),
+      `wrong multiplication
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should subtract a sequence of numbers from an initial number", async () => {
+    this.timeout(0);
+
+    const vals = [3, 2, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        // (- 10 2 3)
+        bytify(3),
+        bytify(Opcode.SUB),
+        bytify(2),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.VAL),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest;
+
+    const result = await calculator.run();
+    const expected = 5;
+    assert(
+      result.eq(expected),
+      `wrong subtraction
+      expected  ${expected}
+      got       ${result}`
+    );
   });
 
   it("should add a sequence of numbers together", async () => {
