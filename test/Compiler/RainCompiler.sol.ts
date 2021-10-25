@@ -23,6 +23,80 @@ const enum Opcode {
 }
 
 describe("RainCompiler", async function () {
+  it("should perform a calculation using the block number as a value", async () => {
+    this.timeout(0);
+
+    const vals = [1, 2, 3, 4, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        // (* (+ 3 4 (- 2 1)) (/ 6 3) B)
+        bytify(3),
+        bytify(Opcode.MUL),
+        bytify(3),
+        bytify(Opcode.ADD),
+        bytify(2),
+        bytify(Opcode.VAL),
+        bytify(3),
+        bytify(Opcode.VAL),
+        bytify(2),
+        bytify(Opcode.SUB),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.VAL),
+        bytify(2),
+        bytify(Opcode.DIV),
+        bytify(4),
+        bytify(Opcode.VAL),
+        bytify(2),
+        bytify(Opcode.VAL),
+        bytify(0),
+        bytify(Opcode.BLOCK_NUMBER),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest;
+
+    const result0 = await calculator.run();
+    const expected0 = 16;
+    assert(
+      result0.eq(expected0),
+      `wrong solution with block number of 1
+      expected  ${expected0}
+      got       ${result0}`
+    );
+
+    await Util.createEmptyBlock();
+
+    const result1 = await calculator.run();
+    const expected1 = 32;
+    assert(
+      result1.eq(expected1),
+      `wrong solution with block number of 2
+      expected  ${expected1}
+      got       ${result1}`
+    );
+
+    await Util.createEmptyBlock();
+
+    const result2 = await calculator.run();
+    const expected2 = 48;
+    assert(
+      result2.eq(expected2),
+      `wrong solution with block number of 3
+      expected  ${expected2}
+      got       ${result2}`
+    );
+  });
+
   it("should calculate a mathematical expression (division, product, summation)", async () => {
     this.timeout(0);
 
