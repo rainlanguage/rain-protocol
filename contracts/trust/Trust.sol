@@ -7,19 +7,33 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {
+    ReentrancyGuard
+} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import {ITier} from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
-import {Phase} from "../phased/Phased.sol";
-import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
-import {RedeemableERC20Pool, RedeemableERC20PoolConfig} from "../pool/RedeemableERC20Pool.sol";
-import {SeedERC20, SeedERC20Config} from "../seed/SeedERC20.sol";
-import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
-import {RedeemableERC20PoolFactory, RedeemableERC20PoolFactoryRedeemableERC20PoolConfig} from "../pool/RedeemableERC20PoolFactory.sol";
-import {SeedERC20Factory} from "../seed/SeedERC20Factory.sol";
+import { Phase } from "../phased/Phased.sol";
+import {
+    RedeemableERC20,
+    RedeemableERC20Config
+} from "../redeemableERC20/RedeemableERC20.sol";
+import {
+    RedeemableERC20Pool, RedeemableERC20PoolConfig
+} from "../pool/RedeemableERC20Pool.sol";
+import { SeedERC1155, MintConfig } from "../seed/SeedERC1155.sol";
+import {
+    RedeemableERC20Factory
+} from "../redeemableERC20/RedeemableERC20Factory.sol";
+import {
+    RedeemableERC20PoolFactory,
+    RedeemableERC20PoolFactoryRedeemableERC20PoolConfig
+} from "../pool/RedeemableERC20PoolFactory.sol";
+import {
+    BPoolFeeEscrow
+} from "../escrow/BPoolFeeEscrow.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -117,6 +131,7 @@ struct TrustConfig {
     // any time to increase redemption value. Successful the redeemInit is sent
     // to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
+    BPoolFeeEscrow bPoolFeeEscrow;
 }
 
 struct TrustRedeemableERC20Config {
@@ -268,6 +283,8 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
+    BPoolFeeEscrow public immutable bPoolFeeEscrow;
+
     /// Creator from the initial config.
     address public immutable creator;
     /// minimum creator raise from the initial config.
@@ -353,6 +370,7 @@ contract Trust is ReentrancyGuard {
         successBalance = successBalance_;
         seeder = config_.seeder;
         seederFee = config_.seederFee;
+        bPoolFeeEscrow = config_.bPoolFeeEscrow;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             trustRedeemableERC20Config_.redeemableERC20Factory.createChild(
@@ -452,32 +470,6 @@ contract Trust is ReentrancyGuard {
             address(redeemableERC20Pool_),
             trustRedeemableERC20Config_.totalSupply
         );
-    }
-
-    /// Accessor for the `TrustContracts` of this `Trust`.
-    function getContracts() external view returns (TrustContracts memory) {
-        return
-            TrustContracts(
-                address(pool.reserve()),
-                address(token),
-                address(pool),
-                address(seeder),
-                address(token.tierContract()),
-                address(pool.crp()),
-                address(pool.crp().bPool())
-            );
-    }
-
-    /// Accessor for the `TrustConfig` of this `Trust`.
-    function getTrustConfig() external view returns (TrustConfig memory) {
-        return
-            TrustConfig(
-                address(creator),
-                minimumCreatorRaise,
-                address(seeder),
-                seederFee,
-                redeemInit
-            );
     }
 
     /// Accessor for the `DistributionProgress` of this `Trust`.

@@ -9,9 +9,10 @@ import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
-import type { BigNumber } from "ethers";
+import type { BigNumber, BytesLike } from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
+import { Hexable, hexlify, hexValue, zeroPad } from "ethers/lib/utils";
 
 const { expect, assert } = chai;
 
@@ -100,10 +101,17 @@ export const balancerDeploy = async (): Promise<[CRPFactory, BFactory]> => {
   if (bFactoryAddress) {
     bFactory = new ethers.Contract(
       bFactoryAddress,
-      (await artifacts.readArtifact("BFactory")).abi
+      (
+        await artifacts.readArtifact(
+          "@beehiveinnovation/balancer-core/contracts/BFactory.sol:BFactory"
+        )
+      ).abi
     ) as BFactory;
   } else {
-    bFactory = (await basicDeploy("BFactory", {})) as BFactory;
+    bFactory = (await basicDeploy(
+      "@beehiveinnovation/balancer-core/contracts/BFactory.sol:BFactory",
+      {}
+    )) as BFactory;
   }
 
   return [crpFactory, bFactory];
@@ -214,7 +222,11 @@ export const poolContracts = async (
   ) as ConfigurableRightsPool;
   const bPool = new ethers.Contract(
     await crp.bPool(),
-    (await artifacts.readArtifact("BPool")).abi,
+    (
+      await artifacts.readArtifact(
+        "@beehiveinnovation/balancer-core/contracts/BPool.sol:BPool"
+      )
+    ).abi,
     signers[0]
   ) as BPool;
   return [crp, bPool];
@@ -255,14 +267,11 @@ export const trustDeploy = async (
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
+  if (!count) count = 1;
   const signers = await ethers.getSigners();
-  const tx = { to: signers[1].address };
-  if (count > 0) {
-    for (let i = 0; i < count; i++) {
-      await signers[0].sendTransaction(tx);
-    }
-  } else {
-    await signers[0].sendTransaction(tx);
+  const txNoOp = { to: signers[1].address };
+  for (let i = 0; i < count; i++) {
+    await signers[0].sendTransaction(txNoOp);
   }
 };
 
@@ -313,4 +322,44 @@ export function zeroPad32(hex: BigNumber): string {
  */
 export function zeroPad4(hex: BigNumber): string {
   return ethers.utils.hexZeroPad(hex.toHexString(), 4);
+}
+
+/**
+ * Converts a value to raw bytes representation. Assumes `value` is less than or equal to 1 byte, unless a desired `bytesLength` is specified.
+ *
+ * @param value - value to convert to raw bytes format
+ * @param bytesLength - (default = 1 byte) number of bytes to left pad if `value` doesn't completely fill the desired amount of memory. Will throw `InvalidArgument` error if value already exceeds bytes length.
+ * @returns {Uint8Array} - raw bytes representation
+ */
+export function bytify(
+  value: number | BytesLike | Hexable,
+  bytesLength: number = 1
+): BytesLike {
+  return zeroPad(hexlify(value), bytesLength);
+}
+
+export function callSize(
+  fnSize: number,
+  loopSize: number,
+  valSize: number
+): number {
+  // CallSize(
+  //   op_.val & 0x03, //     00000011
+  //   op_.val & 0x1C, //     00011100
+  //   op_.val & 0xE0  //     11100000
+  // )
+
+  if (fnSize < 0 || fnSize > 3) {
+    throw new Error("Invalid fnSize");
+  } else if (loopSize < 0 || loopSize > 7) {
+    throw new Error("Invalid loopSize");
+  } else if (valSize < 0 || valSize > 7) {
+    throw new Error("Invalid valSize");
+  }
+  let callSize = valSize;
+  callSize <<= 3;
+  callSize += loopSize;
+  callSize <<= 2;
+  callSize += fnSize;
+  return callSize;
 }

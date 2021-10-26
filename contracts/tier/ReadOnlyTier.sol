@@ -3,7 +3,7 @@
 pragma solidity 0.6.12;
 
 import { ITier } from "./ITier.sol";
-import { TierUtil } from "../libraries/TierUtil.sol";
+import { TierReport } from "./libraries/TierReport.sol";
 
 /// @title ReadOnlyTier
 /// @notice `ReadOnlyTier` is a base contract that other contracts

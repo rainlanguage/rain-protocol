@@ -23,13 +23,13 @@ import {
     RedeemableERC20Pool,
     RedeemableERC20PoolConfig
 } from "../pool/RedeemableERC20Pool.sol";
-import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
-import { SeedERC20Config } from "../seed/SeedERC20.sol";
+import { MintConfig } from "../seed/SeedERC1155.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {
     TrustRedeemableERC20Config,
     TrustRedeemableERC20PoolConfig
 } from "./Trust.sol";
+import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
 
 /// Everything required to construct a `TrustFactory`.
 struct TrustFactoryConfig {
@@ -147,12 +147,14 @@ contract TrustFactory is Factory {
     RedeemableERC20Factory public immutable redeemableERC20Factory;
     RedeemableERC20PoolFactory public immutable redeemableERC20PoolFactory;
     SeedERC20Factory public immutable seedERC20Factory;
+    BPoolFeeEscrow public immutable bPoolFeeEscrow;
 
     /// @param config_ All configuration for the `TrustFactory`.
     constructor(TrustFactoryConfig memory config_) public {
         redeemableERC20Factory = config_.redeemableERC20Factory;
         redeemableERC20PoolFactory = config_.redeemableERC20PoolFactory;
         seedERC20Factory = config_.seedERC20Factory;
+        bPoolFeeEscrow = new BPoolFeeEscrow(this);
     }
 
     /// Allows calling `createChild` with TrustConfig,
@@ -217,7 +219,8 @@ contract TrustFactory is Factory {
                 trustFactoryTrustConfig_.seederFee,
                 trustFactoryTrustConfig_.seederUnits,
                 trustFactoryTrustConfig_.seederCooldownDuration,
-                trustFactoryTrustConfig_.redeemInit
+                trustFactoryTrustConfig_.redeemInit,
+                bPoolFeeEscrow
             ),
             TrustRedeemableERC20Config(
                 redeemableERC20Factory,
