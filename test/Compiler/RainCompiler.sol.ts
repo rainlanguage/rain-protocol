@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { bytify } from "../Util";
+import { bytify, callSize } from "../Util";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
 
@@ -26,38 +26,16 @@ describe("RainCompiler", async function () {
   it("should handle a call op", async () => {
     this.timeout(0);
 
-    const vals = [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const vals = [1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    // CallSize(
-    //   op_.val & 0x03, //     00000011
-    //   op_.val & 0x1C, //     00011100
-    //   op_.val & 0xE0  //     11100000
-    // )
-
-    const fnSize = 0x00; //     max of 4 [0x00-0x03]
+    const fnSize = 0x03; //     max of 4 [0x00-0x03]
     const loopSize = 0x01; //   max of 8 [0x00-0x07]
-    const valSize = 0x02; //    max of 8 [0x00-0x07]
-
-    let callSize = valSize; //  00000010
-    callSize <<= 3; //          00010000
-    callSize += loopSize; //    00010001
-    callSize <<= 3; //          10001000
-    callSize += fnSize; //      10001000
+    const valSize = 0x05; //    max of 8 [0x00-0x07]
 
     const source = [
       concat([
-        //
-        bytify(callSize),
+        bytify(callSize(fnSize, loopSize, valSize)),
         bytify(Opcode.CALL),
-        // (+ 1 2 3)
-        bytify(3),
-        bytify(Opcode.ADD),
-        bytify(0),
-        bytify(Opcode.VAL),
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(2),
-        bytify(Opcode.VAL),
       ]),
       0,
       0,

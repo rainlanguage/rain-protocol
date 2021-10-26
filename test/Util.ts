@@ -337,3 +337,29 @@ export function bytify(
 ): BytesLike {
   return zeroPad(hexlify(value), bytesLength);
 }
+
+export function callSize(
+  fnSize: number,
+  loopSize: number,
+  valSize: number
+): number {
+  // CallSize(
+  //   op_.val & 0x03, //     00000011
+  //   op_.val & 0x1C, //     00011100
+  //   op_.val & 0xE0  //     11100000
+  // )
+
+  if (fnSize < 0 || fnSize > 3) {
+    throw new Error("Invalid fnSize");
+  } else if (loopSize < 0 || loopSize > 7) {
+    throw new Error("Invalid loopSize");
+  } else if (valSize < 0 || valSize > 7) {
+    throw new Error("Invalid valSize");
+  }
+  let callSize = valSize;
+  callSize <<= 3;
+  callSize += loopSize;
+  callSize <<= 2;
+  callSize += fnSize;
+  return callSize;
+}
