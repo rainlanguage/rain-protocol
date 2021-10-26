@@ -173,7 +173,6 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
         // adding their output to the stack.
         else {
             stack_.index -= op_.val;
-            bool initial_ = true;
             uint256 accumulator_ = 0;
             uint256 val_ = 0;
             for (uint256 a_ = 0; a_ < op_.val; a_++) {
@@ -188,7 +187,7 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
                     accumulator_ = accumulator_.mul(val_);
                 }
                 else if (op_.code == OPCODE_DIV) {
-                    if (initial_) {
+                    if (a_ == 0) {
                         accumulator_ = val_;
                     }
                     else {
@@ -196,7 +195,7 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
                     }
                 }
                 else if (op_.code == OPCODE_MOD) {
-                    if (initial_) {
+                    if (a_ == 0) {
                         accumulator_ = val_;
                     }
                     else {
