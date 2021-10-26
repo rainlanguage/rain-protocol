@@ -12,8 +12,6 @@ const { expect, assert } = chai;
 
 const enum Opcode {
   END,
-  LIT,
-  ARG,
   VAL,
   CALL,
   BLOCK_NUMBER,
@@ -27,7 +25,70 @@ const enum Opcode {
   OR_LEFT,
 }
 
-describe("CombineTier", async function () {});
+describe("CombineTier", async function () {
+  it("should support a program which returns the default report", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        //
+        bytify(0),
+        bytify(Opcode.ACCOUNT),
+        bytify(0),
+        bytify(Opcode.REPORT),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTier = (await combineTierFactory.deploy({
+      source,
+      vals,
+    })) as CombineTier;
+
+    const report = await combineTier.report(signers[1].address);
+    console.log(`${report}`);
+
+    // const expected = signers[1].address;
+    // assert(
+    //   result.eq(expected),
+    //   `wrong account address
+    //   expected  ${expected}
+    //   got       ${result}`
+    // );
+  });
+
+  it("should support a program which simply returns the account", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [concat([bytify(0), bytify(Opcode.ACCOUNT)]), 0, 0, 0];
+
+    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTier = (await combineTierFactory.deploy({
+      source,
+      vals,
+    })) as CombineTier;
+
+    const result = await combineTier.report(signers[1].address);
+    const expected = signers[1].address;
+    assert(
+      result.eq(expected),
+      `wrong account address
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+});
 
 const getConstants = async (combineTier: CombineTier) => `Constants:
 MAX_COMPILED_SOURCE_LENGTH  ${await combineTier.MAX_COMPILED_SOURCE_LENGTH()}

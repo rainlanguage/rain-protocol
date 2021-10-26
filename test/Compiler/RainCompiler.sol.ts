@@ -23,6 +23,63 @@ const enum Opcode {
 }
 
 describe("RainCompiler", async function () {
+  it("should handle a call op", async () => {
+    this.timeout(0);
+
+    const vals = [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    // CallSize(
+    //   op_.val & 0x03, //     00000011
+    //   op_.val & 0x1C, //     00011100
+    //   op_.val & 0xE0  //     11100000
+    // )
+
+    const fnSize = 0x00; //     max of 4 [0x00-0x03]
+    const loopSize = 0x01; //   max of 8 [0x00-0x07]
+    const valSize = 0x02; //    max of 8 [0x00-0x07]
+
+    let callSize = valSize; //  00000010
+    callSize <<= 3; //          00010000
+    callSize += loopSize; //    00010001
+    callSize <<= 3; //          10001000
+    callSize += fnSize; //      10001000
+
+    const source = [
+      concat([
+        //
+        bytify(callSize),
+        bytify(Opcode.CALL),
+        // (+ 1 2 3)
+        bytify(3),
+        bytify(Opcode.ADD),
+        bytify(0),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(2),
+        bytify(Opcode.VAL),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest;
+
+    const result = await calculator.run();
+    const expected = 6;
+    assert(
+      result.eq(expected),
+      `wrong result of call
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
   it("should perform a calculation using the block number as a value", async () => {
     this.timeout(0);
 
@@ -65,11 +122,13 @@ describe("RainCompiler", async function () {
       vals,
     })) as CalculatorTest;
 
+    const block0 = await ethers.provider.getBlockNumber();
+
     const result0 = await calculator.run();
-    const expected0 = 16;
+    const expected0 = 16 * block0;
     assert(
       result0.eq(expected0),
-      `wrong solution with block number of 1
+      `wrong solution with block number of ${block0}
       expected  ${expected0}
       got       ${result0}`
     );
@@ -77,10 +136,10 @@ describe("RainCompiler", async function () {
     await Util.createEmptyBlock();
 
     const result1 = await calculator.run();
-    const expected1 = 32;
+    const expected1 = 16 * (block0 + 1);
     assert(
       result1.eq(expected1),
-      `wrong solution with block number of 2
+      `wrong solution with block number of ${block0 + 1}
       expected  ${expected1}
       got       ${result1}`
     );
@@ -88,10 +147,10 @@ describe("RainCompiler", async function () {
     await Util.createEmptyBlock();
 
     const result2 = await calculator.run();
-    const expected2 = 48;
+    const expected2 = 16 * (block0 + 2);
     assert(
       result2.eq(expected2),
-      `wrong solution with block number of 3
+      `wrong solution with block number of ${block0 + 2}
       expected  ${expected2}
       got       ${result2}`
     );

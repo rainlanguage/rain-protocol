@@ -214,7 +214,7 @@ abstract contract RainCompiler {
                         CallSize(
                             op_.val & 0x03, // 00000011
                             op_.val & 0x1C, // 00011100
-                            op_.val & 0xE0 // 11100000
+                            op_.val & 0xE0  // 11100000
                         )
                     );
                 }
