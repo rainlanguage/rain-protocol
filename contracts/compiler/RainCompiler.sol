@@ -212,9 +212,11 @@ abstract contract RainCompiler {
                         context_,
                         stack_,
                         CallSize(
-                            op_.val & 0x03, // 00000011
-                            op_.val & 0x1C, // 00011100
-                            op_.val & 0xE0  // 11100000
+                            op_.val & 0x03,     // 00000011
+                            (op_.val & 0x1C)    // 00011100
+                                / 2 ** 2,       // 00000111
+                            (op_.val & 0xE0)    // 11100000
+                                / 2 ** 5        // 00000111
                         )
                     );
                 }

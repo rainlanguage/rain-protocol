@@ -26,16 +26,24 @@ describe("RainCompiler", async function () {
   it("should handle a call op", async () => {
     this.timeout(0);
 
-    const vals = [1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const vals = [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    const fnSize = 0x03; //     max of 4 [0x00-0x03]
-    const loopSize = 0x01; //   max of 8 [0x00-0x07]
-    const valSize = 0x05; //    max of 8 [0x00-0x07]
+    const fnSize = 0x00; //     max of 4 [0x00-0x03]
+    const loopSize = 0x00; //   max of 8 [0x00-0x07]
+    const valSize = 0x02; //    max of 8 [0x00-0x07]
 
     const source = [
       concat([
         bytify(callSize(fnSize, loopSize, valSize)),
         bytify(Opcode.CALL),
+        bytify(3),
+        bytify(Opcode.ADD),
+        bytify(0),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(2),
+        bytify(Opcode.VAL),
       ]),
       0,
       0,
