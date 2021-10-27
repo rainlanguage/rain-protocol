@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 struct CompileIO {
     Op input;
@@ -133,27 +134,46 @@ abstract contract RainCompiler {
         Stack memory stack_,
         CallSize memory callSize_
     ) internal view returns (Stack memory) {
-        stack_.index -= (callSize_.fnSize + callSize_.valSize + 2);
-        uint256[4] memory mapSource_;
-        uint256 fnIndex_ = stack_.index + callSize_.valSize + 1;
+        console.log(callSize_.fnSize); // 0
+        console.log(callSize_.loopSize); // 0
+        console.log(callSize_.valSize); // 2
 
+        console.log(stack_.index); // 1
+
+        // for some reason we underflow to 253
+        stack_.index -= (callSize_.fnSize + callSize_.valSize + 2); // 253
+
+        // initialise temporary array of sources
+        uint256[4] memory mapSource_;
+
+        uint256 fnIndex_ = stack_.index + callSize_.valSize + 1; // 0
+
+        console.log(stack_.vals[0]); // 6 (expected value of 3)
+        console.log(stack_.vals[1]); // 2
+        console.log(stack_.vals[2]); // 1
+
+        // loop through sources and fill with op codes?
         for (uint256 f_ = 0; f_ <= callSize_.fnSize; f_++) {
+            // are we adding opcode for ADD here?
             mapSource_[f_] = stack_.vals[fnIndex_ + f_];
+            console.log(mapSource_[f_]); // stack_.vals[0] or 6
         }
 
-        uint256[] memory baseVals_ = new uint256[](
-            callSize_.valSize + 1
-        );
+        uint256[16] memory baseVals_;
+        // what is this? I assume we are copying over the vals into a temp baseVals_ array, so i fixed the loop to do that
         for (uint256 a_ = 0; a_ < callSize_.valSize + 1; a_++) {
-            baseVals_[a_] = stack_.vals[stack_.index + a_];
+            baseVals_[a_] = stack_.vals[a_];
         }
 
         // Each loop size halves the item size.
         uint256 stepSize_ = 256 >> callSize_.loopSize;
 
+        // is looping for running functions again with different vals?
+        // if so, where does the result of each loop end up?
         for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
             uint256[16] memory vals_;
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
+                // what is happening here?
                 vals_[a_] = uint256(
                     uint256(baseVals_[a_] << step_)
                     >> 256 - stepSize_
@@ -161,6 +181,7 @@ abstract contract RainCompiler {
             }
             Source memory evalSource_ = Source(mapSource_, vals_);
             Stack memory evalStack_;
+            // now we actually execute the source code?
             evalStack_ = eval(
                 context_,
                 evalSource_,
@@ -212,11 +233,9 @@ abstract contract RainCompiler {
                         context_,
                         stack_,
                         CallSize(
-                            op_.val & 0x03,     // 00000011
-                            (op_.val & 0x1C)    // 00011100
-                                / 2 ** 2,       // 00000111
-                            (op_.val & 0xE0)    // 11100000
-                                / 2 ** 5        // 00000111
+                            op_.val & 0x03,
+                            (op_.val & 0x1C) >> 2,
+                            (op_.val & 0xE0) >> 5
                         )
                     );
                 }

@@ -28,9 +28,9 @@ describe("RainCompiler", async function () {
 
     const vals = [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    const fnSize = 0x00; //     max of 4 [0x00-0x03]
-    const loopSize = 0x00; //   max of 8 [0x00-0x07]
-    const valSize = 0x02; //    max of 8 [0x00-0x07]
+    const fnSize = 0x00; // 1
+    const loopSize = 0x00; // 1
+    const valSize = 0x02; // 3
 
     const source = [
       concat([
@@ -52,11 +52,12 @@ describe("RainCompiler", async function () {
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
-      source,
-      vals,
+      source, // not important
+      vals, // not important
     })) as CalculatorTest;
 
-    const result = await calculator.run();
+    // @ts-ignore
+    const result = await calculator.eval({ source, vals });
     const expected = 6;
     assert(
       result.eq(expected),

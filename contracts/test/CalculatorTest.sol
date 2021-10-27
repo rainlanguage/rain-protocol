@@ -116,4 +116,21 @@ contract CalculatorTest is RainCompiler {
 
         return stack_.vals[stack_.index - 1];
     }
+
+    function eval(Source memory source_)
+        external
+        view
+        virtual
+        returns (uint256)
+    {
+        Stack memory stack_;
+        bytes memory context_ = new bytes(0);
+        stack_ = eval(
+            context_,
+            source_,
+            stack_
+        );
+
+        return stack_.vals[stack_.index - 1];
+    }
 }
