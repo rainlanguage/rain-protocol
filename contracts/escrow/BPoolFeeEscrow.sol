@@ -7,7 +7,8 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
-import { TrustFactory } from "../trust/TrustFactory.sol";
+import { FactoryTruster } from "../factory/FactoryTruster.sol";
+import { IFactory } from "../factory/IFactory.sol";
 import { Trust, TrustContracts, DistributionStatus } from "../trust/Trust.sol";
 import { IBPool } from "../pool/IBPool.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -89,7 +90,7 @@ struct ClaimedFees {
 ///
 /// There are no admin roles for the escrow, every recipient must manage their
 /// incoming reserves, trusts and claims themselves.
-contract BPoolFeeEscrow {
+contract BPoolFeeEscrow is FactoryTruster {
     using SafeMath for uint256;
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -131,12 +132,6 @@ contract BPoolFeeEscrow {
         uint256 fee
     );
 
-    /// This TrustFactory is checked on every `buyToken` call to ensure that
-    /// only trusts with the same bytecode can be used by this escrow.
-    /// REQUIRED because a malicious or buggy `Trust` can drain the escrow of
-    /// all funds by cycling between success/failure states.
-    TrustFactory public immutable trustFactory;
-
     /// recipient => reserve => amount
     mapping(address => mapping(address => uint256)) public minFees;
 
@@ -156,9 +151,10 @@ contract BPoolFeeEscrow {
     /// of. The security model of the escrow REQUIRES that the `TrustFactory`
     /// implements `IFactory` correctly and that the `Trust` contracts that it
     /// deploys are not buggy or malicious re: tracking distribution status.
-    constructor(TrustFactory trustFactory_) public {
-        trustFactory = trustFactory_;
-    }
+    constructor(IFactory trustFactory_)
+        public
+        FactoryTruster(trustFactory_)
+        {} //solhint-disable-line no-empty-blocks
 
     /// Public accessor by index for pending.
     /// Allows access into the private struct.
@@ -444,16 +440,15 @@ contract BPoolFeeEscrow {
         uint256 maxPrice_
     )
         external
-        returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
-    {
         /// Requiring the trust is a child of the known factory means we know
         /// exactly how it operates internally, not only the interface.
         /// Without this check we'd need to guard against the `Trust`:
-        /// - lying about distribution status to allow double dipping on fees
+        /// - lying about distribution status to allow double spending fees
         /// - lying about reserve and redeemable tokens
         /// - with some kind of reentrancy or hard to reason about state change
-        require(trustFactory.isChild(address(trust_)), "FACTORY_TRUST");
-
+        onlyTrustedFactoryChild(address(trust_))
+        returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
+    {
         fees[address(trust_)][feeRecipient_] = fees[address(trust_)][
             feeRecipient_
         ].add(fee_);
