@@ -15,8 +15,16 @@ import { RainCompiler, Source, Stack, Op } from "../compiler/RainCompiler.sol";
 import { Phase, Phased } from "../phased/Phased.sol";
 import { Cooldown } from "../cooldown/Cooldown.sol";
 
+enum Status {
+    Active,
+    Success,
+    Fail
+}
+
 /// Everything required to construct a `SeedERC20` contract.
-struct MintConfig {
+struct Input {
+    uint256 id;
+    uint256 minimumRaise;
     // Reserve erc20 token contract used to purchase seed tokens.
     IERC20 reserve;
     // Cooldown duration in blocks for seed/unseed cycles.
@@ -33,17 +41,34 @@ struct MintConfig {
     // Recommended to keep seed units to a small value (single-triple digits).
     // The ability for users to buy/sell or not buy/sell dust seed quantities
     // is likely NOT desired.
-    uint16 seedUnits;
+    uint16 units;
+    uint32 canEndAfter;
     // Price per seed unit denominated in reserve token.
-    Source seedPriceSource;
+    Source priceSource;
 }
 
-struct SaleState {
+struct Definition {
+    SaleInput input;
+    address initiator;
     uint32 startBlock;
+}
+
+struct State {
+    /// Most recent block number a buy was processed OR startBlock if none.
     uint32 lastBuyBlock;
+    /// Most recent block number a refund was processed OR startBlock if none.
     uint32 lastRefundBlock;
+    /// Remaining unsold units.
     uint16 remainingUnits;
+    /// Most recent price a buy occured at OR zero if no buys so far.
+    uint256 lastBuyPrice;
+    /// Total amount of reserve raised so far.
     uint256 reserveRaised;
+}
+
+struct Context {
+    uint32 startBlock;
+    SaleState state;
 }
 
 /// @title SeedERC20
@@ -98,20 +123,18 @@ struct SaleState {
 /// at a later date.
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
-contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
+contract SeedERC1155 is Ownable, ERC1155, Cooldown, RainCompiler {
 
     using SafeMath for uint256;
     using Math for uint256;
     using SafeERC20 for IERC20;
-    using Counters for Counters.Counter;
-
-    Counters.Counter private nextId;
 
     uint8 public constant OPCODE_START_BLOCK = 1 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_LAST_BUY_BLOCK = 2 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_LAST_REFUND_BLOCK = 3 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_REMAINING_UNITS = 4 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_RESERVE_RAISED = 5 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_LAST_BUY_PRICE = 5 + OPCODE_RESERVED_MAX;
+    uint8 public constant OPCODE_RESERVE_RAISED = 6 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_SALE_CONTEXT_MAX = OPCODE_RESERVE_RAISED;
 
     uint8 public constant OPCODE_ADD = 1 + OPCODE_SALE_CONTEXT_MAX;
@@ -123,11 +146,15 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
     uint8 public constant OPCODE_MIN = 7 + OPCODE_SALE_CONTEXT_MAX;
     uint8 public constant OPCODE_MAX = 8 + OPCODE_SALE_CONTEXT_MAX;
 
-    mapping(uint256 => MintConfig) public mintConfigs;
-    mapping(uint256 => SaleState) public saleStates;
+    event Sale(Definition definition);
+    event End(Definition definition_);
+
+    mapping(uint256 => bool) public receipts;
+    mapping(uint256 => State) public states;
+    mapping(uint256 => Status) public statuses;
     // id => seeder => price => amount
     mapping(uint256 => mapping(address => mapping(uint256 => uint16)))
-        public unseedables;
+        public sales;
 
     constructor ()
     public
@@ -149,24 +176,31 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
     view
     // solhint-disable-next-line no-empty-blocks
     returns (Stack memory) {
-        SaleState memory saleState_ = abi.decode(context_, (SaleState));
+        Context memory context_ = abi.decode(context_, (Context));
         // Everything within sale context adds some value on the stack.
         if (op_.code <= OPCODE_SALE_CONTEXT_MAX) {
             if (op_.code == OPCODE_START_BLOCK) {
-                stack_.vals[stack_.index] = uint256(saleState_.startBlock);
+                stack_.vals[stack_.index] = uint256(context_.startBlock);
             }
             else if (op_.code == OPCODE_LAST_BUY_BLOCK) {
-                stack_.vals[stack_.index] = uint256(saleState_.lastBuyBlock);
+                stack_.vals[stack_.index]
+                    = uint256(context_.state.lastBuyBlock);
             }
             else if (op_.code == OPCODE_LAST_REFUND_BLOCK) {
                 stack_.vals[stack_.index]
-                    = uint256(saleState_.lastRefundBlock);
+                    = uint256(context_.state.lastRefundBlock);
             }
             else if (op_.code == OPCODE_REMAINING_UNITS) {
-                stack_.vals[stack_.index] = uint256(saleState_.remainingUnits);
+                stack_.vals[stack_.index]
+                    = uint256(context_.state.remainingUnits);
+            }
+            else if (op_.code == OPCODE_LAST_BUY_PRICE) {
+                stack_.vals[stack_.index]
+                    = uint256(context_.state.lastBuyPrice);
             }
             else if (op_.code == OPCODE_RESERVE_RAISED) {
-                stack_.vals[stack_.index] = uint256(saleState_.reserveRaised);
+                stack_.vals[stack_.index]
+                    = uint256(context_.state.reserveRaised);
             }
         }
         // The mathematical operations consume values from the stack before
@@ -214,70 +248,71 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
         stack_.index++;
     }
 
-    function mint(MintConfig memory config_) external returns (uint256) {
-        require(config_.seedUnits > 0, "UNITS_0");
-        require(config_.recipient != address(0), "RECIPIENT_0");
-
-        nextId.increment();
-
-        uint256 id_ = nextId.current();
-
-        _setCooldownDuration(id_, config_.cooldownDuration);
-
-        mintConfigs[id_] = config_;
-        _mint(
-            address(this),
-            id_,
-            config_.seedUnits,
-            ""
+    function define(Input input_) external returns (SaleDefinition) {
+        require(input_.seedUnits > 0, "UNITS_0");
+        SaleDefinition definition_ = Definition(
+            input_,
+            msg.sender,
+            block.number
         );
-
-        saleStates[id_] = SaleState(
+        uint256 id_ = kekkack(definition_);
+        states[id_] = State(
             uint32(block.number),
             uint32(block.number),
             uint32(block.number),
-            config_.seedUnits,
+            input_.units,
+            0,
             0
         );
-
-        return id_;
+        statuses[id_] = Status.Active;
+        emit Sale(definition_);
+        return definition_;
     }
 
-    /// Take reserve from seeder as `units * seedPrice`.
-    ///
-    /// When the final unit is sold the contract immediately:
-    ///
-    /// - enters `Phase.ONE`
-    /// - transfers its entire reserve balance to the recipient
-    ///
-    /// The desired units may not be available by the time this transaction
-    /// executes. This could be due to high demand, griefing and/or
-    /// front-running on the contract.
-    /// The caller can set a range between `minimumUnits_` and `desiredUnits_`
-    /// to mitigate errors due to the contract running out of stock.
-    /// The maximum available units up to `desiredUnits_` will always be
-    /// processed by the contract. Only the stock of this contract is checked
-    /// against the seed unit range, the caller is responsible for ensuring
-    /// their reserve balance.
-    /// Seeding enforces the cooldown configured in the constructor.
-    /// @param minimumUnits_ The minimum units the caller will accept for a
-    /// successful `seed` call.
-    /// @param desiredUnits_ The maximum units the caller is willing to fund.
-    function buy(uint256 id_, uint256 minimumUnits_, uint256 desiredUnits_)
+    function end(Definition definition_) public {
+        uint256 id_ = keccack(definition_);
+        State state_ = state[id_];
+        delete states[id_];
+        require(
+            definition_.canEndAfter + definition_.startBlock
+                <= uint32(block.number)
+            || state_.remainingUnits < 1,
+            "EARLY_END"
+        );
+        require(statuses[id_] == Status.Active, "NOT_ACTIVE");
+        if (state_.reserveRaised >= definition_.minimumRaise) {
+            statuses[id_] = Status.Success;
+        }
+        else {
+            statuses[id_] = Status.Fail;
+        }
+        emit End(definition_);
+    }
+
+    function buy(
+        Definition definition_,
+        uint256 minimumUnits_,
+        uint256 desiredUnits_
+    )
         external
-        onlyPhase(Phase.ZERO)
         onlyAfterCooldown(id_)
     {
         require(desiredUnits_ > 0, "DESIRED_0");
         require(minimumUnits_ <= desiredUnits_, "MINIMUM_OVER_DESIRED");
 
-        MintConfig memory config_ = mintConfigs[id_];
-        SaleState memory saleState_ = saleStates[id_];
+        uint256 id_ = keccack(definition_);
+        require(statuses[id_] == Status.Active, "NOT_ACTIVE");
+
+        State memory state_ = states[id_];
+        Context memory context_ = Context(
+            definition_.startBlock,
+            state_
+        );
 
         // Calculate price before updating sale state.
         Stack memory stack_;
         stack_ = eval(
-            abi.encode(saleStates[id_]),
+            abi.encode(context_),
             config_.seedPriceSource,
             stack_
         );
@@ -292,16 +327,17 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
         uint256 reserveAmount_ = price_.mul(units_);
 
         // Update sale state.
-        saleState_.lastBuyBlock = uint32(block.number);
-        saleState_.remainingUnits = uint16(
+        state_.lastBuyBlock = uint32(block.number);
+
+        state_.remainingUnits = uint16(
             uint256(saleState_.remainingUnits).sub(units_)
         );
-        saleState_.reserveRaised = saleState_.reserveRaised
+        state_.lastBuyPrice = price_;
+        state_.reserveRaised = saleState_.reserveRaised
             .add(reserveAmount_);
-        saleStates[id_] = saleState_;
+        states[id_] = state_;
 
-        safeTransferFrom(
-            address(this),
+        _mint(
             msg.sender,
             id_,
             uint256(units_),
@@ -310,31 +346,31 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
 
         // If `remainingStock_` is less than units then the transfer below will
         // fail and rollback.
-        if (saleState_.remainingUnits < 1) {
-            scheduleNextPhase(uint32(block.number));
+        if (state_.remainingUnits < 1) {
+            end(definition_);
         }
 
-        config_.reserve.safeTransferFrom(
+        definition_.input.reserve.safeTransferFrom(
             msg.sender,
             address(this),
             reserveAmount_
         );
-        // Immediately transfer to the recipient.
-        // The transfer is immediate rather than only approving for the
-        // recipient.
-        // This avoids the situation where a seeder immediately redeems their
-        // units before the recipient can withdraw.
-        // It also introduces a failure case where the reserve errors on
-        // transfer. If this fails then everyone can call `unseed` after their
-        // individual cooldowns to exit.
-        if (currentPhase() == Phase.ONE) {
-            delete saleStates[id_];
-            config_.reserve.safeTransfer(
-                config_.recipient,
-                saleState_.reserveRaised
+    }
+
+    function receive(Definition definition_) {
+        require(msg.sender == definition_.input.recipient, "RECIPIENT");
+        uint256 id_ = keccack(definition_);
+        require(receipts[id_] == false, "DOUBLE_RECEIVE");
+        if (statuses[id_] == Status.Success) {
+            receipts[id_] = true;
+            definition_.input.reserve.safeTransfer(
+                definition_.input.recipient,
+                state_.reserveRaised
             );
         }
     }
+
+    function refundCooldown(uint256 id_) private onlyAfterCooldown(id_) { }
 
     /// Send reserve back to seeder as `( units * seedPrice )`.
     ///
@@ -346,34 +382,38 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
     /// - Wait for the recipient or someone else to deposit reserve assets into
     ///   this contract.
     /// - Call redeem and burn the seed tokens
-    function refund(uint256 id_, uint256 price_)
-        external
-        onlyPhase(Phase.ZERO)
-        onlyAfterCooldown(id_)
-    {
-        MintConfig memory config_ = mintConfigs[id_];
+    function refund(Definition definition_, uint256 price_) external {
+        uint256 id_ = keccack(definition_);
 
-        uint16 units_ = unseedables[id_][msg.sender][price_];
+        uint16 units_ = sales[id_][msg.sender][price_];
         uint256 reserveAmount_ = price_.mul(units_);
 
-        SaleState memory saleState_ = saleStates[id_];
-        saleState_.lastRefundBlock = uint32(block.number);
-        saleState_.reserveRaised = saleState_.reserveRaised
+        State memory state_ = states[id_];
+        state_.lastRefundBlock = uint32(block.number);
+        state_.reserveRaised = state_.reserveRaised
             .sub(reserveAmount_);
         // Can't overflow because we're adding what previously was there.
-        saleState_.remainingUnits += units_;
-        saleStates[id_] = saleState_;
+        state_.remainingUnits += units_;
+        states[id_] = state_;
 
-        safeTransferFrom(
-            msg.sender,
-            address(this),
-            id_,
-            units_,
-            ""
-        );
+        delete sales[id_][msg.sender][price_];
+
+        Status status_ = statuses_[id_];
+        if (status_ == Status.Active) {
+            // Cooldowns apply while sale is active.
+            refundCooldown(id_);
+
+            // Sale still active so burn units to allow others to buy.
+            _burn(
+                msg.sender,
+                id_,
+                units_,
+                ""
+            );
+        }
 
         // Reentrant reserve transfer.
-        config_.reserve.safeTransfer(
+        definition_.input.reserve.safeTransfer(
             msg.sender,
             reserveAmount_
         );
@@ -395,18 +435,8 @@ contract SeedERC1155 is Ownable, ERC1155, Phased, Cooldown, RainCompiler {
             amounts_,
             data_
         );
-        require(currentPhase() < Phase.ONE, "FROZEN");
-    }
-
-    /// Sanity check the last phase is `Phase.ONE`.
-    /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
-        internal
-        override
-        virtual
-    {
-        super._beforeScheduleNextPhase(nextPhaseBlock_);
-        // Phase.ONE is the last phase.
-        assert(currentPhase() < Phase.ONE);
+        for (uint256 i_ = 0; i_ < ids_.length; i_++) {
+            require(statuses[ids_[i_]] != Status.Success, "FROZEN");
+        }
     }
 }
