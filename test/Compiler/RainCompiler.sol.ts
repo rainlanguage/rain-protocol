@@ -26,7 +26,34 @@ describe("RainCompiler", async function () {
   it("should handle a call op", async () => {
     this.timeout(0);
 
-    const vals = [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const vals = [
+      1,
+      2,
+      3,
+      // fn0 definition
+      concat([
+        bytify(3),
+        bytify(Opcode.ADD),
+        bytify(0),
+        bytify(Opcode.VAL),
+        bytify(1),
+        bytify(Opcode.VAL),
+        bytify(2),
+        bytify(Opcode.VAL),
+      ]),
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ];
 
     const fnSize = 0x00; // 1
     const loopSize = 0x00; // 1
@@ -37,13 +64,13 @@ describe("RainCompiler", async function () {
         bytify(callSize(fnSize, loopSize, valSize)),
         bytify(Opcode.CALL),
         bytify(3),
-        bytify(Opcode.ADD),
+        bytify(Opcode.VAL), // fn0
         bytify(0),
-        bytify(Opcode.VAL),
+        bytify(Opcode.VAL), // val0
         bytify(1),
-        bytify(Opcode.VAL),
+        bytify(Opcode.VAL), // val1
         bytify(2),
-        bytify(Opcode.VAL),
+        bytify(Opcode.VAL), // val2
       ]),
       0,
       0,
