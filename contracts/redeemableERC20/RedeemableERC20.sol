@@ -129,6 +129,9 @@ contract RedeemableERC20 is
         keccak256("DISTRIBUTOR_BURNER");
     bytes32 public constant REDEEMABLE_ADDER = keccak256("REDEEMABLE_ADDER");
 
+    /// Redeemable token added by creator.
+    event AddRedeemable(address indexed newRedeemable);
+
     /// Redeemable token burn for reserve.
     event Redeem(
         // Account burning and receiving.
@@ -225,6 +228,8 @@ contract RedeemableERC20 is
             require(redeemables[i_] != newRedeemable_, "DUPLICATE_REDEEMABLE");
         }
         redeemables.push(newRedeemable_);
+
+        emit AddRedeemable(address(newRedeemable_));
     }
 
     /// Public getter for underlying registered redeemables as a fixed sized
