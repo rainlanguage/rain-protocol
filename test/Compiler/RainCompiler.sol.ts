@@ -23,17 +23,99 @@ const enum Opcode {
 }
 
 describe("RainCompiler", async function () {
-  it("should handle a call op", async () => {
+  it("should handle a call op which runs multiple functions", async () => {
     this.timeout(0);
 
     const vals = [
-      // fn0 definition
+      // fn0 definition with inner stack vals
       concat([
         op(Opcode.ADD, 3),
         op(Opcode.VAL, 0),
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
-        op(Opcode.VAL, 3),
+      ]),
+      // fn1 definition
+      concat([
+        op(Opcode.MUL, 3),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+      ]),
+      1,
+      2,
+      3,
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ];
+
+    const fnSize = 0;
+    const loopSize = 0;
+    const valSize = 3;
+
+    const source = [
+      concat([
+        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.VAL, 0), // fn0 reference
+        op(Opcode.VAL, 1), // fn1 reference
+        op(Opcode.VAL, 2), // val0 inner stack | val2 outer stack
+        op(Opcode.VAL, 3), // val1 inner stack | val3 outer stack
+        op(Opcode.VAL, 4), // val2 inner stack | val4 outer stack
+        op(Opcode.VAL, 3), // val0 inner stack | val3 outer stack
+        op(Opcode.VAL, 4), // val1 inner stack | val4 outer stack
+        op(Opcode.VAL, 5), // val2 inner stack | val5 outer stack
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source, // not important
+      vals, // not important
+    })) as CalculatorTest;
+
+    // @ts-ignore
+    const result = await calculator.evalMultiFunction({ source, vals }, 1);
+
+    console.log(`result\t${result}`);
+
+    const expectedAdd = 6;
+    assert(
+      result[0].eq(expectedAdd),
+      `wrong result of call fn0 (+ 1 2 3)
+      expected  ${expectedAdd}
+      got       ${result[0]}`
+    );
+
+    // const expectedMul = 24;
+    // assert(
+    //   result[1].eq(expectedMul),
+    //   `wrong result of call fn1 (* 2 3 4)
+    //   expected  ${expectedMul}
+    //   got       ${result[1]}`
+    // );
+  });
+
+  it("should handle a simple call op", async () => {
+    this.timeout(0);
+
+    const vals = [
+      // fn0 definition with inner stack vals
+      concat([
+        op(Opcode.ADD, 3),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
       ]),
       1,
       2,
@@ -52,9 +134,9 @@ describe("RainCompiler", async function () {
       0,
     ];
 
-    const fnSize = 0x00; // 1
-    const loopSize = 0x00; // 1
-    const valSize = 0x02; // 3
+    const fnSize = 0; // 1
+    const loopSize = 0; // 1
+    const valSize = 2; // 3
 
     const source = [
       concat([

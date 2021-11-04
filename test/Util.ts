@@ -338,6 +338,13 @@ export function bytify(
   return zeroPad(hexlify(value), bytesLength);
 }
 
+/**
+ * Constructs the operand for RainVM's `call` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means there is one function, while an `fnSize` of 3 means there are four functions.
+ *
+ * @param fnSize - number of functions to be called (range 0-3)
+ * @param loopSize - number of loops (range 0-7)
+ * @param valSize - number of vals (range 0-7)
+ */
 export function callSize(
   fnSize: number,
   loopSize: number,
@@ -368,8 +375,7 @@ export function callSize(
  * Converts an opcode and operand to bytes, and returns their concatenation.
  * @param code - the opcode
  * @param erand - the operand, currently limited to 1 byte
- * @returns
  */
-export function op(code: number, erand: number = 0): BytesLike {
+export function op(code: number, erand: number = 0): Uint8Array {
   return concat([bytify(erand), bytify(code)]);
 }
