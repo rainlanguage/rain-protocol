@@ -34,6 +34,61 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
+  it("should emit AddRedeemable event", async function () {
+    this.timeout(0);
+
+    const FIVE_TOKENS = ethers.BigNumber.from("5" + Util.eighteenZeros);
+    const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
+    const TWENTY_TOKENS = ethers.BigNumber.from("20" + Util.eighteenZeros);
+
+    const signers = await ethers.getSigners();
+
+    const reserve1 = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+    const reserve2 = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken;
+
+    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+
+    const minimumStatus = Tier.NIL;
+
+    const redeemableERC20Factory = await ethers.getContractFactory(
+      "RedeemableERC20"
+    );
+    const tokenName = "RedeemableERC20";
+    const tokenSymbol = "RDX";
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+
+    const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
+      name: tokenName,
+      symbol: tokenSymbol,
+      tier: tier.address,
+      minimumStatus: minimumStatus,
+      totalSupply: totalSupply,
+    })) as RedeemableERC20;
+
+    await redeemableERC20.deployed();
+    await redeemableERC20.grantRole(
+      await redeemableERC20.REDEEMABLE_ADDER(),
+      signers[0].address
+    );
+
+    await expect(redeemableERC20.addRedeemable(reserve1.address))
+      .to.emit(redeemableERC20, "AddRedeemable")
+      .withArgs(reserve1.address);
+    await expect(redeemableERC20.addRedeemable(reserve2.address))
+      .to.emit(redeemableERC20, "AddRedeemable")
+      .withArgs(reserve2.address);
+  });
+
   it("should have 18 decimals", async () => {
     this.timeout(0);
 
