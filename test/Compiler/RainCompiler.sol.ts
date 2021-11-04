@@ -34,7 +34,7 @@ describe("RainCompiler", async function () {
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
       ]),
-      // fn1 definition
+      // fn1 definition with inner stack vals
       concat([
         op(Opcode.MUL, 3),
         op(Opcode.VAL, 0),
@@ -57,7 +57,8 @@ describe("RainCompiler", async function () {
       0,
     ];
 
-    const fnSize = 0;
+    // zero-based counting
+    const fnSize = 1;
     const loopSize = 0;
     const valSize = 2;
 
@@ -82,6 +83,7 @@ describe("RainCompiler", async function () {
     })) as CalculatorTest;
 
     // @ts-ignore
+    // Just return the whole output stack for debugging purposes
     const stack_ = await calculator.evalStack({ source, vals });
 
     const stackVals_ = stack_[0];
@@ -91,28 +93,25 @@ describe("RainCompiler", async function () {
     console.log(`stackIndex_  ${stackIndex_}`);
 
     // @ts-ignore
-    const result = await calculator.eval({ source, vals });
+    // I guess we need an alternative to the Calculator `eval` method to return a correct array of results, for each function called.
+    const resultsArray = await calculator.eval({ source, vals });
 
-    // when fnSize = 0
     const expectedAdd = 12;
     assert(
-      result.eq(expectedAdd),
+      resultsArray[0].eq(expectedAdd),
       `wrong result of call fn0 (+ 3 4 5)
       expected  ${expectedAdd}
-      got       ${result}`
+      got       ${resultsArray[0]}`
     );
 
-    // // @ts-ignore
-    // const result = await calculator.eval({ source, vals });
-
-    // // when fnSize = 1
-    // const expectedMul = 60;
-    // assert(
-    //   result.eq(expectedMul),
-    //   `wrong result of call fn1 (* 3 4 5)
-    //   expected  ${expectedMul}
-    //   got       ${result}`
-    // );
+    // when fnSize = 1
+    const expectedMul = 60;
+    assert(
+      resultsArray[1].eq(expectedMul),
+      `wrong result of call fn1 (* 3 4 5)
+      expected  ${expectedMul}
+      got       ${resultsArray[1]}`
+    );
   });
 
   it("should handle a simple call op", async () => {
