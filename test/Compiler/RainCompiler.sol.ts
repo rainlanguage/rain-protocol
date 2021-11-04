@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { bytify, callSize } from "../Util";
+import { bytify, callSize, op } from "../Util";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
 
@@ -27,20 +27,17 @@ describe("RainCompiler", async function () {
     this.timeout(0);
 
     const vals = [
+      // fn0 definition
+      concat([
+        op(Opcode.ADD, 3),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 3),
+      ]),
       1,
       2,
       3,
-      // fn0 definition
-      concat([
-        bytify(3),
-        bytify(Opcode.ADD),
-        bytify(0),
-        bytify(Opcode.VAL),
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(2),
-        bytify(Opcode.VAL),
-      ]),
       0,
       0,
       0,
@@ -61,16 +58,11 @@ describe("RainCompiler", async function () {
 
     const source = [
       concat([
-        bytify(callSize(fnSize, loopSize, valSize)),
-        bytify(Opcode.CALL),
-        bytify(3),
-        bytify(Opcode.VAL), // fn0
-        bytify(0),
-        bytify(Opcode.VAL), // val0
-        bytify(1),
-        bytify(Opcode.VAL), // val1
-        bytify(2),
-        bytify(Opcode.VAL), // val2
+        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.VAL, 0), // fn0 reference
+        op(Opcode.VAL, 1), // val0 inner stack | val1 outer stack
+        op(Opcode.VAL, 2), // val1 inner stack | val2 outer stack
+        op(Opcode.VAL, 3), // val2 inner stack | val3 outer stack
       ]),
       0,
       0,
@@ -102,28 +94,17 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // (* (+ 3 4 (- 2 1)) (/ 6 3) B)
-        bytify(3),
-        bytify(Opcode.MUL),
-        bytify(3),
-        bytify(Opcode.ADD),
-        bytify(2),
-        bytify(Opcode.VAL),
-        bytify(3),
-        bytify(Opcode.VAL),
-        bytify(2),
-        bytify(Opcode.SUB),
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
-        bytify(2),
-        bytify(Opcode.DIV),
-        bytify(4),
-        bytify(Opcode.VAL),
-        bytify(2),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.BLOCK_NUMBER),
+        op(Opcode.MUL, 3),
+        op(Opcode.ADD, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 3),
+        op(Opcode.SUB, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.DIV, 2),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 2),
+        op(Opcode.BLOCK_NUMBER),
       ]),
       0,
       0,
@@ -178,24 +159,15 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // (/ (* (+ 2 2 2) 3) 2 3)
-        bytify(3),
-        bytify(Opcode.DIV),
-        bytify(2),
-        bytify(Opcode.MUL),
-        bytify(3),
-        bytify(Opcode.ADD),
-        bytify(0),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
-        bytify(1),
-        bytify(Opcode.VAL),
+        op(Opcode.DIV, 3),
+        op(Opcode.MUL, 2),
+        op(Opcode.ADD, 3),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
       ]),
       0,
       0,
@@ -226,14 +198,10 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // (% 13 2 3)
-        bytify(3),
-        bytify(Opcode.MOD),
-        bytify(2),
-        bytify(Opcode.VAL),
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
+        op(Opcode.MOD, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
       ]),
       0,
       0,
@@ -264,14 +232,10 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // (/ 12 2 3)
-        bytify(3),
-        bytify(Opcode.DIV),
-        bytify(2),
-        bytify(Opcode.VAL),
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
+        op(Opcode.DIV, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
       ]),
       0,
       0,
@@ -302,14 +266,10 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // (* 3 4 5)
-        bytify(3),
-        bytify(Opcode.MUL),
-        bytify(2),
-        bytify(Opcode.VAL),
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
+        op(Opcode.MUL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
       ]),
       0,
       0,
@@ -340,14 +300,10 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // (- 10 2 3)
-        bytify(3),
-        bytify(Opcode.SUB),
-        bytify(2),
-        bytify(Opcode.VAL),
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
+        op(Opcode.SUB, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
       ]),
       0,
       0,
@@ -378,14 +334,10 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // (+ 1 2 3)
-        bytify(3), //           03
-        bytify(Opcode.ADD), //  04
-        bytify(2), //           02
-        bytify(Opcode.VAL), //  01
-        bytify(1), //           01
-        bytify(Opcode.VAL), //  01
-        bytify(0), //           00
-        bytify(Opcode.VAL), //  01
+        op(Opcode.ADD, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
       ]),
       0,
       0,
@@ -411,10 +363,8 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // 255 256
-        bytify(1),
-        bytify(Opcode.VAL),
-        bytify(0),
-        bytify(Opcode.VAL),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
       ]),
       0,
       0,
@@ -456,8 +406,7 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // 123456789
-        bytify(0),
-        bytify(Opcode.VAL),
+        op(Opcode.VAL, 0),
       ]),
       0,
       0,
@@ -488,8 +437,7 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         // 255
-        bytify(0),
-        bytify(Opcode.VAL),
+        op(Opcode.VAL, 0),
       ]),
       0,
       0,

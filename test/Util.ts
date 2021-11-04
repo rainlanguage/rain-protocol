@@ -12,7 +12,7 @@ import type { BPool } from "../typechain/BPool";
 import type { BigNumber, BytesLike } from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
-import { Hexable, hexlify, hexValue, zeroPad } from "ethers/lib/utils";
+import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
 
 const { expect, assert } = chai;
 
@@ -362,4 +362,14 @@ export function callSize(
   callSize <<= 2;
   callSize += fnSize;
   return callSize;
+}
+
+/**
+ * Converts an opcode and operand to bytes, and returns their concatenation.
+ * @param code - the opcode
+ * @param erand - the operand, currently limited to 1 byte
+ * @returns
+ */
+export function op(code: number, erand: number = 0): BytesLike {
+  return concat([bytify(erand), bytify(code)]);
 }
