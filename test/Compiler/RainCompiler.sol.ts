@@ -41,10 +41,10 @@ describe("RainCompiler", async function () {
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
       ]),
-      1,
-      2,
       3,
       4,
+      5,
+      0,
       0,
       0,
       0,
@@ -59,7 +59,7 @@ describe("RainCompiler", async function () {
 
     const fnSize = 0;
     const loopSize = 0;
-    const valSize = 3;
+    const valSize = 2;
 
     const source = [
       concat([
@@ -69,9 +69,6 @@ describe("RainCompiler", async function () {
         op(Opcode.VAL, 2), // val0 inner stack | val2 outer stack
         op(Opcode.VAL, 3), // val1 inner stack | val3 outer stack
         op(Opcode.VAL, 4), // val2 inner stack | val4 outer stack
-        op(Opcode.VAL, 3), // val0 inner stack | val3 outer stack
-        op(Opcode.VAL, 4), // val1 inner stack | val4 outer stack
-        op(Opcode.VAL, 5), // val2 inner stack | val5 outer stack
       ]),
       0,
       0,
@@ -85,24 +82,36 @@ describe("RainCompiler", async function () {
     })) as CalculatorTest;
 
     // @ts-ignore
-    const result = await calculator.evalMultiFunction({ source, vals }, 1);
+    const stack_ = await calculator.evalStack({ source, vals });
 
-    console.log(`result\t${result}`);
+    const stackVals_ = stack_[0];
+    const stackIndex_ = stack_[1];
 
-    const expectedAdd = 6;
+    console.log(`stackVals_   ${stackVals_}`);
+    console.log(`stackIndex_  ${stackIndex_}`);
+
+    // @ts-ignore
+    const result = await calculator.eval({ source, vals });
+
+    // when fnSize = 0
+    const expectedAdd = 12;
     assert(
-      result[0].eq(expectedAdd),
-      `wrong result of call fn0 (+ 1 2 3)
+      result.eq(expectedAdd),
+      `wrong result of call fn0 (+ 3 4 5)
       expected  ${expectedAdd}
-      got       ${result[0]}`
+      got       ${result}`
     );
 
-    // const expectedMul = 24;
+    // // @ts-ignore
+    // const result = await calculator.eval({ source, vals });
+
+    // // when fnSize = 1
+    // const expectedMul = 60;
     // assert(
-    //   result[1].eq(expectedMul),
-    //   `wrong result of call fn1 (* 2 3 4)
+    //   result.eq(expectedMul),
+    //   `wrong result of call fn1 (* 3 4 5)
     //   expected  ${expectedMul}
-    //   got       ${result[1]}`
+    //   got       ${result}`
     // );
   });
 

@@ -134,25 +134,20 @@ contract CalculatorTest is RainCompiler {
         return stack_.vals[stack_.index - 1];
     }
 
-    function evalMultiFunction(Source memory source_, uint8 outputLength_)
+    function evalStack(Source memory source_)
         external
         view
         virtual
-        returns (uint256[] memory)
+        returns (Stack memory)
     {
         Stack memory stack_;
         bytes memory context_ = new bytes(0);
-        uint256[] memory output_ = new uint256[](outputLength_);
         stack_ = eval(
             context_,
             source_,
             stack_
         );
 
-        for (uint256 index = 0; index < outputLength_; index++) {
-            output_[index] = stack_.vals[stack_.index - 1 - index];
-        }
-
-        return output_;
+        return stack_;
     }
 }
