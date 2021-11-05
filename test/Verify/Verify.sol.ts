@@ -45,7 +45,7 @@ describe("Verify", async function () {
 
     const verify = (await verifyFactory.deploy(admin.address)) as Verify;
 
-    //
+    // grant verifier roles
     await verify.grantRole(await verify.APPROVER(), verifier.address);
     await verify.grantRole(await verify.REMOVER(), verifier.address);
     await verify.grantRole(await verify.BANNER(), verifier.address);
