@@ -35,6 +35,72 @@ describe("Verify", async function () {
     verifyFactory = await ethers.getContractFactory("Verify");
   });
 
+  it("should allow admin to delegate non-admin roles", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const admin = signers[0];
+    const verifier = signers[1];
+    const delegate = signers[2];
+
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+
+    //
+    await verify.grantRole(await verify.APPROVER(), verifier.address);
+    await verify.grantRole(await verify.REMOVER(), verifier.address);
+    await verify.grantRole(await verify.BANNER(), verifier.address);
+
+    const approverCount0 = await verify.getRoleMemberCount(
+      await verify.APPROVER()
+    );
+    const removerCount0 = await verify.getRoleMemberCount(
+      await verify.REMOVER()
+    );
+    const bannerCount0 = await verify.getRoleMemberCount(await verify.BANNER());
+
+    assert(approverCount0.eq(1), `expected 1, got ${approverCount0}`);
+    assert(removerCount0.eq(1), `expected 1, got ${removerCount0}`);
+    assert(bannerCount0.eq(1), `expected 1, got ${bannerCount0}`);
+
+    // if admin wants to become an approver, remover or banner, they should grant themselves those roles
+    await verify.grantRole(await verify.APPROVER(), admin.address);
+    await verify.grantRole(await verify.REMOVER(), admin.address);
+    await verify.grantRole(await verify.BANNER(), admin.address);
+
+    const approverCount1 = await verify.getRoleMemberCount(
+      await verify.APPROVER()
+    );
+    const removerCount1 = await verify.getRoleMemberCount(
+      await verify.REMOVER()
+    );
+    const bannerCount1 = await verify.getRoleMemberCount(await verify.BANNER());
+
+    assert(approverCount1.eq(2), `expected 2, got ${approverCount1}`);
+    assert(removerCount1.eq(2), `expected 2, got ${removerCount1}`);
+    assert(bannerCount1.eq(2), `expected 2, got ${bannerCount1}`);
+
+    // FIXME: Determine whether these ought to fail
+    // attempt to delegate admin role for each role
+    // I personally (Marcus) think these should fail
+    await verify.grantRole(await verify.APPROVER_ADMIN(), delegate.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), delegate.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), delegate.address);
+
+    const approverAdminCount = await verify.getRoleMemberCount(
+      await verify.APPROVER_ADMIN()
+    );
+    const removerAdminCount = await verify.getRoleMemberCount(
+      await verify.REMOVER_ADMIN()
+    );
+    const bannerAdminCount = await verify.getRoleMemberCount(
+      await verify.BANNER_ADMIN()
+    );
+
+    assert(approverAdminCount.eq(2), `expected 2, got ${approverAdminCount}`);
+    assert(removerAdminCount.eq(2), `expected 2, got ${removerAdminCount}`);
+    assert(bannerAdminCount.eq(2), `expected 2, got ${bannerAdminCount}`);
+  });
+
   it("statusAtBlock should return correct status for any given state & block number", async function () {
     this.timeout(0);
 
