@@ -96,17 +96,17 @@ describe("RainCompiler", async function () {
     const resultStack = await calculator.evalStack({ source, vals });
 
     const expectedIndex = 2;
-    const actualIndex = resultStack.index
+    const actualIndex = resultStack.index;
     assert(
       actualIndex === expectedIndex,
       `wrong index for call
       expected ${expectedIndex}
       got ${actualIndex}`
-    )
+    );
 
     // when fnSize = 1
     const expectedMul = 60;
-    const actualMul = resultStack.vals[0]
+    const actualMul = resultStack.vals[0];
     assert(
       actualMul.eq(expectedMul),
       `wrong result of call fn1 (* 3 4 5)
@@ -115,7 +115,7 @@ describe("RainCompiler", async function () {
     );
 
     const expectedAdd = 12;
-    const actualAdd = resultStack.vals[1]
+    const actualAdd = resultStack.vals[1];
     assert(
       actualAdd.eq(expectedAdd),
       `wrong result of call fn0 (+ 3 4 5)
