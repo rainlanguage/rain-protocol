@@ -383,7 +383,7 @@ contract SeedERC1155 is Ownable, ERC1155, Cooldown, RainCompiler {
     ///   this contract.
     /// - Call redeem and burn the seed tokens
     function refund(Definition definition_, uint256 price_) external {
-        uint256 id_ = keccack(definition_);
+        uint256 id_ = keccack256(definition_);
 
         uint16 units_ = sales[id_][msg.sender][price_];
         uint256 reserveAmount_ = price_.mul(units_);
