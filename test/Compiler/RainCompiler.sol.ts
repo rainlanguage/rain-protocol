@@ -27,15 +27,14 @@ describe("RainCompiler", async function () {
     this.timeout(0);
 
     const vals = [
+      // fn1 is empty, call executes bottom to top
+      0,
       // fn0 definition with inner stack vals
       concat([
         op(Opcode.ADD, 3),
         op(Opcode.VAL, 0),
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
-      ]),
-      // fn1 definition with inner stack vals
-      concat([
         op(Opcode.MUL, 3),
         op(Opcode.VAL, 0),
         op(Opcode.VAL, 1),
@@ -94,23 +93,34 @@ describe("RainCompiler", async function () {
 
     // @ts-ignore
     // I guess we need an alternative to the Calculator `eval` method to return a correct array of results, for each function called.
-    const resultsArray = await calculator.eval({ source, vals });
+    const resultStack = await calculator.evalStack({ source, vals });
 
-    const expectedAdd = 12;
+    const expectedIndex = 2;
+    const actualIndex = resultStack.index
     assert(
-      resultsArray[0].eq(expectedAdd),
-      `wrong result of call fn0 (+ 3 4 5)
-      expected  ${expectedAdd}
-      got       ${resultsArray[0]}`
-    );
+      actualIndex === expectedIndex,
+      `wrong index for call
+      expected ${expectedIndex}
+      got ${actualIndex}`
+    )
 
     // when fnSize = 1
     const expectedMul = 60;
+    const actualMul = resultStack.vals[0]
     assert(
-      resultsArray[1].eq(expectedMul),
+      actualMul.eq(expectedMul),
       `wrong result of call fn1 (* 3 4 5)
       expected  ${expectedMul}
-      got       ${resultsArray[1]}`
+      got       ${actualMul}`
+    );
+
+    const expectedAdd = 12;
+    const actualAdd = resultStack.vals[1]
+    assert(
+      actualAdd.eq(expectedAdd),
+      `wrong result of call fn0 (+ 3 4 5)
+      expected  ${expectedAdd}
+      got       ${actualAdd}`
     );
   });
 
