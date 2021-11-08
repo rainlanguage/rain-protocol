@@ -5,6 +5,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import { RainCompiler, Source, Stack, Op } from "../compiler/RainCompiler.sol";
+import "hardhat/console.sol";
 
 contract CalculatorTest is RainCompiler {
     uint8 public constant OPCODE_ADD = 1 + OPCODE_RESERVED_MAX;

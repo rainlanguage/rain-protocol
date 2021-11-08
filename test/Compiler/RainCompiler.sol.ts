@@ -29,6 +29,7 @@ describe("RainCompiler", async function () {
     const vals = [
       concat([
         // ADD
+        // 2 1, 3 2 1, 3 2 1, 3 2 1, 3 2 1 => 27
         op(Opcode.ADD, 14),
         op(Opcode.VAL, 0),
         op(Opcode.VAL, 1),
@@ -52,9 +53,9 @@ describe("RainCompiler", async function () {
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
       ]),
-      1,
-      2,
       3,
+      2,
+      1,
       0,
       0,
       0,
@@ -78,9 +79,9 @@ describe("RainCompiler", async function () {
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn1
         op(Opcode.VAL, 1), // fn0
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 3),
-        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 2), // val2
+        op(Opcode.VAL, 3), // val1
+        op(Opcode.VAL, 4), // val0
       ]),
       0,
       0,
