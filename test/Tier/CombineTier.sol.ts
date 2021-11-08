@@ -26,6 +26,75 @@ const enum Opcode {
 }
 
 describe("CombineTier", async function () {
+  it("should correctly combine AlwaysTier and NeverTier reports with andNew", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
+    const alwaysTier = await alwaysTierFactory.deploy();
+
+    const neverTierFactory = await ethers.getContractFactory("NeverTier");
+    const neverTier = await neverTierFactory.deploy();
+
+    const vals = [
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ];
+
+    const source = [
+      concat([
+        op(Opcode.AND_NEW, 2),
+        op(Opcode.REPORT),
+        op(Opcode.VAL, 0),
+        op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.VAL, 1),
+        op(Opcode.ACCOUNT),
+        op(Opcode.BLOCK_NUMBER),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTier = (await combineTierFactory.deploy({
+      source,
+      vals,
+    })) as CombineTier;
+
+    const blockNumber = await ethers.provider.getBlockNumber();
+
+    const stack = await combineTier.reportStack(signers[0].address);
+
+    console.log(`stack vals: ${stack.vals}`);
+
+    const result = await combineTier.report(signers[0].address);
+
+    const expected = 0;
+    assert(
+      result.eq(expected),
+      `wrong block number preserved with tierwise andNew
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
   it("should support a program which returns the default report", async () => {
     this.timeout(0);
 
@@ -129,12 +198,9 @@ describe("CombineTier", async function () {
 });
 
 const getConstants = async (combineTier: CombineTier) => `Constants:
-MAX_COMPILED_SOURCE_LENGTH  ${await combineTier.MAX_COMPILED_SOURCE_LENGTH()}
-LIT_SIZE_BYTES              ${await combineTier.LIT_SIZE_BYTES()}
+MAX_SOURCE_LENGTH           ${await combineTier.MAX_SOURCE_LENGTH()}
 
 OPCODE_END                  ${await combineTier.OPCODE_END()}
-OPCODE_LIT                  ${await combineTier.OPCODE_LIT()}
-OPCODE_ARG                  ${await combineTier.OPCODE_ARG()}
 
 OPCODE_VAL                  ${await combineTier.OPCODE_VAL()}
 OPCODE_CALL                 ${await combineTier.OPCODE_CALL()}
@@ -142,16 +208,6 @@ OPCODE_CALL                 ${await combineTier.OPCODE_CALL()}
 OPCODE_BLOCK_NUMBER         ${await combineTier.OPCODE_BLOCK_NUMBER()}
 
 OPCODE_RESERVED_MAX         ${await combineTier.OPCODE_RESERVED_MAX()}
-
-OPCODE_ACCOUNT              ${await combineTier.OPCODE_ACCOUNT()}
-OPCODE_REPORT               ${await combineTier.OPCODE_REPORT()}
-
-OPCODE_AND_OLD              ${await combineTier.OPCODE_AND_OLD()}
-OPCODE_AND_NEW              ${await combineTier.OPCODE_AND_NEW()}
-OPCODE_AND_LEFT             ${await combineTier.OPCODE_AND_LEFT()}
-OPCODE_OR_OLD               ${await combineTier.OPCODE_OR_OLD()}
-OPCODE_OR_NEW               ${await combineTier.OPCODE_OR_NEW()}
-OPCODE_OR_LEFT              ${await combineTier.OPCODE_OR_LEFT()}
 
 val0                        ${await combineTier.val0()}
 val1                        ${await combineTier.val1()}

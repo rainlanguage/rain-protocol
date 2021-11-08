@@ -110,4 +110,19 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
         );
         return stack_.vals[stack_.index - 1];
     }
+
+    function reportStack(address account_)
+        external
+        view
+        virtual
+        returns (Stack memory)
+    {
+        Stack memory stack_;
+        stack_ = eval(
+            abi.encode(account_),
+            source(),
+            stack_
+        );
+        return stack_;
+    }
 }

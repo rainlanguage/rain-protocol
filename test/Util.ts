@@ -374,7 +374,7 @@ export function callSize(
 /**
  * Converts an opcode and operand to bytes, and returns their concatenation.
  * @param code - the opcode
- * @param erand - the operand, currently limited to 1 byte
+ * @param erand - the operand, currently limited to 1 byte (defaults to 0)
  */
 export function op(code: number, erand: number = 0): Uint8Array {
   return concat([bytify(erand), bytify(code)]);
