@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import { concat, hexlify } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { bytify, op } from "../Util";
 
 import type { CombineTier } from "../../typechain/CombineTier";
@@ -32,34 +32,39 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
-    const alwaysTier = await alwaysTierFactory.deploy()
+    const alwaysTier = await alwaysTierFactory.deploy();
 
     const neverTierFactory = await ethers.getContractFactory("NeverTier");
-    const neverTier = await neverTierFactory.deploy()
+    const neverTier = await neverTierFactory.deploy();
 
     const vals = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
     ];
 
     const sourceAlways = [
-      concat([
-        op(Opcode.REPORT, 0),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT, 0),
-      ]),
+      concat([op(Opcode.REPORT, 0), op(Opcode.VAL, 0), op(Opcode.ACCOUNT, 0)]),
       0,
       0,
       0,
     ];
 
     const sourceNever = [
-      concat([
-        op(Opcode.REPORT, 0),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT, 0),
-      ]),
+      concat([op(Opcode.REPORT, 0), op(Opcode.VAL, 1), op(Opcode.ACCOUNT, 0)]),
       0,
       0,
       0,
