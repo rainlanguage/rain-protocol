@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { bytify } from "../Util";
+import { bytify, op } from "../Util";
 
 import type { CombineTier } from "../../typechain/CombineTier";
 
@@ -31,15 +31,34 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
+    const alwaysTier = await alwaysTierFactory.deploy()
 
-    const source = [
+    const neverTierFactory = await ethers.getContractFactory("NeverTier");
+    const neverTier = await neverTierFactory.deploy()
+
+    const vals = [
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ];
+
+    const sourceAlways = [
       concat([
-        //
-        bytify(0),
-        bytify(Opcode.ACCOUNT),
-        bytify(0),
-        bytify(Opcode.REPORT),
+        op(Opcode.REPORT, 0),
+        op(Opcode.VAL, 0),
+        op(Opcode.ACCOUNT, 0),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const sourceNever = [
+      concat([
+        op(Opcode.REPORT, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.ACCOUNT, 0),
       ]),
       0,
       0,
@@ -47,21 +66,35 @@ describe("CombineTier", async function () {
     ];
 
     const combineTierFactory = await ethers.getContractFactory("CombineTier");
-    const combineTier = (await combineTierFactory.deploy({
-      source,
+    const combineTierAlways = (await combineTierFactory.deploy({
+      source: sourceAlways,
       vals,
     })) as CombineTier;
 
-    const report = await combineTier.report(signers[1].address);
-    console.log(`${report}`);
+    const resultAlways = await combineTierAlways.report(signers[1].address);
 
-    // const expected = signers[1].address;
-    // assert(
-    //   result.eq(expected),
-    //   `wrong account address
-    //   expected  ${expected}
-    //   got       ${result}`
-    // );
+    const expectedAlways = 0;
+    assert(
+      resultAlways.eq(expectedAlways),
+      `wrong report
+      expected  ${expectedAlways}
+      got       ${resultAlways}`
+    );
+
+    const combineTierNever = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals,
+    })) as CombineTier;
+
+    const resultNever = await combineTierNever.report(signers[1].address);
+
+    const expectedNever = ethers.constants.MaxUint256;
+    assert(
+      resultNever.eq(expectedNever),
+      `wrong report
+      expected ${expectedNever}
+      got      ${resultNever}`
+    );
   });
 
   it("should support a program which simply returns the account", async () => {
