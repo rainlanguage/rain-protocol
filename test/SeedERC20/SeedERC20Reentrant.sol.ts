@@ -4,6 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { SeedERC20Reentrant } from "../../typechain/SeedERC20Reentrant";
 import type { SeedERC20 } from "../../typechain/SeedERC20";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -18,7 +19,7 @@ describe("SeedERC20Reentrant", async function () {
     const maliciousReserve = (await Util.basicDeploy(
       "SeedERC20Reentrant",
       {}
-    )) as SeedERC20Reentrant;
+    )) as SeedERC20Reentrant & Contract;
 
     const bobReserve = maliciousReserve.connect(bob);
     const daveReserve = maliciousReserve.connect(dave);
@@ -38,7 +39,7 @@ describe("SeedERC20Reentrant", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const bobSeed = seedERC20.connect(bob);
 
@@ -77,7 +78,7 @@ describe("SeedERC20Reentrant", async function () {
     const maliciousReserve = (await Util.basicDeploy(
       "SeedERC20Reentrant",
       {}
-    )) as SeedERC20Reentrant;
+    )) as SeedERC20Reentrant & Contract;
 
     const bobReserve = maliciousReserve.connect(bob);
 
@@ -96,7 +97,7 @@ describe("SeedERC20Reentrant", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     // setup reserve to reentrantly call `seed` method in `_beforeTokenTransfer` hook
     await maliciousReserve.addReentrantTarget(seedERC20.address);
@@ -124,7 +125,7 @@ describe("SeedERC20Reentrant", async function () {
     const maliciousReserve = (await Util.basicDeploy(
       "SeedERC20Reentrant",
       {}
-    )) as SeedERC20Reentrant;
+    )) as SeedERC20Reentrant & Contract;
 
     const bobReserve = maliciousReserve.connect(bob);
 
@@ -143,7 +144,7 @@ describe("SeedERC20Reentrant", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const bobSeed = seedERC20.connect(bob);
 

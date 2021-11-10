@@ -11,6 +11,7 @@ import type { SeedERC20Reentrant } from "../../typechain/SeedERC20Reentrant";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../../typechain/ConfigurableRightsPool";
 import { factoriesDeploy } from "../Util";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -38,10 +39,10 @@ describe("TrustReentrant", async function () {
     const maliciousReserve = (await Util.basicDeploy(
       "TrustReentrant",
       {}
-    )) as TrustReentrant;
+    )) as TrustReentrant & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -108,17 +109,17 @@ describe("TrustReentrant", async function () {
       await trust.token(),
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       creator
-    ) as RedeemableERC20;
+    ) as RedeemableERC20 & Contract;
     const pool = new ethers.Contract(
       await trust.pool(),
       (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
-    ) as RedeemableERC20Pool;
+    ) as RedeemableERC20Pool & Contract;
     const crp = new ethers.Contract(
       await pool.crp(),
       (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
       creator
-    ) as ConfigurableRightsPool;
+    ) as ConfigurableRightsPool & Contract;
 
     await maliciousReserve.addReentrantTarget(trust.address);
 
@@ -129,7 +130,7 @@ describe("TrustReentrant", async function () {
       maliciousReserve.address,
       maliciousReserve.interface,
       seeder
-    ) as SeedERC20Reentrant;
+    ) as SeedERC20Reentrant & Contract;
 
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -142,7 +143,7 @@ describe("TrustReentrant", async function () {
       await crp.bPool(),
       (await artifacts.readArtifact("BPool")).abi,
       creator
-    ) as BPool;
+    ) as BPool & Contract;
 
     const swapReserveForTokens = async (signer, spend) => {
       // give signer some reserve

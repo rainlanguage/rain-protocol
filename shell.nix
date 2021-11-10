@@ -74,6 +74,7 @@ let
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
+    hardhat compile --force
     hardhat test
   '';
 
@@ -113,11 +114,6 @@ let
     rm -rf artifacts/*Reentrant*
     rm -rf artifacts/*ForceSendEther*
     rm -rf artifacts/*Mock*
-
-    rm -rf typechain/**/*Test*
-    rm -rf typechain/**/*Reentrant*
-    rm -rf typechain/**/*ForceSendEther*
-    rm -rf typechain/**/*Mock*
   '';
 
   prepublish = pkgs.writeShellScriptBin "prepublish" ''
