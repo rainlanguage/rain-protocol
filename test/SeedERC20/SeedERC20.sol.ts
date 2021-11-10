@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { SeedERC20 } from "../../typechain/SeedERC20";
 import type { SeedERC20ForceSendEther } from "../../typechain/SeedERC20ForceSendEther";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -22,7 +23,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
@@ -45,7 +46,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
@@ -113,7 +114,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
@@ -136,7 +137,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
@@ -157,7 +158,8 @@ describe("SeedERC20", async function () {
       "SeedERC20ForceSendEther"
     );
     const forceSendEther =
-      (await forceSendEtherFactory.deploy()) as SeedERC20ForceSendEther;
+      (await forceSendEtherFactory.deploy()) as SeedERC20ForceSendEther &
+        Contract;
 
     // send ether to attacker contract
     const txResult = await signers[0].sendTransaction({
@@ -181,7 +183,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const seedPrice = 100;
     const seedUnits = 10;
@@ -196,7 +198,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     // SeedERC20 has 0 decimals
     const decimals = await seedERC20.decimals();
@@ -214,7 +216,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const bobReserve = reserve.connect(bob);
     const carolReserve = reserve.connect(carol);
@@ -233,7 +235,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -318,7 +320,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
@@ -341,7 +343,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
@@ -389,7 +391,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
@@ -412,7 +414,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);

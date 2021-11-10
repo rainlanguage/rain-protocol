@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -45,7 +46,7 @@ describe("RedeemableERC20Reentrant", async function () {
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     const minimumStatus = Tier.NIL;
 
@@ -69,13 +70,13 @@ describe("RedeemableERC20Reentrant", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
     const maliciousReserve = (await maliciousReserveFactory.deploy(
       redeemableERC20.address
-    )) as RedeemableERC20Reentrant;
+    )) as RedeemableERC20Reentrant & Contract;
 
     await redeemableERC20.grantRole(
       await redeemableERC20.REDEEMABLE_ADDER(),

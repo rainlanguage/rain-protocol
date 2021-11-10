@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -46,16 +47,16 @@ describe("RedeemableERC20", async function () {
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve2 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     const minimumStatus = Tier.NIL;
 
@@ -73,7 +74,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
     await redeemableERC20.grantRole(
@@ -95,7 +96,7 @@ describe("RedeemableERC20", async function () {
     const signers = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
@@ -127,7 +128,7 @@ describe("RedeemableERC20", async function () {
     const signers = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = 0;
 
     const redeemableFactory = await ethers.getContractFactory(
@@ -201,12 +202,12 @@ describe("RedeemableERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
     await tier.setTier(sender.address, Tier.COPPER, []);
@@ -228,7 +229,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await token.deployed();
 
@@ -287,12 +288,12 @@ describe("RedeemableERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
@@ -311,7 +312,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
@@ -335,35 +336,35 @@ describe("RedeemableERC20", async function () {
     const reserve0 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve2 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve3 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve4 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve5 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve6 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve7 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const reserves = [
       reserve0,
@@ -379,7 +380,7 @@ describe("RedeemableERC20", async function () {
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
@@ -398,7 +399,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
@@ -473,12 +474,12 @@ describe("RedeemableERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
@@ -495,7 +496,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
@@ -741,7 +742,7 @@ describe("RedeemableERC20", async function () {
     const signers = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
@@ -761,7 +762,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
@@ -796,7 +797,7 @@ describe("RedeemableERC20", async function () {
     const signers = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
@@ -813,7 +814,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
@@ -834,12 +835,12 @@ describe("RedeemableERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     // Set owner to COPPER status, lower than minimum status of DIAMOND
     await tier.setTier(signers[0].address, Tier.COPPER, []);
@@ -860,7 +861,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
@@ -891,12 +892,12 @@ describe("RedeemableERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     const minimumStatus = Tier.GOLD;
 
@@ -919,7 +920,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
@@ -968,16 +969,16 @@ describe("RedeemableERC20", async function () {
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve2 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     const minimumStatus = Tier.NIL;
 
@@ -995,7 +996,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
     await redeemableERC20.grantRole(
@@ -1180,14 +1181,14 @@ describe("RedeemableERC20", async function () {
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve2 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     const minimumStatus = Tier.NIL;
 
@@ -1205,7 +1206,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
@@ -1293,7 +1294,7 @@ describe("RedeemableERC20", async function () {
     const signers = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     const minimumStatus = Tier.NIL;
 
@@ -1311,7 +1312,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
