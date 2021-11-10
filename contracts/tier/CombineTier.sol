@@ -46,13 +46,13 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
             stack_.index++;
         }
         else if (OPCODE_AND_NEW <= op_.code && op_.code <= OPCODE_OR_LEFT) {
-            stack_.index -= op_.val;
-            uint256[] memory args_ = new uint256[](op_.val - 1);
+            stack_.index -= op_.val + 1;
+            uint256[] memory args_ = new uint256[](op_.val);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {
-                args_[a_] = stack_.vals[stack_.index + a_];
+                args_[a_] = stack_.vals[stack_.index + a_ + 1];
             }
 
-            uint256 blockNumber_ = stack_.vals[stack_.index + op_.val - 1];
+            uint256 blockNumber_ = stack_.vals[stack_.index];
 
             if (op_.code == OPCODE_AND_NEW) {
                 stack_.vals[stack_.index] = TierwiseCombine.andNew(
@@ -90,6 +90,8 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
                     blockNumber_
                 );
             }
+
+            stack_.index++;
         }
 
         return stack_;

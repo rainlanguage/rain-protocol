@@ -23,7 +23,7 @@ const enum Opcode {
 }
 
 describe("RainCompiler", async function () {
-  it.only("should handle a call which loops 4 times", async () => {
+  it("should handle a call which loops 4 times", async () => {
     this.timeout(0);
 
     // zero-based counting
@@ -138,7 +138,7 @@ describe("RainCompiler", async function () {
     const loopSize = 1;
     const valSize = 2;
 
-    const valBytes = 32 / (loopSize + 1); // 128-bit unsigned
+    const valBytes = 32 / Math.pow(2, loopSize); // 128-bit unsigned
 
     const vals = [
       concat([
@@ -151,9 +151,18 @@ describe("RainCompiler", async function () {
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
       ]),
-      concat([bytify(3, valBytes), bytify(1, valBytes)]),
-      concat([bytify(4, valBytes), bytify(2, valBytes)]),
-      concat([bytify(5, valBytes), bytify(3, valBytes)]),
+      concat([
+        bytify(3, valBytes),
+        bytify(1, valBytes),
+      ]),
+      concat([
+        bytify(4, valBytes),
+        bytify(2, valBytes),
+      ]),
+      concat([
+        bytify(5, valBytes),
+        bytify(3, valBytes),
+      ]),
       0,
       0,
       0,
@@ -190,26 +199,8 @@ describe("RainCompiler", async function () {
     // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
-    const expectedMul0 = 60;
-    const actualMul0 = resultStack.vals[0];
-    assert(
-      actualMul0.eq(expectedMul0),
-      `wrong result of call (* 3 4 5)
-      expected  ${expectedMul0}
-      got       ${actualMul0}`
-    );
-
-    const expectedAdd0 = 12;
-    const actualAdd0 = resultStack.vals[1];
-    assert(
-      actualAdd0.eq(expectedAdd0),
-      `wrong result of call (+ 3 4 5)
-      expected  ${expectedAdd0}
-      got       ${actualAdd0}`
-    );
-
     const expectedMul1 = 6;
-    const actualMul1 = resultStack.vals[2];
+    const actualMul1 = resultStack.vals[0];
     assert(
       actualMul1.eq(expectedMul1),
       `wrong result of call (* 1 2 3)
@@ -218,12 +209,30 @@ describe("RainCompiler", async function () {
     );
 
     const expectedAdd1 = 6;
-    const actualAdd1 = resultStack.vals[3];
+    const actualAdd1 = resultStack.vals[1];
     assert(
       actualAdd1.eq(expectedAdd1),
       `wrong result of call (+ 1 2 3)
       expected  ${expectedAdd1}
       got       ${actualAdd1}`
+    );
+
+    const expectedMul0 = 60;
+    const actualMul0 = resultStack.vals[2];
+    assert(
+      actualMul0.eq(expectedMul0),
+      `wrong result of call (* 3 4 5)
+      expected  ${expectedMul0}
+      got       ${actualMul0}`
+    );
+
+    const expectedAdd0 = 12;
+    const actualAdd0 = resultStack.vals[3];
+    assert(
+      actualAdd0.eq(expectedAdd0),
+      `wrong result of call (+ 3 4 5)
+      expected  ${expectedAdd0}
+      got       ${actualAdd0}`
     );
   });
 

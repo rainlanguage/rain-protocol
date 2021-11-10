@@ -82,11 +82,9 @@ describe("CombineTier", async function () {
 
     const stack = await combineTier.reportStack(signers[0].address);
 
-    console.log(`stack vals: ${stack.vals}`);
-
     const result = await combineTier.report(signers[0].address);
 
-    const expected = 0;
+    const expected = Util.max_uint256;
     assert(
       result.eq(expected),
       `wrong block number preserved with tierwise andNew

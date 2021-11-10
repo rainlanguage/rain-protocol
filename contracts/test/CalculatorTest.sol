@@ -20,7 +20,7 @@ contract CalculatorTest is RainCompiler {
         RainCompiler(source_) { }
 
     function applyOp(
-        bytes memory context_,
+        bytes memory,
         Stack memory stack_,
         Op memory op_
     )
