@@ -328,7 +328,7 @@ export function zeroPad4(hex: BigNumber): string {
  * Converts a value to raw bytes representation. Assumes `value` is less than or equal to 1 byte, unless a desired `bytesLength` is specified.
  *
  * @param value - value to convert to raw bytes format
- * @param bytesLength - (default = 1 byte) number of bytes to left pad if `value` doesn't completely fill the desired amount of memory. Will throw `InvalidArgument` error if value already exceeds bytes length.
+ * @param bytesLength - (defaults to 1) number of bytes to left pad if `value` doesn't completely fill the desired amount of memory. Will throw `InvalidArgument` error if value already exceeds bytes length.
  * @returns {Uint8Array} - raw bytes representation
  */
 export function bytify(
@@ -339,9 +339,9 @@ export function bytify(
 }
 
 /**
- * Constructs the operand for RainVM's `call` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means there is one function, while an `fnSize` of 3 means there are four functions.
+ * Constructs the operand for RainVM's `call` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
- * @param fnSize - number of functions to be called (range 0-3)
+ * @param fnSize - number of elements on stack to allocate for functions (range 0-3)
  * @param loopSize - number of loops (range 0-7)
  * @param valSize - number of vals (range 0-7)
  */

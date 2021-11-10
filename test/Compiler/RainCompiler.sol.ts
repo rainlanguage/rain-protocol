@@ -23,6 +23,346 @@ const enum Opcode {
 }
 
 describe("RainCompiler", async function () {
+  it("should handle a call which loops 4 times", async () => {
+    this.timeout(0);
+
+    // zero-based counting
+    const fnSize = 0;
+    const loopSize = 3;
+    const valSize = 1;
+
+    const valBytes = 32 / (loopSize + 1); // 64-bit unsigned
+
+    const vals = [
+      concat([
+        op(Opcode.ADD, 2),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.MUL, 2),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+      ]),
+      concat([
+        bytify(1, valBytes),
+        bytify(2, valBytes),
+        bytify(3, valBytes),
+        bytify(4, valBytes),
+        bytify(5, valBytes),
+        bytify(6, valBytes),
+        bytify(7, valBytes),
+        bytify(8, valBytes),
+      ]),
+      concat([
+        bytify(10, valBytes),
+        bytify(20, valBytes),
+        bytify(30, valBytes),
+        bytify(40, valBytes),
+        bytify(50, valBytes),
+        bytify(60, valBytes),
+        bytify(70, valBytes),
+        bytify(80, valBytes),
+      ]),
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ];
+
+    const source = [
+      concat([
+        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.VAL, 0), // fn0
+        op(Opcode.VAL, 1), // val1
+        op(Opcode.VAL, 2), // val0
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source, // not important
+      vals, // not important
+    })) as CalculatorTest;
+
+    // @ts-ignore
+    // Just return the whole output stack for debugging purposes
+    const stack_ = await calculator.evalStack({ source, vals });
+
+    console.log(`stackVals_   ${stack_.vals}`);
+    console.log(`stackIndex_  ${stack_.index}`);
+
+    // @ts-ignore
+    // const resultStack = await calculator.evalStack({ source, vals });
+  });
+
+  it("should handle a call which loops twice", async () => {
+    this.timeout(0);
+
+    // zero-based counting
+    const fnSize = 0;
+    const loopSize = 1;
+    const valSize = 2;
+
+    const valBytes = 32 / (loopSize + 1); // 128-bit unsigned
+
+    const vals = [
+      concat([
+        op(Opcode.ADD, 3),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.MUL, 3),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+      ]),
+      concat([bytify(3, valBytes), bytify(1, valBytes)]),
+      concat([bytify(4, valBytes), bytify(2, valBytes)]),
+      concat([bytify(5, valBytes), bytify(3, valBytes)]),
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ];
+
+    const source = [
+      concat([
+        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.VAL, 0), // fn0
+        op(Opcode.VAL, 1), // val2
+        op(Opcode.VAL, 2), // val1
+        op(Opcode.VAL, 3), // val0
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source, // not important
+      vals, // not important
+    })) as CalculatorTest;
+
+    // @ts-ignore
+    const resultStack = await calculator.evalStack({ source, vals });
+
+    const expectedMul0 = 60;
+    const actualMul0 = resultStack.vals[0];
+    assert(
+      actualMul0.eq(expectedMul0),
+      `wrong result of call (* 3 4 5)
+      expected  ${expectedMul0}
+      got       ${actualMul0}`
+    );
+
+    const expectedAdd0 = 12;
+    const actualAdd0 = resultStack.vals[1];
+    assert(
+      actualAdd0.eq(expectedAdd0),
+      `wrong result of call (+ 3 4 5)
+      expected  ${expectedAdd0}
+      got       ${actualAdd0}`
+    );
+
+    const expectedMul1 = 6;
+    const actualMul1 = resultStack.vals[2];
+    assert(
+      actualMul1.eq(expectedMul1),
+      `wrong result of call (* 1 2 3)
+      expected  ${expectedMul1}
+      got       ${actualMul1}`
+    );
+
+    const expectedAdd1 = 6;
+    const actualAdd1 = resultStack.vals[3];
+    assert(
+      actualAdd1.eq(expectedAdd1),
+      `wrong result of call (+ 1 2 3)
+      expected  ${expectedAdd1}
+      got       ${actualAdd1}`
+    );
+  });
+
+  it("should handle a call op with maxed fnSize and valSize", async () => {
+    this.timeout(0);
+
+    const vals = [
+      concat([
+        op(Opcode.ADD, 30),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 7),
+        op(Opcode.VAL, 6),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 7),
+      ]),
+      concat([
+        op(Opcode.VAL, 6),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 7),
+        op(Opcode.VAL, 6),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.ADD, 32), // max no. items
+      ]),
+      concat([
+        op(Opcode.VAL, 7),
+        op(Opcode.VAL, 6),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 7),
+        op(Opcode.VAL, 6),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+      ]),
+      concat([
+        op(Opcode.VAL, 7),
+        op(Opcode.VAL, 6),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 7),
+        op(Opcode.VAL, 6),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+      ]),
+      80,
+      70,
+      60,
+      50,
+      40,
+      30,
+      20,
+      10,
+      0,
+      0,
+      0,
+      0,
+    ];
+
+    // zero-based counting
+    const fnSize = 3;
+    const loopSize = 0;
+    const valSize = 7;
+
+    const source = [
+      concat([
+        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.VAL, 0), // fn3
+        op(Opcode.VAL, 1), // fn2
+        op(Opcode.VAL, 2), // fn1
+        op(Opcode.VAL, 3), // fn0
+        op(Opcode.VAL, 4), // val7
+        op(Opcode.VAL, 5), // val6
+        op(Opcode.VAL, 6), // val5
+        op(Opcode.VAL, 7), // val4
+        op(Opcode.VAL, 8), // val3
+        op(Opcode.VAL, 9), // val2
+        op(Opcode.VAL, 10), // val1
+        op(Opcode.VAL, 11), // val0
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source, // not important
+      vals, // not important
+    })) as CalculatorTest;
+
+    // @ts-ignore
+    // Just return the whole output stack for debugging purposes
+    // const stack_ = await calculator.evalStack({ source, vals });
+
+    // console.log(`stackVals_   ${stack_.vals}`);
+    // console.log(`stackIndex_  ${stack_.index}`);
+
+    // @ts-ignore
+    const resultStack = await calculator.evalStack({ source, vals });
+
+    const expectedIndex = 2;
+    const actualIndex = resultStack.index;
+    assert(
+      actualIndex === expectedIndex,
+      `wrong index for call
+      expected  ${expectedIndex}
+      got       ${actualIndex}`
+    );
+
+    const expectedAdd1 = 1440;
+    const actualAdd1 = resultStack.vals[0];
+    assert(
+      actualAdd1.eq(expectedAdd1),
+      `wrong result of call
+      expected  ${expectedAdd1}
+      got       ${actualAdd1}`
+    );
+
+    const expectedAdd0 = 1290;
+    const actualAdd0 = resultStack.vals[1];
+    assert(
+      actualAdd0.eq(expectedAdd0),
+      `wrong result of call
+      expected  ${expectedAdd0}
+      got       ${actualAdd0}`
+    );
+  });
+
   it("should handle a call op which runs multiple functions (across multiple fn vals)", async () => {
     this.timeout(0);
 
@@ -95,13 +435,6 @@ describe("RainCompiler", async function () {
     })) as CalculatorTest;
 
     // @ts-ignore
-    // Just return the whole output stack for debugging purposes
-    const stack_ = await calculator.evalStack({ source, vals });
-
-    console.log(`stackVals_   ${stack_.vals}`);
-    console.log(`stackIndex_  ${stack_.index}`);
-
-    // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
     const expectedIndex = 2;
@@ -138,13 +471,13 @@ describe("RainCompiler", async function () {
     const vals = [
       concat([
         op(Opcode.ADD, 3),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
         op(Opcode.MUL, 3),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
       ]),
       3,
       4,
@@ -171,7 +504,7 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // fn0 reference
+        op(Opcode.VAL, 0), // fn0
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
         op(Opcode.VAL, 3),
@@ -223,7 +556,6 @@ describe("RainCompiler", async function () {
 
     const vals = [
       concat([
-        // fn0 definition with inner stack vals
         op(Opcode.ADD, 3),
         op(Opcode.VAL, 0),
         op(Opcode.VAL, 1),
@@ -253,10 +585,10 @@ describe("RainCompiler", async function () {
     const source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // fn0 reference
-        op(Opcode.VAL, 1), // val0 inner stack | val1 outer stack
-        op(Opcode.VAL, 2), // val1 inner stack | val2 outer stack
-        op(Opcode.VAL, 3), // val2 inner stack | val3 outer stack
+        op(Opcode.VAL, 0), // fn0
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 3),
       ]),
       0,
       0,
