@@ -4,6 +4,7 @@ public/build
 .env
 cache
 typechain
+typechain-types
 artifacts
 build
 venv

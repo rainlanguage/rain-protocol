@@ -5,6 +5,7 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionTest } from "../../typechain/TierByConstructionTest";
 import type { TierByConstructionClaimTest } from "../../typechain/TierByConstructionClaimTest";
 import { assertError } from "../Util";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -13,13 +14,13 @@ describe("TierByConstruction", async function () {
   let alice: any;
   let owner: any;
   let tierByConstructionFactory: any;
-  let readWriteTier: ReadWriteTier;
-  let tierByConstruction: TierByConstructionTest;
+  let readWriteTier: ReadWriteTier & Contract;
+  let tierByConstruction: TierByConstructionTest & Contract;
 
   beforeEach(async () => {
     [owner, alice] = await ethers.getSigners();
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
+    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
     // Need to set the tier before construction.
@@ -30,7 +31,7 @@ describe("TierByConstruction", async function () {
     );
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
   });
 
@@ -101,7 +102,7 @@ describe("TierByConstruction", async function () {
   it("should be able to use unlimited functions and lower tier than the upgraded one", async function () {
     const tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
 
     const tierByConstructionAlice = tierByConstruction.connect(alice.address);
@@ -126,7 +127,7 @@ describe("TierByConstruction", async function () {
 
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
 
     await tierByConstruction.deployed();
 
@@ -146,7 +147,7 @@ describe("TierByConstruction", async function () {
 
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
 
     await tierByConstruction.unlimited();
@@ -165,7 +166,7 @@ describe("TierByConstruction", async function () {
 
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
 
     await tierByConstruction.unlimited();
@@ -184,7 +185,7 @@ describe("TierByConstruction", async function () {
 
 describe("TierByConstructionClaim", async function () {
   let owner: any;
-  let readWriteTier: ReadWriteTier;
+  let readWriteTier: ReadWriteTier & Contract;
   let tierByConstructionClaim: TierByConstructionClaimTest;
   let tierByConstructionClaimFactory: any;
 
@@ -192,7 +193,7 @@ describe("TierByConstructionClaim", async function () {
     [owner] = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
+    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
     tierByConstructionClaimFactory = await ethers.getContractFactory(

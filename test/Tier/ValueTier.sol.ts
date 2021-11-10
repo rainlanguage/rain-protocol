@@ -1,5 +1,6 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ValueTierTest } from "../../typechain/ValueTierTest";
 import { assertError, basicDeploy, eighteenZeros } from "../Util";
@@ -27,14 +28,15 @@ describe("ValueTierTest", async function () {
   let owner: any;
   let alice: any;
   let bob: any;
-  let valueTier: ValueTierTest;
+  let valueTier: ValueTierTest & Contract;
 
   beforeEach(async () => {
     [owner, alice, bob] = await ethers.getSigners();
 
     const valueTierFactory = await ethers.getContractFactory("ValueTierTest");
 
-    valueTier = (await valueTierFactory.deploy(LEVELS)) as ValueTierTest;
+    valueTier = (await valueTierFactory.deploy(LEVELS)) as ValueTierTest &
+      Contract;
 
     await valueTier.deployed();
   });

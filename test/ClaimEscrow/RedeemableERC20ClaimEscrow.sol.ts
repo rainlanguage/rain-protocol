@@ -7,6 +7,7 @@ import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TrustFactory } from "../../typechain/TrustFactory";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -20,10 +21,10 @@ enum DistributionStatus {
   FAIL,
 }
 
-let claim: RedeemableERC20ClaimEscrow,
-  trustFactory: TrustFactory,
-  tier: ReadWriteTier,
-  claimableToken: ReserveToken;
+let claim: RedeemableERC20ClaimEscrow & Contract,
+  trustFactory: TrustFactory & Contract,
+  tier: ReadWriteTier & Contract,
+  claimableToken: ReserveToken & Contract;
 
 describe("RedeemableERC20ClaimEscrow", async function () {
   before(async () => {
@@ -35,7 +36,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     claimableToken = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
   });
 
   it("should distribute correct withdrawal proportion if RedeemableERC20 tokens are burned", async function () {

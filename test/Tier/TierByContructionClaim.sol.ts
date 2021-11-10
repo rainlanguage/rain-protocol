@@ -1,5 +1,6 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionClaim } from "../../typechain/TierByConstructionClaim";
@@ -24,13 +25,13 @@ enum Tier {
 describe("TierByConstructionClaim", async function () {
   let alice: any;
   let owner: any;
-  let readWriteTier: ReadWriteTier;
+  let readWriteTier: ReadWriteTier & Contract;
   let tierByConstructionClaimFactory: any;
 
   beforeEach(async () => {
     [owner, alice] = await ethers.getSigners();
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
+    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
     // Need to set the tier before construction.
@@ -167,7 +168,7 @@ describe("TierByConstructionClaim", async function () {
       const tierByConstructionClaimTest =
         (await tierByConstructionClaimTestFactory.deploy(
           readWriteTier.address
-        )) as TierByConstructionClaimTest;
+        )) as TierByConstructionClaimTest & Contract;
 
       await tierByConstructionClaimTest.deployed();
 

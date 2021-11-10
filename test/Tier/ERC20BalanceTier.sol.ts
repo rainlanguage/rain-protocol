@@ -1,5 +1,6 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ERC20BalanceTier } from "../../typechain/ERC20BalanceTier";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
@@ -29,12 +30,13 @@ describe("ERC20BalanceTier", async function () {
   let owner: any;
   let alice: any;
   let erc20BalanceTier: ERC20BalanceTier;
-  let reserve: ReserveTokenTest;
+  let reserve: ReserveTokenTest & Contract;
 
   beforeEach(async () => {
     [owner, alice] = await ethers.getSigners();
 
-    reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest;
+    reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
+      Contract;
 
     const erc20BalanceTierFactory = await ethers.getContractFactory(
       "ERC20BalanceTier"
@@ -42,7 +44,7 @@ describe("ERC20BalanceTier", async function () {
     erc20BalanceTier = (await erc20BalanceTierFactory.deploy(
       reserve.address,
       LEVELS
-    )) as ERC20BalanceTier;
+    )) as ERC20BalanceTier & Contract;
 
     await erc20BalanceTier.deployed();
   });

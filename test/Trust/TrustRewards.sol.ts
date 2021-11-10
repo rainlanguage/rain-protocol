@@ -4,7 +4,7 @@ import { solidity } from "ethereum-waffle";
 import type { Trust } from "../../typechain/Trust";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
-import { utils } from "ethers";
+import type { Contract } from "ethers";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
@@ -64,18 +64,18 @@ describe("TrustRewards", async function () {
     const reserveA = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserveB = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserveC = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -141,7 +141,7 @@ describe("TrustRewards", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    ) as RedeemableERC20;
+    ) as RedeemableERC20 & Contract;
 
     await token.connect(creator).addRedeemable(reserveB.address);
 
@@ -182,22 +182,22 @@ describe("TrustRewards", async function () {
     const reserveA = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserveB = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserveC = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserveD = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -273,12 +273,12 @@ describe("TrustRewards", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    ) as RedeemableERC20;
+    ) as RedeemableERC20 & Contract;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
       creator
-    ) as RedeemableERC20Pool;
+    ) as RedeemableERC20Pool & Contract;
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
@@ -495,10 +495,10 @@ describe("TrustRewards", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -568,7 +568,7 @@ describe("TrustRewards", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    ) as ReserveToken;
+    ) as ReserveToken & Contract;
 
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -577,12 +577,12 @@ describe("TrustRewards", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    ) as RedeemableERC20;
+    ) as RedeemableERC20 & Contract;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
       creator
-    ) as RedeemableERC20Pool;
+    ) as RedeemableERC20Pool & Contract;
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
@@ -693,10 +693,10 @@ describe("TrustRewards", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -767,7 +767,7 @@ describe("TrustRewards", async function () {
       reserve.address,
       reserve.interface,
       seeder
-    ) as ReserveToken;
+    ) as ReserveToken & Contract;
 
     // seeder must transfer seed funds before pool init
     await reserveSeeder.transfer(await trust.pool(), reserveInit);
@@ -776,12 +776,12 @@ describe("TrustRewards", async function () {
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    ) as RedeemableERC20;
+    ) as RedeemableERC20 & Contract;
     const pool = new ethers.Contract(
       await trust.pool(),
       poolJson.abi,
       creator
-    ) as RedeemableERC20Pool;
+    ) as RedeemableERC20Pool & Contract;
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
@@ -843,10 +843,10 @@ describe("TrustRewards", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -912,17 +912,17 @@ describe("TrustRewards", async function () {
     const reserve2 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
     const reserve3 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
       creator
-    ) as RedeemableERC20;
+    ) as RedeemableERC20 & Contract;
 
     await Util.assertError(
       async () => await token.connect(deployer).addRedeemable(reserve2.address),
