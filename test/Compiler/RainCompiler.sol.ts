@@ -23,7 +23,7 @@ const enum Opcode {
 }
 
 describe("RainCompiler", async function () {
-  it("should handle a call which loops 4 times", async () => {
+  it.only("should handle a call which loops 4 times", async () => {
     this.timeout(0);
 
     // zero-based counting
@@ -31,7 +31,10 @@ describe("RainCompiler", async function () {
     const loopSize = 3;
     const valSize = 1;
 
-    const valBytes = 32 / (loopSize + 1); // 64-bit unsigned
+    // const valBytes = 32 / (loopSize + 1); // 32-bit unsigned
+    const valBytes = 4;
+
+    console.log(valBytes)
 
     const vals = [
       concat([
@@ -77,6 +80,8 @@ describe("RainCompiler", async function () {
       0,
     ];
 
+    console.log(vals);
+
     const source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
@@ -103,7 +108,26 @@ describe("RainCompiler", async function () {
     console.log(`stackIndex_  ${stack_.index}`);
 
     // @ts-ignore
-    // const resultStack = await calculator.evalStack({ source, vals });
+    const resultStack = await calculator.evalStack({ source, vals });
+
+    // 640,88,490,77,360,66,250,55,160,44,90,33,40,22,10,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    // + 10 1 => 11
+    // * 10 1 => 10
+    // + 20 2 => 22
+    // * 20 2 => 40
+    // + 30 3 => 33
+    // * 30 3 => 90
+    // + 40 4 => 44
+    // * 40 4 => 160
+    // + 50 5 => 55
+    // * 50 5 => 250
+    // + 60 6 => 66
+    // * 60 6 => 360
+    // + 70 7 => 77
+    // * 70 7 => 490
+    // + 80 8 => 88
+    // * 80 8 => 640
+    console.log(resultStack)
   });
 
   it("should handle a call which loops twice", async () => {

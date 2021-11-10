@@ -155,7 +155,7 @@ abstract contract RainCompiler {
             uint256[16] memory vals_;
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
                 vals_[a_] = uint256(
-                    uint256(baseVals_[a_] << step_)
+                    uint256(baseVals_[a_] << 256 - step_ - stepSize_)
                     >> 256 - stepSize_
                 );
             }
