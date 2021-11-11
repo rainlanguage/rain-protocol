@@ -23,6 +23,102 @@ const enum Opcode {
 }
 
 describe("RainCompiler", async function () {
+  it("should handle a call which loops 8 (max) times", async () => {
+    this.timeout(0);
+
+    // zero-based counting
+    const fnSize = 0;
+    const loopSize = 7;
+    const valSize = 1;
+
+    // 0.25 bytes = 2-bit unsigned integer
+    // const valBytes = 32 / Math.pow(2, loopSize);
+
+    const numbers = Util.array2BitUInts(128);
+
+    // pack 32 1-byte hex values into uint256
+    const val256 = concat(
+      Util.pack2BitUIntsIntoByte(numbers) // pack 2-bit uints into single byte, 4 at a time
+        .map((byte) => hexlify(byte)) // convert each 1-byte number to 1-byte hex
+    );
+
+    console.log(ethers.BigNumber.from(val256));
+    // assert(ethers.BigNumber.from(val256).eq(Util.max_uint256));
+
+    const vals = [
+      concat([
+        op(Opcode.ADD, 2),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.MUL, 2),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+      ]),
+      val256, // val1
+      val256, // val0
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ];
+
+    const source = [
+      concat([
+        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.VAL, 0), // fn0
+        op(Opcode.VAL, 1), // val1
+        op(Opcode.VAL, 2), // val0
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source, // not important
+      vals, // not important
+    })) as CalculatorTest;
+
+    // @ts-ignore
+    // Just return the whole output stack for debugging purposes
+    // const stack_ = await calculator.evalStack({ source, vals });
+
+    // console.log(`stackVals_   ${stack_.vals}`);
+    // console.log(`stackIndex_  ${stack_.index}`);
+
+    // @ts-ignore
+    const resultStack = await calculator.evalStack({ source, vals });
+
+    console.log(resultStack);
+
+    // const expectedStack = [
+    //   640, 88, 490, 77, 360, 66, 250, 55, 160, 44, 90, 33, 40, 22, 10, 11, 0, 0,
+    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    // ];
+
+    // for (let i = 0; i < resultStack.length; i++) {
+    //   const stackEl = resultStack.vals[i];
+
+    //   assert(
+    //     stackEl.eq(expectedStack[i]),
+    //     `wrong result of call
+    //     index     ${i}
+    //     expected  ${expectedStack[i]}
+    //     got       ${stackEl}`
+    //   );
+    // }
+  });
+
   it("should handle a call which loops 4 times", async () => {
     this.timeout(0);
 
@@ -31,10 +127,7 @@ describe("RainCompiler", async function () {
     const loopSize = 3;
     const valSize = 1;
 
-    // const valBytes = 32 / (loopSize + 1); // 32-bit unsigned
-    const valBytes = 4;
-
-    console.log(valBytes)
+    const valBytes = 32 / Math.pow(2, loopSize); // 32-bit unsigned integer
 
     const vals = [
       concat([
@@ -80,8 +173,6 @@ describe("RainCompiler", async function () {
       0,
     ];
 
-    console.log(vals);
-
     const source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
@@ -102,15 +193,19 @@ describe("RainCompiler", async function () {
 
     // @ts-ignore
     // Just return the whole output stack for debugging purposes
-    const stack_ = await calculator.evalStack({ source, vals });
+    // const stack_ = await calculator.evalStack({ source, vals });
 
-    console.log(`stackVals_   ${stack_.vals}`);
-    console.log(`stackIndex_  ${stack_.index}`);
+    // console.log(`stackVals_   ${stack_.vals}`);
+    // console.log(`stackIndex_  ${stack_.index}`);
 
     // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
-    // 640,88,490,77,360,66,250,55,160,44,90,33,40,22,10,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    const expectedStack = [
+      640, 88, 490, 77, 360, 66, 250, 55, 160, 44, 90, 33, 40, 22, 10, 11, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+
     // + 10 1 => 11
     // * 10 1 => 10
     // + 20 2 => 22
@@ -127,7 +222,18 @@ describe("RainCompiler", async function () {
     // * 70 7 => 490
     // + 80 8 => 88
     // * 80 8 => 640
-    console.log(resultStack)
+
+    for (let i = 0; i < resultStack.length; i++) {
+      const stackEl = resultStack.vals[i];
+
+      assert(
+        stackEl.eq(expectedStack[i]),
+        `wrong result of call
+        index     ${i}
+        expected  ${expectedStack[i]}
+        got       ${stackEl}`
+      );
+    }
   });
 
   it("should handle a call which loops twice", async () => {
@@ -151,18 +257,9 @@ describe("RainCompiler", async function () {
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
       ]),
-      concat([
-        bytify(3, valBytes),
-        bytify(1, valBytes),
-      ]),
-      concat([
-        bytify(4, valBytes),
-        bytify(2, valBytes),
-      ]),
-      concat([
-        bytify(5, valBytes),
-        bytify(3, valBytes),
-      ]),
+      concat([bytify(3, valBytes), bytify(1, valBytes)]),
+      concat([bytify(4, valBytes), bytify(2, valBytes)]),
+      concat([bytify(5, valBytes), bytify(3, valBytes)]),
       0,
       0,
       0,

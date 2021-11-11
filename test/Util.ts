@@ -379,3 +379,58 @@ export function callSize(
 export function op(code: number, erand: number = 0): Uint8Array {
   return concat([bytify(erand), bytify(code)]);
 }
+
+export const wrap2BitUInt = (integer: number) => {
+  while (integer > 3) {
+    integer -= 4;
+  }
+  return integer;
+};
+
+export const wrap4BitUInt = (integer: number) => {
+  while (integer > 15) {
+    integer -= 16;
+  }
+  return integer;
+};
+
+export const wrap8BitUInt = (integer: number) => {
+  while (integer > 255) {
+    integer -= 256;
+  }
+  return integer;
+};
+
+export const array2BitUInts = (length) =>
+  Array(length)
+    .fill(0)
+    // .map((_, i) => 3);
+    .map((_, i) => wrap2BitUInt(i));
+
+export const array4BitUInts = (length) =>
+  Array(length)
+    .fill(0)
+    .map((_, i) => wrap4BitUInt(i));
+
+export const array8BitUInts = (length) =>
+  Array(length)
+    .fill(0)
+    .map((_, i) => wrap8BitUInt(i));
+
+export const pack2BitUIntsIntoByte = (numArray: number[]): number[] => {
+  let val: number[] = [];
+  let valIndex = 0;
+
+  for (let i = 0; i < numArray.length; i += 4) {
+    const byte =
+      (numArray[i + 3] << 6) +
+      (numArray[i + 2] << 4) +
+      (numArray[i + 1] << 2) +
+      numArray[i];
+
+    val[valIndex] = byte;
+    valIndex++;
+  }
+
+  return val;
+};
