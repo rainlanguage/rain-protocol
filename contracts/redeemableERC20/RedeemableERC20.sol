@@ -7,19 +7,14 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import {
-    AccessControl
-} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {
-    ReentrancyGuard
-} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {
-    ERC20Burnable
-} from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+// solhint-disable-next-line max-line-length
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+// solhint-disable-next-line max-line-length
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+// solhint-disable-next-line max-line-length
+import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
-import {
-    TierByConstruction
-} from "../tier/TierByConstruction.sol";
+import { TierByConstruction } from "../tier/TierByConstruction.sol";
 import { ITier } from "../tier/ITier.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";

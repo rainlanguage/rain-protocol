@@ -7,33 +7,24 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {
-    ReentrancyGuard
-} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+// solhint-disable-next-line max-line-length
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import { ITier } from "../tier/ITier.sol";
 
 import { Phase } from "../phased/Phased.sol";
-import {
-    RedeemableERC20,
-    RedeemableERC20Config
-} from "../redeemableERC20/RedeemableERC20.sol";
-import {
-    RedeemableERC20Pool, RedeemableERC20PoolConfig
-} from "../pool/RedeemableERC20Pool.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20, RedeemableERC20Config } from "../redeemableERC20/RedeemableERC20.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "../pool/RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "../seed/SeedERC20.sol";
-import {
-    RedeemableERC20Factory
-} from "../redeemableERC20/RedeemableERC20Factory.sol";
-import {
-    RedeemableERC20PoolFactory,
-    RedeemableERC20PoolFactoryRedeemableERC20PoolConfig
-} from "../pool/RedeemableERC20PoolFactory.sol";
-import {
-    SeedERC20Factory
-} from "../seed/SeedERC20Factory.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factory.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20PoolFactory, RedeemableERC20PoolFactoryRedeemableERC20PoolConfig } from "../pool/RedeemableERC20PoolFactory.sol";
+import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
