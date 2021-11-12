@@ -192,27 +192,22 @@ contract Verify is AccessControl {
     constructor (address admin_) public {
         // `APPROVER_ADMIN_ADMIN` can admin each other in addition to
         // `APPROVER_ADMIN` addresses underneath.
-        _setRoleAdmin(APPROVER_ADMIN_ADMIN, APPROVER_ADMIN_ADMIN);
         _setRoleAdmin(APPROVER_ADMIN, APPROVER_ADMIN_ADMIN);
         _setRoleAdmin(APPROVER, APPROVER_ADMIN);
 
         // `REMOVER_ADMIN_ADMIN` can admin each other in addition to
         // `REMOVER_ADMIN` addresses underneath.
-        _setRoleAdmin(REMOVER_ADMIN_ADMIN, REMOVER_ADMIN_ADMIN);
         _setRoleAdmin(REMOVER_ADMIN, REMOVER_ADMIN_ADMIN);
         _setRoleAdmin(REMOVER, REMOVER_ADMIN);
 
         // `BANNER_ADMIN_ADMIN` can admin each other in addition to
         // `BANNER_ADMIN` addresses underneath.
-        _setRoleAdmin(BANNER_ADMIN_ADMIN, BANNER_ADMIN_ADMIN);
         _setRoleAdmin(BANNER_ADMIN, BANNER_ADMIN_ADMIN);
         _setRoleAdmin(BANNER, BANNER_ADMIN);
 
         // It is STRONGLY RECOMMENDED that the `admin_` delegates specific
-        // admin roles then revokes the `X_ADMIN_ADMIN` roles.
-        _setupRole(APPROVER_ADMIN_ADMIN, admin_);
-        _setupRole(REMOVER_ADMIN_ADMIN, admin_);
-        _setupRole(BANNER_ADMIN_ADMIN, admin_);
+        // admin roles then revokes the `DEFAULT_ADMIN_ROLE`.
+        _setupRole(DEFAULT_ADMIN_ROLE, admin_);
 
         // This is at the end of the constructor because putting it at the
         // start seems to break the source map from the compiler 🙈

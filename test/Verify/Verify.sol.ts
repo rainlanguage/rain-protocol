@@ -55,6 +55,20 @@ describe("Verify", async function () {
 
     const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
 
+    // chadAdmin grants themselves admin admin roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+
     /* chadAdmin grants betaAdmin admin roles
      these could obviously be granted across multiple addresses, e.g.
       - 'betaAdminApprovals' address for granting verifiers approval privileges
@@ -75,6 +89,20 @@ describe("Verify", async function () {
     const verifier = signers[2];
 
     const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+
+    // chadAdmin grants themselves admin admin roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
 
     // chadAdmin grants betaAdmin admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
@@ -135,6 +163,20 @@ describe("Verify", async function () {
     const signer1 = signers[3];
 
     const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+
+    // chadAdmin grants themselves admin admin roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
 
     const state0 = await verify.state(signer1.address);
     assert(
@@ -241,6 +283,20 @@ describe("Verify", async function () {
 
     const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
 
+    // chadAdmin grants themselves admin admin roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+
     // chadAdmin grants betaAdmin admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), betaAdmin.address);
@@ -319,6 +375,20 @@ describe("Verify", async function () {
     const signer1 = signers[3];
 
     const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+
+    // chadAdmin grants themselves admin admin roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
 
     const state0 = await verify.state(signer1.address);
     assert(
@@ -473,22 +543,29 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
+    const chadAdmin = signers[0];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
 
-    // admin (specified in constructor) has all roles
+    const DEFAULT_ADMIN_ROLE = await verify.DEFAULT_ADMIN_ROLE();
+
+    // admin (specified in constructor) has only default admin role
     assert(
-      await verify.hasRole(APPROVER_ADMIN_ADMIN, admin.address),
-      "admin did not have APPROVER_ADMIN_ADMIN role after construction"
+      await verify.hasRole(DEFAULT_ADMIN_ROLE, chadAdmin.address),
+      "admin did not have DEFAULT_ADMIN_ROLE role after construction"
+    );
+
+    assert(
+      !(await verify.hasRole(APPROVER_ADMIN_ADMIN, chadAdmin.address)),
+      "admin wrongly has APPROVER_ADMIN_ADMIN role after construction, they should grant that to themselves"
     );
     assert(
-      await verify.hasRole(REMOVER_ADMIN_ADMIN, admin.address),
-      "admin did not have REMOVER_ADMIN_ADMIN role after construction"
+      !(await verify.hasRole(REMOVER_ADMIN_ADMIN, chadAdmin.address)),
+      "admin wrongly has REMOVER_ADMIN_ADMIN role after construction, they should grant that to themselves"
     );
     assert(
-      await verify.hasRole(BANNER_ADMIN_ADMIN, admin.address),
-      "admin did not have BANNER_ADMIN_ADMIN role after construction"
+      !(await verify.hasRole(BANNER_ADMIN_ADMIN, chadAdmin.address)),
+      "admin wrongly has BANNER_ADMIN_ADMIN role after construction, they should grant that to themselves"
     );
   });
 
@@ -561,6 +638,20 @@ describe("Verify", async function () {
 
     const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
 
+    // chadAdmin grants themselves admin admin roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+
     // chadAdmin grants betaAdmin approver admin role
     await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
     await verify
@@ -610,6 +701,20 @@ describe("Verify", async function () {
 
     const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
 
+    // chadAdmin grants themselves admin admin roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+
     // chadAdmin grants betaAdmin remover admin role
     await verify.grantRole(await verify.REMOVER_ADMIN(), betaAdmin.address);
     await verify
@@ -658,6 +763,20 @@ describe("Verify", async function () {
     const nonBanner = signers[4];
 
     const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+
+    // chadAdmin grants themselves admin admin roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      chadAdmin.address
+    );
 
     // chadAdmin grants betaAdmin banner admin role
     await verify.grantRole(await verify.BANNER_ADMIN(), betaAdmin.address);
