@@ -46,78 +46,96 @@ describe("Verify", async function () {
     verifyFactory = await ethers.getContractFactory("Verify");
   });
 
-  it("should allow admin to delegate admin roles", async function () {
+  it("should allow admin to delegate admin roles and then renounce DEFAULT_ADMIN_ROLE", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
-    const betaAdmin = signers[1];
+    const tempAdmin = signers[0];
+    const actingAdmin = signers[1];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // chadAdmin grants themselves admin admin roles
+    // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
       await verify.APPROVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.REMOVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
 
-    /* chadAdmin grants betaAdmin admin roles
+    /* tempAdmin grants actingAdmin admin roles
      these could obviously be granted across multiple addresses, e.g.
-      - 'betaAdminApprovals' address for granting verifiers approval privileges
-      - 'betaAdminRemoving' address for granting verifiers removal privileges
-      - 'betaAdminBanning' address for granting verifiers ban privileges
+      - 'actingAdminApprovals' address for granting verifiers approval privileges
+      - 'actingAdminRemoving' address for granting verifiers removal privileges
+      - 'actingAdminBanning' address for granting verifiers ban privileges
     */
-    await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.REMOVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.BANNER_ADMIN(), betaAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
+
+    // tempAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      tempAdmin.address
+    );
   });
 
   it("should allow admin to delegate admin roles which can then grant non-admin roles", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
-    const betaAdmin = signers[1];
+    const tempAdmin = signers[0];
+    const actingAdmin = signers[1];
     const verifier = signers[2];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // chadAdmin grants themselves admin admin roles
+    // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
       await verify.APPROVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.REMOVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
 
-    // chadAdmin grants betaAdmin admin roles
-    await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.REMOVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.BANNER_ADMIN(), betaAdmin.address);
+    // tempAdmin grants actingAdmin admin roles
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // grant verifier roles
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.APPROVER(), verifier.address);
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.REMOVER(), verifier.address);
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.BANNER(), verifier.address);
 
     const approverCount0 = await verify.getRoleMemberCount(
@@ -132,13 +150,25 @@ describe("Verify", async function () {
     assert(removerCount0.eq(1), `expected 1, got ${removerCount0}`);
     assert(bannerCount0.eq(1), `expected 1, got ${bannerCount0}`);
 
-    // if admin wants to become an approver, remover or banner, they should grant themselves admin roles and then verifier roles
-    await verify.grantRole(await verify.APPROVER_ADMIN(), chadAdmin.address);
-    await verify.grantRole(await verify.REMOVER_ADMIN(), chadAdmin.address);
-    await verify.grantRole(await verify.BANNER_ADMIN(), chadAdmin.address);
-    await verify.grantRole(await verify.APPROVER(), chadAdmin.address);
-    await verify.grantRole(await verify.REMOVER(), chadAdmin.address);
-    await verify.grantRole(await verify.BANNER(), chadAdmin.address);
+    // (NOT RECOMMENDED) if admin happens to want to become an approver, remover or banner, they could grant themselves admin admin roles, then admin roles and then the verifier roles
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.grantRole(await verify.APPROVER_ADMIN(), tempAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), tempAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), tempAdmin.address);
+    await verify.grantRole(await verify.APPROVER(), tempAdmin.address);
+    await verify.grantRole(await verify.REMOVER(), tempAdmin.address);
+    await verify.grantRole(await verify.BANNER(), tempAdmin.address);
 
     const approverCount1 = await verify.getRoleMemberCount(
       await verify.APPROVER()
@@ -157,25 +187,25 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
-    const betaAdmin = signers[1];
+    const tempAdmin = signers[0];
+    const actingAdmin = signers[1];
     const verifier = signers[2];
     const signer1 = signers[3];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // chadAdmin grants themselves admin admin roles
+    // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
       await verify.APPROVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.REMOVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
 
     const state0 = await verify.state(signer1.address);
@@ -187,19 +217,25 @@ describe("Verify", async function () {
       "status should be Nil"
     );
 
-    // chadAdmin grants betaAdmin admin roles
-    await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.REMOVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.BANNER_ADMIN(), betaAdmin.address);
+    // tempAdmin grants actingAdmin admin roles
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.APPROVER(), verifier.address);
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.BANNER(), verifier.address);
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.REMOVER(), verifier.address);
 
     const blockBeforeAdd = await ethers.provider.getBlockNumber();
@@ -276,40 +312,46 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
-    const betaAdmin = signers[1];
+    const tempAdmin = signers[0];
+    const actingAdmin = signers[1];
     const verifier = signers[2];
     const signer1 = signers[3];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // chadAdmin grants themselves admin admin roles
+    // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
       await verify.APPROVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.REMOVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
 
-    // chadAdmin grants betaAdmin admin roles
-    await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.REMOVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.BANNER_ADMIN(), betaAdmin.address);
+    // tempAdmin grants actingAdmin admin roles
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.APPROVER(), verifier.address);
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.BANNER(), verifier.address);
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.REMOVER(), verifier.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
@@ -369,25 +411,25 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
-    const betaAdmin = signers[1];
+    const tempAdmin = signers[0];
+    const actingAdmin = signers[1];
     const verifier = signers[2];
     const signer1 = signers[3];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // chadAdmin grants themselves admin admin roles
+    // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
       await verify.APPROVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.REMOVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
 
     const state0 = await verify.state(signer1.address);
@@ -405,19 +447,25 @@ describe("Verify", async function () {
     );
     assert(state0.bannedSince === 0, `bannedSince should be 0, got ${state0}`);
 
-    // chadAdmin grants betaAdmin admin roles
-    await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.REMOVER_ADMIN(), betaAdmin.address);
-    await verify.grantRole(await verify.BANNER_ADMIN(), betaAdmin.address);
+    // tempAdmin grants actingAdmin admin roles
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify
+      .connect(actingAdmin)
+      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.APPROVER(), verifier.address);
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.BANNER(), verifier.address);
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
       .grantRole(await verify.REMOVER(), verifier.address);
 
     // signer1 adds arbitrary session id
@@ -543,28 +591,28 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
+    const tempAdmin = signers[0];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
     const DEFAULT_ADMIN_ROLE = await verify.DEFAULT_ADMIN_ROLE();
 
     // admin (specified in constructor) has only default admin role
     assert(
-      await verify.hasRole(DEFAULT_ADMIN_ROLE, chadAdmin.address),
+      await verify.hasRole(DEFAULT_ADMIN_ROLE, tempAdmin.address),
       "admin did not have DEFAULT_ADMIN_ROLE role after construction"
     );
 
     assert(
-      !(await verify.hasRole(APPROVER_ADMIN_ADMIN, chadAdmin.address)),
+      !(await verify.hasRole(APPROVER_ADMIN_ADMIN, tempAdmin.address)),
       "admin wrongly has APPROVER_ADMIN_ADMIN role after construction, they should grant that to themselves"
     );
     assert(
-      !(await verify.hasRole(REMOVER_ADMIN_ADMIN, chadAdmin.address)),
+      !(await verify.hasRole(REMOVER_ADMIN_ADMIN, tempAdmin.address)),
       "admin wrongly has REMOVER_ADMIN_ADMIN role after construction, they should grant that to themselves"
     );
     assert(
-      !(await verify.hasRole(BANNER_ADMIN_ADMIN, chadAdmin.address)),
+      !(await verify.hasRole(BANNER_ADMIN_ADMIN, tempAdmin.address)),
       "admin wrongly has BANNER_ADMIN_ADMIN role after construction, they should grant that to themselves"
     );
   });
@@ -630,32 +678,35 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
-    const betaAdmin = signers[1];
+    const tempAdmin = signers[0];
+    const actingAdmin = signers[1];
     const signer1 = signers[2];
     const approver = signers[3];
     const nonApprover = signers[4];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // chadAdmin grants themselves admin admin roles
+    // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
       await verify.APPROVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.REMOVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
 
-    // chadAdmin grants betaAdmin approver admin role
-    await verify.grantRole(await verify.APPROVER_ADMIN(), betaAdmin.address);
+    // actingAdmin grants approver approver admin role
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
+      .grantRole(await verify.APPROVER_ADMIN(), approver.address);
+    // approver admin grants themselves the practical approver role
+    await verify
+      .connect(approver)
       .grantRole(await verify.APPROVER(), approver.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
@@ -693,32 +744,35 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
-    const betaAdmin = signers[1];
+    const tempAdmin = signers[0];
+    const actingAdmin = signers[1];
     const signer1 = signers[2];
     const remover = signers[3];
     const nonRemover = signers[4];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // chadAdmin grants themselves admin admin roles
+    // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
       await verify.APPROVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.REMOVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
 
-    // chadAdmin grants betaAdmin remover admin role
-    await verify.grantRole(await verify.REMOVER_ADMIN(), betaAdmin.address);
+    // actingAdmin grants remover remover admin role
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
+      .grantRole(await verify.REMOVER_ADMIN(), remover.address);
+    // remover admin grants themselves the practical remover role
+    await verify
+      .connect(remover)
       .grantRole(await verify.REMOVER(), remover.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
@@ -756,32 +810,35 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const chadAdmin = signers[0];
-    const betaAdmin = signers[1];
+    const tempAdmin = signers[0];
+    const actingAdmin = signers[1];
     const signer1 = signers[2];
     const banner = signers[3];
     const nonBanner = signers[4];
 
-    const verify = (await verifyFactory.deploy(chadAdmin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // chadAdmin grants themselves admin admin roles
+    // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
       await verify.APPROVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.REMOVER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
-      chadAdmin.address
+      actingAdmin.address
     );
 
-    // chadAdmin grants betaAdmin banner admin role
-    await verify.grantRole(await verify.BANNER_ADMIN(), betaAdmin.address);
+    // actingAdmin grants banner banner admin role
     await verify
-      .connect(betaAdmin)
+      .connect(actingAdmin)
+      .grantRole(await verify.BANNER_ADMIN(), banner.address);
+    // banner admin grants themselves the practical banner role
+    await verify
+      .connect(banner)
       .grantRole(await verify.BANNER(), banner.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
