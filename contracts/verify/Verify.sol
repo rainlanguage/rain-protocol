@@ -209,8 +209,10 @@ contract Verify is AccessControl {
         _setRoleAdmin(BANNER, BANNER_ADMIN);
 
         // It is STRONGLY RECOMMENDED that the `admin_` delegates specific
-        // admin roles then revokes the `DEFAULT_ADMIN_ROLE`.
-        _setupRole(DEFAULT_ADMIN_ROLE, admin_);
+        // admin roles then revokes the `X_ADMIN_ADMIN` roles.
+        _setupRole(APPROVER_ADMIN_ADMIN, admin_);
+        _setupRole(REMOVER_ADMIN_ADMIN, admin_);
+        _setupRole(BANNER_ADMIN_ADMIN, admin_);
 
         // This is at the end of the constructor because putting it at the
         // start seems to break the source map from the compiler 🙈
