@@ -79,6 +79,9 @@ describe("TrustDistribute", async function () {
     const deployer = signers[2]; // deployer is not creator
     const signer1 = signers[3];
 
+    // Needs to be done before Trust is deployed.
+    await tier.setTier(signer1.address, minimumStatus, []);
+
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
       .add(seederFee)

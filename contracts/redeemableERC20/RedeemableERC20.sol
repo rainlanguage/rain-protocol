@@ -179,6 +179,9 @@ contract RedeemableERC20 is
 
         _setupRole(DEFAULT_ADMIN_ROLE, config_.admin);
         _setupRole(RECEIVER, config_.admin);
+        // Minting and burning must never fail.
+        _setupRole(SENDER, address(0));
+        _setupRole(RECEIVER, address(0));
 
         _mint(config_.admin, config_.totalSupply);
     }
