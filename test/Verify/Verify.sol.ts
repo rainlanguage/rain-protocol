@@ -127,6 +127,12 @@ describe("Verify", async function () {
       .connect(actingAdmin)
       .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
+    // tempAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      tempAdmin.address
+    );
+
     // grant verifier roles
     await verify
       .connect(actingAdmin)
@@ -149,38 +155,6 @@ describe("Verify", async function () {
     assert(approverCount0.eq(1), `expected 1, got ${approverCount0}`);
     assert(removerCount0.eq(1), `expected 1, got ${removerCount0}`);
     assert(bannerCount0.eq(1), `expected 1, got ${bannerCount0}`);
-
-    // (NOT RECOMMENDED) if admin happens to want to become an approver, remover or banner, they could grant themselves admin admin roles, then admin roles and then the verifier roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.grantRole(await verify.APPROVER_ADMIN(), tempAdmin.address);
-    await verify.grantRole(await verify.REMOVER_ADMIN(), tempAdmin.address);
-    await verify.grantRole(await verify.BANNER_ADMIN(), tempAdmin.address);
-    await verify.grantRole(await verify.APPROVER(), tempAdmin.address);
-    await verify.grantRole(await verify.REMOVER(), tempAdmin.address);
-    await verify.grantRole(await verify.BANNER(), tempAdmin.address);
-
-    const approverCount1 = await verify.getRoleMemberCount(
-      await verify.APPROVER()
-    );
-    const removerCount1 = await verify.getRoleMemberCount(
-      await verify.REMOVER()
-    );
-    const bannerCount1 = await verify.getRoleMemberCount(await verify.BANNER());
-
-    assert(approverCount1.eq(2), `expected 2, got ${approverCount1}`);
-    assert(removerCount1.eq(2), `expected 2, got ${removerCount1}`);
-    assert(bannerCount1.eq(2), `expected 2, got ${bannerCount1}`);
   });
 
   it("statusAtBlock should return correct status for any given state & block number", async function () {
@@ -227,6 +201,12 @@ describe("Verify", async function () {
     await verify
       .connect(actingAdmin)
       .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
+
+    // tempAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      tempAdmin.address
+    );
 
     await verify
       .connect(actingAdmin)
@@ -344,6 +324,12 @@ describe("Verify", async function () {
       .connect(actingAdmin)
       .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
+    // tempAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      tempAdmin.address
+    );
+
     await verify
       .connect(actingAdmin)
       .grantRole(await verify.APPROVER(), verifier.address);
@@ -430,6 +416,12 @@ describe("Verify", async function () {
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
       actingAdmin.address
+    );
+
+    // tempAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      tempAdmin.address
     );
 
     const state0 = await verify.state(signer1.address);
@@ -700,6 +692,12 @@ describe("Verify", async function () {
       actingAdmin.address
     );
 
+    // tempAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      tempAdmin.address
+    );
+
     // actingAdmin grants approver approver admin role
     await verify
       .connect(actingAdmin)
@@ -766,6 +764,12 @@ describe("Verify", async function () {
       actingAdmin.address
     );
 
+    // tempAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      tempAdmin.address
+    );
+
     // actingAdmin grants remover remover admin role
     await verify
       .connect(actingAdmin)
@@ -830,6 +834,12 @@ describe("Verify", async function () {
     await verify.grantRole(
       await verify.BANNER_ADMIN_ADMIN(),
       actingAdmin.address
+    );
+
+    // tempAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      tempAdmin.address
     );
 
     // actingAdmin grants banner banner admin role
