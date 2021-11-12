@@ -423,10 +423,10 @@ export const pack2BitUIntsIntoByte = (numArray: number[]): number[] => {
 
   for (let i = 0; i < numArray.length; i += 4) {
     const byte =
-      (numArray[i + 3] << 6) +
-      (numArray[i + 2] << 4) +
-      (numArray[i + 1] << 2) +
-      numArray[i];
+      (numArray[i] << 6) +
+      (numArray[i + 1] << 4) +
+      (numArray[i + 2] << 2) +
+      numArray[i + 3];
 
     val[valIndex] = byte;
     valIndex++;
