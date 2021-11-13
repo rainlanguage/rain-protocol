@@ -35,7 +35,7 @@ enum Phase {
 }
 
 describe("RedeemableERC20Reentrant", async function () {
-  it("should guard against reentrancy if a redeemable is malicious", async function () {
+  it("should guard against reentrancy if a treasury asset is malicious", async function () {
     this.timeout(0);
 
     const ONE_TOKEN = ethers.BigNumber.from("1" + Util.eighteenZeros);
@@ -78,13 +78,6 @@ describe("RedeemableERC20Reentrant", async function () {
       redeemableERC20.address
     )) as RedeemableERC20Reentrant & Contract;
 
-    await redeemableERC20.grantRole(
-      await redeemableERC20.REDEEMABLE_ADDER(),
-      signers[0].address
-    );
-
-    await redeemableERC20.addRedeemable(maliciousReserve.address);
-
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
 
@@ -102,7 +95,7 @@ describe("RedeemableERC20Reentrant", async function () {
     await maliciousReserve.transfer(redeemableERC20.address, reserveTotal);
 
     await Util.assertError(
-      async () => await redeemableERC20.connect(signers[1]).redeem(ONE_TOKEN),
+      async () => await redeemableERC20.connect(signers[1]).redeem([maliciousReserve.address], ONE_TOKEN),
       "revert ReentrancyGuard: reentrant call",
       "did not guard against reentrancy attack"
     );
