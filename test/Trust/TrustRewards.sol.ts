@@ -239,7 +239,17 @@ describe("TrustRewards", async function () {
     const tokenSupply = await token.totalSupply();
 
     // signer1 redeems tokens equal to 10% of total supply
-    await token.connect(signer1).redeem([reserveA.address, reserveB.address, reserveC.address, reserveD.address], tokenSupply.div(10));
+    await token
+      .connect(signer1)
+      .redeem(
+        [
+          reserveA.address,
+          reserveB.address,
+          reserveC.address,
+          reserveD.address,
+        ],
+        tokenSupply.div(10)
+      );
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
@@ -314,7 +324,17 @@ describe("TrustRewards", async function () {
     );
 
     // signer1 redeems tokens equal to 10% of new total supply
-    await token.connect(signer1).redeem([reserveA.address, reserveB.address, reserveC.address, reserveD.address], tokenSupply2.div(10));
+    await token
+      .connect(signer1)
+      .redeem(
+        [
+          reserveA.address,
+          reserveB.address,
+          reserveC.address,
+          reserveD.address,
+        ],
+        tokenSupply2.div(10)
+      );
 
     // holder1 should get 10% of each reserve
     // (some rounding errors fixed manually)
@@ -497,7 +517,11 @@ describe("TrustRewards", async function () {
     const token1 = token.connect(signer1);
 
     await Util.assertError(
-      async () => await token1.redeem([reserve.address], await token1.balanceOf(signer1.address)),
+      async () =>
+        await token1.redeem(
+          [reserve.address],
+          await token1.balanceOf(signer1.address)
+        ),
       "revert BAD_PHASE",
       "signer1 redeemed tokens before token phase change"
     );
@@ -525,7 +549,8 @@ describe("TrustRewards", async function () {
     );
 
     await Util.assertError(
-      async () => await token1.redeem([reserve.address], signer1TokenBalanceBeforeRed),
+      async () =>
+        await token1.redeem([reserve.address], signer1TokenBalanceBeforeRed),
       "revert BAD_PHASE",
       `signer1 redeemed tokens before token phase change
       currentBlock        ${await ethers.provider.getBlockNumber()}
@@ -551,7 +576,10 @@ describe("TrustRewards", async function () {
     tokenPhaseOneBlock ${await token.phaseBlocks(0)}`
     );
 
-    await token1.redeem([reserve.address], await token1.balanceOf(signer1.address));
+    await token1.redeem(
+      [reserve.address],
+      await token1.balanceOf(signer1.address)
+    );
   });
 
   it("should allow token owner to burn only their own tokens", async function () {
@@ -703,5 +731,4 @@ describe("TrustRewards", async function () {
       "signer1 burned signer2's tokens"
     );
   });
-
 });

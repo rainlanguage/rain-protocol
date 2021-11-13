@@ -86,7 +86,9 @@ describe("RedeemableERC20", async function () {
       .withArgs(signers[0].address, reserve2.address);
 
     // anon can emit treasury events also.
-    await expect(redeemableERC20.connect(signers[1]).newTreasuryAsset(reserve1.address))
+    await expect(
+      redeemableERC20.connect(signers[1]).newTreasuryAsset(reserve1.address)
+    )
       .to.emit(redeemableERC20, "TreasuryAsset")
       .withArgs(signers[1].address, reserve1.address);
   });
@@ -934,7 +936,12 @@ describe("RedeemableERC20", async function () {
       .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore));
 
     // signer redeems all tokens they have for fraction of each redeemable asset
-    await expect(redeemableERC20_1.redeem([reserve1.address, reserve2.address], redeemAmount))
+    await expect(
+      redeemableERC20_1.redeem(
+        [reserve1.address, reserve2.address],
+        redeemAmount
+      )
+    )
       .to.emit(redeemableERC20_1, "Redeem")
       .withArgs(signers[1].address, reserve1.address, [
         redeemAmount,
@@ -1091,7 +1098,11 @@ describe("RedeemableERC20", async function () {
 
     // should succeed, despite emitting redeem fail event for one redeemable
     await Util.assertError(
-      async () => await redeemableERC20_1.redeem([reserve1.address, reserve2.address], redeemAmount),
+      async () =>
+        await redeemableERC20_1.redeem(
+          [reserve1.address, reserve2.address],
+          redeemAmount
+        ),
       `revert FROZEN`,
       `failed to error when reserve is frozen`
     );

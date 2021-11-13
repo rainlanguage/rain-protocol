@@ -1906,7 +1906,10 @@ describe("Trust", async function () {
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.redeem([reserve.address], signer2EndingTokenBalance.sub(smallTokenAmount));
+    await token2.redeem(
+      [reserve.address],
+      signer2EndingTokenBalance.sub(smallTokenAmount)
+    );
 
     assert(
       (await token.totalSupply()).eq(
@@ -2263,7 +2266,10 @@ describe("Trust", async function () {
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.redeem([reserve.address], signer2EndingTokenBalance.sub(smallTokenAmount));
+    await token2.redeem(
+      [reserve.address],
+      signer2EndingTokenBalance.sub(smallTokenAmount)
+    );
 
     assert(
       (await token.totalSupply()).eq(
@@ -2688,7 +2694,10 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer1
     ) as RedeemableERC20 & Contract;
-    await token1.redeem([reserve.address], await token1.balanceOf(signer1.address));
+    await token1.redeem(
+      [reserve.address],
+      await token1.balanceOf(signer1.address)
+    );
     const reserveBalance1 = await reserve.balanceOf(signer1.address);
     const expectedBalance1 = "1829853948";
     assert(
@@ -2701,7 +2710,10 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer2
     ) as RedeemableERC20 & Contract;
-    await token2.redeem([reserve.address], await token2.balanceOf(signer2.address));
+    await token2.redeem(
+      [reserve.address],
+      await token2.balanceOf(signer2.address)
+    );
     const reserveBalance2 = await reserve.balanceOf(signer2.address);
     const expectedBalance2 = "170146068";
     assert(
@@ -2859,7 +2871,10 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer1
     ) as RedeemableERC20 & Contract;
-    await token1.redeem([reserve.address], await token1.balanceOf(signer1.address));
+    await token1.redeem(
+      [reserve.address],
+      await token1.balanceOf(signer1.address)
+    );
     const reserveBalance1 = await reserve.balanceOf(signer1.address);
     const expectedBalance1 = "841344575";
     assert(
@@ -2872,7 +2887,10 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer2
     ) as RedeemableERC20 & Contract;
-    await token2.redeem([reserve.address], await token1.balanceOf(signer2.address));
+    await token2.redeem(
+      [reserve.address],
+      await token1.balanceOf(signer2.address)
+    );
     const reserveBalance2 = await reserve.balanceOf(signer2.address);
     const expectedBalance2 = "2158655434";
     assert(
