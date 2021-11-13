@@ -11,7 +11,7 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 describe("SeedERC20", async function () {
-  it("should emit Redeem event", async function () {
+  it.only("should emit Redeem, Seed, Unseed events", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -59,8 +59,16 @@ describe("SeedERC20", async function () {
     // Bob and carol co-fund the seed round.
 
     await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
-    await bobSeed.seed(0, bobUnits);
-    await bobSeed.unseed(2);
+    const bobSeedPromise = bobSeed.seed(0, bobUnits);
+    expect(bobSeedPromise)
+      .to.emit(seedERC20, "Seed")
+      .withArgs(bob.address, [bobUnits, bobUnits.mul(seedPrice)]);
+    await bobSeedPromise;
+    const bobUnseedPromise = bobSeed.unseed(2);
+    expect(bobUnseedPromise)
+      .to.emit(seedERC20, "Unseed")
+      .withArgs(bob.address, [2, ethers.BigNumber.from(2).mul(seedPrice)]);
+    await bobUnseedPromise;
 
     await bobReserve.approve(seedERC20.address, seedPrice.mul(2));
     await bobSeed.seed(0, 2);
