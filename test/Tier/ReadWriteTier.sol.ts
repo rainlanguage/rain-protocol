@@ -4,6 +4,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { tierReport, blockNumbersToReport, assertError } from "../Util";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -34,10 +35,13 @@ enum Tier {
   EIGHT,
 }
 
-const setup = async (): Promise<[SignerWithAddress[], ReadWriteTier]> => {
+const setup = async (): Promise<
+  [SignerWithAddress[], ReadWriteTier & Contract]
+> => {
   const signers = await ethers.getSigners();
   const readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-  const readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier;
+  const readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
+    Contract;
   await readWriteTier.deployed();
   return [signers, readWriteTier];
 };

@@ -10,27 +10,20 @@ import { ITier } from "../tier/ITier.sol";
 
 import { Factory } from "../factory/Factory.sol";
 import { Trust, TrustConfig } from "../trust/Trust.sol";
-import {
-    RedeemableERC20Factory
-} from "../redeemableERC20/RedeemableERC20Factory.sol";
-import {
-    RedeemableERC20, RedeemableERC20Config
-} from "../redeemableERC20/RedeemableERC20.sol";
-import {
-    RedeemableERC20PoolFactory
-} from "../pool/RedeemableERC20PoolFactory.sol";
-import {
-    RedeemableERC20Pool,
-    RedeemableERC20PoolConfig
-} from "../pool/RedeemableERC20Pool.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factory.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20, RedeemableERC20Config } from "../redeemableERC20/RedeemableERC20.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20PoolFactory } from "../pool/RedeemableERC20PoolFactory.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "../pool/RedeemableERC20Pool.sol";
 import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
 import { SeedERC20Config } from "../seed/SeedERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import {
-    TrustRedeemableERC20Config,
-    TrustRedeemableERC20PoolConfig
-} from "./Trust.sol";
 import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
+// solhint-disable-next-line max-line-length
+import { TrustRedeemableERC20Config, TrustRedeemableERC20PoolConfig } from "./Trust.sol";
 
 /// Everything required to construct a `TrustFactory`.
 struct TrustFactoryConfig {

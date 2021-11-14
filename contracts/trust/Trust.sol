@@ -7,36 +7,25 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {
-    ReentrancyGuard
-} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+// solhint-disable-next-line max-line-length
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import { ITier } from "../tier/ITier.sol";
 
 import { Phase } from "../phased/Phased.sol";
-import {
-    RedeemableERC20,
-    RedeemableERC20Config
-} from "../redeemableERC20/RedeemableERC20.sol";
-import {
-    RedeemableERC20Pool, RedeemableERC20PoolConfig
-} from "../pool/RedeemableERC20Pool.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20, RedeemableERC20Config } from "../redeemableERC20/RedeemableERC20.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "../pool/RedeemableERC20Pool.sol";
 import { SeedERC20, SeedERC20Config } from "../seed/SeedERC20.sol";
-import {
-    RedeemableERC20Factory
-} from "../redeemableERC20/RedeemableERC20Factory.sol";
-import {
-    RedeemableERC20PoolFactory,
-    RedeemableERC20PoolFactoryRedeemableERC20PoolConfig
-} from "../pool/RedeemableERC20PoolFactory.sol";
-import {
-    SeedERC20Factory
-} from "../seed/SeedERC20Factory.sol";
-import {
-    BPoolFeeEscrow
-} from "../escrow/BPoolFeeEscrow.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factory.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20PoolFactory, RedeemableERC20PoolFactoryRedeemableERC20PoolConfig } from "../pool/RedeemableERC20PoolFactory.sol";
+import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
+import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -470,35 +459,21 @@ contract Trust is ReentrancyGuard {
             address(redeemableERC20Pool_.crp())
         );
 
-        // Need to grant creator ability to add redeemables.
-        redeemableERC20_.grantRole(
-            redeemableERC20_.REDEEMABLE_ADDER(),
-            config_.creator
-        );
-        redeemableERC20_.grantRole(
-            redeemableERC20_.REDEEMABLE_ADDER(),
-            address(this)
-        );
-
         // The trust needs the ability to burn the distributor.
         redeemableERC20_.grantRole(
             redeemableERC20_.DISTRIBUTOR_BURNER(),
             address(this)
         );
 
-        // The pool reserve must always be one of the redeemable assets.
-        redeemableERC20_.addRedeemable(
-            trustRedeemableERC20PoolConfig_.reserve
+        // The pool reserve must always be one of the treasury assets.
+        redeemableERC20_.newTreasuryAsset(
+            address(trustRedeemableERC20PoolConfig_.reserve)
         );
 
         // There is no longer any reason for the redeemableERC20 to have an
         // admin.
         redeemableERC20_.renounceRole(
             redeemableERC20_.DEFAULT_ADMIN_ROLE(),
-            address(this)
-        );
-        redeemableERC20_.renounceRole(
-            redeemableERC20_.REDEEMABLE_ADDER(),
             address(this)
         );
 

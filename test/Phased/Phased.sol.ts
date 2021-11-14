@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type { PhasedTest } from "../../typechain/PhasedTest";
 import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
 import type { ReserveToken } from "../../typechain/ReserveToken";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -39,7 +40,8 @@ describe("Phased", async function () {
     it("should return highest attained phase even if several phases have the same block number", async function () {
       this.timeout(0);
 
-      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+        Contract;
 
       const highestPhase = await phased.phaseAtBlockNumber(
         [0, 1, 2, 3, 3, 4, 5, 5],
@@ -52,7 +54,8 @@ describe("Phased", async function () {
     it("if every phase block is after the block number then phase zero is returned", async function () {
       this.timeout(0);
 
-      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+        Contract;
 
       const highestPhase = await phased.phaseAtBlockNumber(
         [100, 110, 120, 130, 140, 150, 160, 170],
@@ -65,7 +68,8 @@ describe("Phased", async function () {
     it("if every phase block is before the block number then phase EIGHT is returned", async function () {
       this.timeout(0);
 
-      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+        Contract;
 
       const highestPhase = await phased.phaseAtBlockNumber(
         [100, 110, 120, 130, 140, 150, 160, 170],
@@ -83,7 +87,7 @@ describe("Phased", async function () {
       const phasedScheduleTest = (await Util.basicDeploy(
         "PhasedScheduleTest",
         {}
-      )) as PhasedScheduleTest;
+      )) as PhasedScheduleTest & Contract;
 
       assert(
         (await phasedScheduleTest.currentPhase()) === 0,
@@ -108,9 +112,10 @@ describe("Phased", async function () {
       const reserve = (await Util.basicDeploy(
         "ReserveToken",
         {}
-      )) as ReserveToken;
+      )) as ReserveToken & Contract;
 
-      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+        Contract;
 
       const pastBlock = await ethers.provider.getBlockNumber();
 
@@ -127,7 +132,8 @@ describe("Phased", async function () {
     it("cannot schedule the next phase if it is already scheduled", async function () {
       this.timeout(0);
 
-      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+        Contract;
 
       const firstBlock = await ethers.provider.getBlockNumber();
 
@@ -143,7 +149,8 @@ describe("Phased", async function () {
     it("the next phase block must not be uninitialized", async function () {
       this.timeout(0);
 
-      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+        Contract;
 
       const firstBlock = await ethers.provider.getBlockNumber();
 
@@ -162,7 +169,8 @@ describe("Phased", async function () {
     it("is not possible to skip a phase", async function () {
       this.timeout(0);
 
-      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+        Contract;
 
       const firstBlock = await ethers.provider.getBlockNumber();
 
@@ -178,7 +186,8 @@ describe("Phased", async function () {
     it("_beforeScheduleNextPhase hook can be used to impose conditions on phase changes", async function () {
       this.timeout(0);
 
-      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+      const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+        Contract;
 
       const firstBlock = await ethers.provider.getBlockNumber();
 
@@ -202,9 +211,10 @@ describe("Phased", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+      Contract;
 
     // check constants
 
@@ -313,9 +323,10 @@ describe("Phased", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
+      Contract;
 
     // onlyPhase
     assert(await phased.runsOnlyPhase(Phase.ZERO));
