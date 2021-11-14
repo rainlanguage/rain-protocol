@@ -40,6 +40,9 @@ describe("Verify", async function () {
       verify.address
     )) as VerifyTier & Contract;
 
+    await verify.grantRole(await verify.APPROVER_ADMIN(), admin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), admin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), admin.address);
     await verify.grantRole(await verify.APPROVER(), verifier.address);
     await verify.grantRole(await verify.BANNER(), verifier.address);
     await verify.grantRole(await verify.REMOVER(), verifier.address);
