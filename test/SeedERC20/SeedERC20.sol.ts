@@ -11,7 +11,7 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 describe("SeedERC20", async function () {
-  it.only("should emit Redeem, Seed, Unseed events", async function () {
+  it("should emit Redeem, Seed, Unseed events", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
