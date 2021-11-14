@@ -3,9 +3,8 @@ pragma solidity ^0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import {
-    ERC20Burnable
-} from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+// solhint-disable-next-line max-line-length
+import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 /// @title ReserveToken
 /// A test token that can be used as a reserve asset.

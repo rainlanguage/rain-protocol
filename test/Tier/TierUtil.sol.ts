@@ -5,6 +5,7 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierUtilTest } from "../../typechain/TierUtilTest";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
 import { assertError, basicDeploy, zeroPad32, zeroPad4 } from "../Util";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -24,20 +25,22 @@ enum Tier {
 describe("TierUtil", async function () {
   let owner: any;
   let signer1: any;
-  let readWriteTier: ReadWriteTier;
-  let reserve: ReserveTokenTest;
-  let tierUtil: TierUtilTest;
+  let readWriteTier: ReadWriteTier & Contract;
+  let reserve: ReserveTokenTest & Contract;
+  let tierUtil: TierUtilTest & Contract;
 
   beforeEach(async () => {
     [owner, signer1] = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
+    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    tierUtil = (await basicDeploy("TierUtilTest", {})) as TierUtilTest;
+    tierUtil = (await basicDeploy("TierUtilTest", {})) as TierUtilTest &
+      Contract;
 
-    reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest;
+    reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
+      Contract;
   });
 
   it("should correctly return the highest achieved tier relative to a given report and block number", async () => {

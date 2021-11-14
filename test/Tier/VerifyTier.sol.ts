@@ -4,6 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { VerifyTier } from "../../typechain/VerifyTier";
 import type { Verify } from "../../typechain/Verify";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -32,9 +33,12 @@ describe("Verify", async function () {
 
     const tierFactory = await ethers.getContractFactory("VerifyTier");
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(admin.address)) as Verify &
+      Contract;
 
-    const verifyTier = (await tierFactory.deploy(verify.address)) as VerifyTier;
+    const verifyTier = (await tierFactory.deploy(
+      verify.address
+    )) as VerifyTier & Contract;
 
     await verify.grantRole(await verify.APPROVER(), verifier.address);
     await verify.grantRole(await verify.BANNER(), verifier.address);
