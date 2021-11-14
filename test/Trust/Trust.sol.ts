@@ -161,7 +161,7 @@ describe("Trust", async function () {
       await crp.bPool(),
       (
         await artifacts.readArtifact(
-          "@beehiveinnovation/balancer-core/contracts/BPool.sol:BPool"
+          "BPool"
         )
       ).abi,
       creator
@@ -327,7 +327,7 @@ describe("Trust", async function () {
       await crp.bPool(),
       (
         await artifacts.readArtifact(
-          "@beehiveinnovation/balancer-core/contracts/BPool.sol:BPool"
+          "BPool"
         )
       ).abi,
       creator

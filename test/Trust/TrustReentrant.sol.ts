@@ -143,7 +143,7 @@ describe("TrustReentrant", async function () {
       await crp.bPool(),
       (
         await artifacts.readArtifact(
-          "@beehiveinnovation/balancer-core/contracts/BPool.sol:BPool"
+          "BPool"
         )
       ).abi,
       creator
