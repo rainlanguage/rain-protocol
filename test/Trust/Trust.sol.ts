@@ -1326,153 +1326,6 @@ describe("Trust", async function () {
     );
   });
 
-  it("should allow only token admin and creator to set redeemables", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const [crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve2 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve3 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve4 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve5 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve6 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve7 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve8 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve9 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
-
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
-
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
-
-    const reserveInit = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("100000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from(
-      "100000" + Util.eighteenZeros
-    );
-    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("100");
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-    const signer2 = signers[4];
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 10;
-
-    const trustFactory1 = trustFactory.connect(deployer);
-
-    const trust = await Util.trustDeploy(
-      trustFactory1,
-      creator,
-      {
-        creator: creator.address,
-        minimumCreatorRaise,
-        seeder: seeder.address,
-        seederFee,
-        seederUnits,
-        seederCooldownDuration,
-        redeemInit,
-      },
-      {
-        name: tokenName,
-        symbol: tokenSymbol,
-        tier: tier.address,
-        minimumStatus,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
-      },
-      { gasLimit: 100000000 }
-    );
-
-    await trust.deployed();
-
-    const token = new ethers.Contract(
-      await trust.token(),
-      (await artifacts.readArtifact("RedeemableERC20")).abi,
-      creator
-    ) as RedeemableERC20 & Contract;
-
-    // creator can add redeemable via proxy method on trust contract
-    await token.addRedeemable(reserve2.address);
-
-    // non-creator cannot add redeemable
-    await Util.assertError(
-      async () => await token.connect(signer1).addRedeemable(reserve3.address),
-      "revert ONLY_REDEEMABLE_ADDER",
-      "non-creator added redeemable"
-    );
-
-    // adding same redeemable should revert
-    await Util.assertError(
-      async () => await token.addRedeemable(reserve2.address),
-      "revert DUPLICATE_REDEEMABLE",
-      "added redeemable that was previously added"
-    );
-
-    // can add up to 8 redeemables
-    await token.addRedeemable(reserve3.address);
-    await token.addRedeemable(reserve4.address);
-    await token.addRedeemable(reserve5.address);
-    await token.addRedeemable(reserve6.address);
-    await token.addRedeemable(reserve7.address);
-    await token.addRedeemable(reserve8.address);
-
-    await Util.assertError(
-      async () => await token.addRedeemable(reserve9.address),
-      "revert MAX_REDEEMABLES",
-      "number of added redeemables exceeds limit of 8"
-    );
-  });
-
   it("should allow only token admin (Trust) to set senders/receivers", async function () {
     this.timeout(0);
 
@@ -2029,7 +1882,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20 & Contract;
 
     // redeem all
-    await token1.redeem(signer1EndingTokenBalance);
+    await token1.redeem([reserve.address], signer1EndingTokenBalance);
 
     assert(
       (await token.totalSupply()).eq(
@@ -2053,7 +1906,10 @@ describe("Trust", async function () {
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.redeem(signer2EndingTokenBalance.sub(smallTokenAmount));
+    await token2.redeem(
+      [reserve.address],
+      signer2EndingTokenBalance.sub(smallTokenAmount)
+    );
 
     assert(
       (await token.totalSupply()).eq(
@@ -2386,7 +2242,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20 & Contract;
 
     // redeem all
-    await token1.redeem(signer1EndingTokenBalance);
+    await token1.redeem([reserve.address], signer1EndingTokenBalance);
 
     assert(
       (await token.totalSupply()).eq(
@@ -2410,7 +2266,10 @@ describe("Trust", async function () {
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.redeem(signer2EndingTokenBalance.sub(smallTokenAmount));
+    await token2.redeem(
+      [reserve.address],
+      signer2EndingTokenBalance.sub(smallTokenAmount)
+    );
 
     assert(
       (await token.totalSupply()).eq(
@@ -2835,7 +2694,10 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer1
     ) as RedeemableERC20 & Contract;
-    await token1.redeem(await token1.balanceOf(signer1.address));
+    await token1.redeem(
+      [reserve.address],
+      await token1.balanceOf(signer1.address)
+    );
     const reserveBalance1 = await reserve.balanceOf(signer1.address);
     const expectedBalance1 = "1829853948";
     assert(
@@ -2848,7 +2710,10 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer2
     ) as RedeemableERC20 & Contract;
-    await token2.redeem(await token2.balanceOf(signer2.address));
+    await token2.redeem(
+      [reserve.address],
+      await token2.balanceOf(signer2.address)
+    );
     const reserveBalance2 = await reserve.balanceOf(signer2.address);
     const expectedBalance2 = "170146068";
     assert(
@@ -3006,7 +2871,10 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer1
     ) as RedeemableERC20 & Contract;
-    await token1.redeem(await token1.balanceOf(signer1.address));
+    await token1.redeem(
+      [reserve.address],
+      await token1.balanceOf(signer1.address)
+    );
     const reserveBalance1 = await reserve.balanceOf(signer1.address);
     const expectedBalance1 = "841344575";
     assert(
@@ -3019,7 +2887,10 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20")).abi,
       signer2
     ) as RedeemableERC20 & Contract;
-    await token2.redeem(await token1.balanceOf(signer2.address));
+    await token2.redeem(
+      [reserve.address],
+      await token1.balanceOf(signer2.address)
+    );
     const reserveBalance2 = await reserve.balanceOf(signer2.address);
     const expectedBalance2 = "2158655434";
     assert(

@@ -35,7 +35,7 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
-  it("should emit AddRedeemable event", async function () {
+  it("should emit TreasuryAsset event", async function () {
     this.timeout(0);
 
     const FIVE_TOKENS = ethers.BigNumber.from("5" + Util.eighteenZeros);
@@ -77,17 +77,20 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.grantRole(
-      await redeemableERC20.REDEEMABLE_ADDER(),
-      signers[0].address
-    );
 
-    await expect(redeemableERC20.addRedeemable(reserve1.address))
-      .to.emit(redeemableERC20, "AddRedeemable")
-      .withArgs(reserve1.address);
-    await expect(redeemableERC20.addRedeemable(reserve2.address))
-      .to.emit(redeemableERC20, "AddRedeemable")
-      .withArgs(reserve2.address);
+    await expect(redeemableERC20.newTreasuryAsset(reserve1.address))
+      .to.emit(redeemableERC20, "TreasuryAsset")
+      .withArgs(signers[0].address, reserve1.address);
+    await expect(redeemableERC20.newTreasuryAsset(reserve2.address))
+      .to.emit(redeemableERC20, "TreasuryAsset")
+      .withArgs(signers[0].address, reserve2.address);
+
+    // anon can emit treasury events also.
+    await expect(
+      redeemableERC20.connect(signers[1]).newTreasuryAsset(reserve1.address)
+    )
+      .to.emit(redeemableERC20, "TreasuryAsset")
+      .withArgs(signers[1].address, reserve1.address);
   });
 
   it("should have 18 decimals", async () => {
@@ -328,143 +331,6 @@ describe("RedeemableERC20", async function () {
     );
   });
 
-  it("should allow filling all slots in redeemables array", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const reserve0 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve1 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve2 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve3 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve4 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve5 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve6 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-    const reserve7 = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
-    const reserves = [
-      reserve0,
-      reserve1,
-      reserve2,
-      reserve3,
-      reserve4,
-      reserve5,
-      reserve6,
-      reserve7,
-    ];
-
-    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
-
-    const redeemableERC20Factory = await ethers.getContractFactory(
-      "RedeemableERC20"
-    );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
-    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
-
-    const now = await ethers.provider.getBlockNumber();
-
-    const redeemableERC20 = (await redeemableERC20Factory.deploy({
-      admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
-      tier: tier.address,
-      minimumStatus: minimumStatus,
-      totalSupply: totalSupply,
-    })) as RedeemableERC20 & Contract;
-
-    await redeemableERC20.deployed();
-
-    await Util.assertError(
-      async () => await redeemableERC20.addRedeemable(reserve0.address),
-      "revert ONLY_REDEEMABLE_ADDER",
-      "called addRedeemable without sufficient role permissions"
-    );
-
-    await redeemableERC20.grantRole(
-      await redeemableERC20.REDEEMABLE_ADDER(),
-      signers[0].address
-    );
-    await redeemableERC20.addRedeemable(reserve0.address);
-    await redeemableERC20.addRedeemable(reserve1.address);
-    await redeemableERC20.addRedeemable(reserve2.address);
-    await redeemableERC20.addRedeemable(reserve3.address);
-    await redeemableERC20.addRedeemable(reserve4.address);
-    await redeemableERC20.addRedeemable(reserve5.address);
-    await redeemableERC20.addRedeemable(reserve6.address);
-    await redeemableERC20.addRedeemable(reserve7.address);
-
-    assert(
-      (await redeemableERC20.getRedeemables())[0] == reserve0.address,
-      `reserve address not set as redeemable in slot 0`
-    );
-    assert(
-      (await redeemableERC20.getRedeemables())[1] == reserve1.address,
-      `reserve address not set as redeemable in slot 1`
-    );
-    assert(
-      (await redeemableERC20.getRedeemables())[2] == reserve2.address,
-      `reserve address not set as redeemable in slot 2`
-    );
-    assert(
-      (await redeemableERC20.getRedeemables())[3] == reserve3.address,
-      `reserve address not set as redeemable in slot 3`
-    );
-    assert(
-      (await redeemableERC20.getRedeemables())[4] == reserve4.address,
-      `reserve address not set as redeemable in slot 4`
-    );
-    assert(
-      (await redeemableERC20.getRedeemables())[5] == reserve5.address,
-      `reserve address not set as redeemable in slot 5`
-    );
-    assert(
-      (await redeemableERC20.getRedeemables())[6] == reserve6.address,
-      `reserve address not set as redeemable in slot 6`
-    );
-    assert(
-      (await redeemableERC20.getRedeemables())[7] == reserve7.address,
-      `reserve address not set as redeemable in slot 7`
-    );
-
-    const getRedeemablesResult = await redeemableERC20.getRedeemables();
-
-    getRedeemablesResult.every((redeemable, index) => {
-      assert(
-        redeemable == reserves[index].address,
-        `reserve address not set as redeemable in slot ${index} (getRedeemables)`
-      );
-    });
-  });
-
   it("should lock tokens until redeemed", async function () {
     this.timeout(0);
 
@@ -500,13 +366,6 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.deployed();
 
-    await redeemableERC20.grantRole(
-      await redeemableERC20.REDEEMABLE_ADDER(),
-      signers[0].address
-    );
-
-    await redeemableERC20.addRedeemable(reserve.address);
-
     // There are no reserve tokens in the redeemer on construction
     assert(
       (await reserve.balanceOf(redeemableERC20.address)).eq(0),
@@ -517,16 +376,6 @@ describe("RedeemableERC20", async function () {
     assert(
       (await redeemableERC20.totalSupply()).eq(totalSupply),
       `total supply was not ${totalSupply} on redeemable construction`
-    );
-
-    assert(
-      (await redeemableERC20.getRedeemables()).length === 8,
-      "redeemables length not fixed"
-    );
-
-    assert(
-      (await redeemableERC20.getRedeemables())[0] == reserve.address,
-      `reserve address not set as redeemable`
     );
 
     // The phase is not set (i.e. contract is blocked)
@@ -547,7 +396,7 @@ describe("RedeemableERC20", async function () {
 
     // Redemption not allowed yet.
     await Util.assertError(
-      async () => await redeemableERC20.redeem(100),
+      async () => await redeemableERC20.redeem([reserve.address], 100),
       "revert BAD_PHASE",
       "redeem did not error"
     );
@@ -621,8 +470,8 @@ describe("RedeemableERC20", async function () {
     const expectedReserveRedemption = ethers.BigNumber.from(
       "10" + Util.sixZeros
     );
-    // signer redeems all tokens they have for fraction of each redeemable asset
-    await expect(redeemableERC20.redeem(redeemAmount))
+    // signer redeems all tokens they have for fraction of each asset
+    await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
       .to.emit(redeemableERC20, "Redeem")
       .withArgs(signers[0].address, reserve.address, [
         redeemAmount,
@@ -677,6 +526,7 @@ describe("RedeemableERC20", async function () {
     await Util.assertError(
       async () =>
         await redeemableERC20.redeem(
+          [reserve.address],
           ethers.BigNumber.from("10000" + Util.eighteenZeros)
         ),
       "revert ERC20: burn amount exceeds balance",
@@ -690,7 +540,7 @@ describe("RedeemableERC20", async function () {
       while (i < 3) {
         console.log(`redemption check 1: ${i}`);
         const balanceBefore = await reserve.balanceOf(signers[0].address);
-        await expect(redeemableERC20.redeem(redeemAmount))
+        await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
           .withArgs(signers[0].address, reserve.address, [
             redeemAmount,
@@ -719,7 +569,7 @@ describe("RedeemableERC20", async function () {
       while (i < 3) {
         console.log(`redemption check 2: ${i}`);
         const balanceBefore = await reserve.balanceOf(signers[0].address);
-        await expect(redeemableERC20.redeem(redeemAmount))
+        await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
           .withArgs(signers[0].address, reserve.address, [
             redeemAmount,
@@ -947,17 +797,17 @@ describe("RedeemableERC20", async function () {
     await reserve.transfer(redeemableERC20.address, reserveTotal);
 
     // GOLD signer can redeem.
-    await redeemableERC20.redeem(1);
+    await redeemableERC20.redeem([reserve.address], 1);
 
     // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
     await Util.assertError(
-      async () => await redeemableERC20_SILVER.redeem(1),
+      async () => await redeemableERC20_SILVER.redeem([reserve.address], 1),
       "revert ERC20: burn amount exceeds balance",
       "user could transfer despite not meeting minimum status"
     );
   });
 
-  it("should return multiple redeemable assets upon redeeming", async function () {
+  it("should return multiple treasury assets upon redeeming", async function () {
     this.timeout(0);
 
     const FIVE_TOKENS = ethers.BigNumber.from("5" + Util.eighteenZeros);
@@ -999,12 +849,6 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
-    await redeemableERC20.grantRole(
-      await redeemableERC20.REDEEMABLE_ADDER(),
-      signers[0].address
-    );
-    await redeemableERC20.addRedeemable(reserve1.address);
-    await redeemableERC20.addRedeemable(reserve2.address);
 
     // There are no reserve tokens in the redeemer on construction
     assert(
@@ -1092,7 +936,12 @@ describe("RedeemableERC20", async function () {
       .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore));
 
     // signer redeems all tokens they have for fraction of each redeemable asset
-    await expect(redeemableERC20_1.redeem(redeemAmount))
+    await expect(
+      redeemableERC20_1.redeem(
+        [reserve1.address, reserve2.address],
+        redeemAmount
+      )
+    )
       .to.emit(redeemableERC20_1, "Redeem")
       .withArgs(signers[1].address, reserve1.address, [
         redeemAmount,
@@ -1210,13 +1059,6 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.deployed();
 
-    await redeemableERC20.grantRole(
-      await redeemableERC20.REDEEMABLE_ADDER(),
-      signers[0].address
-    );
-    await redeemableERC20.addRedeemable(reserve1.address);
-    await redeemableERC20.addRedeemable(reserve2.address);
-
     await reserve2.transfer(
       redeemableERC20.address,
       await reserve2.totalSupply()
@@ -1256,12 +1098,16 @@ describe("RedeemableERC20", async function () {
 
     // should succeed, despite emitting redeem fail event for one redeemable
     await Util.assertError(
-      async () => await redeemableERC20_1.redeem(redeemAmount),
+      async () =>
+        await redeemableERC20_1.redeem(
+          [reserve1.address, reserve2.address],
+          redeemAmount
+        ),
       `revert FROZEN`,
       `failed to error when reserve is frozen`
     );
 
-    await redeemableERC20_1.redeemSpecific([reserve2.address], redeemAmount);
+    await redeemableERC20_1.redeem([reserve2.address], redeemAmount);
 
     const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(
       signers[1].address

@@ -454,35 +454,21 @@ contract Trust is ReentrancyGuard {
             address(redeemableERC20Pool_.crp())
         );
 
-        // Need to grant creator ability to add redeemables.
-        redeemableERC20_.grantRole(
-            redeemableERC20_.REDEEMABLE_ADDER(),
-            config_.creator
-        );
-        redeemableERC20_.grantRole(
-            redeemableERC20_.REDEEMABLE_ADDER(),
-            address(this)
-        );
-
         // The trust needs the ability to burn the distributor.
         redeemableERC20_.grantRole(
             redeemableERC20_.DISTRIBUTOR_BURNER(),
             address(this)
         );
 
-        // The pool reserve must always be one of the redeemable assets.
-        redeemableERC20_.addRedeemable(
-            trustRedeemableERC20PoolConfig_.reserve
+        // The pool reserve must always be one of the treasury assets.
+        redeemableERC20_.newTreasuryAsset(
+            address(trustRedeemableERC20PoolConfig_.reserve)
         );
 
         // There is no longer any reason for the redeemableERC20 to have an
         // admin.
         redeemableERC20_.renounceRole(
             redeemableERC20_.DEFAULT_ADMIN_ROLE(),
-            address(this)
-        );
-        redeemableERC20_.renounceRole(
-            redeemableERC20_.REDEEMABLE_ADDER(),
             address(this)
         );
 
