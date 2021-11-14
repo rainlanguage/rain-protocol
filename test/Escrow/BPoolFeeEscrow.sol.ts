@@ -513,7 +513,10 @@ describe("BPoolFeeEscrow", async function () {
     // signer1 can redeem token for this refunded reserve
     await redeemableERC20
       .connect(signer1)
-      .redeem([reserve.address], await redeemableERC20.balanceOf(signer1.address));
+      .redeem(
+        [reserve.address],
+        await redeemableERC20.balanceOf(signer1.address)
+      );
 
     const signer1Reserve_2 = await reserve.balanceOf(signer1.address);
 

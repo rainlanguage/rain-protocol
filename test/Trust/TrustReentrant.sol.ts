@@ -141,11 +141,7 @@ describe("TrustReentrant", async function () {
 
     const bPool = new ethers.Contract(
       await crp.bPool(),
-      (
-        await artifacts.readArtifact(
-          "BPool"
-        )
-      ).abi,
+      (await artifacts.readArtifact("BPool")).abi,
       creator
     ) as BPool & Contract;
 

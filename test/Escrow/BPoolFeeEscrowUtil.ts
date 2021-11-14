@@ -58,7 +58,8 @@ export const deployGlobals = async () => {
 };
 
 export const basicSetup = async (signers, trustFactory, tier) => {
-  const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken & Contract;
+  const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
+    Contract;
 
   const minimumStatus = Tier.NIL;
   const tokenName = "Token";

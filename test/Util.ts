@@ -217,11 +217,7 @@ export const poolContracts = async (
   ) as ConfigurableRightsPool & Contract;
   const bPool = new ethers.Contract(
     await crp.bPool(),
-    (
-      await artifacts.readArtifact(
-        "BPool"
-      )
-    ).abi,
+    (await artifacts.readArtifact("BPool")).abi,
     signers[0]
   ) as BPool & Contract;
   return [crp, bPool];
