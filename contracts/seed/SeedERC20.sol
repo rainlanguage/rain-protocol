@@ -108,6 +108,22 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         uint256[2] redeemAmounts
     );
 
+    event Seed(
+        // Account seeding.
+        address indexed seeder,
+        // Number of tokens seeded.
+        // Number of reserve sent for seed tokens.
+        uint256[2] seedAmounts
+    );
+
+    event Unseed(
+        // Account unseeding.
+        address indexed unseeder,
+        // Number of tokens unseeded.
+        // Number of reserve tokens returned for unseeded tokens.
+        uint256[2] unseedAmounts
+    );
+
     /// Reserve erc20 token contract used to purchase seed tokens.
     IERC20 public immutable reserve;
     /// Recipient address for all reserve funds raised when seeding is
@@ -165,6 +181,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         require(minimumUnits_ <= remainingStock_, "INSUFFICIENT_STOCK");
 
         uint256 units_ = desiredUnits_.min(remainingStock_);
+        uint256 reserveAmount_ = seedPrice.mul(units_);
 
         // If `remainingStock_` is less than units then the transfer below will
         // fail and rollback.
@@ -176,7 +193,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         reserve.safeTransferFrom(
             msg.sender,
             address(this),
-            seedPrice.mul(units_)
+            reserveAmount_
         );
         // Immediately transfer to the recipient.
         // The transfer is immediate rather than only approving for the
@@ -189,6 +206,11 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         if (currentPhase() == Phase.ONE) {
             reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
         }
+
+        emit Seed(
+            msg.sender,
+            [units_, reserveAmount_]
+        );
     }
 
     /// Send reserve back to seeder as `( units * seedPrice )`.
@@ -208,10 +230,16 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         onlyPhase(Phase.ZERO)
         onlyAfterCooldown
     {
+        uint256 reserveAmount_ = seedPrice.mul(units_);
         _transfer(msg.sender, address(this), units_);
 
         // Reentrant reserve transfer.
-        reserve.safeTransfer(msg.sender, seedPrice.mul(units_));
+        reserve.safeTransfer(msg.sender, reserveAmount_);
+
+        Unseed(
+            msg.sender,
+            [units_, reserveAmount_]
+        );
     }
 
     /// Burn seed tokens for pro-rata reserve assets.

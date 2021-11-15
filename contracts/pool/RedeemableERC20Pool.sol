@@ -11,14 +11,10 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import { Rights } from "./IRightsManager.sol";
 import { ICRPFactory } from "./ICRPFactory.sol";
-import {
-    PoolParams, IConfigurableRightsPool
-} from "./IConfigurableRightsPool.sol";
+// solhint-disable-next-line max-line-length
+import { PoolParams, IConfigurableRightsPool } from "./IConfigurableRightsPool.sol";
 
-import {
-    IBalancerConstants
-} from
-"./IBalancerConstants.sol";
+import { IBalancerConstants } from "./IBalancerConstants.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";

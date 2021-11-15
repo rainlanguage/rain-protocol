@@ -4,10 +4,8 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import { Factory } from "../factory/Factory.sol";
-import {
-    RedeemableERC20Pool,
-    RedeemableERC20PoolConfig
-} from "./RedeemableERC20Pool.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "./RedeemableERC20Pool.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 

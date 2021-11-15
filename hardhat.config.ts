@@ -1,10 +1,13 @@
 import type { HardhatUserConfig } from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
-import "hardhat-typechain";
+import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-ethers";
 
 const config: HardhatUserConfig = {
+  typechain: {
+    outDir: "typechain", // overrides upstream 'fix' for another issue which changed this to 'typechain-types'
+  },
   networks: {
     hardhat: {
       blockGasLimit: 100000000,

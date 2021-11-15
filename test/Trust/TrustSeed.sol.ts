@@ -9,6 +9,7 @@ import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { Trust } from "../../typechain/Trust";
 import { factoriesDeploy } from "../Util";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -56,10 +57,10 @@ describe("TrustSeed", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -128,7 +129,7 @@ describe("TrustSeed", async function () {
       seeder,
       seedERC20Json.abi,
       signers[0]
-    ) as SeedERC20;
+    ) as SeedERC20 & Contract;
 
     const seeder1Units = 4;
 
@@ -210,7 +211,7 @@ describe("TrustSeed", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const seedFactory = await ethers.getContractFactory("SeedERC20");
 
@@ -237,7 +238,7 @@ describe("TrustSeed", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     await seederContract.deployed();
 
@@ -256,7 +257,7 @@ describe("TrustSeed", async function () {
       const reserve = (await Util.basicDeploy(
         "ReserveToken",
         {}
-      )) as ReserveToken;
+      )) as ReserveToken & Contract;
 
       const seedFactory = await ethers.getContractFactory("SeedERC20");
 
@@ -285,7 +286,7 @@ describe("TrustSeed", async function () {
             cooldownDuration,
             name: "seed",
             symbol: "SD",
-          })) as SeedERC20,
+          })) as SeedERC20 & Contract,
         "revert UNITS_0",
         "seeder contract was wrongly constructed with seedUnits set to 0"
       );
@@ -299,7 +300,7 @@ describe("TrustSeed", async function () {
       const reserve = (await Util.basicDeploy(
         "ReserveToken",
         {}
-      )) as ReserveToken;
+      )) as ReserveToken & Contract;
 
       const seedFactory = await ethers.getContractFactory("SeedERC20");
 
@@ -326,7 +327,7 @@ describe("TrustSeed", async function () {
             cooldownDuration,
             name: "seed",
             symbol: "SD",
-          })) as SeedERC20,
+          })) as SeedERC20 & Contract,
         "revert PRICE_0",
         "seeder contract was wrongly constructed with seedPrice set to 0"
       );
@@ -343,10 +344,10 @@ describe("TrustSeed", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -415,7 +416,7 @@ describe("TrustSeed", async function () {
       seeder,
       seedERC20Json.abi,
       signers[0]
-    ) as SeedERC20;
+    ) as SeedERC20 & Contract;
 
     const seeder1Units = 4;
     const seeder2Units = 6;
@@ -464,10 +465,10 @@ describe("TrustSeed", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -535,7 +536,7 @@ describe("TrustSeed", async function () {
       await trust.seeder(),
       seedERC20Json.abi,
       signers[0]
-    ) as SeedERC20;
+    ) as SeedERC20 & Contract;
 
     const seeder1Units = 4;
     const seeder2Units = 6;
@@ -559,7 +560,7 @@ describe("TrustSeed", async function () {
       await trust.pool(),
       poolJson.abi,
       creator
-    ) as RedeemableERC20Pool;
+    ) as RedeemableERC20Pool & Contract;
 
     await Util.assertError(
       async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
@@ -583,10 +584,10 @@ describe("TrustSeed", async function () {
       const reserve = (await Util.basicDeploy(
         "ReserveToken",
         {}
-      )) as ReserveToken;
+      )) as ReserveToken & Contract;
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-      const tier = (await tierFactory.deploy()) as ReadWriteTier;
+      const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumStatus = Tier.NIL;
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -661,18 +662,18 @@ describe("TrustSeed", async function () {
         seeder,
         seedERC20Json.abi,
         signers[0]
-      ) as SeedERC20;
+      ) as SeedERC20 & Contract;
 
       const token = new ethers.Contract(
         await trust.token(),
         redeemableTokenJson.abi,
         creator
-      ) as RedeemableERC20;
+      ) as RedeemableERC20 & Contract;
       const pool = new ethers.Contract(
         await trust.pool(),
         poolJson.abi,
         creator
-      ) as RedeemableERC20Pool;
+      ) as RedeemableERC20Pool & Contract;
 
       const recipient = await trust.pool();
 
@@ -873,10 +874,10 @@ describe("TrustSeed", async function () {
       const reserve = (await Util.basicDeploy(
         "ReserveToken",
         {}
-      )) as ReserveToken;
+      )) as ReserveToken & Contract;
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-      const tier = (await tierFactory.deploy()) as ReadWriteTier;
+      const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumStatus = Tier.NIL;
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
@@ -949,13 +950,13 @@ describe("TrustSeed", async function () {
         seeder,
         seedERC20Json.abi,
         signers[0]
-      ) as SeedERC20;
+      ) as SeedERC20 & Contract;
 
       const pool = new ethers.Contract(
         await trust.pool(),
         poolJson.abi,
         creator
-      ) as RedeemableERC20Pool;
+      ) as RedeemableERC20Pool & Contract;
 
       const seeder1Units = 4;
       const seeder2Units = 6;

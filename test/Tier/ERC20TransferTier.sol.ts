@@ -1,5 +1,6 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ERC20TransferTier } from "../../typechain/ERC20TransferTier";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
@@ -29,13 +30,14 @@ describe("ERC20TransferTier", async function () {
   let owner: any;
   let alice: any;
   let bob: any;
-  let erc20TransferTier: ERC20TransferTier;
-  let reserve: ReserveTokenTest;
+  let erc20TransferTier: ERC20TransferTier & Contract;
+  let reserve: ReserveTokenTest & Contract;
 
   beforeEach(async () => {
     [owner, alice, bob] = await ethers.getSigners();
 
-    reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest;
+    reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
+      Contract;
 
     const erc20TransferTierFactory = await ethers.getContractFactory(
       "ERC20TransferTier"
@@ -44,7 +46,7 @@ describe("ERC20TransferTier", async function () {
     erc20TransferTier = (await erc20TransferTierFactory.deploy(
       reserve.address,
       LEVELS
-    )) as ERC20TransferTier;
+    )) as ERC20TransferTier & Contract;
 
     await erc20TransferTier.deployed();
   });
