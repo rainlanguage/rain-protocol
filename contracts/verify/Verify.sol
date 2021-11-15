@@ -161,25 +161,16 @@ contract Verify is AccessControl {
     /// Emitted when an account is scrubbed from blockchain state.
     event Remove(address indexed account);
 
-    /// Admin role for `APPROVER_ADMIN`.
-    bytes32 public constant APPROVER_ADMIN_ADMIN
-        = keccak256("APPROVER_ADMIN_ADMIN");
     /// Admin role for `APPROVER`.
     bytes32 public constant APPROVER_ADMIN = keccak256("APPROVER_ADMIN");
     /// Role for `APPROVER`.
     bytes32 public constant APPROVER = keccak256("APPROVER");
 
-    /// Admin role for `REMOVER_ADMIN`.
-    bytes32 public constant REMOVER_ADMIN_ADMIN
-        = keccak256("REMOVER_ADMIN_ADMIN");
     /// Admin role for `REMOVER`.
     bytes32 public constant REMOVER_ADMIN = keccak256("REMOVER_ADMIN");
     /// Role for `REMOVER`.
     bytes32 public constant REMOVER = keccak256("REMOVER");
 
-    /// Admin role for `BANNER_ADMIN`.
-    bytes32 public constant BANNER_ADMIN_ADMIN
-         = keccak256("BANNER_ADMIN_ADMIN");
     /// Admin role for `BANNER`.
     bytes32 public constant BANNER_ADMIN = keccak256("BANNER_ADMIN");
     /// Role for `BANNER`.
@@ -190,29 +181,26 @@ contract Verify is AccessControl {
 
     /// Defines RBAC logic for each role under Open Zeppelin.
     constructor (address admin_) public {
-        // `APPROVER_ADMIN_ADMIN` can admin each other in addition to
-        // `APPROVER_ADMIN` addresses underneath.
-        _setRoleAdmin(APPROVER_ADMIN_ADMIN, APPROVER_ADMIN_ADMIN);
-        _setRoleAdmin(APPROVER_ADMIN, APPROVER_ADMIN_ADMIN);
+        // `APPROVER_ADMIN` can admin each other in addition to
+        // `APPROVER` addresses underneath.
+        _setRoleAdmin(APPROVER_ADMIN, APPROVER_ADMIN);
         _setRoleAdmin(APPROVER, APPROVER_ADMIN);
 
-        // `REMOVER_ADMIN_ADMIN` can admin each other in addition to
-        // `REMOVER_ADMIN` addresses underneath.
-        _setRoleAdmin(REMOVER_ADMIN_ADMIN, REMOVER_ADMIN_ADMIN);
-        _setRoleAdmin(REMOVER_ADMIN, REMOVER_ADMIN_ADMIN);
+        // `REMOVER_ADMIN` can admin each other in addition to
+        // `REMOVER` addresses underneath.
+        _setRoleAdmin(REMOVER_ADMIN, REMOVER_ADMIN);
         _setRoleAdmin(REMOVER, REMOVER_ADMIN);
 
-        // `BANNER_ADMIN_ADMIN` can admin each other in addition to
-        // `BANNER_ADMIN` addresses underneath.
-        _setRoleAdmin(BANNER_ADMIN_ADMIN, BANNER_ADMIN_ADMIN);
-        _setRoleAdmin(BANNER_ADMIN, BANNER_ADMIN_ADMIN);
+        // `BANNER_ADMIN` can admin each other in addition to
+        // `BANNER` addresses underneath.
+        _setRoleAdmin(BANNER_ADMIN, BANNER_ADMIN);
         _setRoleAdmin(BANNER, BANNER_ADMIN);
 
         // It is STRONGLY RECOMMENDED that the `admin_` delegates specific
-        // admin roles then revokes the `X_ADMIN_ADMIN` roles.
-        _setupRole(APPROVER_ADMIN_ADMIN, admin_);
-        _setupRole(REMOVER_ADMIN_ADMIN, admin_);
-        _setupRole(BANNER_ADMIN_ADMIN, admin_);
+        // admin roles then revokes the `X_ADMIN` roles.
+        _setupRole(APPROVER_ADMIN, admin_);
+        _setupRole(REMOVER_ADMIN, admin_);
+        _setupRole(BANNER_ADMIN, admin_);
 
         // This is at the end of the constructor because putting it at the
         // start seems to break the source map from the compiler 🙈

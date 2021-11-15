@@ -15,25 +15,16 @@ enum Status {
   Banned,
 }
 
-const APPROVER_ADMIN_ADMIN = ethers.utils.keccak256(
-  ethers.utils.toUtf8Bytes("APPROVER_ADMIN_ADMIN")
-);
 const APPROVER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("APPROVER_ADMIN")
 );
 const APPROVER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("APPROVER"));
 
-const REMOVER_ADMIN_ADMIN = ethers.utils.keccak256(
-  ethers.utils.toUtf8Bytes("REMOVER_ADMIN_ADMIN")
-);
 const REMOVER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("REMOVER_ADMIN")
 );
 const REMOVER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("REMOVER"));
 
-const BANNER_ADMIN_ADMIN = ethers.utils.keccak256(
-  ethers.utils.toUtf8Bytes("BANNER_ADMIN_ADMIN")
-);
 const BANNER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("BANNER_ADMIN")
 );
@@ -55,35 +46,24 @@ describe("Verify", async function () {
 
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // tempAdmin grants actingAdmin admin admin roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
-      actingAdmin.address
-    );
-
     /* tempAdmin grants actingAdmin admin roles
      these could obviously be granted across multiple addresses, e.g.
       - 'actingAdminApprovals' address for granting verifiers approval privileges
       - 'actingAdminRemoving' address for granting verifiers removal privileges
       - 'actingAdminBanning' address for granting verifiers ban privileges
     */
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(
+      await verify.APPROVER_ADMIN(),
+      actingAdmin.address
+    );
+    await verify.grantRole(
+      await verify.REMOVER_ADMIN(),
+      actingAdmin.address
+    );
+    await verify.grantRole(
+      await verify.BANNER_ADMIN(),
+      actingAdmin.address
+    );
 
     // tempAdmin leaves. This removes a big risk
     await verify.renounceRole(
@@ -104,15 +84,15 @@ describe("Verify", async function () {
 
     // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
+      await verify.APPROVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
+      await verify.REMOVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
+      await verify.BANNER_ADMIN(),
       actingAdmin.address
     );
 
@@ -170,15 +150,15 @@ describe("Verify", async function () {
 
     // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
+      await verify.APPROVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
+      await verify.REMOVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
+      await verify.BANNER_ADMIN(),
       actingAdmin.address
     );
 
@@ -190,17 +170,6 @@ describe("Verify", async function () {
       )) === Status.Nil,
       "status should be Nil"
     );
-
-    // tempAdmin grants actingAdmin admin roles
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin leaves. This removes a big risk
     await verify.renounceRole(
@@ -299,34 +268,25 @@ describe("Verify", async function () {
 
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
-    // tempAdmin grants actingAdmin admin admin roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
-      actingAdmin.address
-    );
-
     // tempAdmin grants actingAdmin admin roles
     await verify
-      .connect(actingAdmin)
       .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
     await verify
-      .connect(actingAdmin)
       .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
     await verify
-      .connect(actingAdmin)
       .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
+      await verify.APPROVER_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
       tempAdmin.address
     );
 
@@ -406,15 +366,15 @@ describe("Verify", async function () {
 
     // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
+      await verify.APPROVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
+      await verify.REMOVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
+      await verify.BANNER_ADMIN(),
       actingAdmin.address
     );
 
@@ -438,17 +398,6 @@ describe("Verify", async function () {
       `approvedSince should be 0, got ${state0}`
     );
     assert(state0.bannedSince === 0, `bannedSince should be 0, got ${state0}`);
-
-    // tempAdmin grants actingAdmin admin roles
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
-    await verify
-      .connect(actingAdmin)
-      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     await verify
       .connect(actingAdmin)
@@ -579,36 +528,6 @@ describe("Verify", async function () {
     assert((await verify.BANNER()) === BANNER, "wrong BANNER hash value");
   });
 
-  it("should correctly set up access control roles for admin in constructor", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-    const tempAdmin = signers[0];
-
-    const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
-
-    const DEFAULT_ADMIN_ROLE = await verify.DEFAULT_ADMIN_ROLE();
-
-    // admin (specified in constructor) has only default admin role
-    assert(
-      await verify.hasRole(DEFAULT_ADMIN_ROLE, tempAdmin.address),
-      "admin did not have DEFAULT_ADMIN_ROLE role after construction"
-    );
-
-    assert(
-      !(await verify.hasRole(APPROVER_ADMIN_ADMIN, tempAdmin.address)),
-      "admin wrongly has APPROVER_ADMIN_ADMIN role after construction, they should grant that to themselves"
-    );
-    assert(
-      !(await verify.hasRole(REMOVER_ADMIN_ADMIN, tempAdmin.address)),
-      "admin wrongly has REMOVER_ADMIN_ADMIN role after construction, they should grant that to themselves"
-    );
-    assert(
-      !(await verify.hasRole(BANNER_ADMIN_ADMIN, tempAdmin.address)),
-      "admin wrongly has BANNER_ADMIN_ADMIN role after construction, they should grant that to themselves"
-    );
-  });
-
   it("should allow anyone to map their account to a session id", async function () {
     this.timeout(0);
 
@@ -680,21 +599,29 @@ describe("Verify", async function () {
 
     // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
+      await verify.APPROVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
+      await verify.REMOVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
+      await verify.BANNER_ADMIN(),
       actingAdmin.address
     );
 
     // tempAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
+      await verify.APPROVER_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
       tempAdmin.address
     );
 
@@ -752,31 +679,35 @@ describe("Verify", async function () {
 
     // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
+      await verify.APPROVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
+      await verify.REMOVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
+      await verify.BANNER_ADMIN(),
       actingAdmin.address
     );
 
     // tempAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
+      await verify.APPROVER_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      tempAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
       tempAdmin.address
     );
 
     // actingAdmin grants remover remover admin role
     await verify
       .connect(actingAdmin)
-      .grantRole(await verify.REMOVER_ADMIN(), remover.address);
-    // remover admin grants themselves the practical remover role
-    await verify
-      .connect(remover)
       .grantRole(await verify.REMOVER(), remover.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
@@ -824,15 +755,15 @@ describe("Verify", async function () {
 
     // tempAdmin grants actingAdmin admin admin roles
     await verify.grantRole(
-      await verify.APPROVER_ADMIN_ADMIN(),
+      await verify.APPROVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.REMOVER_ADMIN_ADMIN(),
+      await verify.REMOVER_ADMIN(),
       actingAdmin.address
     );
     await verify.grantRole(
-      await verify.BANNER_ADMIN_ADMIN(),
+      await verify.BANNER_ADMIN(),
       actingAdmin.address
     );
 
@@ -842,13 +773,9 @@ describe("Verify", async function () {
       tempAdmin.address
     );
 
-    // actingAdmin grants banner banner admin role
+    // actingAdmin grants banner role
     await verify
       .connect(actingAdmin)
-      .grantRole(await verify.BANNER_ADMIN(), banner.address);
-    // banner admin grants themselves the practical banner role
-    await verify
-      .connect(banner)
       .grantRole(await verify.BANNER(), banner.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
