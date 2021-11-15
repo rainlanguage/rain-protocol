@@ -24,9 +24,18 @@ library TierwiseCombine {
                 );
             }
             uint256 accumulator_ = uint256(-1);
+            bool allTrue_ = true;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                accumulator_ = vals_[i_] <= blockNumber_
-                    ? vals_[i_].min(accumulator_) : uint256(-1);
+                if (allTrue_ && vals_[i_] <= blockNumber_) {
+                    accumulator_ = vals_[i_].min(accumulator_);
+                }
+                else {
+                    allTrue_ = false;
+                    break;
+                }
+            }
+            if (!allTrue_) {
+                accumulator_ = uint256(-1);
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -50,9 +59,18 @@ library TierwiseCombine {
                 );
             }
             uint256 accumulator_ = uint256(-1);
+            bool allTrue_ = true;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                accumulator_ = vals_[i_] <= blockNumber_
-                    ? vals_[i_].max(accumulator_) : uint256(-1);
+                if (allTrue_ && vals_[i_] <= blockNumber_) {
+                    accumulator_ = vals_[i_].max(accumulator_);
+                }
+                else {
+                    allTrue_ = false;
+                    break;
+                }
+            }
+            if (!allTrue_) {
+                accumulator_ = uint256(-1);
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -75,10 +93,16 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_ = uint256(-1);
+            uint256 accumulator_ = vals_[0];
+            bool allTrue_ = true;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                accumulator_ = vals_[i_] <= blockNumber_
-                    ? accumulator_ : uint256(-1);
+                if (vals_[i_] > blockNumber_) {
+                    allTrue_ = false;
+                    break;
+                }
+            }
+            if (!allTrue_) {
+                accumulator_ = uint256(-1);
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -101,10 +125,17 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_ = uint256(-1);
+            uint256 accumulator_;
+            bool anyTrue_ = false;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                accumulator_ = vals_[i_] <= blockNumber_
-                    ? vals_[i_].min(accumulator_) : accumulator_;
+                if (vals_[i_] <= blockNumber_) {
+                    accumulator_ = anyTrue_
+                        ? vals_[i_].min(accumulator_) : vals_[i_];
+                    anyTrue_ = true;
+                }
+            }
+            if (!anyTrue_) {
+                accumulator_ = uint256(-1);
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -128,10 +159,17 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_ = uint256(-1);
+            uint256 accumulator_;
+            bool anyTrue_ = false;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                accumulator_ = vals_[i_] <= blockNumber_
-                    ? vals_[i_].max(accumulator_) : accumulator_;
+                if (vals_[i_] <= blockNumber_) {
+                    accumulator_ = anyTrue_
+                        ? vals_[i_].max(accumulator_) : vals_[i_];
+                    anyTrue_ = true;
+                }
+            }
+            if (!anyTrue_) {
+                accumulator_ = uint256(-1);
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -154,10 +192,16 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_ = uint256(-1);
+            uint256 accumulator_;
+            bool anyTrue_ = false;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                accumulator_ = vals_[i_] <= blockNumber_
-                    ? accumulator_ : accumulator_;
+                if (vals_[i_] <= blockNumber_ && !anyTrue_) {
+                    accumulator_ = vals_[i_];
+                    anyTrue_ = true;
+                }
+            }
+            if (!anyTrue_) {
+                accumulator_ = uint256(-1);
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }

@@ -45,7 +45,7 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
                 .report(address(stack_.vals[stack_.index]));
             stack_.index++;
         }
-        else if (OPCODE_AND_NEW <= op_.code && op_.code <= OPCODE_OR_LEFT) {
+        else if (OPCODE_AND_OLD <= op_.code && op_.code <= OPCODE_OR_LEFT) {
             stack_.index -= op_.val + 1;
             uint256[] memory args_ = new uint256[](op_.val);
             for (uint256 a_ = 0; a_ < args_.length; a_++) {

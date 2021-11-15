@@ -26,7 +26,7 @@ const enum Opcode {
   OR_LEFT,
 }
 
-describe("CombineTier", async function () {
+describe.only("CombineTier", async function () {
   it("should correctly combine AlwaysTier and NeverTier reports with orLeft", async () => {
     this.timeout(0);
 
