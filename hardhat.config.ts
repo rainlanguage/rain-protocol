@@ -26,6 +26,9 @@ const config: HardhatUserConfig = {
       {
         version: "0.6.12",
         settings: {
+          metadata: {
+            useLiteralContent: true
+          },
           optimizer: {
             enabled: true,
             runs: 100000,
@@ -33,6 +36,176 @@ const config: HardhatUserConfig = {
         },
       },
     ],
+    overrides: {
+      "contracts/test/ClaimERC1155Test.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/ConfigurableRightsPoolImports.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/PhasedScheduleTest.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/PhasedTest.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/RedeemableERC20Reentrant.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/ReserveToken.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/ReserveTokenTest.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/SeedERC20ForceSendEther.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/SeedERC20Reentrant.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/TierByConstructionClaimTest.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/TierByConstructionTest.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/TierUtilTest.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/TrustReentrant.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      },
+      "contracts/test/ValueTierTest.sol": {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            useLiteralContent: true
+          },
+          optimizer: {
+            enabled: true,
+            runs: 100000
+          }
+        }
+      }
+    }
   },
 };
 export default config;
