@@ -36,7 +36,8 @@ describe("TierReport", async function () {
     readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    tierReport = (await basicDeploy("TierReportTest", {})) as TierReportTest & Contract;
+    tierReport = (await basicDeploy("TierReportTest", {})) as TierReportTest &
+      Contract;
 
     reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
       Contract;
