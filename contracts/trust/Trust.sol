@@ -211,9 +211,9 @@ struct TrustRedeemableERC20PoolConfig {
 ///
 /// - On `Trust` construction, all minted `RedeemableERC20` tokens
 ///   are sent to the `RedeemableERC20Pool`
-/// - `anonStartDistribution` can be called by anyone to begin the
-///   Dutch Auction. This will revert if this is called before seeder reserve
-///   funds are available on the `Trust`.
+/// - `startDutchAuction` can be called by anyone on `RedeemableERC20Pool` to
+///   begin the Dutch Auction. This will revert if this is called before seeder
+///   reserve funds are available on the `Trust`.
 /// - `anonEndDistribution` can be called by anyone (only when
 ///   `RedeemableERC20Pool` is in `Phase.TWO`) to end the Dutch Auction
 ///   and distribute funds to the correct stakeholders, depending on
@@ -473,8 +473,8 @@ contract Trust is ReentrancyGuard {
         );
 
         // Send all tokens to the pool immediately.
-        // When the seed funds are raised `anonStartDistribution` on the
-        // `Trust` will build a pool from these.
+        // When the seed funds are raised `startDutchAuction` on the
+        // `RedeemableERC20Pool` will build a pool from these.
         redeemableERC20_.safeTransfer(
             address(redeemableERC20Pool_),
             trustRedeemableERC20Config_.totalSupply
