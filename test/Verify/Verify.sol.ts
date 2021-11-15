@@ -52,18 +52,9 @@ describe("Verify", async function () {
       - 'actingAdminRemoving' address for granting verifiers removal privileges
       - 'actingAdminBanning' address for granting verifiers ban privileges
     */
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN(),
-      actingAdmin.address
-    );
+    await verify.grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin leaves. This removes a big risk
     await verify.renounceRole(
@@ -83,18 +74,9 @@ describe("Verify", async function () {
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
     // tempAdmin grants actingAdmin admin admin roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN(),
-      actingAdmin.address
-    );
+    await verify.grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin grants actingAdmin admin roles
     await verify
@@ -149,18 +131,9 @@ describe("Verify", async function () {
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
     // tempAdmin grants actingAdmin admin admin roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN(),
-      actingAdmin.address
-    );
+    await verify.grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     const state0 = await verify.state(signer1.address);
     assert(
@@ -269,26 +242,14 @@ describe("Verify", async function () {
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
     // tempAdmin grants actingAdmin admin roles
-    await verify
-      .grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
-    await verify
-      .grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
-    await verify
-      .grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin leaves. This removes a big risk
-    await verify.renounceRole(
-      await verify.APPROVER_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.renounceRole(
-      await verify.REMOVER_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.renounceRole(
-      await verify.BANNER_ADMIN(),
-      tempAdmin.address
-    );
+    await verify.renounceRole(await verify.APPROVER_ADMIN(), tempAdmin.address);
+    await verify.renounceRole(await verify.REMOVER_ADMIN(), tempAdmin.address);
+    await verify.renounceRole(await verify.BANNER_ADMIN(), tempAdmin.address);
 
     await verify
       .connect(actingAdmin)
@@ -365,18 +326,9 @@ describe("Verify", async function () {
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
     // tempAdmin grants actingAdmin admin admin roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN(),
-      actingAdmin.address
-    );
+    await verify.grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin leaves. This removes a big risk
     await verify.renounceRole(
@@ -598,32 +550,14 @@ describe("Verify", async function () {
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
     // tempAdmin grants actingAdmin admin admin roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN(),
-      actingAdmin.address
-    );
+    await verify.grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin leaves. This removes a big risk
-    await verify.renounceRole(
-      await verify.APPROVER_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.renounceRole(
-      await verify.REMOVER_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.renounceRole(
-      await verify.BANNER_ADMIN(),
-      tempAdmin.address
-    );
+    await verify.renounceRole(await verify.APPROVER_ADMIN(), tempAdmin.address);
+    await verify.renounceRole(await verify.REMOVER_ADMIN(), tempAdmin.address);
+    await verify.renounceRole(await verify.BANNER_ADMIN(), tempAdmin.address);
 
     // actingAdmin grants approver approver admin role
     await verify
@@ -678,32 +612,14 @@ describe("Verify", async function () {
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
     // tempAdmin grants actingAdmin admin admin roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN(),
-      actingAdmin.address
-    );
+    await verify.grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin leaves. This removes a big risk
-    await verify.renounceRole(
-      await verify.APPROVER_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.renounceRole(
-      await verify.REMOVER_ADMIN(),
-      tempAdmin.address
-    );
-    await verify.renounceRole(
-      await verify.BANNER_ADMIN(),
-      tempAdmin.address
-    );
+    await verify.renounceRole(await verify.APPROVER_ADMIN(), tempAdmin.address);
+    await verify.renounceRole(await verify.REMOVER_ADMIN(), tempAdmin.address);
+    await verify.renounceRole(await verify.BANNER_ADMIN(), tempAdmin.address);
 
     // actingAdmin grants remover remover admin role
     await verify
@@ -754,18 +670,9 @@ describe("Verify", async function () {
     const verify = (await verifyFactory.deploy(tempAdmin.address)) as Verify;
 
     // tempAdmin grants actingAdmin admin admin roles
-    await verify.grantRole(
-      await verify.APPROVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.REMOVER_ADMIN(),
-      actingAdmin.address
-    );
-    await verify.grantRole(
-      await verify.BANNER_ADMIN(),
-      actingAdmin.address
-    );
+    await verify.grantRole(await verify.APPROVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), actingAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), actingAdmin.address);
 
     // tempAdmin leaves. This removes a big risk
     await verify.renounceRole(

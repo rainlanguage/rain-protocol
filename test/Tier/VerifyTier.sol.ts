@@ -46,9 +46,18 @@ describe("VerifyTier", async function () {
     await verify.grantRole(await verify.REMOVER_ADMIN(), newAdmin.address);
 
     const verifyNewAdmin = verify.connect(newAdmin);
-    await verifyNewAdmin.grantRole(await verifyNewAdmin.APPROVER(), verifier.address);
-    await verifyNewAdmin.grantRole(await verifyNewAdmin.BANNER(), verifier.address);
-    await verifyNewAdmin.grantRole(await verifyNewAdmin.REMOVER(), verifier.address);
+    await verifyNewAdmin.grantRole(
+      await verifyNewAdmin.APPROVER(),
+      verifier.address
+    );
+    await verifyNewAdmin.grantRole(
+      await verifyNewAdmin.BANNER(),
+      verifier.address
+    );
+    await verifyNewAdmin.grantRole(
+      await verifyNewAdmin.REMOVER(),
+      verifier.address
+    );
 
     const tierReportNil = await verifyTier.report(signer1.address);
     assert(
