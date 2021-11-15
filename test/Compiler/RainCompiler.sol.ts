@@ -4,6 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
 import { bytify, callSize, op } from "../Util";
+import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
 
@@ -87,7 +88,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source, // not important
       vals, // not important
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     // @ts-ignore
     // Just return the whole output stack for debugging purposes
@@ -189,7 +190,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source, // not important
       vals, // not important
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     // @ts-ignore
     // Just return the whole output stack for debugging purposes
@@ -291,7 +292,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source, // not important
       vals, // not important
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
@@ -453,7 +454,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source, // not important
       vals, // not important
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     // @ts-ignore
     // Just return the whole output stack for debugging purposes
@@ -562,7 +563,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source, // not important
       vals, // not important
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
@@ -648,7 +649,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source, // not important
       vals, // not important
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
@@ -729,7 +730,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source, // not important
       vals, // not important
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     // @ts-ignore
     const result = await calculator.eval({ source, vals });
@@ -771,7 +772,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const block0 = await ethers.provider.getBlockNumber();
 
@@ -834,7 +835,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
     const expected = 3;
@@ -868,7 +869,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
     const expected = 1;
@@ -902,7 +903,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
     const expected = 2;
@@ -936,7 +937,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
     const expected = 60;
@@ -970,7 +971,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
     const expected = 5;
@@ -1004,7 +1005,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
     const expected = 6;
@@ -1031,7 +1032,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const actualVal0 = await calculator.val0();
     const compiledSource = await calculator.source0();
@@ -1073,7 +1074,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const actualVal0 = await calculator.val0();
     assert(
@@ -1104,7 +1105,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     const actualVal0 = await calculator.val0();
     assert(
@@ -1126,7 +1127,7 @@ describe("RainCompiler", async function () {
     const calculator = (await calculatorFactory.deploy({
       source,
       vals,
-    })) as CalculatorTest;
+    })) as CalculatorTest & Contract;
 
     await getConstants(calculator);
   });

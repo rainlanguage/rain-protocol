@@ -4,6 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { bytify, op } from "../Util";
+import type { Contract } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
 
@@ -76,7 +77,7 @@ describe("CombineTier", async function () {
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
 
@@ -142,7 +143,7 @@ describe("CombineTier", async function () {
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
 
@@ -208,7 +209,7 @@ describe("CombineTier", async function () {
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
 
@@ -274,7 +275,7 @@ describe("CombineTier", async function () {
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
 
@@ -340,7 +341,7 @@ describe("CombineTier", async function () {
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
 
@@ -406,7 +407,7 @@ describe("CombineTier", async function () {
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
 
@@ -470,7 +471,7 @@ describe("CombineTier", async function () {
     const combineTierAlways = (await combineTierFactory.deploy({
       source: sourceAlways,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const resultAlways = await combineTierAlways.report(signers[1].address);
 
@@ -485,7 +486,7 @@ describe("CombineTier", async function () {
     const combineTierNever = (await combineTierFactory.deploy({
       source: sourceNever,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const resultNever = await combineTierNever.report(signers[1].address);
 
@@ -511,7 +512,7 @@ describe("CombineTier", async function () {
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
-    })) as CombineTier;
+    })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[1].address);
     const expected = signers[1].address;
