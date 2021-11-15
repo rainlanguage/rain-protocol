@@ -1,0 +1,3680 @@
+{
+  "id": "a7dbb41bd5d130de4795ddcab6e47797",
+  "_format": "hh-sol-build-info-1",
+  "solcVersion": "0.6.12",
+  "solcLongVersion": "0.6.12+commit.27d51765",
+  "input": {
+    "language": "Solidity",
+    "sources": {
+      "contracts/test/PhasedScheduleTest.sol": {
+        "content": "// SPDX-License-Identifier: CAL\npragma solidity ^0.6.12;\n\nimport { Phase, Phased } from \"../phased/Phased.sol\";\n\n/// @title PhasedScheduleTest\n/// Contract for testing phase hook functionality.\ncontract PhasedScheduleTest is Phased {\n    /// Exposes `scheduleNextPhase` for testing.\n    /// @param nextPhaseBlock_ As per `scheduleNestPhase`.\n    function testScheduleNextPhase(uint32 nextPhaseBlock_) external {\n        scheduleNextPhase(nextPhaseBlock_);\n    }\n\n    function succeedsOnlyPhaseZero() internal onlyPhase(Phase.ZERO)\n    { } // solhint-disable-line no-empty-blocks\n\n    /// @inheritdoc Phased\n    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)\n        internal\n        virtual\n        override\n    {\n        succeedsOnlyPhaseZero();\n        super._beforeScheduleNextPhase(nextPhaseBlock_);\n        succeedsOnlyPhaseZero(); // can run phase-dependent logic anywhere\n    }\n}"
+      },
+      "contracts/phased/Phased.sol": {
+        "content": "// SPDX-License-Identifier: CAL\npragma solidity ^0.6.12;\n\n/// Defines all possible phases.\n/// `Phased` begins in `Phase.ZERO` and moves through each phase sequentially.\nenum Phase {\n    ZERO,\n    ONE,\n    TWO,\n    THREE,\n    FOUR,\n    FIVE,\n    SIX,\n    SEVEN,\n    EIGHT\n}\n\n/// @title Phased\n/// @notice `Phased` is an abstract contract that defines up to `9` phases that\n/// an implementing contract moves through.\n///\n/// `Phase.ZERO` is always the first phase and does not, and cannot, be set\n/// expicitly. Effectively it is implied that `Phase.ZERO` has been active\n/// since block zero.\n///\n/// Each subsequent phase `Phase.ONE` through `Phase.EIGHT` must be\n/// scheduled sequentially and explicitly at a block number.\n///\n/// Only the immediate next phase can be scheduled with `scheduleNextPhase`,\n/// it is not possible to schedule multiple phases ahead.\n///\n/// Multiple phases can be scheduled in a single block if each scheduled phase\n/// is scheduled for the current block.\n///\n/// Several utility functions and modifiers are provided.\n///\n/// A single hook `_beforeScheduleNextPhase` is provided so contracts can\n/// implement additional phase shift checks.\n///\n/// One event `PhaseShiftScheduled` is emitted each time a phase shift is\n/// scheduled (not when the scheduled phase is reached).\n///\n/// @dev `Phased` contracts have a defined timeline with available\n/// functionality grouped into phases.\n/// Every `Phased` contract starts at `Phase.ZERO` and moves sequentially\n/// through phases `ONE` to `EIGHT`.\n/// Every `Phase` other than `Phase.ZERO` is optional, there is no requirement\n/// that all 9 phases are implemented.\n/// Phases can never be revisited, the inheriting contract always moves through\n/// each achieved phase linearly.\n/// This is enforced by only allowing `scheduleNextPhase` to be called once per\n/// phase.\n/// It is possible to call `scheduleNextPhase` several times in a single block\n/// but the `block.number` for each phase must be reached each time to schedule\n/// the next phase.\n/// Importantly there are events and several modifiers and checks available to\n/// ensure that functionality is limited to the current phase.\n/// The full history of each phase shift block is recorded as a fixed size\n/// array of `uint32`.\nabstract contract Phased {\n    /// Every phase block starts uninitialized.\n    /// Only uninitialized blocks can be set by the phase scheduler.\n    uint32 constant public UNINITIALIZED = uint32(-1);\n\n    /// `PhaseShiftScheduled` is emitted when the next phase is scheduled.\n    event PhaseShiftScheduled(uint32 indexed newPhaseBlock_);\n\n    /// 8 phases each as 32 bits to fit a single 32 byte word.\n    uint32[8] public phaseBlocks = [\n        UNINITIALIZED,\n        UNINITIALIZED,\n        UNINITIALIZED,\n        UNINITIALIZED,\n        UNINITIALIZED,\n        UNINITIALIZED,\n        UNINITIALIZED,\n        UNINITIALIZED\n    ];\n\n    /// Pure function to reduce an array of phase blocks and block number to a\n    /// specific `Phase`.\n    /// The phase will be the highest attained even if several phases have the\n    /// same block number.\n    /// If every phase block is after the block number then `Phase.ZERO` is\n    /// returned.\n    /// If every phase block is before the block number then `Phase.EIGHT` is\n    /// returned.\n    /// @param phaseBlocks_ Fixed array of phase blocks to compare against.\n    /// @param blockNumber_ Determine the relevant phase relative to this block\n    /// number.\n    /// @return The \"current\" phase relative to the block number and phase\n    /// blocks list.\n    function phaseAtBlockNumber(\n        uint32[8] memory phaseBlocks_,\n        uint32 blockNumber_\n    )\n        public\n        pure\n        returns(Phase)\n    {\n        for(uint i_ = 0; i_<8; i_++) {\n            if (blockNumber_ < phaseBlocks_[i_]) {\n                return Phase(i_);\n            }\n        }\n        return Phase(8);\n    }\n\n    /// Pure function to reduce an array of phase blocks and phase to a\n    /// specific block number.\n    /// `Phase.ZERO` will always return block `0`.\n    /// Every other phase will map to a block number in `phaseBlocks_`.\n    /// @param phaseBlocks_ Fixed array of phase blocks to compare against.\n    /// @param phase_ Determine the relevant block number for this phase.\n    /// @return The block number for the phase according to the phase blocks\n    ///         list, as uint32.\n    function blockNumberForPhase(uint32[8] calldata phaseBlocks_, Phase phase_)\n        external\n        pure\n        returns(uint32)\n    {\n        return phase_ > Phase.ZERO ? phaseBlocks_[uint(phase_) - 1] : 0;\n    }\n\n    /// Impure read-only function to return the \"current\" phase from internal\n    /// contract state.\n    /// Simply wraps `phaseAtBlockNumber` for current values of `phaseBlocks`\n    /// and `block.number`.\n    function currentPhase() public view returns (Phase) {\n        return phaseAtBlockNumber(phaseBlocks, uint32(block.number));\n    }\n\n    /// Modifies functions to only be callable in a specific phase.\n    /// @param phase_ Modified functions can only be called during this phase.\n    modifier onlyPhase(Phase phase_) {\n        require(currentPhase() == phase_, \"BAD_PHASE\");\n        _;\n    }\n\n    /// Modifies functions to only be callable in a specific phase OR if the\n    /// specified phase has passed.\n    /// @param phase_ Modified function only callable during or after this\n    /// phase.\n    modifier onlyAtLeastPhase(Phase phase_) {\n        require(currentPhase() >= phase_, \"MIN_PHASE\");\n        _;\n    }\n\n    /// Writes the block for the next phase.\n    /// Only uninitialized blocks can be written to.\n    /// Only the immediate next phase relative to `currentPhase` can be written\n    /// to.\n    /// Emits `PhaseShiftScheduled` with the next phase block.\n    /// @param nextPhaseBlock_ The block for the next phase.\n    function scheduleNextPhase(uint32 nextPhaseBlock_) internal {\n        require(uint32(block.number) <= nextPhaseBlock_, \"NEXT_BLOCK_PAST\");\n        require(nextPhaseBlock_ < UNINITIALIZED, \"NEXT_BLOCK_UNINITIALIZED\");\n\n        // The next index is the current phase because `Phase.ZERO` doesn't\n        // exist as an index.\n        uint nextIndex_ = uint(currentPhase());\n        require(UNINITIALIZED == phaseBlocks[nextIndex_], \"NEXT_BLOCK_SET\");\n\n        _beforeScheduleNextPhase(nextPhaseBlock_);\n        phaseBlocks[nextIndex_] = nextPhaseBlock_;\n\n        emit PhaseShiftScheduled(nextPhaseBlock_);\n    }\n\n    /// Hook called before scheduling the next phase.\n    /// Useful to apply additional constraints or state changes on a phase\n    /// change.\n    /// Note this is called when scheduling the phase change, not on the block\n    /// the phase change occurs.\n    /// This is called before the phase change so that all functionality that\n    /// is behind a phase gate is still available at the moment of applying the\n    /// hook for scheduling the next phase.\n    /// @param nextPhaseBlock_ The block for the next phase.\n    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)\n        internal\n        virtual\n    { } //solhint-disable-line no-empty-blocks\n}"
+      }
+    },
+    "settings": {
+      "metadata": {
+        "useLiteralContent": true
+      },
+      "optimizer": {
+        "enabled": true,
+        "runs": 100000
+      },
+      "outputSelection": {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers"
+          ],
+          "": [
+            "ast"
+          ]
+        }
+      }
+    }
+  },
+  "output": {
+    "contracts": {
+      "contracts/phased/Phased.sol": {
+        "Phased": {
+          "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "uint32",
+                  "name": "newPhaseBlock_",
+                  "type": "uint32"
+                }
+              ],
+              "name": "PhaseShiftScheduled",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "UNINITIALIZED",
+              "outputs": [
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint32[8]",
+                  "name": "phaseBlocks_",
+                  "type": "uint32[8]"
+                },
+                {
+                  "internalType": "enum Phase",
+                  "name": "phase_",
+                  "type": "uint8"
+                }
+              ],
+              "name": "blockNumberForPhase",
+              "outputs": [
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                }
+              ],
+              "stateMutability": "pure",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "currentPhase",
+              "outputs": [
+                {
+                  "internalType": "enum Phase",
+                  "name": "",
+                  "type": "uint8"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint32[8]",
+                  "name": "phaseBlocks_",
+                  "type": "uint32[8]"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "blockNumber_",
+                  "type": "uint32"
+                }
+              ],
+              "name": "phaseAtBlockNumber",
+              "outputs": [
+                {
+                  "internalType": "enum Phase",
+                  "name": "",
+                  "type": "uint8"
+                }
+              ],
+              "stateMutability": "pure",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "name": "phaseBlocks",
+              "outputs": [
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ],
+          "evm": {
+            "bytecode": {
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "methodIdentifiers": {
+              "UNINITIALIZED()": "81e45d9a",
+              "blockNumberForPhase(uint32[8],uint8)": "45bdfa8a",
+              "currentPhase()": "055ad42e",
+              "phaseAtBlockNumber(uint32[8],uint32)": "34c1df75",
+              "phaseBlocks(uint256)": "9923c94b"
+            }
+          }
+        }
+      },
+      "contracts/test/PhasedScheduleTest.sol": {
+        "PhasedScheduleTest": {
+          "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "uint32",
+                  "name": "newPhaseBlock_",
+                  "type": "uint32"
+                }
+              ],
+              "name": "PhaseShiftScheduled",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "UNINITIALIZED",
+              "outputs": [
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint32[8]",
+                  "name": "phaseBlocks_",
+                  "type": "uint32[8]"
+                },
+                {
+                  "internalType": "enum Phase",
+                  "name": "phase_",
+                  "type": "uint8"
+                }
+              ],
+              "name": "blockNumberForPhase",
+              "outputs": [
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                }
+              ],
+              "stateMutability": "pure",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "currentPhase",
+              "outputs": [
+                {
+                  "internalType": "enum Phase",
+                  "name": "",
+                  "type": "uint8"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint32[8]",
+                  "name": "phaseBlocks_",
+                  "type": "uint32[8]"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "blockNumber_",
+                  "type": "uint32"
+                }
+              ],
+              "name": "phaseAtBlockNumber",
+              "outputs": [
+                {
+                  "internalType": "enum Phase",
+                  "name": "",
+                  "type": "uint8"
+                }
+              ],
+              "stateMutability": "pure",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "name": "phaseBlocks",
+              "outputs": [
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint32",
+                  "name": "nextPhaseBlock_",
+                  "type": "uint32"
+                }
+              ],
+              "name": "testScheduleNextPhase",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ],
+          "evm": {
+            "bytecode": {
+              "linkReferences": {},
+              "object": "61018060405263ffffffff608081815260a082905260c082905260e082905261010082905261012082905261014082905261016091909152610045906000906008610058565b5034801561005257600080fd5b50610110565b6001830191839082156100e45791602002820160005b838211156100b257835183826101000a81548163ffffffff021916908363ffffffff160217905550926020019260040160208160030104928301926001030261006e565b80156100e25782816101000a81549063ffffffff02191690556004016020816003010492830192600103026100b2565b505b506100f09291506100f4565b5090565b5b808211156100f057805463ffffffff191681556001016100f5565b6105ce8061011f6000396000f3fe608060405234801561001057600080fd5b50600436106100725760003560e01c806345bdfa8a1161005057806345bdfa8a1461011f57806381e45d9a1461015e5780639923c94b1461016657610072565b8063055ad42e1461007757806334c1df75146100a05780633bd126dc146100fa575b600080fd5b61007f610183565b6040518082600881111561008f57fe5b815260200191505060405180910390f35b61007f60048036036101208110156100b757600080fd5b81019080806101000190600880602002604051908101604052809291908260086020028082843760009201919091525091945050503563ffffffff1690506101ed565b61011d6004803603602081101561011057600080fd5b503563ffffffff16610247565b005b610145600480360361012081101561013657600080fd5b5060ff61010082013516610253565b6040805163ffffffff9092168252519081900360200190f35b61014561029b565b6101456004803603602081101561017c57600080fd5b50356102bf565b604080516101008101918290526000916101e8919083906008908280855b82829054906101000a900463ffffffff1663ffffffff16815260200190600401906020826003010492830192600103820291508084116101a15790505050505050436101ed565b905090565b6000805b600881101561023a5783816008811061020657fe5b602002015163ffffffff168363ffffffff1610156102325780600881111561022a57fe5b915050610241565b6001016101f1565b5060085b90505b92915050565b610250816102ec565b50565b60008082600881111561026257fe5b1161026e57600061023e565b82600183600881111561027d57fe5b036008811061028857fe5b602002013563ffffffff16905092915050565b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff81565b600081600881106102cc57fe5b60089182820401919006600402915054906101000a900463ffffffff1681565b8063ffffffff164363ffffffff16111561036757604080517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600f60248201527f4e4558545f424c4f434b5f504153540000000000000000000000000000000000604482015290519081900360640190fd5b63ffffffff818116106103db57604080517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601860248201527f4e4558545f424c4f434b5f554e494e495449414c495a45440000000000000000604482015290519081900360640190fd5b60006103e5610183565b60088111156103f057fe5b9050600081600881106103ff57fe5b60088104919091015460079091166004026101000a900463ffffffff9081161461048a57604080517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f4e4558545f424c4f434b5f534554000000000000000000000000000000000000604482015290519081900360640190fd5b61049382610501565b81600082600881106104a157fe5b600891828204019190066004026101000a81548163ffffffff021916908363ffffffff1602179055508163ffffffff167f260aac5b840edc27b89fdf50e91311a413363a400959466e1049e6d071b8cee260405160405180910390a25050565b610509610516565b61051281610250565b6102505b600080610521610183565b600881111561052c57fe5b1461025057604080517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600960248201527f4241445f50484153450000000000000000000000000000000000000000000000604482015290519081900360640190fdfea26469706673582212205c65a1f4a9a087d60ae179a76720a6c906fe9a2cc957a772ba3b70bc89a9215e64736f6c634300060c0033",
+              "opcodes": "PUSH2 0x180 PUSH1 0x40 MSTORE PUSH4 0xFFFFFFFF PUSH1 0x80 DUP2 DUP2 MSTORE PUSH1 0xA0 DUP3 SWAP1 MSTORE PUSH1 0xC0 DUP3 SWAP1 MSTORE PUSH1 0xE0 DUP3 SWAP1 MSTORE PUSH2 0x100 DUP3 SWAP1 MSTORE PUSH2 0x120 DUP3 SWAP1 MSTORE PUSH2 0x140 DUP3 SWAP1 MSTORE PUSH2 0x160 SWAP2 SWAP1 SWAP2 MSTORE PUSH2 0x45 SWAP1 PUSH1 0x0 SWAP1 PUSH1 0x8 PUSH2 0x58 JUMP JUMPDEST POP CALLVALUE DUP1 ISZERO PUSH2 0x52 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH2 0x110 JUMP JUMPDEST PUSH1 0x1 DUP4 ADD SWAP2 DUP4 SWAP1 DUP3 ISZERO PUSH2 0xE4 JUMPI SWAP2 PUSH1 0x20 MUL DUP3 ADD PUSH1 0x0 JUMPDEST DUP4 DUP3 GT ISZERO PUSH2 0xB2 JUMPI DUP4 MLOAD DUP4 DUP3 PUSH2 0x100 EXP DUP2 SLOAD DUP2 PUSH4 0xFFFFFFFF MUL NOT AND SWAP1 DUP4 PUSH4 0xFFFFFFFF AND MUL OR SWAP1 SSTORE POP SWAP3 PUSH1 0x20 ADD SWAP3 PUSH1 0x4 ADD PUSH1 0x20 DUP2 PUSH1 0x3 ADD DIV SWAP3 DUP4 ADD SWAP3 PUSH1 0x1 SUB MUL PUSH2 0x6E JUMP JUMPDEST DUP1 ISZERO PUSH2 0xE2 JUMPI DUP3 DUP2 PUSH2 0x100 EXP DUP2 SLOAD SWAP1 PUSH4 0xFFFFFFFF MUL NOT AND SWAP1 SSTORE PUSH1 0x4 ADD PUSH1 0x20 DUP2 PUSH1 0x3 ADD DIV SWAP3 DUP4 ADD SWAP3 PUSH1 0x1 SUB MUL PUSH2 0xB2 JUMP JUMPDEST POP JUMPDEST POP PUSH2 0xF0 SWAP3 SWAP2 POP PUSH2 0xF4 JUMP JUMPDEST POP SWAP1 JUMP JUMPDEST JUMPDEST DUP1 DUP3 GT ISZERO PUSH2 0xF0 JUMPI DUP1 SLOAD PUSH4 0xFFFFFFFF NOT AND DUP2 SSTORE PUSH1 0x1 ADD PUSH2 0xF5 JUMP JUMPDEST PUSH2 0x5CE DUP1 PUSH2 0x11F PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH2 0x10 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH2 0x72 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0x45BDFA8A GT PUSH2 0x50 JUMPI DUP1 PUSH4 0x45BDFA8A EQ PUSH2 0x11F JUMPI DUP1 PUSH4 0x81E45D9A EQ PUSH2 0x15E JUMPI DUP1 PUSH4 0x9923C94B EQ PUSH2 0x166 JUMPI PUSH2 0x72 JUMP JUMPDEST DUP1 PUSH4 0x55AD42E EQ PUSH2 0x77 JUMPI DUP1 PUSH4 0x34C1DF75 EQ PUSH2 0xA0 JUMPI DUP1 PUSH4 0x3BD126DC EQ PUSH2 0xFA JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH2 0x7F PUSH2 0x183 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 DUP3 PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x8F JUMPI INVALID JUMPDEST DUP2 MSTORE PUSH1 0x20 ADD SWAP2 POP POP PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH2 0x7F PUSH1 0x4 DUP1 CALLDATASIZE SUB PUSH2 0x120 DUP2 LT ISZERO PUSH2 0xB7 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST DUP2 ADD SWAP1 DUP1 DUP1 PUSH2 0x100 ADD SWAP1 PUSH1 0x8 DUP1 PUSH1 0x20 MUL PUSH1 0x40 MLOAD SWAP1 DUP2 ADD PUSH1 0x40 MSTORE DUP1 SWAP3 SWAP2 SWAP1 DUP3 PUSH1 0x8 PUSH1 0x20 MUL DUP1 DUP3 DUP5 CALLDATACOPY PUSH1 0x0 SWAP3 ADD SWAP2 SWAP1 SWAP2 MSTORE POP SWAP2 SWAP5 POP POP POP CALLDATALOAD PUSH4 0xFFFFFFFF AND SWAP1 POP PUSH2 0x1ED JUMP JUMPDEST PUSH2 0x11D PUSH1 0x4 DUP1 CALLDATASIZE SUB PUSH1 0x20 DUP2 LT ISZERO PUSH2 0x110 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP CALLDATALOAD PUSH4 0xFFFFFFFF AND PUSH2 0x247 JUMP JUMPDEST STOP JUMPDEST PUSH2 0x145 PUSH1 0x4 DUP1 CALLDATASIZE SUB PUSH2 0x120 DUP2 LT ISZERO PUSH2 0x136 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0xFF PUSH2 0x100 DUP3 ADD CALLDATALOAD AND PUSH2 0x253 JUMP JUMPDEST PUSH1 0x40 DUP1 MLOAD PUSH4 0xFFFFFFFF SWAP1 SWAP3 AND DUP3 MSTORE MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x20 ADD SWAP1 RETURN JUMPDEST PUSH2 0x145 PUSH2 0x29B JUMP JUMPDEST PUSH2 0x145 PUSH1 0x4 DUP1 CALLDATASIZE SUB PUSH1 0x20 DUP2 LT ISZERO PUSH2 0x17C JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP CALLDATALOAD PUSH2 0x2BF JUMP JUMPDEST PUSH1 0x40 DUP1 MLOAD PUSH2 0x100 DUP2 ADD SWAP2 DUP3 SWAP1 MSTORE PUSH1 0x0 SWAP2 PUSH2 0x1E8 SWAP2 SWAP1 DUP4 SWAP1 PUSH1 0x8 SWAP1 DUP3 DUP1 DUP6 JUMPDEST DUP3 DUP3 SWAP1 SLOAD SWAP1 PUSH2 0x100 EXP SWAP1 DIV PUSH4 0xFFFFFFFF AND PUSH4 0xFFFFFFFF AND DUP2 MSTORE PUSH1 0x20 ADD SWAP1 PUSH1 0x4 ADD SWAP1 PUSH1 0x20 DUP3 PUSH1 0x3 ADD DIV SWAP3 DUP4 ADD SWAP3 PUSH1 0x1 SUB DUP3 MUL SWAP2 POP DUP1 DUP5 GT PUSH2 0x1A1 JUMPI SWAP1 POP POP POP POP POP POP NUMBER PUSH2 0x1ED JUMP JUMPDEST SWAP1 POP SWAP1 JUMP JUMPDEST PUSH1 0x0 DUP1 JUMPDEST PUSH1 0x8 DUP2 LT ISZERO PUSH2 0x23A JUMPI DUP4 DUP2 PUSH1 0x8 DUP2 LT PUSH2 0x206 JUMPI INVALID JUMPDEST PUSH1 0x20 MUL ADD MLOAD PUSH4 0xFFFFFFFF AND DUP4 PUSH4 0xFFFFFFFF AND LT ISZERO PUSH2 0x232 JUMPI DUP1 PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x22A JUMPI INVALID JUMPDEST SWAP2 POP POP PUSH2 0x241 JUMP JUMPDEST PUSH1 0x1 ADD PUSH2 0x1F1 JUMP JUMPDEST POP PUSH1 0x8 JUMPDEST SWAP1 POP JUMPDEST SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH2 0x250 DUP2 PUSH2 0x2EC JUMP JUMPDEST POP JUMP JUMPDEST PUSH1 0x0 DUP1 DUP3 PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x262 JUMPI INVALID JUMPDEST GT PUSH2 0x26E JUMPI PUSH1 0x0 PUSH2 0x23E JUMP JUMPDEST DUP3 PUSH1 0x1 DUP4 PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x27D JUMPI INVALID JUMPDEST SUB PUSH1 0x8 DUP2 LT PUSH2 0x288 JUMPI INVALID JUMPDEST PUSH1 0x20 MUL ADD CALLDATALOAD PUSH4 0xFFFFFFFF AND SWAP1 POP SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH32 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF DUP2 JUMP JUMPDEST PUSH1 0x0 DUP2 PUSH1 0x8 DUP2 LT PUSH2 0x2CC JUMPI INVALID JUMPDEST PUSH1 0x8 SWAP2 DUP3 DUP3 DIV ADD SWAP2 SWAP1 MOD PUSH1 0x4 MUL SWAP2 POP SLOAD SWAP1 PUSH2 0x100 EXP SWAP1 DIV PUSH4 0xFFFFFFFF AND DUP2 JUMP JUMPDEST DUP1 PUSH4 0xFFFFFFFF AND NUMBER PUSH4 0xFFFFFFFF AND GT ISZERO PUSH2 0x367 JUMPI PUSH1 0x40 DUP1 MLOAD PUSH32 0x8C379A000000000000000000000000000000000000000000000000000000000 DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0xF PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x4E4558545F424C4F434B5F504153540000000000000000000000000000000000 PUSH1 0x44 DUP3 ADD MSTORE SWAP1 MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x64 ADD SWAP1 REVERT JUMPDEST PUSH4 0xFFFFFFFF DUP2 DUP2 AND LT PUSH2 0x3DB JUMPI PUSH1 0x40 DUP1 MLOAD PUSH32 0x8C379A000000000000000000000000000000000000000000000000000000000 DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0x18 PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x4E4558545F424C4F434B5F554E494E495449414C495A45440000000000000000 PUSH1 0x44 DUP3 ADD MSTORE SWAP1 MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x64 ADD SWAP1 REVERT JUMPDEST PUSH1 0x0 PUSH2 0x3E5 PUSH2 0x183 JUMP JUMPDEST PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x3F0 JUMPI INVALID JUMPDEST SWAP1 POP PUSH1 0x0 DUP2 PUSH1 0x8 DUP2 LT PUSH2 0x3FF JUMPI INVALID JUMPDEST PUSH1 0x8 DUP2 DIV SWAP2 SWAP1 SWAP2 ADD SLOAD PUSH1 0x7 SWAP1 SWAP2 AND PUSH1 0x4 MUL PUSH2 0x100 EXP SWAP1 DIV PUSH4 0xFFFFFFFF SWAP1 DUP2 AND EQ PUSH2 0x48A JUMPI PUSH1 0x40 DUP1 MLOAD PUSH32 0x8C379A000000000000000000000000000000000000000000000000000000000 DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0xE PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x4E4558545F424C4F434B5F534554000000000000000000000000000000000000 PUSH1 0x44 DUP3 ADD MSTORE SWAP1 MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x64 ADD SWAP1 REVERT JUMPDEST PUSH2 0x493 DUP3 PUSH2 0x501 JUMP JUMPDEST DUP2 PUSH1 0x0 DUP3 PUSH1 0x8 DUP2 LT PUSH2 0x4A1 JUMPI INVALID JUMPDEST PUSH1 0x8 SWAP2 DUP3 DUP3 DIV ADD SWAP2 SWAP1 MOD PUSH1 0x4 MUL PUSH2 0x100 EXP DUP2 SLOAD DUP2 PUSH4 0xFFFFFFFF MUL NOT AND SWAP1 DUP4 PUSH4 0xFFFFFFFF AND MUL OR SWAP1 SSTORE POP DUP2 PUSH4 0xFFFFFFFF AND PUSH32 0x260AAC5B840EDC27B89FDF50E91311A413363A400959466E1049E6D071B8CEE2 PUSH1 0x40 MLOAD PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG2 POP POP JUMP JUMPDEST PUSH2 0x509 PUSH2 0x516 JUMP JUMPDEST PUSH2 0x512 DUP2 PUSH2 0x250 JUMP JUMPDEST PUSH2 0x250 JUMPDEST PUSH1 0x0 DUP1 PUSH2 0x521 PUSH2 0x183 JUMP JUMPDEST PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x52C JUMPI INVALID JUMPDEST EQ PUSH2 0x250 JUMPI PUSH1 0x40 DUP1 MLOAD PUSH32 0x8C379A000000000000000000000000000000000000000000000000000000000 DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0x9 PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x4241445F50484153450000000000000000000000000000000000000000000000 PUSH1 0x44 DUP3 ADD MSTORE SWAP1 MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x64 ADD SWAP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0x5C PUSH6 0xA1F4A9A087D6 EXP 0xE1 PUSH26 0xA76720A6C906FE9A2CC957A772BA3B70BC89A9215E64736F6C63 NUMBER STOP MOD 0xC STOP CALLER ",
+              "sourceMap": "2677:221:0:-:0;194:703:1;2677:221:0;;194:703:1;2677:221:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;2677:221:0;;:::i;:::-;;194:703:1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;194:703:1;;;-1:-1:-1;194:703:1;:::i;:::-;;;:::o;:::-;;;;;;;;;;-1:-1:-1;;194:703:1;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "608060405234801561001057600080fd5b50600436106100725760003560e01c806345bdfa8a1161005057806345bdfa8a1461011f57806381e45d9a1461015e5780639923c94b1461016657610072565b8063055ad42e1461007757806334c1df75146100a05780633bd126dc146100fa575b600080fd5b61007f610183565b6040518082600881111561008f57fe5b815260200191505060405180910390f35b61007f60048036036101208110156100b757600080fd5b81019080806101000190600880602002604051908101604052809291908260086020028082843760009201919091525091945050503563ffffffff1690506101ed565b61011d6004803603602081101561011057600080fd5b503563ffffffff16610247565b005b610145600480360361012081101561013657600080fd5b5060ff61010082013516610253565b6040805163ffffffff9092168252519081900360200190f35b61014561029b565b6101456004803603602081101561017c57600080fd5b50356102bf565b604080516101008101918290526000916101e8919083906008908280855b82829054906101000a900463ffffffff1663ffffffff16815260200190600401906020826003010492830192600103820291508084116101a15790505050505050436101ed565b905090565b6000805b600881101561023a5783816008811061020657fe5b602002015163ffffffff168363ffffffff1610156102325780600881111561022a57fe5b915050610241565b6001016101f1565b5060085b90505b92915050565b610250816102ec565b50565b60008082600881111561026257fe5b1161026e57600061023e565b82600183600881111561027d57fe5b036008811061028857fe5b602002013563ffffffff16905092915050565b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff81565b600081600881106102cc57fe5b60089182820401919006600402915054906101000a900463ffffffff1681565b8063ffffffff164363ffffffff16111561036757604080517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600f60248201527f4e4558545f424c4f434b5f504153540000000000000000000000000000000000604482015290519081900360640190fd5b63ffffffff818116106103db57604080517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601860248201527f4e4558545f424c4f434b5f554e494e495449414c495a45440000000000000000604482015290519081900360640190fd5b60006103e5610183565b60088111156103f057fe5b9050600081600881106103ff57fe5b60088104919091015460079091166004026101000a900463ffffffff9081161461048a57604080517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f4e4558545f424c4f434b5f534554000000000000000000000000000000000000604482015290519081900360640190fd5b61049382610501565b81600082600881106104a157fe5b600891828204019190066004026101000a81548163ffffffff021916908363ffffffff1602179055508163ffffffff167f260aac5b840edc27b89fdf50e91311a413363a400959466e1049e6d071b8cee260405160405180910390a25050565b610509610516565b61051281610250565b6102505b600080610521610183565b600881111561052c57fe5b1461025057604080517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600960248201527f4241445f50484153450000000000000000000000000000000000000000000000604482015290519081900360640190fdfea26469706673582212205c65a1f4a9a087d60ae179a76720a6c906fe9a2cc957a772ba3b70bc89a9215e64736f6c634300060c0033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH2 0x10 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH2 0x72 JUMPI PUSH1 0x0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0x45BDFA8A GT PUSH2 0x50 JUMPI DUP1 PUSH4 0x45BDFA8A EQ PUSH2 0x11F JUMPI DUP1 PUSH4 0x81E45D9A EQ PUSH2 0x15E JUMPI DUP1 PUSH4 0x9923C94B EQ PUSH2 0x166 JUMPI PUSH2 0x72 JUMP JUMPDEST DUP1 PUSH4 0x55AD42E EQ PUSH2 0x77 JUMPI DUP1 PUSH4 0x34C1DF75 EQ PUSH2 0xA0 JUMPI DUP1 PUSH4 0x3BD126DC EQ PUSH2 0xFA JUMPI JUMPDEST PUSH1 0x0 DUP1 REVERT JUMPDEST PUSH2 0x7F PUSH2 0x183 JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 DUP3 PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x8F JUMPI INVALID JUMPDEST DUP2 MSTORE PUSH1 0x20 ADD SWAP2 POP POP PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH2 0x7F PUSH1 0x4 DUP1 CALLDATASIZE SUB PUSH2 0x120 DUP2 LT ISZERO PUSH2 0xB7 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST DUP2 ADD SWAP1 DUP1 DUP1 PUSH2 0x100 ADD SWAP1 PUSH1 0x8 DUP1 PUSH1 0x20 MUL PUSH1 0x40 MLOAD SWAP1 DUP2 ADD PUSH1 0x40 MSTORE DUP1 SWAP3 SWAP2 SWAP1 DUP3 PUSH1 0x8 PUSH1 0x20 MUL DUP1 DUP3 DUP5 CALLDATACOPY PUSH1 0x0 SWAP3 ADD SWAP2 SWAP1 SWAP2 MSTORE POP SWAP2 SWAP5 POP POP POP CALLDATALOAD PUSH4 0xFFFFFFFF AND SWAP1 POP PUSH2 0x1ED JUMP JUMPDEST PUSH2 0x11D PUSH1 0x4 DUP1 CALLDATASIZE SUB PUSH1 0x20 DUP2 LT ISZERO PUSH2 0x110 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP CALLDATALOAD PUSH4 0xFFFFFFFF AND PUSH2 0x247 JUMP JUMPDEST STOP JUMPDEST PUSH2 0x145 PUSH1 0x4 DUP1 CALLDATASIZE SUB PUSH2 0x120 DUP2 LT ISZERO PUSH2 0x136 JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0xFF PUSH2 0x100 DUP3 ADD CALLDATALOAD AND PUSH2 0x253 JUMP JUMPDEST PUSH1 0x40 DUP1 MLOAD PUSH4 0xFFFFFFFF SWAP1 SWAP3 AND DUP3 MSTORE MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x20 ADD SWAP1 RETURN JUMPDEST PUSH2 0x145 PUSH2 0x29B JUMP JUMPDEST PUSH2 0x145 PUSH1 0x4 DUP1 CALLDATASIZE SUB PUSH1 0x20 DUP2 LT ISZERO PUSH2 0x17C JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP CALLDATALOAD PUSH2 0x2BF JUMP JUMPDEST PUSH1 0x40 DUP1 MLOAD PUSH2 0x100 DUP2 ADD SWAP2 DUP3 SWAP1 MSTORE PUSH1 0x0 SWAP2 PUSH2 0x1E8 SWAP2 SWAP1 DUP4 SWAP1 PUSH1 0x8 SWAP1 DUP3 DUP1 DUP6 JUMPDEST DUP3 DUP3 SWAP1 SLOAD SWAP1 PUSH2 0x100 EXP SWAP1 DIV PUSH4 0xFFFFFFFF AND PUSH4 0xFFFFFFFF AND DUP2 MSTORE PUSH1 0x20 ADD SWAP1 PUSH1 0x4 ADD SWAP1 PUSH1 0x20 DUP3 PUSH1 0x3 ADD DIV SWAP3 DUP4 ADD SWAP3 PUSH1 0x1 SUB DUP3 MUL SWAP2 POP DUP1 DUP5 GT PUSH2 0x1A1 JUMPI SWAP1 POP POP POP POP POP POP NUMBER PUSH2 0x1ED JUMP JUMPDEST SWAP1 POP SWAP1 JUMP JUMPDEST PUSH1 0x0 DUP1 JUMPDEST PUSH1 0x8 DUP2 LT ISZERO PUSH2 0x23A JUMPI DUP4 DUP2 PUSH1 0x8 DUP2 LT PUSH2 0x206 JUMPI INVALID JUMPDEST PUSH1 0x20 MUL ADD MLOAD PUSH4 0xFFFFFFFF AND DUP4 PUSH4 0xFFFFFFFF AND LT ISZERO PUSH2 0x232 JUMPI DUP1 PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x22A JUMPI INVALID JUMPDEST SWAP2 POP POP PUSH2 0x241 JUMP JUMPDEST PUSH1 0x1 ADD PUSH2 0x1F1 JUMP JUMPDEST POP PUSH1 0x8 JUMPDEST SWAP1 POP JUMPDEST SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH2 0x250 DUP2 PUSH2 0x2EC JUMP JUMPDEST POP JUMP JUMPDEST PUSH1 0x0 DUP1 DUP3 PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x262 JUMPI INVALID JUMPDEST GT PUSH2 0x26E JUMPI PUSH1 0x0 PUSH2 0x23E JUMP JUMPDEST DUP3 PUSH1 0x1 DUP4 PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x27D JUMPI INVALID JUMPDEST SUB PUSH1 0x8 DUP2 LT PUSH2 0x288 JUMPI INVALID JUMPDEST PUSH1 0x20 MUL ADD CALLDATALOAD PUSH4 0xFFFFFFFF AND SWAP1 POP SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH32 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF DUP2 JUMP JUMPDEST PUSH1 0x0 DUP2 PUSH1 0x8 DUP2 LT PUSH2 0x2CC JUMPI INVALID JUMPDEST PUSH1 0x8 SWAP2 DUP3 DUP3 DIV ADD SWAP2 SWAP1 MOD PUSH1 0x4 MUL SWAP2 POP SLOAD SWAP1 PUSH2 0x100 EXP SWAP1 DIV PUSH4 0xFFFFFFFF AND DUP2 JUMP JUMPDEST DUP1 PUSH4 0xFFFFFFFF AND NUMBER PUSH4 0xFFFFFFFF AND GT ISZERO PUSH2 0x367 JUMPI PUSH1 0x40 DUP1 MLOAD PUSH32 0x8C379A000000000000000000000000000000000000000000000000000000000 DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0xF PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x4E4558545F424C4F434B5F504153540000000000000000000000000000000000 PUSH1 0x44 DUP3 ADD MSTORE SWAP1 MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x64 ADD SWAP1 REVERT JUMPDEST PUSH4 0xFFFFFFFF DUP2 DUP2 AND LT PUSH2 0x3DB JUMPI PUSH1 0x40 DUP1 MLOAD PUSH32 0x8C379A000000000000000000000000000000000000000000000000000000000 DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0x18 PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x4E4558545F424C4F434B5F554E494E495449414C495A45440000000000000000 PUSH1 0x44 DUP3 ADD MSTORE SWAP1 MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x64 ADD SWAP1 REVERT JUMPDEST PUSH1 0x0 PUSH2 0x3E5 PUSH2 0x183 JUMP JUMPDEST PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x3F0 JUMPI INVALID JUMPDEST SWAP1 POP PUSH1 0x0 DUP2 PUSH1 0x8 DUP2 LT PUSH2 0x3FF JUMPI INVALID JUMPDEST PUSH1 0x8 DUP2 DIV SWAP2 SWAP1 SWAP2 ADD SLOAD PUSH1 0x7 SWAP1 SWAP2 AND PUSH1 0x4 MUL PUSH2 0x100 EXP SWAP1 DIV PUSH4 0xFFFFFFFF SWAP1 DUP2 AND EQ PUSH2 0x48A JUMPI PUSH1 0x40 DUP1 MLOAD PUSH32 0x8C379A000000000000000000000000000000000000000000000000000000000 DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0xE PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x4E4558545F424C4F434B5F534554000000000000000000000000000000000000 PUSH1 0x44 DUP3 ADD MSTORE SWAP1 MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x64 ADD SWAP1 REVERT JUMPDEST PUSH2 0x493 DUP3 PUSH2 0x501 JUMP JUMPDEST DUP2 PUSH1 0x0 DUP3 PUSH1 0x8 DUP2 LT PUSH2 0x4A1 JUMPI INVALID JUMPDEST PUSH1 0x8 SWAP2 DUP3 DUP3 DIV ADD SWAP2 SWAP1 MOD PUSH1 0x4 MUL PUSH2 0x100 EXP DUP2 SLOAD DUP2 PUSH4 0xFFFFFFFF MUL NOT AND SWAP1 DUP4 PUSH4 0xFFFFFFFF AND MUL OR SWAP1 SSTORE POP DUP2 PUSH4 0xFFFFFFFF AND PUSH32 0x260AAC5B840EDC27B89FDF50E91311A413363A400959466E1049E6D071B8CEE2 PUSH1 0x40 MLOAD PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG2 POP POP JUMP JUMPDEST PUSH2 0x509 PUSH2 0x516 JUMP JUMPDEST PUSH2 0x512 DUP2 PUSH2 0x250 JUMP JUMPDEST PUSH2 0x250 JUMPDEST PUSH1 0x0 DUP1 PUSH2 0x521 PUSH2 0x183 JUMP JUMPDEST PUSH1 0x8 DUP2 GT ISZERO PUSH2 0x52C JUMPI INVALID JUMPDEST EQ PUSH2 0x250 JUMPI PUSH1 0x40 DUP1 MLOAD PUSH32 0x8C379A000000000000000000000000000000000000000000000000000000000 DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0x9 PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x4241445F50484153450000000000000000000000000000000000000000000000 PUSH1 0x44 DUP3 ADD MSTORE SWAP1 MLOAD SWAP1 DUP2 SWAP1 SUB PUSH1 0x64 ADD SWAP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0x5C PUSH6 0xA1F4A9A087D6 EXP 0xE1 PUSH26 0xA76720A6C906FE9A2CC957A772BA3B70BC89A9215E64736F6C63 NUMBER STOP MOD 0xC STOP CALLER ",
+              "sourceMap": "194:703:1:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;4831:129:0;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;3574:337;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;3574:337:0;;-1:-1:-1;;;3574:337:0;;;;-1:-1:-1;3574:337:0;:::i;346:115:1:-;;;;;;;;;;;;;;;;-1:-1:-1;346:115:1;;;;:::i;:::-;;4403:214:0;;;;;;;;;;;;;;;;-1:-1:-1;4403:214:0;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;2420:49;;;:::i;2677:221::-;;;;;;;;;;;;;;;;-1:-1:-1;2677:221:0;;:::i;4831:129::-;4900:53;;;;;;;;;;-1:-1:-1;;4900:53:0;;;-1:-1:-1;;4900:53:0;;-1:-1:-1;;4900:53:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;4939:12;4900:18;:53::i;:::-;4893:60;;4831:129;:::o;3574:337::-;3720:5;;3741:139;3761:1;3758:2;:4;3741:139;;;3803:12;3816:2;3803:16;;;;;;;;;;;3788:31;;:12;:31;;;3784:86;;;3852:2;3846:9;;;;;;;;3839:16;;;;;3784:86;3764:4;;3741:139;;;-1:-1:-1;3902:1:0;3896:8;3889:15;;3574:337;;;;;:::o;346:115:1:-;420:34;438:15;420:17;:34::i;:::-;346:115;:::o;4403:214:0:-;4525:6;;4554;:19;;;;;;;;;:56;;4609:1;4554:56;;;4576:12;4604:1;4594:6;4589:12;;;;;;;;:16;4576:30;;;;;;;;;;;;;4547:63;;4403:214;;;;:::o;2420:49::-;2466:2;2420:49;:::o;2677:221::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;5863:609::-;5965:15;5941:39;;5948:12;5941:39;;;;5933:67;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;6018:31;;;;;6010:68;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;6195:15;6218:14;:12;:14::i;:::-;6213:20;;;;;;;;6195:38;;6268:11;6280:10;6268:23;;;;;;;;;;;;;;;;;;;;;;;;;;;;;6251:40;6243:67;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;6321:41;6346:15;6321:24;:41::i;:::-;6398:15;6372:11;6384:10;6372:23;;;;;;;;;;;;;;;;;;:41;;;;;;;;;;;;;;;;;;6449:15;6429:36;;;;;;;;;;;;5863:609;;:::o;611:284:1:-;733:23;:21;:23::i;:::-;766:47;797:15;766:30;:47::i;:::-;823:23;467:71;519:10;;5164:14:0;:12;:14::i;:::-;:24;;;;;;;;;5156:46;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+            },
+            "methodIdentifiers": {
+              "UNINITIALIZED()": "81e45d9a",
+              "blockNumberForPhase(uint32[8],uint8)": "45bdfa8a",
+              "currentPhase()": "055ad42e",
+              "phaseAtBlockNumber(uint32[8],uint32)": "34c1df75",
+              "phaseBlocks(uint256)": "9923c94b",
+              "testScheduleNextPhase(uint32)": "3bd126dc"
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "contracts/phased/Phased.sol": {
+        "ast": {
+          "absolutePath": "contracts/phased/Phased.sol",
+          "exportedSymbols": {
+            "Phase": [
+              11
+            ],
+            "Phased": [
+              217
+            ]
+          },
+          "id": 218,
+          "license": "CAL",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": [
+                "solidity",
+                "^",
+                "0.6",
+                ".12"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "32:24:0"
+            },
+            {
+              "canonicalName": "Phase",
+              "id": 11,
+              "members": [
+                {
+                  "id": 2,
+                  "name": "ZERO",
+                  "nodeType": "EnumValue",
+                  "src": "187:4:0"
+                },
+                {
+                  "id": 3,
+                  "name": "ONE",
+                  "nodeType": "EnumValue",
+                  "src": "197:3:0"
+                },
+                {
+                  "id": 4,
+                  "name": "TWO",
+                  "nodeType": "EnumValue",
+                  "src": "206:3:0"
+                },
+                {
+                  "id": 5,
+                  "name": "THREE",
+                  "nodeType": "EnumValue",
+                  "src": "215:5:0"
+                },
+                {
+                  "id": 6,
+                  "name": "FOUR",
+                  "nodeType": "EnumValue",
+                  "src": "226:4:0"
+                },
+                {
+                  "id": 7,
+                  "name": "FIVE",
+                  "nodeType": "EnumValue",
+                  "src": "236:4:0"
+                },
+                {
+                  "id": 8,
+                  "name": "SIX",
+                  "nodeType": "EnumValue",
+                  "src": "246:3:0"
+                },
+                {
+                  "id": 9,
+                  "name": "SEVEN",
+                  "nodeType": "EnumValue",
+                  "src": "255:5:0"
+                },
+                {
+                  "id": 10,
+                  "name": "EIGHT",
+                  "nodeType": "EnumValue",
+                  "src": "266:5:0"
+                }
+              ],
+              "name": "Phase",
+              "nodeType": "EnumDefinition",
+              "src": "170:103:0"
+            },
+            {
+              "abstract": true,
+              "baseContracts": [],
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "documentation": {
+                "id": 12,
+                "nodeType": "StructuredDocumentation",
+                "src": "275:1997:0",
+                "text": "@title Phased\n @notice `Phased` is an abstract contract that defines up to `9` phases that\n an implementing contract moves through.\n `Phase.ZERO` is always the first phase and does not, and cannot, be set\n expicitly. Effectively it is implied that `Phase.ZERO` has been active\n since block zero.\n Each subsequent phase `Phase.ONE` through `Phase.EIGHT` must be\n scheduled sequentially and explicitly at a block number.\n Only the immediate next phase can be scheduled with `scheduleNextPhase`,\n it is not possible to schedule multiple phases ahead.\n Multiple phases can be scheduled in a single block if each scheduled phase\n is scheduled for the current block.\n Several utility functions and modifiers are provided.\n A single hook `_beforeScheduleNextPhase` is provided so contracts can\n implement additional phase shift checks.\n One event `PhaseShiftScheduled` is emitted each time a phase shift is\n scheduled (not when the scheduled phase is reached).\n @dev `Phased` contracts have a defined timeline with available\n functionality grouped into phases.\n Every `Phased` contract starts at `Phase.ZERO` and moves sequentially\n through phases `ONE` to `EIGHT`.\n Every `Phase` other than `Phase.ZERO` is optional, there is no requirement\n that all 9 phases are implemented.\n Phases can never be revisited, the inheriting contract always moves through\n each achieved phase linearly.\n This is enforced by only allowing `scheduleNextPhase` to be called once per\n phase.\n It is possible to call `scheduleNextPhase` several times in a single block\n but the `block.number` for each phase must be reached each time to schedule\n the next phase.\n Importantly there are events and several modifiers and checks available to\n ensure that functionality is limited to the current phase.\n The full history of each phase shift block is recorded as a fixed size\n array of `uint32`."
+              },
+              "fullyImplemented": true,
+              "id": 217,
+              "linearizedBaseContracts": [
+                217
+              ],
+              "name": "Phased",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "constant": true,
+                  "documentation": {
+                    "id": 13,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2303:112:0",
+                    "text": "Every phase block starts uninitialized.\n Only uninitialized blocks can be set by the phase scheduler."
+                  },
+                  "functionSelector": "81e45d9a",
+                  "id": 20,
+                  "mutability": "constant",
+                  "name": "UNINITIALIZED",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 217,
+                  "src": "2420:49:0",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint32",
+                    "typeString": "uint32"
+                  },
+                  "typeName": {
+                    "id": 14,
+                    "name": "uint32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2420:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint32",
+                      "typeString": "uint32"
+                    }
+                  },
+                  "value": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 18,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "lValueRequested": false,
+                        "nodeType": "UnaryOperation",
+                        "operator": "-",
+                        "prefix": true,
+                        "src": "2466:2:0",
+                        "subExpression": {
+                          "argumentTypes": null,
+                          "hexValue": "31",
+                          "id": 17,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "number",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "2467:1:0",
+                          "subdenomination": null,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_rational_1_by_1",
+                            "typeString": "int_const 1"
+                          },
+                          "value": "1"
+                        },
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_minus_1_by_1",
+                          "typeString": "int_const -1"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_rational_minus_1_by_1",
+                          "typeString": "int_const -1"
+                        }
+                      ],
+                      "id": 16,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "lValueRequested": false,
+                      "nodeType": "ElementaryTypeNameExpression",
+                      "src": "2459:6:0",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_type$_t_uint32_$",
+                        "typeString": "type(uint32)"
+                      },
+                      "typeName": {
+                        "id": 15,
+                        "name": "uint32",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "2459:6:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": null,
+                          "typeString": null
+                        }
+                      }
+                    },
+                    "id": 19,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "kind": "typeConversion",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "2459:10:0",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint32",
+                      "typeString": "uint32"
+                    }
+                  },
+                  "visibility": "public"
+                },
+                {
+                  "anonymous": false,
+                  "documentation": {
+                    "id": 21,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2476:70:0",
+                    "text": "`PhaseShiftScheduled` is emitted when the next phase is scheduled."
+                  },
+                  "id": 25,
+                  "name": "PhaseShiftScheduled",
+                  "nodeType": "EventDefinition",
+                  "parameters": {
+                    "id": 24,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 23,
+                        "indexed": true,
+                        "mutability": "mutable",
+                        "name": "newPhaseBlock_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 25,
+                        "src": "2577:29:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        },
+                        "typeName": {
+                          "id": 22,
+                          "name": "uint32",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "2577:6:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "2576:31:0"
+                  },
+                  "src": "2551:57:0"
+                },
+                {
+                  "constant": false,
+                  "documentation": {
+                    "id": 26,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2614:58:0",
+                    "text": "8 phases each as 32 bits to fit a single 32 byte word."
+                  },
+                  "functionSelector": "9923c94b",
+                  "id": 39,
+                  "mutability": "mutable",
+                  "name": "phaseBlocks",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 217,
+                  "src": "2677:221:0",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint32_$8_storage",
+                    "typeString": "uint32[8]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 27,
+                      "name": "uint32",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "2677:6:0",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint32",
+                        "typeString": "uint32"
+                      }
+                    },
+                    "id": 29,
+                    "length": {
+                      "argumentTypes": null,
+                      "hexValue": "38",
+                      "id": 28,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "number",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "2684:1:0",
+                      "subdenomination": null,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_rational_8_by_1",
+                        "typeString": "int_const 8"
+                      },
+                      "value": "8"
+                    },
+                    "nodeType": "ArrayTypeName",
+                    "src": "2677:9:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint32_$8_storage_ptr",
+                      "typeString": "uint32[8]"
+                    }
+                  },
+                  "value": {
+                    "argumentTypes": null,
+                    "components": [
+                      {
+                        "argumentTypes": null,
+                        "id": 30,
+                        "name": "UNINITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 20,
+                        "src": "2718:13:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 31,
+                        "name": "UNINITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 20,
+                        "src": "2741:13:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 32,
+                        "name": "UNINITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 20,
+                        "src": "2764:13:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 33,
+                        "name": "UNINITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 20,
+                        "src": "2787:13:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 34,
+                        "name": "UNINITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 20,
+                        "src": "2810:13:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 35,
+                        "name": "UNINITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 20,
+                        "src": "2833:13:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 36,
+                        "name": "UNINITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 20,
+                        "src": "2856:13:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 37,
+                        "name": "UNINITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 20,
+                        "src": "2879:13:0",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      }
+                    ],
+                    "id": 38,
+                    "isConstant": false,
+                    "isInlineArray": true,
+                    "isLValue": false,
+                    "isPure": true,
+                    "lValueRequested": false,
+                    "nodeType": "TupleExpression",
+                    "src": "2708:190:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint32_$8_memory_ptr",
+                      "typeString": "uint32[8] memory"
+                    }
+                  },
+                  "visibility": "public"
+                },
+                {
+                  "body": {
+                    "id": 78,
+                    "nodeType": "Block",
+                    "src": "3731:180:0",
+                    "statements": [
+                      {
+                        "body": {
+                          "id": 72,
+                          "nodeType": "Block",
+                          "src": "3770:110:0",
+                          "statements": [
+                            {
+                              "condition": {
+                                "argumentTypes": null,
+                                "commonType": {
+                                  "typeIdentifier": "t_uint32",
+                                  "typeString": "uint32"
+                                },
+                                "id": 65,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "leftExpression": {
+                                  "argumentTypes": null,
+                                  "id": 61,
+                                  "name": "blockNumber_",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 46,
+                                  "src": "3788:12:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint32",
+                                    "typeString": "uint32"
+                                  }
+                                },
+                                "nodeType": "BinaryOperation",
+                                "operator": "<",
+                                "rightExpression": {
+                                  "argumentTypes": null,
+                                  "baseExpression": {
+                                    "argumentTypes": null,
+                                    "id": 62,
+                                    "name": "phaseBlocks_",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": 44,
+                                    "src": "3803:12:0",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_array$_t_uint32_$8_memory_ptr",
+                                      "typeString": "uint32[8] memory"
+                                    }
+                                  },
+                                  "id": 64,
+                                  "indexExpression": {
+                                    "argumentTypes": null,
+                                    "id": 63,
+                                    "name": "i_",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": 52,
+                                    "src": "3816:2:0",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_uint256",
+                                      "typeString": "uint256"
+                                    }
+                                  },
+                                  "isConstant": false,
+                                  "isLValue": true,
+                                  "isPure": false,
+                                  "lValueRequested": false,
+                                  "nodeType": "IndexAccess",
+                                  "src": "3803:16:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint32",
+                                    "typeString": "uint32"
+                                  }
+                                },
+                                "src": "3788:31:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_bool",
+                                  "typeString": "bool"
+                                }
+                              },
+                              "falseBody": null,
+                              "id": 71,
+                              "nodeType": "IfStatement",
+                              "src": "3784:86:0",
+                              "trueBody": {
+                                "id": 70,
+                                "nodeType": "Block",
+                                "src": "3821:49:0",
+                                "statements": [
+                                  {
+                                    "expression": {
+                                      "argumentTypes": null,
+                                      "arguments": [
+                                        {
+                                          "argumentTypes": null,
+                                          "id": 67,
+                                          "name": "i_",
+                                          "nodeType": "Identifier",
+                                          "overloadedDeclarations": [],
+                                          "referencedDeclaration": 52,
+                                          "src": "3852:2:0",
+                                          "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                          }
+                                        }
+                                      ],
+                                      "expression": {
+                                        "argumentTypes": [
+                                          {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                          }
+                                        ],
+                                        "id": 66,
+                                        "name": "Phase",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": 11,
+                                        "src": "3846:5:0",
+                                        "typeDescriptions": {
+                                          "typeIdentifier": "t_type$_t_enum$_Phase_$11_$",
+                                          "typeString": "type(enum Phase)"
+                                        }
+                                      },
+                                      "id": 68,
+                                      "isConstant": false,
+                                      "isLValue": false,
+                                      "isPure": false,
+                                      "kind": "typeConversion",
+                                      "lValueRequested": false,
+                                      "names": [],
+                                      "nodeType": "FunctionCall",
+                                      "src": "3846:9:0",
+                                      "tryCall": false,
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_enum$_Phase_$11",
+                                        "typeString": "enum Phase"
+                                      }
+                                    },
+                                    "functionReturnParameters": 50,
+                                    "id": 69,
+                                    "nodeType": "Return",
+                                    "src": "3839:16:0"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        "condition": {
+                          "argumentTypes": null,
+                          "commonType": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          },
+                          "id": 57,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "argumentTypes": null,
+                            "id": 55,
+                            "name": "i_",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 52,
+                            "src": "3758:2:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "<",
+                          "rightExpression": {
+                            "argumentTypes": null,
+                            "hexValue": "38",
+                            "id": 56,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "number",
+                            "lValueRequested": false,
+                            "nodeType": "Literal",
+                            "src": "3761:1:0",
+                            "subdenomination": null,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_rational_8_by_1",
+                              "typeString": "int_const 8"
+                            },
+                            "value": "8"
+                          },
+                          "src": "3758:4:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "id": 73,
+                        "initializationExpression": {
+                          "assignments": [
+                            52
+                          ],
+                          "declarations": [
+                            {
+                              "constant": false,
+                              "id": 52,
+                              "mutability": "mutable",
+                              "name": "i_",
+                              "nodeType": "VariableDeclaration",
+                              "overrides": null,
+                              "scope": 73,
+                              "src": "3745:7:0",
+                              "stateVariable": false,
+                              "storageLocation": "default",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              },
+                              "typeName": {
+                                "id": 51,
+                                "name": "uint",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "3745:4:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "value": null,
+                              "visibility": "internal"
+                            }
+                          ],
+                          "id": 54,
+                          "initialValue": {
+                            "argumentTypes": null,
+                            "hexValue": "30",
+                            "id": 53,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "number",
+                            "lValueRequested": false,
+                            "nodeType": "Literal",
+                            "src": "3755:1:0",
+                            "subdenomination": null,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_rational_0_by_1",
+                              "typeString": "int_const 0"
+                            },
+                            "value": "0"
+                          },
+                          "nodeType": "VariableDeclarationStatement",
+                          "src": "3745:11:0"
+                        },
+                        "loopExpression": {
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 59,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "UnaryOperation",
+                            "operator": "++",
+                            "prefix": false,
+                            "src": "3764:4:0",
+                            "subExpression": {
+                              "argumentTypes": null,
+                              "id": 58,
+                              "name": "i_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 52,
+                              "src": "3764:2:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "id": 60,
+                          "nodeType": "ExpressionStatement",
+                          "src": "3764:4:0"
+                        },
+                        "nodeType": "ForStatement",
+                        "src": "3741:139:0"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "38",
+                              "id": 75,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "number",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "3902:1:0",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_rational_8_by_1",
+                                "typeString": "int_const 8"
+                              },
+                              "value": "8"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_rational_8_by_1",
+                                "typeString": "int_const 8"
+                              }
+                            ],
+                            "id": 74,
+                            "name": "Phase",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 11,
+                            "src": "3896:5:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_enum$_Phase_$11_$",
+                              "typeString": "type(enum Phase)"
+                            }
+                          },
+                          "id": 76,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "typeConversion",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "3896:8:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_Phase_$11",
+                            "typeString": "enum Phase"
+                          }
+                        },
+                        "functionReturnParameters": 50,
+                        "id": 77,
+                        "nodeType": "Return",
+                        "src": "3889:15:0"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 40,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2905:664:0",
+                    "text": "Pure function to reduce an array of phase blocks and block number to a\n specific `Phase`.\n The phase will be the highest attained even if several phases have the\n same block number.\n If every phase block is after the block number then `Phase.ZERO` is\n returned.\n If every phase block is before the block number then `Phase.EIGHT` is\n returned.\n @param phaseBlocks_ Fixed array of phase blocks to compare against.\n @param blockNumber_ Determine the relevant phase relative to this block\n number.\n @return The \"current\" phase relative to the block number and phase\n blocks list."
+                  },
+                  "functionSelector": "34c1df75",
+                  "id": 79,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "phaseAtBlockNumber",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 47,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 44,
+                        "mutability": "mutable",
+                        "name": "phaseBlocks_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 79,
+                        "src": "3611:29:0",
+                        "stateVariable": false,
+                        "storageLocation": "memory",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_uint32_$8_memory_ptr",
+                          "typeString": "uint32[8]"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 41,
+                            "name": "uint32",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "3611:6:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint32",
+                              "typeString": "uint32"
+                            }
+                          },
+                          "id": 43,
+                          "length": {
+                            "argumentTypes": null,
+                            "hexValue": "38",
+                            "id": 42,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "number",
+                            "lValueRequested": false,
+                            "nodeType": "Literal",
+                            "src": "3618:1:0",
+                            "subdenomination": null,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_rational_8_by_1",
+                              "typeString": "int_const 8"
+                            },
+                            "value": "8"
+                          },
+                          "nodeType": "ArrayTypeName",
+                          "src": "3611:9:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_uint32_$8_storage_ptr",
+                            "typeString": "uint32[8]"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 46,
+                        "mutability": "mutable",
+                        "name": "blockNumber_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 79,
+                        "src": "3650:19:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        },
+                        "typeName": {
+                          "id": 45,
+                          "name": "uint32",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3650:6:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "3601:74:0"
+                  },
+                  "returnParameters": {
+                    "id": 50,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 49,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 79,
+                        "src": "3720:5:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_enum$_Phase_$11",
+                          "typeString": "enum Phase"
+                        },
+                        "typeName": {
+                          "contractScope": null,
+                          "id": 48,
+                          "name": "Phase",
+                          "nodeType": "UserDefinedTypeName",
+                          "referencedDeclaration": 11,
+                          "src": "3720:5:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_Phase_$11",
+                            "typeString": "enum Phase"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "3719:7:0"
+                  },
+                  "scope": 217,
+                  "src": "3574:337:0",
+                  "stateMutability": "pure",
+                  "virtual": false,
+                  "visibility": "public"
+                },
+                {
+                  "body": {
+                    "id": 106,
+                    "nodeType": "Block",
+                    "src": "4537:80:0",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "condition": {
+                            "argumentTypes": null,
+                            "commonType": {
+                              "typeIdentifier": "t_enum$_Phase_$11",
+                              "typeString": "enum Phase"
+                            },
+                            "id": 94,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "leftExpression": {
+                              "argumentTypes": null,
+                              "id": 91,
+                              "name": "phase_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 86,
+                              "src": "4554:6:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_enum$_Phase_$11",
+                                "typeString": "enum Phase"
+                              }
+                            },
+                            "nodeType": "BinaryOperation",
+                            "operator": ">",
+                            "rightExpression": {
+                              "argumentTypes": null,
+                              "expression": {
+                                "argumentTypes": null,
+                                "id": 92,
+                                "name": "Phase",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 11,
+                                "src": "4563:5:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_type$_t_enum$_Phase_$11_$",
+                                  "typeString": "type(enum Phase)"
+                                }
+                              },
+                              "id": 93,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "lValueRequested": false,
+                              "memberName": "ZERO",
+                              "nodeType": "MemberAccess",
+                              "referencedDeclaration": null,
+                              "src": "4563:10:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_enum$_Phase_$11",
+                                "typeString": "enum Phase"
+                              }
+                            },
+                            "src": "4554:19:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "falseExpression": {
+                            "argumentTypes": null,
+                            "hexValue": "30",
+                            "id": 103,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "number",
+                            "lValueRequested": false,
+                            "nodeType": "Literal",
+                            "src": "4609:1:0",
+                            "subdenomination": null,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_rational_0_by_1",
+                              "typeString": "int_const 0"
+                            },
+                            "value": "0"
+                          },
+                          "id": 104,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "nodeType": "Conditional",
+                          "src": "4554:56:0",
+                          "trueExpression": {
+                            "argumentTypes": null,
+                            "baseExpression": {
+                              "argumentTypes": null,
+                              "id": 95,
+                              "name": "phaseBlocks_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 84,
+                              "src": "4576:12:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_array$_t_uint32_$8_calldata_ptr",
+                                "typeString": "uint32[8] calldata"
+                              }
+                            },
+                            "id": 102,
+                            "indexExpression": {
+                              "argumentTypes": null,
+                              "commonType": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              },
+                              "id": 101,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "argumentTypes": null,
+                                "arguments": [
+                                  {
+                                    "argumentTypes": null,
+                                    "id": 98,
+                                    "name": "phase_",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": 86,
+                                    "src": "4594:6:0",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_enum$_Phase_$11",
+                                      "typeString": "enum Phase"
+                                    }
+                                  }
+                                ],
+                                "expression": {
+                                  "argumentTypes": [
+                                    {
+                                      "typeIdentifier": "t_enum$_Phase_$11",
+                                      "typeString": "enum Phase"
+                                    }
+                                  ],
+                                  "id": 97,
+                                  "isConstant": false,
+                                  "isLValue": false,
+                                  "isPure": true,
+                                  "lValueRequested": false,
+                                  "nodeType": "ElementaryTypeNameExpression",
+                                  "src": "4589:4:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_type$_t_uint256_$",
+                                    "typeString": "type(uint256)"
+                                  },
+                                  "typeName": {
+                                    "id": 96,
+                                    "name": "uint",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "4589:4:0",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": null,
+                                      "typeString": null
+                                    }
+                                  }
+                                },
+                                "id": 99,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "kind": "typeConversion",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "4589:12:0",
+                                "tryCall": false,
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "-",
+                              "rightExpression": {
+                                "argumentTypes": null,
+                                "hexValue": "31",
+                                "id": 100,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": true,
+                                "kind": "number",
+                                "lValueRequested": false,
+                                "nodeType": "Literal",
+                                "src": "4604:1:0",
+                                "subdenomination": null,
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_rational_1_by_1",
+                                  "typeString": "int_const 1"
+                                },
+                                "value": "1"
+                              },
+                              "src": "4589:16:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "IndexAccess",
+                            "src": "4576:30:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint32",
+                              "typeString": "uint32"
+                            }
+                          },
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "functionReturnParameters": 90,
+                        "id": 105,
+                        "nodeType": "Return",
+                        "src": "4547:63:0"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 80,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "3917:481:0",
+                    "text": "Pure function to reduce an array of phase blocks and phase to a\n specific block number.\n `Phase.ZERO` will always return block `0`.\n Every other phase will map to a block number in `phaseBlocks_`.\n @param phaseBlocks_ Fixed array of phase blocks to compare against.\n @param phase_ Determine the relevant block number for this phase.\n @return The block number for the phase according to the phase blocks\n         list, as uint32."
+                  },
+                  "functionSelector": "45bdfa8a",
+                  "id": 107,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "blockNumberForPhase",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 87,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 84,
+                        "mutability": "mutable",
+                        "name": "phaseBlocks_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 107,
+                        "src": "4432:31:0",
+                        "stateVariable": false,
+                        "storageLocation": "calldata",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_uint32_$8_calldata_ptr",
+                          "typeString": "uint32[8]"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 81,
+                            "name": "uint32",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "4432:6:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint32",
+                              "typeString": "uint32"
+                            }
+                          },
+                          "id": 83,
+                          "length": {
+                            "argumentTypes": null,
+                            "hexValue": "38",
+                            "id": 82,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "number",
+                            "lValueRequested": false,
+                            "nodeType": "Literal",
+                            "src": "4439:1:0",
+                            "subdenomination": null,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_rational_8_by_1",
+                              "typeString": "int_const 8"
+                            },
+                            "value": "8"
+                          },
+                          "nodeType": "ArrayTypeName",
+                          "src": "4432:9:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_uint32_$8_storage_ptr",
+                            "typeString": "uint32[8]"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 86,
+                        "mutability": "mutable",
+                        "name": "phase_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 107,
+                        "src": "4465:12:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_enum$_Phase_$11",
+                          "typeString": "enum Phase"
+                        },
+                        "typeName": {
+                          "contractScope": null,
+                          "id": 85,
+                          "name": "Phase",
+                          "nodeType": "UserDefinedTypeName",
+                          "referencedDeclaration": 11,
+                          "src": "4465:5:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_Phase_$11",
+                            "typeString": "enum Phase"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "4431:47:0"
+                  },
+                  "returnParameters": {
+                    "id": 90,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 89,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 107,
+                        "src": "4525:6:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        },
+                        "typeName": {
+                          "id": 88,
+                          "name": "uint32",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4525:6:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "4524:8:0"
+                  },
+                  "scope": 217,
+                  "src": "4403:214:0",
+                  "stateMutability": "pure",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "body": {
+                    "id": 122,
+                    "nodeType": "Block",
+                    "src": "4883:77:0",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 114,
+                              "name": "phaseBlocks",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 39,
+                              "src": "4919:11:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_array$_t_uint32_$8_storage",
+                                "typeString": "uint32[8] storage ref"
+                              }
+                            },
+                            {
+                              "argumentTypes": null,
+                              "arguments": [
+                                {
+                                  "argumentTypes": null,
+                                  "expression": {
+                                    "argumentTypes": null,
+                                    "id": 117,
+                                    "name": "block",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": -4,
+                                    "src": "4939:5:0",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_magic_block",
+                                      "typeString": "block"
+                                    }
+                                  },
+                                  "id": 118,
+                                  "isConstant": false,
+                                  "isLValue": false,
+                                  "isPure": false,
+                                  "lValueRequested": false,
+                                  "memberName": "number",
+                                  "nodeType": "MemberAccess",
+                                  "referencedDeclaration": null,
+                                  "src": "4939:12:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                }
+                              ],
+                              "expression": {
+                                "argumentTypes": [
+                                  {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                ],
+                                "id": 116,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": true,
+                                "lValueRequested": false,
+                                "nodeType": "ElementaryTypeNameExpression",
+                                "src": "4932:6:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_type$_t_uint32_$",
+                                  "typeString": "type(uint32)"
+                                },
+                                "typeName": {
+                                  "id": 115,
+                                  "name": "uint32",
+                                  "nodeType": "ElementaryTypeName",
+                                  "src": "4932:6:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": null,
+                                    "typeString": null
+                                  }
+                                }
+                              },
+                              "id": 119,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "kind": "typeConversion",
+                              "lValueRequested": false,
+                              "names": [],
+                              "nodeType": "FunctionCall",
+                              "src": "4932:20:0",
+                              "tryCall": false,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_array$_t_uint32_$8_storage",
+                                "typeString": "uint32[8] storage ref"
+                              },
+                              {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            ],
+                            "id": 113,
+                            "name": "phaseAtBlockNumber",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 79,
+                            "src": "4900:18:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_pure$_t_array$_t_uint32_$8_memory_ptr_$_t_uint32_$returns$_t_enum$_Phase_$11_$",
+                              "typeString": "function (uint32[8] memory,uint32) pure returns (enum Phase)"
+                            }
+                          },
+                          "id": 120,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "4900:53:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_Phase_$11",
+                            "typeString": "enum Phase"
+                          }
+                        },
+                        "functionReturnParameters": 112,
+                        "id": 121,
+                        "nodeType": "Return",
+                        "src": "4893:60:0"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 108,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "4623:203:0",
+                    "text": "Impure read-only function to return the \"current\" phase from internal\n contract state.\n Simply wraps `phaseAtBlockNumber` for current values of `phaseBlocks`\n and `block.number`."
+                  },
+                  "functionSelector": "055ad42e",
+                  "id": 123,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "currentPhase",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 109,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4852:2:0"
+                  },
+                  "returnParameters": {
+                    "id": 112,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 111,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 123,
+                        "src": "4876:5:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_enum$_Phase_$11",
+                          "typeString": "enum Phase"
+                        },
+                        "typeName": {
+                          "contractScope": null,
+                          "id": 110,
+                          "name": "Phase",
+                          "nodeType": "UserDefinedTypeName",
+                          "referencedDeclaration": 11,
+                          "src": "4876:5:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_Phase_$11",
+                            "typeString": "enum Phase"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "4875:7:0"
+                  },
+                  "scope": 217,
+                  "src": "4831:129:0",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "public"
+                },
+                {
+                  "body": {
+                    "id": 137,
+                    "nodeType": "Block",
+                    "src": "5146:74:0",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "commonType": {
+                                "typeIdentifier": "t_enum$_Phase_$11",
+                                "typeString": "enum Phase"
+                              },
+                              "id": 132,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "argumentTypes": null,
+                                "arguments": [],
+                                "expression": {
+                                  "argumentTypes": [],
+                                  "id": 129,
+                                  "name": "currentPhase",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 123,
+                                  "src": "5164:12:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_function_internal_view$__$returns$_t_enum$_Phase_$11_$",
+                                    "typeString": "function () view returns (enum Phase)"
+                                  }
+                                },
+                                "id": 130,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "kind": "functionCall",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "5164:14:0",
+                                "tryCall": false,
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_enum$_Phase_$11",
+                                  "typeString": "enum Phase"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "==",
+                              "rightExpression": {
+                                "argumentTypes": null,
+                                "id": 131,
+                                "name": "phase_",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 126,
+                                "src": "5182:6:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_enum$_Phase_$11",
+                                  "typeString": "enum Phase"
+                                }
+                              },
+                              "src": "5164:24:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "4241445f5048415345",
+                              "id": 133,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "5190:11:0",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_460d936037af6f084413e1d4c45db1657b0617ff837d28b75b2f52bf7fde6e4d",
+                                "typeString": "literal_string \"BAD_PHASE\""
+                              },
+                              "value": "BAD_PHASE"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_460d936037af6f084413e1d4c45db1657b0617ff837d28b75b2f52bf7fde6e4d",
+                                "typeString": "literal_string \"BAD_PHASE\""
+                              }
+                            ],
+                            "id": 128,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "5156:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 134,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "5156:46:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 135,
+                        "nodeType": "ExpressionStatement",
+                        "src": "5156:46:0"
+                      },
+                      {
+                        "id": 136,
+                        "nodeType": "PlaceholderStatement",
+                        "src": "5212:1:0"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 124,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "4966:142:0",
+                    "text": "Modifies functions to only be callable in a specific phase.\n @param phase_ Modified functions can only be called during this phase."
+                  },
+                  "id": 138,
+                  "name": "onlyPhase",
+                  "nodeType": "ModifierDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 127,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 126,
+                        "mutability": "mutable",
+                        "name": "phase_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 138,
+                        "src": "5132:12:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_enum$_Phase_$11",
+                          "typeString": "enum Phase"
+                        },
+                        "typeName": {
+                          "contractScope": null,
+                          "id": 125,
+                          "name": "Phase",
+                          "nodeType": "UserDefinedTypeName",
+                          "referencedDeclaration": 11,
+                          "src": "5132:5:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_Phase_$11",
+                            "typeString": "enum Phase"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5131:14:0"
+                  },
+                  "src": "5113:107:0",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 152,
+                    "nodeType": "Block",
+                    "src": "5469:74:0",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "commonType": {
+                                "typeIdentifier": "t_enum$_Phase_$11",
+                                "typeString": "enum Phase"
+                              },
+                              "id": 147,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "argumentTypes": null,
+                                "arguments": [],
+                                "expression": {
+                                  "argumentTypes": [],
+                                  "id": 144,
+                                  "name": "currentPhase",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 123,
+                                  "src": "5487:12:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_function_internal_view$__$returns$_t_enum$_Phase_$11_$",
+                                    "typeString": "function () view returns (enum Phase)"
+                                  }
+                                },
+                                "id": 145,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "kind": "functionCall",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "5487:14:0",
+                                "tryCall": false,
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_enum$_Phase_$11",
+                                  "typeString": "enum Phase"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": ">=",
+                              "rightExpression": {
+                                "argumentTypes": null,
+                                "id": 146,
+                                "name": "phase_",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 141,
+                                "src": "5505:6:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_enum$_Phase_$11",
+                                  "typeString": "enum Phase"
+                                }
+                              },
+                              "src": "5487:24:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "4d494e5f5048415345",
+                              "id": 148,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "5513:11:0",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_a6faa6dc69c946102821aa8607dffd36582e9c884a9969c7de9607157030e075",
+                                "typeString": "literal_string \"MIN_PHASE\""
+                              },
+                              "value": "MIN_PHASE"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_a6faa6dc69c946102821aa8607dffd36582e9c884a9969c7de9607157030e075",
+                                "typeString": "literal_string \"MIN_PHASE\""
+                              }
+                            ],
+                            "id": 143,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "5479:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 149,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "5479:46:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 150,
+                        "nodeType": "ExpressionStatement",
+                        "src": "5479:46:0"
+                      },
+                      {
+                        "id": 151,
+                        "nodeType": "PlaceholderStatement",
+                        "src": "5535:1:0"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 139,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "5226:198:0",
+                    "text": "Modifies functions to only be callable in a specific phase OR if the\n specified phase has passed.\n @param phase_ Modified function only callable during or after this\n phase."
+                  },
+                  "id": 153,
+                  "name": "onlyAtLeastPhase",
+                  "nodeType": "ModifierDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 142,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 141,
+                        "mutability": "mutable",
+                        "name": "phase_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 153,
+                        "src": "5455:12:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_enum$_Phase_$11",
+                          "typeString": "enum Phase"
+                        },
+                        "typeName": {
+                          "contractScope": null,
+                          "id": 140,
+                          "name": "Phase",
+                          "nodeType": "UserDefinedTypeName",
+                          "referencedDeclaration": 11,
+                          "src": "5455:5:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_Phase_$11",
+                            "typeString": "enum Phase"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5454:14:0"
+                  },
+                  "src": "5429:114:0",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 208,
+                    "nodeType": "Block",
+                    "src": "5923:549:0",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "commonType": {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              },
+                              "id": 166,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "argumentTypes": null,
+                                "arguments": [
+                                  {
+                                    "argumentTypes": null,
+                                    "expression": {
+                                      "argumentTypes": null,
+                                      "id": 162,
+                                      "name": "block",
+                                      "nodeType": "Identifier",
+                                      "overloadedDeclarations": [],
+                                      "referencedDeclaration": -4,
+                                      "src": "5948:5:0",
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_magic_block",
+                                        "typeString": "block"
+                                      }
+                                    },
+                                    "id": 163,
+                                    "isConstant": false,
+                                    "isLValue": false,
+                                    "isPure": false,
+                                    "lValueRequested": false,
+                                    "memberName": "number",
+                                    "nodeType": "MemberAccess",
+                                    "referencedDeclaration": null,
+                                    "src": "5948:12:0",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_uint256",
+                                      "typeString": "uint256"
+                                    }
+                                  }
+                                ],
+                                "expression": {
+                                  "argumentTypes": [
+                                    {
+                                      "typeIdentifier": "t_uint256",
+                                      "typeString": "uint256"
+                                    }
+                                  ],
+                                  "id": 161,
+                                  "isConstant": false,
+                                  "isLValue": false,
+                                  "isPure": true,
+                                  "lValueRequested": false,
+                                  "nodeType": "ElementaryTypeNameExpression",
+                                  "src": "5941:6:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_type$_t_uint32_$",
+                                    "typeString": "type(uint32)"
+                                  },
+                                  "typeName": {
+                                    "id": 160,
+                                    "name": "uint32",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "5941:6:0",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": null,
+                                      "typeString": null
+                                    }
+                                  }
+                                },
+                                "id": 164,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "kind": "typeConversion",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "5941:20:0",
+                                "tryCall": false,
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint32",
+                                  "typeString": "uint32"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "<=",
+                              "rightExpression": {
+                                "argumentTypes": null,
+                                "id": 165,
+                                "name": "nextPhaseBlock_",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 156,
+                                "src": "5965:15:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint32",
+                                  "typeString": "uint32"
+                                }
+                              },
+                              "src": "5941:39:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "4e4558545f424c4f434b5f50415354",
+                              "id": 167,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "5982:17:0",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_172fd03a660456ea5bdb78cb0baa2c885a3c243f5d4a60708b6a86b15db7fd77",
+                                "typeString": "literal_string \"NEXT_BLOCK_PAST\""
+                              },
+                              "value": "NEXT_BLOCK_PAST"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_172fd03a660456ea5bdb78cb0baa2c885a3c243f5d4a60708b6a86b15db7fd77",
+                                "typeString": "literal_string \"NEXT_BLOCK_PAST\""
+                              }
+                            ],
+                            "id": 159,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "5933:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 168,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "5933:67:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 169,
+                        "nodeType": "ExpressionStatement",
+                        "src": "5933:67:0"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "commonType": {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              },
+                              "id": 173,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "argumentTypes": null,
+                                "id": 171,
+                                "name": "nextPhaseBlock_",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 156,
+                                "src": "6018:15:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint32",
+                                  "typeString": "uint32"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "<",
+                              "rightExpression": {
+                                "argumentTypes": null,
+                                "id": 172,
+                                "name": "UNINITIALIZED",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 20,
+                                "src": "6036:13:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint32",
+                                  "typeString": "uint32"
+                                }
+                              },
+                              "src": "6018:31:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "4e4558545f424c4f434b5f554e494e495449414c495a4544",
+                              "id": 174,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "6051:26:0",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_32ca005f352f6eaa95e8eeb2258082bc1fdd5993a26a6477c4179029802acec0",
+                                "typeString": "literal_string \"NEXT_BLOCK_UNINITIALIZED\""
+                              },
+                              "value": "NEXT_BLOCK_UNINITIALIZED"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_32ca005f352f6eaa95e8eeb2258082bc1fdd5993a26a6477c4179029802acec0",
+                                "typeString": "literal_string \"NEXT_BLOCK_UNINITIALIZED\""
+                              }
+                            ],
+                            "id": 170,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "6010:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 175,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "6010:68:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 176,
+                        "nodeType": "ExpressionStatement",
+                        "src": "6010:68:0"
+                      },
+                      {
+                        "assignments": [
+                          178
+                        ],
+                        "declarations": [
+                          {
+                            "constant": false,
+                            "id": 178,
+                            "mutability": "mutable",
+                            "name": "nextIndex_",
+                            "nodeType": "VariableDeclaration",
+                            "overrides": null,
+                            "scope": 208,
+                            "src": "6195:15:0",
+                            "stateVariable": false,
+                            "storageLocation": "default",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            },
+                            "typeName": {
+                              "id": 177,
+                              "name": "uint",
+                              "nodeType": "ElementaryTypeName",
+                              "src": "6195:4:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "value": null,
+                            "visibility": "internal"
+                          }
+                        ],
+                        "id": 184,
+                        "initialValue": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "arguments": [],
+                              "expression": {
+                                "argumentTypes": [],
+                                "id": 181,
+                                "name": "currentPhase",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 123,
+                                "src": "6218:12:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_function_internal_view$__$returns$_t_enum$_Phase_$11_$",
+                                  "typeString": "function () view returns (enum Phase)"
+                                }
+                              },
+                              "id": 182,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "kind": "functionCall",
+                              "lValueRequested": false,
+                              "names": [],
+                              "nodeType": "FunctionCall",
+                              "src": "6218:14:0",
+                              "tryCall": false,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_enum$_Phase_$11",
+                                "typeString": "enum Phase"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_enum$_Phase_$11",
+                                "typeString": "enum Phase"
+                              }
+                            ],
+                            "id": 180,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "lValueRequested": false,
+                            "nodeType": "ElementaryTypeNameExpression",
+                            "src": "6213:4:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_uint256_$",
+                              "typeString": "type(uint256)"
+                            },
+                            "typeName": {
+                              "id": 179,
+                              "name": "uint",
+                              "nodeType": "ElementaryTypeName",
+                              "src": "6213:4:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": null,
+                                "typeString": null
+                              }
+                            }
+                          },
+                          "id": 183,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "typeConversion",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "6213:20:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "VariableDeclarationStatement",
+                        "src": "6195:38:0"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "commonType": {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              },
+                              "id": 190,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "argumentTypes": null,
+                                "id": 186,
+                                "name": "UNINITIALIZED",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 20,
+                                "src": "6251:13:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint32",
+                                  "typeString": "uint32"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "==",
+                              "rightExpression": {
+                                "argumentTypes": null,
+                                "baseExpression": {
+                                  "argumentTypes": null,
+                                  "id": 187,
+                                  "name": "phaseBlocks",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 39,
+                                  "src": "6268:11:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_array$_t_uint32_$8_storage",
+                                    "typeString": "uint32[8] storage ref"
+                                  }
+                                },
+                                "id": 189,
+                                "indexExpression": {
+                                  "argumentTypes": null,
+                                  "id": 188,
+                                  "name": "nextIndex_",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 178,
+                                  "src": "6280:10:0",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                },
+                                "isConstant": false,
+                                "isLValue": true,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "nodeType": "IndexAccess",
+                                "src": "6268:23:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint32",
+                                  "typeString": "uint32"
+                                }
+                              },
+                              "src": "6251:40:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "4e4558545f424c4f434b5f534554",
+                              "id": 191,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "6293:16:0",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_c2a8879237c67639ff15b7d05c3c66a88540d4206a1a048c5cd93da5909fc0b3",
+                                "typeString": "literal_string \"NEXT_BLOCK_SET\""
+                              },
+                              "value": "NEXT_BLOCK_SET"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_c2a8879237c67639ff15b7d05c3c66a88540d4206a1a048c5cd93da5909fc0b3",
+                                "typeString": "literal_string \"NEXT_BLOCK_SET\""
+                              }
+                            ],
+                            "id": 185,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "6243:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 192,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "6243:67:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 193,
+                        "nodeType": "ExpressionStatement",
+                        "src": "6243:67:0"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 195,
+                              "name": "nextPhaseBlock_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 156,
+                              "src": "6346:15:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            ],
+                            "id": 194,
+                            "name": "_beforeScheduleNextPhase",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 216,
+                            "src": "6321:24:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_nonpayable$_t_uint32_$returns$__$",
+                              "typeString": "function (uint32)"
+                            }
+                          },
+                          "id": 196,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "6321:41:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 197,
+                        "nodeType": "ExpressionStatement",
+                        "src": "6321:41:0"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 202,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "argumentTypes": null,
+                            "baseExpression": {
+                              "argumentTypes": null,
+                              "id": 198,
+                              "name": "phaseBlocks",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 39,
+                              "src": "6372:11:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_array$_t_uint32_$8_storage",
+                                "typeString": "uint32[8] storage ref"
+                              }
+                            },
+                            "id": 200,
+                            "indexExpression": {
+                              "argumentTypes": null,
+                              "id": 199,
+                              "name": "nextIndex_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 178,
+                              "src": "6384:10:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": true,
+                            "nodeType": "IndexAccess",
+                            "src": "6372:23:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint32",
+                              "typeString": "uint32"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "argumentTypes": null,
+                            "id": 201,
+                            "name": "nextPhaseBlock_",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 156,
+                            "src": "6398:15:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint32",
+                              "typeString": "uint32"
+                            }
+                          },
+                          "src": "6372:41:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "id": 203,
+                        "nodeType": "ExpressionStatement",
+                        "src": "6372:41:0"
+                      },
+                      {
+                        "eventCall": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 205,
+                              "name": "nextPhaseBlock_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 156,
+                              "src": "6449:15:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            ],
+                            "id": 204,
+                            "name": "PhaseShiftScheduled",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 25,
+                            "src": "6429:19:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_event_nonpayable$_t_uint32_$returns$__$",
+                              "typeString": "function (uint32)"
+                            }
+                          },
+                          "id": 206,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "6429:36:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 207,
+                        "nodeType": "EmitStatement",
+                        "src": "6424:41:0"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 154,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "5549:309:0",
+                    "text": "Writes the block for the next phase.\n Only uninitialized blocks can be written to.\n Only the immediate next phase relative to `currentPhase` can be written\n to.\n Emits `PhaseShiftScheduled` with the next phase block.\n @param nextPhaseBlock_ The block for the next phase."
+                  },
+                  "id": 209,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "scheduleNextPhase",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 157,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 156,
+                        "mutability": "mutable",
+                        "name": "nextPhaseBlock_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 209,
+                        "src": "5890:22:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        },
+                        "typeName": {
+                          "id": 155,
+                          "name": "uint32",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5890:6:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5889:24:0"
+                  },
+                  "returnParameters": {
+                    "id": 158,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "5923:0:0"
+                  },
+                  "scope": 217,
+                  "src": "5863:609:0",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 215,
+                    "nodeType": "Block",
+                    "src": "7093:3:0",
+                    "statements": []
+                  },
+                  "documentation": {
+                    "id": 210,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "6478:515:0",
+                    "text": "Hook called before scheduling the next phase.\n Useful to apply additional constraints or state changes on a phase\n change.\n Note this is called when scheduling the phase change, not on the block\n the phase change occurs.\n This is called before the phase change so that all functionality that\n is behind a phase gate is still available at the moment of applying the\n hook for scheduling the next phase.\n @param nextPhaseBlock_ The block for the next phase."
+                  },
+                  "id": 216,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_beforeScheduleNextPhase",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 213,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 212,
+                        "mutability": "mutable",
+                        "name": "nextPhaseBlock_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 216,
+                        "src": "7032:22:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        },
+                        "typeName": {
+                          "id": 211,
+                          "name": "uint32",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "7032:6:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "7031:24:0"
+                  },
+                  "returnParameters": {
+                    "id": 214,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "7093:0:0"
+                  },
+                  "scope": 217,
+                  "src": "6998:98:0",
+                  "stateMutability": "nonpayable",
+                  "virtual": true,
+                  "visibility": "internal"
+                }
+              ],
+              "scope": 218,
+              "src": "2272:4865:0"
+            }
+          ],
+          "src": "32:7105:0"
+        },
+        "id": 0
+      },
+      "contracts/test/PhasedScheduleTest.sol": {
+        "ast": {
+          "absolutePath": "contracts/test/PhasedScheduleTest.sol",
+          "exportedSymbols": {
+            "PhasedScheduleTest": [
+              265
+            ]
+          },
+          "id": 266,
+          "license": "CAL",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 219,
+              "literals": [
+                "solidity",
+                "^",
+                "0.6",
+                ".12"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "32:24:1"
+            },
+            {
+              "absolutePath": "contracts/phased/Phased.sol",
+              "file": "../phased/Phased.sol",
+              "id": 222,
+              "nodeType": "ImportDirective",
+              "scope": 266,
+              "sourceUnit": 218,
+              "src": "58:53:1",
+              "symbolAliases": [
+                {
+                  "foreign": {
+                    "argumentTypes": null,
+                    "id": 220,
+                    "name": "Phase",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": null,
+                    "src": "67:5:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": null,
+                      "typeString": null
+                    }
+                  },
+                  "local": null
+                },
+                {
+                  "foreign": {
+                    "argumentTypes": null,
+                    "id": 221,
+                    "name": "Phased",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": null,
+                    "src": "74:6:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": null,
+                      "typeString": null
+                    }
+                  },
+                  "local": null
+                }
+              ],
+              "unitAlias": ""
+            },
+            {
+              "abstract": false,
+              "baseContracts": [
+                {
+                  "arguments": null,
+                  "baseName": {
+                    "contractScope": null,
+                    "id": 224,
+                    "name": "Phased",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 217,
+                    "src": "225:6:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_Phased_$217",
+                      "typeString": "contract Phased"
+                    }
+                  },
+                  "id": 225,
+                  "nodeType": "InheritanceSpecifier",
+                  "src": "225:6:1"
+                }
+              ],
+              "contractDependencies": [
+                217
+              ],
+              "contractKind": "contract",
+              "documentation": {
+                "id": 223,
+                "nodeType": "StructuredDocumentation",
+                "src": "113:81:1",
+                "text": "@title PhasedScheduleTest\n Contract for testing phase hook functionality."
+              },
+              "fullyImplemented": true,
+              "id": 265,
+              "linearizedBaseContracts": [
+                265,
+                217
+              ],
+              "name": "PhasedScheduleTest",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "body": {
+                    "id": 235,
+                    "nodeType": "Block",
+                    "src": "410:51:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 232,
+                              "name": "nextPhaseBlock_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 228,
+                              "src": "438:15:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            ],
+                            "id": 231,
+                            "name": "scheduleNextPhase",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 209,
+                            "src": "420:17:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_nonpayable$_t_uint32_$returns$__$",
+                              "typeString": "function (uint32)"
+                            }
+                          },
+                          "id": 233,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "420:34:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 234,
+                        "nodeType": "ExpressionStatement",
+                        "src": "420:34:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 226,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "238:103:1",
+                    "text": "Exposes `scheduleNextPhase` for testing.\n @param nextPhaseBlock_ As per `scheduleNestPhase`."
+                  },
+                  "functionSelector": "3bd126dc",
+                  "id": 236,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "testScheduleNextPhase",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 229,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 228,
+                        "mutability": "mutable",
+                        "name": "nextPhaseBlock_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 236,
+                        "src": "377:22:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        },
+                        "typeName": {
+                          "id": 227,
+                          "name": "uint32",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "377:6:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "376:24:1"
+                  },
+                  "returnParameters": {
+                    "id": 230,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "410:0:1"
+                  },
+                  "scope": 265,
+                  "src": "346:115:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "body": {
+                    "id": 243,
+                    "nodeType": "Block",
+                    "src": "535:3:1",
+                    "statements": []
+                  },
+                  "documentation": null,
+                  "id": 244,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [
+                    {
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 239,
+                            "name": "Phase",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 11,
+                            "src": "519:5:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_enum$_Phase_$11_$",
+                              "typeString": "type(enum Phase)"
+                            }
+                          },
+                          "id": 240,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "lValueRequested": false,
+                          "memberName": "ZERO",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": null,
+                          "src": "519:10:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_Phase_$11",
+                            "typeString": "enum Phase"
+                          }
+                        }
+                      ],
+                      "id": 241,
+                      "modifierName": {
+                        "argumentTypes": null,
+                        "id": 238,
+                        "name": "onlyPhase",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 138,
+                        "src": "509:9:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_modifier$_t_enum$_Phase_$11_$",
+                          "typeString": "modifier (enum Phase)"
+                        }
+                      },
+                      "nodeType": "ModifierInvocation",
+                      "src": "509:21:1"
+                    }
+                  ],
+                  "name": "succeedsOnlyPhaseZero",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 237,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "497:2:1"
+                  },
+                  "returnParameters": {
+                    "id": 242,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "535:0:1"
+                  },
+                  "scope": 265,
+                  "src": "467:71:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "baseFunctions": [
+                    216
+                  ],
+                  "body": {
+                    "id": 263,
+                    "nodeType": "Block",
+                    "src": "723:172:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [],
+                          "expression": {
+                            "argumentTypes": [],
+                            "id": 251,
+                            "name": "succeedsOnlyPhaseZero",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 244,
+                            "src": "733:21:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_nonpayable$__$returns$__$",
+                              "typeString": "function ()"
+                            }
+                          },
+                          "id": 252,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "733:23:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 253,
+                        "nodeType": "ExpressionStatement",
+                        "src": "733:23:1"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 257,
+                              "name": "nextPhaseBlock_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 247,
+                              "src": "797:15:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_uint32",
+                                "typeString": "uint32"
+                              }
+                            ],
+                            "expression": {
+                              "argumentTypes": null,
+                              "id": 254,
+                              "name": "super",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": -25,
+                              "src": "766:5:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_super$_PhasedScheduleTest_$265",
+                                "typeString": "contract super PhasedScheduleTest"
+                              }
+                            },
+                            "id": 256,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "_beforeScheduleNextPhase",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": 216,
+                            "src": "766:30:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_nonpayable$_t_uint32_$returns$__$",
+                              "typeString": "function (uint32)"
+                            }
+                          },
+                          "id": 258,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "766:47:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 259,
+                        "nodeType": "ExpressionStatement",
+                        "src": "766:47:1"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [],
+                          "expression": {
+                            "argumentTypes": [],
+                            "id": 260,
+                            "name": "succeedsOnlyPhaseZero",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 244,
+                            "src": "823:21:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_nonpayable$__$returns$__$",
+                              "typeString": "function ()"
+                            }
+                          },
+                          "id": 261,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "823:23:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 262,
+                        "nodeType": "ExpressionStatement",
+                        "src": "823:23:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 245,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "584:22:1",
+                    "text": "@inheritdoc Phased"
+                  },
+                  "id": 264,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_beforeScheduleNextPhase",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": {
+                    "id": 249,
+                    "nodeType": "OverrideSpecifier",
+                    "overrides": [],
+                    "src": "710:8:1"
+                  },
+                  "parameters": {
+                    "id": 248,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 247,
+                        "mutability": "mutable",
+                        "name": "nextPhaseBlock_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 264,
+                        "src": "645:22:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        },
+                        "typeName": {
+                          "id": 246,
+                          "name": "uint32",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "645:6:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint32",
+                            "typeString": "uint32"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "644:24:1"
+                  },
+                  "returnParameters": {
+                    "id": 250,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "723:0:1"
+                  },
+                  "scope": 265,
+                  "src": "611:284:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": true,
+                  "visibility": "internal"
+                }
+              ],
+              "scope": 266,
+              "src": "194:703:1"
+            }
+          ],
+          "src": "32:865:1"
+        },
+        "id": 1
+      }
+    }
+  }
+}

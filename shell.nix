@@ -57,6 +57,7 @@ let
   solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
     mkdir -p solt
     find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
+    node scripts/build-solt-rain.ts
     mv solc-* solt
   '';
 
@@ -66,10 +67,10 @@ let
     hardhat compile --force
     dir=`git rev-parse HEAD`
     mkdir -p "dist/''${dir}"
+    solt-the-earth
+
     mv artifacts "dist/''${dir}/"
     mv typechain "dist/''${dir}/"
-
-    solt-the-earth
     mv solt "dist/''${dir}/"
   '';
 

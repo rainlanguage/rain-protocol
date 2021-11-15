@@ -1,0 +1,24 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "TierUtil",
+  "sourceName": "contracts/libraries/TierUtil.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "UNINITIALIZED",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60aa610024600b82828239805160001a607314601757fe5b30600052607381538281f3fe730000000000000000000000000000000000000000301460806040526004361060335760003560e01c806381e45d9a146038575b600080fd5b603e6050565b60408051918252519081900360200190f35b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8156fea2646970667358221220756e42be89445ece0f14da5baec9c0a7af80765e2ee82717478489cc4da54eb864736f6c634300060c0033",
+  "deployedBytecode": "0x730000000000000000000000000000000000000000301460806040526004361060335760003560e01c806381e45d9a146038575b600080fd5b603e6050565b60408051918252519081900360200190f35b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8156fea2646970667358221220756e42be89445ece0f14da5baec9c0a7af80765e2ee82717478489cc4da54eb864736f6c634300060c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
