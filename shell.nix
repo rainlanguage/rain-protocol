@@ -57,7 +57,14 @@ let
   solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
     mkdir -p solt
     find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
+    rain-protocol-solt
     mv solc-* solt
+  '';
+
+  rain-protocol-solt = pkgs.writeShellScriptBin "rain-protocol-solt" ''
+    buildPath=`cat artifacts/contracts/trust/TrustFactory.sol/TrustFactory.dbg.json | jq '.buildInfo'`
+    buildPath=artifacts/"''${buildPath:10:(''${#buildPath}-11)}"
+    cat "''${buildPath}" | jq '.input' | cat > solc-input-rainprotocol.json
   '';
 
   cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
@@ -66,10 +73,10 @@ let
     hardhat compile --force
     dir=`git rev-parse HEAD`
     mkdir -p "dist/''${dir}"
+    solt-the-earth
+
     mv artifacts "dist/''${dir}/"
     mv typechain "dist/''${dir}/"
-
-    solt-the-earth
     mv solt "dist/''${dir}/"
   '';
 
@@ -156,6 +163,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.nixpkgs-fmt
     pkgs.nodejs-14_x
     pkgs.slither-analyzer
+    pkgs.jq
     local-node
     local-fork
     local-test
@@ -175,6 +183,7 @@ pkgs.stdenv.mkDerivation {
     prepublish
     solt-the-earth
     flush-all
+    rain-protocol-solt
   ];
 
   shellHook = ''
