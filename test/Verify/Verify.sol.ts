@@ -157,11 +157,50 @@ describe("Verify", async function () {
       await verify.DEFAULT_ADMIN_ROLE(),
       defaultAdmin.address
     );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
     const hasRoleDefaultAdmin = await verify.hasRole(
       await verify.DEFAULT_ADMIN_ROLE(),
       defaultAdmin.address
     );
-    assert(!hasRoleDefaultAdmin, "default admin did not renounce role");
+    const hasRoleApproverAdmin = await verify.hasRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    const hasRoleRemoverAdmin = await verify.hasRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    const hasRoleBannerAdmin = await verify.hasRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+    assert(
+      !hasRoleDefaultAdmin,
+      "default admin didn't renounce default admin role"
+    );
+    assert(
+      !hasRoleApproverAdmin,
+      "default admin didn't renounce approver admin role"
+    );
+    assert(
+      !hasRoleRemoverAdmin,
+      "default admin didn't renounce remover admin role"
+    );
+    assert(
+      !hasRoleBannerAdmin,
+      "default admin didn't renounce banner admin role"
+    );
 
     await Util.assertError(
       async () =>
