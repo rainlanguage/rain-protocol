@@ -434,7 +434,6 @@ describe("Verify", async function () {
     await verify
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
-
   });
 
   it("statusAtBlock should return correct status for any given state & block number", async function () {
