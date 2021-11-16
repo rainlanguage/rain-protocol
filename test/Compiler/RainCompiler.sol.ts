@@ -24,7 +24,27 @@ const enum Opcode {
 }
 
 describe("RainCompiler", async function () {
-  it("should handle a call which loops 8 (max) times", async () => {
+  it("should run a basic program (return current block number)", async () => {
+    this.timeout(0);
+
+    const vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [concat([op(Opcode.BLOCK_NUMBER)]), 0, 0, 0];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest & Contract;
+
+    await Util.createEmptyBlock(3);
+
+    const expected = await ethers.provider.getBlockNumber();
+    const result = await calculator.run();
+    assert(result.eq(expected), `wrong block number ${expected} ${result}`);
+  });
+
+  xit("should handle a call which loops 8 (max) times", async () => {
     this.timeout(0);
 
     // zero-based counting
