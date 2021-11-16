@@ -614,7 +614,7 @@ contract Trust is ReentrancyGuard {
             //
             // Implied is the remainder of finalBalance_ as redeemInit
             // This will be transferred to the token holders below.
-            creatorPay_ = availableBalance_ - seederPay_ + redeemInit;
+            creatorPay_ = availableBalance_ - ( seederPay_ + redeemInit );
         }
 
         if (creatorPay_ > 0) {

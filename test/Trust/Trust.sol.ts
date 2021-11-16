@@ -1417,7 +1417,7 @@ describe("Trust", async function () {
     await Util.assertError(
       async () =>
         await token.grantRole(await token.RECEIVER(), signers[3].address),
-      "revert AccessControl: sender must be an admin to grant",
+      "is missing role",
       "creator added receiver, despite not being token admin"
     );
 
@@ -1431,7 +1431,7 @@ describe("Trust", async function () {
     await Util.assertError(
       async () =>
         await token1.grantRole(await token.RECEIVER(), signers[3].address),
-      "revert AccessControl: sender must be an admin to grant",
+      "is missing role",
       "anon added receiver, despite not being token admin"
     );
   });
