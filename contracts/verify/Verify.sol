@@ -181,11 +181,26 @@ contract Verify is AccessControl {
 
     /// Defines RBAC logic for each role under Open Zeppelin.
     constructor (address admin_) public {
+        // `APPROVER_ADMIN` can admin each other in addition to
+        // `APPROVER` addresses underneath.
+        _setRoleAdmin(APPROVER_ADMIN, APPROVER_ADMIN);
         _setRoleAdmin(APPROVER, APPROVER_ADMIN);
-        _setupRole(APPROVER_ADMIN, admin_);
+
+        // `REMOVER_ADMIN` can admin each other in addition to
+        // `REMOVER` addresses underneath.
+        _setRoleAdmin(REMOVER_ADMIN, REMOVER_ADMIN);
         _setRoleAdmin(REMOVER, REMOVER_ADMIN);
-        _setupRole(REMOVER_ADMIN, admin_);
+
+        // `BANNER_ADMIN` can admin each other in addition to
+        // `BANNER` addresses underneath.
+        _setRoleAdmin(BANNER_ADMIN, BANNER_ADMIN);
         _setRoleAdmin(BANNER, BANNER_ADMIN);
+
+        // It is STRONGLY RECOMMENDED that the `admin_` delegates specific
+        // admin roles then revokes the `DEFAULT_ADMIN_ROLE` and the `X_ADMIN`
+        // roles.
+        _setupRole(APPROVER_ADMIN, admin_);
+        _setupRole(REMOVER_ADMIN, admin_);
         _setupRole(BANNER_ADMIN, admin_);
 
         // This is at the end of the constructor because putting it at the
