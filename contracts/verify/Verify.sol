@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -150,7 +148,7 @@ contract Verify is AccessControl {
     /// `addedSince` block on a `State` before trusting an equality check on
     /// any other block number.
     /// (i.e. removed or never added)
-    uint32 constant public UNINITIALIZED = uint32(-1);
+    uint32 constant public UNINITIALIZED = 0xFFFFFFFF;
 
     /// Emitted when a session ID is first associated with an account.
     event Add(address indexed account, uint256 indexed id);
@@ -180,7 +178,7 @@ contract Verify is AccessControl {
     mapping (address => State) public states;
 
     /// Defines RBAC logic for each role under Open Zeppelin.
-    constructor (address admin_) public {
+    constructor (address admin_) {
         // `APPROVER_ADMIN` can admin each other in addition to
         // `APPROVER` addresses underneath.
         _setRoleAdmin(APPROVER_ADMIN, APPROVER_ADMIN);

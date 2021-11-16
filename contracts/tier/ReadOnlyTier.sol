@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import { ITier } from "./ITier.sol";
 import { TierUtil } from "../libraries/TierUtil.sol";
@@ -25,7 +25,7 @@ abstract contract ReadOnlyTier is ITier {
         Tier,
         bytes memory
     )
-        external override
+        external pure override
     {
         revert("SET_TIER");
     }

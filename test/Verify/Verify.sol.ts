@@ -435,17 +435,6 @@ describe("Verify", async function () {
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
 
-    const approverCount = await verify.getRoleMemberCount(
-      await verify.APPROVER()
-    );
-    const removerCount = await verify.getRoleMemberCount(
-      await verify.REMOVER()
-    );
-    const bannerCount = await verify.getRoleMemberCount(await verify.BANNER());
-
-    assert(approverCount.eq(1), `expected 1, got ${approverCount}`);
-    assert(removerCount.eq(1), `expected 1, got ${removerCount}`);
-    assert(bannerCount.eq(1), `expected 1, got ${bannerCount}`);
   });
 
   it("statusAtBlock should return correct status for any given state & block number", async function () {

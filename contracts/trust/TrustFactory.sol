@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import { ITier } from "../tier/ITier.sol";
 
@@ -20,7 +17,7 @@ import { RedeemableERC20PoolFactory } from "../pool/RedeemableERC20PoolFactory.s
 import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "../pool/RedeemableERC20Pool.sol";
 import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
 import { SeedERC20Config } from "../seed/SeedERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
 import { TrustRedeemableERC20Config, TrustRedeemableERC20PoolConfig } from "./Trust.sol";
 
@@ -134,7 +131,6 @@ struct TrustFactoryTrustRedeemableERC20PoolConfig {
 /// `SeedERC20Factory` contracts, and builds a new `Trust` contract.
 /// @dev Factory for creating and registering new Trust contracts.
 contract TrustFactory is Factory {
-    using SafeMath for uint256;
     using SafeERC20 for RedeemableERC20;
 
     RedeemableERC20Factory public immutable redeemableERC20Factory;
@@ -142,7 +138,7 @@ contract TrustFactory is Factory {
     SeedERC20Factory public immutable seedERC20Factory;
 
     /// @param config_ All configuration for the `TrustFactory`.
-    constructor(TrustFactoryConfig memory config_) public {
+    constructor(TrustFactoryConfig memory config_) {
         redeemableERC20Factory = config_.redeemableERC20Factory;
         redeemableERC20PoolFactory = config_.redeemableERC20PoolFactory;
         seedERC20Factory = config_.seedERC20Factory;

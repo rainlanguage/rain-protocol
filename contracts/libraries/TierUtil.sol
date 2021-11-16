@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import { ITier } from "../tier/ITier.sol";
 
@@ -20,8 +20,9 @@ import { ITier } from "../tier/ITier.sol";
 /// that out.
 library TierUtil {
 
-    /// UNINITIALIZED report is 0xFF.. as no tier has been held.
-    uint256 constant public UNINITIALIZED = uint256(-1);
+    /// UNINITIALIZED is 0xFF.. as it is infinitely in the future.
+    uint256 public constant UNINITIALIZED
+        = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     /// Returns the highest tier achieved relative to a block number
     /// and report.

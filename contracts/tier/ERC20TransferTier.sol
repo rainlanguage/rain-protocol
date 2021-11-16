@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { TierUtil } from "../libraries/TierUtil.sol";
 import { ValueTier } from "./ValueTier.sol";
 import "./ReadWriteTier.sol";
@@ -58,7 +57,6 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
     /// @param tierValues_ 8 values corresponding to minimum erc20
     /// balances for tiers ONE through EIGHT.
     constructor(IERC20 erc20_, uint256[8] memory tierValues_)
-        public
         ValueTier(tierValues_)
     {
         erc20 = erc20_;
@@ -102,16 +100,17 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
         }
         if (endValue_ > startValue_) {
             // Going up, take ownership of erc20 from the `msg.sender`.
-            erc20.safeTransferFrom(msg.sender, address(this), SafeMath.sub(
-                endValue_,
-                startValue_
-            ));
+            erc20.safeTransferFrom(
+                msg.sender,
+                address(this),
+                endValue_ - startValue_
+            );
         } else {
             // Going down, process a refund for the tiered account.
-            erc20.safeTransfer(account_, SafeMath.sub(
-                startValue_,
-                endValue_
-            ));
+            erc20.safeTransfer(
+                account_,
+                startValue_ - endValue_
+            );
         }
     }
 }
