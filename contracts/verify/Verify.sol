@@ -197,7 +197,8 @@ contract Verify is AccessControl {
         _setRoleAdmin(BANNER, BANNER_ADMIN);
 
         // It is STRONGLY RECOMMENDED that the `admin_` delegates specific
-        // admin roles then revokes the `X_ADMIN` roles.
+        // admin roles then revokes the `DEFAULT_ADMIN_ROLE` and the `X_ADMIN`
+        // roles.
         _setupRole(APPROVER_ADMIN, admin_);
         _setupRole(REMOVER_ADMIN, admin_);
         _setupRole(BANNER_ADMIN, admin_);
