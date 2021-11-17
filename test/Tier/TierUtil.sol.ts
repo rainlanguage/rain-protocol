@@ -4,10 +4,12 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierUtilTest } from "../../typechain/TierUtilTest";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { assertError, basicDeploy, zeroPad32, zeroPad4 } from "../Util";
+import { basicDeploy, zeroPad32, zeroPad4 } from "../Util";
 import type { Contract } from "ethers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 enum Tier {
@@ -23,14 +25,13 @@ enum Tier {
 }
 
 describe("TierUtil", async function () {
-  let owner: any;
-  let signer1: any;
+  let signer1: SignerWithAddress;
   let readWriteTier: ReadWriteTier & Contract;
   let reserve: ReserveTokenTest & Contract;
   let tierUtil: TierUtilTest & Contract;
 
   beforeEach(async () => {
-    [owner, signer1] = await ethers.getSigners();
+    [, signer1] = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;

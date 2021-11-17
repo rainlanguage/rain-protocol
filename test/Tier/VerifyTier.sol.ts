@@ -7,14 +7,8 @@ import type { Verify } from "../../typechain/Verify";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
-
-enum Status {
-  Nil,
-  Added,
-  Approved,
-  Banned,
-}
 
 let verifyFactory;
 
