@@ -5,12 +5,13 @@ import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { SeedERC20 } from "../../typechain/SeedERC20";
 import type { SeedERC20ForceSendEther } from "../../typechain/SeedERC20ForceSendEther";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
 describe("SeedERC20", async function () {
-  it("should emit Redeem event", async function () {
+  it("should emit Redeem, Seed, Unseed events", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -22,7 +23,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
@@ -45,7 +46,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
@@ -58,8 +59,16 @@ describe("SeedERC20", async function () {
     // Bob and carol co-fund the seed round.
 
     await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
-    await bobSeed.seed(0, bobUnits);
-    await bobSeed.unseed(2);
+    const bobSeedPromise = bobSeed.seed(0, bobUnits);
+    expect(bobSeedPromise)
+      .to.emit(seedERC20, "Seed")
+      .withArgs(bob.address, [bobUnits, bobUnits.mul(seedPrice)]);
+    await bobSeedPromise;
+    const bobUnseedPromise = bobSeed.unseed(2);
+    expect(bobUnseedPromise)
+      .to.emit(seedERC20, "Unseed")
+      .withArgs(bob.address, [2, ethers.BigNumber.from(2).mul(seedPrice)]);
+    await bobUnseedPromise;
 
     await bobReserve.approve(seedERC20.address, seedPrice.mul(2));
     await bobSeed.seed(0, 2);
@@ -113,7 +122,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
@@ -136,7 +145,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
@@ -157,7 +166,8 @@ describe("SeedERC20", async function () {
       "SeedERC20ForceSendEther"
     );
     const forceSendEther =
-      (await forceSendEtherFactory.deploy()) as SeedERC20ForceSendEther;
+      (await forceSendEtherFactory.deploy()) as SeedERC20ForceSendEther &
+        Contract;
 
     // send ether to attacker contract
     const txResult = await signers[0].sendTransaction({
@@ -181,7 +191,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const seedPrice = 100;
     const seedUnits = 10;
@@ -196,7 +206,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     // SeedERC20 has 0 decimals
     const decimals = await seedERC20.decimals();
@@ -214,7 +224,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const bobReserve = reserve.connect(bob);
     const carolReserve = reserve.connect(carol);
@@ -233,7 +243,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -318,7 +328,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
@@ -341,7 +351,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
@@ -389,7 +399,7 @@ describe("SeedERC20", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken;
+    )) as ReserveToken & Contract;
 
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
@@ -412,7 +422,7 @@ describe("SeedERC20", async function () {
       cooldownDuration,
       name: "seed",
       symbol: "SD",
-    })) as SeedERC20;
+    })) as SeedERC20 & Contract;
 
     const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);

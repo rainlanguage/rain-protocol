@@ -109,6 +109,26 @@ Remotely:
 Go to Releases -> Draft a new release
 Select this branch and create a new tag for this commit e.g. `v0.0.1`
 
+### Build deployment artifacts
+
+Deployment artifacts are built and committed to `dist` periodically for commits
+alongside relevant audits.
+
+`solt` is used to build all the metadata used by etherscan etc. to verify the
+contract bytecode.
+
+`solt` must be installed manually as it currently has no nix package.
+
+`solt-the-earth` can be run inside `nix-shell` to iterate over all artifacts
+and build metadata for each. If metadata is built for the entire repo then all
+test contracts and other unrelated contracts will be included in what is
+displayed on etherscan. This isn't dangerous but it is noisy if someone wants
+to review the contract code outside the repository.
+
+IMPORTANT NOTE: `solt` does not support `import` statements that break over
+several lines. For this reason all `import` statements over 80 characters long
+are explicitly ignored by solhint for line length issues.
+
 ### Audits
 
 Audits can be found in the `audits` folder.

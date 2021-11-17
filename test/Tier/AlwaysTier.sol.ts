@@ -1,5 +1,6 @@
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { AlwaysTier } from "../../typechain/AlwaysTier";
 import type { NeverTier } from "../../typechain/NeverTier";
@@ -29,7 +30,7 @@ describe("AlwaysTier", async function () {
 
     const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
 
-    alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier;
+    alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier & Contract;
 
     await alwaysTier.deployed();
   });
@@ -58,7 +59,7 @@ describe("NeverTier", async function () {
 
     const neverTierFactory = await ethers.getContractFactory("NeverTier");
 
-    neverTier = (await neverTierFactory.deploy()) as NeverTier;
+    neverTier = (await neverTierFactory.deploy()) as NeverTier & Contract;
 
     await neverTier.deployed();
   });

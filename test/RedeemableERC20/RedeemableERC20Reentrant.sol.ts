@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -34,7 +35,7 @@ enum Phase {
 }
 
 describe("RedeemableERC20Reentrant", async function () {
-  it("should guard against reentrancy if a redeemable is malicious", async function () {
+  it("should guard against reentrancy if a treasury asset is malicious", async function () {
     this.timeout(0);
 
     const ONE_TOKEN = ethers.BigNumber.from("1" + Util.eighteenZeros);
@@ -45,7 +46,7 @@ describe("RedeemableERC20Reentrant", async function () {
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     const minimumStatus = Tier.NIL;
 
@@ -69,20 +70,13 @@ describe("RedeemableERC20Reentrant", async function () {
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
-    })) as RedeemableERC20;
+    })) as RedeemableERC20 & Contract;
 
     await redeemableERC20.deployed();
 
     const maliciousReserve = (await maliciousReserveFactory.deploy(
       redeemableERC20.address
-    )) as RedeemableERC20Reentrant;
-
-    await redeemableERC20.grantRole(
-      await redeemableERC20.REDEEMABLE_ADDER(),
-      signers[0].address
-    );
-
-    await redeemableERC20.addRedeemable(maliciousReserve.address);
+    )) as RedeemableERC20Reentrant & Contract;
 
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
@@ -101,7 +95,10 @@ describe("RedeemableERC20Reentrant", async function () {
     await maliciousReserve.transfer(redeemableERC20.address, reserveTotal);
 
     await Util.assertError(
-      async () => await redeemableERC20.connect(signers[1]).redeem(ONE_TOKEN),
+      async () =>
+        await redeemableERC20
+          .connect(signers[1])
+          .redeem([maliciousReserve.address], ONE_TOKEN),
       "revert ReentrancyGuard: reentrant call",
       "did not guard against reentrancy attack"
     );

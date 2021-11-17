@@ -4,9 +4,8 @@ pragma solidity ^0.6.12;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ReserveToken } from "./ReserveToken.sol";
-import {
-    RedeemableERC20, ERC20
-} from "../redeemableERC20/RedeemableERC20.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20, ERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 
 /// @title RedeemableERC20Reentrant
 /// Test contract that attempts to call reentrant code on `RedeemableERC20`.
@@ -33,11 +32,11 @@ contract RedeemableERC20Reentrant is ReserveToken {
             sender_ != address(0)
             && sender_ == address(redeemableERC20Contract)
         ) {
-            IERC20[] memory redeemables_ = new IERC20[](1);
-            redeemables_[0] = IERC20(address(this));
+            IERC20[] memory treasuryAssets_ = new IERC20[](1);
+            treasuryAssets_[0] = IERC20(address(this));
             // This call MUST fail.
             redeemableERC20Contract.redeem(
-                redeemables_,
+                treasuryAssets_,
                 amount_
             );
         }

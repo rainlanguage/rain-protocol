@@ -9,7 +9,7 @@ import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
-import type { BigNumber } from "ethers";
+import type { BigNumber, Contract } from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 
@@ -48,7 +48,9 @@ export const basicDeploy = async (name, libs) => {
   return contract;
 };
 
-export const balancerDeploy = async (): Promise<[CRPFactory, BFactory]> => {
+export const balancerDeploy = async (): Promise<
+  [CRPFactory & Contract, BFactory & Contract]
+> => {
   let rightsManager;
   if (rightsManagerAddress) {
     rightsManager = new ethers.Contract(
@@ -69,69 +71,63 @@ export const balancerDeploy = async (): Promise<[CRPFactory, BFactory]> => {
     balancerSafeMath = await basicDeploy("BalancerSafeMath", {});
   }
 
-  let smartPoolManager: SmartPoolManager;
+  let smartPoolManager: SmartPoolManager & Contract;
   if (smartPoolManagerAddress) {
     smartPoolManager = new ethers.Contract(
       smartPoolManagerAddress,
       (await artifacts.readArtifact("SmartPoolManager")).abi
-    ) as SmartPoolManager;
+    ) as SmartPoolManager & Contract;
   } else {
     smartPoolManager = (await basicDeploy(
       "SmartPoolManager",
       {}
-    )) as SmartPoolManager;
+    )) as SmartPoolManager & Contract;
   }
 
-  let crpFactory: CRPFactory;
+  let crpFactory: CRPFactory & Contract;
   if (crpFactoryAddress) {
     crpFactory = new ethers.Contract(
       crpFactoryAddress,
       (await artifacts.readArtifact("CRPFactory")).abi
-    ) as CRPFactory;
+    ) as CRPFactory & Contract;
   } else {
     crpFactory = (await basicDeploy("CRPFactory", {
       RightsManager: rightsManager.address,
       BalancerSafeMath: balancerSafeMath.address,
       SmartPoolManager: smartPoolManager.address,
-    })) as CRPFactory;
+    })) as CRPFactory & Contract;
   }
 
   let bFactory;
   if (bFactoryAddress) {
     bFactory = new ethers.Contract(
       bFactoryAddress,
-      (
-        await artifacts.readArtifact(
-          "@beehiveinnovation/balancer-core/contracts/BFactory.sol:BFactory"
-        )
-      ).abi
-    ) as BFactory;
+      (await artifacts.readArtifact("BFactory")).abi
+    ) as BFactory & Contract;
   } else {
-    bFactory = (await basicDeploy(
-      "@beehiveinnovation/balancer-core/contracts/BFactory.sol:BFactory",
-      {}
-    )) as BFactory;
+    bFactory = (await basicDeploy("BFactory", {})) as BFactory & Contract;
   }
 
   return [crpFactory, bFactory];
 };
 
 export interface Factories {
-  redeemableERC20Factory: RedeemableERC20Factory;
-  redeemableERC20PoolFactory: RedeemableERC20PoolFactory;
-  seedERC20Factory: SeedERC20Factory;
-  trustFactory: TrustFactory;
+  redeemableERC20Factory: RedeemableERC20Factory & Contract;
+  redeemableERC20PoolFactory: RedeemableERC20PoolFactory & Contract;
+  seedERC20Factory: SeedERC20Factory & Contract;
+  trustFactory: TrustFactory & Contract;
 }
 
 export const factoriesDeploy = async (
-  crpFactory: CRPFactory,
-  balancerFactory: BFactory
+  crpFactory: CRPFactory & Contract,
+  balancerFactory: BFactory & Contract
 ): Promise<Factories> => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory"
   );
   const redeemableERC20Factory =
-    (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
+    (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
+      Contract;
   await redeemableERC20Factory.deployed();
 
   const redeemableERC20PoolFactoryFactory = await ethers.getContractFactory(
@@ -141,14 +137,14 @@ export const factoriesDeploy = async (
     (await redeemableERC20PoolFactoryFactory.deploy({
       crpFactory: crpFactory.address,
       balancerFactory: balancerFactory.address,
-    })) as RedeemableERC20PoolFactory;
+    })) as RedeemableERC20PoolFactory & Contract;
   await redeemableERC20PoolFactory.deployed();
 
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory"
   );
   const seedERC20Factory =
-    (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory;
+    (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
   await seedERC20Factory.deployed();
 
   const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
@@ -156,7 +152,7 @@ export const factoriesDeploy = async (
     redeemableERC20Factory: redeemableERC20Factory.address,
     redeemableERC20PoolFactory: redeemableERC20PoolFactory.address,
     seedERC20Factory: seedERC20Factory.address,
-  })) as TrustFactory;
+  })) as TrustFactory & Contract;
   await trustFactory.deployed();
 
   return {
@@ -212,32 +208,29 @@ export const assertError = async (f: Function, s: string, e: string) => {
 
 export const poolContracts = async (
   signers: any,
-  pool: RedeemableERC20Pool
-): Promise<[ConfigurableRightsPool, BPool]> => {
+  pool: RedeemableERC20Pool & Contract
+): Promise<[ConfigurableRightsPool & Contract, BPool & Contract]> => {
   const crp = new ethers.Contract(
     await pool.crp(),
     (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
     signers[0]
-  ) as ConfigurableRightsPool;
+  ) as ConfigurableRightsPool & Contract;
   const bPool = new ethers.Contract(
     await crp.bPool(),
-    (
-      await artifacts.readArtifact(
-        "@beehiveinnovation/balancer-core/contracts/BPool.sol:BPool"
-      )
-    ).abi,
+    (await artifacts.readArtifact("BPool")).abi,
     signers[0]
-  ) as BPool;
+  ) as BPool & Contract;
   return [crp, bPool];
 };
 
 export const trustDeploy = async (
-  trustFactory: TrustFactory,
+  trustFactory: TrustFactory & Contract,
   creator: any,
   ...args
-): Promise<Trust> => {
+): Promise<Trust & Contract> => {
   const tx = await trustFactory[
     "createChild((address,uint256,address,uint256,uint16,uint16,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256,uint256))"
+    // @ts-ignore
   ](...args);
   const receipt = await tx.wait();
 
@@ -252,7 +245,7 @@ export const trustDeploy = async (
     ),
     (await artifacts.readArtifact("Trust")).abi,
     creator
-  ) as Trust;
+  ) as Trust & Contract;
 
   if (!ethers.utils.isAddress(trust.address)) {
     throw new Error(
@@ -266,11 +259,14 @@ export const trustDeploy = async (
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
-  if (!count || count <= 0) count = 1;
   const signers = await ethers.getSigners();
-  const txNoOp = { to: signers[1].address };
-  for (let i = 0; i < count; i++) {
-    await signers[0].sendTransaction(txNoOp);
+  const tx = { to: signers[1].address };
+  if (count > 0) {
+    for (let i = 0; i < count; i++) {
+      await signers[0].sendTransaction(tx);
+    }
+  } else {
+    await signers[0].sendTransaction(tx);
   }
 };
 
