@@ -34,6 +34,7 @@ let
   ci-lint = pkgs.writeShellScriptBin "ci-lint" ''
     solhint 'contracts/**/*.sol'
     prettier-check
+    npm run lint
   '';
 
   flush-all = pkgs.writeShellScriptBin "flush-all" ''
