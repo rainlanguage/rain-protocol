@@ -38,10 +38,6 @@ describe("RedeemableERC20", async function () {
   it("should emit TreasuryAsset event", async function () {
     this.timeout(0);
 
-    const FIVE_TOKENS = ethers.BigNumber.from("5" + Util.eighteenZeros);
-    const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
-    const TWENTY_TOKENS = ethers.BigNumber.from("20" + Util.eighteenZeros);
-
     const signers = await ethers.getSigners();
 
     const reserve1 = (await Util.basicDeploy(
@@ -202,11 +198,6 @@ describe("RedeemableERC20", async function () {
     const sender = signers[1];
     const receiver = signers[2];
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
@@ -222,8 +213,6 @@ describe("RedeemableERC20", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
-
-    const now = await ethers.provider.getBlockNumber();
 
     const token = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
@@ -288,11 +277,6 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
@@ -305,8 +289,6 @@ describe("RedeemableERC20", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
-
-    const now = await ethers.provider.getBlockNumber();
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
@@ -601,9 +583,6 @@ describe("RedeemableERC20", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
-
-    const now = await ethers.provider.getBlockNumber();
-    const phaseOneBlock = now + 8;
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
@@ -1072,12 +1051,6 @@ describe("RedeemableERC20", async function () {
       redeemableERC20.address,
       redeemableERC20.interface,
       signers[1]
-    );
-    // signer 2
-    const redeemableERC20_2 = new ethers.Contract(
-      redeemableERC20.address,
-      redeemableERC20.interface,
-      signers[2]
     );
 
     await redeemableERC20.transfer(signers[1].address, TEN_TOKENS);

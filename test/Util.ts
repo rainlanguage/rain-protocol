@@ -12,7 +12,9 @@ import type { BPool } from "../typechain/BPool";
 import type { BigNumber, Contract } from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
@@ -195,7 +197,7 @@ export const determineReserveDust = (bPoolDust: BigNumber) => {
   return bPoolDust;
 };
 
-export const assertError = async (f: Function, s: string, e: string) => {
+export const assertError = async (f, s: string, e: string) => {
   let didError = false;
   try {
     await f();
@@ -207,7 +209,7 @@ export const assertError = async (f: Function, s: string, e: string) => {
 };
 
 export const poolContracts = async (
-  signers: any,
+  signers: SignerWithAddress[],
   pool: RedeemableERC20Pool & Contract
 ): Promise<[ConfigurableRightsPool & Contract, BPool & Contract]> => {
   const crp = new ethers.Contract(
@@ -225,11 +227,12 @@ export const poolContracts = async (
 
 export const trustDeploy = async (
   trustFactory: TrustFactory & Contract,
-  creator: any,
+  creator: SignerWithAddress,
   ...args
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory[
     "createChild((address,uint256,address,uint256,uint16,uint16,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256,uint256))"
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
   ](...args);
   const receipt = await tx.wait();
@@ -276,8 +279,8 @@ export const createEmptyBlock = async (count?: number): Promise<void> => {
  * @returns number[] Block array of the reports
  */
 export function tierReport(report: string): number[] {
-  let parsedReport: number[] = [];
-  let arrStatus = [0, 1, 2, 3, 4, 5, 6, 7]
+  const parsedReport: number[] = [];
+  const arrStatus = [0, 1, 2, 3, 4, 5, 6, 7]
     .map((i) =>
       BigInt(report)
         .toString(16)
@@ -287,7 +290,7 @@ export function tierReport(report: string): number[] {
     .reverse();
   //arrStatus = arrStatus.reverse();
 
-  for (let i in arrStatus) {
+  for (const i in arrStatus) {
     parsedReport.push(parseInt("0x" + arrStatus[i]));
   }
 

@@ -3,9 +3,10 @@ import { solidity } from "ethereum-waffle";
 import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ValueTierTest } from "../../typechain/ValueTierTest";
-import { assertError, basicDeploy, eighteenZeros } from "../Util";
+import { eighteenZeros } from "../Util";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 enum Tier {
@@ -25,14 +26,9 @@ const LEVELS = Array.from(Array(8).keys()).map((value) =>
 );
 
 describe("ValueTierTest", async function () {
-  let owner: any;
-  let alice: any;
-  let bob: any;
   let valueTier: ValueTierTest & Contract;
 
   beforeEach(async () => {
-    [owner, alice, bob] = await ethers.getSigners();
-
     const valueTierFactory = await ethers.getContractFactory("ValueTierTest");
 
     valueTier = (await valueTierFactory.deploy(LEVELS)) as ValueTierTest &
@@ -56,7 +52,7 @@ describe("ValueTierTest", async function () {
     const tierValues = await valueTier.tierValues();
 
     assert(
-      tierValues.every((value: any, index: any) => value.eq(LEVELS[index])),
+      tierValues.every((value, index) => value.eq(LEVELS[index])),
       `did not return the correct tierValue list
       expected  ${LEVELS}
       got       ${tierValues}`

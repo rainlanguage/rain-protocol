@@ -13,6 +13,7 @@ import type { BPool } from "../../typechain/BPool";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 enum Tier {
@@ -461,7 +462,7 @@ describe("Trust", async function () {
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -610,7 +611,7 @@ describe("Trust", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const swapReserveForTokens = async (signer, spend) => {
       // give signer some reserve
@@ -886,7 +887,6 @@ describe("Trust", async function () {
       (await artifacts.readArtifact("RedeemableERC20Pool")).abi,
       creator
     ) as RedeemableERC20Pool & Contract;
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
 
     assert(
       !(await pool.reserveInit()).isZero(),
@@ -907,7 +907,7 @@ describe("Trust", async function () {
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
-    let [crp2, bPool2] = await Util.poolContracts(signers, pool);
+    const [, bPool2] = await Util.poolContracts(signers, pool);
 
     assert(
       (await reserve.balanceOf(seeder.address)).isZero(),
@@ -1677,7 +1677,7 @@ describe("Trust", async function () {
 
     const reserve1 = reserve.connect(signer1);
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const crp1 = crp.connect(signer1);
     const bPool1 = bPool.connect(signer1);
@@ -2050,7 +2050,7 @@ describe("Trust", async function () {
 
     // BEGIN: users FAIL to hit the minimum raise
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
     const reserve1 = reserve.connect(signer1);
 
     const crp1 = crp.connect(signer1);
@@ -2626,7 +2626,7 @@ describe("Trust", async function () {
     await reserve.transfer(signer1.address, spend1.mul(10));
     await reserve.transfer(signer2.address, spend2);
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const bPool1 = bPool.connect(signer1);
     const reserve1 = reserve.connect(signer1);
@@ -2822,7 +2822,7 @@ describe("Trust", async function () {
       ethers.BigNumber.from("2000" + Util.sixZeros)
     );
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const bPool1 = bPool.connect(signer1);
     const reserve1 = reserve.connect(signer1);

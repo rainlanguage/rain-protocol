@@ -1,25 +1,21 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers } from "hardhat";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import type { Trust } from "../../typechain/Trust";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
 import type { Contract } from "ethers";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
-import type { SeedERC20 } from "../../typechain/SeedERC20";
 import { factoriesDeploy } from "../Util";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
-const trustJson = require("../../artifacts/contracts/trust/Trust.sol/Trust.json");
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
-const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("../../artifacts/contracts/pool/IConfigurableRightsPool.sol/IConfigurableRightsPool.json");
 
 enum Tier {
   NIL,
@@ -150,7 +146,7 @@ describe("TrustDistribute", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const reserveSpend = successLevel.div(10);
 
@@ -293,7 +289,7 @@ describe("TrustDistribute", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const reserveSpend = successLevel.div(10);
 
@@ -366,7 +362,6 @@ describe("TrustDistribute", async function () {
     const creator = signers[0];
     const seeder = signers[1]; // seeder is not creator
     const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -517,7 +512,7 @@ describe("TrustDistribute", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const reserveSpend = successLevel.div(10);
 
@@ -678,7 +673,7 @@ describe("TrustDistribute", async function () {
 
       const startBlock = await ethers.provider.getBlockNumber();
 
-      let [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [crp, bPool] = await Util.poolContracts(signers, pool);
 
       const reserveSpend = successLevel.div(10);
 
@@ -862,7 +857,7 @@ describe("TrustDistribute", async function () {
         `distribution status not trading can end`
       );
 
-      let [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [, bPool] = await Util.poolContracts(signers, pool);
 
       const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
 
@@ -984,7 +979,7 @@ describe("TrustDistribute", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const reserveSpend = successLevel.div(10);
 
@@ -1023,8 +1018,6 @@ describe("TrustDistribute", async function () {
     }
 
     await trust.anonEndDistribution();
-
-    const tokenBPoolBalanceAfter = await token.balanceOf(bPool.address);
 
     const totalSupply = await token.totalSupply();
 
@@ -1135,7 +1128,7 @@ describe("TrustDistribute", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [, bPool] = await Util.poolContracts(signers, pool);
 
     // create empty transfer blocks until reaching next phase, so distribution can end
     while (
@@ -1275,7 +1268,7 @@ describe("TrustDistribute", async function () {
 
       const startBlock = await ethers.provider.getBlockNumber();
 
-      let [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [crp, bPool] = await Util.poolContracts(signers, pool);
 
       const reserveSpend = successLevel.div(10);
 
@@ -1429,7 +1422,7 @@ describe("TrustDistribute", async function () {
 
       const startBlock = await ethers.provider.getBlockNumber();
 
-      let [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [crp, bPool] = await Util.poolContracts(signers, pool);
 
       const reserveSpend = successLevel.div(10);
 

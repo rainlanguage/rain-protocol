@@ -1,5 +1,5 @@
 import * as Util from "../Util";
-import chai, { util } from "chai";
+import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
@@ -9,6 +9,7 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 enum Phase {
@@ -22,11 +23,6 @@ enum Phase {
   SEVEN,
   EIGHT,
 }
-
-const trustJson = require("../../artifacts/contracts/trust/Trust.sol/Trust.json");
-const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
-const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 describe("RedeemableERC20Pool", async function () {
   it("should construct with minimum raise duration of 1", async function () {
@@ -261,7 +257,7 @@ describe("RedeemableERC20Pool", async function () {
         expected ${expectedPhaseTwoBlock} got ${actualPhaseTwoBlock}`
     );
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, pool);
 
     while (
       (await ethers.provider.getBlockNumber()) <=
@@ -449,7 +445,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // // The trust would do this internally but we need to do it here to test.
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
@@ -701,7 +697,6 @@ describe("RedeemableERC20Pool", async function () {
 
     // The final valuation of redeemable should be 100 000 as this is the redemption value.
     // Reserve init has value of 50 000 so ratio is 2:1.
-    const expectedFinalWeight = ethers.BigNumber.from("2" + Util.sixZeros);
 
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
@@ -773,7 +768,7 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + minimumTradingDuration;
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, pool);
 
     const actualRights = await crp.rights();
 
@@ -912,7 +907,7 @@ describe("RedeemableERC20Pool", async function () {
     const phaseOneBlock = now + minimumTradingDuration;
 
     // The trust would do this internally but we need to do it here to test.
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, pool);
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
