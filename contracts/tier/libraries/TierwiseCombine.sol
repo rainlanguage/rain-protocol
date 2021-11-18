@@ -58,7 +58,7 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_ = uint256(-1);
+            uint256 accumulator_ = 0;
             bool allTrue_ = true;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
                 if (allTrue_ && vals_[i_] <= blockNumber_) {
