@@ -663,6 +663,8 @@ describe("CombineTier", async function () {
     assert(
       resultAndOld === expectedAndOld,
       `wrong block number preserved with tierwise andOld
+      left      ${leftReport}
+      right     ${rightReport}
       expected  ${expectedAndOld}
       got       ${resultAndOld}`
     );
@@ -785,6 +787,8 @@ describe("CombineTier", async function () {
     assert(
       resultAndNew === expectedAndNew,
       `wrong block number preserved with tierwise andNew
+      left      ${leftReport}
+      right     ${rightReport}
       expected  ${expectedAndNew}
       got       ${resultAndNew}`
     );
@@ -906,6 +910,8 @@ describe("CombineTier", async function () {
     assert(
       resultAndLeft === expectedAndLeft,
       `wrong block number preserved with tierwise andLeft
+      left      ${leftReport}
+      right     ${rightReport}
       expected  ${expectedAndLeft}
       got       ${resultAndLeft}`
     );
@@ -1028,6 +1034,8 @@ describe("CombineTier", async function () {
     assert(
       resultOrOld === expectedOrOld,
       `wrong block number preserved with tierwise orOld
+      left      ${leftReport}
+      right     ${rightReport}
       expected  ${expectedOrOld}
       got       ${resultOrOld}`
     );
@@ -1146,10 +1154,12 @@ describe("CombineTier", async function () {
       await combineTier.report(signers[0].address)
     );
     const expectedOrNew =
-      "0xffffffffffffffff000000660000006500000064000000600000005f0000005e";
+      "0x0000006700000067000000660000006500000064000000600000005f0000005e";
     assert(
       resultOrNew === expectedOrNew,
       `wrong block number preserved with tierwise orNew
+      left      ${leftReport}
+      right     ${rightReport}
       expected  ${expectedOrNew}
       got       ${resultOrNew}`
     );
@@ -1272,6 +1282,8 @@ describe("CombineTier", async function () {
     assert(
       resultOrLeft === expectedOrLeft,
       `wrong block number preserved with tierwise orLeft
+      left      ${leftReport}
+      right     ${rightReport}
       expected  ${expectedOrLeft}
       got       ${resultOrLeft}`
     );
