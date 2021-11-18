@@ -753,7 +753,8 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    console.log("end block", hexlify(await ethers.provider.getBlockNumber()));
+    const endBlock = hexlify(await ethers.provider.getBlockNumber());
+    console.log("end block", endBlock);
 
     const rightReport = paddedReport(
       await readWriteTierRight.report(signers[0].address)
@@ -783,10 +784,11 @@ describe("CombineTier", async function () {
       await combineTier.report(signers[0].address)
     );
     const expectedAndNew =
-      "0xffffffffffffffff000000360000003500000031000000300000002f0000002e";
+      "0xffffffffffffffff000000360000003500000034000000300000002f0000002e";
     assert(
       resultAndNew === expectedAndNew,
       `wrong block number preserved with tierwise andNew
+      block     ${endBlock}
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedAndNew}
