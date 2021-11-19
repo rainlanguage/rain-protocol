@@ -434,3 +434,7 @@ export const pack2BitUIntsIntoByte = (numArray: number[]): number[] => {
 export const paddedReport = (report: BigNumber): string => {
   return "0x" + report.toHexString().substring(2).padStart(64, "0");
 };
+
+export const paddedBlock = (blockNumber: number): string => {
+  return hexlify(blockNumber).substring(2).padStart(8, "0");
+};

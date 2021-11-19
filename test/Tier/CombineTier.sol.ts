@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { bytify, op, paddedReport } from "../Util";
+import { bytify, op, paddedBlock, paddedReport } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
@@ -600,7 +600,7 @@ describe("CombineTier", async function () {
       vals,
     })) as CombineTier & Contract;
 
-    console.log("start block", hexlify(await ethers.provider.getBlockNumber()));
+    const startBlock = await ethers.provider.getBlockNumber();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -613,11 +613,6 @@ describe("CombineTier", async function () {
     await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
 
-    console.log(
-      "middle block",
-      hexlify(await ethers.provider.getBlockNumber())
-    );
-
     // ReadWriteTierLeft
     await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
@@ -629,13 +624,22 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    console.log("end block", hexlify(await ethers.provider.getBlockNumber()));
-
     const rightReport = paddedReport(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport =
-      "0x00000027000000270000002600000025000000240000001d0000001c0000001b";
+    const expectedRightReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 12) +
+          paddedBlock(startBlock + 11) +
+          paddedBlock(startBlock + 10) +
+          paddedBlock(startBlock + 3) +
+          paddedBlock(startBlock + 2) +
+          paddedBlock(startBlock + 1)
+      )
+    );
     assert(
       rightReport === expectedRightReport,
       `wrong right report
@@ -646,8 +650,18 @@ describe("CombineTier", async function () {
     const leftReport = paddedReport(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport =
-      "0xffffffffffffffff000000230000002200000021000000200000001f0000001e";
+    const expectedLeftReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          "ffffffff".repeat(2) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
     assert(
       leftReport === expectedLeftReport,
       `wrong left report
@@ -658,8 +672,18 @@ describe("CombineTier", async function () {
     const resultAndOld = paddedReport(
       await combineTier.report(signers[0].address)
     );
-    const expectedAndOld =
-      "0xffffffffffffffff0000002300000022000000210000001d0000001c0000001b";
+    const expectedAndOld = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          "ffffffff".repeat(2) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 3) +
+          paddedBlock(startBlock + 2) +
+          paddedBlock(startBlock + 1)
+      )
+    );
     assert(
       resultAndOld === expectedAndOld,
       `wrong block number preserved with tierwise andOld
@@ -724,7 +748,7 @@ describe("CombineTier", async function () {
       vals,
     })) as CombineTier & Contract;
 
-    console.log("start block", hexlify(await ethers.provider.getBlockNumber()));
+    const startBlock = await ethers.provider.getBlockNumber();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -737,11 +761,6 @@ describe("CombineTier", async function () {
     await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
 
-    console.log(
-      "middle block",
-      hexlify(await ethers.provider.getBlockNumber())
-    );
-
     // ReadWriteTierLeft
     await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
@@ -753,14 +772,23 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    const endBlock = hexlify(await ethers.provider.getBlockNumber());
-    console.log("end block", endBlock);
-
     const rightReport = paddedReport(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport =
-      "0x00000037000000370000003600000035000000340000002d0000002c0000002b";
+    const expectedRightReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 12) +
+          paddedBlock(startBlock + 11) +
+          paddedBlock(startBlock + 10) +
+          paddedBlock(startBlock + 3) +
+          paddedBlock(startBlock + 2) +
+          paddedBlock(startBlock + 1)
+      )
+    );
+
     assert(
       rightReport === expectedRightReport,
       `wrong right report
@@ -771,8 +799,19 @@ describe("CombineTier", async function () {
     const leftReport = paddedReport(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport =
-      "0xffffffffffffffff000000330000003200000031000000300000002f0000002e";
+    const expectedLeftReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          "ffffffff".repeat(2) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
+
     assert(
       leftReport === expectedLeftReport,
       `wrong left report
@@ -783,12 +822,21 @@ describe("CombineTier", async function () {
     const resultAndNew = paddedReport(
       await combineTier.report(signers[0].address)
     );
-    const expectedAndNew =
-      "0xffffffffffffffff000000360000003500000034000000300000002f0000002e";
+    const expectedAndNew = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          "ffffffff".repeat(2) +
+          paddedBlock(startBlock + 12) +
+          paddedBlock(startBlock + 11) +
+          paddedBlock(startBlock + 10) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
     assert(
       resultAndNew === expectedAndNew,
       `wrong block number preserved with tierwise andNew
-      block     ${endBlock}
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedAndNew}
@@ -850,7 +898,7 @@ describe("CombineTier", async function () {
       vals,
     })) as CombineTier & Contract;
 
-    console.log("start block", hexlify(await ethers.provider.getBlockNumber()));
+    const startBlock = await ethers.provider.getBlockNumber();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -863,11 +911,6 @@ describe("CombineTier", async function () {
     await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
 
-    console.log(
-      "middle block",
-      hexlify(await ethers.provider.getBlockNumber())
-    );
-
     // ReadWriteTierLeft
     await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
@@ -879,13 +922,22 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    console.log("end block", hexlify(await ethers.provider.getBlockNumber()));
-
     const rightReport = paddedReport(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport =
-      "0x00000047000000470000004600000045000000440000003d0000003c0000003b";
+    const expectedRightReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 12) +
+          paddedBlock(startBlock + 11) +
+          paddedBlock(startBlock + 10) +
+          paddedBlock(startBlock + 3) +
+          paddedBlock(startBlock + 2) +
+          paddedBlock(startBlock + 1)
+      )
+    );
     assert(
       rightReport === expectedRightReport,
       `wrong right report
@@ -896,8 +948,18 @@ describe("CombineTier", async function () {
     const leftReport = paddedReport(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport =
-      "0xffffffffffffffff000000430000004200000041000000400000003f0000003e";
+    const expectedLeftReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          "ffffffff".repeat(2) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
     assert(
       leftReport === expectedLeftReport,
       `wrong left report
@@ -973,7 +1035,7 @@ describe("CombineTier", async function () {
       vals,
     })) as CombineTier & Contract;
 
-    console.log("start block", hexlify(await ethers.provider.getBlockNumber()));
+    const startBlock = await ethers.provider.getBlockNumber();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -986,11 +1048,6 @@ describe("CombineTier", async function () {
     await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
 
-    console.log(
-      "middle block",
-      hexlify(await ethers.provider.getBlockNumber())
-    );
-
     // ReadWriteTierLeft
     await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
@@ -1002,13 +1059,22 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    console.log("end block", hexlify(await ethers.provider.getBlockNumber()));
-
     const rightReport = paddedReport(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport =
-      "0x00000057000000570000005600000055000000540000004d0000004c0000004b";
+    const expectedRightReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 12) +
+          paddedBlock(startBlock + 11) +
+          paddedBlock(startBlock + 10) +
+          paddedBlock(startBlock + 3) +
+          paddedBlock(startBlock + 2) +
+          paddedBlock(startBlock + 1)
+      )
+    );
     assert(
       rightReport === expectedRightReport,
       `wrong right report
@@ -1019,8 +1085,18 @@ describe("CombineTier", async function () {
     const leftReport = paddedReport(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport =
-      "0xffffffffffffffff000000530000005200000051000000500000004f0000004e";
+    const expectedLeftReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          "ffffffff".repeat(2) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
     assert(
       leftReport === expectedLeftReport,
       `wrong left report
@@ -1031,8 +1107,19 @@ describe("CombineTier", async function () {
     const resultOrOld = paddedReport(
       await combineTier.report(signers[0].address)
     );
-    const expectedOrOld =
-      "0x00000057000000570000005300000052000000510000004d0000004c0000004b";
+    const expectedOrOld = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 3) +
+          paddedBlock(startBlock + 2) +
+          paddedBlock(startBlock + 1)
+      )
+    );
     assert(
       resultOrOld === expectedOrOld,
       `wrong block number preserved with tierwise orOld
@@ -1097,7 +1184,7 @@ describe("CombineTier", async function () {
       vals,
     })) as CombineTier & Contract;
 
-    console.log("start block", hexlify(await ethers.provider.getBlockNumber()));
+    const startBlock = await ethers.provider.getBlockNumber();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -1110,11 +1197,6 @@ describe("CombineTier", async function () {
     await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
 
-    console.log(
-      "middle block",
-      hexlify(await ethers.provider.getBlockNumber())
-    );
-
     // ReadWriteTierLeft
     await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
@@ -1126,13 +1208,22 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    console.log("end block", hexlify(await ethers.provider.getBlockNumber()));
-
     const rightReport = paddedReport(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport =
-      "0x00000067000000670000006600000065000000640000005d0000005c0000005b";
+    const expectedRightReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 12) +
+          paddedBlock(startBlock + 11) +
+          paddedBlock(startBlock + 10) +
+          paddedBlock(startBlock + 3) +
+          paddedBlock(startBlock + 2) +
+          paddedBlock(startBlock + 1)
+      )
+    );
     assert(
       rightReport === expectedRightReport,
       `wrong right report
@@ -1143,8 +1234,18 @@ describe("CombineTier", async function () {
     const leftReport = paddedReport(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport =
-      "0xffffffffffffffff000000630000006200000061000000600000005f0000005e";
+    const expectedLeftReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          "ffffffff".repeat(2) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
     assert(
       leftReport === expectedLeftReport,
       `wrong left report
@@ -1155,8 +1256,19 @@ describe("CombineTier", async function () {
     const resultOrNew = paddedReport(
       await combineTier.report(signers[0].address)
     );
-    const expectedOrNew =
-      "0x0000006700000067000000660000006500000064000000600000005f0000005e";
+    const expectedOrNew = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 12) +
+          paddedBlock(startBlock + 11) +
+          paddedBlock(startBlock + 10) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
     assert(
       resultOrNew === expectedOrNew,
       `wrong block number preserved with tierwise orNew
@@ -1221,7 +1333,7 @@ describe("CombineTier", async function () {
       vals,
     })) as CombineTier & Contract;
 
-    console.log("start block", hexlify(await ethers.provider.getBlockNumber()));
+    const startBlock = await ethers.provider.getBlockNumber();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -1234,11 +1346,6 @@ describe("CombineTier", async function () {
     await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
 
-    console.log(
-      "middle block",
-      hexlify(await ethers.provider.getBlockNumber())
-    );
-
     // ReadWriteTierLeft
     await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
     await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
@@ -1250,13 +1357,22 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    console.log("end block", hexlify(await ethers.provider.getBlockNumber()));
-
     const rightReport = paddedReport(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport =
-      "0x00000077000000770000007600000075000000740000006d0000006c0000006b";
+    const expectedRightReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 12) +
+          paddedBlock(startBlock + 11) +
+          paddedBlock(startBlock + 10) +
+          paddedBlock(startBlock + 3) +
+          paddedBlock(startBlock + 2) +
+          paddedBlock(startBlock + 1)
+      )
+    );
     assert(
       rightReport === expectedRightReport,
       `wrong right report
@@ -1267,8 +1383,18 @@ describe("CombineTier", async function () {
     const leftReport = paddedReport(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport =
-      "0xffffffffffffffff000000730000007200000071000000700000006f0000006e";
+    const expectedLeftReport = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          "ffffffff".repeat(2) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
     assert(
       leftReport === expectedLeftReport,
       `wrong left report
@@ -1279,8 +1405,19 @@ describe("CombineTier", async function () {
     const resultOrLeft = paddedReport(
       await combineTier.report(signers[0].address)
     );
-    const expectedOrLeft =
-      "0x0000007700000077000000730000007200000071000000700000006f0000006e";
+    const expectedOrLeft = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 13) +
+          paddedBlock(startBlock + 9) +
+          paddedBlock(startBlock + 8) +
+          paddedBlock(startBlock + 7) +
+          paddedBlock(startBlock + 6) +
+          paddedBlock(startBlock + 5) +
+          paddedBlock(startBlock + 4)
+      )
+    );
     assert(
       resultOrLeft === expectedOrLeft,
       `wrong block number preserved with tierwise orLeft
