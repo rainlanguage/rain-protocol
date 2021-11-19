@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import { ValueTier } from "../tier/ValueTier.sol";
 import { ITier } from "../tier/ITier.sol";
@@ -12,7 +12,6 @@ import { ITier } from "../tier/ITier.sol";
 contract ValueTierTest is ValueTier {
     /// Set the `tierValues` on construction to be referenced immutably.
     constructor(uint256[8] memory tierValues_)
-        public
         ValueTier(tierValues_)
     { } // solhint-disable-line no-empty-blocks
 

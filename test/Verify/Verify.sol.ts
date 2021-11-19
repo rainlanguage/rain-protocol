@@ -368,19 +368,19 @@ describe("Verify", async function () {
           await verify.APPROVER_ADMIN(),
           aprAdmin1.address
         ),
-      "revert AccessControl: sender must be an admin to grant",
+      "is missing role",
       "default admin wrongly granted approver admin role after renouncing default admin role"
     );
     await Util.assertError(
       async () =>
         await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin1.address),
-      "revert AccessControl: sender must be an admin to grant",
+      "is missing role",
       "default admin wrongly granted remover admin role after renouncing default admin role"
     );
     await Util.assertError(
       async () =>
         await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin1.address),
-      "revert AccessControl: sender must be an admin to grant",
+      "is missing role",
       "default admin wrongly granted banner admin role after renouncing default admin role"
     );
   });
@@ -434,18 +434,6 @@ describe("Verify", async function () {
     await verify
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
-
-    const approverCount = await verify.getRoleMemberCount(
-      await verify.APPROVER()
-    );
-    const removerCount = await verify.getRoleMemberCount(
-      await verify.REMOVER()
-    );
-    const bannerCount = await verify.getRoleMemberCount(await verify.BANNER());
-
-    assert(approverCount.eq(1), `expected 1, got ${approverCount}`);
-    assert(removerCount.eq(1), `expected 1, got ${removerCount}`);
-    assert(bannerCount.eq(1), `expected 1, got ${bannerCount}`);
   });
 
   it("statusAtBlock should return correct status for any given state & block number", async function () {

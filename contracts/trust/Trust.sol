@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 // solhint-disable-next-line max-line-length
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { ITier } from "../tier/ITier.sol";
 
@@ -283,7 +280,6 @@ struct TrustRedeemableERC20PoolConfig {
 /// as owner of the internals.
 contract Trust is ReentrancyGuard {
 
-    using SafeMath for uint256;
     using Math for uint256;
 
     using SafeERC20 for IERC20;
@@ -351,7 +347,7 @@ contract Trust is ReentrancyGuard {
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
         TrustRedeemableERC20PoolConfig memory trustRedeemableERC20PoolConfig_
-    ) public {
+    ) {
         require(config_.creator != address(0), "CREATOR_0");
         // There are additional minimum reserve init and token supply
         // restrictions enforced by `RedeemableERC20` and
@@ -365,9 +361,9 @@ contract Trust is ReentrancyGuard {
         );
 
         uint256 successBalance_ = trustRedeemableERC20PoolConfig_.reserveInit
-            .add(config_.seederFee)
-            .add(config_.redeemInit)
-            .add(config_.minimumCreatorRaise);
+            + config_.seederFee
+            + config_.redeemInit
+            + config_.minimumCreatorRaise;
 
         creator = config_.creator;
         seederFee = config_.seederFee;
@@ -412,20 +408,16 @@ contract Trust is ReentrancyGuard {
 
         if (config_.seeder == address(0)) {
             require(
-                trustRedeemableERC20PoolConfig_
-                    .reserveInit
-                    .mod(
-                        config_.seederUnits) == 0,
-                        "SEED_PRICE_MULTIPLIER"
-                    );
+                0 == trustRedeemableERC20PoolConfig_.reserveInit
+                    % config_.seederUnits,
+                "SEED_PRICE_MULTIPLIER"
+            );
             config_.seeder = address(config_.seedERC20Factory
                 .createChild(abi.encode(SeedERC20Config(
                     trustRedeemableERC20PoolConfig_.reserve,
                     address(redeemableERC20Pool_),
                     // seed price.
-                    redeemableERC20Pool_
-                        .reserveInit()
-                        .div(config_.seederUnits),
+                    redeemableERC20Pool_.reserveInit() / config_.seederUnits,
                     config_.seederUnits,
                     config_.seederCooldownDuration,
                     "",
@@ -565,6 +557,9 @@ contract Trust is ReentrancyGuard {
                 return DistributionStatus.Fail;
             }
         }
+        else {
+            revert("UNKNOWN_POOL_PHASE");
+        }
     }
 
     /// Anyone can end the distribution.
@@ -597,13 +592,13 @@ contract Trust is ReentrancyGuard {
         uint256 availableBalance_ = pool.reserve().balanceOf(address(this));
 
         // Base payments for each fundraiser.
-        uint256 seederPay_ = pool.reserveInit().sub(poolDust_);
+        uint256 seederPay_ = pool.reserveInit() - poolDust_;
         uint256 creatorPay_ = 0;
 
         // Set aside the redemption and seed fee if we reached the minimum.
         if (finalBalance >= successBalance) {
             // The seeder gets an additional fee on success.
-            seederPay_ = seederPay_.add(seederFee);
+            seederPay_ = seederPay_ + seederFee;
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for
@@ -619,7 +614,7 @@ contract Trust is ReentrancyGuard {
             //
             // Implied is the remainder of finalBalance_ as redeemInit
             // This will be transferred to the token holders below.
-            creatorPay_ = availableBalance_.sub(seederPay_.add(redeemInit));
+            creatorPay_ = availableBalance_ - ( seederPay_ + redeemInit );
         }
 
         if (creatorPay_ > 0) {

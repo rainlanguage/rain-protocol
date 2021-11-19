@@ -17,13 +17,12 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.5.12",
+        version: "0.8.10",
         settings: {
           optimizer: {
             enabled: true,
-            runs: 100,
+            runs: 100000,
           },
-          evmVersion: "byzantium",
         },
       },
       {
@@ -33,6 +32,16 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 100000,
           },
+        },
+      },
+      {
+        version: "0.5.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 100,
+          },
+          evmVersion: "byzantium",
         },
       },
     ],
