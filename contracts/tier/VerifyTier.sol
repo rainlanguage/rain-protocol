@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 
 import "./ReadOnlyTier.sol";
 import { State, Status, Verify } from "../verify/Verify.sol";
-import "../libraries/TierUtil.sol";
+import "./libraries/TierReport.sol";
 
 /// @title VerifyTier
 ///
@@ -33,7 +33,7 @@ contract VerifyTier is ReadOnlyTier {
                 state_,
                 uint32(block.number)
             ) == Status.Approved) {
-            return TierUtil.updateBlocksForTierRange(
+            return TierReport.updateBlocksForTierRange(
                 0,
                 Tier.ZERO,
                 Tier.EIGHT,
