@@ -291,9 +291,11 @@ contract Trust is ReentrancyGuard {
     /// - Raise descriptions/promises
     /// - Reviews/comments from token holders
     /// - Simple onchain voting/signalling
-    /// GUIs reading from indexers over this data are expected to know how to
+    /// GUIs/tooling/indexers reading this data are expected to know how to
     /// interpret it in context because the contract does not.
-    event Notice(address indexed sender, bytes notice);
+    /// @param sender The `msg.sender` that emitted the `Notice`.
+    /// @param data Opaque binary data for the GUI/tooling/indexer to read.
+    event Notice(address indexed sender, bytes data);
 
     /// Creator from the initial config.
     address public immutable creator;
@@ -575,8 +577,8 @@ contract Trust is ReentrancyGuard {
     /// Anyone can send a notice about this `Trust`.
     /// The notice is opaque bytes that the indexer/GUI is expected to
     /// understand the context to decode/interpret it.
-    function sendNotice(bytes memory notice_) external {
-        emit Notice(msg.sender, notice_);
+    function sendNotice(bytes memory data_) external {
+        emit Notice(msg.sender, data_);
     }
 
     /// Anyone can end the distribution.
