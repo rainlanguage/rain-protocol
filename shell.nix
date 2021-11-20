@@ -59,6 +59,7 @@ let
     mkdir -p solt
     find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
     for name in solc-* ; do  content=$(jq '.sources |= with_entries(.key |= sub("\\./"; ""))' "''${name}")
+    content=$(jq 'del(.settings.metadata)' <<< ''${content})
     cat <<< $content > "''${name}"; done
     mv solc-* solt
   '';
