@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import { ITier } from "./ITier.sol";
 
@@ -25,7 +25,7 @@ contract ValueTier {
     uint256 private immutable tierEight;
 
     /// Set the `tierValues` on construction to be referenced immutably.
-    constructor(uint256[8] memory tierValues_) public {
+    constructor(uint256[8] memory tierValues_) {
         tierOne = tierValues_[0];
         tierTwo = tierValues_[1];
         tierThree = tierValues_[2];

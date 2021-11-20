@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 /// @title ITier
 /// @notice `ITier` is a simple interface that contracts can
@@ -49,6 +49,7 @@ pragma solidity 0.6.12;
 /// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
 ///   - Contracts that cannot meaningfully set a tier are exempt.
 interface ITier {
+
     /// 9 Possible tiers.
     /// Fits nicely as uint32 in uint256 which is helpful for internal storage
     /// concerns.

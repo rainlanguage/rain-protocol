@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.10;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 // solhint-disable-next-line max-line-length
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 // solhint-disable-next-line max-line-length
-import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
 import { ITier } from "../tier/ITier.sol";
@@ -104,7 +101,6 @@ contract RedeemableERC20 is
     ERC20Burnable
     {
 
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     bytes32 public constant SENDER = keccak256("SENDER");
@@ -146,7 +142,6 @@ contract RedeemableERC20 is
     constructor (
         RedeemableERC20Config memory config_
     )
-        public
         ERC20(config_.name, config_.symbol)
         TierByConstruction(config_.tier)
     {
@@ -231,10 +226,9 @@ contract RedeemableERC20 is
 
         for(uint256 i_ = 0; i_ < treasuryAssets_.length; i_++) {
             IERC20 ithRedeemable_ = treasuryAssets_[i_];
-            uint256 assetAmount_ = ithRedeemable_
-                .balanceOf(address(this))
-                .mul(redeemAmount_)
-                .div(supplyBeforeBurn_);
+            uint256 assetAmount_
+                = ( ithRedeemable_.balanceOf(address(this)) * redeemAmount_ )
+                / supplyBeforeBurn_;
             emit Redeem(
                 msg.sender,
                 address(ithRedeemable_),

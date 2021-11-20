@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.10;
 
 import { Factory } from "../factory/Factory.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";

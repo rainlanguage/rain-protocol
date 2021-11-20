@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
 /// Defines all possible phases.
 /// `Phased` begins in `Phase.ZERO` and moves through each phase sequentially.
@@ -60,22 +60,19 @@ enum Phase {
 abstract contract Phased {
     /// Every phase block starts uninitialized.
     /// Only uninitialized blocks can be set by the phase scheduler.
-    uint32 constant public UNINITIALIZED = uint32(-1);
+    uint32 public constant UNINITIALIZED = 0xFFFFFFFF;
 
     /// `PhaseShiftScheduled` is emitted when the next phase is scheduled.
     event PhaseShiftScheduled(uint32 indexed newPhaseBlock_);
 
     /// 8 phases each as 32 bits to fit a single 32 byte word.
-    uint32[8] public phaseBlocks = [
-        UNINITIALIZED,
-        UNINITIALIZED,
-        UNINITIALIZED,
-        UNINITIALIZED,
-        UNINITIALIZED,
-        UNINITIALIZED,
-        UNINITIALIZED,
-        UNINITIALIZED
-    ];
+    uint32[8] public phaseBlocks;
+
+    constructor() {
+        for (uint256 i_ = 0; i_ < 8; i_++) {
+            phaseBlocks[i_] = UNINITIALIZED;
+        }
+    }
 
     /// Pure function to reduce an array of phase blocks and block number to a
     /// specific `Phase`.

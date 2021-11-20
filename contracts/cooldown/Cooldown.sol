@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
 /// @title Cooldown
 /// @notice `Cooldown` is an abstract contract that rate limits functions on
@@ -48,7 +48,7 @@ abstract contract Cooldown {
     /// The cooldown duration is global to the contract.
     /// Cooldown duration must be greater than 0.
     /// @param cooldownDuration_ The global cooldown duration.
-    constructor(uint16 cooldownDuration_) public {
+    constructor(uint16 cooldownDuration_) {
         require(cooldownDuration_ > 0, "COOLDOWN_0");
         cooldownDuration = cooldownDuration_;
     }

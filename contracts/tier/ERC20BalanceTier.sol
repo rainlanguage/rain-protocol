@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { TierUtil } from "../libraries/TierUtil.sol";
 import { ValueTier } from "./ValueTier.sol";
 import { ITier } from "./ITier.sol";
@@ -44,7 +43,6 @@ contract ERC20BalanceTier is ReadOnlyTier, ValueTier {
     /// @param tierValues_ 8 values corresponding to minimum erc20
     /// balances for `Tier.ONE` through `Tier.EIGHT`.
     constructor(IERC20 erc20_, uint256[8] memory tierValues_)
-        public
         ValueTier(tierValues_)
     {
         erc20 = erc20_;

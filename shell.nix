@@ -58,6 +58,8 @@ let
   solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
     mkdir -p solt
     find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
+    for name in solc-* ; do  content=$(jq '.sources |= with_entries(.key |= sub("\\./"; ""))' "''${name}")
+    cat <<< $content > "''${name}"; done
     mv solc-* solt
   '';
 

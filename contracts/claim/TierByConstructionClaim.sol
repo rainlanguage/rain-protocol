@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ITier } from "../tier/ITier.sol";
@@ -67,7 +67,6 @@ contract TierByConstructionClaim is TierByConstruction {
     /// constructor.
     /// The minimum tier is set for `claim` logic.
     constructor(ITier tierContract_, ITier.Tier minimumTier_)
-        public
         TierByConstruction(tierContract_)
     {
         minimumTier = minimumTier_;
