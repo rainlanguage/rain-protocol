@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
-pragma experimental ABIEncoderV2;
-
-import "@openzeppelin/contracts/math/Math.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "hardhat/console.sol";
 
 struct CompileIO {
@@ -40,7 +37,6 @@ struct Op {
 
 abstract contract RainCompiler {
     using Math for uint256;
-    using SafeMath for uint256;
 
     // 32 bytes * 4 items.
     uint8 public constant MAX_SOURCE_LENGTH = 128;
@@ -77,8 +73,7 @@ abstract contract RainCompiler {
 
     constructor(
         Source memory source_
-    )
-    public {
+    ) {
         val0 = source_.vals[0];
         val1 = source_.vals[1];
         val2 = source_.vals[2];
@@ -182,8 +177,8 @@ abstract contract RainCompiler {
     ) internal view returns (Stack memory) {
         for (uint256 i_ = 0; i_ < MAX_SOURCE_LENGTH; i_ = i_ + 2) {
             SourceCursor memory sourceCursor_ = SourceCursor(
-                uint8(i_.div(32)),
-                uint8(i_.mod(32))
+                uint8(i_ / 32),
+                uint8(i_ % 32)
             );
 
             Op memory op_ = Op(

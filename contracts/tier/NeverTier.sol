@@ -3,7 +3,7 @@
 pragma solidity 0.8.10;
 
 import "./ReadOnlyTier.sol";
-import "../libraries/TierUtil.sol";
+import "./libraries/TierReport.sol";
 
 /// @title NeverTier
 /// @notice `NeverTier` inherits from `ReadOnlyTier`.
@@ -19,6 +19,6 @@ contract NeverTier is ReadOnlyTier {
     /// Every tier in the report is unobtainable.
     /// @inheritdoc ITier
     function report(address) public override pure returns (uint256) {
-        return TierUtil.UNINITIALIZED;
+        return TierReport.UNINITIALIZED;
     }
 }

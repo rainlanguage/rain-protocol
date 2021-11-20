@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
-pragma experimental ABIEncoderV2;
-
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/math/Math.sol";
-import "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import { FactoryTruster } from "../factory/FactoryTruster.sol";
 import { IFactory } from "../factory/IFactory.sol";
 import { Trust, TrustContracts, DistributionStatus } from "../trust/Trust.sol";
 import { IBPool } from "../pool/IBPool.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
 
 /// Represents fees as they are claimed by a recipient on a per-trust basis.
@@ -91,10 +88,13 @@ struct ClaimedFees {
 /// There are no admin roles for the escrow, every recipient must manage their
 /// incoming reserves, trusts and claims themselves.
 contract BPoolFeeEscrow is FactoryTruster {
-    using SafeMath for uint256;
-    using Math for uint256;
     using SafeERC20 for IERC20;
+    using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    uint256 public constant INFINITY
+        = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+
 
     /// The recipient has set minimum fees for the given reserve.
     /// A minFees value of `0` means the minimum fee was unset.
@@ -152,7 +152,6 @@ contract BPoolFeeEscrow is FactoryTruster {
     /// implements `IFactory` correctly and that the `Trust` contracts that it
     /// deploys are not buggy or malicious re: tracking distribution status.
     constructor(IFactory trustFactory_)
-        public
         FactoryTruster(trustFactory_)
         {} //solhint-disable-line no-empty-blocks
 
@@ -232,10 +231,9 @@ contract BPoolFeeEscrow is FactoryTruster {
         uint256 oldFees_ = fees[address(trust_)][msg.sender];
         if (oldFees_ > 0) {
             delete fees[address(trust_)][msg.sender];
-            abandoned[address(trust_)] = abandoned[address(trust_)]
-                .add(oldFees_);
-            failureRefunds[address(trust_)] = failureRefunds[address(trust_)]
-                .sub(oldFees_);
+            abandoned[address(trust_)] = abandoned[address(trust_)] + oldFees_;
+            failureRefunds[address(trust_)]
+                = failureRefunds[address(trust_)] - oldFees_;
             // Ignore this because it doesn't represent success/fail of remove.
             bool didRemove_;
             didRemove_ = pending[msg.sender].remove(address(trust_));
@@ -366,7 +364,7 @@ contract BPoolFeeEscrow is FactoryTruster {
 
         if (abandoned_ > 0) {
             delete abandoned[address(trust_)];
-            totalRefund_ = totalRefund_.add(abandoned_);
+            totalRefund_ = totalRefund_ + abandoned_;
         }
 
         if (
@@ -375,7 +373,7 @@ contract BPoolFeeEscrow is FactoryTruster {
                 distributionStatus_ == DistributionStatus.Success)
         ) {
             if (distributionStatus_ == DistributionStatus.Fail) {
-                totalRefund_ = totalRefund_.add(failureRefund_);
+                totalRefund_ = totalRefund_ + failureRefund_;
             }
             // Clear out the failure refund even if the raise was a success.
             delete failureRefunds[address(trust_)];
@@ -449,11 +447,10 @@ contract BPoolFeeEscrow is FactoryTruster {
         onlyTrustedFactoryChild(address(trust_))
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
     {
-        fees[address(trust_)][feeRecipient_] = fees[address(trust_)][
-            feeRecipient_
-        ].add(fee_);
-        failureRefunds[address(trust_)] = failureRefunds[address(trust_)]
-        .add(fee_);
+        fees[address(trust_)][feeRecipient_]
+            = fee_ + fees[address(trust_)][feeRecipient_];
+        failureRefunds[address(trust_)]
+            = fee_ + failureRefunds[address(trust_)];
         // Ignore this because it doesn't represent success/fail of add.
         bool didAdd_;
         didAdd_ = pending[feeRecipient_].add(address(trust_));
@@ -467,7 +464,7 @@ contract BPoolFeeEscrow is FactoryTruster {
         IERC20(trustContracts_.reserveERC20).safeTransferFrom(
             msg.sender,
             address(this),
-            reserveAmountIn_.add(fee_)
+            fee_ + reserveAmountIn_
         );
 
         IConfigurableRightsPool(trustContracts_.crp).pokeWeights();
@@ -491,7 +488,7 @@ contract BPoolFeeEscrow is FactoryTruster {
             // on `RedeemableERC20PoolFactory`.
             require(IERC20(trustContracts_.reserveERC20).approve(
                 trustContracts_.pool,
-                uint256(-1)
+                INFINITY
             ), "APPROVE_FAIL");
         }
 

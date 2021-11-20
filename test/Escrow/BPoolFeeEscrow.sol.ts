@@ -75,7 +75,7 @@ describe("BPoolFeeEscrow", async function () {
           0
         );
       },
-      "revert EnumerableSet: index out of bounds",
+      "revert",
       `did not error, should be out of bounds, got value ${pendingTrustOutOfBounds0}`
     );
 
@@ -105,7 +105,7 @@ describe("BPoolFeeEscrow", async function () {
           0
         );
       },
-      "revert EnumerableSet: index out of bounds",
+      "revert",
       `did not error, should be out of bounds, got value ${pendingTrustOutOfBounds1}`
     );
 
@@ -168,7 +168,7 @@ describe("BPoolFeeEscrow", async function () {
       async () => {
         pendingTrustOutOfBounds = await escrow.getPending(recipient.address, 0);
       },
-      "revert EnumerableSet: index out of bounds",
+      "revert",
       `did not error, should be out of bounds, got value ${pendingTrustOutOfBounds}`
     );
   });

@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.10;
 
 import { IFactory } from "../factory/IFactory.sol";
 import { FactoryTruster } from "../factory/FactoryTruster.sol";
 import { Trust, DistributionStatus, TrustContracts } from "../trust/Trust.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// Escrow contract for ERC20 tokens to be deposited and withdrawn against
 /// redeemableERC20 tokens from a specific `Trust`.
@@ -71,7 +68,6 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 /// token movement in/out of the escrow cannot impact other tokens, even for
 /// the same trust and redeemable.
 contract RedeemableERC20ClaimEscrow is FactoryTruster {
-    using SafeMath for uint256;
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -87,7 +83,6 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
 
     /// @param trustFactory_ forwarded to `FactoryTruster`.
     constructor(IFactory trustFactory_)
-        public
         FactoryTruster(trustFactory_)
         { } //solhint-disable-line no-empty-blocks
 
@@ -111,10 +106,9 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
         onlyTrustedFactoryChild(address(trust_))
     {
         deposits[address(trust_)][address(token_)][msg.sender]
-            = deposits[address(trust_)][address(token_)][msg.sender]
-                .add(amount_);
+            = amount_ + deposits[address(trust_)][address(token_)][msg.sender];
         totalDeposits[address(trust_)][address(token_)]
-            = totalDeposits[address(trust_)][address(token_)].add(amount_);
+            = amount_ + totalDeposits[address(trust_)][address(token_)];
 
         // Technically a reentrant `require` even though we explicitly trust
         // the `trust_` this helps automated auditing tools.
@@ -150,7 +144,7 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
         if (amount_ > 0) {
             delete deposits[address(trust_)][address(token_)][msg.sender];
             totalDeposits[address(trust_)][address(token_)]
-                = totalDeposits[address(trust_)][address(token_)].sub(amount_);
+                = amount_ - totalDeposits[address(trust_)][address(token_)];
 
             require(
                 trust_.getDistributionStatus() == DistributionStatus.Fail,
@@ -200,14 +194,6 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
             TrustContracts memory trustContracts_ = trust_.getContracts();
             token_.safeTransfer(
                 msg.sender,
-                totalDeposit_.sub(withdrawn_).mul(
-                    RedeemableERC20(trustContracts_.redeemableERC20)
-                        .balanceOf(msg.sender)
-                )
-                .div(
-                    RedeemableERC20(trustContracts_.redeemableERC20)
-                        .totalSupply()
-                )
                 // Guard against rounding errors blocking the last withdraw.
                 // The issue would be if rounding errors in the withdrawal
                 // trigger an attempt to withdraw more redeemable than is owned
@@ -219,8 +205,12 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
                 // For example, if 100 tokens are split between 3 accounts then
                 // each account will receive 33 tokens, effectively burning 1
                 // token as it cannot be withdrawn from the escrow contract.
-                .min(
-                    token_.balanceOf(address(this))
+                token_.balanceOf(address(this)).min(
+                    (totalDeposit_ - withdrawn_)
+                    * RedeemableERC20(trustContracts_.redeemableERC20)
+                        .balanceOf(msg.sender)
+                    / RedeemableERC20(trustContracts_.redeemableERC20)
+                        .totalSupply()
                 )
             );
         }

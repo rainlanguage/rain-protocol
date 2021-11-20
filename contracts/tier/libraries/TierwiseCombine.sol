@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "./TierReport.sol";
 
 library TierwiseCombine {
     using Math for uint256;
@@ -23,7 +24,7 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_ = uint256(-1);
+            uint256 accumulator_ = TierReport.UNINITIALIZED;
             bool allTrue_ = true;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
                 if (allTrue_ && vals_[i_] <= blockNumber_) {
@@ -35,7 +36,7 @@ library TierwiseCombine {
                 }
             }
             if (!allTrue_) {
-                accumulator_ = uint256(-1);
+                accumulator_ = TierReport.UNINITIALIZED;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -70,7 +71,7 @@ library TierwiseCombine {
                 }
             }
             if (!allTrue_) {
-                accumulator_ = uint256(-1);
+                accumulator_ = TierReport.UNINITIALIZED;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -102,7 +103,7 @@ library TierwiseCombine {
                 }
             }
             if (!allTrue_) {
-                accumulator_ = uint256(-1);
+                accumulator_ = TierReport.UNINITIALIZED;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -135,7 +136,7 @@ library TierwiseCombine {
                 }
             }
             if (!anyTrue_) {
-                accumulator_ = uint256(-1);
+                accumulator_ = TierReport.UNINITIALIZED;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -169,7 +170,7 @@ library TierwiseCombine {
                 }
             }
             if (!anyTrue_) {
-                accumulator_ = uint256(-1);
+                accumulator_ = TierReport.UNINITIALIZED;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -201,7 +202,7 @@ library TierwiseCombine {
                 }
             }
             if (!anyTrue_) {
-                accumulator_ = uint256(-1);
+                accumulator_ = TierReport.UNINITIALIZED;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }

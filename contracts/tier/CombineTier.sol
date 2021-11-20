@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.10;
 
 import { RainCompiler, Stack, Op, Source } from "../compiler/RainCompiler.sol";
 import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
@@ -20,7 +18,6 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
     uint8 public constant OPCODE_OR_LEFT = 8 + OPCODE_RESERVED_MAX;
 
     constructor(Source memory source_)
-        public
         // solhint-disable-next-line no-empty-blocks
         RainCompiler(source_) { }
 
@@ -36,13 +33,14 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
     {
         if (op_.code == OPCODE_ACCOUNT) {
             (address account_) = abi.decode(context_, (address));
-            stack_.vals[stack_.index] = uint256(account_);
+            stack_.vals[stack_.index] = uint256(uint160(account_));
             stack_.index++;
         }
         else if (op_.code == OPCODE_REPORT) {
             stack_.index -= 2;
-            stack_.vals[stack_.index] = ITier(stack_.vals[stack_.index + 1])
-                .report(address(stack_.vals[stack_.index]));
+            stack_.vals[stack_.index] =
+                ITier(address(uint160(stack_.vals[stack_.index + 1])))
+                    .report(address(uint160(stack_.vals[stack_.index])));
             stack_.index++;
         }
         else if (OPCODE_AND_OLD <= op_.code && op_.code <= OPCODE_OR_LEFT) {

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.10;
 
 import { RainCompiler, Source, Stack, Op } from "../compiler/RainCompiler.sol";
 import "hardhat/console.sol";
@@ -15,7 +13,6 @@ contract CalculatorTest is RainCompiler {
     uint8 public constant OPCODE_MOD = 5 + OPCODE_RESERVED_MAX;
 
     constructor(Source memory source_)
-        public
         // solhint-disable-next-line no-empty-blocks
         RainCompiler(source_) { }
 
@@ -26,7 +23,7 @@ contract CalculatorTest is RainCompiler {
     )
         internal
         override
-        view
+        pure
         returns (Stack memory)
     {
         if (op_.code == OPCODE_ADD) {
@@ -35,8 +32,7 @@ contract CalculatorTest is RainCompiler {
             for (uint256 a_ = 0; a_ < op_.val; a_++) {
                 // Addition is commutative so it doesn't matter that we're
                 // technically iterating the inputs backwards here.
-                accumulator_ = accumulator_
-                    .add(stack_.vals[stack_.index + a_]);
+                accumulator_ = accumulator_ + stack_.vals[stack_.index + a_];
             }
             stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
@@ -48,8 +44,7 @@ contract CalculatorTest is RainCompiler {
                 // Iterate backwards through inputs, subtracting each one from
                 // the current value, being careful not to subtract the first
                 // number from itself.
-                accumulator_ = accumulator_
-                    .sub(stack_.vals[stack_.index + a_]);
+                accumulator_ = accumulator_ - stack_.vals[stack_.index + a_];
             }
             stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
@@ -61,8 +56,7 @@ contract CalculatorTest is RainCompiler {
                 // Iterate backwards through inputs, multiplying the current
                 // value by each one, being careful not to multiply the first
                 // number again.
-                accumulator_ = accumulator_
-                    .mul(stack_.vals[stack_.index + a_]);
+                accumulator_ = accumulator_ * stack_.vals[stack_.index + a_];
             }
             stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
@@ -76,10 +70,9 @@ contract CalculatorTest is RainCompiler {
                 // Iterate backwards through inputs, calculating the total
                 // denominator, being careful not to multiply by the initial
                 // denominator value again.
-                denominator_ = denominator_
-                    .mul(stack_.vals[stack_.index + a_]);
+                denominator_ = denominator_ * stack_.vals[stack_.index + a_];
             }
-            stack_.vals[stack_.index] = numerator_.div(denominator_);
+            stack_.vals[stack_.index] = numerator_ / denominator_;
             stack_.index++;
         } else if (op_.code == OPCODE_MOD) {
             stack_.index -= op_.val;
@@ -91,10 +84,9 @@ contract CalculatorTest is RainCompiler {
                 // Iterate backwards through inputs, calculating the total
                 // denominator, being careful not to multiply by the initial
                 // denominator value again.
-                denominator_ = denominator_
-                    .mul(stack_.vals[stack_.index + a_]);
+                denominator_ = denominator_ * stack_.vals[stack_.index + a_];
             }
-            stack_.vals[stack_.index] = numerator_.mod(denominator_);
+            stack_.vals[stack_.index] = numerator_ % denominator_;
             stack_.index++;
         }
 
