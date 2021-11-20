@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 // Mirrors all the constants from Balancer `configurable-rights-pool` repo.
 // As we do not include balancer contracts as a dependency, we need to ensure
@@ -23,5 +23,6 @@ library IBalancerConstants {
     uint public constant MAX_OUT_RATIO = (BONE / 3) + 1 wei;
     uint public constant MIN_ASSET_LIMIT = 2;
     uint public constant MAX_ASSET_LIMIT = 8;
-    uint public constant MAX_UINT = uint(-1);
+    uint public constant MAX_UINT
+        = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 }

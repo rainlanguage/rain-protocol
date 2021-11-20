@@ -19,10 +19,12 @@ const APPROVER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("APPROVER_ADMIN")
 );
 const APPROVER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("APPROVER"));
+
 const REMOVER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("REMOVER_ADMIN")
 );
 const REMOVER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("REMOVER"));
+
 const BANNER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("BANNER_ADMIN")
 );
@@ -35,15 +37,427 @@ describe("Verify", async function () {
     verifyFactory = await ethers.getContractFactory("Verify");
   });
 
+  it("should not grant banner ability to approve or remove if they only have BANNER role", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // other signers
+    const signer1 = signers[7];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
+
+    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+
+    // signer1 adds session id
+    await verify.connect(signer1).add(SESSION_ID0);
+
+    await Util.assertError(
+      async () => await verify.connect(remover).approve(signer1.address),
+      "revert ONLY_APPROVER",
+      "non-approver wrongly approved account"
+    );
+
+    await Util.assertError(
+      async () => await verify.connect(approver).remove(signer1.address),
+      "revert ONLY_REMOVER",
+      "non-remover wrongly removed account"
+    );
+  });
+
+  it("should not grant remover ability to approve or ban if they only have REMOVER role", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // other signers
+    const signer1 = signers[7];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
+
+    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+
+    // signer1 adds session id
+    await verify.connect(signer1).add(SESSION_ID0);
+
+    await Util.assertError(
+      async () => await verify.connect(remover).approve(signer1.address),
+      "revert ONLY_APPROVER",
+      "non-approver wrongly approved account"
+    );
+
+    await Util.assertError(
+      async () => await verify.connect(approver).ban(signer1.address),
+      "revert ONLY_BANNER",
+      "non-banner wrongly banned session"
+    );
+  });
+
+  it("should not grant approver ability to remove or ban if they only have APPROVER role", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // other signers
+    const signer1 = signers[7];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
+
+    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+
+    // signer1 adds session id
+    await verify.connect(signer1).add(SESSION_ID0);
+
+    await Util.assertError(
+      async () => await verify.connect(approver).remove(signer1.address),
+      "revert ONLY_REMOVER",
+      "non-remover wrongly removed account"
+    );
+
+    await Util.assertError(
+      async () => await verify.connect(approver).ban(signer1.address),
+      "revert ONLY_BANNER",
+      "non-banner wrongly banned session"
+    );
+  });
+
+  it("should allow admins to grant others the same admin role", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    const aprAdmin0 = signers[1];
+    const rmvAdmin0 = signers[2];
+    const banAdmin0 = signers[3];
+    const aprAdmin1 = signers[4];
+    const rmvAdmin1 = signers[5];
+    const banAdmin1 = signers[6];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin0.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    await verify
+      .connect(aprAdmin0)
+      .grantRole(await verify.APPROVER_ADMIN(), aprAdmin1.address);
+    await verify
+      .connect(rmvAdmin0)
+      .grantRole(await verify.REMOVER_ADMIN(), rmvAdmin1.address);
+    await verify
+      .connect(banAdmin0)
+      .grantRole(await verify.BANNER_ADMIN(), banAdmin1.address);
+  });
+
+  it("should allow admin to delegate admin roles and then renounce DEFAULT_ADMIN_ROLE", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    const aprAdmin0 = signers[1];
+    const rmvAdmin0 = signers[2];
+    const banAdmin0 = signers[3];
+    const aprAdmin1 = signers[4];
+    const rmvAdmin1 = signers[5];
+    const banAdmin1 = signers[6];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin0.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+    const hasRoleDefaultAdmin = await verify.hasRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    const hasRoleApproverAdmin = await verify.hasRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    const hasRoleRemoverAdmin = await verify.hasRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    const hasRoleBannerAdmin = await verify.hasRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+    assert(
+      !hasRoleDefaultAdmin,
+      "default admin didn't renounce default admin role"
+    );
+    assert(
+      !hasRoleApproverAdmin,
+      "default admin didn't renounce approver admin role"
+    );
+    assert(
+      !hasRoleRemoverAdmin,
+      "default admin didn't renounce remover admin role"
+    );
+    assert(
+      !hasRoleBannerAdmin,
+      "default admin didn't renounce banner admin role"
+    );
+
+    await Util.assertError(
+      async () =>
+        await verify.grantRole(
+          await verify.APPROVER_ADMIN(),
+          aprAdmin1.address
+        ),
+      "is missing role",
+      "default admin wrongly granted approver admin role after renouncing default admin role"
+    );
+    await Util.assertError(
+      async () =>
+        await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin1.address),
+      "is missing role",
+      "default admin wrongly granted remover admin role after renouncing default admin role"
+    );
+    await Util.assertError(
+      async () =>
+        await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin1.address),
+      "is missing role",
+      "default admin wrongly granted banner admin role after renouncing default admin role"
+    );
+  });
+
+  it("should allow admin to delegate admin roles which can then grant non-admin roles", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
+  });
+
   it("statusAtBlock should return correct status for any given state & block number", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
-    const verifier = signers[1];
-    const signer1 = signers[2];
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // other signers
+    const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
 
     const state0 = await verify.state(signer1.address);
     assert(
@@ -54,9 +468,34 @@ describe("Verify", async function () {
       "status should be Nil"
     );
 
-    await verify.grantRole(await verify.APPROVER(), verifier.address);
-    await verify.grantRole(await verify.BANNER(), verifier.address);
-    await verify.grantRole(await verify.REMOVER(), verifier.address);
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
 
     const blockBeforeAdd = await ethers.provider.getBlockNumber();
 
@@ -76,7 +515,7 @@ describe("Verify", async function () {
     const blockBeforeApprove = await ethers.provider.getBlockNumber();
 
     // approve account
-    await verify.connect(verifier).approve(signer1.address);
+    await verify.connect(approver).approve(signer1.address);
 
     const state2 = await verify.state(signer1.address);
     assert(
@@ -90,7 +529,7 @@ describe("Verify", async function () {
     const blockBeforeBan = await ethers.provider.getBlockNumber();
 
     // ban account
-    await verify.connect(verifier).ban(signer1.address);
+    await verify.connect(banner).ban(signer1.address);
 
     const state3 = await verify.state(signer1.address);
     assert(
@@ -116,7 +555,7 @@ describe("Verify", async function () {
     );
 
     // remove account
-    await verify.connect(verifier).remove(signer1.address);
+    await verify.connect(remover).remove(signer1.address);
 
     const state4 = await verify.state(signer1.address);
     assert(
@@ -132,25 +571,59 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
-    const verifier = signers[1];
-    const signer1 = signers[2];
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // other signers
+    const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
 
-    await verify.grantRole(await verify.APPROVER(), verifier.address);
-    await verify.grantRole(await verify.BANNER(), verifier.address);
-    await verify.grantRole(await verify.REMOVER(), verifier.address);
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
     await Util.assertError(
-      async () => await verify.connect(verifier).approve(signer1.address),
+      async () => await verify.connect(approver).approve(signer1.address),
       "revert NOT_ADDED",
       "wrongly approved when Status equals Nil"
     );
     await Util.assertError(
-      async () => await verify.connect(verifier).ban(signer1.address),
+      async () => await verify.connect(banner).ban(signer1.address),
       "revert NOT_ADDED",
       "wrongly banned when Status equals Nil"
     );
@@ -159,30 +632,30 @@ describe("Verify", async function () {
     await verify.connect(signer1).add(SESSION_ID0);
 
     // Approve
-    await verify.connect(verifier).approve(signer1.address);
+    await verify.connect(approver).approve(signer1.address);
 
     await Util.assertError(
-      async () => await verify.connect(verifier).approve(signer1.address),
+      async () => await verify.connect(approver).approve(signer1.address),
       "revert PRIOR_APPROVE",
       "wrongly approved when Status equals Approved"
     );
 
     // Ban
-    await verify.connect(verifier).ban(signer1.address);
+    await verify.connect(banner).ban(signer1.address);
 
     await Util.assertError(
-      async () => await verify.connect(verifier).approve(signer1.address),
+      async () => await verify.connect(approver).approve(signer1.address),
       "revert PRIOR_APPROVE",
       "wrongly approved when Status equals Banned"
     );
     await Util.assertError(
-      async () => await verify.connect(verifier).ban(signer1.address),
+      async () => await verify.connect(banner).ban(signer1.address),
       "revert PRIOR_BAN",
       "wrongly banned when Status equals Banned"
     );
 
     // Remove
-    await verify.connect(verifier).remove(signer1.address);
+    await verify.connect(remover).remove(signer1.address);
   });
 
   it("should require non-zero admin address", async function () {
@@ -199,11 +672,42 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
-    const verifier = signers[1];
-    const signer1 = signers[2];
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // other signers
+    const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
 
     const state0 = await verify.state(signer1.address);
     assert(
@@ -220,9 +724,16 @@ describe("Verify", async function () {
     );
     assert(state0.bannedSince === 0, `bannedSince should be 0, got ${state0}`);
 
-    await verify.grantRole(await verify.APPROVER(), verifier.address);
-    await verify.grantRole(await verify.BANNER(), verifier.address);
-    await verify.grantRole(await verify.REMOVER(), verifier.address);
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
 
     // signer1 adds arbitrary session id
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
@@ -251,7 +762,7 @@ describe("Verify", async function () {
     );
 
     // approve account
-    await verify.connect(verifier).approve(signer1.address);
+    await verify.connect(approver).approve(signer1.address);
 
     const block2 = await ethers.provider.getBlockNumber();
     const state2 = await verify.state(signer1.address);
@@ -276,7 +787,7 @@ describe("Verify", async function () {
     );
 
     // ban account
-    await verify.connect(verifier).ban(signer1.address);
+    await verify.connect(banner).ban(signer1.address);
 
     const block3 = await ethers.provider.getBlockNumber();
     const state3 = await verify.state(signer1.address);
@@ -301,7 +812,7 @@ describe("Verify", async function () {
     );
 
     // remove account
-    await verify.connect(verifier).remove(signer1.address);
+    await verify.connect(remover).remove(signer1.address);
 
     const state4 = await verify.state(signer1.address);
     assert(
@@ -320,9 +831,9 @@ describe("Verify", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
+    const defaultAdmin = signers[0];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
 
     assert(
       (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
@@ -343,38 +854,15 @@ describe("Verify", async function () {
     assert((await verify.BANNER()) === BANNER, "wrong BANNER hash value");
   });
 
-  it("should correctly set up access control roles for admin in constructor", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-    const admin = signers[0];
-
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
-
-    // admin (specified in constructor) has all roles
-    assert(
-      await verify.hasRole(APPROVER_ADMIN, admin.address),
-      "admin did not have APPROVER_ADMIN role after construction"
-    );
-    assert(
-      await verify.hasRole(REMOVER_ADMIN, admin.address),
-      "admin did not have REMOVER_ADMIN role after construction"
-    );
-    assert(
-      await verify.hasRole(BANNER_ADMIN, admin.address),
-      "admin did not have BANNER_ADMIN role after construction"
-    );
-  });
-
   it("should allow anyone to map their account to a session id", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
+    const defaultAdmin = signers[0];
     const signer1 = signers[1];
     const signer2 = signers[2];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
     const SESSION_ID1 = ethers.BigNumber.from("12345678901234567901");
@@ -423,18 +911,43 @@ describe("Verify", async function () {
     }
   });
 
-  it("should allow only admin to approve accounts", async function () {
+  it("should allow only approver to approve accounts", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
-    const signer1 = signers[1];
-    const approver = signers[2];
-    const nonApprover = signers[3];
+    const defaultAdmin = signers[0];
+    const aprAdmin = signers[1];
+    const signer1 = signers[2];
+    const approver = signers[3];
+    const nonApprover = signers[4];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
 
-    await verify.grantRole(await verify.APPROVER(), approver.address);
+    // defaultAdmin grants admin role
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // approver admin grants approver role
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -467,18 +980,43 @@ describe("Verify", async function () {
     );
   });
 
-  it("should allow only admin to remove accounts", async function () {
+  it("should allow only remover to remove accounts", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
-    const signer1 = signers[1];
-    const remover = signers[2];
-    const nonRemover = signers[3];
+    const defaultAdmin = signers[0];
+    const rmvAdmin = signers[1];
+    const signer1 = signers[2];
+    const remover = signers[3];
+    const nonRemover = signers[4];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
 
-    await verify.grantRole(await verify.REMOVER(), remover.address);
+    // defaultAdmin grants admin role
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // remover admin grants remover role
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 
@@ -511,18 +1049,43 @@ describe("Verify", async function () {
     assert(stateRemoved.id.isZero(), "not removed");
   });
 
-  it("should allow only admin to ban verify sessions", async function () {
+  it("should allow only banner to ban sessions", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const admin = signers[0];
-    const signer1 = signers[1];
-    const banner = signers[2];
-    const nonBanner = signers[3];
+    const defaultAdmin = signers[0];
+    const banAdmin = signers[1];
+    const signer1 = signers[2];
+    const banner = signers[3];
+    const nonBanner = signers[4];
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify;
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
 
-    await verify.grantRole(await verify.BANNER(), banner.address);
+    // defaultAdmin grants admin role
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // banner admin grants banner role
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
 
     const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
 

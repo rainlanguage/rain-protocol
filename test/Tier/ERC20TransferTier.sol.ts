@@ -1,3 +1,4 @@
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import type { Contract } from "ethers";
@@ -24,17 +25,15 @@ enum Tier {
 const LEVELS = Array.from(Array(8).keys()).map((value) =>
   ethers.BigNumber.from(++value + eighteenZeros)
 );
-const LEVEL_SIZE_LINEAR = ethers.BigNumber.from(1 + eighteenZeros);
 
 describe("ERC20TransferTier", async function () {
-  let owner: any;
-  let alice: any;
-  let bob: any;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
   let erc20TransferTier: ERC20TransferTier & Contract;
   let reserve: ReserveTokenTest & Contract;
 
   beforeEach(async () => {
-    [owner, alice, bob] = await ethers.getSigners();
+    [, alice, bob] = await ethers.getSigners();
 
     reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
       Contract;

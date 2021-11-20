@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import "./ReadOnlyTier.sol";
+import "../libraries/TierUtil.sol";
 
 /// @title NeverTier
 /// @notice `NeverTier` inherits from `ReadOnlyTier`.
@@ -17,7 +18,7 @@ import "./ReadOnlyTier.sol";
 contract NeverTier is ReadOnlyTier {
     /// Every tier in the report is unobtainable.
     /// @inheritdoc ITier
-    function report(address) public override view returns (uint256) {
-        return uint256(-1);
+    function report(address) public override pure returns (uint256) {
+        return TierUtil.UNINITIALIZED;
     }
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import { ITier } from "../tier/ITier.sol";
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
@@ -12,7 +12,6 @@ contract TierByConstructionTest is TierByConstruction {
 
     /// @param tier_ The tier contract for `TierByConstruction`.
     constructor(ITier tier_)
-        public
         TierByConstruction(tier_) { } // solhint-disable-line no-empty-blocks
 
     /// External function with no modifier to use as a control for testing.

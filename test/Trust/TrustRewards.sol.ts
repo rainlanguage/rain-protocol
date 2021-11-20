@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers } from "hardhat";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import type { Trust } from "../../typechain/Trust";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
 import type { Contract } from "ethers";
@@ -11,14 +11,11 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { factoriesDeploy } from "../Util";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
-const trustJson = require("../../artifacts/contracts/trust/Trust.sol/Trust.json");
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
-const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
-const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("../../artifacts/contracts/pool/IConfigurableRightsPool.sol/IConfigurableRightsPool.json");
 
 enum Tier {
   NIL,
@@ -97,7 +94,6 @@ describe("TrustRewards", async function () {
     const seeder = signers[1]; // seeder is not creator/owner
     const deployer = signers[2]; // deployer is not creator
     const signer1 = signers[3];
-    const signer2 = signers[4];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -166,7 +162,7 @@ describe("TrustRewards", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     // raise some funds
     const swapReserveForTokens = async (signer, spend, reserve) => {
@@ -477,7 +473,7 @@ describe("TrustRewards", async function () {
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     assert(
       (await token.currentPhase()) === Phase.ZERO,
@@ -684,9 +680,7 @@ describe("TrustRewards", async function () {
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
-    const startBlock = await ethers.provider.getBlockNumber();
-
-    let [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);
 

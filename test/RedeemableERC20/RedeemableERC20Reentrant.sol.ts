@@ -8,6 +8,7 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 enum Tier {
@@ -20,18 +21,6 @@ enum Tier {
   DIAMOND,
   CHAD,
   JAWAD,
-}
-
-enum Phase {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
 }
 
 describe("RedeemableERC20Reentrant", async function () {
@@ -59,9 +48,6 @@ describe("RedeemableERC20Reentrant", async function () {
     const tokenName = "RedeemableERC20";
     const tokenSymbol = "RDX";
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
-
-    const now = await ethers.provider.getBlockNumber();
-    const phaseOneBlock = now + 15;
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,

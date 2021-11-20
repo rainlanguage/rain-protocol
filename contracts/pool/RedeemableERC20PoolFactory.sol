@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.10;
 
 import { Factory } from "../factory/Factory.sol";
 // solhint-disable-next-line max-line-length
@@ -74,7 +72,7 @@ contract RedeemableERC20PoolFactory is Factory {
     address public immutable balancerFactory;
 
     /// @param config_ All configuration for the `RedeemableERC20PoolFactory`.
-    constructor(RedeemableERC20PoolFactoryConfig memory config_) public {
+    constructor(RedeemableERC20PoolFactoryConfig memory config_) {
         crpFactory = config_.crpFactory;
         balancerFactory = config_.balancerFactory;
     }

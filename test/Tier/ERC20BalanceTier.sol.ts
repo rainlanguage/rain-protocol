@@ -1,3 +1,4 @@
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import type { Contract } from "ethers";
@@ -7,6 +8,7 @@ import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
 import { assertError, basicDeploy, eighteenZeros } from "../Util";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 enum Tier {
@@ -27,8 +29,8 @@ const LEVELS = Array.from(Array(8).keys()).map((value) =>
 const LEVEL_SIZE_LINEAR = ethers.BigNumber.from(1 + eighteenZeros);
 
 describe("ERC20BalanceTier", async function () {
-  let owner: any;
-  let alice: any;
+  let owner: SignerWithAddress;
+  let alice: SignerWithAddress;
   let erc20BalanceTier: ERC20BalanceTier & Contract;
   let reserve: ReserveTokenTest & Contract;
 
