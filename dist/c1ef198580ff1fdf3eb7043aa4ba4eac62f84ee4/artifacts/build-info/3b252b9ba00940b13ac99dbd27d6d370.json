@@ -1,0 +1,1840 @@
+{
+  "id": "3b252b9ba00940b13ac99dbd27d6d370",
+  "_format": "hh-sol-build-info-1",
+  "solcVersion": "0.6.12",
+  "solcLongVersion": "0.6.12+commit.27d51765",
+  "input": {
+    "language": "Solidity",
+    "sources": {
+      "contracts/factory/Factory.sol": {
+        "content": "// SPDX-License-Identifier: CAL\npragma solidity ^0.6.12;\n\npragma experimental ABIEncoderV2;\n\nimport { IFactory } from \"./IFactory.sol\";\nimport {\n    ReentrancyGuard\n} from \"@openzeppelin/contracts/utils/ReentrancyGuard.sol\";\n\n/// @title Factory\n/// @notice Base contract for deploying and registering child contracts.\nabstract contract Factory is IFactory, ReentrancyGuard {\n    mapping(address => bool) private contracts;\n\n    /// Implements `IFactory`.\n    ///\n    /// `_createChild` hook must be overridden to actually create child\n    /// contract.\n    ///\n    /// Implementers may want to overload this function with a typed equivalent\n    /// to expose domain specific structs etc. to the compiled ABI consumed by\n    /// tooling and other scripts. To minimise gas costs for deployment it is\n    /// expected that the tooling will consume the typed ABI, then encode the\n    /// arguments and pass them to this function directly.\n    ///\n    /// @param data_ ABI encoded data to pass to child contract constructor.\n    // Slither false positive. This is intended to overridden.\n    // https://github.com/crytic/slither/issues/929\n    // slither-disable-next-line dead-code\n    function _createChild(bytes calldata data_)\n        internal\n        virtual\n        returns(address)\n    { } // solhint-disable-line no-empty-blocks\n\n    /// Implements `IFactory`.\n    ///\n    /// Calls the _createChild hook, which inheriting contracts must override.\n    /// Registers child contract address such that `isChild` is `true`.\n    /// Emits `NewContract` event.\n    ///\n    /// @param data_ Encoded data to pass down to child contract constructor.\n    /// @return New child contract address.\n    function createChild(bytes calldata data_)\n        external\n        virtual\n        override\n        nonReentrant\n        returns(address) {\n        // Create child contract using hook.\n        address child_ = _createChild(data_);\n        // Register child contract address to `contracts` mapping.\n        contracts[child_] = true;\n        // Emit `NewContract` event with child contract address.\n        emit IFactory.NewContract(child_);\n        return child_;\n    }\n\n    /// Implements `IFactory`.\n    ///\n    /// Checks if address is registered as a child contract of this factory.\n    ///\n    /// @param maybeChild_ Address of child contract to look up.\n    /// @return Returns `true` if address is a contract created by this\n    /// contract factory, otherwise `false`.\n    function isChild(address maybeChild_)\n        external\n        virtual\n        override\n        returns(bool)\n    {\n        return contracts[maybeChild_];\n    }\n}"
+      },
+      "contracts/factory/IFactory.sol": {
+        "content": "// SPDX-License-Identifier: CAL\npragma solidity ^0.6.12;\n\npragma experimental ABIEncoderV2;\n\ninterface IFactory {\n    /// Whenever a new child contract is deployed, a `NewContract` event\n    /// containing the new child contract address MUST be emitted.\n    event NewContract(address indexed _contract);\n\n    /// Creates a new child contract.\n    ///\n    /// @param data_ Domain specific data for the child contract constructor.\n    /// @return New child contract address.\n    function createChild(bytes calldata data_) external returns(address);\n\n    /// Checks if address is registered as a child contract of this factory.\n    ///\n    /// Addresses that were not deployed by `createChild` MUST NOT return\n    /// `true` from `isChild`. This is CRITICAL to the security guarantees for\n    /// any contract implementing `IFactory`.\n    ///\n    /// @param maybeChild_ Address to check registration for.\n    /// @return `true` if address was deployed by this contract factory,\n    /// otherwise `false`.\n    function isChild(address maybeChild_) external returns(bool);\n}"
+      },
+      "@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+        "content": "// SPDX-License-Identifier: MIT\n\npragma solidity >=0.6.0 <0.8.0;\n\n/**\n * @dev Contract module that helps prevent reentrant calls to a function.\n *\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\n * available, which can be applied to functions to make sure there are no nested\n * (reentrant) calls to them.\n *\n * Note that because there is a single `nonReentrant` guard, functions marked as\n * `nonReentrant` may not call one another. This can be worked around by making\n * those functions `private`, and then adding `external` `nonReentrant` entry\n * points to them.\n *\n * TIP: If you would like to learn more about reentrancy and alternative ways\n * to protect against it, check out our blog post\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\n */\nabstract contract ReentrancyGuard {\n    // Booleans are more expensive than uint256 or any type that takes up a full\n    // word because each write operation emits an extra SLOAD to first read the\n    // slot's contents, replace the bits taken up by the boolean, and then write\n    // back. This is the compiler's defense against contract upgrades and\n    // pointer aliasing, and it cannot be disabled.\n\n    // The values being non-zero value makes deployment a bit more expensive,\n    // but in exchange the refund on every call to nonReentrant will be lower in\n    // amount. Since refunds are capped to a percentage of the total\n    // transaction's gas, it is best to keep them low in cases like this one, to\n    // increase the likelihood of the full refund coming into effect.\n    uint256 private constant _NOT_ENTERED = 1;\n    uint256 private constant _ENTERED = 2;\n\n    uint256 private _status;\n\n    constructor () internal {\n        _status = _NOT_ENTERED;\n    }\n\n    /**\n     * @dev Prevents a contract from calling itself, directly or indirectly.\n     * Calling a `nonReentrant` function from another `nonReentrant`\n     * function is not supported. It is possible to prevent this from happening\n     * by making the `nonReentrant` function external, and make it call a\n     * `private` function that does the actual work.\n     */\n    modifier nonReentrant() {\n        // On the first call to nonReentrant, _notEntered will be true\n        require(_status != _ENTERED, \"ReentrancyGuard: reentrant call\");\n\n        // Any calls to nonReentrant after this point will fail\n        _status = _ENTERED;\n\n        _;\n\n        // By storing the original value once again, a refund is triggered (see\n        // https://eips.ethereum.org/EIPS/eip-2200)\n        _status = _NOT_ENTERED;\n    }\n}\n"
+      }
+    },
+    "settings": {
+      "metadata": {
+        "useLiteralContent": true
+      },
+      "optimizer": {
+        "enabled": true,
+        "runs": 100000
+      },
+      "outputSelection": {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers"
+          ],
+          "": [
+            "ast"
+          ]
+        }
+      }
+    }
+  },
+  "output": {
+    "contracts": {
+      "@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+        "ReentrancyGuard": {
+          "abi": [],
+          "evm": {
+            "bytecode": {
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "methodIdentifiers": {}
+          }
+        }
+      },
+      "contracts/factory/Factory.sol": {
+        "Factory": {
+          "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_contract",
+                  "type": "address"
+                }
+              ],
+              "name": "NewContract",
+              "type": "event"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes",
+                  "name": "data_",
+                  "type": "bytes"
+                }
+              ],
+              "name": "createChild",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "maybeChild_",
+                  "type": "address"
+                }
+              ],
+              "name": "isChild",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ],
+          "evm": {
+            "bytecode": {
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "methodIdentifiers": {
+              "createChild(bytes)": "2ea72a49",
+              "isChild(address)": "fc91a897"
+            }
+          }
+        }
+      },
+      "contracts/factory/IFactory.sol": {
+        "IFactory": {
+          "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_contract",
+                  "type": "address"
+                }
+              ],
+              "name": "NewContract",
+              "type": "event"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes",
+                  "name": "data_",
+                  "type": "bytes"
+                }
+              ],
+              "name": "createChild",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "maybeChild_",
+                  "type": "address"
+                }
+              ],
+              "name": "isChild",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ],
+          "evm": {
+            "bytecode": {
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "methodIdentifiers": {
+              "createChild(bytes)": "2ea72a49",
+              "isChild(address)": "fc91a897"
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+        "ast": {
+          "absolutePath": "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+          "exportedSymbols": {
+            "ReentrancyGuard": [
+              39
+            ]
+          },
+          "id": 40,
+          "license": "MIT",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": [
+                "solidity",
+                ">=",
+                "0.6",
+                ".0",
+                "<",
+                "0.8",
+                ".0"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "33:31:0"
+            },
+            {
+              "abstract": true,
+              "baseContracts": [],
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "documentation": {
+                "id": 2,
+                "nodeType": "StructuredDocumentation",
+                "src": "66:750:0",
+                "text": " @dev Contract module that helps prevent reentrant calls to a function.\n Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\n available, which can be applied to functions to make sure there are no nested\n (reentrant) calls to them.\n Note that because there is a single `nonReentrant` guard, functions marked as\n `nonReentrant` may not call one another. This can be worked around by making\n those functions `private`, and then adding `external` `nonReentrant` entry\n points to them.\n TIP: If you would like to learn more about reentrancy and alternative ways\n to protect against it, check out our blog post\n https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul]."
+              },
+              "fullyImplemented": true,
+              "id": 39,
+              "linearizedBaseContracts": [
+                39
+              ],
+              "name": "ReentrancyGuard",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "constant": true,
+                  "id": 5,
+                  "mutability": "constant",
+                  "name": "_NOT_ENTERED",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 39,
+                  "src": "1605:41:0",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 3,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1605:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": {
+                    "argumentTypes": null,
+                    "hexValue": "31",
+                    "id": 4,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "kind": "number",
+                    "lValueRequested": false,
+                    "nodeType": "Literal",
+                    "src": "1645:1:0",
+                    "subdenomination": null,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_rational_1_by_1",
+                      "typeString": "int_const 1"
+                    },
+                    "value": "1"
+                  },
+                  "visibility": "private"
+                },
+                {
+                  "constant": true,
+                  "id": 8,
+                  "mutability": "constant",
+                  "name": "_ENTERED",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 39,
+                  "src": "1652:37:0",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 6,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1652:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": {
+                    "argumentTypes": null,
+                    "hexValue": "32",
+                    "id": 7,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "kind": "number",
+                    "lValueRequested": false,
+                    "nodeType": "Literal",
+                    "src": "1688:1:0",
+                    "subdenomination": null,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_rational_2_by_1",
+                      "typeString": "int_const 2"
+                    },
+                    "value": "2"
+                  },
+                  "visibility": "private"
+                },
+                {
+                  "constant": false,
+                  "id": 10,
+                  "mutability": "mutable",
+                  "name": "_status",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 39,
+                  "src": "1696:23:0",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 9,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1696:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "private"
+                },
+                {
+                  "body": {
+                    "id": 17,
+                    "nodeType": "Block",
+                    "src": "1750:39:0",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 15,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "argumentTypes": null,
+                            "id": 13,
+                            "name": "_status",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 10,
+                            "src": "1760:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "argumentTypes": null,
+                            "id": 14,
+                            "name": "_NOT_ENTERED",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 5,
+                            "src": "1770:12:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "1760:22:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 16,
+                        "nodeType": "ExpressionStatement",
+                        "src": "1760:22:0"
+                      }
+                    ]
+                  },
+                  "documentation": null,
+                  "id": 18,
+                  "implemented": true,
+                  "kind": "constructor",
+                  "modifiers": [],
+                  "name": "",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 11,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "1738:2:0"
+                  },
+                  "returnParameters": {
+                    "id": 12,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "1750:0:0"
+                  },
+                  "scope": 39,
+                  "src": "1726:63:0",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 37,
+                    "nodeType": "Block",
+                    "src": "2188:421:0",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "commonType": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              },
+                              "id": 24,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "argumentTypes": null,
+                                "id": 22,
+                                "name": "_status",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 10,
+                                "src": "2277:7:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "!=",
+                              "rightExpression": {
+                                "argumentTypes": null,
+                                "id": 23,
+                                "name": "_ENTERED",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 8,
+                                "src": "2288:8:0",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "src": "2277:19:0",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "5265656e7472616e637947756172643a207265656e7472616e742063616c6c",
+                              "id": 25,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "2298:33:0",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_ebf73bba305590e4764d5cb53b69bffd6d4d092d1a67551cb346f8cfcdab8619",
+                                "typeString": "literal_string \"ReentrancyGuard: reentrant call\""
+                              },
+                              "value": "ReentrancyGuard: reentrant call"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_ebf73bba305590e4764d5cb53b69bffd6d4d092d1a67551cb346f8cfcdab8619",
+                                "typeString": "literal_string \"ReentrancyGuard: reentrant call\""
+                              }
+                            ],
+                            "id": 21,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "2269:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 26,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "2269:63:0",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 27,
+                        "nodeType": "ExpressionStatement",
+                        "src": "2269:63:0"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 30,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "argumentTypes": null,
+                            "id": 28,
+                            "name": "_status",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 10,
+                            "src": "2407:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "argumentTypes": null,
+                            "id": 29,
+                            "name": "_ENTERED",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 8,
+                            "src": "2417:8:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "2407:18:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 31,
+                        "nodeType": "ExpressionStatement",
+                        "src": "2407:18:0"
+                      },
+                      {
+                        "id": 32,
+                        "nodeType": "PlaceholderStatement",
+                        "src": "2436:1:0"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 35,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "argumentTypes": null,
+                            "id": 33,
+                            "name": "_status",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 10,
+                            "src": "2580:7:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "argumentTypes": null,
+                            "id": 34,
+                            "name": "_NOT_ENTERED",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 5,
+                            "src": "2590:12:0",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "2580:22:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 36,
+                        "nodeType": "ExpressionStatement",
+                        "src": "2580:22:0"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 19,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "1795:364:0",
+                    "text": " @dev Prevents a contract from calling itself, directly or indirectly.\n Calling a `nonReentrant` function from another `nonReentrant`\n function is not supported. It is possible to prevent this from happening\n by making the `nonReentrant` function external, and make it call a\n `private` function that does the actual work."
+                  },
+                  "id": 38,
+                  "name": "nonReentrant",
+                  "nodeType": "ModifierDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 20,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "2185:2:0"
+                  },
+                  "src": "2164:445:0",
+                  "virtual": false,
+                  "visibility": "internal"
+                }
+              ],
+              "scope": 40,
+              "src": "817:1794:0"
+            }
+          ],
+          "src": "33:2579:0"
+        },
+        "id": 0
+      },
+      "contracts/factory/Factory.sol": {
+        "ast": {
+          "absolutePath": "contracts/factory/Factory.sol",
+          "exportedSymbols": {
+            "Factory": [
+              111
+            ]
+          },
+          "id": 112,
+          "license": "CAL",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 41,
+              "literals": [
+                "solidity",
+                "^",
+                "0.6",
+                ".12"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "32:24:1"
+            },
+            {
+              "id": 42,
+              "literals": [
+                "experimental",
+                "ABIEncoderV2"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "58:33:1"
+            },
+            {
+              "absolutePath": "contracts/factory/IFactory.sol",
+              "file": "./IFactory.sol",
+              "id": 44,
+              "nodeType": "ImportDirective",
+              "scope": 112,
+              "sourceUnit": 137,
+              "src": "93:42:1",
+              "symbolAliases": [
+                {
+                  "foreign": {
+                    "argumentTypes": null,
+                    "id": 43,
+                    "name": "IFactory",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": null,
+                    "src": "102:8:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": null,
+                      "typeString": null
+                    }
+                  },
+                  "local": null
+                }
+              ],
+              "unitAlias": ""
+            },
+            {
+              "absolutePath": "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+              "file": "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+              "id": 46,
+              "nodeType": "ImportDirective",
+              "scope": 112,
+              "sourceUnit": 40,
+              "src": "136:88:1",
+              "symbolAliases": [
+                {
+                  "foreign": {
+                    "argumentTypes": null,
+                    "id": 45,
+                    "name": "ReentrancyGuard",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": null,
+                    "src": "149:15:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": null,
+                      "typeString": null
+                    }
+                  },
+                  "local": null
+                }
+              ],
+              "unitAlias": ""
+            },
+            {
+              "abstract": true,
+              "baseContracts": [
+                {
+                  "arguments": null,
+                  "baseName": {
+                    "contractScope": null,
+                    "id": 48,
+                    "name": "IFactory",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 136,
+                    "src": "347:8:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_IFactory_$136",
+                      "typeString": "contract IFactory"
+                    }
+                  },
+                  "id": 49,
+                  "nodeType": "InheritanceSpecifier",
+                  "src": "347:8:1"
+                },
+                {
+                  "arguments": null,
+                  "baseName": {
+                    "contractScope": null,
+                    "id": 50,
+                    "name": "ReentrancyGuard",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 39,
+                    "src": "357:15:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_ReentrancyGuard_$39",
+                      "typeString": "contract ReentrancyGuard"
+                    }
+                  },
+                  "id": 51,
+                  "nodeType": "InheritanceSpecifier",
+                  "src": "357:15:1"
+                }
+              ],
+              "contractDependencies": [
+                39,
+                136
+              ],
+              "contractKind": "contract",
+              "documentation": {
+                "id": 47,
+                "nodeType": "StructuredDocumentation",
+                "src": "226:92:1",
+                "text": "@title Factory\n @notice Base contract for deploying and registering child contracts."
+              },
+              "fullyImplemented": true,
+              "id": 111,
+              "linearizedBaseContracts": [
+                111,
+                39,
+                136
+              ],
+              "name": "Factory",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "constant": false,
+                  "id": 55,
+                  "mutability": "mutable",
+                  "name": "contracts",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 111,
+                  "src": "379:42:1",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                    "typeString": "mapping(address => bool)"
+                  },
+                  "typeName": {
+                    "id": 54,
+                    "keyType": {
+                      "id": 52,
+                      "name": "address",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "387:7:1",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "nodeType": "Mapping",
+                    "src": "379:24:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                      "typeString": "mapping(address => bool)"
+                    },
+                    "valueType": {
+                      "id": 53,
+                      "name": "bool",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "398:4:1",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    }
+                  },
+                  "value": null,
+                  "visibility": "private"
+                },
+                {
+                  "body": {
+                    "id": 63,
+                    "nodeType": "Block",
+                    "src": "1288:3:1",
+                    "statements": []
+                  },
+                  "documentation": {
+                    "id": 56,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "428:591:1",
+                    "text": "Implements `IFactory`.\n `_createChild` hook must be overridden to actually create child\n contract.\n Implementers may want to overload this function with a typed equivalent\n to expose domain specific structs etc. to the compiled ABI consumed by\n tooling and other scripts. To minimise gas costs for deployment it is\n expected that the tooling will consume the typed ABI, then encode the\n arguments and pass them to this function directly.\n @param data_ ABI encoded data to pass to child contract constructor."
+                  },
+                  "id": 64,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_createChild",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 59,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 58,
+                        "mutability": "mutable",
+                        "name": "data_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 64,
+                        "src": "1204:20:1",
+                        "stateVariable": false,
+                        "storageLocation": "calldata",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes_calldata_ptr",
+                          "typeString": "bytes"
+                        },
+                        "typeName": {
+                          "id": 57,
+                          "name": "bytes",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1204:5:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes_storage_ptr",
+                            "typeString": "bytes"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1203:22:1"
+                  },
+                  "returnParameters": {
+                    "id": 62,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 61,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 64,
+                        "src": "1275:7:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 60,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1275:7:1",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1274:9:1"
+                  },
+                  "scope": 111,
+                  "src": "1182:109:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": true,
+                  "visibility": "internal"
+                },
+                {
+                  "baseFunctions": [
+                    127
+                  ],
+                  "body": {
+                    "id": 95,
+                    "nodeType": "Block",
+                    "src": "1831:330:1",
+                    "statements": [
+                      {
+                        "assignments": [
+                          76
+                        ],
+                        "declarations": [
+                          {
+                            "constant": false,
+                            "id": 76,
+                            "mutability": "mutable",
+                            "name": "child_",
+                            "nodeType": "VariableDeclaration",
+                            "overrides": null,
+                            "scope": 95,
+                            "src": "1886:14:1",
+                            "stateVariable": false,
+                            "storageLocation": "default",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            },
+                            "typeName": {
+                              "id": 75,
+                              "name": "address",
+                              "nodeType": "ElementaryTypeName",
+                              "src": "1886:7:1",
+                              "stateMutability": "nonpayable",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_address",
+                                "typeString": "address"
+                              }
+                            },
+                            "value": null,
+                            "visibility": "internal"
+                          }
+                        ],
+                        "id": 80,
+                        "initialValue": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 78,
+                              "name": "data_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 67,
+                              "src": "1916:5:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bytes_calldata_ptr",
+                                "typeString": "bytes calldata"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bytes_calldata_ptr",
+                                "typeString": "bytes calldata"
+                              }
+                            ],
+                            "id": 77,
+                            "name": "_createChild",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 64,
+                            "src": "1903:12:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_nonpayable$_t_bytes_calldata_ptr_$returns$_t_address_$",
+                              "typeString": "function (bytes calldata) returns (address)"
+                            }
+                          },
+                          "id": 79,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "1903:19:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "nodeType": "VariableDeclarationStatement",
+                        "src": "1886:36:1"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 85,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "argumentTypes": null,
+                            "baseExpression": {
+                              "argumentTypes": null,
+                              "id": 81,
+                              "name": "contracts",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 55,
+                              "src": "1999:9:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                                "typeString": "mapping(address => bool)"
+                              }
+                            },
+                            "id": 83,
+                            "indexExpression": {
+                              "argumentTypes": null,
+                              "id": 82,
+                              "name": "child_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 76,
+                              "src": "2009:6:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_address",
+                                "typeString": "address"
+                              }
+                            },
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": true,
+                            "nodeType": "IndexAccess",
+                            "src": "1999:17:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "argumentTypes": null,
+                            "hexValue": "74727565",
+                            "id": 84,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "bool",
+                            "lValueRequested": false,
+                            "nodeType": "Literal",
+                            "src": "2019:4:1",
+                            "subdenomination": null,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            },
+                            "value": "true"
+                          },
+                          "src": "1999:24:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "id": 86,
+                        "nodeType": "ExpressionStatement",
+                        "src": "1999:24:1"
+                      },
+                      {
+                        "eventCall": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "id": 90,
+                              "name": "child_",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 76,
+                              "src": "2124:6:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_address",
+                                "typeString": "address"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_address",
+                                "typeString": "address"
+                              }
+                            ],
+                            "expression": {
+                              "argumentTypes": null,
+                              "id": 87,
+                              "name": "IFactory",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 136,
+                              "src": "2103:8:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_type$_t_contract$_IFactory_$136_$",
+                                "typeString": "type(contract IFactory)"
+                              }
+                            },
+                            "id": 89,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "NewContract",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": 119,
+                            "src": "2103:20:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_event_nonpayable$_t_address_$returns$__$",
+                              "typeString": "function (address)"
+                            }
+                          },
+                          "id": 91,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "2103:28:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 92,
+                        "nodeType": "EmitStatement",
+                        "src": "2098:33:1"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 93,
+                          "name": "child_",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 76,
+                          "src": "2148:6:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "functionReturnParameters": 74,
+                        "id": 94,
+                        "nodeType": "Return",
+                        "src": "2141:13:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 65,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "1337:350:1",
+                    "text": "Implements `IFactory`.\n Calls the _createChild hook, which inheriting contracts must override.\n Registers child contract address such that `isChild` is `true`.\n Emits `NewContract` event.\n @param data_ Encoded data to pass down to child contract constructor.\n @return New child contract address."
+                  },
+                  "functionSelector": "2ea72a49",
+                  "id": 96,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [
+                    {
+                      "arguments": null,
+                      "id": 71,
+                      "modifierName": {
+                        "argumentTypes": null,
+                        "id": 70,
+                        "name": "nonReentrant",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 38,
+                        "src": "1793:12:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_modifier$__$",
+                          "typeString": "modifier ()"
+                        }
+                      },
+                      "nodeType": "ModifierInvocation",
+                      "src": "1793:12:1"
+                    }
+                  ],
+                  "name": "createChild",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": {
+                    "id": 69,
+                    "nodeType": "OverrideSpecifier",
+                    "overrides": [],
+                    "src": "1776:8:1"
+                  },
+                  "parameters": {
+                    "id": 68,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 67,
+                        "mutability": "mutable",
+                        "name": "data_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 96,
+                        "src": "1713:20:1",
+                        "stateVariable": false,
+                        "storageLocation": "calldata",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes_calldata_ptr",
+                          "typeString": "bytes"
+                        },
+                        "typeName": {
+                          "id": 66,
+                          "name": "bytes",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1713:5:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes_storage_ptr",
+                            "typeString": "bytes"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1712:22:1"
+                  },
+                  "returnParameters": {
+                    "id": 74,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 73,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 96,
+                        "src": "1822:7:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 72,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1822:7:1",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1821:9:1"
+                  },
+                  "scope": 111,
+                  "src": "1692:469:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": true,
+                  "visibility": "external"
+                },
+                {
+                  "baseFunctions": [
+                    135
+                  ],
+                  "body": {
+                    "id": 109,
+                    "nodeType": "Block",
+                    "src": "2587:46:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "baseExpression": {
+                            "argumentTypes": null,
+                            "id": 105,
+                            "name": "contracts",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 55,
+                            "src": "2604:9:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                              "typeString": "mapping(address => bool)"
+                            }
+                          },
+                          "id": 107,
+                          "indexExpression": {
+                            "argumentTypes": null,
+                            "id": 106,
+                            "name": "maybeChild_",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 99,
+                            "src": "2614:11:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "nodeType": "IndexAccess",
+                          "src": "2604:22:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "functionReturnParameters": 104,
+                        "id": 108,
+                        "nodeType": "Return",
+                        "src": "2597:29:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 97,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2167:301:1",
+                    "text": "Implements `IFactory`.\n Checks if address is registered as a child contract of this factory.\n @param maybeChild_ Address of child contract to look up.\n @return Returns `true` if address is a contract created by this\n contract factory, otherwise `false`."
+                  },
+                  "functionSelector": "fc91a897",
+                  "id": 110,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "isChild",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": {
+                    "id": 101,
+                    "nodeType": "OverrideSpecifier",
+                    "overrides": [],
+                    "src": "2552:8:1"
+                  },
+                  "parameters": {
+                    "id": 100,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 99,
+                        "mutability": "mutable",
+                        "name": "maybeChild_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 110,
+                        "src": "2490:19:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 98,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "2490:7:1",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "2489:21:1"
+                  },
+                  "returnParameters": {
+                    "id": 104,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 103,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 110,
+                        "src": "2577:4:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 102,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "2577:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "2576:6:1"
+                  },
+                  "scope": 111,
+                  "src": "2473:160:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": true,
+                  "visibility": "external"
+                }
+              ],
+              "scope": 112,
+              "src": "318:2317:1"
+            }
+          ],
+          "src": "32:2603:1"
+        },
+        "id": 1
+      },
+      "contracts/factory/IFactory.sol": {
+        "ast": {
+          "absolutePath": "contracts/factory/IFactory.sol",
+          "exportedSymbols": {
+            "IFactory": [
+              136
+            ]
+          },
+          "id": 137,
+          "license": "CAL",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 113,
+              "literals": [
+                "solidity",
+                "^",
+                "0.6",
+                ".12"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "32:24:2"
+            },
+            {
+              "id": 114,
+              "literals": [
+                "experimental",
+                "ABIEncoderV2"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "58:33:2"
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "contractDependencies": [],
+              "contractKind": "interface",
+              "documentation": null,
+              "fullyImplemented": false,
+              "id": 136,
+              "linearizedBaseContracts": [
+                136
+              ],
+              "name": "IFactory",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "anonymous": false,
+                  "documentation": {
+                    "id": 115,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "118:135:2",
+                    "text": "Whenever a new child contract is deployed, a `NewContract` event\n containing the new child contract address MUST be emitted."
+                  },
+                  "id": 119,
+                  "name": "NewContract",
+                  "nodeType": "EventDefinition",
+                  "parameters": {
+                    "id": 118,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 117,
+                        "indexed": true,
+                        "mutability": "mutable",
+                        "name": "_contract",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 119,
+                        "src": "276:25:2",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 116,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "276:7:2",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "275:27:2"
+                  },
+                  "src": "258:45:2"
+                },
+                {
+                  "body": null,
+                  "documentation": {
+                    "id": 120,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "309:163:2",
+                    "text": "Creates a new child contract.\n @param data_ Domain specific data for the child contract constructor.\n @return New child contract address."
+                  },
+                  "functionSelector": "2ea72a49",
+                  "id": 127,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "createChild",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 123,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 122,
+                        "mutability": "mutable",
+                        "name": "data_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 127,
+                        "src": "498:20:2",
+                        "stateVariable": false,
+                        "storageLocation": "calldata",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes_calldata_ptr",
+                          "typeString": "bytes"
+                        },
+                        "typeName": {
+                          "id": 121,
+                          "name": "bytes",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "498:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes_storage_ptr",
+                            "typeString": "bytes"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "497:22:2"
+                  },
+                  "returnParameters": {
+                    "id": 126,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 125,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 127,
+                        "src": "537:7:2",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 124,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "537:7:2",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "536:9:2"
+                  },
+                  "scope": 136,
+                  "src": "477:69:2",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "body": null,
+                  "documentation": {
+                    "id": 128,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "552:449:2",
+                    "text": "Checks if address is registered as a child contract of this factory.\n Addresses that were not deployed by `createChild` MUST NOT return\n `true` from `isChild`. This is CRITICAL to the security guarantees for\n any contract implementing `IFactory`.\n @param maybeChild_ Address to check registration for.\n @return `true` if address was deployed by this contract factory,\n otherwise `false`."
+                  },
+                  "functionSelector": "fc91a897",
+                  "id": 135,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "isChild",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 131,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 130,
+                        "mutability": "mutable",
+                        "name": "maybeChild_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 135,
+                        "src": "1023:19:2",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 129,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1023:7:2",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1022:21:2"
+                  },
+                  "returnParameters": {
+                    "id": 134,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 133,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 135,
+                        "src": "1061:4:2",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 132,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1061:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1060:6:2"
+                  },
+                  "scope": 136,
+                  "src": "1006:61:2",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                }
+              ],
+              "scope": 137,
+              "src": "93:976:2"
+            }
+          ],
+          "src": "32:1037:2"
+        },
+        "id": 2
+      }
+    }
+  }
+}

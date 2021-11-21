@@ -1,0 +1,409 @@
+{
+  "id": "d2bc8feece204af929ae1ff29a71dc26",
+  "_format": "hh-sol-build-info-1",
+  "solcVersion": "0.6.12",
+  "solcLongVersion": "0.6.12+commit.27d51765",
+  "input": {
+    "language": "Solidity",
+    "sources": {
+      "contracts/factory/IFactory.sol": {
+        "content": "// SPDX-License-Identifier: CAL\npragma solidity ^0.6.12;\n\npragma experimental ABIEncoderV2;\n\ninterface IFactory {\n    /// Whenever a new child contract is deployed, a `NewContract` event\n    /// containing the new child contract address MUST be emitted.\n    event NewContract(address indexed _contract);\n\n    /// Creates a new child contract.\n    ///\n    /// @param data_ Domain specific data for the child contract constructor.\n    /// @return New child contract address.\n    function createChild(bytes calldata data_) external returns(address);\n\n    /// Checks if address is registered as a child contract of this factory.\n    ///\n    /// Addresses that were not deployed by `createChild` MUST NOT return\n    /// `true` from `isChild`. This is CRITICAL to the security guarantees for\n    /// any contract implementing `IFactory`.\n    ///\n    /// @param maybeChild_ Address to check registration for.\n    /// @return `true` if address was deployed by this contract factory,\n    /// otherwise `false`.\n    function isChild(address maybeChild_) external returns(bool);\n}"
+      }
+    },
+    "settings": {
+      "metadata": {
+        "useLiteralContent": true
+      },
+      "optimizer": {
+        "enabled": true,
+        "runs": 100000
+      },
+      "outputSelection": {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers"
+          ],
+          "": [
+            "ast"
+          ]
+        }
+      }
+    }
+  },
+  "output": {
+    "contracts": {
+      "contracts/factory/IFactory.sol": {
+        "IFactory": {
+          "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "_contract",
+                  "type": "address"
+                }
+              ],
+              "name": "NewContract",
+              "type": "event"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes",
+                  "name": "data_",
+                  "type": "bytes"
+                }
+              ],
+              "name": "createChild",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "maybeChild_",
+                  "type": "address"
+                }
+              ],
+              "name": "isChild",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ],
+          "evm": {
+            "bytecode": {
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "methodIdentifiers": {
+              "createChild(bytes)": "2ea72a49",
+              "isChild(address)": "fc91a897"
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "contracts/factory/IFactory.sol": {
+        "ast": {
+          "absolutePath": "contracts/factory/IFactory.sol",
+          "exportedSymbols": {
+            "IFactory": [
+              24
+            ]
+          },
+          "id": 25,
+          "license": "CAL",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": [
+                "solidity",
+                "^",
+                "0.6",
+                ".12"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "32:24:0"
+            },
+            {
+              "id": 2,
+              "literals": [
+                "experimental",
+                "ABIEncoderV2"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "58:33:0"
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "contractDependencies": [],
+              "contractKind": "interface",
+              "documentation": null,
+              "fullyImplemented": false,
+              "id": 24,
+              "linearizedBaseContracts": [
+                24
+              ],
+              "name": "IFactory",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "anonymous": false,
+                  "documentation": {
+                    "id": 3,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "118:135:0",
+                    "text": "Whenever a new child contract is deployed, a `NewContract` event\n containing the new child contract address MUST be emitted."
+                  },
+                  "id": 7,
+                  "name": "NewContract",
+                  "nodeType": "EventDefinition",
+                  "parameters": {
+                    "id": 6,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 5,
+                        "indexed": true,
+                        "mutability": "mutable",
+                        "name": "_contract",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 7,
+                        "src": "276:25:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 4,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "276:7:0",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "275:27:0"
+                  },
+                  "src": "258:45:0"
+                },
+                {
+                  "body": null,
+                  "documentation": {
+                    "id": 8,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "309:163:0",
+                    "text": "Creates a new child contract.\n @param data_ Domain specific data for the child contract constructor.\n @return New child contract address."
+                  },
+                  "functionSelector": "2ea72a49",
+                  "id": 15,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "createChild",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 11,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 10,
+                        "mutability": "mutable",
+                        "name": "data_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 15,
+                        "src": "498:20:0",
+                        "stateVariable": false,
+                        "storageLocation": "calldata",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes_calldata_ptr",
+                          "typeString": "bytes"
+                        },
+                        "typeName": {
+                          "id": 9,
+                          "name": "bytes",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "498:5:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes_storage_ptr",
+                            "typeString": "bytes"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "497:22:0"
+                  },
+                  "returnParameters": {
+                    "id": 14,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 13,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 15,
+                        "src": "537:7:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 12,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "537:7:0",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "536:9:0"
+                  },
+                  "scope": 24,
+                  "src": "477:69:0",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "body": null,
+                  "documentation": {
+                    "id": 16,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "552:449:0",
+                    "text": "Checks if address is registered as a child contract of this factory.\n Addresses that were not deployed by `createChild` MUST NOT return\n `true` from `isChild`. This is CRITICAL to the security guarantees for\n any contract implementing `IFactory`.\n @param maybeChild_ Address to check registration for.\n @return `true` if address was deployed by this contract factory,\n otherwise `false`."
+                  },
+                  "functionSelector": "fc91a897",
+                  "id": 23,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "isChild",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": null,
+                  "parameters": {
+                    "id": 19,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 18,
+                        "mutability": "mutable",
+                        "name": "maybeChild_",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 23,
+                        "src": "1023:19:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "typeName": {
+                          "id": 17,
+                          "name": "address",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1023:7:0",
+                          "stateMutability": "nonpayable",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1022:21:0"
+                  },
+                  "returnParameters": {
+                    "id": 22,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 21,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 23,
+                        "src": "1061:4:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 20,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1061:4:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1060:6:0"
+                  },
+                  "scope": 24,
+                  "src": "1006:61:0",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                }
+              ],
+              "scope": 25,
+              "src": "93:976:0"
+            }
+          ],
+          "src": "32:1037:0"
+        },
+        "id": 0
+      }
+    }
+  }
+}
