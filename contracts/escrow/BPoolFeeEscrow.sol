@@ -130,8 +130,6 @@ contract BPoolFeeEscrow is FactoryTruster {
         {} //solhint-disable-line no-empty-blocks
 
     /// Batch wrapper that loops over `anonClaimFees` for all passed trusts.
-    /// The iteration limit exists to keep gas under control in the case of
-    /// many pending fees.
     /// @param feeRecipient_ Recipient to claim fees for.
     /// @param trusts_ Trusts to claim fees for.
     /// @return All the claimed fees from the inner loop.

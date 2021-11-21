@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 // solhint-disable-next-line max-line-length
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { ITier } from "../tier/ITier.sol";
