@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import "./ReadOnlyTier.sol";
 
@@ -17,7 +17,7 @@ import "./ReadOnlyTier.sol";
 contract AlwaysTier is ReadOnlyTier {
     /// Every address is always every tier.
     /// @inheritdoc ITier
-    function report(address) public override view returns (uint256) {
+    function report(address) public override pure returns (uint256) {
         return 0;
     }
 }

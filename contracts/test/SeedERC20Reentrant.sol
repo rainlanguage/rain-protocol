@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
 import { ReserveToken } from "./ReserveToken.sol";
 import { SeedERC20, ERC20 } from "../seed/SeedERC20.sol";

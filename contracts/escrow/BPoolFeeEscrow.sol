@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
-pragma experimental ABIEncoderV2;
-
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/math/Math.sol";
-import "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import { FactoryTruster } from "../factory/FactoryTruster.sol";
 import { IFactory } from "../factory/IFactory.sol";
 import { Trust, TrustContracts, DistributionStatus } from "../trust/Trust.sol";
 import { IBPool } from "../pool/IBPool.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
 
 /// Represents fees as they are claimed by a recipient on a per-trust basis.
@@ -91,10 +88,12 @@ struct ClaimedFees {
 /// There are no admin roles for the escrow, every recipient must manage their
 /// incoming reserves, trusts and claims themselves.
 contract BPoolFeeEscrow is FactoryTruster {
-    using SafeMath for uint256;
-    using Math for uint256;
     using SafeERC20 for IERC20;
+    using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    uint256 public constant INFINITY
+        = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     /// A claim has been processed for a recipient.
     /// ONLY emitted if the trust has success/fail distribution status.
@@ -127,7 +126,6 @@ contract BPoolFeeEscrow is FactoryTruster {
     /// implements `IFactory` correctly and that the `Trust` contracts that it
     /// deploys are not buggy or malicious re: tracking distribution status.
     constructor(IFactory trustFactory_)
-        public
         FactoryTruster(trustFactory_)
         {} //solhint-disable-line no-empty-blocks
 
@@ -315,16 +313,16 @@ contract BPoolFeeEscrow is FactoryTruster {
         returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
     {
         fees[address(trust_)][feeRecipient_]
-            = fees[address(trust_)][feeRecipient_].add(fee_);
-        aggregateFees[address(trust_)] = aggregateFees[address(trust_)]
-            .add(fee_);
+            = fee_ + fees[address(trust_)][feeRecipient_];
+        aggregateFees[address(trust_)]
+            = fee_ + aggregateFees[address(trust_)];
 
         TrustContracts memory trustContracts_ = trust_.getContracts();
 
         IERC20(trustContracts_.reserveERC20).safeTransferFrom(
             msg.sender,
             address(this),
-            reserveAmountIn_.add(fee_)
+            fee_ + reserveAmountIn_
         );
 
         IConfigurableRightsPool(trustContracts_.crp).pokeWeights();
@@ -348,7 +346,7 @@ contract BPoolFeeEscrow is FactoryTruster {
             // on `RedeemableERC20PoolFactory`.
             require(IERC20(trustContracts_.reserveERC20).approve(
                 trustContracts_.pool,
-                uint256(-1)
+                INFINITY
             ), "APPROVE_FAIL");
         }
 

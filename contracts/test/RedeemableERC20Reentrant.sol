@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -15,7 +15,6 @@ contract RedeemableERC20Reentrant is ReserveToken {
 
     /// Configures the contract to attempt to reenter.
     constructor(RedeemableERC20 redeemableERC20Contract_)
-        public
         ReserveToken()
     {
         redeemableERC20Contract = redeemableERC20Contract_;

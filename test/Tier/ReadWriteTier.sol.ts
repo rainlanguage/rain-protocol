@@ -9,9 +9,9 @@ import type { Contract } from "ethers";
 chai.use(solidity);
 const { expect, assert } = chai;
 
-let uninitializedReport =
+const uninitializedReport =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-let uninitializedStatusAsNum = 4294967295;
+const uninitializedStatusAsNum = 4294967295;
 const zero = 0;
 const one = 1;
 const two = 2;
@@ -84,7 +84,7 @@ describe("Account tier", async function () {
 
   it("will return uninitialized report if nothing set", async function () {
     const [signers, readWriteTier] = await setup();
-    for (let signer of signers) {
+    for (const signer of signers) {
       const status = await readWriteTier.report(signer.address);
       assert(ethers.BigNumber.from(uninitializedReport).eq(status));
     }
@@ -103,17 +103,17 @@ describe("Account tier", async function () {
 
   it("will return tier if set", async function () {
     const [signers, readWriteTier] = await setup();
-    let expected = tierReport(uninitializedReport);
+    const expected = tierReport(uninitializedReport);
     let expectedReport = blockNumbersToReport(expected);
     let i = 0;
-    for (let tier of tiers) {
+    for (const tier of tiers) {
       if (tier) {
         await readWriteTier.setTier(signers[0].address, tier, []);
         expected[i] = await ethers.provider.getBlockNumber();
         expectedReport = blockNumbersToReport(expected);
         i++;
       }
-      let actualReport = (await readWriteTier.report(signers[0].address))
+      const actualReport = (await readWriteTier.report(signers[0].address))
         .toHexString()
         .substring(2)
         .padStart(64, "0");
@@ -134,7 +134,7 @@ describe("Account tier", async function () {
       );
 
       await readWriteTier.setTier(signers[0].address, n, []);
-      let block = await ethers.provider.getBlockNumber();
+      const block = await ethers.provider.getBlockNumber();
       expected = expected.map((item: number, index: number) =>
         n - 1 >= index && index > o - 1 && n != o ? block : item
       );
@@ -143,7 +143,7 @@ describe("Account tier", async function () {
         expected[0] = block;
         expectedReport = blockNumbersToReport(expected);
       }
-      let actualReport = (await readWriteTier.report(signers[0].address))
+      const actualReport = (await readWriteTier.report(signers[0].address))
         .toHexString()
         .substring(2)
         .padStart(64, "0");

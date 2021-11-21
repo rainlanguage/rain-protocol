@@ -48,10 +48,8 @@ describe("SeedERC20", async function () {
       symbol: "SD",
     })) as SeedERC20 & Contract;
 
-    const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
-    const daveSeed = seedERC20.connect(dave);
 
     await aliceReserve.transfer(bob.address, bobUnits.mul(seedPrice));
     await aliceReserve.transfer(carol.address, carolUnits.mul(seedPrice));
@@ -127,7 +125,6 @@ describe("SeedERC20", async function () {
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
     const carolReserve = reserve.connect(carol);
-    const daveReserve = reserve.connect(dave);
 
     const seedPrice = 100;
     const seedUnits = 10;
@@ -147,10 +144,8 @@ describe("SeedERC20", async function () {
       symbol: "SD",
     })) as SeedERC20 & Contract;
 
-    const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
-    const daveSeed = seedERC20.connect(dave);
 
     await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
     await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
@@ -170,7 +165,7 @@ describe("SeedERC20", async function () {
         Contract;
 
     // send ether to attacker contract
-    const txResult = await signers[0].sendTransaction({
+    await signers[0].sendTransaction({
       to: forceSendEther.address,
       value: ethers.utils.parseEther("1.0"),
     });
@@ -333,7 +328,6 @@ describe("SeedERC20", async function () {
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
     const carolReserve = reserve.connect(carol);
-    const daveReserve = reserve.connect(dave);
 
     const seedPrice = 100;
     const seedUnits = 10;
@@ -353,10 +347,8 @@ describe("SeedERC20", async function () {
       symbol: "SD",
     })) as SeedERC20 & Contract;
 
-    const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
-    const daveSeed = seedERC20.connect(dave);
 
     await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
     await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
@@ -424,10 +416,8 @@ describe("SeedERC20", async function () {
       symbol: "SD",
     })) as SeedERC20 & Contract;
 
-    const aliceSeed = seedERC20.connect(alice);
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
-    const daveSeed = seedERC20.connect(dave);
 
     assert((await seedERC20.reserve()) == reserve.address, `reserve not set`);
 

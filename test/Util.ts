@@ -9,10 +9,13 @@ import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
-import type { BigNumber, Contract } from "ethers";
+import type { BigNumber, Contract, BytesLike } from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
+import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
@@ -195,7 +198,7 @@ export const determineReserveDust = (bPoolDust: BigNumber) => {
   return bPoolDust;
 };
 
-export const assertError = async (f: Function, s: string, e: string) => {
+export const assertError = async (f, s: string, e: string) => {
   let didError = false;
   try {
     await f();
@@ -207,7 +210,7 @@ export const assertError = async (f: Function, s: string, e: string) => {
 };
 
 export const poolContracts = async (
-  signers: any,
+  signers: SignerWithAddress[],
   pool: RedeemableERC20Pool & Contract
 ): Promise<[ConfigurableRightsPool & Contract, BPool & Contract]> => {
   const crp = new ethers.Contract(
@@ -225,11 +228,12 @@ export const poolContracts = async (
 
 export const trustDeploy = async (
   trustFactory: TrustFactory & Contract,
-  creator: any,
+  creator: SignerWithAddress,
   ...args
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory[
     "createChild((address,uint256,address,uint256,uint16,uint16,uint256),(string,string,address,uint8,uint256),(address,uint256,uint256,uint256,uint256))"
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
   ](...args);
   const receipt = await tx.wait();
@@ -276,8 +280,8 @@ export const createEmptyBlock = async (count?: number): Promise<void> => {
  * @returns number[] Block array of the reports
  */
 export function tierReport(report: string): number[] {
-  let parsedReport: number[] = [];
-  let arrStatus = [0, 1, 2, 3, 4, 5, 6, 7]
+  const parsedReport: number[] = [];
+  const arrStatus = [0, 1, 2, 3, 4, 5, 6, 7]
     .map((i) =>
       BigInt(report)
         .toString(16)
@@ -287,7 +291,7 @@ export function tierReport(report: string): number[] {
     .reverse();
   //arrStatus = arrStatus.reverse();
 
-  for (let i in arrStatus) {
+  for (const i in arrStatus) {
     parsedReport.push(parseInt("0x" + arrStatus[i]));
   }
 
@@ -318,3 +322,122 @@ export function zeroPad32(hex: BigNumber): string {
 export function zeroPad4(hex: BigNumber): string {
   return ethers.utils.hexZeroPad(hex.toHexString(), 4);
 }
+
+/**
+ * Converts a value to raw bytes representation. Assumes `value` is less than or equal to 1 byte, unless a desired `bytesLength` is specified.
+ *
+ * @param value - value to convert to raw bytes format
+ * @param bytesLength - (defaults to 1) number of bytes to left pad if `value` doesn't completely fill the desired amount of memory. Will throw `InvalidArgument` error if value already exceeds bytes length.
+ * @returns {Uint8Array} - raw bytes representation
+ */
+export function bytify(
+  value: number | BytesLike | Hexable,
+  bytesLength: number = 1
+): BytesLike {
+  return zeroPad(hexlify(value), bytesLength);
+}
+
+/**
+ * Constructs the operand for RainVM's `call` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
+ *
+ * @param fnSize - number of elements on stack to allocate for functions (range 0-3)
+ * @param loopSize - number of times to subdivide vals, reduces uint size but allows for more vals (range 0-7)
+ * @param valSize - number of vals in outer stack (range 0-7)
+ */
+export function callSize(
+  fnSize: number,
+  loopSize: number,
+  valSize: number
+): number {
+  // CallSize(
+  //   op_.val & 0x03, //     00000011
+  //   op_.val & 0x1C, //     00011100
+  //   op_.val & 0xE0  //     11100000
+  // )
+
+  if (fnSize < 0 || fnSize > 3) {
+    throw new Error("Invalid fnSize");
+  } else if (loopSize < 0 || loopSize > 7) {
+    throw new Error("Invalid loopSize");
+  } else if (valSize < 0 || valSize > 7) {
+    throw new Error("Invalid valSize");
+  }
+  let callSize = valSize;
+  callSize <<= 3;
+  callSize += loopSize;
+  callSize <<= 2;
+  callSize += fnSize;
+  return callSize;
+}
+
+/**
+ * Converts an opcode and operand to bytes, and returns their concatenation.
+ * @param code - the opcode
+ * @param erand - the operand, currently limited to 1 byte (defaults to 0)
+ */
+export function op(code: number, erand: number = 0): Uint8Array {
+  return concat([bytify(erand), bytify(code)]);
+}
+
+export const wrap2BitUInt = (integer: number) => {
+  while (integer > 3) {
+    integer -= 4;
+  }
+  return integer;
+};
+
+export const wrap4BitUInt = (integer: number) => {
+  while (integer > 15) {
+    integer -= 16;
+  }
+  return integer;
+};
+
+export const wrap8BitUInt = (integer: number) => {
+  while (integer > 255) {
+    integer -= 256;
+  }
+  return integer;
+};
+
+export const array2BitUInts = (length) =>
+  Array(length)
+    .fill(0)
+    // .map((_, i) => 3);
+    .map((_, i) => wrap2BitUInt(i));
+
+export const array4BitUInts = (length) =>
+  Array(length)
+    .fill(0)
+    .map((_, i) => wrap4BitUInt(i));
+
+export const array8BitUInts = (length) =>
+  Array(length)
+    .fill(0)
+    .map((_, i) => wrap8BitUInt(i));
+
+export const pack2BitUIntsIntoByte = (numArray: number[]): number[] => {
+  let val: number[] = [];
+  let valIndex = 0;
+
+  for (let i = 0; i < numArray.length; i += 4) {
+    const byte =
+      (numArray[i] << 6) +
+      (numArray[i + 1] << 4) +
+      (numArray[i + 2] << 2) +
+      numArray[i + 3];
+
+    val[valIndex] = byte;
+    valIndex++;
+  }
+
+  return val;
+};
+
+export const paddedReport = (report: BigNumber): string => {
+  return "0x" + report.toHexString().substring(2).padStart(64, "0");
+};
+
+export const paddedBlock = (blockNumber: number): string => {
+  return hexlify(blockNumber).substring(2).padStart(8, "0");
+};

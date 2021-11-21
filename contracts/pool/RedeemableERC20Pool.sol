@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
-pragma experimental ABIEncoderV2;
-
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { Math } from "@openzeppelin/contracts/math/Math.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { Rights } from "./IRightsManager.sol";
 import { ICRPFactory } from "./ICRPFactory.sol";
@@ -106,7 +103,6 @@ struct RedeemableERC20PoolConfig {
 /// - Calling start and end raise functions
 /// - Handling the reserve proceeds of the raise
 contract RedeemableERC20Pool is Ownable, Phased {
-    using SafeMath for uint256;
     using Math for uint256;
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
@@ -142,7 +138,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     // Slither false positive. Constructors cannot be reentrant.
     // https://github.com/crytic/slither/issues/887
     // slither-disable-next-line reentrancy-benign
-    constructor (RedeemableERC20PoolConfig memory config_) public {
+    constructor (RedeemableERC20PoolConfig memory config_) {
         require(
             config_.reserveInit >= MIN_RESERVE_INIT,
             "RESERVE_INIT_MINIMUM"
@@ -249,9 +245,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
         pure
         returns (uint256)
     {
-        uint256 weight_ = valuation_
-            .mul(IBalancerConstants.BONE)
-            .div(reserveInit_);
+        uint256 weight_
+            = ( valuation_ * IBalancerConstants.BONE ) / reserveInit_;
         require(
             weight_ >= IBalancerConstants.MIN_WEIGHT,
             "MIN_WEIGHT_VALUATION"
@@ -260,8 +255,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // temporarily during a transaction so we need to subtract one for
         // headroom.
         require(
-            IBalancerConstants.MAX_WEIGHT.sub(IBalancerConstants.BONE)
-            >= IBalancerConstants.MIN_WEIGHT.add(weight_),
+            ( IBalancerConstants.MAX_WEIGHT - IBalancerConstants.BONE )
+            >= ( IBalancerConstants.MIN_WEIGHT + weight_ ),
             "MAX_WEIGHT_VALUATION"
         );
         return weight_;
@@ -322,14 +317,14 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // - The global minimum
         // - The LP token supply implied by the reserve
         // - The LP token supply implied by the token
-        uint256 minReservePoolTokens = MIN_BALANCER_POOL_BALANCE
-            .mul(IBalancerConstants.MAX_POOL_SUPPLY)
-            .div(reserve.balanceOf(crp.bPool()));
+        uint256 minReservePoolTokens
+            = ( MIN_BALANCER_POOL_BALANCE * IBalancerConstants.MAX_POOL_SUPPLY)
+            / reserve.balanceOf(crp.bPool());
         // The minimum redeemable token supply is `10 ** 18` so it is near
         // impossible to hit this before the reserve or global pool minimums.
-        uint256 minRedeemablePoolTokens = MIN_BALANCER_POOL_BALANCE
-            .mul(IBalancerConstants.MAX_POOL_SUPPLY)
-            .div(token.balanceOf(crp.bPool()));
+        uint256 minRedeemablePoolTokens
+            = ( MIN_BALANCER_POOL_BALANCE * IBalancerConstants.MAX_POOL_SUPPLY)
+            / token.balanceOf(crp.bPool());
         uint256 minPoolSupply_ = IBalancerConstants.MIN_POOL_SUPPLY
             .max(minReservePoolTokens)
             .max(minRedeemablePoolTokens);

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
@@ -29,7 +29,6 @@ contract ClaimERC1155Test is
     uint256 public constant GOOD_ART = 1;
 
     constructor(IERC20 redeemableToken_, uint256[8] memory tierValues_)
-        public
         ERC1155("https://example.com/{id}.json")
         TierByConstructionClaim(this, ITier.Tier.THREE)
         // solhint-disable-next-line no-empty-blocks

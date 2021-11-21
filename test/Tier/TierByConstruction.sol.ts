@@ -5,15 +5,17 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionTest } from "../../typechain/TierByConstructionTest";
 import type { TierByConstructionClaimTest } from "../../typechain/TierByConstructionClaimTest";
 import { assertError } from "../Util";
-import type { Contract } from "ethers";
+import type { Contract, ContractFactory } from "ethers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 describe("TierByConstruction", async function () {
-  let alice: any;
-  let owner: any;
-  let tierByConstructionFactory: any;
+  let alice: SignerWithAddress;
+  let owner: SignerWithAddress;
+  let tierByConstructionFactory: ContractFactory;
   let readWriteTier: ReadWriteTier & Contract;
   let tierByConstruction: TierByConstructionTest;
 
@@ -31,7 +33,7 @@ describe("TierByConstruction", async function () {
     );
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
   });
 
@@ -102,7 +104,7 @@ describe("TierByConstruction", async function () {
   it("should be able to use unlimited functions and lower tier than the upgraded one", async function () {
     const tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
 
     const tierByConstructionAlice = tierByConstruction.connect(alice.address);
@@ -127,7 +129,7 @@ describe("TierByConstruction", async function () {
 
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
 
     await tierByConstruction.deployed();
 
@@ -147,7 +149,7 @@ describe("TierByConstruction", async function () {
 
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
 
     await tierByConstruction.unlimited();
@@ -166,7 +168,7 @@ describe("TierByConstruction", async function () {
 
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
-    )) as TierByConstructionTest;
+    )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
 
     await tierByConstruction.unlimited();
@@ -184,10 +186,10 @@ describe("TierByConstruction", async function () {
 });
 
 describe("TierByConstructionClaim", async function () {
-  let owner: any;
+  let owner: SignerWithAddress;
   let readWriteTier: ReadWriteTier & Contract;
   let tierByConstructionClaim: TierByConstructionClaimTest & Contract;
-  let tierByConstructionClaimFactory: any;
+  let tierByConstructionClaimFactory: ContractFactory;
 
   before(async () => {
     [owner] = await ethers.getSigners();

@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.10;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { Math } from "@openzeppelin/contracts/math/Math.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
@@ -94,7 +91,6 @@ struct SeedERC20Config {
 /// exchange for pro-rata reserve assets.
 contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
 
-    using SafeMath for uint256;
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -137,7 +133,6 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// Mint all seed tokens.
     /// @param config_ All config required to construct the contract.
     constructor (SeedERC20Config memory config_)
-    public
     ERC20(config_.name, config_.symbol)
     Cooldown(config_.cooldownDuration) {
         require(config_.seedPrice > 0, "PRICE_0");
@@ -146,8 +141,11 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         seedPrice = config_.seedPrice;
         reserve = config_.reserve;
         recipient = config_.recipient;
-        _setupDecimals(0);
         _mint(address(this), config_.seedUnits);
+    }
+
+    function decimals() public pure override returns(uint8) {
+        return 0;
     }
 
     /// Take reserve from seeder as `units * seedPrice`.
@@ -181,7 +179,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         require(minimumUnits_ <= remainingStock_, "INSUFFICIENT_STOCK");
 
         uint256 units_ = desiredUnits_.min(remainingStock_);
-        uint256 reserveAmount_ = seedPrice.mul(units_);
+        uint256 reserveAmount_ = seedPrice * units_;
 
         // If `remainingStock_` is less than units then the transfer below will
         // fail and rollback.
@@ -230,13 +228,13 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         onlyPhase(Phase.ZERO)
         onlyAfterCooldown
     {
-        uint256 reserveAmount_ = seedPrice.mul(units_);
+        uint256 reserveAmount_ = seedPrice * units_;
         _transfer(msg.sender, address(this), units_);
 
         // Reentrant reserve transfer.
         reserve.safeTransfer(msg.sender, reserveAmount_);
 
-        Unseed(
+        emit Unseed(
             msg.sender,
             [units_, reserveAmount_]
         );
@@ -262,16 +260,16 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// @param units_ Amount of seed units to burn and redeem for reserve
     /// assets.
     function redeem(uint256 units_) external onlyPhase(Phase.ONE) {
-        uint256 _supplyBeforeBurn = totalSupply();
+        uint256 supplyBeforeBurn_ = totalSupply();
         _burn(msg.sender, units_);
 
-        uint256 _currentReserveBalance = reserve.balanceOf(address(this));
+        uint256 currentReserveBalance_ = reserve.balanceOf(address(this));
         // Guard against someone accidentally calling redeem before any reserve
         // has been returned.
-        require(_currentReserveBalance > 0, "RESERVE_BALANCE");
-        uint256 reserveAmount_ = units_
-            .mul(_currentReserveBalance)
-            .div(_supplyBeforeBurn);
+        require(currentReserveBalance_ > 0, "RESERVE_BALANCE");
+        uint256 reserveAmount_
+            = ( units_ * currentReserveBalance_ )
+            / supplyBeforeBurn_;
         emit Redeem(
             msg.sender,
             [units_, reserveAmount_]

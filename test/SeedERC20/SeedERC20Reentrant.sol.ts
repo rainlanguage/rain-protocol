@@ -7,13 +7,13 @@ import type { SeedERC20 } from "../../typechain/SeedERC20";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 describe("SeedERC20Reentrant", async function () {
   it("should guard against reentrancy when redeeming if primary reserve is malicious", async function () {
     const signers = await ethers.getSigners();
     const bob = signers[1];
-    const carol = signers[2];
     const dave = signers[3];
 
     const maliciousReserve = (await Util.basicDeploy(
@@ -72,7 +72,6 @@ describe("SeedERC20Reentrant", async function () {
   it("should guard against reentrancy when seeding if primary reserve is malicious", async function () {
     const signers = await ethers.getSigners();
     const bob = signers[1];
-    const carol = signers[2];
     const dave = signers[3];
 
     const maliciousReserve = (await Util.basicDeploy(
@@ -119,7 +118,6 @@ describe("SeedERC20Reentrant", async function () {
   it("should guard against reentrancy when unseeding if primary reserve is malicious", async function () {
     const signers = await ethers.getSigners();
     const bob = signers[1];
-    const carol = signers[2];
     const dave = signers[3];
 
     const maliciousReserve = (await Util.basicDeploy(

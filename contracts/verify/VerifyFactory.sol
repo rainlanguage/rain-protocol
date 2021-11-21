@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
 import { Factory } from "../factory/Factory.sol";
 import { Verify } from "./Verify.sol";

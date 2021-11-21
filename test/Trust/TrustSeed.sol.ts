@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
@@ -7,11 +8,11 @@ import type { SeedERC20 } from "../../typechain/SeedERC20";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import type { Trust } from "../../typechain/Trust";
 import { factoriesDeploy } from "../Util";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 enum Tier {
@@ -38,13 +39,9 @@ enum Phase {
   EIGHT,
 }
 
-const trustJson = require("../../artifacts/contracts/trust/Trust.sol/Trust.json");
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/SeedERC20.json");
-const bPoolJson = require("@beehiveinnovation/configurable-rights-pool/artifacts/BPool.json");
-const reserveJson = require("../../artifacts/contracts/test/ReserveToken.sol/ReserveToken.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
-const crpJson = require("../../artifacts/contracts/pool/IConfigurableRightsPool.sol/IConfigurableRightsPool.json");
 
 describe("TrustSeed", async function () {
   it("should allow unseeding only after unseed delay period", async function () {
@@ -592,8 +589,6 @@ describe("TrustSeed", async function () {
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-      const seedFactory = await ethers.getContractFactory("SeedERC20");
-
       const tokenName = "Token";
       const tokenSymbol = "TKN";
 
@@ -717,14 +712,7 @@ describe("TrustSeed", async function () {
       );
 
       // Recipient gains infinite approval on reserve token withdrawals from seed contract
-      const recipientAllowance = await reserve.allowance(
-        seederContract.address,
-        recipient
-      );
-
-      const max_uint256 = ethers.BigNumber.from(
-        "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-      );
+      await reserve.allowance(seederContract.address, recipient);
 
       assert(
         (await reserve.balanceOf(seederContract.address)).isZero(),
@@ -744,7 +732,7 @@ describe("TrustSeed", async function () {
 
       await pool.startDutchAuction({ gasLimit: 100000000 });
 
-      let [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [crp, bPool] = await Util.poolContracts(signers, pool);
 
       const startBlock = await ethers.provider.getBlockNumber();
 
@@ -882,8 +870,6 @@ describe("TrustSeed", async function () {
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-      const seedFactory = await ethers.getContractFactory("SeedERC20");
-
       const tokenName = "Token";
       const tokenSymbol = "TKN";
 
@@ -1015,7 +1001,7 @@ describe("TrustSeed", async function () {
 
       await pool.startDutchAuction({ gasLimit: 100000000 });
 
-      let [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [, bPool] = await Util.poolContracts(signers, pool);
 
       const startBlock = await ethers.provider.getBlockNumber();
 

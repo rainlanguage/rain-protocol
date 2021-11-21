@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.10;
 
 import { IFactory } from "./IFactory.sol";
 
@@ -37,7 +37,7 @@ import { IFactory } from "./IFactory.sol";
 abstract contract FactoryTruster {
     IFactory public immutable trustedFactory;
 
-    constructor(IFactory trustedFactory_) internal {
+    constructor(IFactory trustedFactory_) {
         trustedFactory = trustedFactory_;
     }
 

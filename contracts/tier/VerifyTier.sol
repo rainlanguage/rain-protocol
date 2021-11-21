@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
-
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.10;
 
 import "./ReadOnlyTier.sol";
 import { State, Status, Verify } from "../verify/Verify.sol";
-import "../libraries/TierUtil.sol";
+import "./libraries/TierReport.sol";
 
 /// @title VerifyTier
 ///
@@ -17,7 +15,7 @@ contract VerifyTier is ReadOnlyTier {
     Verify public immutable verify;
 
     /// Sets the `verify` contract immutably.
-    constructor(Verify verify_) public {
+    constructor(Verify verify_) {
         verify = verify_;
     }
 
@@ -33,7 +31,7 @@ contract VerifyTier is ReadOnlyTier {
                 state_,
                 uint32(block.number)
             ) == Status.Approved) {
-            return TierUtil.updateBlocksForTierRange(
+            return TierReport.updateBlocksForTierRange(
                 0,
                 Tier.ZERO,
                 Tier.EIGHT,
@@ -41,7 +39,7 @@ contract VerifyTier is ReadOnlyTier {
             );
         }
         else {
-            return uint256(-1);
+            return TierReport.UNINITIALIZED;
         }
     }
 }

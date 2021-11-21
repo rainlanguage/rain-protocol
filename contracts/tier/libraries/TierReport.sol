@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
-import { ITier } from "../tier/ITier.sol";
+import { ITier } from "../ITier.sol";
 
-/// @title TierUtil
-/// @notice `TierUtil` implements several pure functions that can be
+/// @title TierReport
+/// @notice `TierReport` implements several pure functions that can be
 /// used to interface with reports.
 /// - `tierAtBlockFromReport`: Returns the highest status achieved relative to
 /// a block number and report. Statuses gained after that block are ignored.
@@ -16,12 +16,13 @@ import { ITier } from "../tier/ITier.sol";
 /// number for every tier in a range.
 /// - `updateReportWithTierAtBlock`: Updates a report to a new tier.
 /// @dev Utilities to consistently read, write and manipulate tiers in reports.
-/// The low-level bit shifting can be difficult to get right so this factors
-/// that out.
-library TierUtil {
+/// The low-level bit shifting can be difficult to get right so this
+/// factors that out.
+library TierReport {
 
-    /// UNINITIALIZED report is 0xFF.. as no tier has been held.
-    uint256 constant public UNINITIALIZED = uint256(-1);
+    /// UNINITIALIZED is 0xFF.. as it is infinitely in the future.
+    uint256 public constant UNINITIALIZED
+        = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     /// Returns the highest tier achieved relative to a block number
     /// and report.

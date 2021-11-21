@@ -1,6 +1,7 @@
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import type { Contract } from "ethers";
+import type { Contract, ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionClaim } from "../../typechain/TierByConstructionClaim";
@@ -23,13 +24,12 @@ enum Tier {
 }
 
 describe("TierByConstructionClaim", async function () {
-  let alice: any;
-  let owner: any;
+  let alice: SignerWithAddress;
   let readWriteTier: ReadWriteTier & Contract;
-  let tierByConstructionClaimFactory: any;
+  let tierByConstructionClaimFactory: ContractFactory;
 
   beforeEach(async () => {
-    [owner, alice] = await ethers.getSigners();
+    [, alice] = await ethers.getSigners();
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
@@ -47,7 +47,7 @@ describe("TierByConstructionClaim", async function () {
       (await tierByConstructionClaimFactory.deploy(
         readWriteTier.address,
         Tier.FOUR
-      )) as TierByConstructionClaim;
+      )) as TierByConstructionClaim & Contract;
 
     await tierByConstructionClaim.deployed();
 
@@ -71,7 +71,7 @@ describe("TierByConstructionClaim", async function () {
           (await tierByConstructionClaimFactory.deploy(
             readWriteTier.address,
             Tier.FOUR
-          )) as TierByConstructionClaim;
+          )) as TierByConstructionClaim & Contract;
 
         await tierByConstructionClaim.deployed();
 
@@ -95,7 +95,7 @@ describe("TierByConstructionClaim", async function () {
           (await tierByConstructionClaimFactory.deploy(
             readWriteTier.address,
             Tier.FOUR
-          )) as TierByConstructionClaim;
+          )) as TierByConstructionClaim & Contract;
 
         await tierByConstructionClaim.deployed();
 
@@ -111,7 +111,7 @@ describe("TierByConstructionClaim", async function () {
           (await tierByConstructionClaimFactory.deploy(
             readWriteTier.address,
             Tier.FOUR
-          )) as TierByConstructionClaim;
+          )) as TierByConstructionClaim & Contract;
 
         await tierByConstructionClaim.deployed();
 
@@ -127,7 +127,7 @@ describe("TierByConstructionClaim", async function () {
           (await tierByConstructionClaimFactory.deploy(
             readWriteTier.address,
             Tier.FOUR
-          )) as TierByConstructionClaim;
+          )) as TierByConstructionClaim & Contract;
 
         await tierByConstructionClaim.deployed();
 
@@ -146,7 +146,7 @@ describe("TierByConstructionClaim", async function () {
         (await tierByConstructionClaimFactory.deploy(
           readWriteTier.address,
           Tier.FOUR
-        )) as TierByConstructionClaim;
+        )) as TierByConstructionClaim & Contract;
 
       await tierByConstructionClaim.deployed();
 
@@ -192,7 +192,7 @@ describe("TierByConstructionClaim", async function () {
         (await tierByConstructionClaimFactory.deploy(
           readWriteTier.address,
           Tier.FOUR
-        )) as TierByConstructionClaim;
+        )) as TierByConstructionClaim & Contract;
 
       await tierByConstructionClaim.deployed();
 

@@ -7,18 +7,12 @@ import type { Verify } from "../../typechain/Verify";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
-
-enum Status {
-  Nil,
-  Added,
-  Approved,
-  Banned,
-}
 
 let verifyFactory;
 
-describe("Verify", async function () {
+describe("VerifyTier", async function () {
   before(async () => {
     verifyFactory = await ethers.getContractFactory("Verify");
   });
@@ -30,6 +24,7 @@ describe("Verify", async function () {
     const admin = signers[0];
     const verifier = signers[1];
     const signer1 = signers[2];
+    const newAdmin = signers[3];
 
     const tierFactory = await ethers.getContractFactory("VerifyTier");
 
@@ -40,9 +35,23 @@ describe("Verify", async function () {
       verify.address
     )) as VerifyTier & Contract;
 
-    await verify.grantRole(await verify.APPROVER(), verifier.address);
-    await verify.grantRole(await verify.BANNER(), verifier.address);
-    await verify.grantRole(await verify.REMOVER(), verifier.address);
+    await verify.grantRole(await verify.APPROVER_ADMIN(), newAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), newAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), newAdmin.address);
+
+    const verifyNewAdmin = verify.connect(newAdmin);
+    await verifyNewAdmin.grantRole(
+      await verifyNewAdmin.APPROVER(),
+      verifier.address
+    );
+    await verifyNewAdmin.grantRole(
+      await verifyNewAdmin.BANNER(),
+      verifier.address
+    );
+    await verifyNewAdmin.grantRole(
+      await verifyNewAdmin.REMOVER(),
+      verifier.address
+    );
 
     const tierReportNil = await verifyTier.report(signer1.address);
     assert(
