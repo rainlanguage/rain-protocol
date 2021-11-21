@@ -23,7 +23,7 @@ const enum Opcode {
   MOD,
 }
 
-describe("RainCompiler", async function () {
+describe("RainVM", async function () {
   it("should run a basic program (return current block number)", async () => {
     this.timeout(0);
 

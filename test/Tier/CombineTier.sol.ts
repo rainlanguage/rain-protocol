@@ -1437,7 +1437,7 @@ OPCODE_END                  ${await combineTier.OPCODE_END()}
 OPCODE_VAL                  ${await combineTier.OPCODE_VAL()}
 OPCODE_CALL                 ${await combineTier.OPCODE_CALL()}
 
-OPCODE_BLOCK_NUMBER         ${await combineTier.OPCODE_BLOCK_NUMBER()}
+opcodeBlockNumber           ${await combineTier.opcodeBlockNumber()}
 
 OPCODE_RESERVED_MAX         ${await combineTier.OPCODE_RESERVED_MAX()}
 

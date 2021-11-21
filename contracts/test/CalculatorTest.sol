@@ -2,92 +2,42 @@
 
 pragma solidity 0.8.10;
 
-import { RainCompiler, Source, Stack, Op } from "../compiler/RainCompiler.sol";
-import "hardhat/console.sol";
+import "../vm/RainVM.sol";
+import "../vm/ImmutableSource.sol";
+import "../vm/ops/BlockOps.sol";
+import "../vm/ops/MathOps.sol";
 
-contract CalculatorTest is RainCompiler {
-    uint8 public constant OPCODE_ADD = 1 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_SUB = 2 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_MUL = 3 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_DIV = 4 + OPCODE_RESERVED_MAX;
-    uint8 public constant OPCODE_MOD = 5 + OPCODE_RESERVED_MAX;
+contract CalculatorTest is RainVM, ImmutableSource, BlockOps, MathOps {
 
     constructor(Source memory source_)
-        // solhint-disable-next-line no-empty-blocks
-        RainCompiler(source_) { }
+        ImmutableSource(source_)
+        BlockOps(OPCODE_RESERVED_MAX)
+        MathOps(blockOpsStart + BLOCK_OPS_LENGTH)
+    { } // solhint-disable-line no-empty-blocks
 
     function applyOp(
-        bytes memory,
+        bytes memory context_,
         Stack memory stack_,
         Op memory op_
     )
         internal
-        override
-        pure
+        override(RainVM, BlockOps, MathOps)
+        view
         returns (Stack memory)
     {
-        if (op_.code == OPCODE_ADD) {
-            stack_.index -= op_.val;
-            uint256 accumulator_ = 0;
-            for (uint256 a_ = 0; a_ < op_.val; a_++) {
-                // Addition is commutative so it doesn't matter that we're
-                // technically iterating the inputs backwards here.
-                accumulator_ = accumulator_ + stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = accumulator_;
-            stack_.index++;
-        } else if (op_.code == OPCODE_SUB) {
-            stack_.index -= op_.val;
-            // Set initial value as first number.
-            uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
-            for (uint256 a_ = 0; a_ < op_.val - 1; a_++) {
-                // Iterate backwards through inputs, subtracting each one from
-                // the current value, being careful not to subtract the first
-                // number from itself.
-                accumulator_ = accumulator_ - stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = accumulator_;
-            stack_.index++;
-        } else if (op_.code == OPCODE_MUL) {
-            stack_.index -= op_.val;
-            // Set initial value as first number.
-            uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
-            for (uint256 a_ = 0; a_ < op_.val - 1; a_++) {
-                // Iterate backwards through inputs, multiplying the current
-                // value by each one, being careful not to multiply the first
-                // number again.
-                accumulator_ = accumulator_ * stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = accumulator_;
-            stack_.index++;
-        } else if (op_.code == OPCODE_DIV) {
-            stack_.index -= op_.val;
-            // Set numerator value as first number.
-            uint256 numerator_ = stack_.vals[stack_.index + op_.val - 1];
-            // Set initial denominator value as second number.
-            uint256 denominator_ = stack_.vals[stack_.index + op_.val - 2];
-            for (uint256 a_ = 0; a_ < op_.val - 2; a_++) {
-                // Iterate backwards through inputs, calculating the total
-                // denominator, being careful not to multiply by the initial
-                // denominator value again.
-                denominator_ = denominator_ * stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = numerator_ / denominator_;
-            stack_.index++;
-        } else if (op_.code == OPCODE_MOD) {
-            stack_.index -= op_.val;
-            // Set numerator value as first number.
-            uint256 numerator_ = stack_.vals[stack_.index + op_.val - 1];
-            // Set initial denominator value as second number.
-            uint256 denominator_ = stack_.vals[stack_.index + op_.val - 2];
-            for (uint256 a_ = 0; a_ < op_.val - 2; a_++) {
-                // Iterate backwards through inputs, calculating the total
-                // denominator, being careful not to multiply by the initial
-                // denominator value again.
-                denominator_ = denominator_ * stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = numerator_ % denominator_;
-            stack_.index++;
+        if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
+            return BlockOps.applyOp(
+                context_,
+                stack_,
+                op_
+            );
+        }
+        else if (op_.code < mathOpsStart + MATH_OPS_LENGTH) {
+            return MathOps.applyOp(
+                context_,
+                stack_,
+                op_
+            );
         }
 
         return stack_;

@@ -2,11 +2,13 @@
 
 pragma solidity 0.8.10;
 
-import { RainCompiler, Stack, Op, Source } from "../compiler/RainCompiler.sol";
+import "../vm/RainVM.sol";
+import "../vm/ImmutableSource.sol";
+import "../vm/ops/BlockOps.sol";
 import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
 import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 
-contract CombineTier is ReadOnlyTier, RainCompiler {
+contract CombineTier is ReadOnlyTier, RainVM, ImmutableSource, BlockOps, TierOps {
     uint8 public constant OPCODE_ACCOUNT = 1 + OPCODE_RESERVED_MAX;
     uint8 public constant OPCODE_REPORT = 2 + OPCODE_RESERVED_MAX;
 
@@ -19,7 +21,7 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
 
     constructor(Source memory source_)
         // solhint-disable-next-line no-empty-blocks
-        RainCompiler(source_) { }
+        ImmutableSource(source_) { }
 
     function applyOp(
         bytes memory context_,
@@ -27,7 +29,7 @@ contract CombineTier is ReadOnlyTier, RainCompiler {
         Op memory op_
     )
         internal
-        override
+        override(RainVM, BlockOps, TierOps)
         view
         returns (Stack memory)
     {
