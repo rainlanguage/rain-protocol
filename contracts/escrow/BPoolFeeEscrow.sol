@@ -145,7 +145,6 @@ contract BPoolFeeEscrow is FactoryTruster {
                 feeRecipient_,
                 trusts_[i_]
             ));
-            i_++;
         }
         return claimedFees_;
     }
