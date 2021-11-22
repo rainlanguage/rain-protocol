@@ -31,7 +31,7 @@ contract CombineTier is
     {
         opcodeCombineStart = tierOpsStart + TIER_OPS_LENGTH;
         opcodeCombineTierAccount = opcodeCombineStart + uint8(Ops.account);
-    } // solhint-disable-line no-empty-blocks
+    }
 
     function applyOp(
         bytes memory context_,
@@ -43,10 +43,28 @@ contract CombineTier is
         view
         returns (Stack memory)
     {
-        if (op_.code == opcodeCombineTierAccount) {
+        if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
+            stack_ = BlockOps.applyOp(
+                context_,
+                stack_,
+                op_
+            );
+        }
+        else if (op_.code < tierOpsStart + TIER_OPS_LENGTH) {
+            stack_ = TierOps.applyOp(
+                context_,
+                stack_,
+                op_
+            );
+        }
+        else if (op_.code == opcodeCombineTierAccount) {
             (address account_) = abi.decode(context_, (address));
             stack_.vals[stack_.index] = uint256(uint160(account_));
             stack_.index++;
+        }
+        else {
+            // Unknown op!
+            assert(false);
         }
 
         return stack_;
