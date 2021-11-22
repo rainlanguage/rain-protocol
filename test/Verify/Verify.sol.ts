@@ -38,6 +38,93 @@ describe("Verify", async function () {
     verifyFactory = await ethers.getContractFactory("Verify");
   });
 
+  it("should allow anyone to submit data to support a request to ban an account", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // signers
+    const signer1 = signers[7];
+    const signer2 = signers[8];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
+
+    // signer1 adds their account and is approved
+    const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove0 = hexlify([...Buffer.from("Evidence for approve")]);
+
+    await verify.connect(signer1).add(evidenceAdd0);
+    await verify.connect(approver).approve(signer1.address, evidenceApprove0);
+
+    const evidenceBanReq = hexlify([
+      ...Buffer.from("Evidence for ban request"),
+    ]);
+
+    // unapproved signer2 requests ban of signer1 account
+    await Util.assertError(
+      async () =>
+        verify.connect(signer2).requestBan(signer1.address, evidenceBanReq),
+      "revert ONLY_APPROVED",
+      "signer2 requested ban despite not being an approved account"
+    );
+
+    // signer2 adds their account and is approved
+    const evidenceAdd1 = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove1 = hexlify([...Buffer.from("Evidence for approve")]);
+
+    await verify.connect(signer2).add(evidenceAdd1);
+    await verify.connect(approver).approve(signer2.address, evidenceApprove1);
+
+    // signer2 requests ban of signer1 account
+    await expect(
+      verify.connect(signer2).requestBan(signer1.address, evidenceBanReq)
+    )
+      .to.emit(verify, "RequestBan")
+      .withArgs(signer2.address, signer1.address, evidenceBanReq);
+  });
+
   it("should allow anyone to submit data to support a request to remove an account", async function () {
     this.timeout(0);
 
