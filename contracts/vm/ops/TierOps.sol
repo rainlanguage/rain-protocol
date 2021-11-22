@@ -2,25 +2,33 @@
 pragma solidity ^0.8.10;
 
 import "../RainVM.sol";
+import "../../tier/libraries/TierReport.sol";
+import "../../tier/libraries/TierwiseCombine.sol";
 
-abstract contract MathOps {
-    uint8 public immutable mathOpsStart;
-    uint8 public immutable opcodeAdd;
-    uint8 public immutable opcodeSub;
-    uint8 public immutable opcodeMul;
-    uint8 public immutable opcodeDiv;
-    uint8 public immutable opcodeMod;
-    uint8 public immutable opcodePow;
-    uint8 public constant MATH_OPS_LENGTH = 6;
+abstract contract TierOps {
+    uint8 public immutable tierOpsStart;
+    uint8 public immutable opcodeTierReport;
+    uint8 public immutable opcodeTierNever;
+    uint8 public immutable opcodeTierAlways;
+    uint8 public immutable opcodeTierAndOld;
+    uint8 public immutable opcodeTierAndNew;
+    uint8 public immutable opcodeTierAndLeft;
+    uint8 public immutable opcodeTierOrOld;
+    uint8 public immutable opcodeTierOrNew;
+    uint8 public immutable opcodeTierOrLeft;
+    uint8 public constant TIER_OPS_LENGTH = 9;
 
     constructor(uint8 start_) {
-        mathOpsStart = start_;
-        opcodeAdd = start_;
-        opcodeSub = start_ + 1;
-        opcodeMul = start_ + 2;
-        opcodeDiv = start_ + 3;
-        opcodeMod = start_ + 4;
-        opcodePow = start_ + 5;
+        tierOpsStart = start_;
+        opcodeTierReport = start_;
+        opcodeTierNever = start_ + 1;
+        opcodeTierAlways = start_ + 2;
+        opcodeTierAndOld = start_ + 3;
+        opcodeTierAndNew = start_ + 4;
+        opcodeTierAndLeft = start_ + 5;
+        opcodeTierOrOld = start_ + 6;
+        opcodeTierOrNew = start_ + 7;
+        opcodeTierOrLeft = start_ + 8;
     }
 
     function applyOp(
@@ -32,69 +40,71 @@ abstract contract MathOps {
     virtual
     view
     returns (Stack memory) {
-        if (op_.code == opcodeAdd) {
-            stack_.index -= op_.val;
-            uint256 accumulator_ = 0;
-            for (uint256 a_ = 0; a_ < op_.val; a_++) {
-                // Addition is commutative so it doesn't matter that we're
-                // technically iterating the inputs backwards here.
-                accumulator_ = accumulator_ + stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = accumulator_;
-            stack_.index++;
-        } else if (op_.code == opcodeSub) {
-            stack_.index -= op_.val;
-            // Set initial value as first number.
-            uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
-            for (uint256 a_ = 0; a_ < op_.val - 1; a_++) {
-                // Iterate backwards through inputs, subtracting each one from
-                // the current value, being careful not to subtract the first
-                // number from itself.
-                accumulator_ = accumulator_ - stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = accumulator_;
-            stack_.index++;
-        } else if (op_.code == opcodeMul) {
-            stack_.index -= op_.val;
-            // Set initial value as first number.
-            uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
-            for (uint256 a_ = 0; a_ < op_.val - 1; a_++) {
-                // Iterate backwards through inputs, multiplying the current
-                // value by each one, being careful not to multiply the first
-                // number again.
-                accumulator_ = accumulator_ * stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = accumulator_;
-            stack_.index++;
-        } else if (op_.code == opcodeDiv) {
-            stack_.index -= op_.val;
-            // Set numerator value as first number.
-            uint256 numerator_ = stack_.vals[stack_.index + op_.val - 1];
-            // Set initial denominator value as second number.
-            uint256 denominator_ = stack_.vals[stack_.index + op_.val - 2];
-            for (uint256 a_ = 0; a_ < op_.val - 2; a_++) {
-                // Iterate backwards through inputs, calculating the total
-                // denominator, being careful not to multiply by the initial
-                // denominator value again.
-                denominator_ = denominator_ * stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = numerator_ / denominator_;
-            stack_.index++;
-        } else if (op_.code == opcodeMod) {
-            stack_.index -= op_.val;
-            // Set numerator value as first number.
-            uint256 numerator_ = stack_.vals[stack_.index + op_.val - 1];
-            // Set initial denominator value as second number.
-            uint256 denominator_ = stack_.vals[stack_.index + op_.val - 2];
-            for (uint256 a_ = 0; a_ < op_.val - 2; a_++) {
-                // Iterate backwards through inputs, calculating the total
-                // denominator, being careful not to multiply by the initial
-                // denominator value again.
-                denominator_ = denominator_ * stack_.vals[stack_.index + a_];
-            }
-            stack_.vals[stack_.index] = numerator_ % denominator_;
+        if (op_.code == opcodeTierReport) {
+            stack_.index -= 2;
+            stack_.vals[stack_.index] =
+                ITier(address(uint160(stack_.vals[stack_.index + 1])))
+                    .report(address(uint160(stack_.vals[stack_.index])));
             stack_.index++;
         }
+        else if (op_.code == opcodeTierNever) {
+            stack_.vals[stack_.index] = TierReport.NEVER;
+        }
+        else if (op_.code == opcodeTierAlways) {
+            stack_.vals[stack_.index] = TierReport.ALWAYS;
+        }
+        // All the combinators share the same stack and argument handling.
+        else if (opcodeTierAndOld <= op_.code
+            && op_.code <= opcodeTierOrLeft) {
+
+            stack_.index -= op_.val + 1;
+            uint256[] memory args_ = new uint256[](op_.val);
+            for (uint256 a_ = 0; a_ < args_.length; a_++) {
+                args_[a_] = stack_.vals[stack_.index + a_ + 1];
+            }
+
+            uint256 blockNumber_ = stack_.vals[stack_.index];
+
+            if (op_.code == opcodeTierAndNew) {
+                stack_.vals[stack_.index] = TierwiseCombine.andNew(
+                    args_,
+                    blockNumber_
+                );
+            }
+            else if (op_.code == opcodeTierAndOld) {
+                stack_.vals[stack_.index] = TierwiseCombine.andOld(
+                    args_,
+                    blockNumber_
+                );
+            }
+            else if (op_.code == opcodeTierAndLeft) {
+                stack_.vals[stack_.index] = TierwiseCombine.andLeft(
+                    args_,
+                    blockNumber_
+                );
+            }
+            else if (op_.code == opcodeTierOrNew) {
+                stack_.vals[stack_.index] = TierwiseCombine.orNew(
+                    args_,
+                    blockNumber_
+                );
+            }
+            else if (op_.code == opcodeTierOrOld) {
+                stack_.vals[stack_.index] = TierwiseCombine.orOld(
+                    args_,
+                    blockNumber_
+                );
+            }
+            else if (op_.code == opcodeTierOrLeft) {
+                stack_.vals[stack_.index] = TierwiseCombine.orLeft(
+                    args_,
+                    blockNumber_
+                );
+            }
+
+            stack_.index++;
+        }
+
         return stack_;
     }
 

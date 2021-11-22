@@ -20,9 +20,12 @@ import { ITier } from "../ITier.sol";
 /// factors that out.
 library TierReport {
 
-    /// UNINITIALIZED is 0xFF.. as it is infinitely in the future.
-    uint256 public constant UNINITIALIZED
+    /// NEVER is 0xFF.. as it is infinitely in the future.
+    uint256 public constant NEVER
         = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+
+    /// Always is 0 as it is the genesis block. Tiers can't predate the chain.
+    uint256 public constant ALWAYS = 0;
 
     /// Returns the highest tier achieved relative to a block number
     /// and report.
@@ -89,7 +92,7 @@ library TierReport {
         returns (uint256)
     {
         uint256 offset_ = uint256(tier_) * 32;
-        uint256 mask_ = (UNINITIALIZED >> offset_) << offset_;
+        uint256 mask_ = (NEVER >> offset_) << offset_;
         return report_ | mask_;
     }
 
@@ -115,7 +118,7 @@ library TierReport {
         for (uint256 i_ = uint256(startTier_); i_ < uint256(endTier_); i_++) {
             offset_ = i_ * 32;
             report_ =
-                (report_ & ~uint256(uint256(uint32(UNINITIALIZED)) << offset_))
+                (report_ & ~uint256(uint256(uint32(NEVER)) << offset_))
                 | uint256(blockNumber_ << offset_);
         }
         return report_;
