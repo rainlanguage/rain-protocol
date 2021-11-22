@@ -4,8 +4,8 @@ pragma solidity 0.8.10;
 
 import "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
-import "../vm/ops/BlockOps.sol";
-import "../vm/ops/TierOps.sol";
+import { BlockOps } from "../vm/ops/BlockOps.sol";
+import { TierOps } from "../vm/ops/TierOps.sol";
 import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
 import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 
