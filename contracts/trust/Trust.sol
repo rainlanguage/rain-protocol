@@ -286,6 +286,18 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
+    /// Anyone can emit a `Notice`.
+    /// This is open ended content related to the `Trust`.
+    /// Some examples:
+    /// - Raise descriptions/promises
+    /// - Reviews/comments from token holders
+    /// - Simple onchain voting/signalling
+    /// GUIs/tooling/indexers reading this data are expected to know how to
+    /// interpret it in context because the contract does not.
+    /// @param sender The `msg.sender` that emitted the `Notice`.
+    /// @param data Opaque binary data for the GUI/tooling/indexer to read.
+    event Notice(address indexed sender, bytes data);
+
     /// Creator from the initial config.
     address public immutable creator;
     /// minimum creator raise from the initial config.
@@ -561,6 +573,14 @@ contract Trust is ReentrancyGuard {
         else {
             revert("UNKNOWN_POOL_PHASE");
         }
+    }
+
+    /// Anyone can send a notice about this `Trust`.
+    /// The notice is opaque bytes that the indexer/GUI is expected to
+    /// understand the context to decode/interpret it.
+    /// @param data_ The data associated with this notice.
+    function sendNotice(bytes memory data_) external {
+        emit Notice(msg.sender, data_);
     }
 
     /// Anyone can end the distribution.
