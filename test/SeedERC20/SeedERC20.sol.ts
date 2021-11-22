@@ -58,12 +58,12 @@ describe("SeedERC20", async function () {
 
     await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
     const bobSeedPromise = bobSeed.seed(0, bobUnits);
-    expect(bobSeedPromise)
+    await expect(bobSeedPromise)
       .to.emit(seedERC20, "Seed")
       .withArgs(bob.address, [bobUnits, bobUnits.mul(seedPrice)]);
     await bobSeedPromise;
     const bobUnseedPromise = bobSeed.unseed(2);
-    expect(bobUnseedPromise)
+    await expect(bobUnseedPromise)
       .to.emit(seedERC20, "Unseed")
       .withArgs(bob.address, [2, ethers.BigNumber.from(2).mul(seedPrice)]);
     await bobUnseedPromise;

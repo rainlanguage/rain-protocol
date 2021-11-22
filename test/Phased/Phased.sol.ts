@@ -284,7 +284,7 @@ describe("Phased", async function () {
 
     const schedule1Promise = phased.testScheduleNextPhase(block1);
 
-    expect(schedule1Promise)
+    await expect(schedule1Promise)
       .to.emit(phased, "PhaseShiftScheduled")
       .withArgs(block1);
 
