@@ -5,6 +5,18 @@ import "../RainVM.sol";
 import "../../tier/libraries/TierReport.sol";
 import "../../tier/libraries/TierwiseCombine.sol";
 
+enum Ops {
+    report,
+    never,
+    always,
+    andOld,
+    andNew,
+    andLeft,
+    orOld,
+    orNew,
+    orLeft
+}
+
 abstract contract TierOps {
     uint8 public immutable tierOpsStart;
     uint8 public immutable opcodeTierReport;
@@ -21,14 +33,14 @@ abstract contract TierOps {
     constructor(uint8 start_) {
         tierOpsStart = start_;
         opcodeTierReport = start_;
-        opcodeTierNever = start_ + 1;
-        opcodeTierAlways = start_ + 2;
-        opcodeTierAndOld = start_ + 3;
-        opcodeTierAndNew = start_ + 4;
-        opcodeTierAndLeft = start_ + 5;
-        opcodeTierOrOld = start_ + 6;
-        opcodeTierOrNew = start_ + 7;
-        opcodeTierOrLeft = start_ + 8;
+        opcodeTierNever = start_ + uint8(Ops.never);
+        opcodeTierAlways = start_ + uint8(Ops.always);
+        opcodeTierAndOld = start_ + uint8(Ops.andOld);
+        opcodeTierAndNew = start_ + uint8(Ops.andNew);
+        opcodeTierAndLeft = start_ + uint8(Ops.andLeft);
+        opcodeTierOrOld = start_ + uint8(Ops.orOld);
+        opcodeTierOrNew = start_ + uint8(Ops.orNew);
+        opcodeTierOrLeft = start_ + uint8(Ops.orLeft);
     }
 
     function applyOp(

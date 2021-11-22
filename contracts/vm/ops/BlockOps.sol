@@ -3,6 +3,10 @@ pragma solidity ^0.8.10;
 
 import "../RainVM.sol";
 
+enum Ops {
+    blockNumber
+}
+
 abstract contract BlockOps {
     uint8 public immutable blockOpsStart;
     uint8 public immutable opcodeBlockNumber;
@@ -10,7 +14,7 @@ abstract contract BlockOps {
 
     constructor(uint8 start_) {
         blockOpsStart = start_;
-        opcodeBlockNumber = start_;
+        opcodeBlockNumber = start_ + uint8(Ops.blockNumber);
     }
 
     function applyOp(
