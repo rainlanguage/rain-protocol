@@ -9,6 +9,10 @@ import "../vm/ops/TierOps.sol";
 import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
 import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 
+enum Ops {
+    account
+}
+
 contract CombineTier is
     ReadOnlyTier,
     RainVM,
@@ -26,7 +30,7 @@ contract CombineTier is
         TierOps(blockOpsStart + BLOCK_OPS_LENGTH)
     {
         opcodeCombineStart = tierOpsStart + TIER_OPS_LENGTH;
-        opcodeCombineTierAccount = opcodeCombineStart;
+        opcodeCombineTierAccount = opcodeCombineStart + uint8(Ops.account);
     } // solhint-disable-line no-empty-blocks
 
     function applyOp(
