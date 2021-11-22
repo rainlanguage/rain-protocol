@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type { VerifyTier } from "../../typechain/VerifyTier";
 import type { Verify } from "../../typechain/Verify";
 import type { Contract } from "ethers";
+import { hexlify } from "ethers/lib/utils";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,10 +60,13 @@ describe("VerifyTier", async function () {
       "Nil status did not return max uint256"
     );
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
+    const evidenceBan = hexlify([...Buffer.from("Evidence for ban")]);
+    const evidenceRemove = hexlify([...Buffer.from("Evidence for remove")]);
 
     // Add
-    await verify.connect(signer1).add(SESSION_ID0);
+    await verify.connect(signer1).add(evidenceAdd);
     const tierReportAdded = await verifyTier.report(signer1.address);
     assert(
       tierReportAdded.eq(Util.max_uint256),
@@ -70,7 +74,7 @@ describe("VerifyTier", async function () {
     );
 
     // Approve
-    await verify.connect(verifier).approve(signer1.address);
+    await verify.connect(verifier).approve(signer1.address, evidenceApprove);
     const blockApproved = await ethers.provider.getBlockNumber();
     const tierReportApprovedActual = Util.zeroPad32(
       await verifyTier.report(signer1.address)
@@ -86,7 +90,7 @@ describe("VerifyTier", async function () {
     );
 
     // Ban
-    await verify.connect(verifier).ban(signer1.address);
+    await verify.connect(verifier).ban(signer1.address, evidenceBan);
     const tierReportBanned = await verifyTier.report(signer1.address);
     assert(
       tierReportBanned.eq(Util.max_uint256),
@@ -94,7 +98,7 @@ describe("VerifyTier", async function () {
     );
 
     // Remove
-    await verify.connect(verifier).remove(signer1.address);
+    await verify.connect(verifier).remove(signer1.address, evidenceRemove);
     const tierReportRemoved = await verifyTier.report(signer1.address);
     assert(
       tierReportRemoved.eq(Util.max_uint256),

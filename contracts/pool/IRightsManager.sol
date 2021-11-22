@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 // Mirrors `Rights` from Balancer `configurable-rights-pool` repo.
 // As we do not include balancer contracts as a dependency, we need to ensure

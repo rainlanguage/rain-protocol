@@ -17,6 +17,7 @@ import { RedeemableERC20PoolFactory } from "../pool/RedeemableERC20PoolFactory.s
 import { RedeemableERC20Pool, RedeemableERC20PoolConfig } from "../pool/RedeemableERC20Pool.sol";
 import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
 import { SeedERC20Config } from "../seed/SeedERC20.sol";
+// solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
 import { TrustRedeemableERC20Config, TrustRedeemableERC20PoolConfig } from "./Trust.sol";

@@ -4,6 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { Verify } from "../../typechain/Verify";
 import { max_uint32 } from "../Util";
+import { hexlify } from "ethers/lib/utils";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -35,6 +36,182 @@ let verifyFactory;
 describe("Verify", async function () {
   before(async () => {
     verifyFactory = await ethers.getContractFactory("Verify");
+  });
+
+  it("should allow anyone to submit data to support a request to ban an account", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // signers
+    const signer1 = signers[7];
+    const signer2 = signers[8];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
+
+    // signer1 adds their account and is approved
+    const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove0 = hexlify([...Buffer.from("Evidence for approve")]);
+
+    await verify.connect(signer1).add(evidenceAdd0);
+    await verify.connect(approver).approve(signer1.address, evidenceApprove0);
+
+    const evidenceBanReq = hexlify([
+      ...Buffer.from("Evidence for ban request"),
+    ]);
+
+    // unapproved signer2 requests ban of signer1 account
+    await Util.assertError(
+      async () =>
+        verify.connect(signer2).requestBan(signer1.address, evidenceBanReq),
+      "revert ONLY_APPROVED",
+      "signer2 requested ban despite not being an approved account"
+    );
+
+    // signer2 adds their account and is approved
+    const evidenceAdd1 = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove1 = hexlify([...Buffer.from("Evidence for approve")]);
+
+    await verify.connect(signer2).add(evidenceAdd1);
+    await verify.connect(approver).approve(signer2.address, evidenceApprove1);
+
+    // signer2 requests ban of signer1 account
+    await expect(
+      verify.connect(signer2).requestBan(signer1.address, evidenceBanReq)
+    )
+      .to.emit(verify, "RequestBan")
+      .withArgs(signer2.address, signer1.address, evidenceBanReq);
+  });
+
+  it("should allow anyone to submit data to support a request to remove an account", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // signers
+    const signer1 = signers[7];
+    const signer2 = signers[8];
+
+    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
+
+    // signer1 adds their account and is approved
+    const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove0 = hexlify([...Buffer.from("Evidence for approve")]);
+
+    await verify.connect(signer1).add(evidenceAdd0);
+    await verify.connect(approver).approve(signer1.address, evidenceApprove0);
+
+    const evidenceRemoveReq = hexlify([
+      ...Buffer.from("Evidence for remove request"),
+    ]);
+
+    // unapproved signer2 requests removal of signer1 account
+    await Util.assertError(
+      async () =>
+        verify
+          .connect(signer2)
+          .requestRemove(signer1.address, evidenceRemoveReq),
+      "revert ONLY_APPROVED",
+      "signer2 requested removal despite not being an approved account"
+    );
+
+    // signer2 adds their account and is approved
+    const evidenceAdd1 = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove1 = hexlify([...Buffer.from("Evidence for approve")]);
+
+    await verify.connect(signer2).add(evidenceAdd1);
+    await verify.connect(approver).approve(signer2.address, evidenceApprove1);
+
+    // signer2 requests removal of signer1 account
+    await expect(
+      verify.connect(signer2).requestRemove(signer1.address, evidenceRemoveReq)
+    )
+      .to.emit(verify, "RequestRemove")
+      .withArgs(signer2.address, signer1.address, evidenceRemoveReq);
   });
 
   it("should not grant banner ability to approve or remove if they only have BANNER role", async function () {
@@ -89,19 +266,22 @@ describe("Verify", async function () {
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
+    const evidenceRemove = hexlify([...Buffer.from("Evidence for remove")]);
 
-    // signer1 adds session id
-    await verify.connect(signer1).add(SESSION_ID0);
+    await verify.connect(signer1).add(evidenceAdd);
 
     await Util.assertError(
-      async () => await verify.connect(remover).approve(signer1.address),
+      async () =>
+        await verify.connect(remover).approve(signer1.address, evidenceApprove),
       "revert ONLY_APPROVER",
       "non-approver wrongly approved account"
     );
 
     await Util.assertError(
-      async () => await verify.connect(approver).remove(signer1.address),
+      async () =>
+        await verify.connect(approver).remove(signer1.address, evidenceRemove),
       "revert ONLY_REMOVER",
       "non-remover wrongly removed account"
     );
@@ -159,19 +339,22 @@ describe("Verify", async function () {
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
+    const evidenceBan = hexlify([...Buffer.from("Evidence for ban")]);
 
-    // signer1 adds session id
-    await verify.connect(signer1).add(SESSION_ID0);
+    await verify.connect(signer1).add(evidenceAdd);
 
     await Util.assertError(
-      async () => await verify.connect(remover).approve(signer1.address),
+      async () =>
+        await verify.connect(remover).approve(signer1.address, evidenceApprove),
       "revert ONLY_APPROVER",
       "non-approver wrongly approved account"
     );
 
     await Util.assertError(
-      async () => await verify.connect(approver).ban(signer1.address),
+      async () =>
+        await verify.connect(approver).ban(signer1.address, evidenceBan),
       "revert ONLY_BANNER",
       "non-banner wrongly banned session"
     );
@@ -229,19 +412,22 @@ describe("Verify", async function () {
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceRemove = hexlify([...Buffer.from("Evidence for remove")]);
+    const evidenceBan = hexlify([...Buffer.from("Evidence for ban")]);
 
-    // signer1 adds session id
-    await verify.connect(signer1).add(SESSION_ID0);
+    await verify.connect(signer1).add(evidenceAdd);
 
     await Util.assertError(
-      async () => await verify.connect(approver).remove(signer1.address),
+      async () =>
+        await verify.connect(approver).remove(signer1.address, evidenceRemove),
       "revert ONLY_REMOVER",
       "non-remover wrongly removed account"
     );
 
     await Util.assertError(
-      async () => await verify.connect(approver).ban(signer1.address),
+      async () =>
+        await verify.connect(approver).ban(signer1.address, evidenceBan),
       "revert ONLY_BANNER",
       "non-banner wrongly banned session"
     );
@@ -499,9 +685,12 @@ describe("Verify", async function () {
 
     const blockBeforeAdd = await ethers.provider.getBlockNumber();
 
-    // signer1 adds arbitrary session id
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
-    await verify.connect(signer1).add(SESSION_ID0);
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
+    const evidenceBan = hexlify([...Buffer.from("Evidence for ban")]);
+    const evidenceRemove = hexlify([...Buffer.from("Evidence for remove")]);
+
+    await verify.connect(signer1).add(evidenceAdd);
 
     const state1 = await verify.state(signer1.address);
     assert(
@@ -515,7 +704,7 @@ describe("Verify", async function () {
     const blockBeforeApprove = await ethers.provider.getBlockNumber();
 
     // approve account
-    await verify.connect(approver).approve(signer1.address);
+    await verify.connect(approver).approve(signer1.address, evidenceApprove);
 
     const state2 = await verify.state(signer1.address);
     assert(
@@ -529,7 +718,7 @@ describe("Verify", async function () {
     const blockBeforeBan = await ethers.provider.getBlockNumber();
 
     // ban account
-    await verify.connect(banner).ban(signer1.address);
+    await verify.connect(banner).ban(signer1.address, evidenceBan);
 
     const state3 = await verify.state(signer1.address);
     assert(
@@ -555,7 +744,7 @@ describe("Verify", async function () {
     );
 
     // remove account
-    await verify.connect(remover).remove(signer1.address);
+    await verify.connect(remover).remove(signer1.address, evidenceRemove);
 
     const state4 = await verify.state(signer1.address);
     assert(
@@ -615,47 +804,61 @@ describe("Verify", async function () {
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
+    const evidenceBan = hexlify([...Buffer.from("Evidence for ban")]);
+    const evidenceRemove = hexlify([...Buffer.from("Evidence for remove")]);
 
     await Util.assertError(
-      async () => await verify.connect(approver).approve(signer1.address),
+      async () =>
+        await verify
+          .connect(approver)
+          .approve(signer1.address, evidenceApprove),
       "revert NOT_ADDED",
       "wrongly approved when Status equals Nil"
     );
     await Util.assertError(
-      async () => await verify.connect(banner).ban(signer1.address),
+      async () =>
+        await verify.connect(banner).ban(signer1.address, evidenceBan),
       "revert NOT_ADDED",
       "wrongly banned when Status equals Nil"
     );
 
     // Add
-    await verify.connect(signer1).add(SESSION_ID0);
+    await verify.connect(signer1).add(evidenceAdd);
 
     // Approve
-    await verify.connect(approver).approve(signer1.address);
+    await verify.connect(approver).approve(signer1.address, evidenceApprove);
 
     await Util.assertError(
-      async () => await verify.connect(approver).approve(signer1.address),
+      async () =>
+        await verify
+          .connect(approver)
+          .approve(signer1.address, evidenceApprove),
       "revert PRIOR_APPROVE",
       "wrongly approved when Status equals Approved"
     );
 
     // Ban
-    await verify.connect(banner).ban(signer1.address);
+    await verify.connect(banner).ban(signer1.address, evidenceBan);
 
     await Util.assertError(
-      async () => await verify.connect(approver).approve(signer1.address),
+      async () =>
+        await verify
+          .connect(approver)
+          .approve(signer1.address, evidenceApprove),
       "revert PRIOR_APPROVE",
       "wrongly approved when Status equals Banned"
     );
     await Util.assertError(
-      async () => await verify.connect(banner).ban(signer1.address),
+      async () =>
+        await verify.connect(banner).ban(signer1.address, evidenceBan),
       "revert PRIOR_BAN",
       "wrongly banned when Status equals Banned"
     );
 
     // Remove
-    await verify.connect(remover).remove(signer1.address);
+    await verify.connect(remover).remove(signer1.address, evidenceRemove);
   });
 
   it("should require non-zero admin address", async function () {
@@ -735,9 +938,12 @@ describe("Verify", async function () {
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
 
-    // signer1 adds arbitrary session id
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
-    await verify.connect(signer1).add(SESSION_ID0);
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
+    const evidenceBan = hexlify([...Buffer.from("Evidence for ban")]);
+    const evidenceRemove = hexlify([...Buffer.from("Evidence for remove")]);
+
+    await verify.connect(signer1).add(evidenceAdd);
 
     const block1 = await ethers.provider.getBlockNumber();
     const state1 = await verify.state(signer1.address);
@@ -762,7 +968,7 @@ describe("Verify", async function () {
     );
 
     // approve account
-    await verify.connect(approver).approve(signer1.address);
+    await verify.connect(approver).approve(signer1.address, evidenceApprove);
 
     const block2 = await ethers.provider.getBlockNumber();
     const state2 = await verify.state(signer1.address);
@@ -787,7 +993,7 @@ describe("Verify", async function () {
     );
 
     // ban account
-    await verify.connect(banner).ban(signer1.address);
+    await verify.connect(banner).ban(signer1.address, evidenceBan);
 
     const block3 = await ethers.provider.getBlockNumber();
     const state3 = await verify.state(signer1.address);
@@ -812,7 +1018,7 @@ describe("Verify", async function () {
     );
 
     // remove account
-    await verify.connect(remover).remove(signer1.address);
+    await verify.connect(remover).remove(signer1.address, evidenceRemove);
 
     const state4 = await verify.state(signer1.address);
     assert(
@@ -854,7 +1060,7 @@ describe("Verify", async function () {
     assert((await verify.BANNER()) === BANNER, "wrong BANNER hash value");
   });
 
-  it("should allow anyone to map their account to a session id", async function () {
+  it("should allow anyone to submit data to support verification", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -864,42 +1070,26 @@ describe("Verify", async function () {
 
     const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
-    const SESSION_ID1 = ethers.BigNumber.from("12345678901234567901");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
 
-    // prevent adding session ID of 0
-    await Util.assertError(
-      async () => {
-        await verify.connect(signer1).add(0);
-      },
-      "revert 0_ID",
-      "wrongly created new verify session with ID of 0"
-    );
-
-    // signer1 adds session id
-    await expect(verify.connect(signer1).add(SESSION_ID0))
-      .to.emit(verify, "Add")
-      .withArgs(signer1.address, SESSION_ID0);
-
-    // check that signer1 is mapped to verify session
-    assert(
-      (await verify.state(signer1.address)).id.eq(SESSION_ID0),
-      "signer1 was not mapped to session id after adding"
-    );
+    // signer1 submits evidence
+    await expect(verify.connect(signer1).add(evidenceAdd))
+      .to.emit(verify, "RequestApprove")
+      .withArgs(signer1.address, evidenceAdd);
 
     const state0 = await verify.state(signer1.address);
 
-    // signer1 cannot wipe their own mapping between address -> session id
+    // signer1 cannot overwrite previous submission
     await Util.assertError(
-      async () => await verify.connect(signer1).add(SESSION_ID1),
+      async () => await verify.connect(signer1).add(evidenceAdd),
       "revert PRIOR_ADD",
       "signer1 wiped their own state"
     );
 
-    // another signer should be able to map to the same session id
-    await verify.connect(signer2).add(SESSION_ID0);
+    // another signer should be able to submit identical evidence
+    await verify.connect(signer2).add(evidenceAdd);
 
-    // signer2 adding same id for their account should not wipe state for signer1
+    // signer2 adding should not wipe state for signer1
     const state2 = await verify.state(signer1.address);
     for (let index = 0; index < state0.length; index++) {
       const propertyLeft = `${state0[index]}`;
@@ -949,28 +1139,36 @@ describe("Verify", async function () {
       .connect(aprAdmin)
       .grantRole(await verify.APPROVER(), approver.address);
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
 
-    // signer1 adds session id
-    await verify.connect(signer1).add(SESSION_ID0);
+    await verify.connect(signer1).add(evidenceAdd);
 
     // prevent approving zero address
     await Util.assertError(
-      async () => await verify.connect(approver).approve(Util.zeroAddress),
+      async () =>
+        await verify
+          .connect(approver)
+          .approve(Util.zeroAddress, evidenceApprove),
       "revert 0_ADDRESS",
       "wrongly approved account with address of 0"
     );
 
     await Util.assertError(
-      async () => await verify.connect(nonApprover).approve(signer1.address),
+      async () =>
+        await verify
+          .connect(nonApprover)
+          .approve(signer1.address, evidenceApprove),
       "revert ONLY_APPROVER",
       "non-approver wrongly approved account"
     );
 
     // approve account
-    await expect(verify.connect(approver).approve(signer1.address))
+    await expect(
+      verify.connect(approver).approve(signer1.address, evidenceApprove)
+    )
       .to.emit(verify, "Approve")
-      .withArgs(signer1.address);
+      .withArgs(approver.address, signer1.address, evidenceApprove);
 
     // check that signer1 has been approved
     const stateApproved = await verify.state(signer1.address);
@@ -1018,35 +1216,40 @@ describe("Verify", async function () {
       .connect(rmvAdmin)
       .grantRole(await verify.REMOVER(), remover.address);
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceRemove = hexlify([...Buffer.from("Evidence for remove")]);
 
-    // signer1 adds session id
-    await verify.connect(signer1).add(SESSION_ID0);
+    await verify.connect(signer1).add(evidenceAdd);
 
     // prevent removing account of address 0
     await Util.assertError(
-      async () => await verify.connect(remover).remove(Util.zeroAddress),
+      async () =>
+        await verify.connect(remover).remove(Util.zeroAddress, evidenceRemove),
       "revert 0_ADDRESS",
       "wrongly removed account with address of 0"
     );
 
     await Util.assertError(
-      async () => await verify.connect(nonRemover).remove(signer1.address),
+      async () =>
+        await verify
+          .connect(nonRemover)
+          .remove(signer1.address, evidenceRemove),
       "revert ONLY_REMOVER",
       "non-remover wrongly removed account"
     );
 
     // admin removes account
-    await expect(verify.connect(remover).remove(signer1.address))
+    await expect(
+      verify.connect(remover).remove(signer1.address, evidenceRemove)
+    )
       .to.emit(verify, "Remove")
-      .withArgs(signer1.address);
+      .withArgs(remover.address, signer1.address, evidenceRemove);
 
     // check that signer1 has been removed
     const stateRemoved = await verify.state(signer1.address);
     assert(stateRemoved.addedSince === 0, "not removed");
     assert(stateRemoved.approvedSince === 0, "not removed");
     assert(stateRemoved.bannedSince === 0, "not removed");
-    assert(stateRemoved.id.isZero(), "not removed");
   });
 
   it("should allow only banner to ban sessions", async function () {
@@ -1087,28 +1290,30 @@ describe("Verify", async function () {
       .connect(banAdmin)
       .grantRole(await verify.BANNER(), banner.address);
 
-    const SESSION_ID0 = ethers.BigNumber.from("10765432100123456789");
+    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceBan = hexlify([...Buffer.from("Evidence for ban")]);
 
-    // signer1 adds session id
-    await verify.connect(signer1).add(SESSION_ID0);
+    await verify.connect(signer1).add(evidenceAdd);
 
     // prevent banning zero address
     await Util.assertError(
-      async () => await verify.connect(banner).ban(Util.zeroAddress),
+      async () =>
+        await verify.connect(banner).ban(Util.zeroAddress, evidenceBan),
       "revert 0_ADDRESS",
       "wrongly banning zero address"
     );
 
     await Util.assertError(
-      async () => await verify.connect(nonBanner).ban(signer1.address),
+      async () =>
+        await verify.connect(nonBanner).ban(signer1.address, evidenceBan),
       "revert ONLY_BANNER",
       "non-banner wrongly banned session"
     );
 
     // admin bans account
-    await expect(verify.connect(banner).ban(signer1.address))
+    await expect(verify.connect(banner).ban(signer1.address, evidenceBan))
       .to.emit(verify, "Ban")
-      .withArgs(signer1.address);
+      .withArgs(banner.address, signer1.address, evidenceBan);
 
     // check that signer1 has been banned
     const stateBanned = await verify.state(signer1.address);
