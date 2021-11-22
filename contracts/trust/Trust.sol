@@ -577,6 +577,7 @@ contract Trust is ReentrancyGuard {
     /// Anyone can send a notice about this `Trust`.
     /// The notice is opaque bytes that the indexer/GUI is expected to
     /// understand the context to decode/interpret it.
+    /// @param data_ The data associated with this notice.
     function sendNotice(bytes memory data_) external {
         emit Notice(msg.sender, data_);
     }
