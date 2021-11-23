@@ -106,7 +106,7 @@ describe("Verify", async function () {
     await Util.assertError(
       async () =>
         verify.connect(signer2).requestBan(signer1.address, evidenceBanReq),
-      "revert ONLY_APPROVED",
+      "ONLY_APPROVED",
       "signer2 requested ban despite not being an approved account"
     );
 
@@ -195,7 +195,7 @@ describe("Verify", async function () {
         verify
           .connect(signer2)
           .requestRemove(signer1.address, evidenceRemoveReq),
-      "revert ONLY_APPROVED",
+      "ONLY_APPROVED",
       "signer2 requested removal despite not being an approved account"
     );
 
@@ -275,14 +275,14 @@ describe("Verify", async function () {
     await Util.assertError(
       async () =>
         await verify.connect(remover).approve(signer1.address, evidenceApprove),
-      "revert ONLY_APPROVER",
+      "ONLY_APPROVER",
       "non-approver wrongly approved account"
     );
 
     await Util.assertError(
       async () =>
         await verify.connect(approver).remove(signer1.address, evidenceRemove),
-      "revert ONLY_REMOVER",
+      "ONLY_REMOVER",
       "non-remover wrongly removed account"
     );
   });
@@ -348,14 +348,14 @@ describe("Verify", async function () {
     await Util.assertError(
       async () =>
         await verify.connect(remover).approve(signer1.address, evidenceApprove),
-      "revert ONLY_APPROVER",
+      "ONLY_APPROVER",
       "non-approver wrongly approved account"
     );
 
     await Util.assertError(
       async () =>
         await verify.connect(approver).ban(signer1.address, evidenceBan),
-      "revert ONLY_BANNER",
+      "ONLY_BANNER",
       "non-banner wrongly banned session"
     );
   });
@@ -421,14 +421,14 @@ describe("Verify", async function () {
     await Util.assertError(
       async () =>
         await verify.connect(approver).remove(signer1.address, evidenceRemove),
-      "revert ONLY_REMOVER",
+      "ONLY_REMOVER",
       "non-remover wrongly removed account"
     );
 
     await Util.assertError(
       async () =>
         await verify.connect(approver).ban(signer1.address, evidenceBan),
-      "revert ONLY_BANNER",
+      "ONLY_BANNER",
       "non-banner wrongly banned session"
     );
   });
@@ -814,13 +814,13 @@ describe("Verify", async function () {
         await verify
           .connect(approver)
           .approve(signer1.address, evidenceApprove),
-      "revert NOT_ADDED",
+      "NOT_ADDED",
       "wrongly approved when Status equals Nil"
     );
     await Util.assertError(
       async () =>
         await verify.connect(banner).ban(signer1.address, evidenceBan),
-      "revert NOT_ADDED",
+      "NOT_ADDED",
       "wrongly banned when Status equals Nil"
     );
 
@@ -835,7 +835,7 @@ describe("Verify", async function () {
         await verify
           .connect(approver)
           .approve(signer1.address, evidenceApprove),
-      "revert PRIOR_APPROVE",
+      "PRIOR_APPROVE",
       "wrongly approved when Status equals Approved"
     );
 
@@ -847,13 +847,13 @@ describe("Verify", async function () {
         await verify
           .connect(approver)
           .approve(signer1.address, evidenceApprove),
-      "revert PRIOR_APPROVE",
+      "PRIOR_APPROVE",
       "wrongly approved when Status equals Banned"
     );
     await Util.assertError(
       async () =>
         await verify.connect(banner).ban(signer1.address, evidenceBan),
-      "revert PRIOR_BAN",
+      "PRIOR_BAN",
       "wrongly banned when Status equals Banned"
     );
 
@@ -866,7 +866,7 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () => await verifyFactory.deploy(Util.zeroAddress),
-      "revert 0_ACCOUNT",
+      "0_ACCOUNT",
       "wrongly constructed Verify with admin as zero address"
     );
   });
@@ -1082,7 +1082,7 @@ describe("Verify", async function () {
     // signer1 cannot overwrite previous submission
     await Util.assertError(
       async () => await verify.connect(signer1).add(evidenceAdd),
-      "revert PRIOR_ADD",
+      "PRIOR_ADD",
       "signer1 wiped their own state"
     );
 
@@ -1150,7 +1150,7 @@ describe("Verify", async function () {
         await verify
           .connect(approver)
           .approve(Util.zeroAddress, evidenceApprove),
-      "revert 0_ADDRESS",
+      "0_ADDRESS",
       "wrongly approved account with address of 0"
     );
 
@@ -1159,7 +1159,7 @@ describe("Verify", async function () {
         await verify
           .connect(nonApprover)
           .approve(signer1.address, evidenceApprove),
-      "revert ONLY_APPROVER",
+      "ONLY_APPROVER",
       "non-approver wrongly approved account"
     );
 
@@ -1225,7 +1225,7 @@ describe("Verify", async function () {
     await Util.assertError(
       async () =>
         await verify.connect(remover).remove(Util.zeroAddress, evidenceRemove),
-      "revert 0_ADDRESS",
+      "0_ADDRESS",
       "wrongly removed account with address of 0"
     );
 
@@ -1234,7 +1234,7 @@ describe("Verify", async function () {
         await verify
           .connect(nonRemover)
           .remove(signer1.address, evidenceRemove),
-      "revert ONLY_REMOVER",
+      "ONLY_REMOVER",
       "non-remover wrongly removed account"
     );
 
@@ -1299,14 +1299,14 @@ describe("Verify", async function () {
     await Util.assertError(
       async () =>
         await verify.connect(banner).ban(Util.zeroAddress, evidenceBan),
-      "revert 0_ADDRESS",
+      "0_ADDRESS",
       "wrongly banning zero address"
     );
 
     await Util.assertError(
       async () =>
         await verify.connect(nonBanner).ban(signer1.address, evidenceBan),
-      "revert ONLY_BANNER",
+      "ONLY_BANNER",
       "non-banner wrongly banned session"
     );
 

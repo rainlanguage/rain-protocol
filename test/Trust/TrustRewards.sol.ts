@@ -518,7 +518,7 @@ describe("TrustRewards", async function () {
           [reserve.address],
           await token1.balanceOf(signer1.address)
         ),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "signer1 redeemed tokens before token phase change"
     );
 
@@ -547,7 +547,7 @@ describe("TrustRewards", async function () {
     await Util.assertError(
       async () =>
         await token1.redeem([reserve.address], signer1TokenBalanceBeforeRed),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       `signer1 redeemed tokens before token phase change
       currentBlock        ${await ethers.provider.getBlockNumber()}
       tokenPhaseOneBlock  ${await token.phaseBlocks(0)}`

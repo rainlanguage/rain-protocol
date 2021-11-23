@@ -160,7 +160,7 @@ describe("RedeemableERC20Pool", async function () {
           finalValuation: finalValuation,
           minimumTradingDuration,
         })) as RedeemableERC20Pool & Contract,
-      "revert 0_TRADING_DURATION",
+      "0_TRADING_DURATION",
       "wrongly constructed pool with 0 minimum trading duration"
     );
   });
@@ -594,7 +594,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => await pool.ownerEndDutchAuction(),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "owner was wrongly able to exit pool before trading was started"
     );
 
@@ -628,7 +628,7 @@ describe("RedeemableERC20Pool", async function () {
         await pool.startDutchAuction({
           gasLimit: 10000000,
         }),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "pool trading wrongly initialized twice by owner"
     );
 
@@ -644,7 +644,7 @@ describe("RedeemableERC20Pool", async function () {
     // Before raiseEndBlock
     await Util.assertError(
       async () => await pool.ownerEndDutchAuction(),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "owner was wrongly able to exit pool before raiseEndBlock"
     );
 
@@ -655,7 +655,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => await pool1.ownerEndDutchAuction(),
-      "revert Ownable: caller is not the owner",
+      "Ownable: caller is not the owner",
       "non-owner was wrongly able to end pool trading directly"
     );
 
@@ -782,7 +782,7 @@ describe("RedeemableERC20Pool", async function () {
     // whitelisted LPs
     await Util.assertError(
       async () => await crp.joinPool(1, []),
-      "revert ERR_NOT_ON_WHITELIST",
+      "ERR_NOT_ON_WHITELIST",
       "non-whitelisted signer wrongly joined pool"
     );
 
@@ -794,7 +794,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => await pool.ownerEndDutchAuction(),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "failed to error on early exit"
     );
 
@@ -915,7 +915,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => await pool.ownerEndDutchAuction(),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "failed to error on early exit"
     );
 
@@ -1005,7 +1005,7 @@ describe("RedeemableERC20Pool", async function () {
         })) as RedeemableERC20Pool & Contract;
         await pool.deployed();
       },
-      "revert RESERVE_INIT_MINIMUM",
+      "RESERVE_INIT_MINIMUM",
       "failed to error when reserve init below minimum at construction"
     );
   });

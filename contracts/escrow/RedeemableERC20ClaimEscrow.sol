@@ -71,6 +71,27 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
+    event Deposit(
+        address indexed trust,
+        address indexed token,
+        address indexed depositor,
+        uint256 amount
+    );
+
+    event Undeposit(
+        address indexed trust,
+        address indexed token,
+        address indexed undepositor,
+        uint256 amount
+    );
+
+    event Withdraw(
+        address indexed trust,
+        address indexed token,
+        address indexed withdrawer,
+        uint256 amount
+    );
+
     /// trust => withdrawn token => withdrawer => amount
     mapping(address => mapping(address => mapping(address => uint256)))
         public withdrawals;
@@ -118,6 +139,8 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
         );
 
         token_.safeTransferFrom(msg.sender, address(this), amount_);
+
+        emit Deposit(address(trust_), address(token_), msg.sender, amount_);
     }
 
     /// The inverse of `deposit`.
@@ -152,6 +175,13 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
             );
 
             token_.safeTransfer(msg.sender, amount_);
+
+            emit Undeposit(
+                address(trust_),
+                address(token_),
+                msg.sender,
+                amount_
+            );
         }
     }
 
@@ -192,26 +222,33 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
                 "ONLY_SUCCESS"
             );
             TrustContracts memory trustContracts_ = trust_.getContracts();
+            // Guard against rounding errors blocking the last withdraw.
+            // The issue would be if rounding errors in the withdrawal
+            // trigger an attempt to withdraw more redeemable than is owned
+            // by the escrow. This is probably snake oil because integer
+            // division results in flooring rather than rounding up/down.
+            // IMPORTANT: Rounding errors in the inverse direction, i.e.
+            // that leave dust trapped in the escrow after all accounts
+            // have fully withdrawn are NOT guarded against.
+            // For example, if 100 tokens are split between 3 accounts then
+            // each account will receive 33 tokens, effectively burning 1
+            // token as it cannot be withdrawn from the escrow contract.
+            uint256 amount_ = token_.balanceOf(address(this)).min(
+                ( totalDeposit_ - withdrawn_ )
+                * RedeemableERC20(trustContracts_.redeemableERC20)
+                    .balanceOf(msg.sender)
+                / RedeemableERC20(trustContracts_.redeemableERC20)
+                    .totalSupply()
+            );
             token_.safeTransfer(
                 msg.sender,
-                // Guard against rounding errors blocking the last withdraw.
-                // The issue would be if rounding errors in the withdrawal
-                // trigger an attempt to withdraw more redeemable than is owned
-                // by the escrow. This is probably snake oil because integer
-                // division results in flooring rather than rounding up/down.
-                // IMPORTANT: Rounding errors in the inverse direction, i.e.
-                // that leave dust trapped in the escrow after all accounts
-                // have fully withdrawn are NOT guarded against.
-                // For example, if 100 tokens are split between 3 accounts then
-                // each account will receive 33 tokens, effectively burning 1
-                // token as it cannot be withdrawn from the escrow contract.
-                token_.balanceOf(address(this)).min(
-                    (totalDeposit_ - withdrawn_)
-                    * RedeemableERC20(trustContracts_.redeemableERC20)
-                        .balanceOf(msg.sender)
-                    / RedeemableERC20(trustContracts_.redeemableERC20)
-                        .totalSupply()
-                )
+                amount_
+            );
+            emit Withdraw(
+                address(trust_),
+                address(token_),
+                msg.sender,
+                amount_
             );
         }
     }

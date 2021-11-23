@@ -403,7 +403,7 @@ describe("TrustDistribute", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      `revert RESERVE_INIT_MINIMUM`,
+      `RESERVE_INIT_MINIMUM`,
       `failed to protect against large dust`
     );
   });

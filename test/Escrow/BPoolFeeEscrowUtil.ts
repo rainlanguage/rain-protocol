@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import * as Util from "../Util";
 import { ethers } from "hardhat";
 import type { BPoolFeeEscrow } from "../../typechain/BPoolFeeEscrow";
@@ -21,15 +22,6 @@ enum Tier {
   DIAMOND,
   CHAD,
   JAWAD,
-}
-
-enum DistributionStatus {
-  PENDING,
-  SEEDED,
-  TRADING,
-  TRADINGCANEND,
-  SUCCESS,
-  FAIL,
 }
 
 export const deployGlobals = async () => {
@@ -207,9 +199,6 @@ export const successfulRaise = async (
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
   const fee = ethers.BigNumber.from("10" + Util.sixZeros);
-
-  // set min fee for the reserve that signer1 will be using
-  await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
 
   // raise all necessary funds
   let buyCount = 0;

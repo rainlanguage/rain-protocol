@@ -25,7 +25,6 @@ enum Tier {
 }
 
 describe("TierReport", async function () {
-  let owner: any;
   let signer1: SignerWithAddress;
   let readWriteTier: ReadWriteTier & Contract;
   let reserve: ReserveTokenTest & Contract;

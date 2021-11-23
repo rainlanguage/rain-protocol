@@ -10,6 +10,7 @@ import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 enum DistributionStatus {
@@ -479,7 +480,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-      creator,
     } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -529,7 +529,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         await claim
           .connect(signer1)
           .withdraw(trust.address, claimableToken.address),
-      "revert ONLY_SUCCESS",
+      "ONLY_SUCCESS",
       "wrongly withrew during Trading"
     );
 
@@ -551,7 +551,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         await claim
           .connect(signer1)
           .withdraw(trust.address, claimableToken.address),
-      "revert ONLY_SUCCESS",
+      "ONLY_SUCCESS",
       "wrongly withdrew during TradingCanEnd"
     );
 
@@ -656,7 +656,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // prevent undeposit until status Fail
     await Util.assertError(
       async () => await claim.undeposit(trust.address, claimableToken.address),
-      "revert ONLY_FAIL",
+      "ONLY_FAIL",
       "wrongly undeposited during Trading"
     );
 
@@ -669,7 +669,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // prevent undeposit until status Fail
     await Util.assertError(
       async () => await claim.undeposit(trust.address, claimableToken.address),
-      "revert ONLY_FAIL",
+      "ONLY_FAIL",
       "wrongly undeposited during TradingCanEnd"
     );
 
@@ -815,7 +815,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
           claimableToken.address,
           depositAmount1
         ),
-      "revert FAIL_DEPOSIT",
+      "FAIL_DEPOSIT",
       "wrongly deposited when distribution status was Fail"
     );
   });
@@ -991,7 +991,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
           claimableToken.address,
           0
         ),
-      "revert NOT_TRUSTED_CHILD",
+      "NOT_TRUSTED_CHILD",
       "did not check trust is child of trust factory"
     );
   });
