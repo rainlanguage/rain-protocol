@@ -11,6 +11,12 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Phase, Phased } from "../phased/Phased.sol";
 import { Cooldown } from "../cooldown/Cooldown.sol";
 
+import "../vm/RainVM.sol";
+import "../vm/ImmutableSource.sol";
+import { BlockOps } from "../vm/ops/BlockOps.sol";
+import { MathOps } from "../vm/ops/MathOps.sol";
+import { SaleOps } from "../vm/ops/SaleOps.sol";
+
 /// Everything required to construct a `SeedERC20` contract.
 struct SeedERC20Config {
     // Reserve erc20 token contract used to purchase seed tokens.
@@ -90,7 +96,16 @@ struct SeedERC20Config {
 /// at a later date.
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
-contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
+contract SeedERC20 is
+    Ownable,
+    ERC20,
+    Phased,
+    Cooldown,
+    RainVM,
+    ImmutableSource,
+    BlockOps,
+    MathOps,
+    SaleOps {
 
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -135,7 +150,11 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// @param config_ All config required to construct the contract.
     constructor (SeedERC20Config memory config_)
     ERC20(config_.name, config_.symbol)
-    Cooldown(config_.cooldownDuration) {
+    Cooldown(config_.cooldownDuration)
+    ImmutableSource(config_.priceSource)
+    BlockOps(VM_OPS_LENGTH)
+    MathOps(VM_OPS_LENGTH + BLOCK_OPS_LENGTH)
+    SaleOps(VM_OPS_LENGTH + BLOCK_OPS_LENGTH + MATH_OPS_LENGTH) {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
         require(config_.recipient != address(0), "RECIPIENT_0");
@@ -143,6 +162,43 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         reserve = config_.reserve;
         recipient = config_.recipient;
         _mint(address(this), config_.seedUnits);
+    }
+
+    function applyOp(
+        bytes memory context_,
+        Stack memory stack_,
+        Op memory op_
+    )
+        internal
+        override(RainVM, BlockOps, MathOps, SaleOps)
+        view
+        returns (Stack memory)
+    {
+        if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
+            return BlockOps.applyOp(
+                context_,
+                stack_,
+                op_
+            );
+        }
+        else if (op_.code < mathOpsStart + MATH_OPS_LENGTH) {
+            return MathOps.applyOp(
+                context_,
+                stack_,
+                op_
+            );
+        }
+        else if (op_.code < saleOpsStart + SALE_OPS_LENGTH) {
+            return SaleOps.applyOp(
+                context_,
+                stack_,
+                op_
+            );
+        }
+        else {
+            // Unknown op!
+            assert(false);
+        }
     }
 
     function decimals() public pure override returns(uint8) {

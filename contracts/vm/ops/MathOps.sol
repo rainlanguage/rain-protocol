@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "../RainVM.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 enum Ops {
     add,
@@ -9,10 +10,14 @@ enum Ops {
     mul,
     pow,
     div,
-    mod
+    mod,
+    min,
+    max
 }
 
 abstract contract MathOps {
+    using Math for uint256;
+
     uint8 public immutable mathOpsStart;
     uint8 public immutable opcodeAdd;
     uint8 public immutable opcodeSub;
@@ -20,7 +25,9 @@ abstract contract MathOps {
     uint8 public immutable opcodePow;
     uint8 public immutable opcodeDiv;
     uint8 public immutable opcodeMod;
-    uint8 public constant MATH_OPS_LENGTH = 6;
+    uint8 public immutable opcodeMin;
+    uint8 public immutable opcodeMax;
+    uint8 public constant MATH_OPS_LENGTH = 8;
 
     constructor(uint8 start_) {
         mathOpsStart = start_;
@@ -30,6 +37,8 @@ abstract contract MathOps {
         opcodePow = start_ + uint8(Ops.pow);
         opcodeDiv = start_ + uint8(Ops.div);
         opcodeMod = start_ + uint8(Ops.mod);
+        opcodeMin = start_ + uint8(Ops.min);
+        opcodeMax = start_ + uint8(Ops.max);
     }
 
     function applyOp(
@@ -65,6 +74,12 @@ abstract contract MathOps {
                 }
                 else if (op_.code == opcodeMod) {
                     accumulator_ %= item_;
+                }
+                else if (op_.code == opcodeMin) {
+                    accumulator_ = accumulator_.min(item_);
+                }
+                else if (op_.code == opcodeMax) {
+                    accumulator_ = accumulator_.max(item_);
                 }
                 else {
                     // Unhandled opcode!

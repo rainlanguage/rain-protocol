@@ -44,14 +44,14 @@ contract CombineTier is
         returns (Stack memory)
     {
         if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
-            stack_ = BlockOps.applyOp(
+            return BlockOps.applyOp(
                 context_,
                 stack_,
                 op_
             );
         }
         else if (op_.code < tierOpsStart + TIER_OPS_LENGTH) {
-            stack_ = TierOps.applyOp(
+            return TierOps.applyOp(
                 context_,
                 stack_,
                 op_
@@ -61,13 +61,12 @@ contract CombineTier is
             (address account_) = abi.decode(context_, (address));
             stack_.vals[stack_.index] = uint256(uint160(account_));
             stack_.index++;
+            return stack_;
         }
         else {
             // Unknown op!
             assert(false);
         }
-
-        return stack_;
     }
 
     function report(address account_)
