@@ -106,7 +106,7 @@ describe("Verify", async function () {
     await Util.assertError(
       async () =>
         verify.connect(signer2).requestBan(signer1.address, evidenceBanReq),
-      "revert ONLY_APPROVED",
+      "ONLY_APPROVED",
       "signer2 requested ban despite not being an approved account"
     );
 
@@ -195,7 +195,7 @@ describe("Verify", async function () {
         verify
           .connect(signer2)
           .requestRemove(signer1.address, evidenceRemoveReq),
-      "revert ONLY_APPROVED",
+      "ONLY_APPROVED",
       "signer2 requested removal despite not being an approved account"
     );
 
