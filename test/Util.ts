@@ -332,7 +332,7 @@ export function zeroPad4(hex: BigNumber): string {
  */
 export function bytify(
   value: number | BytesLike | Hexable,
-  bytesLength: number = 1
+  bytesLength = 1
 ): BytesLike {
   return zeroPad(hexlify(value), bytesLength);
 }
@@ -375,7 +375,7 @@ export function callSize(
  * @param code - the opcode
  * @param erand - the operand, currently limited to 1 byte (defaults to 0)
  */
-export function op(code: number, erand: number = 0): Uint8Array {
+export function op(code: number, erand = 0): Uint8Array {
   return concat([bytify(erand), bytify(code)]);
 }
 
@@ -417,7 +417,7 @@ export const array8BitUInts = (length) =>
     .map((_, i) => wrap8BitUInt(i));
 
 export const pack2BitUIntsIntoByte = (numArray: number[]): number[] => {
-  let val: number[] = [];
+  const val: number[] = [];
   let valIndex = 0;
 
   for (let i = 0; i < numArray.length; i += 4) {
