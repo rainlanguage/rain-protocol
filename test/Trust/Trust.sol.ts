@@ -11,6 +11,7 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { ConfigurableRightsPool } from "../../typechain/ConfigurableRightsPool";
 import type { BPool } from "../../typechain/BPool";
 import type { Contract } from "ethers";
+import { hexlify } from "ethers/lib/utils";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -50,6 +51,90 @@ enum Phase {
 }
 
 describe("Trust", async function () {
+  it("should allow anon to emit Notice event", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumStatus = Tier.NIL;
+
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+
+    const tokenName = "Token";
+    const tokenSymbol = "TKN";
+
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
+    const signer1 = signers[3];
+
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederUnits = 0;
+    const seederCooldownDuration = 0;
+
+    const successLevel = reserveInit
+      .add(seederFee)
+      .add(redeemInit)
+      .add(minimumCreatorRaise);
+
+    const minimumTradingDuration = 50;
+
+    const trustFactory1 = trustFactory.connect(deployer);
+
+    const trust = await Util.trustDeploy(
+      trustFactory1,
+      creator,
+      {
+        creator: creator.address,
+        minimumCreatorRaise,
+        seeder: seeder.address,
+        seederFee,
+        seederUnits,
+        seederCooldownDuration,
+        redeemInit,
+      },
+      {
+        name: tokenName,
+        symbol: tokenSymbol,
+        tier: tier.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
+      },
+      { gasLimit: 100000000 }
+    );
+
+    await trust.deployed();
+
+    const message = "foo";
+    const notice = hexlify([...Buffer.from(message)]);
+
+    await expect(trust.connect(signer1).sendNotice(notice))
+      .to.emit(trust, "Notice")
+      .withArgs(signer1.address, notice);
+  });
+
   it("should burn token dust when closing pool", async function () {
     this.timeout(0);
 

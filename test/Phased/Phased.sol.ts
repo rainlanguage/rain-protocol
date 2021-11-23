@@ -287,6 +287,7 @@ describe("Phased", async function () {
     expect(schedule1Promise)
       .to.emit(phased, "PhaseShiftScheduled")
       .withArgs(block1);
+    await schedule1Promise;
 
     // empty block
     await reserve.transfer(signers[0].address, 0);
