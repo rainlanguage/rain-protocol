@@ -96,7 +96,7 @@ describe("Account tier", async function () {
       async () => {
         await readWriteTier.setTier(signers[0].address, zero, []);
       },
-      "revert SET_ZERO_TIER",
+      "SET_ZERO_TIER",
       "failed to error due to setting ZERO tier"
     );
   });

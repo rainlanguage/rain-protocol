@@ -168,7 +168,7 @@ describe("TrustTrade", async function () {
     // bronze signer attempts swap for tokens
     await Util.assertError(
       async () => await swapReserveForTokens(signerBronze, reserveSpend),
-      "revert MIN_TIER",
+      "MIN_TIER",
       "bronze signer swapped reserve for tokens, despite being below min status of gold"
     );
 
@@ -709,7 +709,7 @@ describe("TrustTrade", async function () {
           reserveSilver,
           bPoolSilver
         ),
-      "revert MIN_TIER",
+      "MIN_TIER",
       "Silver signer swapped reserve for tokens, despite being below min status of Gold"
     );
 
@@ -842,7 +842,7 @@ describe("TrustTrade", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "revert MAX_WEIGHT_VALUATION",
+      "MAX_WEIGHT_VALUATION",
       "wrongly deployed trust with pool at 50:1 weight ratio"
     );
 

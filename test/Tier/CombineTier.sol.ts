@@ -1435,34 +1435,3 @@ describe("CombineTier", async function () {
   });
   */
 });
-
-const getConstants = async (combineTier: CombineTier) => `Constants:
-MAX_SOURCE_LENGTH           ${await combineTier.MAX_SOURCE_LENGTH()}
-
-OPCODE_END                  ${await combineTier.OPCODE_END()}
-
-OPCODE_VAL                  ${await combineTier.OPCODE_VAL()}
-OPCODE_CALL                 ${await combineTier.OPCODE_CALL()}
-
-opcodeBlockNumber           ${await combineTier.opcodeBlockNumber()}
-
-OPCODE_RESERVED_MAX         ${await combineTier.OPCODE_RESERVED_MAX()}
-
-val0                        ${await combineTier.val0()}
-val1                        ${await combineTier.val1()}
-val2                        ${await combineTier.val2()}
-val3                        ${await combineTier.val3()}
-val4                        ${await combineTier.val4()}
-val5                        ${await combineTier.val5()}
-val6                        ${await combineTier.val6()}
-val7                        ${await combineTier.val7()}
-val8                        ${await combineTier.val8()}
-val9                        ${await combineTier.val9()}
-val10                       ${await combineTier.val10()}
-val11                       ${await combineTier.val11()}
-val12                       ${await combineTier.val12()}
-
-source0                     ${await combineTier.source0()}
-source1                     ${await combineTier.source1()}
-source2                     ${await combineTier.source2()}
-source3                     ${await combineTier.source3()}`;

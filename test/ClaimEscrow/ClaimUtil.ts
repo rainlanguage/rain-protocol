@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import * as Util from "../Util";
 import { ethers } from "hardhat";
 import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
@@ -5,7 +6,6 @@ import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
-import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { Contract } from "ethers";
 
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
@@ -21,15 +21,6 @@ enum Tier {
   DIAMOND,
   CHAD,
   JAWAD,
-}
-
-enum DistributionStatus {
-  PENDING,
-  SEEDED,
-  TRADING,
-  TRADINGCANEND,
-  SUCCESS,
-  FAIL,
 }
 
 export const deployGlobals = async () => {

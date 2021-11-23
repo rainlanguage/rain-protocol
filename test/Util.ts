@@ -9,7 +9,7 @@ import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
-import type { BigNumber, Contract, BytesLike } from "ethers";
+import type { BigNumber, Contract, BytesLike, BigNumberish } from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
@@ -332,7 +332,7 @@ export function zeroPad4(hex: BigNumber): string {
  */
 export function bytify(
   value: number | BytesLike | Hexable,
-  bytesLength: number = 1
+  bytesLength = 1
 ): BytesLike {
   return zeroPad(hexlify(value), bytesLength);
 }
@@ -375,7 +375,7 @@ export function callSize(
  * @param code - the opcode
  * @param erand - the operand, currently limited to 1 byte (defaults to 0)
  */
-export function op(code: number, erand: number = 0): Uint8Array {
+export function op(code: number, erand = 0): Uint8Array {
   return concat([bytify(erand), bytify(code)]);
 }
 
@@ -417,7 +417,7 @@ export const array8BitUInts = (length) =>
     .map((_, i) => wrap8BitUInt(i));
 
 export const pack2BitUIntsIntoByte = (numArray: number[]): number[] => {
-  let val: number[] = [];
+  const val: number[] = [];
   let valIndex = 0;
 
   for (let i = 0; i < numArray.length; i += 4) {
@@ -441,3 +441,23 @@ export const paddedReport = (report: BigNumber): string => {
 export const paddedBlock = (blockNumber: number): string => {
   return hexlify(blockNumber).substring(2).padStart(8, "0");
 };
+
+export type Source = [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
+export type Vals = [
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish
+];

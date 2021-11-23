@@ -158,7 +158,7 @@ describe("TrustSeed", async function () {
     ) {
       await Util.assertError(
         async () => await seederContract1.unseed(1),
-        "revert COOLDOWN",
+        "COOLDOWN",
         `seeder1 unseeded before their cooldown
         lastBlock   ${await ethers.provider.getBlockNumber()}
         unlockBlock ${delay1UnlockBlock}`
@@ -188,7 +188,7 @@ describe("TrustSeed", async function () {
     ) {
       await Util.assertError(
         async () => await seederContract2.unseed(1),
-        "revert COOLDOWN",
+        "COOLDOWN",
         `seeder2 unseeded before their cooldown
         lastBlock   ${await ethers.provider.getBlockNumber()}
         unlockBlock ${delay2UnlockBlock}`
@@ -284,7 +284,7 @@ describe("TrustSeed", async function () {
             name: "seed",
             symbol: "SD",
           })) as SeedERC20 & Contract,
-        "revert UNITS_0",
+        "UNITS_0",
         "seeder contract was wrongly constructed with seedUnits set to 0"
       );
     });
@@ -325,7 +325,7 @@ describe("TrustSeed", async function () {
             name: "seed",
             symbol: "SD",
           })) as SeedERC20 & Contract,
-        "revert PRICE_0",
+        "PRICE_0",
         "seeder contract was wrongly constructed with seedPrice set to 0"
       );
     });
@@ -561,7 +561,7 @@ describe("TrustSeed", async function () {
 
     await Util.assertError(
       async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
-      "revert ERC20: transfer amount exceeds balance",
+      "ERC20: transfer amount exceeds balance",
       "raise begun with insufficient seed reserve"
     );
 
@@ -698,7 +698,7 @@ describe("TrustSeed", async function () {
 
       await Util.assertError(
         async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
-        "revert ERC20: transfer amount exceeds balance",
+        "ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
 
@@ -707,7 +707,7 @@ describe("TrustSeed", async function () {
       // seeder cannot unseed after all units seeded
       await Util.assertError(
         async () => await seederContract1.unseed(seeder1Units),
-        "revert BAD_PHASE",
+        "BAD_PHASE",
         "seeder1 unseeded despite all units being seeded"
       );
 
@@ -778,7 +778,7 @@ describe("TrustSeed", async function () {
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert RESERVE_BALANCE",
+        "RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       );
 
@@ -847,7 +847,7 @@ describe("TrustSeed", async function () {
       // fails if they don't have seed units
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERC20: burn amount exceeds balance",
+        "ERC20: burn amount exceeds balance",
         "seeder1 redeemed when they had no seed units to redeem"
       );
     });
@@ -970,14 +970,14 @@ describe("TrustSeed", async function () {
 
       await Util.assertError(
         async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
-        "revert ERC20: transfer amount exceeds balance",
+        "ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
 
       // redeem fails before seeding is complete
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert BAD_PHASE",
+        "BAD_PHASE",
         "redeemed before seeding is complete"
       );
 
@@ -1031,7 +1031,7 @@ describe("TrustSeed", async function () {
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert RESERVE_BALANCE",
+        "RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       );
 
@@ -1093,7 +1093,7 @@ describe("TrustSeed", async function () {
       // fails if they don't have seed units
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERC20: burn amount exceeds balance",
+        "ERC20: burn amount exceeds balance",
         "seeder1 redeemed when they had no seed units to redeem"
       );
     });

@@ -1283,7 +1283,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () => await pool2.startDutchAuction({ gasLimit: 100000000 }),
-      "revert ERC20: transfer amount exceeds balance",
+      "ERC20: transfer amount exceeds balance",
       "raise wrongly started before seeder provided sufficent seed reserve liquidity"
     );
 
@@ -1393,7 +1393,7 @@ describe("Trust", async function () {
     // creator attempts to immediately end raise
     await Util.assertError(
       async () => await trust.anonEndDistribution(),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "creator ended raise before pool trading ended"
     );
 
@@ -1406,7 +1406,7 @@ describe("Trust", async function () {
     // other user attempts to immediately end raise
     await Util.assertError(
       async () => await trust2.anonEndDistribution(),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "other user ended raise before pool trading ended"
     );
   });
@@ -2471,7 +2471,7 @@ describe("Trust", async function () {
 
     await Util.assertError(
       async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
-      "revert ERC20: transfer amount exceeds balance",
+      "ERC20: transfer amount exceeds balance",
       "initiated raise before seeder transferred reserve token"
     );
 
@@ -2595,7 +2595,7 @@ describe("Trust", async function () {
     // some other signer triggers trust to exit before phase change, should fail
     await Util.assertError(
       async () => await trust2.anonEndDistribution(),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "trust exited before phase change"
     );
 
