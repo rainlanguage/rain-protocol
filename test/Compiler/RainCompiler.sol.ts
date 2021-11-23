@@ -9,6 +9,7 @@ import type { Contract } from "ethers";
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
 
 chai.use(solidity);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 const enum Opcode {
@@ -66,7 +67,7 @@ describe("RainCompiler", async function () {
     console.log(ethers.BigNumber.from(val256));
     // assert(ethers.BigNumber.from(val256).eq(Util.max_uint256));
 
-    const vals = [
+    const vals: Util.Vals = [
       concat([
         op(Opcode.ADD, 2),
         op(Opcode.VAL, 0),
@@ -92,7 +93,7 @@ describe("RainCompiler", async function () {
       0,
     ];
 
-    const source = [
+    const source: Util.Source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -110,14 +111,12 @@ describe("RainCompiler", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    // @ts-ignore
     // Just return the whole output stack for debugging purposes
     // const stack_ = await calculator.evalStack({ source, vals });
 
     // console.log(`stackVals_   ${stack_.vals}`);
     // console.log(`stackIndex_  ${stack_.index}`);
 
-    // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
     console.log(resultStack);
@@ -150,7 +149,7 @@ describe("RainCompiler", async function () {
 
     const valBytes = 32 / Math.pow(2, loopSize); // 32-bit unsigned integer
 
-    const vals = [
+    const vals: Util.Vals = [
       concat([
         op(Opcode.ADD, 2),
         op(Opcode.VAL, 0),
@@ -194,7 +193,7 @@ describe("RainCompiler", async function () {
       0,
     ];
 
-    const source = [
+    const source: Util.Source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -212,14 +211,12 @@ describe("RainCompiler", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    // @ts-ignore
     // Just return the whole output stack for debugging purposes
     // const stack_ = await calculator.evalStack({ source, vals });
 
     // console.log(`stackVals_   ${stack_.vals}`);
     // console.log(`stackIndex_  ${stack_.index}`);
 
-    // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
     const expectedStack = [
@@ -267,7 +264,7 @@ describe("RainCompiler", async function () {
 
     const valBytes = 32 / Math.pow(2, loopSize); // 128-bit unsigned
 
-    const vals = [
+    const vals: Util.Vals = [
       concat([
         op(Opcode.ADD, 3),
         op(Opcode.VAL, 0),
@@ -295,7 +292,7 @@ describe("RainCompiler", async function () {
       0,
     ];
 
-    const source = [
+    const source: Util.Source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -314,7 +311,6 @@ describe("RainCompiler", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
     const expectedMul1 = 6;
@@ -357,7 +353,7 @@ describe("RainCompiler", async function () {
   it("should handle a call op with maxed fnSize and valSize", async () => {
     this.timeout(0);
 
-    const vals = [
+    const vals: Util.Vals = [
       concat([
         op(Opcode.ADD, 30),
         op(Opcode.VAL, 5),
@@ -449,7 +445,7 @@ describe("RainCompiler", async function () {
     const loopSize = 0;
     const valSize = 7;
 
-    const source = [
+    const source: Util.Source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn3
@@ -476,14 +472,12 @@ describe("RainCompiler", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    // @ts-ignore
     // Just return the whole output stack for debugging purposes
     // const stack_ = await calculator.evalStack({ source, vals });
 
     // console.log(`stackVals_   ${stack_.vals}`);
     // console.log(`stackIndex_  ${stack_.index}`);
 
-    // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
     const expectedIndex = 2;
@@ -517,7 +511,7 @@ describe("RainCompiler", async function () {
   it("should handle a call op which runs multiple functions (across multiple fn vals)", async () => {
     this.timeout(0);
 
-    const vals = [
+    const vals: Util.Vals = [
       concat([
         // ADD
         // 2 1, 3 2 1, 3 2 1, 3 2 1, 3 2 1 => 27
@@ -565,7 +559,7 @@ describe("RainCompiler", async function () {
     const loopSize = 0;
     const valSize = 2;
 
-    const source = [
+    const source: Util.Source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn1
@@ -585,7 +579,6 @@ describe("RainCompiler", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
     const expectedIndex = 2;
@@ -619,7 +612,7 @@ describe("RainCompiler", async function () {
   it("should handle a call op which runs multiple functions (within single fn val)", async () => {
     this.timeout(0);
 
-    const vals = [
+    const vals: Util.Vals = [
       concat([
         op(Opcode.ADD, 3),
         op(Opcode.VAL, 2),
@@ -652,7 +645,7 @@ describe("RainCompiler", async function () {
     const loopSize = 0;
     const valSize = 2;
 
-    const source = [
+    const source: Util.Source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -671,7 +664,6 @@ describe("RainCompiler", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    // @ts-ignore
     const resultStack = await calculator.evalStack({ source, vals });
 
     const expectedIndex = 2;
@@ -705,7 +697,7 @@ describe("RainCompiler", async function () {
   it("should handle a simple call op", async () => {
     this.timeout(0);
 
-    const vals = [
+    const vals: Util.Vals = [
       concat([
         op(Opcode.ADD, 3),
         op(Opcode.VAL, 0),
@@ -733,7 +725,7 @@ describe("RainCompiler", async function () {
     const loopSize = 0; // 1
     const valSize = 2; // 3
 
-    const source = [
+    const source: Util.Source = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -752,7 +744,6 @@ describe("RainCompiler", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    // @ts-ignore
     const result = await calculator.eval({ source, vals });
     const expected = 6;
     assert(

@@ -5,25 +5,12 @@ import { ethers } from "hardhat";
 import {
   basicSetup,
   deployGlobals,
-  failedRaise,
   successfulRaise,
 } from "./BPoolFeeEscrowUtil";
 import { getAddress } from "ethers/lib/utils";
 
 chai.use(solidity);
 const { expect, assert } = chai;
-
-enum Tier {
-  NIL,
-  COPPER,
-  BRONZE,
-  SILVER,
-  GOLD,
-  PLATINUM,
-  DIAMOND,
-  CHAD,
-  JAWAD,
-}
 
 enum DistributionStatus {
   PENDING,
@@ -43,11 +30,7 @@ describe("BPoolFeeEscrow", async function () {
     const { escrow, trustFactory, tier } = await deployGlobals();
     const { trustFactory: trustFactory2 } = await deployGlobals();
 
-    const { reserve, recipient, trust } = await basicSetup(
-      signers,
-      trustFactory,
-      tier
-    );
+    const { recipient, trust } = await basicSetup(signers, trustFactory, tier);
     const { trust: unknownTrust } = await basicSetup(
       signers,
       trustFactory2,

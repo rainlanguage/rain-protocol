@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import * as Util from "../Util";
 import { ethers } from "hardhat";
 import type { BPoolFeeEscrow } from "../../typechain/BPoolFeeEscrow";
@@ -21,15 +22,6 @@ enum Tier {
   DIAMOND,
   CHAD,
   JAWAD,
-}
-
-enum DistributionStatus {
-  PENDING,
-  SEEDED,
-  TRADING,
-  TRADINGCANEND,
-  SUCCESS,
-  FAIL,
 }
 
 export const deployGlobals = async () => {
