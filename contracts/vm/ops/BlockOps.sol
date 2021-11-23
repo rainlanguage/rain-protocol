@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "../RainVM.sol";
+import "hardhat/console.sol";
 
 enum Ops {
     blockNumber
@@ -13,6 +14,7 @@ abstract contract BlockOps {
     uint8 public constant BLOCK_OPS_LENGTH = 1;
 
     constructor(uint8 start_) {
+        console.log("block ops start: %s", start_);
         blockOpsStart = start_;
         opcodeBlockNumber = start_ + uint8(Ops.blockNumber);
     }

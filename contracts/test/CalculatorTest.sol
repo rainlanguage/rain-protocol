@@ -11,8 +11,8 @@ contract CalculatorTest is RainVM, ImmutableSource, BlockOps, MathOps {
 
     constructor(Source memory source_)
         ImmutableSource(source_)
-        BlockOps(OPCODE_RESERVED_MAX)
-        MathOps(blockOpsStart + BLOCK_OPS_LENGTH)
+        BlockOps(VM_OPS_LENGTH)
+        MathOps(VM_OPS_LENGTH + BLOCK_OPS_LENGTH)
     { } // solhint-disable-line no-empty-blocks
 
     function applyOp(

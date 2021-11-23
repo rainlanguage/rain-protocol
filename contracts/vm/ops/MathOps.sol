@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "../RainVM.sol";
+import "hardhat/console.sol";
 
 enum Ops {
     add,
@@ -23,6 +24,7 @@ abstract contract MathOps {
     uint8 public constant MATH_OPS_LENGTH = 6;
 
     constructor(uint8 start_) {
+        console.log("math start: %s", start_);
         mathOpsStart = start_;
         opcodeAdd = start_ + uint8(Ops.add);
         opcodeSub = start_ + uint8(Ops.sub);

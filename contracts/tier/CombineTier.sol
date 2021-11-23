@@ -26,8 +26,8 @@ contract CombineTier is
 
     constructor(Source memory source_)
         ImmutableSource(source_)
-        BlockOps(OPCODE_RESERVED_MAX)
-        TierOps(blockOpsStart + BLOCK_OPS_LENGTH)
+        BlockOps(VM_OPS_LENGTH)
+        TierOps(VM_OPS_LENGTH + BLOCK_OPS_LENGTH)
     {
         opcodeCombineStart = tierOpsStart + TIER_OPS_LENGTH;
         opcodeCombineTierAccount = opcodeCombineStart + uint8(Ops.account);

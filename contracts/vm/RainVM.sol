@@ -44,7 +44,7 @@ abstract contract RainVM {
     uint8 public constant OPCODE_VAL = 1;
     uint8 public constant OPCODE_CALL = 2;
 
-    uint8 public constant OPCODE_RESERVED_MAX = 2;
+    uint8 public constant VM_OPS_LENGTH = 3;
 
     function call(
         bytes memory context_,
@@ -116,7 +116,7 @@ abstract contract RainVM {
                 )
             );
 
-            if (op_.code <= OPCODE_RESERVED_MAX) {
+            if (op_.code < VM_OPS_LENGTH) {
                 if (op_.code == OPCODE_END) {
                     break;
                 }
