@@ -23,6 +23,9 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 100000,
           },
+          metadata: {
+            useLiteralContent: true,
+          },
         },
       },
       {

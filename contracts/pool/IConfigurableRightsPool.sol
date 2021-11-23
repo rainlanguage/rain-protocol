@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 /// Mirrors the `PoolParams` struct normally internal to a Balancer
 /// `ConfigurableRightsPool`.

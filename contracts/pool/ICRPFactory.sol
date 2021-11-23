@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 import { PoolParams } from "./IConfigurableRightsPool.sol";
 import { Rights } from "./IRightsManager.sol";
