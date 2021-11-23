@@ -4,8 +4,8 @@ pragma solidity 0.8.10;
 
 import "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
-import "../vm/ops/BlockOps.sol";
-import "../vm/ops/MathOps.sol";
+import { BlockOps } from "../vm/ops/BlockOps.sol";
+import { MathOps } from "../vm/ops/MathOps.sol";
 
 contract CalculatorTest is RainVM, ImmutableSource, BlockOps, MathOps {
 
