@@ -85,7 +85,7 @@ describe("CombineTier", async function () {
     })) as CombineTier & Contract;
 
     console.log(await alwaysTier.report(signers[0].address));
-    console.log(await neverTier.report(signers[0].address));
+    // console.log(await neverTier.report(signers[0].address));
 
     // const vals = [
     //   ethers.BigNumber.from(alwaysTier.address), // right report

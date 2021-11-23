@@ -32,7 +32,7 @@ abstract contract TierOps {
 
     constructor(uint8 start_) {
         tierOpsStart = start_;
-        opcodeTierReport = start_;
+        opcodeTierReport = start_ + uint8(Ops.report);
         opcodeTierNever = start_ + uint8(Ops.never);
         opcodeTierAlways = start_ + uint8(Ops.always);
         opcodeTierAndOld = start_ + uint8(Ops.andOld);
