@@ -124,7 +124,7 @@ describe("Phased", async function () {
 
       await Util.assertError(
         async () => await phased.testScheduleNextPhase(pastBlock),
-        "revert NEXT_BLOCK_PAST",
+        "NEXT_BLOCK_PAST",
         "wrongly scheduled next phase in the past"
       );
     });
@@ -141,7 +141,7 @@ describe("Phased", async function () {
 
       await Util.assertError(
         async () => await phased.testScheduleNextPhase(firstBlock + 15),
-        "revert NEXT_BLOCK_SET",
+        "NEXT_BLOCK_SET",
         "wrongly scheduled next phase which was already scheduled"
       );
     });
@@ -178,7 +178,7 @@ describe("Phased", async function () {
 
       await Util.assertError(
         async () => await phased.testScheduleNextPhase(firstBlock + 15),
-        "revert NEXT_BLOCK_SET",
+        "NEXT_BLOCK_SET",
         "set a block which was already initialized; skipped a phase"
       );
     });
@@ -197,7 +197,7 @@ describe("Phased", async function () {
 
       await Util.assertError(
         async () => await phased.testScheduleNextPhase(firstBlock + 3),
-        "revert HOOK_CONDITION",
+        "HOOK_CONDITION",
         "hook override could not be used to impose condition"
       );
     });
@@ -332,7 +332,7 @@ describe("Phased", async function () {
     assert(await phased.runsOnlyPhase(Phase.ZERO));
     await Util.assertError(
       async () => await phased.runsOnlyPhase(Phase.ONE),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "onlyPhase did not error"
     );
 
@@ -340,7 +340,7 @@ describe("Phased", async function () {
     assert(await phased.runsOnlyAtLeastPhase(Phase.ZERO));
     await Util.assertError(
       async () => await phased.runsOnlyAtLeastPhase(Phase.ONE),
-      "revert MIN_PHASE",
+      "MIN_PHASE",
       "onlyAtLeastPhase did not error"
     );
 
@@ -355,12 +355,12 @@ describe("Phased", async function () {
     assert(await phased.runsOnlyPhase(Phase.ONE));
     await Util.assertError(
       async () => await phased.runsOnlyPhase(Phase.ZERO),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "onlyPhase did not error"
     );
     await Util.assertError(
       async () => await phased.runsOnlyPhase(Phase.TWO),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "onlyPhase did not error"
     );
 
@@ -369,7 +369,7 @@ describe("Phased", async function () {
     assert(await phased.runsOnlyAtLeastPhase(Phase.ONE));
     await Util.assertError(
       async () => await phased.runsOnlyAtLeastPhase(Phase.TWO),
-      "revert MIN_PHASE",
+      "MIN_PHASE",
       "onlyAtLeastPhase did not error"
     );
   });

@@ -179,7 +179,7 @@ describe("TrustReentrant", async function () {
 
     await Util.assertError(
       async () => await trust.anonEndDistribution(),
-      "revert ReentrancyGuard: reentrant call",
+      "ReentrancyGuard: reentrant call",
       "did not guard against reentrancy attack"
     );
   });
