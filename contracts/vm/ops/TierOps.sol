@@ -61,9 +61,11 @@ abstract contract TierOps {
         }
         else if (op_.code == opcodeTierNever) {
             stack_.vals[stack_.index] = TierReport.NEVER;
+            stack_.index++;
         }
         else if (op_.code == opcodeTierAlways) {
             stack_.vals[stack_.index] = TierReport.ALWAYS;
+            stack_.index++;
         }
         // All the combinators share the same stack and argument handling.
         else if (opcodeTierAndOld <= op_.code

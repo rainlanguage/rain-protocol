@@ -9,6 +9,7 @@ import type { Contract, ContractFactory } from "ethers";
 import type { CombineTier } from "../../typechain/CombineTier";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { CombineTierFactory } from "../../typechain/CombineTierFactory";
+import type { Source, Vals } from "../Util";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -31,7 +32,6 @@ const enum Opcode {
   VAL,
   CALL,
   BLOCK_NUMBER,
-  ACCOUNT,
   REPORT,
   NEVER,
   ALWAYS,
@@ -41,12 +41,29 @@ const enum Opcode {
   OR_OLD,
   OR_NEW,
   OR_LEFT,
+  ACCOUNT,
 }
 
-const alwaysSource: Util.Source = [concat([op(Opcode.ALWAYS)]), 0, 0, 0];
-const neverSource: Util.Source = [concat([op(Opcode.NEVER)]), 0, 0, 0];
+const sourceAlways: Source = [
+  concat([
+    //
+    op(Opcode.ALWAYS),
+  ]),
+  0,
+  0,
+  0,
+];
+const sourceNever: Source = [
+  concat([
+    //
+    op(Opcode.NEVER),
+  ]),
+  0,
+  0,
+  0,
+];
 
-const defaultVals: Util.Vals = new Array(16).fill(0);
+const valsDefault = new Array(16).fill(0) as Vals;
 
 describe("CombineTier", async function () {
   it("should correctly combine Always and Never tier contracts with orLeft", async () => {
@@ -58,66 +75,70 @@ describe("CombineTier", async function () {
       "CombineTier"
     )) as CombineTierFactory & ContractFactory;
 
-    const alwaysTier = (await combineTierFactory[
-      "createChild((uint256[4],uint256[16]))"
-    ]({ source: alwaysSource, vals: defaultVals })) as unknown as CombineTier &
-      Contract;
-    const neverTier = (await combineTierFactory.createChild(
-      neverSource
-    )) as CombineTier & Contract;
-
-    const vals = [
-      ethers.BigNumber.from(alwaysTier.address), // right report
-      ethers.BigNumber.from(neverTier.address), // left report
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-    ];
-
-    const source = [
-      concat([
-        op(Opcode.OR_LEFT, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ]),
-      0,
-      0,
-      0,
-    ];
-
-    const combineTier = (await combineTierFactory.deploy({
-      source,
-      vals,
+    const alwaysTier = (await combineTierFactory.deploy({
+      source: sourceAlways,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
+    const neverTier = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals: valsDefault,
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    console.log(await alwaysTier.report(signers[0].address));
+    console.log(await neverTier.report(signers[0].address));
 
-    // for each tier, Always has blocks which are lte current block
-    // therefore, OR_LEFT succeeds
+    // const vals = [
+    //   ethers.BigNumber.from(alwaysTier.address), // right report
+    //   ethers.BigNumber.from(neverTier.address), // left report
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    // ];
 
-    const expected = 0x00; // success, left report's block number for each tier
-    assert(
-      result.eq(expected),
-      `wrong block number preserved with tierwise orLeft
-      expected  ${expected}
-      got       ${result}`
-    );
+    // const source = [
+    //   concat([
+    //     op(Opcode.OR_LEFT, 2),
+    //     op(Opcode.REPORT),
+    //     op(Opcode.VAL, 0),
+    //     op(Opcode.ACCOUNT),
+    //     op(Opcode.REPORT),
+    //     op(Opcode.VAL, 1),
+    //     op(Opcode.ACCOUNT),
+    //     op(Opcode.BLOCK_NUMBER),
+    //   ]),
+    //   0,
+    //   0,
+    //   0,
+    // ];
+
+    // const combineTier = (await combineTierFactory.deploy({
+    //   source,
+    //   vals,
+    // })) as CombineTier & Contract;
+
+    // const result = await combineTier.report(signers[0].address);
+
+    // // for each tier, Always has blocks which are lte current block
+    // // therefore, OR_LEFT succeeds
+
+    // const expected = 0x00; // success, left report's block number for each tier
+    // assert(
+    //   result.eq(expected),
+    //   `wrong block number preserved with tierwise orLeft
+    //   expected  ${expected}
+    //   got       ${result}`
+    // );
   });
 
   /*
