@@ -109,17 +109,19 @@ contract RedeemableERC20 is
     bytes32 public constant DISTRIBUTOR_BURNER =
         keccak256("DISTRIBUTOR_BURNER");
 
-    /// Redeemable token added by creator.
+    /// Treasury Asset notification.
+    /// @param emitter The `msg.sender` notifying about this asset.
+    /// @param asset The asset added to the treasury for this contract.
     event TreasuryAsset(address indexed emitter, address indexed asset);
 
     /// Redeemable token burn for reserve.
+    /// @param redeemer Account burning and receiving.
+    /// @param treasuryAsset The treasury asset being sent to the burner.
+    /// @param redeemAmounts The amounts of the redeemable and treasury asset
+    /// as `[redeemAmount, assetAmount]`.
     event Redeem(
-        // Account burning and receiving.
         address indexed redeemer,
-        // The treasury asset being sent to the burner.
         address indexed treasuryAsset,
-        // The amounts of the redeemable and treasury asset as
-        // `[redeemAmount, assetAmount]`
         uint256[2] redeemAmounts
     );
 

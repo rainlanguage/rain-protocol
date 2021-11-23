@@ -157,7 +157,7 @@ describe("RedeemableERC20", async function () {
           minimumStatus: minimumStatus,
           totalSupply: totalTokenSupplyZero,
         }),
-      `revert MINIMUM_INITIAL_SUPPLY`,
+      `MINIMUM_INITIAL_SUPPLY`,
       `failed to error when constructed with 0 total supply`
     );
 
@@ -171,7 +171,7 @@ describe("RedeemableERC20", async function () {
           minimumStatus: minimumStatus,
           totalSupply: totalTokenSupplyOneShort,
         }),
-      `revert MINIMUM_INITIAL_SUPPLY`,
+      `MINIMUM_INITIAL_SUPPLY`,
       `failed to error when constructed with 0 total supply`
     );
 
@@ -228,7 +228,7 @@ describe("RedeemableERC20", async function () {
     // try sending/receiving, both with insufficient tier
     await Util.assertError(
       async () => await token.connect(sender).transfer(receiver.address, 1),
-      "revert MIN_TIER",
+      "MIN_TIER",
       "sender/receiver sent/received tokens despite insufficient tier status"
     );
 
@@ -260,7 +260,7 @@ describe("RedeemableERC20", async function () {
 
     await Util.assertError(
       async () => await token.burnDistributor(Util.oneAddress),
-      "revert ONLY_DISTRIBUTOR_BURNER",
+      "ONLY_DISTRIBUTOR_BURNER",
       "called burnDistributor without sufficient role permissions"
     );
 
@@ -308,7 +308,7 @@ describe("RedeemableERC20", async function () {
           redeemableERC20.address,
           await redeemableERC20.balanceOf(signers[0].address)
         ),
-      "revert TOKEN_SEND_SELF",
+      "TOKEN_SEND_SELF",
       "user successfully transferred all their redeemables tokens to token contract"
     );
   });
@@ -379,14 +379,14 @@ describe("RedeemableERC20", async function () {
     // Redemption not allowed yet.
     await Util.assertError(
       async () => await redeemableERC20.redeem([reserve.address], 100),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "redeem did not error"
     );
 
     // We cannot send to the token address.
     await Util.assertError(
       async () => await redeemableERC20.transfer(redeemableERC20.address, 10),
-      "revert TOKEN_SEND_SELF",
+      "TOKEN_SEND_SELF",
       "self send was not blocked"
     );
 
@@ -407,7 +407,7 @@ describe("RedeemableERC20", async function () {
     // Funds need to be frozen once redemption phase begins.
     await Util.assertError(
       async () => await redeemableERC20.transfer(signers[1].address, 1),
-      "revert FROZEN",
+      "FROZEN",
       "funds were not frozen in next phase"
     );
 
@@ -425,7 +425,7 @@ describe("RedeemableERC20", async function () {
     // but not to anyone else.
     await Util.assertError(
       async () => await redeemableERC20.transfer(signers[2].address, 1),
-      "revert FROZEN",
+      "FROZEN",
       "funds were not frozen 2"
     );
 
@@ -511,7 +511,7 @@ describe("RedeemableERC20", async function () {
           [reserve.address],
           ethers.BigNumber.from("10000" + Util.eighteenZeros)
         ),
-      "revert ERC20: burn amount exceeds balance",
+      "ERC20: burn amount exceeds balance",
       "failed to stop greedy redeem"
     );
 
@@ -760,7 +760,7 @@ describe("RedeemableERC20", async function () {
     );
     await Util.assertError(
       async () => await redeemableERC20.transfer(signers[2].address, 1),
-      "revert MIN_TIER",
+      "MIN_TIER",
       "user could receive transfers despite not meeting minimum status"
     );
 
@@ -781,7 +781,7 @@ describe("RedeemableERC20", async function () {
     // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
     await Util.assertError(
       async () => await redeemableERC20_SILVER.redeem([reserve.address], 1),
-      "revert ERC20: burn amount exceeds balance",
+      "ERC20: burn amount exceeds balance",
       "user could transfer despite not meeting minimum status"
     );
   });
@@ -1076,7 +1076,7 @@ describe("RedeemableERC20", async function () {
           [reserve1.address, reserve2.address],
           redeemAmount
         ),
-      `revert FROZEN`,
+      `FROZEN`,
       `failed to error when reserve is frozen`
     );
 
@@ -1141,7 +1141,7 @@ describe("RedeemableERC20", async function () {
           ethers.constants.AddressZero,
           TEN_TOKENS
         ),
-      "revert ERC20: transfer to the zero address",
+      "ERC20: transfer to the zero address",
       "owner sending redeemable tokens to zero address did not error"
     );
 
@@ -1159,7 +1159,7 @@ describe("RedeemableERC20", async function () {
           ethers.constants.AddressZero,
           TEN_TOKENS
         ),
-      "revert ERC20: transfer to the zero address",
+      "ERC20: transfer to the zero address",
       "signer 1 sending redeemable tokens to zero address did not error"
     );
   });

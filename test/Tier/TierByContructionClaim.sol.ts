@@ -81,7 +81,7 @@ describe("TierByConstructionClaim", async function () {
 
         await assertError(
           async () => await tierByConstructionClaim.claim(alice.address, []),
-          "revert MINIMUM_TIER",
+          "MINIMUM_TIER",
           "alice claimed despite not being at least tier FOUR since contract construction"
         );
       });
@@ -133,7 +133,7 @@ describe("TierByConstructionClaim", async function () {
 
         await assertError(
           async () => await tierByConstructionClaim.claim(alice.address, []),
-          "revert MINIMUM_TIER",
+          "MINIMUM_TIER",
           "alice claimed despite not being at least tier FOUR since contract construction"
         );
       });
@@ -154,7 +154,7 @@ describe("TierByConstructionClaim", async function () {
 
       await assertError(
         async () => await tierByConstructionClaim.claim(alice.address, []),
-        "revert DUPLICATE_CLAIM",
+        "DUPLICATE_CLAIM",
         "alice wrongly claimed more than once"
       );
     });

@@ -477,7 +477,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "revert MIN_TOKEN_SUPPLY",
+      "MIN_TOKEN_SUPPLY",
       "setting totalTokenSupply to zero did not error"
     );
   });
@@ -556,7 +556,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "revert RESERVE_INIT_MINIMUM",
+      "RESERVE_INIT_MINIMUM",
       "setting reserveInit to zero did not error"
     );
   });
@@ -1469,7 +1469,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "revert MIN_FINAL_VALUATION",
+      "MIN_FINAL_VALUATION",
       "did not enforce restriction that final valuation larger than success level"
     );
   });
@@ -1546,7 +1546,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "revert MIN_TOKEN_SUPPLY",
+      "MIN_TOKEN_SUPPLY",
       "did not enforce restriction that minted tokens be greater than liquidity"
     );
   });
@@ -1618,7 +1618,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "revert MIN_INITIAL_VALUTION",
+      "MIN_INITIAL_VALUTION",
       "did not enforce valuation difference restriction (example 1)"
     );
 
@@ -1659,7 +1659,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "revert MIN_INITIAL_VALUTION",
+      "MIN_INITIAL_VALUTION",
       "did not enforce valuation difference restriction (example 2)"
     );
   });

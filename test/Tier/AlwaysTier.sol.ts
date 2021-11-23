@@ -46,7 +46,7 @@ describe("AlwaysTier", async function () {
   it("should not be possible to set tier directly", async function () {
     await assertError(
       async () => await alwaysTier.setTier(owner.address, Tier.ONE, []),
-      "revert SET_TIER",
+      "SET_TIER",
       "tier was wrongly set directly"
     );
   });
@@ -79,7 +79,7 @@ describe("NeverTier", async function () {
   it("should not be possible to set tier directly", async function () {
     await assertError(
       async () => await neverTier.setTier(owner.address, Tier.ONE, []),
-      "revert SET_TIER",
+      "SET_TIER",
       "tier was wrongly set directly"
     );
   });
