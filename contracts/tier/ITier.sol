@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 /// @title ITier
 /// @notice `ITier` is a simple interface that contracts can
