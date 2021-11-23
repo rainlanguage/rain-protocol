@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 import { ReserveToken } from "./ReserveToken.sol";
 import { SeedERC20, ERC20 } from "../seed/SeedERC20.sol";
+import "../sale/Sale.sol";
 
 /// @title SeedERC20Reentrant
 /// Test contract that attempts to call reentrant code on `SeedERC20`.
@@ -43,13 +44,13 @@ contract SeedERC20Reentrant is ReserveToken {
             && receiver_ == address(seedERC20Contract)
         ) {
             // This call MUST fail.
-            seedERC20Contract.seed(0, 1);
+            seedERC20Contract.buy(BuyConfig(0, 1, 10 ** 21));
         } else if (
             methodTarget == Method.UNSEED
             && sender_ == address(seedERC20Contract)
         ) {
             // This call MUST fail.
-            seedERC20Contract.unseed(1);
+            seedERC20Contract.refund(1);
         } else if (
             methodTarget == Method.REDEEM
             && sender_ == address(seedERC20Contract)

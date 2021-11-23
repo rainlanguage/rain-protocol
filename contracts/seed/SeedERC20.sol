@@ -9,13 +9,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
-import { Cooldown } from "../cooldown/Cooldown.sol";
-
-import "../vm/RainVM.sol";
-import "../vm/ImmutableSource.sol";
-import { BlockOps } from "../vm/ops/BlockOps.sol";
-import { MathOps } from "../vm/ops/MathOps.sol";
-import { SaleOps } from "../vm/ops/SaleOps.sol";
+import { Sale, Config as SaleConfig, Status } from "../sale/Sale.sol";
 
 /// Everything required to construct a `SeedERC20` contract.
 struct SeedERC20Config {
@@ -23,21 +17,6 @@ struct SeedERC20Config {
     IERC20 reserve;
     // Recipient address for all reserve funds raised when seeding is complete.
     address recipient;
-    // Price per seed unit denominated in reserve token.
-    uint256 seedPrice;
-    // Total seed units to be mint and sold.
-    // 100% of all seed units must be sold for seeding to complete.
-    // Recommended to keep seed units to a small value (single-triple digits).
-    // The ability for users to buy/sell or not buy/sell dust seed quantities
-    // is likely NOT desired.
-    uint16 seedUnits;
-    // Cooldown duration in blocks for seed/unseed cycles.
-    // Seeding requires locking funds for at least the cooldown period.
-    // Ideally `unseed` is never called and `seed` leaves funds in the contract
-    // until all seed tokens are sold out.
-    // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
-    // but it should be called rarely.
-    uint16 cooldownDuration;
     // ERC20 name.
     string name;
     // ERC20 symbol.
@@ -97,15 +76,9 @@ struct SeedERC20Config {
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
 contract SeedERC20 is
-    Ownable,
     ERC20,
-    Phased,
-    Cooldown,
-    RainVM,
-    ImmutableSource,
-    BlockOps,
-    MathOps,
-    SaleOps {
+    Sale
+    {
 
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -120,181 +93,51 @@ contract SeedERC20 is
         uint256[2] redeemAmounts
     );
 
-    event Seed(
-        // Account seeding.
-        address indexed seeder,
-        // Number of tokens seeded.
-        // Number of reserve sent for seed tokens.
-        uint256[2] seedAmounts
-    );
-
-    event Unseed(
-        // Account unseeding.
-        address indexed unseeder,
-        // Number of tokens unseeded.
-        // Number of reserve tokens returned for unseeded tokens.
-        uint256[2] unseedAmounts
-    );
-
     /// Reserve erc20 token contract used to purchase seed tokens.
     IERC20 public immutable reserve;
     /// Recipient address for all reserve funds raised when seeding is
     /// complete.
     address public immutable recipient;
-    /// Price in reserve for a unit of seed token.
-    uint256 public immutable seedPrice;
 
     /// Sanity checks on configuration.
     /// Store relevant config as contract state.
     /// Mint all seed tokens.
     /// @param config_ All config required to construct the contract.
-    constructor (SeedERC20Config memory config_)
+    constructor (
+        SeedERC20Config memory config_,
+        SaleConfig memory saleConfig_
+    )
     ERC20(config_.name, config_.symbol)
-    Cooldown(config_.cooldownDuration)
-    ImmutableSource(config_.priceSource)
-    BlockOps(VM_OPS_LENGTH)
-    MathOps(VM_OPS_LENGTH + BLOCK_OPS_LENGTH)
-    SaleOps(VM_OPS_LENGTH + BLOCK_OPS_LENGTH + MATH_OPS_LENGTH) {
-        require(config_.seedPrice > 0, "PRICE_0");
-        require(config_.seedUnits > 0, "UNITS_0");
+    Sale(saleConfig_)
+    {
         require(config_.recipient != address(0), "RECIPIENT_0");
-        seedPrice = config_.seedPrice;
         reserve = config_.reserve;
         recipient = config_.recipient;
-        _mint(address(this), config_.seedUnits);
-    }
-
-    function applyOp(
-        bytes memory context_,
-        Stack memory stack_,
-        Op memory op_
-    )
-        internal
-        override(RainVM, BlockOps, MathOps, SaleOps)
-        view
-        returns (Stack memory)
-    {
-        if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
-            return BlockOps.applyOp(
-                context_,
-                stack_,
-                op_
-            );
-        }
-        else if (op_.code < mathOpsStart + MATH_OPS_LENGTH) {
-            return MathOps.applyOp(
-                context_,
-                stack_,
-                op_
-            );
-        }
-        else if (op_.code < saleOpsStart + SALE_OPS_LENGTH) {
-            return SaleOps.applyOp(
-                context_,
-                stack_,
-                op_
-            );
-        }
-        else {
-            // Unknown op!
-            assert(false);
-        }
     }
 
     function decimals() public pure override returns(uint8) {
         return 0;
     }
 
-    /// Take reserve from seeder as `units * seedPrice`.
-    ///
-    /// When the final unit is sold the contract immediately:
-    ///
-    /// - enters `Phase.ONE`
-    /// - transfers its entire reserve balance to the recipient
-    ///
-    /// The desired units may not be available by the time this transaction
-    /// executes. This could be due to high demand, griefing and/or
-    /// front-running on the contract.
-    /// The caller can set a range between `minimumUnits_` and `desiredUnits_`
-    /// to mitigate errors due to the contract running out of stock.
-    /// The maximum available units up to `desiredUnits_` will always be
-    /// processed by the contract. Only the stock of this contract is checked
-    /// against the seed unit range, the caller is responsible for ensuring
-    /// their reserve balance.
-    /// Seeding enforces the cooldown configured in the constructor.
-    /// @param minimumUnits_ The minimum units the caller will accept for a
-    /// successful `seed` call.
-    /// @param desiredUnits_ The maximum units the caller is willing to fund.
-    function seed(uint256 minimumUnits_, uint256 desiredUnits_)
-        external
-        onlyPhase(Phase.ZERO)
-        onlyAfterCooldown
-    {
-        require(desiredUnits_ > 0, "DESIRED_0");
-        require(minimumUnits_ <= desiredUnits_, "MINIMUM_OVER_DESIRED");
-        uint256 remainingStock_ = balanceOf(address(this));
-        require(minimumUnits_ <= remainingStock_, "INSUFFICIENT_STOCK");
-
-        uint256 units_ = desiredUnits_.min(remainingStock_);
-        uint256 reserveAmount_ = seedPrice * units_;
-
-        // If `remainingStock_` is less than units then the transfer below will
-        // fail and rollback.
-        if (remainingStock_ == units_) {
-            scheduleNextPhase(uint32(block.number));
-        }
-        _transfer(address(this), msg.sender, units_);
-
+    function afterBuy_(uint16 units_, uint256 cost_) public virtual override {
         reserve.safeTransferFrom(
             msg.sender,
             address(this),
-            reserveAmount_
+            cost_
         );
-        // Immediately transfer to the recipient.
-        // The transfer is immediate rather than only approving for the
-        // recipient.
-        // This avoids the situation where a seeder immediately redeems their
-        // units before the recipient can withdraw.
-        // It also introduces a failure case where the reserve errors on
-        // transfer. If this fails then everyone can call `unseed` after their
-        // individual cooldowns to exit.
-        if (currentPhase() == Phase.ONE) {
-            reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
-        }
-
-        emit Seed(
-            msg.sender,
-            [units_, reserveAmount_]
-        );
+        _mint(msg.sender, units_);
     }
 
-    /// Send reserve back to seeder as `( units * seedPrice )`.
-    ///
-    /// Allows addresses to back out until `Phase.ONE`.
-    /// Unlike `redeem` the seed tokens are NOT burned so become newly
-    /// available for another account to `seed`.
-    ///
-    /// In `Phase.ONE` the only way to recover reserve assets is:
-    /// - Wait for the recipient or someone else to deposit reserve assets into
-    ///   this contract.
-    /// - Call redeem and burn the seed tokens
-    ///
-    /// @param units_ Units to unseed.
-    function unseed(uint256 units_)
-        external
-        onlyPhase(Phase.ZERO)
-        onlyAfterCooldown
+    function afterRefund_(uint16 units_, uint256 cost_)
+        public
+        virtual
+        override
     {
-        uint256 reserveAmount_ = seedPrice * units_;
-        _transfer(msg.sender, address(this), units_);
-
-        // Reentrant reserve transfer.
-        reserve.safeTransfer(msg.sender, reserveAmount_);
-
-        emit Unseed(
+        reserve.safeTransfer(
             msg.sender,
-            [units_, reserveAmount_]
+            cost_
         );
+        _burn(msg.sender, units_);
     }
 
     /// Burn seed tokens for pro-rata reserve assets.
@@ -316,7 +159,8 @@ contract SeedERC20 is
     /// (in this repo) it will receive a refund or refund + fee.
     /// @param units_ Amount of seed units to burn and redeem for reserve
     /// assets.
-    function redeem(uint256 units_) external onlyPhase(Phase.ONE) {
+    function redeem(uint256 units_) external {
+        require(status == Status.Success, "ONLY_SUCCESS");
         uint256 supplyBeforeBurn_ = totalSupply();
         _burn(msg.sender, units_);
 
@@ -335,17 +179,5 @@ contract SeedERC20 is
             msg.sender,
             reserveAmount_
         );
-    }
-
-    /// Sanity check the last phase is `Phase.ONE`.
-    /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
-        internal
-        override
-        virtual
-    {
-        super._beforeScheduleNextPhase(nextPhaseBlock_);
-        // Phase.ONE is the last phase.
-        assert(currentPhase() < Phase.ONE);
     }
 }

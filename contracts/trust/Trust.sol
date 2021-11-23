@@ -24,6 +24,8 @@ import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factor
 import { RedeemableERC20PoolFactory, RedeemableERC20PoolFactoryRedeemableERC20PoolConfig } from "../pool/RedeemableERC20PoolFactory.sol";
 import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
 import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
+import { Config as SaleConfig } from "../sale/Sale.sol";
+import { Source } from "../vm/RainVM.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -137,6 +139,7 @@ struct TrustConfig {
     // to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
     BPoolFeeEscrow bPoolFeeEscrow;
+    Source seederPriceSource;
 }
 
 struct TrustRedeemableERC20Config {
@@ -434,12 +437,15 @@ contract Trust is ReentrancyGuard {
                 .createChild(abi.encode(SeedERC20Config(
                     trustRedeemableERC20PoolConfig_.reserve,
                     address(redeemableERC20Pool_),
-                    // seed price.
-                    redeemableERC20Pool_.reserveInit() / config_.seederUnits,
-                    config_.seederUnits,
-                    config_.seederCooldownDuration,
                     "",
                     ""
+                ), SaleConfig(
+                    config_.seederUnits,
+                    config_.seederCooldownDuration,
+                    uint32(block.number),
+                    0xFFFFFFFF,
+                    config_.seederPriceSource,
+                    redeemableERC20Pool_.reserveInit()
                 )))
             );
         }
@@ -501,21 +507,6 @@ contract Trust is ReentrancyGuard {
             address(token.tierContract()),
             address(pool.crp()),
             address(pool.crp().bPool())
-        );
-    }
-
-    /// Accessor for the `TrustConfig` of this `Trust`.
-    function getTrustConfig() external view returns(TrustConfig memory) {
-        return TrustConfig(
-            address(creator),
-            minimumCreatorRaise,
-            seedERC20Factory,
-            address(seeder),
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            redeemInit,
-            bPoolFeeEscrow
         );
     }
 

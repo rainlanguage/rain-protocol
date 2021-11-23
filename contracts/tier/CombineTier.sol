@@ -5,7 +5,7 @@ pragma solidity 0.8.10;
 import "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps } from "../vm/ops/BlockOps.sol";
-import { TierOps } from "../vm/ops/TierOps.sol";
+import { TierOps } from "./ops/TierOps.sol";
 import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
 import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 
@@ -41,17 +41,17 @@ contract CombineTier is
         internal
         override(RainVM, BlockOps, TierOps)
         view
-        returns (Stack memory)
+        returns (Stack memory outStack_)
     {
         if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
-            return BlockOps.applyOp(
+            outStack_ = BlockOps.applyOp(
                 context_,
                 stack_,
                 op_
             );
         }
         else if (op_.code < tierOpsStart + TIER_OPS_LENGTH) {
-            return TierOps.applyOp(
+            outStack_ = TierOps.applyOp(
                 context_,
                 stack_,
                 op_
@@ -61,7 +61,7 @@ contract CombineTier is
             (address account_) = abi.decode(context_, (address));
             stack_.vals[stack_.index] = uint256(uint160(account_));
             stack_.index++;
-            return stack_;
+            outStack_ = stack_;
         }
         else {
             // Unknown op!

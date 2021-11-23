@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 import { Factory } from "../factory/Factory.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
+import { Config as SaleConfig } from "../sale/Sale.sol";
 
 /// @title SeedERC20Factory
 /// @notice Factory for creating and deploying `SeedERC20` contracts.
@@ -12,11 +13,14 @@ contract SeedERC20Factory is Factory {
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
-        (SeedERC20Config memory config_) = abi.decode(
+        (
+            SeedERC20Config memory config_,
+            SaleConfig memory saleConfig_
+        ) = abi.decode(
             data_,
-            (SeedERC20Config)
+            (SeedERC20Config, SaleConfig)
         );
-        return address(new SeedERC20(config_));
+        return address(new SeedERC20(config_, saleConfig_));
     }
 
     /// Allows calling `createChild` with `SeedERC20Config` struct.

@@ -9,34 +9,34 @@ enum Ops {
     lastBuyBlock,
     lastBuyPrice,
     lastUnitsSold,
-    totalReserveRaised,
-    totalUnitsSold
+    totalRaised,
+    remainingUnits
 }
 
-abstract contract SaleOps is Sale {
+abstract contract SaleOps {
     using Math for uint256;
 
     uint8 public immutable saleOpsStart;
     uint8 public immutable opcodeSaleStartBlock;
     uint8 public immutable opcodeLastUnitsSold;
-    uint8 public immutable opcodeTotalUnitsSold;
+    uint8 public immutable opcodeRemainingUnits;
     uint8 public immutable opcodeLastBuyBlock;
     uint8 public immutable opcodeLastBuyPrice;
-    uint8 public immutable opcodeTotalReserveRaised;
+    uint8 public immutable opcodeTotalRaised;
     uint8 public constant SALE_OPS_LENGTH = 6;
 
     constructor(uint8 start_) {
         saleOpsStart = start_;
         opcodeSaleStartBlock = start_ + uint8(Ops.saleStartBlock);
         opcodeLastUnitsSold = start_ + uint8(Ops.lastUnitsSold);
-        opcodeTotalUnitsSold = start_ + uint8(Ops.totalUnitsSold);
+        opcodeRemainingUnits = start_ + uint8(Ops.remainingUnits);
         opcodeLastBuyBlock = start_ + uint8(Ops.lastBuyBlock);
         opcodeLastBuyPrice = start_ + uint8(Ops.lastBuyPrice);
-        opcodeTotalReserveRaised = start_ + uint8(Ops.totalReserveRaised);
+        opcodeTotalRaised = start_ + uint8(Ops.totalRaised);
     }
 
     function applyOp(
-        bytes memory,
+        bytes memory contextBytes_,
         Stack memory stack_,
         Op memory op_
     )
@@ -47,23 +47,24 @@ abstract contract SaleOps is Sale {
         if (saleOpsStart <= op_.code
             && op_.code < saleOpsStart + SALE_OPS_LENGTH
         ) {
+            Context memory context_ = abi.decode(contextBytes_, (Context));
             if (op_.code == opcodeSaleStartBlock) {
-                stack_.vals[stack_.index] = saleStartBlock;
+                stack_.vals[stack_.index] = context_.saleStartBlock;
             }
             else if (op_.code == opcodeLastUnitsSold) {
-                stack_.vals[stack_.index] = lastUnitsSold;
+                stack_.vals[stack_.index] = context_.state.lastUnitsSold;
             }
-            else if (op_.code == opcodeTotalUnitsSold) {
-                stack_.vals[stack_.index] = totalUnitsSold;
+            else if (op_.code == opcodeRemainingUnits) {
+                stack_.vals[stack_.index] = context_.state.remainingUnits;
             }
             else if (op_.code == opcodeLastBuyBlock) {
-                stack_.vals[stack_.index] = lastBuyBlock;
+                stack_.vals[stack_.index] = context_.state.lastBuyBlock;
             }
             else if (op_.code == opcodeLastBuyPrice) {
-                stack_.vals[stack_.index] = lastBuyPrice;
+                stack_.vals[stack_.index] = context_.state.lastBuyPrice;
             }
-            else if (op_.code == opcodeTotalReserveRaised) {
-                stack_.vals[stack_.index] = totalReserveRaised;
+            else if (op_.code == opcodeTotalRaised) {
+                stack_.vals[stack_.index] = context_.state.totalRaised;
             }
             else {
                 // Unhandled opcode!

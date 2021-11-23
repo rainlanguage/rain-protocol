@@ -22,6 +22,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 // solhint-disable-next-line max-line-length
 import { TrustRedeemableERC20Config, TrustRedeemableERC20PoolConfig } from "./Trust.sol";
 import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
+import { Source } from "../vm/RainVM.sol";
 
 /// Everything required to construct a `TrustFactory`.
 struct TrustFactoryConfig {
@@ -78,6 +79,7 @@ struct TrustFactoryTrustConfig {
     // any time to increase redemption value. Successful the redeemInit is sent
     // to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
+    Source seederPriceSource;
 }
 
 struct TrustFactoryTrustRedeemableERC20Config {
@@ -211,7 +213,8 @@ contract TrustFactory is Factory {
                 trustFactoryTrustConfig_.seederUnits,
                 trustFactoryTrustConfig_.seederCooldownDuration,
                 trustFactoryTrustConfig_.redeemInit,
-                bPoolFeeEscrow
+                bPoolFeeEscrow,
+                trustFactoryTrustConfig_.seederPriceSource
             ),
             TrustRedeemableERC20Config(
                 redeemableERC20Factory,
