@@ -115,6 +115,10 @@ abstract contract TierOps {
                     blockNumber_
                 );
             }
+            else {
+                // Unhandled opcode!
+                assert(false);
+            }
 
             stack_.index++;
         }

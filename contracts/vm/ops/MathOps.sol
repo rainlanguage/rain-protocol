@@ -42,12 +42,14 @@ abstract contract MathOps {
     view
     returns (Stack memory) {
         if (mathOpsStart <= op_.code
-            && op_.code <= mathOpsStart + MATH_OPS_LENGTH
+            && op_.code < mathOpsStart + MATH_OPS_LENGTH
         ) {
             stack_.index -= op_.val;
+
             uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
-            for (uint256 a_ = 1; a_ < op_.val; a_++) {
-                uint256 item_ = stack_.vals[stack_.index + a_];
+
+            for (uint256 a_ = op_.val; a_ > 1; a_--) {
+                uint256 item_ = stack_.vals[stack_.index + a_ - 2];
                 if (op_.code == opcodeAdd) {
                     accumulator_ += item_;
                 }
@@ -71,8 +73,10 @@ abstract contract MathOps {
                     assert(false);
                 }
             }
+            stack_.vals[stack_.index] = accumulator_;
             stack_.index++;
         }
+
         return stack_;
     }
 
