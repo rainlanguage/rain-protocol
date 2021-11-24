@@ -48,7 +48,7 @@ abstract contract MathOps {
 
             uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
 
-            for (uint256 a_ = op_.val; a_ > 1; a_--) {
+            for (uint256 a_ = 2; a_ <= op_.val; a_++) {
                 uint256 item_ = stack_.vals[stack_.index + a_ - 2];
                 if (op_.code == opcodeAdd) {
                     accumulator_ += item_;
