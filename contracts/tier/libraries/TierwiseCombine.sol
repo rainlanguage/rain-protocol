@@ -24,7 +24,7 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_ = TierReport.UNINITIALIZED;
+            uint256 accumulator_ = TierReport.NEVER;
             bool allTrue_ = true;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
                 if (allTrue_ && vals_[i_] <= blockNumber_) {
@@ -36,7 +36,7 @@ library TierwiseCombine {
                 }
             }
             if (!allTrue_) {
-                accumulator_ = TierReport.UNINITIALIZED;
+                accumulator_ = TierReport.NEVER;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -71,7 +71,7 @@ library TierwiseCombine {
                 }
             }
             if (!allTrue_) {
-                accumulator_ = TierReport.UNINITIALIZED;
+                accumulator_ = TierReport.NEVER;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -103,7 +103,7 @@ library TierwiseCombine {
                 }
             }
             if (!allTrue_) {
-                accumulator_ = TierReport.UNINITIALIZED;
+                accumulator_ = TierReport.NEVER;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -136,7 +136,7 @@ library TierwiseCombine {
                 }
             }
             if (!anyTrue_) {
-                accumulator_ = TierReport.UNINITIALIZED;
+                accumulator_ = TierReport.NEVER;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -170,7 +170,7 @@ library TierwiseCombine {
                 }
             }
             if (!anyTrue_) {
-                accumulator_ = TierReport.UNINITIALIZED;
+                accumulator_ = TierReport.NEVER;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }
@@ -202,7 +202,7 @@ library TierwiseCombine {
                 }
             }
             if (!anyTrue_) {
-                accumulator_ = TierReport.UNINITIALIZED;
+                accumulator_ = TierReport.NEVER;
             }
             ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
         }

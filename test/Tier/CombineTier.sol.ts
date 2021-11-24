@@ -4,12 +4,12 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { bytify, op, paddedBlock, paddedReport } from "../Util";
-import type { Contract } from "ethers";
+import type { Contract, ContractFactory } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
-import type { AlwaysTier } from "../../typechain/AlwaysTier";
-import type { NeverTier } from "../../typechain/NeverTier";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { CombineTierFactory } from "../../typechain/CombineTierFactory";
+import type { Source, Vals } from "../Util";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -32,28 +32,69 @@ const enum Opcode {
   VAL,
   CALL,
   BLOCK_NUMBER,
-  ACCOUNT,
   REPORT,
+  NEVER,
+  ALWAYS,
   AND_OLD,
   AND_NEW,
   AND_LEFT,
   OR_OLD,
   OR_NEW,
   OR_LEFT,
+  ACCOUNT,
 }
 
+const sourceAlways: Source = [concat([op(Opcode.ALWAYS)]), 0, 0, 0];
+const sourceNever: Source = [concat([op(Opcode.NEVER)]), 0, 0, 0];
+
+const valsDefault = new Array(16).fill(0) as Vals;
+
 describe("CombineTier", async function () {
-  it("should correctly combine AlwaysTier and NeverTier reports with orLeft", async () => {
+  it("should have the correct opcodes", async () => {
+    this.timeout(0);
+
+    const vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [0, 0, 0, 0];
+
+    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTier = (await combineTierFactory.deploy({
+      source,
+      vals,
+    })) as CombineTier & Contract;
+
+    assert((await combineTier.OPCODE_END()) === Opcode.END);
+    assert((await combineTier.OPCODE_VAL()) === Opcode.VAL);
+    assert((await combineTier.OPCODE_CALL()) === Opcode.CALL);
+    assert((await combineTier.opcodeBlockNumber()) === Opcode.BLOCK_NUMBER);
+    assert((await combineTier.opcodeTierReport()) === Opcode.REPORT);
+    assert((await combineTier.opcodeTierNever()) === Opcode.NEVER);
+    assert((await combineTier.opcodeTierAlways()) === Opcode.ALWAYS);
+    assert((await combineTier.opcodeTierAndOld()) === Opcode.AND_OLD);
+    assert((await combineTier.opcodeTierAndNew()) === Opcode.AND_NEW);
+    assert((await combineTier.opcodeTierAndLeft()) === Opcode.AND_LEFT);
+    assert((await combineTier.opcodeTierOrOld()) === Opcode.OR_OLD);
+    assert((await combineTier.opcodeTierOrNew()) === Opcode.OR_NEW);
+    assert((await combineTier.opcodeTierOrLeft()) === Opcode.OR_LEFT);
+  });
+
+  it("should correctly combine Always and Never tier contracts with orLeft", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
-    const alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier &
-      Contract;
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
 
-    const neverTierFactory = await ethers.getContractFactory("NeverTier");
-    const neverTier = (await neverTierFactory.deploy()) as NeverTier & Contract;
+    const alwaysTier = (await combineTierFactory.deploy({
+      source: sourceAlways,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
+    const neverTier = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
 
     const vals = [
       ethers.BigNumber.from(alwaysTier.address), // right report
@@ -90,7 +131,6 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -98,7 +138,7 @@ describe("CombineTier", async function () {
 
     const result = await combineTier.report(signers[0].address);
 
-    // for each tier, AlwaysTier has blocks which are lte current block
+    // for each tier, Always has blocks which are lte current block
     // therefore, OR_LEFT succeeds
 
     const expected = 0x00; // success, left report's block number for each tier
@@ -110,17 +150,23 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine AlwaysTier and NeverTier reports with orNew", async () => {
+  it("should correctly combine Always and Never tier contracts with orNew", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
-    const alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier &
-      Contract;
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
 
-    const neverTierFactory = await ethers.getContractFactory("NeverTier");
-    const neverTier = (await neverTierFactory.deploy()) as NeverTier & Contract;
+    const alwaysTier = (await combineTierFactory.deploy({
+      source: sourceAlways,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
+    const neverTier = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
 
     const vals = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -157,7 +203,6 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -165,7 +210,7 @@ describe("CombineTier", async function () {
 
     const result = await combineTier.report(signers[0].address);
 
-    // for each tier, AlwaysTier has blocks which are lte current block
+    // for each tier, Always has blocks which are lte current block
     // therefore, OR_NEW succeeds
 
     const expected = 0x00; // success, newest block number before current block for each tier
@@ -177,17 +222,23 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine AlwaysTier and NeverTier reports with orOld", async () => {
+  it("should correctly combine Always and Never tier contracts with orOld", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
-    const alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier &
-      Contract;
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
 
-    const neverTierFactory = await ethers.getContractFactory("NeverTier");
-    const neverTier = (await neverTierFactory.deploy()) as NeverTier & Contract;
+    const alwaysTier = (await combineTierFactory.deploy({
+      source: sourceAlways,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
+    const neverTier = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
 
     const vals = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -224,7 +275,6 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -232,7 +282,7 @@ describe("CombineTier", async function () {
 
     const result = await combineTier.report(signers[0].address);
 
-    // for each tier, AlwaysTier has blocks which are lte current block
+    // for each tier, Always has blocks which are lte current block
     // therefore, OR_OLD succeeds
 
     const expected = 0x00; // success, oldest block number for each tier
@@ -244,17 +294,23 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine AlwaysTier and NeverTier reports with andLeft", async () => {
+  it("should correctly combine Always and Never tier contracts with andLeft", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
-    const alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier &
-      Contract;
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
 
-    const neverTierFactory = await ethers.getContractFactory("NeverTier");
-    const neverTier = (await neverTierFactory.deploy()) as NeverTier & Contract;
+    const alwaysTier = (await combineTierFactory.deploy({
+      source: sourceAlways,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
+    const neverTier = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
 
     const vals = [
       ethers.BigNumber.from(alwaysTier.address), // right report
@@ -291,7 +347,6 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -299,7 +354,7 @@ describe("CombineTier", async function () {
 
     const result = await combineTier.report(signers[0].address);
 
-    // for each tier, only AlwaysTier has blocks which are lte current block
+    // for each tier, only Always has blocks which are lte current block
     // therefore, AND_LEFT fails
 
     const expected = Util.max_uint256; // 'false'
@@ -311,17 +366,23 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine AlwaysTier and NeverTier reports with andOld", async () => {
+  it("should correctly combine Always and Never tier contracts with andOld", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
-    const alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier &
-      Contract;
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
 
-    const neverTierFactory = await ethers.getContractFactory("NeverTier");
-    const neverTier = (await neverTierFactory.deploy()) as NeverTier & Contract;
+    const alwaysTier = (await combineTierFactory.deploy({
+      source: sourceAlways,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
+    const neverTier = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
 
     const vals = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -358,7 +419,6 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -366,7 +426,7 @@ describe("CombineTier", async function () {
 
     const result = await combineTier.report(signers[0].address);
 
-    // for each tier, only AlwaysTier has blocks which are lte current block
+    // for each tier, only Always has blocks which are lte current block
     // therefore, AND_OLD fails
 
     const expected = Util.max_uint256; // 'false'
@@ -378,17 +438,23 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine AlwaysTier and NeverTier reports with andNew", async () => {
+  it("should correctly combine Always and Never tier contracts with andNew", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
-    const alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier &
-      Contract;
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
 
-    const neverTierFactory = await ethers.getContractFactory("NeverTier");
-    const neverTier = (await neverTierFactory.deploy()) as NeverTier & Contract;
+    const alwaysTier = (await combineTierFactory.deploy({
+      source: sourceAlways,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
+    const neverTier = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
 
     const vals = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -425,7 +491,6 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -433,7 +498,7 @@ describe("CombineTier", async function () {
 
     const result = await combineTier.report(signers[0].address);
 
-    // for each tier, only AlwaysTier has blocks which are lte current block
+    // for each tier, only Always has blocks which are lte current block
     // therefore, AND_NEW fails
 
     const expected = Util.max_uint256; // 'false'
@@ -450,12 +515,18 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const alwaysTierFactory = await ethers.getContractFactory("AlwaysTier");
-    const alwaysTier = (await alwaysTierFactory.deploy()) as AlwaysTier &
-      Contract;
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
 
-    const neverTierFactory = await ethers.getContractFactory("NeverTier");
-    const neverTier = (await neverTierFactory.deploy()) as NeverTier & Contract;
+    const alwaysTier = (await combineTierFactory.deploy({
+      source: sourceAlways,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
+    const neverTier = (await combineTierFactory.deploy({
+      source: sourceNever,
+      vals: valsDefault,
+    })) as CombineTier & Contract;
 
     const vals = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -476,49 +547,50 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const sourceAlways = [
+    const sourceAlwaysReport = [
       concat([op(Opcode.REPORT, 0), op(Opcode.VAL, 0), op(Opcode.ACCOUNT, 0)]),
       0,
       0,
       0,
     ];
 
-    const sourceNever = [
+    const sourceNeverReport = [
       concat([op(Opcode.REPORT, 0), op(Opcode.VAL, 1), op(Opcode.ACCOUNT, 0)]),
       0,
       0,
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const combineTierAlways = (await combineTierFactory.deploy({
-      source: sourceAlways,
+      source: sourceAlwaysReport,
       vals,
     })) as CombineTier & Contract;
 
-    const resultAlways = await combineTierAlways.report(signers[1].address);
+    const resultAlwaysReport = await combineTierAlways.report(
+      signers[1].address
+    );
 
-    const expectedAlways = 0;
+    const expectedAlwaysReport = 0;
     assert(
-      resultAlways.eq(expectedAlways),
+      resultAlwaysReport.eq(expectedAlwaysReport),
       `wrong report
-      expected  ${expectedAlways}
-      got       ${resultAlways}`
+      expected  ${expectedAlwaysReport}
+      got       ${resultAlwaysReport}`
     );
 
     const combineTierNever = (await combineTierFactory.deploy({
-      source: sourceNever,
+      source: sourceNeverReport,
       vals,
     })) as CombineTier & Contract;
 
-    const resultNever = await combineTierNever.report(signers[1].address);
+    const resultNeverReport = await combineTierNever.report(signers[1].address);
 
-    const expectedNever = ethers.constants.MaxUint256;
+    const expectedNeverReport = ethers.constants.MaxUint256;
     assert(
-      resultNever.eq(expectedNever),
+      resultNeverReport.eq(expectedNeverReport),
       `wrong report
-      expected ${expectedNever}
-      got      ${resultNever}`
+      expected ${expectedNeverReport}
+      got      ${resultNeverReport}`
     );
   });
 
@@ -531,7 +603,9 @@ describe("CombineTier", async function () {
 
     const source = [concat([bytify(0), bytify(Opcode.ACCOUNT)]), 0, 0, 0];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -547,7 +621,7 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine ReadWriteTier reports with andOld", async () => {
+  it("should correctly combine ReadWriteTier tier contracts with andOld", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -595,7 +669,9 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -695,7 +771,7 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine ReadWriteTier reports with andNew", async () => {
+  it("should correctly combine ReadWriteTier tier contracts with andNew", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -743,7 +819,9 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -845,7 +923,7 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine ReadWriteTier reports with andLeft", async () => {
+  it("should correctly combine ReadWriteTier tier contracts with andLeft", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -893,7 +971,9 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -982,7 +1062,7 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine ReadWriteTier reports with orOld", async () => {
+  it("should correctly combine ReadWriteTier tier contracts with orOld", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1030,7 +1110,9 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -1131,7 +1213,7 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine ReadWriteTier reports with orNew", async () => {
+  it("should correctly combine ReadWriteTier tier contracts with orNew", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1179,7 +1261,9 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,
@@ -1280,7 +1364,7 @@ describe("CombineTier", async function () {
     );
   });
 
-  it("should correctly combine ReadWriteTier reports with orLeft", async () => {
+  it("should correctly combine ReadWriteTier tier contracts with orLeft", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1328,7 +1412,9 @@ describe("CombineTier", async function () {
       0,
     ];
 
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
+    const combineTierFactory = (await ethers.getContractFactory(
+      "CombineTier"
+    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
       vals,

@@ -39,7 +39,7 @@ contract VerifyTier is ReadOnlyTier {
             );
         }
         else {
-            return TierReport.UNINITIALIZED;
+            return TierReport.NEVER;
         }
     }
 }

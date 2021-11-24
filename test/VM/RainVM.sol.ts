@@ -20,11 +20,37 @@ const enum Opcode {
   ADD,
   SUB,
   MUL,
+  POW,
   DIV,
   MOD,
 }
 
-describe("RainCompiler", async function () {
+describe("RainVM", async function () {
+  it("should have the correct opcodes", async () => {
+    this.timeout(0);
+
+    const vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [0, 0, 0, 0];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest & Contract;
+
+    assert((await calculator.OPCODE_END()) === Opcode.END);
+    assert((await calculator.OPCODE_VAL()) === Opcode.VAL);
+    assert((await calculator.OPCODE_CALL()) === Opcode.CALL);
+    assert((await calculator.opcodeBlockNumber()) === Opcode.BLOCK_NUMBER);
+    assert((await calculator.opcodeAdd()) === Opcode.ADD);
+    assert((await calculator.opcodeSub()) === Opcode.SUB);
+    assert((await calculator.opcodeMul()) === Opcode.MUL);
+    assert((await calculator.opcodePow()) === Opcode.POW);
+    assert((await calculator.opcodeDiv()) === Opcode.DIV);
+    assert((await calculator.opcodeMod()) === Opcode.MOD);
+  });
+
   it("should run a basic program (return current block number)", async () => {
     this.timeout(0);
 
@@ -1152,9 +1178,9 @@ OPCODE_END                  ${await calculator.OPCODE_END()}
 OPCODE_VAL                  ${await calculator.OPCODE_VAL()}
 OPCODE_CALL                 ${await calculator.OPCODE_CALL()}
 
-OPCODE_BLOCK_NUMBER         ${await calculator.OPCODE_BLOCK_NUMBER()}
+OPCODE_BLOCK_NUMBER         ${await calculator.opcodeBlockNumber()}
 
-OPCODE_RESERVED_MAX         ${await calculator.OPCODE_RESERVED_MAX()}
+VM_OPS_LENGTH               ${await calculator.VM_OPS_LENGTH()}
 
 val0                        ${await calculator.val0()}
 val1                        ${await calculator.val1()}
