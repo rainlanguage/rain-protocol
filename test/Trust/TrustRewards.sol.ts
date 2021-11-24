@@ -81,8 +81,8 @@ describe("TrustRewards", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
+    const erc20Config = { name: "Token", symbol: "TKN" };
+    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -119,10 +119,10 @@ describe("TrustRewards", async function () {
         seederUnits,
         seederCooldownDuration,
         redeemInit,
+        seedERC20Config,
       },
       {
-        name: tokenName,
-        symbol: tokenSymbol,
+        erc20Config,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -390,8 +390,8 @@ describe("TrustRewards", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
+    const erc20Config = { name: "Token", symbol: "TKN" };
+    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -428,10 +428,10 @@ describe("TrustRewards", async function () {
         seederUnits,
         seederCooldownDuration,
         redeemInit,
+        seedERC20Config,
       },
       {
-        name: tokenName,
-        symbol: tokenSymbol,
+        erc20Config,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -596,8 +596,8 @@ describe("TrustRewards", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
+    const erc20Config = { name: "Token", symbol: "TKN" };
+    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -635,10 +635,10 @@ describe("TrustRewards", async function () {
         seederUnits,
         seederCooldownDuration,
         redeemInit,
+        seedERC20Config,
       },
       {
-        name: tokenName,
-        symbol: tokenSymbol,
+        erc20Config,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
