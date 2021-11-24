@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-pragma experimental ABIEncoderV2;
-
 interface IFactory {
     /// Whenever a new child contract is deployed, a `NewContract` event
     /// containing the new child contract address MUST be emitted.

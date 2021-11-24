@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import { ERC20Config } from "../erc20/ERC20Config.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
@@ -22,10 +23,8 @@ struct RedeemableERC20Config {
     // Account that will be the admin for the `RedeemableERC20` contract.
     // Useful for factory contracts etc.
     address admin;
-    // Name forwarded to ERC20 constructor.
-    string name;
-    // Symbol forwarded to ERC20 constructor.
-    string symbol;
+    // ERC20 config forwarded to the ERC20 constructor.
+    ERC20Config erc20Config;
     // Tier contract to compare statuses against on transfer.
     ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
@@ -143,7 +142,7 @@ contract RedeemableERC20 is
     constructor (
         RedeemableERC20Config memory config_
     )
-        ERC20(config_.name, config_.symbol)
+        ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
         TierByConstruction(config_.tier)
     {
         require(

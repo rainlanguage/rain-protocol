@@ -21,6 +21,7 @@ import { SeedERC20Config } from "../seed/SeedERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
 import { TrustRedeemableERC20Config, TrustRedeemableERC20PoolConfig } from "./Trust.sol";
+import { ERC20Config } from "../erc20/ERC20Config.sol";
 
 /// Everything required to construct a `TrustFactory`.
 struct TrustFactoryConfig {
@@ -77,13 +78,13 @@ struct TrustFactoryTrustConfig {
     // any time to increase redemption value. Successful the redeemInit is sent
     // to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
+    // ERC20Config forwarded through to the seedERC20 constructor.
+    ERC20Config seedERC20Config;
 }
 
 struct TrustFactoryTrustRedeemableERC20Config {
-    // Name forwarded to ERC20 constructor.
-    string name;
-    // Symbol forwarded to ERC20 constructor.
-    string symbol;
+    // ERC20Config forwarded to redeemableERC20 constructor.
+    ERC20Config erc20Config;
     // Tier contract to compare statuses against on transfer.
     ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
@@ -207,12 +208,12 @@ contract TrustFactory is Factory {
                 trustFactoryTrustConfig_.seederFee,
                 trustFactoryTrustConfig_.seederUnits,
                 trustFactoryTrustConfig_.seederCooldownDuration,
-                trustFactoryTrustConfig_.redeemInit
+                trustFactoryTrustConfig_.redeemInit,
+                trustFactoryTrustConfig_.seedERC20Config
             ),
             TrustRedeemableERC20Config(
                 redeemableERC20Factory,
-                trustFactoryTrustRedeemableERC20Config_.name,
-                trustFactoryTrustRedeemableERC20Config_.symbol,
+                trustFactoryTrustRedeemableERC20Config_.erc20Config,
                 trustFactoryTrustRedeemableERC20Config_.tier,
                 trustFactoryTrustRedeemableERC20Config_.minimumStatus,
                 trustFactoryTrustRedeemableERC20Config_.totalSupply
