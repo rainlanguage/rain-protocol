@@ -293,10 +293,6 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for RedeemableERC20;
 
     BPoolFeeEscrow public immutable bPoolFeeEscrow;
-    // FIXME: Cannot make seedERC20Config struct (or strings) `immutable`
-    ERC20Config public seedERC20Config;
-    // FIXME: Cannot make seederPriceSource `immutable` or `public`
-    Source private seederPriceSource;
 
     /// Anyone can emit a `Notice`.
     /// This is open ended content related to the `Trust`.
@@ -399,7 +395,6 @@ contract Trust is ReentrancyGuard {
         seedERC20Factory = config_.seedERC20Factory;
         successBalance = successBalance_;
         bPoolFeeEscrow = config_.bPoolFeeEscrow;
-        seedERC20Config = config_.seedERC20Config;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             trustRedeemableERC20Config_.redeemableERC20Factory
