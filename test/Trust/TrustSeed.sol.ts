@@ -62,8 +62,8 @@ describe("TrustSeed", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
+    const erc20Config = { name: "Token", symbol: "TKN" };
+    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -101,10 +101,10 @@ describe("TrustSeed", async function () {
         seederUnits,
         seederCooldownDuration,
         redeemInit,
+        seedERC20Config,
       },
       {
-        name: tokenName,
-        symbol: tokenSymbol,
+        erc20Config,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -233,8 +233,7 @@ describe("TrustSeed", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      name: "seed",
-      symbol: "SD",
+      erc20Config: { name: "SeedToken", symbol: "SDT" },
     })) as SeedERC20 & Contract;
 
     await seederContract.deployed();
@@ -281,8 +280,7 @@ describe("TrustSeed", async function () {
             seedPrice,
             seedUnits,
             cooldownDuration,
-            name: "seed",
-            symbol: "SD",
+            erc20Config: { name: "SeedToken", symbol: "SDT" },
           })) as SeedERC20 & Contract,
         "UNITS_0",
         "seeder contract was wrongly constructed with seedUnits set to 0"
@@ -322,8 +320,7 @@ describe("TrustSeed", async function () {
             seedPrice,
             seedUnits,
             cooldownDuration,
-            name: "seed",
-            symbol: "SD",
+            erc20Config: { name: "SeedToken", symbol: "SDT" },
           })) as SeedERC20 & Contract,
         "PRICE_0",
         "seeder contract was wrongly constructed with seedPrice set to 0"
@@ -349,8 +346,8 @@ describe("TrustSeed", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
+    const erc20Config = { name: "Token", symbol: "TKN" };
+    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -388,10 +385,10 @@ describe("TrustSeed", async function () {
         seederUnits,
         seederCooldownDuration,
         redeemInit,
+        seedERC20Config,
       },
       {
-        name: tokenName,
-        symbol: tokenSymbol,
+        erc20Config,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -470,8 +467,8 @@ describe("TrustSeed", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const tokenName = "Token";
-    const tokenSymbol = "TKN";
+    const erc20Config = { name: "Token", symbol: "TKN" };
+    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -509,10 +506,10 @@ describe("TrustSeed", async function () {
         seederUnits,
         seederCooldownDuration,
         redeemInit,
+        seedERC20Config,
       },
       {
-        name: tokenName,
-        symbol: tokenSymbol,
+        erc20Config,
         tier: tier.address,
         minimumStatus,
         totalSupply: totalTokenSupply,
@@ -589,8 +586,8 @@ describe("TrustSeed", async function () {
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-      const tokenName = "Token";
-      const tokenSymbol = "TKN";
+      const erc20Config = { name: "Token", symbol: "TKN" };
+      const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
       const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
       const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -632,10 +629,10 @@ describe("TrustSeed", async function () {
           seederUnits,
           seederCooldownDuration,
           redeemInit,
+          seedERC20Config,
         },
         {
-          name: tokenName,
-          symbol: tokenSymbol,
+          erc20Config,
           tier: tier.address,
           minimumStatus,
           totalSupply: totalTokenSupply,
@@ -870,8 +867,8 @@ describe("TrustSeed", async function () {
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-      const tokenName = "Token";
-      const tokenSymbol = "TKN";
+      const erc20Config = { name: "Token", symbol: "TKN" };
+      const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
       const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
       const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -911,10 +908,10 @@ describe("TrustSeed", async function () {
           seederUnits,
           seederCooldownDuration,
           redeemInit,
+          seedERC20Config,
         },
         {
-          name: tokenName,
-          symbol: tokenSymbol,
+          erc20Config,
           tier: tier.address,
           minimumStatus,
           totalSupply: totalTokenSupply,

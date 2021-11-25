@@ -26,6 +26,7 @@ import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
 import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
 import { Config as SaleConfig } from "../sale/Sale.sol";
 import { Source } from "../vm/RainVM.sol";
+import { ERC20Config } from "../erc20/ERC20Config.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -140,15 +141,15 @@ struct TrustConfig {
     uint256 redeemInit;
     BPoolFeeEscrow bPoolFeeEscrow;
     Source seederPriceSource;
+    // ERC20Config forwarded to the seedERC20.
+    ERC20Config seedERC20Config;
 }
 
 struct TrustRedeemableERC20Config {
     // The `RedeemableERC20Factory` on the current network.
     RedeemableERC20Factory redeemableERC20Factory;
-    // Name forwarded to `ERC20` constructor.
-    string name;
-    // Symbol forwarded to `ERC20` constructor.
-    string symbol;
+    // ERC20Config forwarded to redeemableERC20 constructor.
+    ERC20Config erc20Config;
     // `ITier` contract to compare statuses against on transfer.
     ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
@@ -292,6 +293,10 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for RedeemableERC20;
 
     BPoolFeeEscrow public immutable bPoolFeeEscrow;
+    // FIXME: Cannot make seedERC20Config struct (or strings) `immutable`
+    ERC20Config public seedERC20Config;
+    // FIXME: Cannot make seederPriceSource `immutable` or `public`
+    Source private seederPriceSource;
 
     /// Anyone can emit a `Notice`.
     /// This is open ended content related to the `Trust`.
@@ -394,14 +399,14 @@ contract Trust is ReentrancyGuard {
         seedERC20Factory = config_.seedERC20Factory;
         successBalance = successBalance_;
         bPoolFeeEscrow = config_.bPoolFeeEscrow;
+        seedERC20Config = config_.seedERC20Config;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             trustRedeemableERC20Config_.redeemableERC20Factory
                 .createChild(abi.encode(
                     RedeemableERC20Config(
                         address(this),
-                        trustRedeemableERC20Config_.name,
-                        trustRedeemableERC20Config_.symbol,
+                        trustRedeemableERC20Config_.erc20Config,
                         trustRedeemableERC20Config_.tier,
                         trustRedeemableERC20Config_.minimumStatus,
                         trustRedeemableERC20Config_.totalSupply
@@ -437,15 +442,11 @@ contract Trust is ReentrancyGuard {
                 .createChild(abi.encode(SeedERC20Config(
                     trustRedeemableERC20PoolConfig_.reserve,
                     address(redeemableERC20Pool_),
-                    "",
-                    ""
-                ), SaleConfig(
+                    // seed price.
+                    redeemableERC20Pool_.reserveInit() / config_.seederUnits,
                     config_.seederUnits,
                     config_.seederCooldownDuration,
-                    uint32(block.number),
-                    0xFFFFFFFF,
-                    config_.seederPriceSource,
-                    redeemableERC20Pool_.reserveInit()
+                    config_.seedERC20Config
                 )))
             );
         }
@@ -507,6 +508,23 @@ contract Trust is ReentrancyGuard {
             address(token.tierContract()),
             address(pool.crp()),
             address(pool.crp().bPool())
+        );
+    }
+
+    /// Accessor for the `TrustConfig` of this `Trust`.
+    function getTrustConfig() external view returns(TrustConfig memory) {
+        return TrustConfig(
+            address(creator),
+            minimumCreatorRaise,
+            seedERC20Factory,
+            address(seeder),
+            seederFee,
+            seederUnits,
+            seederCooldownDuration,
+            redeemInit,
+            bPoolFeeEscrow,
+            seederPriceSource,
+            seedERC20Config
         );
     }
 

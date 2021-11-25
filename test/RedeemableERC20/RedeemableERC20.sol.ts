@@ -59,14 +59,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -101,14 +99,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const token = await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -144,15 +140,13 @@ describe("RedeemableERC20", async function () {
       "1" + Util.eighteenZeros
     );
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     await Util.assertError(
       async () =>
         await redeemableFactory.deploy({
           admin: signers[0].address,
-          name: tokenName,
-          symbol: tokenSymbol,
+          erc20Config,
           tier: tier.address,
           minimumStatus: minimumStatus,
           totalSupply: totalTokenSupplyZero,
@@ -165,8 +159,7 @@ describe("RedeemableERC20", async function () {
       async () =>
         await redeemableFactory.deploy({
           admin: signers[0].address,
-          name: tokenName,
-          symbol: tokenSymbol,
+          erc20Config,
           tier: tier.address,
           minimumStatus: minimumStatus,
           totalSupply: totalTokenSupplyOneShort,
@@ -177,8 +170,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemable = await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus,
       totalSupply: totalTokenSupplyMinimum,
@@ -210,14 +202,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const token = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -286,14 +276,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -333,14 +321,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -580,14 +566,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -632,14 +616,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -679,14 +661,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -733,8 +713,7 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     // grant second signer GOLD status so they can receive transferred tokens
@@ -744,8 +723,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -814,14 +792,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -1023,14 +999,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,
@@ -1120,14 +1094,12 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
     );
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalSupply,

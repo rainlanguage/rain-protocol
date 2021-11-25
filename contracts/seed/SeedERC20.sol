@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import { ERC20Config } from "../erc20/ERC20Config.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
@@ -17,10 +18,23 @@ struct SeedERC20Config {
     IERC20 reserve;
     // Recipient address for all reserve funds raised when seeding is complete.
     address recipient;
-    // ERC20 name.
-    string name;
-    // ERC20 symbol.
-    string symbol;
+    // Price per seed unit denominated in reserve token.
+    uint256 seedPrice;
+    // Total seed units to be mint and sold.
+    // 100% of all seed units must be sold for seeding to complete.
+    // Recommended to keep seed units to a small value (single-triple digits).
+    // The ability for users to buy/sell or not buy/sell dust seed quantities
+    // is likely NOT desired.
+    uint16 seedUnits;
+    // Cooldown duration in blocks for seed/unseed cycles.
+    // Seeding requires locking funds for at least the cooldown period.
+    // Ideally `unseed` is never called and `seed` leaves funds in the contract
+    // until all seed tokens are sold out.
+    // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
+    // but it should be called rarely.
+    uint16 cooldownDuration;
+    // ERC20 config.
+    ERC20Config erc20Config;
 }
 
 /// @title SeedERC20
@@ -107,9 +121,10 @@ contract SeedERC20 is
         SeedERC20Config memory config_,
         SaleConfig memory saleConfig_
     )
-    ERC20(config_.name, config_.symbol)
-    Sale(saleConfig_)
-    {
+    ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
+    Sale(saleConfig_) {
+        require(config_.seedPrice > 0, "PRICE_0");
+        require(config_.seedUnits > 0, "UNITS_0");
         require(config_.recipient != address(0), "RECIPIENT_0");
         reserve = config_.reserve;
         recipient = config_.recipient;
