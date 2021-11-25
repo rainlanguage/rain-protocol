@@ -212,7 +212,7 @@ contract TrustFactory is Factory {
                 trustFactoryTrustConfig_.seederUnits,
                 trustFactoryTrustConfig_.seederCooldownDuration,
                 trustFactoryTrustConfig_.redeemInit,
-                bPoolFeeEscrow
+                bPoolFeeEscrow,
                 trustFactoryTrustConfig_.seedERC20Config
             ),
             TrustRedeemableERC20Config(
