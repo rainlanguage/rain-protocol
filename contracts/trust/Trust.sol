@@ -506,22 +506,6 @@ contract Trust is ReentrancyGuard {
         );
     }
 
-    /// Accessor for the `TrustConfig` of this `Trust`.
-    function getTrustConfig() external view returns(TrustConfig memory) {
-        return TrustConfig(
-            address(creator),
-            minimumCreatorRaise,
-            seedERC20Factory,
-            address(seeder),
-            seederFee,
-            seederUnits,
-            seederCooldownDuration,
-            redeemInit,
-            bPoolFeeEscrow,
-            seedERC20Config
-        );
-    }
-
     /// Accessor for the `DistributionProgress` of this `Trust`.
     function getDistributionProgress()
         external
