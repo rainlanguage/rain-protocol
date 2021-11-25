@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-pragma experimental ABIEncoderV2;
-
 import { IFactory } from "./IFactory.sol";
 // solhint-disable-next-line max-line-length
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";

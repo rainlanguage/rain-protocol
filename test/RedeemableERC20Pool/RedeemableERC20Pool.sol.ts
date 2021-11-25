@@ -56,15 +56,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 1;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       reserve: reserve.address,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -129,15 +127,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 0;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       reserve: reserve.address,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -196,15 +192,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 10;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       reserve: reserve.address,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -315,15 +309,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 10;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       reserve: reserve.address,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -388,15 +380,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 50;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       reserve: reserve.address,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -556,15 +546,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 50;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       reserve: reserve.address,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -698,15 +686,13 @@ describe("RedeemableERC20Pool", async function () {
     // The final valuation of redeemable should be 100 000 as this is the redemption value.
     // Reserve init has value of 50 000 so ratio is 2:1.
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 15;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       reserve: reserve.address,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -837,15 +823,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 15;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
@@ -958,15 +942,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 15;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,
@@ -1041,15 +1023,13 @@ describe("RedeemableERC20Pool", async function () {
     // Same logic used by trust.
     const finalValuation = minRaise.add(redeemInit);
 
-    const tokenName = "RedeemableERC20";
-    const tokenSymbol = "RDX";
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
     const minimumTradingDuration = 15;
 
     const redeemable = (await redeemableFactory.deploy({
       admin: signers[0].address,
-      name: tokenName,
-      symbol: tokenSymbol,
+      erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
       totalSupply: totalTokenSupply,

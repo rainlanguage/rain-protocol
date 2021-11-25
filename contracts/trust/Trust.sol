@@ -24,6 +24,7 @@ import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factor
 import { RedeemableERC20PoolFactory, RedeemableERC20PoolFactoryRedeemableERC20PoolConfig } from "../pool/RedeemableERC20PoolFactory.sol";
 import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
 import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
+import { ERC20Config } from "../erc20/ERC20Config.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
@@ -137,15 +138,15 @@ struct TrustConfig {
     // to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
     BPoolFeeEscrow bPoolFeeEscrow;
+    // ERC20Config forwarded to the seedERC20.
+    ERC20Config seedERC20Config;
 }
 
 struct TrustRedeemableERC20Config {
     // The `RedeemableERC20Factory` on the current network.
     RedeemableERC20Factory redeemableERC20Factory;
-    // Name forwarded to `ERC20` constructor.
-    string name;
-    // Symbol forwarded to `ERC20` constructor.
-    string symbol;
+    // ERC20Config forwarded to redeemableERC20 constructor.
+    ERC20Config erc20Config;
     // `ITier` contract to compare statuses against on transfer.
     ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
@@ -397,8 +398,7 @@ contract Trust is ReentrancyGuard {
                 .createChild(abi.encode(
                     RedeemableERC20Config(
                         address(this),
-                        trustRedeemableERC20Config_.name,
-                        trustRedeemableERC20Config_.symbol,
+                        trustRedeemableERC20Config_.erc20Config,
                         trustRedeemableERC20Config_.tier,
                         trustRedeemableERC20Config_.minimumStatus,
                         trustRedeemableERC20Config_.totalSupply
@@ -438,8 +438,7 @@ contract Trust is ReentrancyGuard {
                     redeemableERC20Pool_.reserveInit() / config_.seederUnits,
                     config_.seederUnits,
                     config_.seederCooldownDuration,
-                    "",
-                    ""
+                    config_.seedERC20Config
                 )))
             );
         }
