@@ -9,6 +9,7 @@ enum Ops {
     report,
     never,
     always,
+    diff,
     updateBlocksForTierRange,
     everyLteMin,
     everyLteMax,
@@ -43,8 +44,29 @@ library TierOps {
             stack_.vals[stack_.index] = TierReport.ALWAYS;
             stack_.index++;
         }
+        else if (op_.code == uint8(Ops.diff)) {
+            stack_.vals[stack_.index] -= 2;
+            uint256 olderReport_ = stack_.vals[stack_.index];
+            uint256 newerReport_ = stack_.vals[stack_.index + 1];
+            stack_.vals[stack_.index] = TierwiseCombine.diff(
+                olderReport_,
+                newerReport_
+            );
+            stack_.index++;
+        }
         else if (op_.code == uint8(Ops.updateBlocksForTierRange)) {
-            // @todo
+            ITier.Tier startTier_ = ITier.Tier(op_.val & 0x7);
+            ITier.Tier endTier_ = ITier.Tier((op_.val & 0x38) >> 3);
+            stack_.index -= 2;
+            uint256 blockNumber_ = stack_.vals[stack_.index];
+            uint256 report_ = stack_.vals[stack_.index + 1];
+            stack_.vals[stack_.index] = TierReport.updateBlocksForTierRange(
+                report_,
+                startTier_,
+                endTier_,
+                blockNumber_
+            );
+            stack_.index++;
         }
         // All the combinators share the same stack and argument handling.
         else {

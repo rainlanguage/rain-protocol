@@ -35,6 +35,7 @@ const enum Opcode {
   REPORT,
   NEVER,
   ALWAYS,
+  DIFF,
   UPDATE_BLOCKS_FOR_TIER_RANGE,
   AND_OLD,
   AND_NEW,

@@ -8,9 +8,33 @@ import "./TierReport.sol";
 library TierwiseCombine {
     using Math for uint256;
 
-    // IF __every__ block number is lte `blockNumber_`
-    // preserve the __minimum__ block number
-    // on a per-tier basis.
+    /// Performs a tierwise diff of two reports.
+    /// Intepret as "# of blocks older report was held before newer report".
+    /// If older report is in fact newer then `0` will be returned.
+    /// i.e. the diff cannot be negative, older report as simply spent 0 blocks
+    /// existing before newer report, if it is in truth the newer report.
+    function diff(
+        uint256 olderReport_,
+        uint256 newerReport_
+    ) internal pure returns (uint256) {
+        uint256 ret_;
+        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
+            uint256 olderBlock_ = uint256(
+                uint256(olderReport_ << 256 - step_ - 32) >> 256 - 32
+            );
+            uint256 newerBlock_ = uint256(
+                uint256(newerReport_ << 256 - step_ - 32) >> 256 - 32
+            );
+            uint256 diff_ = newerBlock_ > olderBlock_
+                ? newerBlock_ - olderBlock_ : 0;
+            ret_ |= uint256(uint256(uint32(diff_)) << step_);
+        }
+        return ret_;
+    }
+
+    /// IF __every__ block number is lte `blockNumber_`
+    /// preserve the __minimum__ block number
+    /// on a per-tier basis.
     function everyLteMin(
         uint256[] memory reports_,
         uint256 blockNumber_
