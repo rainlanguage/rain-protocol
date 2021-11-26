@@ -13,7 +13,8 @@ import { TierOps, Ops as TierOpsOps } from "../vm/ops/TierOps.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 enum Ops {
-    account
+    account,
+    constructionBlockNumber
 }
 
 struct EmissionsERC20Config {
@@ -35,6 +36,10 @@ contract EmissionsERC20 is
     uint8 public immutable mathOpsStart;
     uint8 public immutable tierOpsStart;
     uint8 public immutable emissionsOpsStart;
+    /// Block this contract was constructed.
+    /// Can be used to calculate claim entitlements relative to the deployment
+    /// of the emissions contract itself.
+    uint32 public immutable constructionBlockNumber;
 
     /// Each claim is modelled as a report so that the claim report can be
     /// diffed against the upstream report from a tier based emission scheme.
@@ -51,6 +56,8 @@ contract EmissionsERC20 is
         emissionsOpsStart = tierOpsStart + uint8(TierOpsOps.length);
 
         allowDelegatedClaims = config_.allowDelegatedClaims;
+
+        constructionBlockNumber = uint32(block.number);
     }
 
     function applyOp(
@@ -99,6 +106,10 @@ contract EmissionsERC20 is
             if (op_.code == uint8(Ops.account)) {
                 (address account_) = abi.decode(context_, (address));
                 stack_.vals[stack_.index] = uint256(uint160(account_));
+                stack_.index++;
+            }
+            else if (op_.code == uint8(Ops.constructionBlockNumber)) {
+                stack_.vals[stack_.index] = constructionBlockNumber;
                 stack_.index++;
             }
         }
