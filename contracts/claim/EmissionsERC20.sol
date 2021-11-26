@@ -95,7 +95,7 @@ contract EmissionsERC20 is
         }
         else if (op_.code < emissionsOpsStart) {
             op_.code -= tierOpsStart;
-            MathOps.applyOp(
+            TierOps.applyOp(
                 context_,
                 stack_,
                 op_
