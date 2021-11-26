@@ -32,10 +32,10 @@ export const deployGlobals = async () => {
   const { trustFactory } = await Util.factoriesDeploy(crpFactory, bFactory);
 
   // Deploy global Claim contract
-  const claimFactory = await ethers.getContractFactory(
+  const claimEscrowFactory = await ethers.getContractFactory(
     "RedeemableERC20ClaimEscrow"
   );
-  const claim = (await claimFactory.deploy(
+  const escrow = (await claimEscrowFactory.deploy(
     trustFactory.address
   )) as RedeemableERC20ClaimEscrow & Contract;
 
@@ -45,12 +45,12 @@ export const deployGlobals = async () => {
     tierFactory,
     tier,
     trustFactory,
-    claimFactory,
-    claim,
+    claimEscrowFactory,
+    escrow,
   };
 };
 
-export const basicSetup = async (signers, trustFactory, tier) => {
+export const basicSetup = async (signers, trustFactory, tier, escrow) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
     Contract;
 
@@ -94,6 +94,8 @@ export const basicSetup = async (signers, trustFactory, tier) => {
       seederCooldownDuration,
       redeemInit,
       seedERC20Config,
+      bPoolFeeEscrow: escrow.address,
+      seederPriceSource: Util.DEFAULT_SOURCE,
     },
     {
       erc20Config,

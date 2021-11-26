@@ -442,7 +442,12 @@ export const paddedBlock = (blockNumber: number): string => {
   return hexlify(blockNumber).substring(2).padStart(8, "0");
 };
 
-export type Source = [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
+export type SourceCode = [
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish
+];
 export type Vals = [
   BigNumberish,
   BigNumberish,
@@ -461,3 +466,13 @@ export type Vals = [
   BigNumberish,
   BigNumberish
 ];
+
+export interface Source {
+  source: SourceCode;
+  vals: Vals;
+}
+
+export const DEFAULT_SOURCE: Source = {
+  source: [0, 0, 0, 0],
+  vals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+};

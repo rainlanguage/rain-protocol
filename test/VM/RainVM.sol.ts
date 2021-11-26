@@ -119,7 +119,7 @@ describe("RainVM", async function () {
       0,
     ];
 
-    const source: Util.Source = [
+    const source: Util.SourceCode = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -219,7 +219,7 @@ describe("RainVM", async function () {
       0,
     ];
 
-    const source: Util.Source = [
+    const source: Util.SourceCode = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -318,7 +318,7 @@ describe("RainVM", async function () {
       0,
     ];
 
-    const source: Util.Source = [
+    const source: Util.SourceCode = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -471,7 +471,7 @@ describe("RainVM", async function () {
     const loopSize = 0;
     const valSize = 7;
 
-    const source: Util.Source = [
+    const source: Util.SourceCode = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn3
@@ -585,7 +585,7 @@ describe("RainVM", async function () {
     const loopSize = 0;
     const valSize = 2;
 
-    const source: Util.Source = [
+    const source: Util.SourceCode = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn1
@@ -671,7 +671,7 @@ describe("RainVM", async function () {
     const loopSize = 0;
     const valSize = 2;
 
-    const source: Util.Source = [
+    const source: Util.SourceCode = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
@@ -751,7 +751,7 @@ describe("RainVM", async function () {
     const loopSize = 0; // 1
     const valSize = 2; // 3
 
-    const source: Util.Source = [
+    const source: Util.SourceCode = [
       concat([
         op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0

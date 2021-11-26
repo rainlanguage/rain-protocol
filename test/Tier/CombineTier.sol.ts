@@ -9,7 +9,7 @@ import type { Contract, ContractFactory } from "ethers";
 import type { CombineTier } from "../../typechain/CombineTier";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { CombineTierFactory } from "../../typechain/CombineTierFactory";
-import type { Source, Vals } from "../Util";
+import type { SourceCode, Vals } from "../Util";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,10 +44,10 @@ const enum Opcode {
   ACCOUNT,
 }
 
-const sourceAlways: Source = [concat([op(Opcode.ALWAYS)]), 0, 0, 0];
-const sourceNever: Source = [concat([op(Opcode.NEVER)]), 0, 0, 0];
+const sourceAlways: SourceCode = [concat([op(Opcode.ALWAYS)]), 0, 0, 0];
+const sourceNever: SourceCode = [concat([op(Opcode.NEVER)]), 0, 0, 0];
 
-const valsDefault = new Array(16).fill(0) as Vals;
+const valsDefault: Vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 describe("CombineTier", async function () {
   it("should have the correct opcodes", async () => {
