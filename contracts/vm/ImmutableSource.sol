@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "./RainVM.sol";
+import { Source } from "./RainVM.sol";
 
 abstract contract ImmutableSource {
     uint256 public immutable val0;

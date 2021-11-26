@@ -9,9 +9,9 @@ library TierwiseCombine {
     using Math for uint256;
 
     // IF __every__ block number is lte `blockNumber_`
-    // preserve the __oldest__ block number
+    // preserve the __minimum__ block number
     // on a per-tier basis.
-    function andOld(
+    function everyLteMin(
         uint256[] memory reports_,
         uint256 blockNumber_
     ) internal pure returns (uint256) {
@@ -44,9 +44,9 @@ library TierwiseCombine {
     }
 
     // IF __every__ block number is lte `blockNumber_`
-    // preserve the __newest__ block number
+    // preserve the __maximum__ block number
     // on a per-tier basis.
-    function andNew(
+    function everyLteMax(
         uint256[] memory reports_,
         uint256 blockNumber_
     ) internal pure returns (uint256) {
@@ -81,7 +81,7 @@ library TierwiseCombine {
     // IF __every__ block number is lte `blockNumber_`
     // preserve the __first__ block number in `reports_` order
     // on a per-tier basis.
-    function andLeft(
+    function everyLteFirst(
         uint256[] memory reports_,
         uint256 blockNumber_
     ) internal pure returns (uint256) {
@@ -111,9 +111,9 @@ library TierwiseCombine {
     }
 
     // IF __any__ block number is lte `blockNumber_`
-    // preserve the __oldest__ block number
+    // preserve the __minimum__ block number
     // on a per-tier basis.
-    function orOld(
+    function anyLteMin(
         uint256[] memory reports_,
         uint256 blockNumber_
     ) internal pure returns (uint256) {
@@ -145,9 +145,9 @@ library TierwiseCombine {
     }
 
     // IF __any__ block number is lte `blockNumber_`
-    // preserve the __newest__ block number
+    // preserve the __maximum__ block number
     // on a per-tier basis.
-    function orNew(
+    function anyLteMax(
         uint256[] memory reports_,
         uint256 blockNumber_
     ) internal pure returns (uint256) {
@@ -180,7 +180,7 @@ library TierwiseCombine {
     // IF __any__ block number is lte `blockNumber_`
     // preserve the __first__ block number in `reports_` order
     // on a per-tier basis.
-    function orLeft(
+    function anyLteFirst(
         uint256[] memory reports_,
         uint256 blockNumber_
     ) internal pure returns (uint256) {

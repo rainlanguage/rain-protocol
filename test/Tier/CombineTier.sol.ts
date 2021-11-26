@@ -35,6 +35,7 @@ const enum Opcode {
   REPORT,
   NEVER,
   ALWAYS,
+  UPDATE_BLOCKS_FOR_TIER_RANGE,
   AND_OLD,
   AND_NEW,
   AND_LEFT,
@@ -50,33 +51,6 @@ const sourceNever: Source = [concat([op(Opcode.NEVER)]), 0, 0, 0];
 const valsDefault = new Array(16).fill(0) as Vals;
 
 describe("CombineTier", async function () {
-  it("should have the correct opcodes", async () => {
-    this.timeout(0);
-
-    const vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-    const source = [0, 0, 0, 0];
-
-    const combineTierFactory = await ethers.getContractFactory("CombineTier");
-    const combineTier = (await combineTierFactory.deploy({
-      source,
-      vals,
-    })) as CombineTier & Contract;
-
-    assert((await combineTier.OPCODE_END()) === Opcode.END);
-    assert((await combineTier.OPCODE_VAL()) === Opcode.VAL);
-    assert((await combineTier.OPCODE_CALL()) === Opcode.CALL);
-    assert((await combineTier.opcodeBlockNumber()) === Opcode.BLOCK_NUMBER);
-    assert((await combineTier.opcodeTierReport()) === Opcode.REPORT);
-    assert((await combineTier.opcodeTierNever()) === Opcode.NEVER);
-    assert((await combineTier.opcodeTierAlways()) === Opcode.ALWAYS);
-    assert((await combineTier.opcodeTierAndOld()) === Opcode.AND_OLD);
-    assert((await combineTier.opcodeTierAndNew()) === Opcode.AND_NEW);
-    assert((await combineTier.opcodeTierAndLeft()) === Opcode.AND_LEFT);
-    assert((await combineTier.opcodeTierOrOld()) === Opcode.OR_OLD);
-    assert((await combineTier.opcodeTierOrNew()) === Opcode.OR_NEW);
-    assert((await combineTier.opcodeTierOrLeft()) === Opcode.OR_LEFT);
-  });
 
   it("should correctly combine Always and Never tier contracts with orLeft", async () => {
     this.timeout(0);

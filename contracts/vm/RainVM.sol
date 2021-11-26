@@ -34,23 +34,25 @@ struct Op {
     uint8 val;
 }
 
+enum Ops {
+    end,
+    val,
+    zipmap,
+    length
+}
+
 abstract contract RainVM {
     using Math for uint256;
 
     // 32 bytes * 4 items.
     uint8 public constant MAX_SOURCE_LENGTH = 128;
 
-    uint8 public constant OPCODE_END = 0;
-    uint8 public constant OPCODE_VAL = 1;
-    uint8 public constant OPCODE_CALL = 2;
-
-    uint8 public constant VM_OPS_LENGTH = 3;
-
-    function call(
+    /// Separate function to avoid blowing solidity compile time stack.
+    function zipmap(
         bytes memory context_,
         Stack memory stack_,
         CallSize memory callSize_
-    ) internal view returns (Stack memory) {
+    ) internal view {
         stack_.index -= (callSize_.fnSize + callSize_.valSize + 2);
 
         uint256[4] memory mapSource_;
@@ -78,7 +80,8 @@ abstract contract RainVM {
             }
             Source memory evalSource_ = Source(mapSource_, vals_);
             Stack memory evalStack_;
-            evalStack_ = eval(
+            // evalStack_ modified by reference.
+            eval(
                 context_,
                 evalSource_,
                 evalStack_
@@ -89,14 +92,13 @@ abstract contract RainVM {
             }
             stack_.index = stack_.index + evalStack_.index;
         }
-        return stack_;
     }
 
     function eval(
         bytes memory context_,
         Source memory source_,
         Stack memory stack_
-    ) internal view returns (Stack memory) {
+    ) internal view {
         for (uint256 i_ = 0; i_ < MAX_SOURCE_LENGTH; i_ = i_ + 2) {
             SourceCursor memory sourceCursor_ = SourceCursor(
                 uint8(i_ / 32),
@@ -116,16 +118,17 @@ abstract contract RainVM {
                 )
             );
 
-            if (op_.code < VM_OPS_LENGTH) {
-                if (op_.code == OPCODE_END) {
+            if (op_.code < uint8(Ops.length)) {
+                if (op_.code == uint8(Ops.end)) {
                     break;
                 }
-                else if (op_.code == OPCODE_VAL) {
+                else if (op_.code == uint8(Ops.val)) {
                     stack_.vals[stack_.index] = source_.vals[op_.val];
                     stack_.index++;
                 }
-                else if (op_.code == OPCODE_CALL) {
-                    stack_ = call(
+                else if (op_.code == uint8(Ops.zipmap)) {
+                    // stack_ modified by reference.
+                    zipmap(
                         context_,
                         stack_,
                         CallSize(
@@ -137,17 +140,19 @@ abstract contract RainVM {
                 }
             }
             else {
-                stack_ = applyOp(
+                // stack_ modified by reference.
+                applyOp(
                     context_,
                     stack_,
                     op_
                 );
             }
         }
-
-        return stack_;
     }
 
+    /// Stack is modified by reference NOT returned.
+    /// Ops is ALSO modified by reference to calculate offsets, and discarded
+    /// by eval for each dispatch.
     function applyOp(
         bytes memory context_,
         Stack memory stack_,
@@ -156,6 +161,5 @@ abstract contract RainVM {
     internal
     virtual
     view
-    // solhint-disable-next-line no-empty-blocks
-    returns (Stack memory) { }
+    { } //solhint-disable-line no-empty-blocks
 }
