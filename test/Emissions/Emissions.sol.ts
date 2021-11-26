@@ -18,7 +18,7 @@ const enum Opcode {
   BLOCK_NUMBER,
 }
 
-describe("Emissionss", async function () {
+describe("Emissions", async function () {
   it("should have the correct opcodes", async () => {
     this.timeout(0);
 

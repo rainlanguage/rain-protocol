@@ -1,17 +1,22 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps } from "../vm/ops/BlockOps.sol";
+import { EmissionsOps } from "../vm/ops/EmissionsOps.sol";
 
-contract Emissions is RainVM, ImmutableSource, BlockOps {
+contract Emissions is RainVM, ImmutableSource, BlockOps, EmissionsOps {
+
+    uint8 public immutable opcodeEmissionsStart;
 
     constructor(Source memory source_)
         ImmutableSource(source_)
         BlockOps(VM_OPS_LENGTH)
-    { } // solhint-disable-line no-empty-blocks
+        EmissionsOps(VM_OPS_LENGTH + BLOCK_OPS_LENGTH)
+    {
+        opcodeEmissionsStart = emissionsOpsStart + EMISSIONS_OPS_LENGTH;
+    }
 
     function applyOp(
         bytes memory context_,
@@ -19,12 +24,19 @@ contract Emissions is RainVM, ImmutableSource, BlockOps {
         Op memory op_
     )
         internal
-        override(RainVM, BlockOps)
+        override(RainVM, BlockOps, EmissionsOps)
         view
         returns (Stack memory)
     {
         if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
             return BlockOps.applyOp(
+                context_,
+                stack_,
+                op_
+            );
+        }
+        else if (op_.code < emissionsOpsStart + EMISSIONS_OPS_LENGTH) {
+            stack_ = EmissionsOps.applyOp(
                 context_,
                 stack_,
                 op_
