@@ -15,7 +15,7 @@ const { expect, assert } = chai;
 const enum Opcode {
   END,
   VAL,
-  CALL,
+  ZIPMAP,
   BLOCK_NUMBER,
   ADD,
   SUB,
@@ -26,7 +26,6 @@ const enum Opcode {
 }
 
 describe("RainVM", async function () {
-
   it("should run a basic program (return current block number)", async () => {
     this.timeout(0);
 
@@ -97,7 +96,7 @@ describe("RainVM", async function () {
 
     const source: Util.Source = [
       concat([
-        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
         op(Opcode.VAL, 1), // val1
         op(Opcode.VAL, 2), // val0
@@ -197,7 +196,7 @@ describe("RainVM", async function () {
 
     const source: Util.Source = [
       concat([
-        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
         op(Opcode.VAL, 1), // val1
         op(Opcode.VAL, 2), // val0
@@ -296,7 +295,7 @@ describe("RainVM", async function () {
 
     const source: Util.Source = [
       concat([
-        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
         op(Opcode.VAL, 1), // val2
         op(Opcode.VAL, 2), // val1
@@ -449,7 +448,7 @@ describe("RainVM", async function () {
 
     const source: Util.Source = [
       concat([
-        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn3
         op(Opcode.VAL, 1), // fn2
         op(Opcode.VAL, 2), // fn1
@@ -563,7 +562,7 @@ describe("RainVM", async function () {
 
     const source: Util.Source = [
       concat([
-        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn1
         op(Opcode.VAL, 1), // fn0
         op(Opcode.VAL, 2), // val2
@@ -649,7 +648,7 @@ describe("RainVM", async function () {
 
     const source: Util.Source = [
       concat([
-        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
@@ -729,7 +728,7 @@ describe("RainVM", async function () {
 
     const source: Util.Source = [
       concat([
-        op(Opcode.CALL, callSize(fnSize, loopSize, valSize)),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
         op(Opcode.VAL, 0), // fn0
         op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),

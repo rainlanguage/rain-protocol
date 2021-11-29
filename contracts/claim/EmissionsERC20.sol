@@ -129,7 +129,7 @@ contract EmissionsERC20 is
             : TierReport.NEVER;
     }
 
-    function calculateClaim(address account_, bytes memory)
+    function calculateClaim(address account_)
         public
         view
         returns (uint256)
@@ -146,11 +146,11 @@ contract EmissionsERC20 is
     function claim(address account_, bytes memory data_) external {
         // Disallow delegated claims if appropriate.
         if (!allowDelegatedClaims) {
-            require(msg.sender == account_, "DELGATED_CLAIM");
+            require(msg.sender == account_, "DELEGATED_CLAIM");
         }
 
         // Mint the claim.
-        uint256 amount_ = calculateClaim(account_, "");
+        uint256 amount_ = calculateClaim(account_);
         _mint(
             account_,
             amount_

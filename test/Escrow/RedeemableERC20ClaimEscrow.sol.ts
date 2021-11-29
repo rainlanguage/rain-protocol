@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import { basicSetup, deployGlobals } from "./ClaimUtil";
+import { basicSetup, deployGlobals } from "./EscrowUtil";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";

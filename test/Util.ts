@@ -233,9 +233,11 @@ export const trustDeploy = async (
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory[
     "createChild((address,uint256,address,uint256,uint16,uint16,uint256,(string,string)),((string,string),address,uint8,uint256),(address,uint256,uint256,uint256,uint256))"
+  ](
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-  ](...args);
+    ...args
+  );
   const receipt = await tx.wait();
 
   const trust = new ethers.Contract(

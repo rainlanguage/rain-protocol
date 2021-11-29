@@ -30,7 +30,7 @@ enum Tier {
 const enum Opcode {
   END,
   VAL,
-  CALL,
+  ZIPMAP,
   BLOCK_NUMBER,
   REPORT,
   NEVER,
@@ -52,7 +52,6 @@ const sourceNever: Source = [concat([op(Opcode.NEVER)]), 0, 0, 0];
 const valsDefault = new Array(16).fill(0) as Vals;
 
 describe("CombineTier", async function () {
-
   it("should correctly combine Always and Never tier contracts with orLeft", async () => {
     this.timeout(0);
 
