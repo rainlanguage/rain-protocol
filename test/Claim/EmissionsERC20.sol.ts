@@ -37,7 +37,66 @@ const enum Opcode {
   constructionBlockNumber,
 }
 
+enum Tier {
+  ZERO,
+  ONE,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT,
+}
+
 describe("EmissionsERC20", async function () {
+  it("should calculate claim amount - same for all tiers - as difference between current block number and anyLteMax([tierReport, lastClaimReport])", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const creator = signers[0];
+    const claimer = signers[1];
+
+    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+
+    const emissionsERC20 = await claimUtil.emissionsDeploy(
+      creator,
+      emissionsERC20Factory,
+      {
+        allowDelegatedClaims: true,
+        erc20Config: {
+          name: "Emissions",
+          symbol: "EMS",
+        },
+        source: {
+          source: [
+            concat([
+              op(Opcode.diff),
+              op(
+                Opcode.updateBlocksForTierRange,
+                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+              ),
+              op(Opcode.blockNumber),
+              op(Opcode.anyLteMax, 2),
+              // TODO: tierReport
+              // TODO: lastClaimReport
+            ]),
+            0,
+            0,
+            0,
+          ],
+          vals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+      }
+    );
+
+    const claimAmountResult = await emissionsERC20.calculateClaim(
+      claimer.address
+    );
+
+    console.log(claimAmountResult);
+  });
+
   it("should record the latest claim block as a tier report", async function () {
     this.timeout(0);
 

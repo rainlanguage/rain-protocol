@@ -418,7 +418,7 @@ export const array8BitUInts = (length) =>
     .fill(0)
     .map((_, i) => wrap8BitUInt(i));
 
-export const pack2BitUIntsIntoByte = (numArray: number[]): number[] => {
+export const pack32UIntsIntoByte = (numArray: number[]): number[] => {
   const val: number[] = [];
   let valIndex = 0;
 

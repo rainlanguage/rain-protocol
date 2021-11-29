@@ -56,3 +56,18 @@ export const emissionsDeploy = async (
 
   return emissionsERC20;
 };
+
+export function tierRange(startTier: number, endTier: number): number {
+  //   op_.val & 0x0f, //     00001111
+  //   op_.val & 0xf0, //     11110000
+
+  if (startTier < 0 || startTier > 8) {
+    throw new Error(`Invalid startTier ${startTier}`);
+  } else if (endTier < 0 || endTier > 8) {
+    throw new Error(`Invalid endTier ${endTier}`);
+  }
+  let range = endTier;
+  range <<= 4;
+  range += startTier;
+  return range;
+}

@@ -61,7 +61,7 @@ describe("RainVM", async function () {
 
     // pack 32 1-byte hex values into uint256
     const val256 = concat(
-      Util.pack2BitUIntsIntoByte(numbers) // pack 2-bit uints into single byte, 4 at a time
+      Util.pack32UIntsIntoByte(numbers) // pack 2-bit uints into single byte, 4 at a time
         .map((byte) => hexlify(byte)) // convert each 1-byte number to 1-byte hex
     );
 
