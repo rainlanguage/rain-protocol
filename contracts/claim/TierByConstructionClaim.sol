@@ -60,19 +60,23 @@ contract TierByConstructionClaim is TierByConstruction {
     mapping(address => bool) public claims;
 
     /// A claim has been successfully processed for an account.
+    /// @param account The account the claim is for MAY NOT be `msg.sender`.
+    /// @param data The claim proof, if required.
     event Claim(address indexed account, bytes data);
 
     /// Nothing special needs to happen in the constructor.
     /// Simply forwards the desired ITier contract to the `TierByConstruction`
     /// constructor.
     /// The minimum tier is set for `claim` logic.
+    /// @param tierContract_ The tier contract to reference for each claim.
+    /// @param minimumTier_ Minimum tier required for any claim to be valid.
     constructor(ITier tierContract_, ITier.Tier minimumTier_)
         TierByConstruction(tierContract_)
     {
         minimumTier = minimumTier_;
     }
 
-    /// The `onlyTier` modifier checks the claimant against minimumTier.
+    /// The `onlyTier` modifier checks the claimant against `minimumTier`.
     /// The ITier contract decides for itself whether the claimant is
     /// `minimumTier` __as at the block this contract was constructed__.
     /// This may be ambiguous for `ReadOnlyTier` contracts that may not have

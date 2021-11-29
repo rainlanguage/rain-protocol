@@ -206,10 +206,10 @@ contract RedeemableERC20 is
     /// I.e. whatever % of redeemable tokens the sender burns is the % of the
     /// current treasury assets they receive.
     function redeem(
-        IERC20[] memory treasuryAssets_,
+        IERC20[] calldata treasuryAssets_,
         uint256 redeemAmount_
     )
-        public
+        external
         onlyPhase(Phase.ONE)
         nonReentrant
     {

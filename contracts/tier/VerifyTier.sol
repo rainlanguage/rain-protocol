@@ -12,9 +12,11 @@ import "../libraries/TierUtil.sol";
 /// the account was approved by the underlying `Verify` contract. The approval
 /// block numbers defer to `State.since` returned from `Verify.state`.
 contract VerifyTier is ReadOnlyTier {
+    /// The contract to check to produce reports.
     Verify public immutable verify;
 
     /// Sets the `verify` contract immutably.
+    /// @param verify_ The contract to check to produce reports.
     constructor(Verify verify_) {
         verify = verify_;
     }
