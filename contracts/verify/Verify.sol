@@ -291,7 +291,8 @@ contract Verify is AccessControl {
         // evm fallback value. In this case if we checked other blocks using
         // a `<=` equality they would incorrectly return `true` always due to
         // also having a `0` fallback value.
-        if (state_.addedSince == 0) {
+        // Using `< 1` here to silence slither.
+        if (state_.addedSince < 1) {
             return Status.Nil;
         }
         // Banned takes priority over everything.

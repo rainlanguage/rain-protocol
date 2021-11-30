@@ -8,6 +8,9 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 /// @title Factory
 /// @notice Base contract for deploying and registering child contracts.
 abstract contract Factory is IFactory, ReentrancyGuard {
+    /// @dev state to track each deployed contract address. A `Factory` will
+    /// never lie about deploying a child, unless `isChild` is overridden to do
+    /// so.
     mapping(address => bool) private contracts;
 
     /// Implements `IFactory`.
