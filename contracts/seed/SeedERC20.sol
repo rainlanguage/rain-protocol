@@ -94,29 +94,29 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
-    // Seed token burn for reserve.
+    /// Seed token burn for reserve.
+    /// @param redeemer Account burning and receiving.
+    /// @param redeemAmounts Number of seed tokens burned.
+    /// Number of reserve redeemed for burned seed tokens.
+    /// `[seedAmount, reserveAmount]`
     event Redeem(
-        // Account burning and receiving.
         address indexed redeemer,
-        // Number of seed tokens burned.
-        // Number of reserve redeemed for burned seed tokens.
-        // `[seedAmount, reserveAmount]`
         uint256[2] redeemAmounts
     );
 
+    /// @param seeder Account seeding.
+    /// @param seedAmounts Number of tokens seeded.
+    /// Number of reserve sent for seed tokens.
     event Seed(
-        // Account seeding.
         address indexed seeder,
-        // Number of tokens seeded.
-        // Number of reserve sent for seed tokens.
         uint256[2] seedAmounts
     );
 
+    /// @param unseeder Account unseeding.
+    /// @param unseedAmounts Number of tokens unseeded.
+    /// Number of reserve tokens returned for unseeded tokens.
     event Unseed(
-        // Account unseeding.
         address indexed unseeder,
-        // Number of tokens unseeded.
-        // Number of reserve tokens returned for unseeded tokens.
         uint256[2] unseedAmounts
     );
 
@@ -144,6 +144,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         _mint(address(this), config_.seedUnits);
     }
 
+    /// @inheritdoc ERC20
     function decimals() public pure override returns(uint8) {
         return 0;
     }
@@ -188,6 +189,11 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         }
         _transfer(address(this), msg.sender, units_);
 
+        emit Seed(
+            msg.sender,
+            [units_, reserveAmount_]
+        );
+
         reserve.safeTransferFrom(
             msg.sender,
             address(this),
@@ -204,11 +210,6 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         if (currentPhase() == Phase.ONE) {
             reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
         }
-
-        emit Seed(
-            msg.sender,
-            [units_, reserveAmount_]
-        );
     }
 
     /// Send reserve back to seeder as `( units * seedPrice )`.
@@ -231,13 +232,13 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         uint256 reserveAmount_ = seedPrice * units_;
         _transfer(msg.sender, address(this), units_);
 
-        // Reentrant reserve transfer.
-        reserve.safeTransfer(msg.sender, reserveAmount_);
-
         emit Unseed(
             msg.sender,
             [units_, reserveAmount_]
         );
+
+        // Reentrant reserve transfer.
+        reserve.safeTransfer(msg.sender, reserveAmount_);
     }
 
     /// Burn seed tokens for pro-rata reserve assets.

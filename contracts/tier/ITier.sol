@@ -71,6 +71,9 @@ interface ITier {
     /// account.
     /// This MAY NOT be emitted if reports are being read from the state of an
     /// external contract.
+    /// @param account The account changing tier.
+    /// @param startTier The previous tier the account held.
+    /// @param endTier the newly acquired tier the account now holds.
     event TierChange(
         address indexed account,
         Tier indexed startTier,
