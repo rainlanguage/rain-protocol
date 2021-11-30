@@ -5,6 +5,8 @@ import { ethers } from "hardhat";
 import * as claimUtil from "./ClaimUtil";
 import { concat, hexlify } from "ethers/lib/utils";
 import { op, paddedBlock, paddedReport } from "../Util";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { Contract } from "ethers";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -57,13 +59,20 @@ describe("EmissionsERC20", async function () {
     const creator = signers[0];
     const claimer = signers[1];
 
+    const readWriteTierFactory = await ethers.getContractFactory(
+      "ReadWriteTier"
+    );
+    const readWriteTier =
+      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+    await readWriteTier.deployed();
+
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
-        allowDelegatedClaims: true,
+        allowDelegatedClaims: false,
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
@@ -72,29 +81,146 @@ describe("EmissionsERC20", async function () {
           source: [
             concat([
               op(Opcode.diff),
+
+              op(Opcode.anyLteMax, 2),
+
+              // lastClaimReport
+              op(Opcode.report),
+              op(Opcode.thisAddress),
+              op(Opcode.account),
+
+              // tierReport
+              op(Opcode.report),
+              op(Opcode.val, 0),
+              op(Opcode.account),
+
+              op(Opcode.blockNumber),
+
               op(
                 Opcode.updateBlocksForTierRange,
                 claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
               ),
+              op(Opcode.never),
               op(Opcode.blockNumber),
-              op(Opcode.anyLteMax, 2),
-              // TODO: tierReport
-              // TODO: lastClaimReport
             ]),
             0,
             0,
             0,
           ],
-          vals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          vals: [
+            readWriteTier.address,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+          ],
         },
       }
     );
+
+    await readWriteTier.setTier(claimer.address, Tier.ONE, []);
+    await readWriteTier.setTier(claimer.address, Tier.TWO, []);
+    await readWriteTier.setTier(claimer.address, Tier.THREE, []);
+    await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
 
     const claimAmountResult = await emissionsERC20.calculateClaim(
       claimer.address
     );
 
     console.log(claimAmountResult);
+  });
+
+  it("should diff reports correctly", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const creator = signers[0];
+    const claimer = signers[1];
+
+    const readWriteTierFactory = await ethers.getContractFactory(
+      "ReadWriteTier"
+    );
+    const readWriteTier =
+      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+    await readWriteTier.deployed();
+
+    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+
+    const emissionsERC20 = await claimUtil.emissionsDeploy(
+      creator,
+      emissionsERC20Factory,
+      {
+        allowDelegatedClaims: false,
+        erc20Config: {
+          name: "Emissions",
+          symbol: "EMS",
+        },
+        source: {
+          source: [
+            concat([
+              //
+              op(Opcode.diff),
+
+              op(Opcode.report),
+              op(Opcode.val, 0),
+              op(Opcode.account),
+
+              op(
+                Opcode.updateBlocksForTierRange,
+                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+              ),
+              op(Opcode.never),
+              op(Opcode.blockNumber),
+            ]),
+            0,
+            0,
+            0,
+          ],
+          vals: [
+            readWriteTier.address,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+          ],
+        },
+      }
+    );
+
+    await readWriteTier.setTier(claimer.address, Tier.EIGHT, []);
+
+    await Util.createEmptyBlock(5);
+
+    const diffResult = await emissionsERC20.calculateClaim(claimer.address);
+
+    assert(
+      !diffResult.isZero(),
+      `wrong diff result
+      expected  non-zero value
+      got       ${diffResult}`
+    );
   });
 
   it("should record the latest claim block as a tier report", async function () {
