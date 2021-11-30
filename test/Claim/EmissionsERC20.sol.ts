@@ -169,7 +169,6 @@ describe("EmissionsERC20", async function () {
         source: {
           source: [
             concat([
-              //
               op(Opcode.diff),
 
               op(Opcode.report),
@@ -209,17 +208,25 @@ describe("EmissionsERC20", async function () {
       }
     );
 
+    const setTierBlock = (await ethers.provider.getBlockNumber()) + 1;
     await readWriteTier.setTier(claimer.address, Tier.EIGHT, []);
 
     await Util.createEmptyBlock(5);
 
+    const calculationBlock = await ethers.provider.getBlockNumber();
     const diffResult = await emissionsERC20.calculateClaim(claimer.address);
 
+    const expectedDiff = paddedReport(
+      ethers.BigNumber.from(
+        "0x" + paddedBlock(calculationBlock - setTierBlock).repeat(8)
+      )
+    );
+
     assert(
-      !diffResult.isZero(),
+      diffResult.eq(expectedDiff),
       `wrong diff result
-      expected  non-zero value
-      got       ${diffResult}`
+      expected  ${hexlify(expectedDiff)}
+      got       ${hexlify(diffResult)}`
     );
   });
 
