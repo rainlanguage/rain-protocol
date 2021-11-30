@@ -45,7 +45,7 @@ library TierOps {
             stack_.index++;
         }
         else if (op_.code == uint8(Ops.diff)) {
-            stack_.vals[stack_.index] -= 2;
+            stack_.index -= 2;
             uint256 olderReport_ = stack_.vals[stack_.index];
             uint256 newerReport_ = stack_.vals[stack_.index + 1];
             stack_.vals[stack_.index] = TierwiseCombine.diff(

@@ -170,17 +170,16 @@ describe("EmissionsERC20", async function () {
           source: [
             concat([
               op(Opcode.diff),
+                op(
+                  Opcode.updateBlocksForTierRange,
+                  claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+                ),
+                  op(Opcode.never),
+                  op(Opcode.blockNumber),
 
-              op(Opcode.report),
-              op(Opcode.val, 0),
-              op(Opcode.account),
-
-              op(
-                Opcode.updateBlocksForTierRange,
-                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
-              ),
-              op(Opcode.never),
-              op(Opcode.blockNumber),
+                op(Opcode.report),
+                  op(Opcode.val, 0),
+                  op(Opcode.account),
             ]),
             0,
             0,
