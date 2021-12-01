@@ -126,7 +126,7 @@ contract EmissionsERC20 is
         // Inequality here to silence slither warnings.
         return reports[account_] > 0
             ? reports[account_]
-            : TierReport.NEVER;
+            : TierReport.ALWAYS;
     }
 
     function calculateClaim(address account_)

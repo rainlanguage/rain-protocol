@@ -52,7 +52,54 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it("should correctly calculate claim amount after successive claims", async function () {
+  it("should return correct last claim report for an account before claiming", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const creator = signers[0];
+    const claimer = signers[1];
+
+    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+
+    const emissionsERC20 = await claimUtil.emissionsDeploy(
+      creator,
+      emissionsERC20Factory,
+      {
+        allowDelegatedClaims: false,
+        erc20Config: {
+          name: "Emissions",
+          symbol: "EMS",
+        },
+        source: {
+          source: [
+            concat([
+              // lastClaimReport
+              op(Opcode.report),
+              op(Opcode.thisAddress),
+              op(Opcode.account),
+            ]),
+            0,
+            0,
+            0,
+          ],
+          vals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+      }
+    );
+
+    const beforeClaimReport = await emissionsERC20.calculateClaim(
+      claimer.address
+    );
+
+    assert(
+      beforeClaimReport.isZero(),
+      `wrong emissions report before claim
+      expected  0x00
+      got       ${hexlify(beforeClaimReport)}`
+    );
+  });
+
+  it("should correctly calculate claim amount after a claim", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -89,7 +136,7 @@ describe("EmissionsERC20", async function () {
               op(Opcode.never),
               op(Opcode.blockNumber),
 
-              op(Opcode.anyLteMax, 2),
+              op(Opcode.everyLteMax, 2),
 
               // lastClaimReport
               op(Opcode.report),
@@ -135,11 +182,6 @@ describe("EmissionsERC20", async function () {
     await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
 
     await Util.createEmptyBlock(5);
-
-    assert(
-      (await emissionsERC20.totalSupply()).isZero(),
-      "total supply not zero"
-    );
 
     await emissionsERC20
       .connect(claimer)
@@ -218,7 +260,7 @@ describe("EmissionsERC20", async function () {
               op(Opcode.never),
               op(Opcode.blockNumber),
 
-              op(Opcode.anyLteMax, 2),
+              op(Opcode.everyLteMax, 2),
 
               // lastClaimReport
               op(Opcode.report),
@@ -306,7 +348,7 @@ describe("EmissionsERC20", async function () {
     );
   });
 
-  it("should calculate claim amount as difference between current block number and anyLteMax([tierReport, lastClaimReport]) for each tier", async function () {
+  it("should calculate claim amount as difference between current block number and everyLteMax([tierReport, lastClaimReport]) for each tier", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -343,7 +385,7 @@ describe("EmissionsERC20", async function () {
               op(Opcode.never),
               op(Opcode.blockNumber),
 
-              op(Opcode.anyLteMax, 2),
+              op(Opcode.everyLteMax, 2),
 
               // lastClaimReport
               op(Opcode.report),
