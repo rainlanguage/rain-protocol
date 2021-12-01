@@ -52,6 +52,165 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
+  it("should correctly mint ERC20 tokens upon a successive claim", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const creator = signers[0];
+    const claimer = signers[1];
+
+    const readWriteTierFactory = await ethers.getContractFactory(
+      "ReadWriteTier"
+    );
+    const readWriteTier =
+      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+    await readWriteTier.deployed();
+
+    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+
+    const emissionsERC20 = await claimUtil.emissionsDeploy(
+      creator,
+      emissionsERC20Factory,
+      {
+        allowDelegatedClaims: false,
+        erc20Config: {
+          name: "Emissions",
+          symbol: "EMS",
+        },
+        source: {
+          source: [
+            concat([
+              op(Opcode.diff),
+
+              op(
+                Opcode.updateBlocksForTierRange,
+                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+              ),
+              op(Opcode.never),
+              op(Opcode.blockNumber),
+
+              op(Opcode.everyLteMax, 2),
+
+              // lastClaimReport
+              op(Opcode.report),
+              op(Opcode.thisAddress),
+              op(Opcode.account),
+
+              // tierReport
+              op(Opcode.report),
+              op(Opcode.val, 0),
+              op(Opcode.account),
+
+              op(Opcode.blockNumber),
+            ]),
+            0,
+            0,
+            0,
+          ],
+          vals: [
+            readWriteTier.address,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+          ],
+        },
+      }
+    );
+
+    await readWriteTier.setTier(claimer.address, Tier.ONE, []);
+    await readWriteTier.setTier(claimer.address, Tier.TWO, []);
+    await readWriteTier.setTier(claimer.address, Tier.THREE, []);
+    await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
+
+    await Util.createEmptyBlock(5);
+
+    // first claim
+    await emissionsERC20
+      .connect(claimer)
+      .claim(
+        claimer.address,
+        hexlify([...Buffer.from("Custom claim message")])
+      );
+
+    const expectedClaimAmount1 = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(0).repeat(4) +
+          paddedBlock(6) +
+          paddedBlock(7) +
+          paddedBlock(8) +
+          paddedBlock(9)
+      )
+    );
+    const totalSupply1 = paddedReport(await emissionsERC20.totalSupply());
+    const claimerBalance1 = paddedReport(
+      await emissionsERC20.balanceOf(claimer.address)
+    );
+
+    assert(
+      totalSupply1 === expectedClaimAmount1,
+      `wrong total minted supply
+      expected  ${expectedClaimAmount1}
+      got       ${totalSupply1}`
+    );
+    assert(
+      claimerBalance1 === expectedClaimAmount1,
+      `wrong claimer balance
+      expected  ${expectedClaimAmount1}
+      got       ${claimerBalance1}`
+    );
+
+    await Util.createEmptyBlock(5);
+
+    // second claim
+    await emissionsERC20
+      .connect(claimer)
+      .claim(
+        claimer.address,
+        hexlify([...Buffer.from("Custom claim message")])
+      );
+
+    const expectedClaimAmount2 = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(0).repeat(4) +
+          paddedBlock(6 + 6) +
+          paddedBlock(7 + 6) +
+          paddedBlock(8 + 6) +
+          paddedBlock(9 + 6)
+      )
+    );
+    const totalSupply2 = paddedReport(await emissionsERC20.totalSupply());
+    const claimerBalance2 = paddedReport(
+      await emissionsERC20.balanceOf(claimer.address)
+    );
+
+    assert(
+      totalSupply2 === expectedClaimAmount2,
+      `wrong total minted supply
+        expected  ${expectedClaimAmount2}
+        got       ${totalSupply2}`
+    );
+    assert(
+      claimerBalance2 === expectedClaimAmount2,
+      `wrong claimer balance
+        expected  ${expectedClaimAmount2}
+        got       ${claimerBalance2}`
+    );
+  });
+
   it("should return correct last claim report for an account before claiming", async function () {
     this.timeout(0);
 
