@@ -123,10 +123,9 @@ contract EmissionsERC20 is
         view
         returns (uint256)
     {
-        // Inequality here to silence slither warnings.
-        return reports[account_] > 0
-            ? reports[account_]
-            : TierReport.ALWAYS;
+        // Fallback to 0 is correct in this case as a user who never claimed
+        // is ALWAYS able to claim.
+        return reports[account_];
     }
 
     function calculateClaim(address account_)
