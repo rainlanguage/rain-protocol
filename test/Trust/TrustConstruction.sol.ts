@@ -1392,7 +1392,7 @@ describe("TrustConstruction", async function () {
 
     await Util.assertError(
       async () => (await trustPromise) as Trust,
-      "Error: invalid ENS name",
+      "Error: invalid address or ENS name",
       "initialized without seeder"
     );
   });
