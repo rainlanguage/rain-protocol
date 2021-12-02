@@ -463,3 +463,21 @@ export type Vals = [
   BigNumberish,
   BigNumberish
 ];
+
+export function splitMonolithicSource(monolithicSource: Uint8Array): Source {
+  const source: Source = [0, 0, 0, 0];
+
+  for (let sourceIndex = 0; sourceIndex < 4; sourceIndex++) {
+    const sourceElement = new Uint8Array(32);
+
+    for (let i = 0; i < sourceElement.length; i++) {
+      const nextByte = monolithicSource?.[i + sourceIndex * 32];
+
+      sourceElement[i] = nextByte ? nextByte : 0;
+    }
+
+    source[sourceIndex] = sourceElement;
+  }
+
+  return source;
+}

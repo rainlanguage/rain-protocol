@@ -96,51 +96,47 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [
+          source: Util.splitMonolithicSource(
             concat([
-              op(Opcode.add, 8),
-              op(Opcode.mul, 2),
-              op(Opcode.add, 2),
-              bone,
-              op(Opcode.min, 2),
-              op(Opcode.div, 2),
-              saturationDuration,
-              bone,
-              op(Opcode.sub, 2),
-              op(Opcode.blockNumber),
-              op(Opcode.constructionBlockNumber),
-              op(Opcode.mul, 2),
-              baseReward,
-              op(Opcode.sub, 2),
-              op(Opcode.blockNumber),
-              op(Opcode.constructionBlockNumber),
-            ]),
-            concat([
-              baseRewardPerTier,
-              op(Opcode.diff),
-              op(
-                Opcode.updateBlocksForTierRange,
-                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
-              ),
-              op(Opcode.never),
-              op(Opcode.blockNumber),
-              op(Opcode.everyLteMax, 2),
+              // op(Opcode.add, 8),
+              // op(Opcode.mul, 2),
+              // op(Opcode.add, 2),
+              // bone,
+              // op(Opcode.min, 2),
+              // op(Opcode.div, 2),
+              // saturationDuration,
+              // bone,
+              // op(Opcode.sub, 2),
+              // op(Opcode.blockNumber),
+              // op(Opcode.constructionBlockNumber),
+              // op(Opcode.mul, 2),
+              // baseReward,
+              // op(Opcode.sub, 2),
+              // op(Opcode.blockNumber),
+              // op(Opcode.constructionBlockNumber),
+              // baseRewardPerTier,
+              // op(Opcode.diff),
+              // op(
+              //   Opcode.updateBlocksForTierRange,
+              //   claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+              // ),
+              // op(Opcode.never),
+              // op(Opcode.blockNumber),
+              // op(Opcode.everyLteMax, 2),
 
-              // lastClaimReport
-              op(Opcode.report),
-              op(Opcode.thisAddress),
-              op(Opcode.account),
+              // // lastClaimReport
+              // op(Opcode.report),
+              // op(Opcode.thisAddress),
+              // op(Opcode.account),
 
-              // tierReport
-              op(Opcode.report),
-              tierAddress,
-              op(Opcode.account),
+              // // tierReport
+              // op(Opcode.report),
+              // tierAddress,
+              // op(Opcode.account),
 
               op(Opcode.blockNumber),
-            ]),
-            0,
-            0,
-          ],
+            ])
+          ),
           vals: [
             readWriteTier.address,
             paddedReport(

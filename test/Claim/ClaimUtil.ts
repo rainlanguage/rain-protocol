@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as Util from "../Util";
+import type * as Util from "../Util";
 import { artifacts, ethers } from "hardhat";
 import type { Contract } from "ethers";
 import type {
