@@ -10,6 +10,9 @@ enum Ops {
     pow,
     div,
     mod,
+    min,
+    max,
+    average,
     length
 }
 
@@ -46,6 +49,16 @@ library MathOps {
             }
             else if (op_.code == uint8(Ops.mod)) {
                 accumulator_ %= item_;
+            }
+            else if (op_.code == uint8(Ops.min)) {
+                if (item_ < accumulator_) accumulator_ = item_;
+            }
+            else if (op_.code == uint8(Ops.max)) {
+                if (item_ > accumulator_) accumulator_ = item_;
+            }
+            else if (op_.code == uint8(Ops.average)) {
+                accumulator_ = (accumulator_ & item_)
+                    + (accumulator_ ^ item_) / 2;
             }
         }
         stack_.vals[stack_.index] = accumulator_;

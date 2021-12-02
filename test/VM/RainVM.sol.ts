@@ -23,9 +23,99 @@ const enum Opcode {
   POW,
   DIV,
   MOD,
+  MIN,
+  MAX,
+  AVERAGE,
 }
 
 describe("RainVM", async function () {
+  it("should return the average of a sequence of numbers (rounded towards zero)", async () => {
+    this.timeout(0);
+
+    const vals = [5, 10, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        // (avg 10 20 30)
+        op(Opcode.AVERAGE, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 11; // 11.666...
+    assert(result.eq(expected), `wrong average ${expected} ${result}`);
+  });
+
+  it("should return the maximum of a sequence of numbers", async () => {
+    this.timeout(0);
+
+    const vals = [33, 11, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        // (max 22 11 33)
+        op(Opcode.MAX, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 33;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should return the minimum of a sequence of numbers", async () => {
+    this.timeout(0);
+
+    const vals = [33, 11, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    const source = [
+      concat([
+        // (min 22 11 33)
+        op(Opcode.MIN, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+      ]),
+      0,
+      0,
+      0,
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      source,
+      vals,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 11;
+    assert(result.eq(expected), `wrong minimum ${expected} ${result}`);
+  });
+
   it("should run a basic program (return current block number)", async () => {
     this.timeout(0);
 
