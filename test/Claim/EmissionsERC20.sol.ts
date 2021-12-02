@@ -71,83 +71,20 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const MONTHLY_REWARD_PLATINUM = 500;
+    const MONTHLY_REWARD_GOLD = 300;
+    const MONTHLY_REWARD_SILVER = 100;
+    const MONTHLY_REWARD_BRONZE = 100;
+
+    const BLOCKS_PER_YEAR = 365;
+    const blocksPerMonth = BLOCKS_PER_YEAR / 12;
+
     // Val snippets
     const tierAddress = op(Opcode.val, 0);
     const baseRewardPerTier = op(Opcode.val, 1);
     const baseReward = op(Opcode.val, 2);
     const saturationDuration = op(Opcode.val, 3); // e.g. 1 year of blocks
-
-    // BEGIN source code snippets
-
-    const currentBlockReportAllTiers = concat([
-      op(
-        Opcode.updateBlocksForTierRange,
-        claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
-      ),
-      op(Opcode.never),
-      op(Opcode.blockNumber),
-    ]);
-
-    const lastClaimReport = concat([
-      op(Opcode.report),
-      op(Opcode.thisAddress),
-      op(Opcode.account),
-    ]);
-
-    const tierReport = concat([
-      op(Opcode.report),
-      tierAddress,
-      op(Opcode.account),
-    ]);
-
-    const claimReportDiff = concat([
-      op(Opcode.diff),
-
-      currentBlockReportAllTiers,
-
-      op(Opcode.everyLteMax, 2),
-      lastClaimReport,
-      tierReport,
-      op(Opcode.blockNumber),
-    ]);
-
-    const duration = concat([
-      //
-      op(Opcode.sub, 2),
-      op(Opcode.blockNumber),
-      op(Opcode.constructionBlockNumber),
-    ]);
-
-    const incentiveDynamicReward = concat([
-      //
-      op(Opcode.add, 2),
-      op(Opcode.min, 2),
-      op(Opcode.div, 2),
-      saturationDuration,
-      duration,
-    ]);
-
-    const baseDynamicReward = concat([
-      //
-      op(Opcode.mul, 2),
-      baseReward,
-      duration,
-    ]);
-
-    const dynamicReward = concat([
-      //
-      op(Opcode.mul, 2),
-      incentiveDynamicReward,
-      baseDynamicReward,
-    ]);
-
-    const rewardPerTier = concat([
-      dynamicReward,
-      baseRewardPerTier,
-      claimReportDiff,
-    ]);
-
-    // END source code snippets
+    const bone = op(Opcode.val, 4);
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
@@ -161,11 +98,46 @@ describe("EmissionsERC20", async function () {
         source: {
           source: [
             concat([
-              //
               op(Opcode.add, 8),
-              rewardPerTier,
+              op(Opcode.mul, 2),
+              op(Opcode.add, 2),
+              bone,
+              op(Opcode.min, 2),
+              op(Opcode.div, 2),
+              saturationDuration,
+              bone,
+              op(Opcode.sub, 2),
+              op(Opcode.blockNumber),
+              op(Opcode.constructionBlockNumber),
+              op(Opcode.mul, 2),
+              baseReward,
+              op(Opcode.sub, 2),
+              op(Opcode.blockNumber),
+              op(Opcode.constructionBlockNumber),
             ]),
-            0,
+            concat([
+              baseRewardPerTier,
+              op(Opcode.diff),
+              op(
+                Opcode.updateBlocksForTierRange,
+                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+              ),
+              op(Opcode.never),
+              op(Opcode.blockNumber),
+              op(Opcode.everyLteMax, 2),
+
+              // lastClaimReport
+              op(Opcode.report),
+              op(Opcode.thisAddress),
+              op(Opcode.account),
+
+              // tierReport
+              op(Opcode.report),
+              tierAddress,
+              op(Opcode.account),
+
+              op(Opcode.blockNumber),
+            ]),
             0,
             0,
           ],
@@ -175,15 +147,23 @@ describe("EmissionsERC20", async function () {
               ethers.BigNumber.from(
                 "0x" +
                   paddedBlock(0).repeat(4) +
-                  paddedBlock(500) + // plat base reward / month
-                  paddedBlock(300) + // gold base reward / month
-                  paddedBlock(100) + // silv base reward / month
-                  paddedBlock(100) // bronze base reward / month
+                  paddedBlock(
+                    Math.round(MONTHLY_REWARD_PLATINUM / blocksPerMonth)
+                  ) +
+                  paddedBlock(
+                    Math.round(MONTHLY_REWARD_GOLD / blocksPerMonth)
+                  ) +
+                  paddedBlock(
+                    Math.round(MONTHLY_REWARD_SILVER / blocksPerMonth)
+                  ) +
+                  paddedBlock(
+                    Math.round(MONTHLY_REWARD_BRONZE / blocksPerMonth)
+                  )
               )
             ),
+            ethers.BigNumber.from("1000" + eighteenZeros),
+            BLOCKS_PER_YEAR, // e.g. '365' blocks = 1 year
             ethers.BigNumber.from("1" + eighteenZeros),
-            200, // e.g. '200' blocks = 1 year
-            0,
             0,
             0,
             0,
