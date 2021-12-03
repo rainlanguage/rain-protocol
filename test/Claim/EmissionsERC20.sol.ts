@@ -71,19 +71,34 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const BLOCKS_PER_YEAR = 365;
+    const BLOCK_PER_MONTH = BLOCKS_PER_YEAR / 12;
+
     const MONTHLY_REWARD_PLATINUM = 500;
     const MONTHLY_REWARD_GOLD = 300;
     const MONTHLY_REWARD_SILVER = 100;
     const MONTHLY_REWARD_BRONZE = 100;
 
-    const BLOCKS_PER_YEAR = 365;
-    const blocksPerMonth = BLOCKS_PER_YEAR / 12;
+    const BASE_REWARD_PER_TIER = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(0).repeat(4) +
+          paddedBlock(Math.round(MONTHLY_REWARD_PLATINUM / BLOCK_PER_MONTH)) +
+          paddedBlock(Math.round(MONTHLY_REWARD_GOLD / BLOCK_PER_MONTH)) +
+          paddedBlock(Math.round(MONTHLY_REWARD_SILVER / BLOCK_PER_MONTH)) +
+          paddedBlock(Math.round(MONTHLY_REWARD_BRONZE / BLOCK_PER_MONTH))
+      )
+    );
+
+    const BASE_REWARD = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    const BONE = ethers.BigNumber.from("1" + eighteenZeros);
 
     // Val snippets
     const tierAddress = op(Opcode.val, 0);
     const baseRewardPerTier = op(Opcode.val, 1);
     const baseReward = op(Opcode.val, 2);
-    const saturationDuration = op(Opcode.val, 3); // e.g. 1 year of blocks
+    const blocksPerYear = op(Opcode.val, 3); // multiplier saturation duration
     const bone = op(Opcode.val, 4);
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
@@ -115,51 +130,36 @@ describe("EmissionsERC20", async function () {
               // op(Opcode.blockNumber),
               // op(Opcode.constructionBlockNumber),
               // baseRewardPerTier,
-              // op(Opcode.diff),
-              // op(
-              //   Opcode.updateBlocksForTierRange,
-              //   claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
-              // ),
-              // op(Opcode.never),
-              // op(Opcode.blockNumber),
-              // op(Opcode.everyLteMax, 2),
 
-              // // lastClaimReport
-              // op(Opcode.report),
-              // op(Opcode.thisAddress),
-              // op(Opcode.account),
+              op(Opcode.diff),
+              op(
+                Opcode.updateBlocksForTierRange,
+                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+              ),
+              op(Opcode.never),
+              op(Opcode.blockNumber),
 
-              // // tierReport
-              // op(Opcode.report),
-              // tierAddress,
-              // op(Opcode.account),
+              op(Opcode.everyLteMax, 2),
+
+              // lastClaimReport
+              op(Opcode.report),
+              op(Opcode.thisAddress),
+              op(Opcode.account),
+
+              // tierReport
+              op(Opcode.report),
+              tierAddress,
+              op(Opcode.account),
 
               op(Opcode.blockNumber),
             ])
           ),
           vals: [
             readWriteTier.address,
-            paddedReport(
-              ethers.BigNumber.from(
-                "0x" +
-                  paddedBlock(0).repeat(4) +
-                  paddedBlock(
-                    Math.round(MONTHLY_REWARD_PLATINUM / blocksPerMonth)
-                  ) +
-                  paddedBlock(
-                    Math.round(MONTHLY_REWARD_GOLD / blocksPerMonth)
-                  ) +
-                  paddedBlock(
-                    Math.round(MONTHLY_REWARD_SILVER / blocksPerMonth)
-                  ) +
-                  paddedBlock(
-                    Math.round(MONTHLY_REWARD_BRONZE / blocksPerMonth)
-                  )
-              )
-            ),
-            ethers.BigNumber.from("1000" + eighteenZeros),
+            BASE_REWARD_PER_TIER,
+            BASE_REWARD,
             BLOCKS_PER_YEAR, // e.g. '365' blocks = 1 year
-            ethers.BigNumber.from("1" + eighteenZeros),
+            BONE,
             0,
             0,
             0,
