@@ -440,7 +440,9 @@ export const paddedReport = (report: BigNumber): string => {
   return "0x" + report.toHexString().substring(2).padStart(64, "0");
 };
 
-export const paddedBlock = (blockNumber: number): string => {
+export const paddedBlock = (
+  blockNumber: number | BytesLike | Hexable
+): string => {
   return hexlify(blockNumber).substring(2).padStart(8, "0");
 };
 

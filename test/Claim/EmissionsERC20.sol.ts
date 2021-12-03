@@ -132,12 +132,20 @@ describe("EmissionsERC20", async function () {
         op(Opcode.constructionBlockNumber),
       ]);
 
+    const PROGRESS = () =>
+      concat([
+        op(Opcode.div, 2),
+        op(Opcode.mul, 2),
+        DURATION(),
+        bone,
+        blocksPerYear,
+      ]);
+
     const MULTIPLIER_SATURATION = () =>
       concat([
+        //
         op(Opcode.min, 2),
-        op(Opcode.div, 2),
-        DURATION(),
-        blocksPerYear,
+        PROGRESS(),
         bone,
       ]);
 
@@ -164,12 +172,6 @@ describe("EmissionsERC20", async function () {
         DYNAMIC_REWARD(),
       ]);
 
-    const TIER_REPORT = () =>
-      concat([op(Opcode.report), tierAddress, op(Opcode.account)]);
-
-    const LAST_CLAIM_REPORT = () =>
-      concat([op(Opcode.report), op(Opcode.thisAddress), op(Opcode.account)]);
-
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
         op(
@@ -179,6 +181,12 @@ describe("EmissionsERC20", async function () {
         op(Opcode.never),
         op(Opcode.blockNumber),
       ]);
+
+    const TIER_REPORT = () =>
+      concat([op(Opcode.report), tierAddress, op(Opcode.account)]);
+
+    const LAST_CLAIM_REPORT = () =>
+      concat([op(Opcode.report), op(Opcode.thisAddress), op(Opcode.account)]);
 
     const TIERWISE_DIFF = () =>
       concat([
@@ -190,6 +198,15 @@ describe("EmissionsERC20", async function () {
         LAST_CLAIM_REPORT(),
         TIER_REPORT(),
         op(Opcode.blockNumber),
+      ]);
+
+    const SOURCE = () =>
+      concat([
+        op(Opcode.add, 8),
+        op(Opcode.zipmap, 3),
+        FN(),
+        baseRewardPerTier,
+        TIERWISE_DIFF(),
       ]);
 
     // END Source snippets
@@ -206,14 +223,8 @@ describe("EmissionsERC20", async function () {
         source: {
           source: chunkedSource(
             concat([
-              // op(Opcode.add, 8),
-              // op(Opcode.zipmap, 3),
-              // FN(),
-              // baseRewardPerTier,
-              // TIERWISE_DIFF(),
               //
-              // DEBUGGING:
-              MULTIPLIER_SATURATION(),
+              SOURCE(),
             ])
           ),
           vals: [
@@ -240,14 +251,13 @@ describe("EmissionsERC20", async function () {
 
     await readWriteTier.setTier(claimer.address, Tier.ONE, []);
 
-    await Util.createEmptyBlock(365 / 2); // ~50% progress
+    await Util.createEmptyBlock(365 / 2);
 
     console.log("blocknumber", await ethers.provider.getBlockNumber());
 
     const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
     const expectedClaimAmount = 0;
 
-    console.log(claimAmount);
     console.log(hexlify(claimAmount));
 
     // assert(
