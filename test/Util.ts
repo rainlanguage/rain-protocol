@@ -464,7 +464,7 @@ export type Vals = [
   BigNumberish
 ];
 
-export function splitMonolithicSource(monolithicSource: Uint8Array): Source {
+export function chunkedSource(monolithicSource: Uint8Array): Source {
   const source: Source = [0, 0, 0, 0];
 
   for (let sourceIndex = 0; sourceIndex < 4; sourceIndex++) {
