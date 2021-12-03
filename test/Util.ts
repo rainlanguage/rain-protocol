@@ -471,8 +471,8 @@ export function splitMonolithicSource(monolithicSource: Uint8Array): Source {
     const sourceElement: Array<number> = [];
 
     let i = 0;
-    for (i = 0; monolithicSource?.[i + sourceIndex * 32] >= 0; i++) {
-      sourceElement[i] = monolithicSource?.[i + sourceIndex * 32];
+    for (i = 0; i < 32 && monolithicSource?.[i + sourceIndex * 32] >= 0; i++) {
+      sourceElement[i] = monolithicSource[i + sourceIndex * 32];
     }
 
     source[sourceIndex] = i === 0 ? 0 : sourceElement;
