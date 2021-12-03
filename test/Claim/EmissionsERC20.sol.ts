@@ -77,41 +77,69 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const BONE = ethers.BigNumber.from("1000000"); // 6 decimal precision
+
+    const BRNZ_BASE_REWARD = 5000;
+    const SILV_BASE_REWARD = 10000 - BRNZ_BASE_REWARD;
+    const GOLD_BASE_REWARD = 25000 - SILV_BASE_REWARD;
+    const PLAT_BASE_REWARD = 125000 - GOLD_BASE_REWARD;
+
+    // potential reward accumulated over 1 year ?
+    const BASE_REWARD = paddedReport(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedBlock(0).repeat(4) +
+          paddedBlock(PLAT_BASE_REWARD) +
+          paddedBlock(GOLD_BASE_REWARD) +
+          paddedBlock(SILV_BASE_REWARD) +
+          paddedBlock(BRNZ_BASE_REWARD)
+      )
+    );
+
     const BLOCKS_PER_YEAR = 365;
-    const BLOCK_PER_MONTH = BLOCKS_PER_YEAR / 12;
+    const BLOCKS_PER_MONTH = Math.floor(BLOCKS_PER_YEAR / 12);
 
-    const MONTHLY_REWARD_PLATINUM = 500;
-    const MONTHLY_REWARD_GOLD = 300;
-    const MONTHLY_REWARD_SILVER = 100;
     const MONTHLY_REWARD_BRONZE = 100;
+    const MONTHLY_REWARD_SILVER = 200 - MONTHLY_REWARD_BRONZE;
+    const MONTHLY_REWARD_GOLD = 500 - MONTHLY_REWARD_SILVER;
+    const MONTHLY_REWARD_PLATINUM = 1000 - MONTHLY_REWARD_GOLD;
 
-    const PLAT_REWARD_PER_BLOCK = Math.round(
-      MONTHLY_REWARD_PLATINUM / BLOCK_PER_MONTH
-    );
-    const GOLD_REWARD_PER_BLOCK = Math.round(
-      MONTHLY_REWARD_GOLD / BLOCK_PER_MONTH
-    );
-    const SILV_REWARD_PER_BLOCK = Math.round(
-      MONTHLY_REWARD_SILVER / BLOCK_PER_MONTH
-    );
-    const BRNZ_REWARD_PER_BLOCK = Math.round(
-      MONTHLY_REWARD_BRONZE / BLOCK_PER_MONTH
-    );
+    const BRNZ_REWARD_PER_BLOCK = MONTHLY_REWARD_BRONZE / BLOCKS_PER_MONTH;
+    const SILV_REWARD_PER_BLOCK = MONTHLY_REWARD_SILVER / BLOCKS_PER_MONTH;
+    const GOLD_REWARD_PER_BLOCK = MONTHLY_REWARD_GOLD / BLOCKS_PER_MONTH;
+    const PLAT_REWARD_PER_BLOCK = MONTHLY_REWARD_PLATINUM / BLOCKS_PER_MONTH;
 
+    // flat amount granted on initial claim ?
     const BASE_REWARD_PER_TIER = paddedReport(
       ethers.BigNumber.from(
         "0x" +
           paddedBlock(0).repeat(4) +
-          paddedBlock(PLAT_REWARD_PER_BLOCK) +
-          paddedBlock(GOLD_REWARD_PER_BLOCK) +
-          paddedBlock(SILV_REWARD_PER_BLOCK) +
-          paddedBlock(BRNZ_REWARD_PER_BLOCK)
+          paddedBlock(Math.floor(PLAT_REWARD_PER_BLOCK)) +
+          paddedBlock(Math.floor(GOLD_REWARD_PER_BLOCK)) +
+          paddedBlock(Math.floor(SILV_REWARD_PER_BLOCK)) +
+          paddedBlock(Math.floor(BRNZ_REWARD_PER_BLOCK))
       )
     );
 
-    const BASE_REWARD = ethers.BigNumber.from("1000" + eighteenZeros);
-
-    const BONE = ethers.BigNumber.from("1" + eighteenZeros);
+    console.log({
+      BONE,
+      PLAT_BASE_REWARD,
+      GOLD_BASE_REWARD,
+      SILV_BASE_REWARD,
+      BRNZ_BASE_REWARD,
+      BASE_REWARD,
+      BLOCKS_PER_YEAR,
+      BLOCKS_PER_MONTH,
+      MONTHLY_REWARD_PLATINUM,
+      MONTHLY_REWARD_GOLD,
+      MONTHLY_REWARD_SILVER,
+      MONTHLY_REWARD_BRONZE,
+      PLAT_REWARD_PER_BLOCK,
+      GOLD_REWARD_PER_BLOCK,
+      SILV_REWARD_PER_BLOCK,
+      BRNZ_REWARD_PER_BLOCK,
+      BASE_REWARD_PER_TIER,
+    });
 
     // BEGIN Val snippets
 
@@ -126,6 +154,7 @@ describe("EmissionsERC20", async function () {
     // BEGIN Source snippets
 
     const DURATION = () =>
+      // FIXME: Should this be blocks since construction?
       concat([
         op(Opcode.sub, 2),
         op(Opcode.blockNumber),
@@ -141,7 +170,7 @@ describe("EmissionsERC20", async function () {
         blocksPerYear,
       ]);
 
-    const MULTIPLIER_SATURATION = () =>
+    const PROGRESS_SATURATED = () =>
       concat([
         //
         op(Opcode.min, 2),
@@ -154,7 +183,7 @@ describe("EmissionsERC20", async function () {
         //
         op(Opcode.add, 2),
         bone,
-        MULTIPLIER_SATURATION(),
+        PROGRESS_SATURATED(),
       ]);
 
     const DYNAMIC_REWARD = () =>
@@ -224,7 +253,8 @@ describe("EmissionsERC20", async function () {
           source: chunkedSource(
             concat([
               //
-              SOURCE(),
+              // SOURCE(),
+              DYNAMIC_REWARD(),
             ])
           ),
           vals: [
@@ -251,14 +281,14 @@ describe("EmissionsERC20", async function () {
 
     await readWriteTier.setTier(claimer.address, Tier.ONE, []);
 
-    await Util.createEmptyBlock(365 / 2);
+    await Util.createEmptyBlock(365 / 2); // ~50% claim progress
 
     console.log("blocknumber", await ethers.provider.getBlockNumber());
 
     const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
     const expectedClaimAmount = 0;
 
-    console.log(hexlify(claimAmount));
+    console.log(claimAmount);
 
     // assert(
     //   claimAmount.eq(expectedClaimAmount),

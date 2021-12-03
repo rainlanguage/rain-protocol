@@ -480,7 +480,7 @@ export function chunkedSource(monolithicSource: Uint8Array): Source {
     source[sourceIndex] = i === 0 ? 0 : sourceElement;
   }
 
-  console.log(source);
+  console.log("chunked source:", source);
 
   return source;
 }
