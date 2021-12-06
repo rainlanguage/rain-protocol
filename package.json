@@ -46,7 +46,7 @@
     "chai": "^4.2.0",
     "eslint": "^8.2.0",
     "ethereum-waffle": "^3.2.1",
-    "ethers": "^5.0.26",
+    "ethers": "^5.5.1",
     "ganache-cli": "^6.12.2",
     "hardhat": "^2.0.8",
     "hardhat-gas-reporter": "^1.0.4",
