@@ -56,7 +56,7 @@ library TierOps {
         }
         else if (op_.code == uint8(Ops.updateBlocksForTierRange)) {
             ITier.Tier startTier_ = ITier.Tier(op_.val & 0x0f);
-            ITier.Tier endTier_ = ITier.Tier((op_.val & 0xf0) >> 4);
+            ITier.Tier endTier_ = ITier.Tier((op_.val >> 4) & 0x0f);
             stack_.index -= 2;
             uint256 blockNumber_ = stack_.vals[stack_.index];
             uint256 report_ = stack_.vals[stack_.index + 1];
