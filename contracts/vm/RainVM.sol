@@ -9,8 +9,9 @@ struct CompileIO {
 }
 
 struct Source {
-    uint256[4] source;
-    uint256[16] vals;
+    uint256[] source;
+    uint256[] thisVals;
+    uint256[] forwardedVals;
 }
 
 struct SourceCursor {
@@ -50,35 +51,42 @@ abstract contract RainVM {
     /// Separate function to avoid blowing solidity compile time stack.
     function zipmap(
         bytes memory context_,
+        Source memory source_,
         Stack memory stack_,
         CallSize memory callSize_
     ) internal view {
         stack_.index -= (callSize_.fnSize + callSize_.valSize + 2);
 
-        uint256[4] memory mapSource_;
+        uint256[] memory mapSource_ = new uint256[](callSize_.fnSize + 1);
 
         uint256 fnIndex_ = stack_.index + callSize_.valSize + 1;
 
-        for (uint256 f_ = 0; f_ <= callSize_.fnSize; f_++) {
+        for (uint256 f_ = 0; f_ < mapSource_.length; f_++) {
             mapSource_[f_] = stack_.vals[fnIndex_ + f_];
         }
 
-        uint256[16] memory baseVals_;
-        for (uint256 a_ = 0; a_ < callSize_.valSize + 1; a_++) {
+        uint256[] memory baseVals_ = new uint256[](callSize_.valSize + 1);
+        for (uint256 a_ = 0; a_ < baseVals_.length + 1; a_++) {
             baseVals_[a_] = stack_.vals[a_];
         }
 
         uint256 stepSize_ = 256 >> callSize_.loopSize;
 
         for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-            uint256[16] memory vals_;
+            uint256[] memory vals_ = new uint256[](
+                (callSize_.loopSize + 1) * 256 / stepSize_
+            );
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
                 vals_[a_] = uint256(
                     uint256(baseVals_[a_] << 256 - step_ - stepSize_)
                     >> 256 - stepSize_
                 );
             }
-            Source memory evalSource_ = Source(mapSource_, vals_);
+            Source memory evalSource_ = Source(
+                mapSource_,
+                vals_,
+                source_.thisVals
+            );
             Stack memory evalStack_;
             // evalStack_ modified by reference.
             eval(
@@ -123,18 +131,23 @@ abstract contract RainVM {
                     break;
                 }
                 else if (op_.code == uint8(Ops.val)) {
-                    stack_.vals[stack_.index] = source_.vals[op_.val];
+                    uint8 valIndex_ = op_.val & 0x7F;
+                    bool forwardedVals_ = (op_.val >> 7) > 0;
+                    stack_.vals[stack_.index] = forwardedVals_
+                        ? source_.forwardedVals[valIndex_]
+                        : source_.thisVals[valIndex_];
                     stack_.index++;
                 }
                 else if (op_.code == uint8(Ops.zipmap)) {
                     // stack_ modified by reference.
                     zipmap(
                         context_,
+                        source_,
                         stack_,
                         CallSize(
                             op_.val & 0x03,
-                            (op_.val & 0x1C) >> 2,
-                            (op_.val & 0xE0) >> 5
+                            (op_.val >> 2)  & 0x07,
+                            (op_.val >> 5) & 0x07
                         )
                     );
                 }
