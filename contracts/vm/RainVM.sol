@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/utils/math/Math.sol";
-
 struct CompileIO {
     Op input;
     Op output;
@@ -43,7 +41,6 @@ enum Ops {
 }
 
 abstract contract RainVM {
-    using Math for uint256;
 
     // 32 bytes * 4 items.
     uint8 public constant MAX_SOURCE_LENGTH = 128;
@@ -66,7 +63,7 @@ abstract contract RainVM {
         }
 
         uint256[] memory baseVals_ = new uint256[](callSize_.valSize + 1);
-        for (uint256 a_ = 0; a_ < baseVals_.length + 1; a_++) {
+        for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
             baseVals_[a_] = stack_.vals[a_];
         }
 
@@ -74,9 +71,9 @@ abstract contract RainVM {
 
         for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
             uint256[] memory vals_ = new uint256[](
-                (callSize_.loopSize + 1) * 256 / stepSize_
+                baseVals_.length * 256 / stepSize_
             );
-            for (uint256 a_ = 0; a_ < vals_.length; a_++) {
+            for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
                 vals_[a_] = uint256(
                     uint256(baseVals_[a_] << 256 - step_ - stepSize_)
                     >> 256 - stepSize_

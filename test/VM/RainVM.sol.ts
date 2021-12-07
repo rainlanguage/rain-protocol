@@ -28,7 +28,7 @@ const enum Opcode {
   AVERAGE,
 }
 
-describe.only("RainVM", async function () {
+describe("RainVM", async function () {
   it("should return the average of a sequence of numbers (rounded towards zero)", async () => {
     this.timeout(0);
 
