@@ -442,6 +442,10 @@ contract Trust is ReentrancyGuard {
         // Need to grant transfers for a few balancer addresses to facilitate
         // setup and exits.
         redeemableERC20_.grantRole(
+            redeemableERC20_.DEFAULT_ADMIN_ROLE(),
+            address(redeemableERC20Pool_)
+        );
+        redeemableERC20_.grantRole(
             redeemableERC20_.RECEIVER(),
             redeemableERC20Pool_.crp().bFactory()
         );

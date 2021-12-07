@@ -149,6 +149,7 @@ describe("TrustDistribute", async function () {
     const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     const reserveSpend = successLevel.div(10);
+    const tokenSpend = ethers.BigNumber.from("10000000000");
 
     const swapReserveForTokens = async (signer, spend) => {
       // give signer some reserve
@@ -168,6 +169,21 @@ describe("TrustDistribute", async function () {
         ethers.BigNumber.from("1000000" + Util.sixZeros)
       );
     };
+
+    const swapTokensForReserve = async (signer, spend) => {
+      await crp.connect(signer).pokeWeights();
+      await token.connect(signer).approve(bPool.address, spend);
+      await bPool.connect(signer).swapExactAmountIn(
+        token.address,
+        tokenSpend,
+        reserve.address,
+        ethers.BigNumber.from("1"),
+        ethers.BigNumber.from("10000000000000000000000000000")
+      )
+    };
+
+    await swapReserveForTokens(signer1, reserveSpend);
+    await swapTokensForReserve(signer1, tokenSpend)
 
     // reach success level
     while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
