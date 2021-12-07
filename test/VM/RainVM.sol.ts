@@ -199,7 +199,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source, // not important
-      vals, // not important
+      thisVals: vals, // not important
+      forwardedVals: []
     })) as CalculatorTest & Contract;
 
     // Just return the whole output stack for debugging purposes
@@ -208,7 +209,11 @@ describe("RainVM", async function () {
     // console.log(`stackVals_   ${stack_.vals}`);
     // console.log(`stackIndex_  ${stack_.index}`);
 
-    const resultStack = await calculator.evalStack({ source, vals });
+    const resultStack = await calculator.evalStack({
+      source,
+      thisVals: vals,
+      forwardedVals: []
+    });
 
     console.log(resultStack);
 
@@ -308,7 +313,11 @@ describe("RainVM", async function () {
     // console.log(`stackVals_   ${stack_.vals}`);
     // console.log(`stackIndex_  ${stack_.index}`);
 
-    const resultStack = await calculator.evalStack({ source, vals });
+    const resultStack = await calculator.evalStack({
+      source,
+      thisVals: vals,
+      forwardedVals: [],
+    });
 
     const expectedStack = [
       640, 88, 490, 77, 360, 66, 250, 55, 160, 44, 90, 33, 40, 22, 10, 11, 0, 0,
@@ -402,7 +411,11 @@ describe("RainVM", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    const resultStack = await calculator.evalStack({ source, vals });
+    const resultStack = await calculator.evalStack({
+      source,
+      thisVals: vals,
+      forwardedVals: [],
+    });
 
     const expectedMul1 = 6;
     const actualMul1 = resultStack.vals[0];
@@ -569,7 +582,11 @@ describe("RainVM", async function () {
     // console.log(`stackVals_   ${stack_.vals}`);
     // console.log(`stackIndex_  ${stack_.index}`);
 
-    const resultStack = await calculator.evalStack({ source, vals });
+    const resultStack = await calculator.evalStack({
+      source,
+      thisVals: vals,
+      forwardedVals: []
+    });
 
     const expectedIndex = 2;
     const actualIndex = resultStack.index;
@@ -667,10 +684,10 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source, // not important
-      vals, // not important
+      thisVals: vals, // not important
     })) as CalculatorTest & Contract;
 
-    const resultStack = await calculator.evalStack({ source, vals });
+    const resultStack = await calculator.evalStack({ source, thisVals: vals, forwardedVals: [] });
 
     const expectedIndex = 2;
     const actualIndex = resultStack.index;
@@ -755,7 +772,7 @@ describe("RainVM", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    const resultStack = await calculator.evalStack({ source, vals });
+    const resultStack = await calculator.evalStack({ source, thisVals: vals, forwardedVals: [] });
 
     const expectedIndex = 2;
     const actualIndex = resultStack.index;
@@ -835,7 +852,7 @@ describe("RainVM", async function () {
       vals, // not important
     })) as CalculatorTest & Contract;
 
-    const result = await calculator.eval({ source, vals });
+    const result = await calculator.eval({ source, thisVals: vals, forwardedVals: [] });
     const expected = 6;
     assert(
       result.eq(expected),
