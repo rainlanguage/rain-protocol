@@ -183,6 +183,8 @@ describe("TrustDistribute", async function () {
     };
 
     await swapReserveForTokens(signer1, reserveSpend);
+
+    // Check we can sell tokens back despite the Tier requirement.
     await swapTokensForReserve(signer1, tokenSpend)
 
     // reach success level
