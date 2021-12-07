@@ -28,7 +28,7 @@ const enum Opcode {
   AVERAGE,
 }
 
-describe("RainVM", async function () {
+describe.only("RainVM", async function () {
   it("should return the average of a sequence of numbers (rounded towards zero)", async () => {
     this.timeout(0);
 
@@ -50,7 +50,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -79,7 +80,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -108,7 +110,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -126,7 +129,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     await Util.createEmptyBlock(3);
@@ -304,7 +308,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source, // not important
-      vals, // not important
+      thisVals: vals, // not important
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     // Just return the whole output stack for debugging purposes
@@ -408,7 +413,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source, // not important
-      vals, // not important
+      thisVals: vals, // not important
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const resultStack = await calculator.evalStack({
@@ -573,7 +579,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source, // not important
-      vals, // not important
+      thisVals: vals, // not important
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     // Just return the whole output stack for debugging purposes
@@ -685,6 +692,7 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       source, // not important
       thisVals: vals, // not important
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const resultStack = await calculator.evalStack({ source, thisVals: vals, forwardedVals: [] });
@@ -769,7 +777,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source, // not important
-      vals, // not important
+      thisVals: vals, // not important
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const resultStack = await calculator.evalStack({ source, thisVals: vals, forwardedVals: [] });
@@ -849,7 +858,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source, // not important
-      vals, // not important
+      thisVals: vals, // not important
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.eval({ source, thisVals: vals, forwardedVals: [] });
@@ -890,7 +900,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const block0 = await ethers.provider.getBlockNumber();
@@ -953,7 +964,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -987,7 +999,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1021,7 +1034,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1055,7 +1069,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1089,7 +1104,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1123,7 +1139,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1150,7 +1167,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const actualVal0 = await calculator.val0();
@@ -1192,7 +1210,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const actualVal0 = await calculator.val0();
@@ -1223,7 +1242,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     const actualVal0 = await calculator.val0();
@@ -1245,7 +1265,8 @@ describe("RainVM", async function () {
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
       source,
-      vals,
+      thisVals: vals,
+      forwardedVals: [],
     })) as CalculatorTest & Contract;
 
     await getConstants(calculator);
