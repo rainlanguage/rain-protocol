@@ -87,7 +87,10 @@ describe("RedeemableERC20Pool", async function () {
     await pool.deployed();
 
     // Trust normally does this internally.
-    await redeemable.grantRole(await redeemable.DEFAULT_ADMIN_ROLE(), pool.address);
+    await redeemable.grantRole(
+      await redeemable.DEFAULT_ADMIN_ROLE(),
+      pool.address
+    );
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     await reserve.transfer(pool.address, reserveInit);
@@ -224,7 +227,10 @@ describe("RedeemableERC20Pool", async function () {
     await pool.deployed();
 
     // Trust normally does this internally.
-    await redeemable.grantRole(await redeemable.DEFAULT_ADMIN_ROLE(), pool.address);
+    await redeemable.grantRole(
+      await redeemable.DEFAULT_ADMIN_ROLE(),
+      pool.address
+    );
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     await reserve.transfer(pool.address, reserveInit);
@@ -413,7 +419,10 @@ describe("RedeemableERC20Pool", async function () {
     await pool.deployed();
 
     // Trust normally does this internally.
-    await redeemable.grantRole(await redeemable.DEFAULT_ADMIN_ROLE(), pool.address);
+    await redeemable.grantRole(
+      await redeemable.DEFAULT_ADMIN_ROLE(),
+      pool.address
+    );
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     await reserve.transfer(pool.address, reserveInit);
@@ -594,7 +603,10 @@ describe("RedeemableERC20Pool", async function () {
     // Send all tokens to the pool immediately.
     // When the seed funds are raised, will build a pool from these.
     // Trust normally does this internally.
-    await redeemable.grantRole(await redeemable.DEFAULT_ADMIN_ROLE(), pool.address);
+    await redeemable.grantRole(
+      await redeemable.DEFAULT_ADMIN_ROLE(),
+      pool.address
+    );
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     const reserve1 = new ethers.Contract(
@@ -736,7 +748,10 @@ describe("RedeemableERC20Pool", async function () {
     await pool.deployed();
 
     // Trust normally does this internally.
-    await redeemable.grantRole(await redeemable.DEFAULT_ADMIN_ROLE(), pool.address);
+    await redeemable.grantRole(
+      await redeemable.DEFAULT_ADMIN_ROLE(),
+      pool.address
+    );
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     assert((await pool.token()) === redeemable.address, "wrong token address");
@@ -873,7 +888,10 @@ describe("RedeemableERC20Pool", async function () {
     await pool.deployed();
 
     // Trust normally does this internally.
-    await redeemable.grantRole(await redeemable.DEFAULT_ADMIN_ROLE(), pool.address);
+    await redeemable.grantRole(
+      await redeemable.DEFAULT_ADMIN_ROLE(),
+      pool.address
+    );
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     assert((await pool.token()) === redeemable.address, "wrong token address");

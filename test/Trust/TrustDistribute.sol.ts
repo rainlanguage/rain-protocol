@@ -173,19 +173,21 @@ describe("TrustDistribute", async function () {
     const swapTokensForReserve = async (signer, spend) => {
       await crp.connect(signer).pokeWeights();
       await token.connect(signer).approve(bPool.address, spend);
-      await bPool.connect(signer).swapExactAmountIn(
-        token.address,
-        tokenSpend,
-        reserve.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("10000000000000000000000000000")
-      )
+      await bPool
+        .connect(signer)
+        .swapExactAmountIn(
+          token.address,
+          tokenSpend,
+          reserve.address,
+          ethers.BigNumber.from("1"),
+          ethers.BigNumber.from("10000000000000000000000000000")
+        );
     };
 
     await swapReserveForTokens(signer1, reserveSpend);
 
     // Check we can sell tokens back despite the Tier requirement.
-    await swapTokensForReserve(signer1, tokenSpend)
+    await swapTokensForReserve(signer1, tokenSpend);
 
     // reach success level
     while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
