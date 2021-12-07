@@ -209,9 +209,9 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [0, 0, 0, 0],
+          source: chunkedSource(concat([SOURCE()])),
           thisVals: [
-            ...chunkedSource(concat([SOURCE()])),
+            ...chunkedSource(concat([FN()])),
             readWriteTier.address,
             BASE_REWARD_PER_TIER,
             0,
