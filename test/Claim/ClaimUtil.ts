@@ -9,6 +9,7 @@ import type {
 } from "../../typechain/EmissionsERC20Factory";
 import type { EmissionsERC20 } from "../../typechain/EmissionsERC20";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { hexlify } from "ethers/lib/utils";
 
 export interface ClaimFactories {
   emissionsERC20Factory: EmissionsERC20Factory & Contract;
@@ -34,7 +35,7 @@ export const emissionsDeploy = async (
   emissionsERC20ConfigStruct: EmissionsERC20ConfigStruct
 ): Promise<EmissionsERC20 & Contract> => {
   const tx = await emissionsERC20Factory[
-    "createChild((bool,(string,string),(uint256[4],uint256[16])))"
+    "createChild((bool,(string,string),(uint256[],uint256[],uint256[])))"
   ](emissionsERC20ConfigStruct);
 
   const receipt = await tx.wait();
@@ -70,4 +71,18 @@ export function tierRange(startTier: number, endTier: number): number {
   range <<= 4;
   range += startTier;
   return range;
+}
+
+export function valOperand(index: number, forwardedVals?: boolean): number {
+  //   op_.val & 0x7F, //     01111111
+  //   op_.val & 0x80, //     10000000
+
+  if (index < 0 || index > 15) {
+    throw new Error(`Invalid index ${index}`);
+  }
+  let operand = forwardedVals ? 1 : 0;
+  operand <<= 7;
+  operand += index;
+  console.log("valOperand", hexlify(operand));
+  return operand;
 }

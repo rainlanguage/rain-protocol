@@ -172,6 +172,7 @@ export const eighteenZeros = "000000000000000000";
 
 export const fourZeros = "0000";
 export const sixZeros = "000000";
+export const nineZeros = "000000000";
 export const tenZeros = "0000000000";
 
 export const ONE = ethers.BigNumber.from("1" + eighteenZeros);

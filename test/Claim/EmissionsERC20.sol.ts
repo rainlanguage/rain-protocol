@@ -61,7 +61,7 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it("should calculate correct emissions amount, accounting for base reward, base tier reward and a linear scale factor that saturates after a certain number of blocks", async function () {
+  it("should calculate correct emissions amount", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -77,26 +77,10 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const BONE = ethers.BigNumber.from("1000000"); // 6 decimal precision
-
-    const BRNZ_BASE_REWARD = 5000;
-    const SILV_BASE_REWARD = 10000 - BRNZ_BASE_REWARD;
-    const GOLD_BASE_REWARD = 25000 - SILV_BASE_REWARD;
-    const PLAT_BASE_REWARD = 125000 - GOLD_BASE_REWARD;
-
-    // potential reward accumulated over 1 year ?
-    const BASE_REWARD = paddedReport(
-      ethers.BigNumber.from(
-        "0x" +
-          paddedBlock(0).repeat(4) +
-          paddedBlock(PLAT_BASE_REWARD) +
-          paddedBlock(GOLD_BASE_REWARD) +
-          paddedBlock(SILV_BASE_REWARD) +
-          paddedBlock(BRNZ_BASE_REWARD)
-      )
-    );
+    const BONE = ethers.BigNumber.from("1" + eighteenZeros);
 
     const BLOCKS_PER_YEAR = 365;
+
     const BLOCKS_PER_MONTH = Math.floor(BLOCKS_PER_YEAR / 12);
 
     const MONTHLY_REWARD_BRONZE = 100;
@@ -109,7 +93,6 @@ describe("EmissionsERC20", async function () {
     const GOLD_REWARD_PER_BLOCK = MONTHLY_REWARD_GOLD / BLOCKS_PER_MONTH;
     const PLAT_REWARD_PER_BLOCK = MONTHLY_REWARD_PLATINUM / BLOCKS_PER_MONTH;
 
-    // flat amount granted on initial claim ?
     const BASE_REWARD_PER_TIER = paddedReport(
       ethers.BigNumber.from(
         "0x" +
@@ -121,84 +104,61 @@ describe("EmissionsERC20", async function () {
       )
     );
 
-    console.log({
-      BONE,
-      PLAT_BASE_REWARD,
-      GOLD_BASE_REWARD,
-      SILV_BASE_REWARD,
-      BRNZ_BASE_REWARD,
-      BASE_REWARD,
-      BLOCKS_PER_YEAR,
-      BLOCKS_PER_MONTH,
-      MONTHLY_REWARD_PLATINUM,
-      MONTHLY_REWARD_GOLD,
-      MONTHLY_REWARD_SILVER,
-      MONTHLY_REWARD_BRONZE,
-      PLAT_REWARD_PER_BLOCK,
-      GOLD_REWARD_PER_BLOCK,
-      SILV_REWARD_PER_BLOCK,
-      BRNZ_REWARD_PER_BLOCK,
-      BASE_REWARD_PER_TIER,
-    });
+    // BEGIN top level vals
 
-    // BEGIN Val snippets
+    const valTierAddress = op(Opcode.val, 0);
+    const valBaseRewardPerTier = op(Opcode.val, 1);
 
-    const tierAddress = op(Opcode.val, 0);
-    const baseRewardPerTier = op(Opcode.val, 1);
-    const baseReward = op(Opcode.val, 2);
-    const blocksPerYear = op(Opcode.val, 3); // multiplier saturation duration
-    const bone = op(Opcode.val, 4);
+    // END top level vals
 
-    // END Val snippets
+    // BEGIN forwarded vals
+
+    const valBlocksPerYear = op(Opcode.val, claimUtil.valOperand(0, true));
+    const valBOne = op(Opcode.val, claimUtil.valOperand(1, true));
+
+    // END forwarded vals
+
+    // BEGIN Inner Val snippets
+
+    const valBaseReward = op(Opcode.val, 0);
+    const valDuration = op(Opcode.val, 1);
+
+    // END Inner Val snippets
 
     // BEGIN Source snippets
 
-    const DURATION = () =>
-      // FIXME: Should this be blocks since construction?
+    const REWARD = () =>
       concat([
-        op(Opcode.sub, 2),
-        op(Opcode.blockNumber),
-        op(Opcode.constructionBlockNumber),
+        //
+        op(Opcode.mul, 2),
+        valBaseReward,
+        valDuration,
       ]);
 
     const PROGRESS = () =>
       concat([
-        op(Opcode.div, 2),
-        op(Opcode.mul, 2),
-        DURATION(),
-        bone,
-        blocksPerYear,
-      ]);
-
-    const PROGRESS_SATURATED = () =>
-      concat([
         //
         op(Opcode.min, 2),
-        PROGRESS(),
-        bone,
+        op(Opcode.div, 2),
+        valDuration,
+        valBlocksPerYear,
+        valBOne,
       ]);
 
-    const DYNAMIC_REWARD_MULTIPLIER = () =>
+    const MULTIPLIER = () =>
       concat([
         //
         op(Opcode.add, 2),
-        bone,
-        PROGRESS_SATURATED(),
-      ]);
-
-    const DYNAMIC_REWARD = () =>
-      concat([
-        //
-        op(Opcode.mul, 2),
-        baseReward,
-        DURATION(),
+        valBOne,
+        PROGRESS(),
       ]);
 
     const FN = () =>
       concat([
+        //
         op(Opcode.mul, 2),
-        DYNAMIC_REWARD_MULTIPLIER(),
-        DYNAMIC_REWARD(),
+        MULTIPLIER(),
+        REWARD(),
       ]);
 
     const CURRENT_BLOCK_AS_REPORT = () =>
@@ -210,19 +170,14 @@ describe("EmissionsERC20", async function () {
         op(Opcode.never),
         op(Opcode.blockNumber),
       ]);
-
-    const TIER_REPORT = () =>
-      concat([op(Opcode.report), tierAddress, op(Opcode.account)]);
-
     const LAST_CLAIM_REPORT = () =>
       concat([op(Opcode.report), op(Opcode.thisAddress), op(Opcode.account)]);
-
+    const TIER_REPORT = () =>
+      concat([op(Opcode.report), valTierAddress, op(Opcode.account)]);
     const TIERWISE_DIFF = () =>
       concat([
         op(Opcode.diff),
-
         CURRENT_BLOCK_AS_REPORT(),
-
         op(Opcode.everyLteMax, 2),
         LAST_CLAIM_REPORT(),
         TIER_REPORT(),
@@ -231,11 +186,15 @@ describe("EmissionsERC20", async function () {
 
     const SOURCE = () =>
       concat([
+        //
         op(Opcode.add, 8),
-        op(Opcode.zipmap, 3),
-        FN(),
-        baseRewardPerTier,
-        TIERWISE_DIFF(),
+        op(Opcode.zipmap, Util.callSize(3, 3, 1)),
+        op(Opcode.val, 0), // fn0
+        op(Opcode.val, 1), // fn1
+        op(Opcode.val, 2), // fn2
+        op(Opcode.val, 3), // fn3
+        valBaseRewardPerTier, // val0
+        TIERWISE_DIFF(), // val1
       ]);
 
     // END Source snippets
@@ -250,19 +209,28 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: chunkedSource(
-            concat([
-              //
-              // SOURCE(),
-              DYNAMIC_REWARD(),
-            ])
-          ),
-          vals: [
+          source: [0, 0, 0, 0],
+          thisVals: [
+            ...chunkedSource(concat([SOURCE()])),
             readWriteTier.address,
             BASE_REWARD_PER_TIER,
-            BASE_REWARD,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+          ],
+          forwardedVals: [
             BLOCKS_PER_YEAR, // e.g. '365' blocks = 1 year
             BONE,
+            0,
+            0,
+            0,
             0,
             0,
             0,
@@ -283,12 +251,11 @@ describe("EmissionsERC20", async function () {
 
     await Util.createEmptyBlock(365 / 2); // ~50% claim progress
 
-    console.log("blocknumber", await ethers.provider.getBlockNumber());
-
     const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
-    const expectedClaimAmount = 0;
 
     console.log(claimAmount);
+
+    // const expectedClaimAmount = 0;
 
     // assert(
     //   claimAmount.eq(expectedClaimAmount),
@@ -353,7 +320,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          vals: [
+          thisVals: [
             readWriteTier.address,
             0,
             0,
@@ -371,6 +338,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -487,7 +455,8 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          vals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          thisVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -559,7 +528,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          vals: [
+          thisVals: [
             readWriteTier.address,
             0,
             0,
@@ -577,6 +546,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -683,7 +653,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          vals: [
+          thisVals: [
             readWriteTier.address,
             0,
             0,
@@ -701,6 +671,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -808,7 +779,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          vals: [
+          thisVals: [
             readWriteTier.address,
             0,
             0,
@@ -826,6 +797,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -903,7 +875,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          vals: [
+          thisVals: [
             readWriteTier.address,
             0,
             0,
@@ -921,6 +893,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -969,7 +942,8 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: [concat([op(Opcode.val)]), 0, 0, 0],
-          vals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -1022,7 +996,8 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: [concat([op(Opcode.val)]), 0, 0, 0],
-          vals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -1058,7 +1033,8 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: [concat([op(Opcode.val)]), 0, 0, 0],
-          vals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -1100,7 +1076,8 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: [concat([op(Opcode.val)]), 0, 0, 0],
-          vals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -1135,7 +1112,8 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: [concat([op(Opcode.val)]), 0, 0, 0],
-          vals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -1173,8 +1151,9 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [concat([op(Opcode.val)]), 0, 0, 0],
-          vals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          source: [concat([op(Opcode.val)])],
+          thisVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );

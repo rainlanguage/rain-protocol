@@ -146,7 +146,7 @@ abstract contract RainVM {
                         stack_,
                         CallSize(
                             op_.val & 0x03,
-                            (op_.val >> 2)  & 0x07,
+                            (op_.val >> 2) & 0x07,
                             (op_.val >> 5) & 0x07
                         )
                     );
