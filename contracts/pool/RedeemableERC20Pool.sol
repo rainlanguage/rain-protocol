@@ -342,7 +342,14 @@ contract RedeemableERC20Pool is Ownable, Phased {
             / token.balanceOf(crp.bPool());
         uint256 minPoolSupply_ = IBalancerConstants.MIN_POOL_SUPPLY
             .max(minReservePoolTokens)
-            .max(minRedeemablePoolTokens);
+            .max(minRedeemablePoolTokens)
+            // Overcompensate for any rounding that could cause `exitPool` to
+            // fail. This probably doesn't change anything because there are 9
+            // OOMs between BONE and MAX_POOL_SUPPLY so `bdiv` will truncate
+            // the precision a lot anyway.
+            // Also `SmartPoolManager.exitPool` used internally by
+            // `crp.exitPool` subtracts one so token amounts round down.
+            + 1;
 
         // This removes as much as is allowable which leaves behind some dust.
         // The reserve dust will be trapped.

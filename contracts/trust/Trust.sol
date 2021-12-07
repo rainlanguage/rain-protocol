@@ -473,8 +473,8 @@ contract Trust is ReentrancyGuard {
             address(trustRedeemableERC20PoolConfig_.reserve)
         );
 
-        // There is no longer any reason for the redeemableERC20 to have an
-        // admin.
+        // There is no longer any reason for the redeemableERC20 to have the
+        // `Trust` as admin.
         redeemableERC20_.renounceRole(
             redeemableERC20_.DEFAULT_ADMIN_ROLE(),
             address(this)
