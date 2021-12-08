@@ -260,8 +260,8 @@ contract RedeemableERC20 is
     /// Apply phase sensitive transfer restrictions.
     /// During `Phase.ZERO` only tier requirements apply.
     /// During `Phase.ONE` all transfers except burns are prevented.
-    /// If a transfer involves either a sender or receiver with the relevant
-    /// `unfreezables` state it will ignore these restrictions.
+    /// If a transfer involves either a sender or receiver with the SENDER
+    /// or RECEIVER role, respectively, it will bypass these restrictions.
     /// @inheritdoc ERC20
     // Slither false positive. This is overriding an Open Zeppelin hook.
     // https://github.com/crytic/slither/issues/929

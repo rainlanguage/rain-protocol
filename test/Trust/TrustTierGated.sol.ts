@@ -62,16 +62,24 @@ describe("TrustTierGated (non-NIL minimum tier)", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2]; // deployer is not creator
+    const signer1 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumStatus = Tier.GOLD;
+
+    // tiers should be in place before RedeemableERC20 reserve construction
+    await tier.setTier(signer1.address, Tier.GOLD, []);
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
     )) as ReserveToken & Contract;
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -83,11 +91,6 @@ describe("TrustTierGated (non-NIL minimum tier)", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
@@ -190,32 +193,30 @@ describe("TrustTierGated (non-NIL minimum tier)", async function () {
 
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
 
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-
     while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
       await swapReserveForTokens(signer1, spend);
     }
 
-    // while (
-    //   (await ethers.provider.getBlockNumber()) <
-    //   startBlock + minimumTradingDuration
-    // ) {
-    //   await reserve.transfer(signer1.address, 0);
-    // }
+    while (
+      (await ethers.provider.getBlockNumber()) <
+      startBlock + minimumTradingDuration
+    ) {
+      await reserve.transfer(signer1.address, 0);
+    }
 
-    // const tokenInPoolBeforeExit = await token.balanceOf(bPool.address);
+    const tokenInPoolBeforeExit = await token.balanceOf(bPool.address);
 
-    // await trust.anonEndDistribution();
+    await trust.anonEndDistribution();
 
-    // const tokenInPoolAfterExit = await token.balanceOf(bPool.address);
+    const tokenInPoolAfterExit = await token.balanceOf(bPool.address);
 
-    // assert(
-    //   tokenInPoolAfterExit.isZero(),
-    //   `did not burn token dust
-    //   expected 0 got ${tokenInPoolAfterExit}
-    //   ----
-    //   tokenInPoolBeforeExit ${tokenInPoolBeforeExit}
-    //   `
-    // );
+    assert(
+      tokenInPoolAfterExit.isZero(),
+      `did not burn token dust
+      expected 0 got ${tokenInPoolAfterExit}
+      ----
+      tokenInPoolBeforeExit ${tokenInPoolBeforeExit}
+      `
+    );
   });
 });
