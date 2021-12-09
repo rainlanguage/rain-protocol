@@ -1641,8 +1641,11 @@ describe("Trust", async function () {
 
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[2];
-    const signer2 = signers[3];
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator/owner
+    const deployer = signers[2];
+    const signer1 = signers[3];
+    const signer2 = signers[4];
 
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -1665,9 +1668,7 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator/owner
-    const deployer = signers[2];
+
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
