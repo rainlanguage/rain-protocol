@@ -1761,18 +1761,13 @@ describe("Trust", async function () {
 
     // BEGIN: users hit the minimum raise
 
-    const reserve1 = reserve.connect(signer1);
-
     const [crp, bPool] = await Util.poolContracts(signers, pool);
-
-    const crp1 = crp.connect(signer1);
-    const bPool1 = bPool.connect(signer1);
 
     let i = 0;
     while (i < 10) {
-      await crp1.pokeWeights(); // user pokes weights to get best deal for the current block
-      await reserve1.approve(bPool1.address, spend1); // approves pool swap amount
-      await bPool1.swapExactAmountIn(
+      await crp.connect(signer1).pokeWeights(); // user pokes weights to get best deal for the current block
+      await reserve.connect(signer1).approve(bPool.address, spend1); // approves pool swap amount
+      await bPool.connect(signer1).swapExactAmountIn(
         reserve.address,
         spend1,
         await trust.token(),
@@ -1793,20 +1788,19 @@ describe("Trust", async function () {
       "balancer pool not swapping correct spend1 amount in"
     );
 
-    const crp2 = crp.connect(signer2);
-    await crp2.pokeWeights();
+    await crp.connect(signer2).pokeWeights();
 
-    const bPool2 = bPool.connect(signer2);
-    const reserve2 = reserve.connect(signer2);
-    await reserve2.approve(bPool2.address, spend2);
+    await reserve.connect(signer2).approve(bPool.address, spend2);
 
-    await bPool2.swapExactAmountIn(
-      reserve.address,
-      spend2,
-      await trust.token(),
-      ethers.BigNumber.from("1"),
-      ethers.BigNumber.from("1000000" + Util.sixZeros)
-    );
+    await bPool
+      .connect(signer2)
+      .swapExactAmountIn(
+        reserve.address,
+        spend2,
+        await trust.token(),
+        ethers.BigNumber.from("1"),
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
+      );
 
     const signer2TokenBalance = await token.balanceOf(signer2.address);
 
@@ -1956,19 +1950,10 @@ describe("Trust", async function () {
 
     // token supply is burned correctly on redemption
 
-    const token1 = new ethers.Contract(
-      await trust.token(),
-      (await artifacts.readArtifact("RedeemableERC20")).abi,
-      signers[2]
-    ) as RedeemableERC20 & Contract;
-    const token2 = new ethers.Contract(
-      await trust.token(),
-      (await artifacts.readArtifact("RedeemableERC20")).abi,
-      signers[3]
-    ) as RedeemableERC20 & Contract;
-
     // redeem all
-    await token1.redeem([reserve.address], signer1EndingTokenBalance);
+    await token
+      .connect(signer1)
+      .redeem([reserve.address], signer1EndingTokenBalance);
 
     assert(
       (await token.totalSupply()).eq(
@@ -1992,10 +1977,12 @@ describe("Trust", async function () {
     const smallTokenAmount = ethers.BigNumber.from("1" + Util.eighteenZeros);
 
     // redeem almost all tokens
-    await token2.redeem(
-      [reserve.address],
-      signer2EndingTokenBalance.sub(smallTokenAmount)
-    );
+    await token
+      .connect(signer2)
+      .redeem(
+        [reserve.address],
+        signer2EndingTokenBalance.sub(smallTokenAmount)
+      );
 
     assert(
       (await token.totalSupply()).eq(
