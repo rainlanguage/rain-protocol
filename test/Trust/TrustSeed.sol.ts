@@ -49,6 +49,11 @@ describe("TrustSeed", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const deployer = signers[1]; // deployer is not creator
+    const seeder1 = signers[2];
+    const seeder2 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -58,7 +63,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -70,11 +75,6 @@ describe("TrustSeed", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const deployer = signers[1]; // deployer is not creator
-    const seeder1 = signers[2];
-    const seeder2 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 10;
@@ -333,6 +333,11 @@ describe("TrustSeed", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const deployer = signers[1]; // deployer is not creator
+    const seeder1 = signers[2];
+    const seeder2 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -342,7 +347,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -354,11 +359,6 @@ describe("TrustSeed", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const deployer = signers[1]; // deployer is not creator
-    const seeder1 = signers[2];
-    const seeder2 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 10;
@@ -454,6 +454,11 @@ describe("TrustSeed", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const deployer = signers[1]; // deployer is not creator
+    const seeder1 = signers[2];
+    const seeder2 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -463,7 +468,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -475,11 +480,6 @@ describe("TrustSeed", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const deployer = signers[1]; // deployer is not creator
-    const seeder1 = signers[2];
-    const seeder2 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 10;
@@ -573,6 +573,12 @@ describe("TrustSeed", async function () {
 
       const signers = await ethers.getSigners();
 
+      const creator = signers[0];
+      const deployer = signers[1]; // deployer is not creator
+      const seeder1 = signers[2];
+      const seeder2 = signers[3];
+      const signer1 = signers[4];
+
       const [crpFactory, bFactory] = await Util.balancerDeploy();
 
       const reserve = (await Util.basicDeploy(
@@ -582,7 +588,7 @@ describe("TrustSeed", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.NIL;
+      const minimumStatus = Tier.GOLD;
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -596,12 +602,6 @@ describe("TrustSeed", async function () {
       );
       const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
       const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-      const creator = signers[0];
-      const deployer = signers[1]; // deployer is not creator
-      const seeder1 = signers[2];
-      const seeder2 = signers[3];
-      const signer1 = signers[4];
 
       const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 10;
@@ -617,6 +617,8 @@ describe("TrustSeed", async function () {
       const minimumTradingDuration = 50;
 
       const trustFactoryDeployer = trustFactory.connect(deployer);
+
+      await tier.setTier(signer1.address, Tier.GOLD, []);
 
       const trust = await Util.trustDeploy(
         trustFactoryDeployer,
@@ -854,6 +856,11 @@ describe("TrustSeed", async function () {
 
       const signers = await ethers.getSigners();
 
+      const creator = signers[0];
+      const deployer = signers[1]; // deployer is not creator
+      const seeder1 = signers[2];
+      const seeder2 = signers[3];
+
       const [crpFactory, bFactory] = await Util.balancerDeploy();
 
       const reserve = (await Util.basicDeploy(
@@ -863,7 +870,7 @@ describe("TrustSeed", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.NIL;
+      const minimumStatus = Tier.GOLD;
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -877,11 +884,6 @@ describe("TrustSeed", async function () {
       );
       const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
       const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-      const creator = signers[0];
-      const deployer = signers[1]; // deployer is not creator
-      const seeder1 = signers[2];
-      const seeder2 = signers[3];
 
       const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 10;

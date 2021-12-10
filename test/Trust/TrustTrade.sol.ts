@@ -47,20 +47,14 @@ describe("TrustTrade", async function () {
 
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
-
-    // Set tier levels
-    await tier.setTier(signerBronze.address, Tier.BRONZE, []);
-    await tier.setTier(signerSilver.address, Tier.SILVER, []);
-    await tier.setTier(signerGold.address, Tier.GOLD, []);
-    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
-
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
     )) as ReserveToken & Contract;
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -85,6 +79,12 @@ describe("TrustTrade", async function () {
     const minimumTradingDuration = 50;
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
+
+    // Set tier levels
+    await tier.setTier(signerBronze.address, Tier.BRONZE, []);
+    await tier.setTier(signerSilver.address, Tier.SILVER, []);
+    await tier.setTier(signerGold.address, Tier.GOLD, []);
+    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
     const trust = await Util.trustDeploy(
       trustFactoryDeployer,
@@ -255,6 +255,10 @@ describe("TrustTrade", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -264,7 +268,7 @@ describe("TrustTrade", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -280,10 +284,6 @@ describe("TrustTrade", async function () {
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -380,6 +380,10 @@ describe("TrustTrade", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -389,7 +393,7 @@ describe("TrustTrade", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -405,10 +409,6 @@ describe("TrustTrade", async function () {
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -632,6 +632,13 @@ describe("TrustTrade", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+    const signerSilver = signers[3];
+    const signerGold = signers[4];
+    const signerPlatinum = signers[5];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -658,18 +665,6 @@ describe("TrustTrade", async function () {
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
-    const signerSilver = signers[3];
-    const signerGold = signers[4];
-    const signerPlatinum = signers[5];
-
-    // Set tier levels
-    await tier.setTier(signerSilver.address, Tier.SILVER, []);
-    await tier.setTier(signerGold.address, Tier.GOLD, []);
-    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
-
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
       .add(seederFee)
@@ -678,6 +673,11 @@ describe("TrustTrade", async function () {
     const minimumTradingDuration = 50;
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
+
+    // Set tier levels
+    await tier.setTier(signerSilver.address, Tier.SILVER, []);
+    await tier.setTier(signerGold.address, Tier.GOLD, []);
+    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
     const trust = await Util.trustDeploy(
       trustFactoryDeployer,
@@ -817,6 +817,11 @@ describe("TrustTrade", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+    const signer1 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -826,7 +831,7 @@ describe("TrustTrade", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -863,11 +868,6 @@ describe("TrustTrade", async function () {
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
       .add(seederFee)
@@ -884,6 +884,8 @@ describe("TrustTrade", async function () {
         .gte(ethers.BigNumber.from("50" + Util.sixZeros)),
       "wrong intended spot price for max weight test"
     );
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
 
     await Util.assertError(
       async () =>
