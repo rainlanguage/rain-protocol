@@ -290,6 +290,20 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).
         crp.createPool(IBalancerConstants.MAX_POOL_SUPPLY, 0, 0);
+        // Now that the bPool has a known address we need it to be a RECEIVER
+        // as it is impossible in general for `Tier` restricted tokens to be
+        // able to approve the pool itself. This ensures that token holders can
+        // always sell back into the pool.
+        // Note: We do NOT grant the bPool the SENDER role as that would bypass
+        // `Tier` restrictions for everyone buying the token.
+        token.grantRole(
+            token.RECEIVER(),
+            crp.bPool()
+        );
+        token.renounceRole(
+            token.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
         crp.updateWeightsGradually(
             finalWeights_,
             block.number,
@@ -328,7 +342,14 @@ contract RedeemableERC20Pool is Ownable, Phased {
             / token.balanceOf(crp.bPool());
         uint256 minPoolSupply_ = IBalancerConstants.MIN_POOL_SUPPLY
             .max(minReservePoolTokens)
-            .max(minRedeemablePoolTokens);
+            .max(minRedeemablePoolTokens)
+            // Overcompensate for any rounding that could cause `exitPool` to
+            // fail. This probably doesn't change anything because there are 9
+            // OOMs between BONE and MAX_POOL_SUPPLY so `bdiv` will truncate
+            // the precision a lot anyway.
+            // Also `SmartPoolManager.exitPool` used internally by
+            // `crp.exitPool` subtracts one so token amounts round down.
+            + 1;
 
         // This removes as much as is allowable which leaves behind some dust.
         // The reserve dust will be trapped.
