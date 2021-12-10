@@ -252,7 +252,7 @@ export const successfulRaise = async (
 };
 
 export const failedRaise = async (
-  signers,
+  signers: SignerWithAddress[],
   escrow: BPoolFeeEscrow & Contract,
   trustFactory: TrustFactory,
   tier: ReadWriteTier
