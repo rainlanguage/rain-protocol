@@ -61,7 +61,7 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it("should calculate correct emissions amount", async function () {
+  it.only("should calculate correct emissions amount", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -210,38 +210,14 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: chunkedSource(concat([SOURCE()])),
-          thisVals: [
+          constants: [
             ...chunkedSource(concat([FN()])),
             readWriteTier.address,
             BASE_REWARD_PER_TIER,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-          ],
-          forwardedVals: [
             BLOCKS_PER_YEAR, // e.g. '365' blocks = 1 year
             BONE,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
+          ],
+          arguments: [
           ],
         },
       }
@@ -320,7 +296,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          thisVals: [
+          constants: [
             readWriteTier.address,
             0,
             0,
@@ -338,7 +314,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          arguments: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -455,8 +431,8 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          thisVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          constants: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          arguments: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -528,7 +504,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          thisVals: [
+          constants: [
             readWriteTier.address,
             0,
             0,
@@ -546,7 +522,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          arguments: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -653,7 +629,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          thisVals: [
+          constants: [
             readWriteTier.address,
             0,
             0,
@@ -671,7 +647,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          arguments: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         },
       }
     );
@@ -779,7 +755,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          thisVals: [
+          constants: [
             readWriteTier.address,
             0,
             0,
@@ -797,7 +773,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          arguments: [],
         },
       }
     );
@@ -875,7 +851,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          thisVals: [
+          constants: [
             readWriteTier.address,
             0,
             0,
@@ -893,7 +869,7 @@ describe("EmissionsERC20", async function () {
             0,
             0,
           ],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          arguments: [],
         },
       }
     );
@@ -941,9 +917,9 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [concat([op(Opcode.val)]), 0, 0, 0],
-          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          source: [concat([op(Opcode.val)])],
+          constants: [claimAmount],
+          arguments: [],
         },
       }
     );
@@ -995,9 +971,9 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [concat([op(Opcode.val)]), 0, 0, 0],
-          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          source: [concat([op(Opcode.val)])],
+          constants: [claimAmount],
+          arguments: [],
         },
       }
     );
@@ -1032,9 +1008,9 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [concat([op(Opcode.val)]), 0, 0, 0],
-          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          source: [concat([op(Opcode.val)])],
+          constants: [claimAmount],
+          arguments: [],
         },
       }
     );
@@ -1075,9 +1051,9 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [concat([op(Opcode.val)]), 0, 0, 0],
-          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          source: [concat([op(Opcode.val)])],
+          constants: [claimAmount],
+          arguments: [],
         },
       }
     );
@@ -1111,9 +1087,9 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [concat([op(Opcode.val)]), 0, 0, 0],
-          thisVals: [claimAmount, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          source: [concat([op(Opcode.val)])],
+          constants: [claimAmount],
+          arguments: [],
         },
       }
     );
@@ -1152,8 +1128,8 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: [concat([op(Opcode.val)])],
-          thisVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          forwardedVals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          constants: [],
+          arguments: [],
         },
       }
     );

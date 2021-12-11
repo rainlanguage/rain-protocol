@@ -1,15 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-struct CompileIO {
-    Op input;
-    Op output;
-}
-
 struct Source {
     uint256[] source;
-    uint256[] thisVals;
-    uint256[] forwardedVals;
+    uint256[] constants;
+    uint256[] arguments;
 }
 
 struct SourceCursor {
@@ -70,19 +65,19 @@ abstract contract RainVM {
         uint256 stepSize_ = 256 >> callSize_.loopSize;
 
         for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-            uint256[] memory vals_ = new uint256[](
+            uint256[] memory arguments_ = new uint256[](
                 baseVals_.length * 256 / stepSize_
             );
             for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
-                vals_[a_] = uint256(
+                arguments_[a_] = uint256(
                     uint256(baseVals_[a_] << 256 - step_ - stepSize_)
                     >> 256 - stepSize_
                 );
             }
             Source memory evalSource_ = Source(
                 mapSource_,
-                vals_,
-                source_.thisVals
+                source_.constants,
+                arguments_
             );
             Stack memory evalStack_;
             // evalStack_ modified by reference.
@@ -129,10 +124,10 @@ abstract contract RainVM {
                 }
                 else if (op_.code == uint8(Ops.val)) {
                     uint8 valIndex_ = op_.val & 0x7F;
-                    bool forwardedVals_ = (op_.val >> 7) > 0;
-                    stack_.vals[stack_.index] = forwardedVals_
-                        ? source_.forwardedVals[valIndex_]
-                        : source_.thisVals[valIndex_];
+                    bool fromArguments_ = (op_.val >> 7) > 0;
+                    stack_.vals[stack_.index] = fromArguments_
+                        ? source_.arguments[valIndex_]
+                        : source_.constants[valIndex_];
                     stack_.index++;
                 }
                 else if (op_.code == uint8(Ops.zipmap)) {

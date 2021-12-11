@@ -373,6 +373,15 @@ export function callSize(
   return callSize;
 }
 
+export function arg(
+  valIndex: number
+): number {
+  let arg = 1;
+  arg <<= 7;
+  arg += valIndex;
+  return arg;
+}
+
 /**
  * Converts an opcode and operand to bytes, and returns their concatenation.
  * @param code - the opcode
@@ -480,8 +489,6 @@ export function chunkedSource(monolithicSource: Uint8Array): Source {
 
     source[sourceIndex] = i === 0 ? 0 : sourceElement;
   }
-
-  console.log("chunked source:", source);
 
   return source;
 }

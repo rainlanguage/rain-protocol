@@ -49,8 +49,6 @@ const enum Opcode {
 const sourceAlways: Source = [concat([op(Opcode.ALWAYS)]), 0, 0, 0];
 const sourceNever: Source = [concat([op(Opcode.NEVER)]), 0, 0, 0];
 
-const valsDefault = new Array(16).fill(0) as Vals;
-
 describe("CombineTier", async function () {
   it("should correctly combine Always and Never tier contracts with orLeft", async () => {
     this.timeout(0);
@@ -63,16 +61,16 @@ describe("CombineTier", async function () {
 
     const alwaysTier = (await combineTierFactory.deploy({
       source: sourceAlways,
-      thisVals: valsDefault,
-      forwardedVals: []
+      constants: [],
+      arguments: []
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       source: sourceNever,
-      thisVals: valsDefault,
-      forwardedVals: []
+      constants: [],
+      arguments: []
     })) as CombineTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(alwaysTier.address), // right report
       ethers.BigNumber.from(neverTier.address), // left report
       0,
@@ -109,8 +107,8 @@ describe("CombineTier", async function () {
 
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: []
+      constants,
+      arguments: []
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -138,16 +136,16 @@ describe("CombineTier", async function () {
 
     const alwaysTier = (await combineTierFactory.deploy({
       source: sourceAlways,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       source: sourceNever,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
       0,
@@ -184,8 +182,8 @@ describe("CombineTier", async function () {
 
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -213,13 +211,13 @@ describe("CombineTier", async function () {
 
     const alwaysTier = (await combineTierFactory.deploy({
       source: sourceAlways,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       source: sourceNever,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
 
     const vals = [
@@ -259,8 +257,8 @@ describe("CombineTier", async function () {
 
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants: vals,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -288,16 +286,16 @@ describe("CombineTier", async function () {
 
     const alwaysTier = (await combineTierFactory.deploy({
       source: sourceAlways,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       source: sourceNever,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(alwaysTier.address), // right report
       ethers.BigNumber.from(neverTier.address), // left report
       0,
@@ -334,8 +332,8 @@ describe("CombineTier", async function () {
 
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -363,16 +361,16 @@ describe("CombineTier", async function () {
 
     const alwaysTier = (await combineTierFactory.deploy({
       source: sourceAlways,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       source: sourceNever,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
       0,
@@ -409,8 +407,8 @@ describe("CombineTier", async function () {
 
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -438,16 +436,16 @@ describe("CombineTier", async function () {
 
     const alwaysTier = (await combineTierFactory.deploy({
       source: sourceAlways,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       source: sourceNever,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
       0,
@@ -484,8 +482,8 @@ describe("CombineTier", async function () {
 
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -513,16 +511,16 @@ describe("CombineTier", async function () {
 
     const alwaysTier = (await combineTierFactory.deploy({
       source: sourceAlways,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       source: sourceNever,
-      thisVals: valsDefault,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
       0,
@@ -557,8 +555,8 @@ describe("CombineTier", async function () {
 
     const combineTierAlways = (await combineTierFactory.deploy({
       source: sourceAlwaysReport,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const resultAlwaysReport = await combineTierAlways.report(
@@ -575,8 +573,8 @@ describe("CombineTier", async function () {
 
     const combineTierNever = (await combineTierFactory.deploy({
       source: sourceNeverReport,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const resultNeverReport = await combineTierNever.report(signers[1].address);
@@ -595,8 +593,6 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
     const source = [concat([bytify(0), bytify(Opcode.ACCOUNT)]), 0, 0, 0];
 
     const combineTierFactory = (await ethers.getContractFactory(
@@ -604,8 +600,8 @@ describe("CombineTier", async function () {
     )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants: [],
+      arguments: [],
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[1].address);
@@ -631,7 +627,7 @@ describe("CombineTier", async function () {
     const readWriteTierLeft =
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
       0,
@@ -671,8 +667,8 @@ describe("CombineTier", async function () {
     )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -782,7 +778,7 @@ describe("CombineTier", async function () {
     const readWriteTierLeft =
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
       0,
@@ -822,8 +818,8 @@ describe("CombineTier", async function () {
     )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -935,7 +931,7 @@ describe("CombineTier", async function () {
     const readWriteTierLeft =
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
       0,
@@ -975,8 +971,8 @@ describe("CombineTier", async function () {
     )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -1075,7 +1071,7 @@ describe("CombineTier", async function () {
     const readWriteTierLeft =
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
       0,
@@ -1115,8 +1111,8 @@ describe("CombineTier", async function () {
     )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -1227,7 +1223,7 @@ describe("CombineTier", async function () {
     const readWriteTierLeft =
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
       0,
@@ -1267,8 +1263,8 @@ describe("CombineTier", async function () {
     )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -1379,7 +1375,7 @@ describe("CombineTier", async function () {
     const readWriteTierLeft =
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const vals = [
+    const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
       0,
@@ -1419,8 +1415,8 @@ describe("CombineTier", async function () {
     )) as CombineTierFactory & ContractFactory;
     const combineTier = (await combineTierFactory.deploy({
       source,
-      thisVals: vals,
-      forwardedVals: [],
+      constants,
+      arguments: [],
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();

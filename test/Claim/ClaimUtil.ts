@@ -83,6 +83,5 @@ export function valOperand(index: number, forwardedVals?: boolean): number {
   let operand = forwardedVals ? 1 : 0;
   operand <<= 7;
   operand += index;
-  console.log("valOperand", hexlify(operand));
   return operand;
 }
