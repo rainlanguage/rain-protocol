@@ -5,6 +5,8 @@ import { Stack, Op } from "../RainVM.sol";
 import "../../tier/libraries/TierReport.sol";
 import "../../tier/libraries/TierwiseCombine.sol";
 
+import "hardhat/console.sol";
+
 enum Ops {
     report,
     never,
@@ -30,6 +32,12 @@ library TierOps {
     internal
     view {
         if (op_.code == uint8(Ops.report)) {
+            console.log("report stack: %s", stack_.index);
+            console.log(
+                "report: %s %s",
+                stack_.vals[stack_.index - 2],
+                stack_.vals[stack_.index - 1]
+            );
             stack_.index -= 2;
             stack_.vals[stack_.index] =
                 ITier(address(uint160(stack_.vals[stack_.index + 1])))

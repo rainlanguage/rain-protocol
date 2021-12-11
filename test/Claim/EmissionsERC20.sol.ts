@@ -10,6 +10,7 @@ import {
   op,
   paddedBlock,
   paddedReport,
+  arg,
 } from "../Util";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { Contract } from "ethers";
@@ -79,14 +80,15 @@ describe("EmissionsERC20", async function () {
 
     const BONE = ethers.BigNumber.from("1" + eighteenZeros);
 
-    const BLOCKS_PER_YEAR = 365;
+    // 2 seconds per block
+    const BLOCKS_PER_YEAR = 365 * 24 * 60 * 30;
 
     const BLOCKS_PER_MONTH = Math.floor(BLOCKS_PER_YEAR / 12);
 
     const MONTHLY_REWARD_BRONZE = 100;
     const MONTHLY_REWARD_SILVER = 200 - MONTHLY_REWARD_BRONZE;
-    const MONTHLY_REWARD_GOLD = 500 - MONTHLY_REWARD_SILVER;
-    const MONTHLY_REWARD_PLATINUM = 1000 - MONTHLY_REWARD_GOLD;
+    const MONTHLY_REWARD_GOLD = 500 - ( MONTHLY_REWARD_SILVER + MONTHLY_REWARD_BRONZE );
+    const MONTHLY_REWARD_PLATINUM = 1000 - ( MONTHLY_REWARD_GOLD + MONTHLY_REWARD_SILVER + MONTHLY_REWARD_BRONZE );
 
     const BRNZ_REWARD_PER_BLOCK = MONTHLY_REWARD_BRONZE / BLOCKS_PER_MONTH;
     const SILV_REWARD_PER_BLOCK = MONTHLY_REWARD_SILVER / BLOCKS_PER_MONTH;
@@ -104,26 +106,22 @@ describe("EmissionsERC20", async function () {
       )
     );
 
-    // BEGIN top level vals
+    // BEGIN constants
 
-    const valTierAddress = op(Opcode.val, 0);
-    const valBaseRewardPerTier = op(Opcode.val, 1);
+    // FN uses constants 0-3
+    const valTierAddress = op(Opcode.val, 4);
+    const valBaseRewardPerTier = op(Opcode.val, 5);
+    const valBlocksPerYear = op(Opcode.val, 6);
+    const valBOne = op(Opcode.val, 7);
 
-    // END top level vals
+    // END constants
 
-    // BEGIN forwarded vals
+    // BEGIN args
 
-    const valBlocksPerYear = op(Opcode.val, claimUtil.valOperand(0, true));
-    const valBOne = op(Opcode.val, claimUtil.valOperand(1, true));
+    const valBaseReward = op(Opcode.val, arg(0));
+    const valDuration = op(Opcode.val, arg(1));
 
-    // END forwarded vals
-
-    // BEGIN Inner Val snippets
-
-    const valBaseReward = op(Opcode.val, 0);
-    const valDuration = op(Opcode.val, 1);
-
-    // END Inner Val snippets
+    // END args
 
     // BEGIN Source snippets
 
@@ -184,20 +182,35 @@ describe("EmissionsERC20", async function () {
         op(Opcode.blockNumber),
       ]);
 
+    console.log('tierwise diff', TIERWISE_DIFF());
+
     const SOURCE = () =>
       concat([
         //
         op(Opcode.add, 8),
-        op(Opcode.zipmap, Util.callSize(3, 3, 1)),
+        op(Opcode.zipmap, Util.callSize(1, 3, 1)),
         op(Opcode.val, 0), // fn0
         op(Opcode.val, 1), // fn1
-        op(Opcode.val, 2), // fn2
-        op(Opcode.val, 3), // fn3
-        valBaseRewardPerTier, // val0
-        TIERWISE_DIFF(), // val1
+        // op(Opcode.val, 2), // fn2
+        // op(Opcode.val, 3), // fn3
+        valBaseRewardPerTier, // val1
+        TIERWISE_DIFF(), // val0
       ]);
 
+    const constants = [
+      ...chunkedSource(concat([FN()])),
+      readWriteTier.address,
+      BASE_REWARD_PER_TIER,
+      BLOCKS_PER_YEAR, // e.g. '365' blocks = 1 year
+      BONE,
+    ]
+
     // END Source snippets
+
+    console.log('source', SOURCE())
+
+    console.log('chunked', chunkedSource(concat([SOURCE()])))
+    console.log('constants', constants)
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
@@ -210,15 +223,8 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: chunkedSource(concat([SOURCE()])),
-          constants: [
-            ...chunkedSource(concat([FN()])),
-            readWriteTier.address,
-            BASE_REWARD_PER_TIER,
-            BLOCKS_PER_YEAR, // e.g. '365' blocks = 1 year
-            BONE,
-          ],
-          arguments: [
-          ],
+          constants,
+          arguments: [],
         },
       }
     );

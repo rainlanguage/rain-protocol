@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "hardhat/console.sol";
+
 struct Source {
     uint256[] source;
     uint256[] constants;
@@ -29,7 +31,7 @@ struct Op {
 }
 
 enum Ops {
-    end,
+    noop,
     val,
     zipmap,
     length
@@ -99,28 +101,45 @@ abstract contract RainVM {
         Source memory source_,
         Stack memory stack_
     ) internal view {
-        for (uint256 i_ = 0; i_ < MAX_SOURCE_LENGTH; i_ = i_ + 2) {
+        for (
+            uint256 i_ = source_.source.length * 32 - 2;
+            i_ > 0;
+            i_ = i_ - 2
+        ) {
             SourceCursor memory sourceCursor_ = SourceCursor(
                 uint8(i_ / 32),
                 uint8(i_ % 32)
             );
 
+            console.log(
+                "cursor: %s %s",
+                sourceCursor_.item,
+                sourceCursor_.index
+            );
+            console.log(
+                "offset: %s %s",
+                256 - (uint256(sourceCursor_.index + 2) * 8),
+                uint256(sourceCursor_.index + 2) * 8
+            );
+
             Op memory op_ = Op(
                 uint8(
                     uint256(source_.source[sourceCursor_.item]
-                        >> (sourceCursor_.index * 8)
+                        >> (256 - uint256(sourceCursor_.index + 2) * 8)
                     )
                 ),
                 uint8(
                     uint256(source_.source[sourceCursor_.item]
-                        >> ((sourceCursor_.index + 1) * 8)
+                        >> (256 - uint256(sourceCursor_.index + 1) * 8)
                     )
                 )
             );
 
+            console.log("op: %s %s", op_.code, op_.val);
+
             if (op_.code < uint8(Ops.length)) {
-                if (op_.code == uint8(Ops.end)) {
-                    break;
+                if (op_.code == uint8(Ops.noop)) {
+                    continue;
                 }
                 else if (op_.code == uint8(Ops.val)) {
                     uint8 valIndex_ = op_.val & 0x7F;
