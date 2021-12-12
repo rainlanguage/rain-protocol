@@ -102,24 +102,13 @@ abstract contract RainVM {
         Stack memory stack_
     ) internal view {
         for (
-            uint256 i_ = source_.source.length * 32 - 2;
+            uint256 i_ = source_.source.length * 32;
             i_ > 0;
             i_ = i_ - 2
         ) {
             SourceCursor memory sourceCursor_ = SourceCursor(
-                uint8(i_ / 32),
-                uint8(i_ % 32)
-            );
-
-            console.log(
-                "cursor: %s %s",
-                sourceCursor_.item,
-                sourceCursor_.index
-            );
-            console.log(
-                "offset: %s %s",
-                256 - (uint256(sourceCursor_.index + 2) * 8),
-                uint256(sourceCursor_.index + 2) * 8
+                uint8((i_ - 2) / 32),
+                uint8((i_ - 2) % 32)
             );
 
             Op memory op_ = Op(
@@ -135,7 +124,7 @@ abstract contract RainVM {
                 )
             );
 
-            console.log("op: %s %s", op_.code, op_.val);
+            if (op_.code > 0) console.log("op: %s %s", op_.code, op_.val);
 
             if (op_.code < uint8(Ops.length)) {
                 if (op_.code == uint8(Ops.noop)) {
@@ -147,9 +136,11 @@ abstract contract RainVM {
                     stack_.vals[stack_.index] = fromArguments_
                         ? source_.arguments[valIndex_]
                         : source_.constants[valIndex_];
+                    console.log("val: %s %s %s", fromArguments_, stack_.vals[stack_.index], valIndex_);
                     stack_.index++;
                 }
                 else if (op_.code == uint8(Ops.zipmap)) {
+                    console.log("zipmap");
                     // stack_ modified by reference.
                     zipmap(
                         context_,
@@ -161,6 +152,7 @@ abstract contract RainVM {
                             (op_.val >> 5) & 0x07
                         )
                     );
+                    console.log("zipmap end");
                 }
             }
             else {
@@ -171,6 +163,7 @@ abstract contract RainVM {
                     op_
                 );
             }
+            console.log("i_: %s", i_);
         }
     }
 

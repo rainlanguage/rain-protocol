@@ -45,6 +45,7 @@ library TierOps {
             stack_.index++;
         }
         else if (op_.code == uint8(Ops.never)) {
+            console.log("tier never");
             stack_.vals[stack_.index] = TierReport.NEVER;
             stack_.index++;
         }
@@ -60,6 +61,12 @@ library TierOps {
                 olderReport_,
                 newerReport_
             );
+            console.log(
+                "tier diff: %s %s %s",
+                stack_.vals[stack_.index],
+                olderReport_,
+                newerReport_
+            );
             stack_.index++;
         }
         else if (op_.code == uint8(Ops.updateBlocksForTierRange)) {
@@ -72,6 +79,12 @@ library TierOps {
                 report_,
                 startTier_,
                 endTier_,
+                blockNumber_
+            );
+            console.log(
+                "update blocks for tier range: %s %s %s",
+                stack_.vals[stack_.index],
+                report_,
                 blockNumber_
             );
             stack_.index++;
@@ -114,6 +127,12 @@ library TierOps {
                 stack_.vals[stack_.index] = TierwiseCombine.anyLteMax(
                     args_,
                     blockNumber_
+                );
+                console.log(
+                    "any lte max: %s %s %s",
+                    stack_.vals[stack_.index],
+                    args_[0],
+                    args_[1]
                 );
             }
             else if (op_.code == uint(Ops.anyLteFirst)) {

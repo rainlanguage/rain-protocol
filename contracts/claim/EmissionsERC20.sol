@@ -12,6 +12,8 @@ import { MathOps, Ops as MathOpsOps } from "../vm/ops/MathOps.sol";
 import { TierOps, Ops as TierOpsOps } from "../vm/ops/TierOps.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import "hardhat/console.sol";
+
 enum Ops {
     account,
     constructionBlockNumber
@@ -106,9 +108,11 @@ contract EmissionsERC20 is
             if (op_.code == uint8(Ops.account)) {
                 (address account_) = abi.decode(context_, (address));
                 stack_.vals[stack_.index] = uint256(uint160(account_));
+                console.log("emissions account: %s", stack_.vals[stack_.index]);
                 stack_.index++;
             }
             else if (op_.code == uint8(Ops.constructionBlockNumber)) {
+                console.log("emissions construction block number");
                 stack_.vals[stack_.index] = constructionBlockNumber;
                 stack_.index++;
             }
@@ -123,9 +127,7 @@ contract EmissionsERC20 is
         view
         returns (uint256)
     {
-        // Fallback to 0 is correct in this case as a user who never claimed
-        // is ALWAYS able to claim.
-        return reports[account_];
+        return reports[account_] > 0 ? reports[account_] : TierReport.NEVER;
     }
 
     function calculateClaim(address account_)
