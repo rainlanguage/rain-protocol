@@ -28,6 +28,7 @@ library MathOps {
     internal
     view
     {
+        console.log("math stack: %s %s", stack_.index, op_.val);
         stack_.index -= op_.val;
 
         uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];

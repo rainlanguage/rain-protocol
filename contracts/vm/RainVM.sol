@@ -49,14 +49,13 @@ abstract contract RainVM {
         Stack memory stack_,
         CallSize memory callSize_
     ) internal view {
+        uint256 fnIndex_ = stack_.index - 1;
         stack_.index -= (callSize_.fnSize + callSize_.valSize + 2);
 
         uint256[] memory mapSource_ = new uint256[](callSize_.fnSize + 1);
 
-        uint256 fnIndex_ = stack_.index + callSize_.valSize + 1;
-
         for (uint256 f_ = 0; f_ < mapSource_.length; f_++) {
-            mapSource_[f_] = stack_.vals[fnIndex_ + f_];
+            mapSource_[f_] = stack_.vals[fnIndex_ - f_];
         }
 
         uint256[] memory baseVals_ = new uint256[](callSize_.valSize + 1);
