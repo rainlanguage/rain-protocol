@@ -1,11 +1,12 @@
 import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import { ethers } from "hardhat";
+import { ethers, artifacts } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { IBPool } from "../../typechain/IBPool";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
@@ -665,6 +666,158 @@ describe("RedeemableERC20Pool", async function () {
 
     await pool.ownerEndDutchAuction();
   });
+
+  it("should correctly calculate exit balances if people grief balancer", async function() {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const owner = signers[3]
+
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumStatus = 0;
+
+    const redeemableFactory = await ethers.getContractFactory(
+      "RedeemableERC20"
+    );
+
+    const reserveInit = ethers.BigNumber.from("50000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("50000" + Util.sixZeros);
+    const totalTokenSupply = ethers.BigNumber.from(
+      "200000" + Util.eighteenZeros
+    )
+    const minRaise = ethers.BigNumber.from("50000" + Util.sixZeros);
+
+    const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
+    const finalValuation = minRaise.add(redeemInit);
+
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
+
+    const minimumTradingDuration = 15;
+
+    const redeemable = (await redeemableFactory.deploy({
+      admin: signers[0].address,
+      erc20Config,
+      reserve: reserve.address,
+      tier: tier.address,
+      minimumStatus,
+      totalSupply: totalTokenSupply,
+    })) as RedeemableERC20 & Contract;
+
+    await redeemable.deployed();
+
+    assert(
+      (await reserve.balanceOf(redeemable.address)).eq(0),
+      "reserve was not 0 on redeemable construction"
+    );
+    assert(
+      (await redeemable.totalSupply()).eq(totalTokenSupply),
+      `total supply was not ${totalTokenSupply} on redeemable construction`
+    );
+    assert(
+      (await redeemable.currentPhase()) === Phase.ZERO,
+      `current phase was not ${
+        Phase.ZERO
+      } on construction, got ${await redeemable.currentPhase()}`
+    );
+
+    const poolFactory = await ethers.getContractFactory("RedeemableERC20Pool");
+
+    const pool = (await poolFactory.deploy({
+      crpFactory: crpFactory.address,
+      balancerFactory: bFactory.address,
+      token: redeemable.address,
+      reserve: reserve.address,
+      reserveInit: reserveInit,
+      initialValuation: initialValuation,
+      finalValuation: finalValuation,
+      minimumTradingDuration,
+    })) as RedeemableERC20Pool & Contract;
+
+    await pool.deployed();
+
+    pool.transferOwnership(owner.address)
+
+    // Trust normally does this internally.
+    await redeemable.grantRole(
+      await redeemable.DEFAULT_ADMIN_ROLE(),
+      pool.address
+    );
+    await redeemable.transfer(pool.address, await redeemable.totalSupply());
+
+    assert((await pool.token()) === redeemable.address, "wrong token address");
+    assert((await pool.owner()) === owner.address, "wrong owner");
+
+    await reserve.transfer(pool.address, reserveInit);
+    await redeemable.approve(pool.address, totalTokenSupply);
+
+    // send excess reserve before the auction starts.
+    // random ppl could do this.
+    await reserve.transfer(pool.address, '100000000')
+
+    await pool.startDutchAuction({
+      gasLimit: 10000000,
+    });
+
+    const now = await ethers.provider.getBlockNumber();
+    const phaseOneBlock = now + minimumTradingDuration;
+
+    const [crp] = await Util.poolContracts(signers, pool);
+
+    // The trust would do this internally but we need to do it here to test.
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
+
+    await Util.assertError(
+      async () => await pool.connect(owner).ownerEndDutchAuction(),
+      "revert BAD_PHASE",
+      "failed to error on early exit"
+    );
+
+    await reserve.transfer(signers[1].address, 1);
+
+    // send excess reserve to the bPool after the auction starts and gulp it.
+    // random ppl could do this.
+    await reserve.transfer(await crp.bPool(), '100000000');
+    const bPool = new ethers.Contract(
+      await crp.bPool(),
+      (await artifacts.readArtifact("contracts/pool/IBPool.sol:IBPool")).abi
+    ) as Contract & IBPool;
+    await bPool.connect(signers[2]).gulp(reserve.address);
+
+    // create a few blocks by sending some tokens around
+    while ((await ethers.provider.getBlockNumber()) <= phaseOneBlock) {
+      await reserve.transfer(signers[1].address, 1);
+    }
+
+    // Send a bunch of reserve to the bPool that it won't have accounted for
+    // in its internal records, because there is no gulp.
+    await reserve.transfer(await crp.bPool(), '100000000');
+
+    // send excess reserve to the pool after the auction starts.
+    // random ppl could do this.
+    await reserve.transfer(pool.address, '100000000');
+
+    await pool.connect(owner).ownerEndDutchAuction();
+
+    console.log(await reserve.balanceOf(owner.address));
+
+    assert(
+      // 4x grief reserves - 1000001
+      (await reserve.balanceOf(owner.address)).eq(ethers.BigNumber.from("50398999999")),
+      "wrong final balance"
+    )
+  })
 
   it("should construct a pool with whitelisting", async function () {
     this.timeout(0);
