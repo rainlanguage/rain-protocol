@@ -1021,9 +1021,11 @@ describe("TrustSeed", async function () {
 
       const trustFinalBalance = bPoolFinalBalance.sub(bPoolReserveDust);
 
-      const expectedSeederPay = reserveInit.lte(trustFinalBalance)
-        ? reserveInit
-        : trustFinalBalance;
+      const expectedSeederPay = (
+        reserveInit.lte(trustFinalBalance) ? reserveInit : trustFinalBalance
+      )
+        // intentional dust.
+        .sub(1);
 
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
@@ -1075,8 +1077,7 @@ describe("TrustSeed", async function () {
 
       const expectedReturn2 = trustFinalBalance
         .mul(seeder2Units)
-        .div(seederUnits)
-        .add(1);
+        .div(seederUnits);
 
       // correct amount of reserve should have been returned
       assert(
