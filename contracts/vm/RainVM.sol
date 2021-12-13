@@ -31,7 +31,7 @@ struct Op {
 }
 
 enum Ops {
-    noop,
+    skip,
     val,
     zipmap,
     length
@@ -127,7 +127,8 @@ abstract contract RainVM {
             if (op_.code > 0) console.log("op: %s %s", op_.code, op_.val);
 
             if (op_.code < uint8(Ops.length)) {
-                if (op_.code == uint8(Ops.noop)) {
+                if (op_.code == uint8(Ops.skip)) {
+                    i_ -= op_.val * 2;
                     continue;
                 }
                 else if (op_.code == uint8(Ops.val)) {
