@@ -455,7 +455,7 @@ export const paddedBlock = (
 };
 
 export type Source = [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
-export type Vals = [
+export type Constants = [
   BigNumberish,
   BigNumberish,
   BigNumberish,

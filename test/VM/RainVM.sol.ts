@@ -160,7 +160,7 @@ describe("RainVM", async function () {
     console.log(ethers.BigNumber.from(val256));
     // assert(ethers.BigNumber.from(val256).eq(Util.max_uint256));
 
-    const constants: Util.Vals = [
+    const constants: Util.Constants = [
       concat([
         op(Opcode.ADD, 2),
         op(Opcode.VAL, 0),
