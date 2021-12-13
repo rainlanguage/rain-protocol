@@ -128,6 +128,7 @@ abstract contract RainVM {
 
             if (op_.code < uint8(Ops.length)) {
                 if (op_.code == uint8(Ops.noop)) {
+                    i_ -= op_.val * 2;
                     continue;
                 }
                 else if (op_.code == uint8(Ops.val)) {
