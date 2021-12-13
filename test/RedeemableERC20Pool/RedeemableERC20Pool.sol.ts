@@ -810,8 +810,6 @@ describe("RedeemableERC20Pool", async function () {
 
     await pool.connect(owner).ownerEndDutchAuction();
 
-    console.log(await reserve.balanceOf(owner.address));
-
     assert(
       // 4x grief reserves - 1000001
       (await reserve.balanceOf(owner.address)).eq(ethers.BigNumber.from("50398999999")),
