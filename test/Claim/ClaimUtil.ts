@@ -9,7 +9,6 @@ import type {
 } from "../../typechain/EmissionsERC20Factory";
 import type { EmissionsERC20 } from "../../typechain/EmissionsERC20";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { hexlify } from "ethers/lib/utils";
 
 export interface ClaimFactories {
   emissionsERC20Factory: EmissionsERC20Factory & Contract;

@@ -62,7 +62,7 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it.only("should calculate correct emissions amount", async function () {
+  it("should calculate correct emissions amount", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -87,8 +87,11 @@ describe("EmissionsERC20", async function () {
 
     const MONTHLY_REWARD_BRONZE = 100;
     const MONTHLY_REWARD_SILVER = 200 - MONTHLY_REWARD_BRONZE;
-    const MONTHLY_REWARD_GOLD = 500 - ( MONTHLY_REWARD_SILVER + MONTHLY_REWARD_BRONZE );
-    const MONTHLY_REWARD_PLATINUM = 1000 - ( MONTHLY_REWARD_GOLD + MONTHLY_REWARD_SILVER + MONTHLY_REWARD_BRONZE );
+    const MONTHLY_REWARD_GOLD =
+      500 - (MONTHLY_REWARD_SILVER + MONTHLY_REWARD_BRONZE);
+    const MONTHLY_REWARD_PLATINUM =
+      1000 -
+      (MONTHLY_REWARD_GOLD + MONTHLY_REWARD_SILVER + MONTHLY_REWARD_BRONZE);
 
     const BRNZ_REWARD_PER_BLOCK = MONTHLY_REWARD_BRONZE / BLOCKS_PER_MONTH;
     const SILV_REWARD_PER_BLOCK = MONTHLY_REWARD_SILVER / BLOCKS_PER_MONTH;
@@ -110,7 +113,7 @@ describe("EmissionsERC20", async function () {
 
     // FN uses constants 0-3
     const valTierAddress = op(Opcode.val, 4);
-    console.log('valTierAddress', valTierAddress);
+    console.log("valTierAddress", valTierAddress);
     const valBaseRewardPerTier = op(Opcode.val, 5);
     const valBlocksPerYear = op(Opcode.val, 6);
     const valBOne = op(Opcode.val, 7);
@@ -139,10 +142,10 @@ describe("EmissionsERC20", async function () {
         //
         op(Opcode.min, 2),
         op(Opcode.div, 2),
-          op(Opcode.mul, 2),
-            valBOne,
-            valDuration,
-          valBlocksPerYear,
+        op(Opcode.mul, 2),
+        valBOne,
+        valDuration,
+        valBlocksPerYear,
         valBOne,
       ]);
 
@@ -173,16 +176,18 @@ describe("EmissionsERC20", async function () {
       ]);
     const LAST_CLAIM_REPORT = () =>
       concat([
+        //
         op(Opcode.report),
         op(Opcode.thisAddress),
-        op(Opcode.account)
-    ]);
+        op(Opcode.account),
+      ]);
     const TIER_REPORT = () =>
       concat([
+        //
         op(Opcode.report),
         valTierAddress,
-        op(Opcode.account)
-    ]);
+        op(Opcode.account),
+      ]);
     const TIERWISE_DIFF = () =>
       concat([
         op(Opcode.diff),
@@ -193,19 +198,19 @@ describe("EmissionsERC20", async function () {
         op(Opcode.blockNumber),
       ]);
 
-    console.log('tierwise diff', TIERWISE_DIFF());
+    console.log("tierwise diff", TIERWISE_DIFF());
 
     const SOURCE = () =>
       concat([
         //
         op(Opcode.add, 8),
         op(Opcode.zipmap, Util.callSize(0, 3, 1)),
-          op(Opcode.val, 0), // fn0
-          // op(Opcode.val, 1), // fn1
-          // op(Opcode.val, 2), // fn2
-          // op(Opcode.val, 3), // fn3
-          valBaseRewardPerTier, // val1
-          TIERWISE_DIFF(), // val0
+        op(Opcode.val, 0), // fn0
+        // op(Opcode.val, 1), // fn1
+        // op(Opcode.val, 2), // fn2
+        // op(Opcode.val, 3), // fn3
+        valBaseRewardPerTier, // val1
+        TIERWISE_DIFF(), // val0
       ]);
 
     const constants = [
@@ -214,14 +219,14 @@ describe("EmissionsERC20", async function () {
       BASE_REWARD_PER_TIER,
       BLOCKS_PER_YEAR, // e.g. '365' blocks = 1 year
       BONE,
-    ]
+    ];
 
     // END Source snippets
 
-    console.log('source', SOURCE())
+    console.log("source", SOURCE());
 
-    console.log('chunked', chunkedSource(concat([SOURCE()])))
-    console.log('constants', constants)
+    console.log("chunked", chunkedSource(concat([SOURCE()])));
+    console.log("constants", constants);
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
@@ -242,9 +247,9 @@ describe("EmissionsERC20", async function () {
 
     await readWriteTier.setTier(claimer.address, Tier.ONE, []);
 
-    console.log("block before", await ethers.provider.getBlockNumber())
+    console.log("block before", await ethers.provider.getBlockNumber());
     await Util.createEmptyBlock(BLOCKS_PER_YEAR / 2); // ~50% claim progress
-    console.log("block after", await ethers.provider.getBlockNumber())
+    console.log("block after", await ethers.provider.getBlockNumber());
 
     const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
 
