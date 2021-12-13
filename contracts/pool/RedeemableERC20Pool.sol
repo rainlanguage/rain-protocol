@@ -9,6 +9,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 
 import { Rights } from "./IRightsManager.sol";
 import { ICRPFactory } from "./ICRPFactory.sol";
+import { IBPool } from "./IBPool.sol";
 // solhint-disable-next-line max-line-length
 import { PoolParams, IConfigurableRightsPool } from "./IConfigurableRightsPool.sol";
 
@@ -324,6 +325,14 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // callable.
         scheduleNextPhase(uint32(block.number));
 
+        // Ensure the bPool is aware of the real internal token balances.
+        // Balancer will ignore tokens transferred to it until they are gulped.
+        IBPool(crp.bPool()).gulp(address(reserve));
+        IBPool(crp.bPool()).gulp(address(token));
+
+        uint256 selfPoolTokens_ = IERC20(address(crp))
+            .balanceOf(address(this));
+
         // Balancer enforces a global minimum pool LP token supply as
         // `MIN_POOL_SUPPLY`.
         // Balancer also indirectly enforces local minimums on pool token
@@ -333,13 +342,17 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // - The LP token supply implied by the reserve
         // - The LP token supply implied by the token
         uint256 minReservePoolTokens
-            = ( MIN_BALANCER_POOL_BALANCE * IBalancerConstants.MAX_POOL_SUPPLY)
-            / reserve.balanceOf(crp.bPool());
+            = ( MIN_BALANCER_POOL_BALANCE * selfPoolTokens_ )
+            // It's important to use the balance in the opinion of the bPool to
+            // be sure that the pool token calculations are the same.
+            / IBPool(crp.bPool()).getBalance(address(reserve));
         // The minimum redeemable token supply is `10 ** 18` so it is near
         // impossible to hit this before the reserve or global pool minimums.
         uint256 minRedeemablePoolTokens
-            = ( MIN_BALANCER_POOL_BALANCE * IBalancerConstants.MAX_POOL_SUPPLY)
-            / token.balanceOf(crp.bPool());
+            = ( MIN_BALANCER_POOL_BALANCE * selfPoolTokens_ )
+            // It's important to use the balance in the opinion of the bPool to
+            // be sure that the pool token calculations are the same.
+            / IBPool(crp.bPool()).getBalance(address(token));
         uint256 minPoolSupply_ = IBalancerConstants.MIN_POOL_SUPPLY
             .max(minReservePoolTokens)
             .max(minRedeemablePoolTokens)
@@ -356,7 +369,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // The redeemable token will be burned when it moves to its own
         // `Phase.ONE`.
         crp.exitPool(
-            IERC20(address(crp)).balanceOf(address(this)) - minPoolSupply_,
+            selfPoolTokens_ - minPoolSupply_,
             new uint256[](2)
         );
 
