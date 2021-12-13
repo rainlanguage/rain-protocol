@@ -373,9 +373,7 @@ export function callSize(
   return callSize;
 }
 
-export function arg(
-  valIndex: number
-): number {
+export function arg(valIndex: number): number {
   let arg = 1;
   arg <<= 7;
   arg += valIndex;

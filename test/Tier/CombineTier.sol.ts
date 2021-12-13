@@ -9,7 +9,7 @@ import type { Contract, ContractFactory } from "ethers";
 import type { CombineTier } from "../../typechain/CombineTier";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { CombineTierFactory } from "../../typechain/CombineTierFactory";
-import type { Source, Vals } from "../Util";
+import type { Source } from "../Util";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,12 +62,12 @@ describe("CombineTier", async function () {
     const alwaysTier = (await combineTierFactory.deploy({
       source: sourceAlways,
       constants: [],
-      arguments: []
+      arguments: [],
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       source: sourceNever,
       constants: [],
-      arguments: []
+      arguments: [],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -108,7 +108,7 @@ describe("CombineTier", async function () {
     const combineTier = (await combineTierFactory.deploy({
       source,
       constants,
-      arguments: []
+      arguments: [],
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);

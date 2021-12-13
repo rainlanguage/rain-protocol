@@ -200,9 +200,9 @@ describe("RainVM", async function () {
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
-      source, // not important
-      constants, // not important
-      arguments: []
+      source,
+      constants,
+      arguments: [],
     })) as CalculatorTest & Contract;
 
     // Just return the whole output stack for debugging purposes
@@ -214,7 +214,7 @@ describe("RainVM", async function () {
     const resultStack = await calculator.evalStack({
       source,
       constants,
-      arguments: []
+      arguments: [],
     });
 
     console.log(resultStack);
@@ -289,8 +289,8 @@ describe("RainVM", async function () {
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
-      source, // not important
-      constants, // not important
+      source,
+      constants,
       arguments: [],
     })) as CalculatorTest & Contract;
 
@@ -382,8 +382,8 @@ describe("RainVM", async function () {
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
-      source, // not important
-      constants, // not important
+      source,
+      constants,
       arguments: [],
     })) as CalculatorTest & Contract;
 
@@ -544,8 +544,8 @@ describe("RainVM", async function () {
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
-      source, // not important
-      constants, // not important
+      source,
+      constants,
       arguments: [],
     })) as CalculatorTest & Contract;
 
@@ -558,7 +558,7 @@ describe("RainVM", async function () {
     const resultStack = await calculator.evalStack({
       source,
       constants,
-      arguments: []
+      arguments: [],
     });
 
     const expectedIndex = 2;
@@ -642,12 +642,16 @@ describe("RainVM", async function () {
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
-      source, // not important
-      constants, // not important
+      source,
+      constants,
       arguments: [],
     })) as CalculatorTest & Contract;
 
-    const resultStack = await calculator.evalStack({ source, constants, arguments: [] });
+    const resultStack = await calculator.evalStack({
+      source,
+      constants,
+      arguments: [],
+    });
 
     const expectedIndex = 2;
     const actualIndex = resultStack.index;
@@ -713,12 +717,16 @@ describe("RainVM", async function () {
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
-      source, // not important
-      constants, // not important
+      source,
+      constants,
       arguments: [],
     })) as CalculatorTest & Contract;
 
-    const resultStack = await calculator.evalStack({ source, constants, arguments: [] });
+    const resultStack = await calculator.evalStack({
+      source,
+      constants,
+      arguments: [],
+    });
 
     const expectedIndex = 2;
     const actualIndex = resultStack.index;
@@ -779,8 +787,8 @@ describe("RainVM", async function () {
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
-      source, // not important
-      constants, // not important
+      source,
+      constants,
       arguments: [],
     })) as CalculatorTest & Contract;
 
