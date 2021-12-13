@@ -136,88 +136,87 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN Source snippets
 
+    // prettier-ignore
     const REWARD = () =>
       concat([
-        //
         op(Opcode.mul, 2),
-        valBaseReward,
-        valDuration,
+          valBaseReward,
+          valDuration,
       ]);
 
+    // prettier-ignore
     const PROGRESS = () =>
       concat([
-        //
         op(Opcode.min, 2),
-        op(Opcode.div, 2),
-        op(Opcode.mul, 2),
-        valBOne,
-        valDuration,
-        valBlocksPerYear,
-        valBOne,
+          op(Opcode.div, 2),
+            op(Opcode.mul, 2),
+              valBOne,
+              valDuration,
+            valBlocksPerYear,
+          valBOne,
       ]);
 
+    // prettier-ignore
     const MULTIPLIER = () =>
       concat([
-        //
         op(Opcode.add, 2),
-        valBOne,
-        PROGRESS(),
+          valBOne,
+          PROGRESS(),
       ]);
 
+    // prettier-ignore
     const FN = () =>
       concat([
-        //
         op(Opcode.mul, 2),
-        MULTIPLIER(),
-        REWARD(),
+          MULTIPLIER(),
+          REWARD(),
       ]);
 
+    // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
         op(
           Opcode.updateBlocksForTierRange,
           claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
         ),
-        op(Opcode.never),
-        op(Opcode.blockNumber),
+          op(Opcode.never),
+          op(Opcode.blockNumber),
       ]);
+    // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
-        //
         op(Opcode.report),
-        op(Opcode.thisAddress),
-        op(Opcode.account),
+          op(Opcode.thisAddress),
+          op(Opcode.account),
       ]);
+    // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-        //
         op(Opcode.report),
-        valTierAddress,
-        op(Opcode.account),
+          valTierAddress,
+          op(Opcode.account),
       ]);
+    // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
         op(Opcode.diff),
-        CURRENT_BLOCK_AS_REPORT(),
-        op(Opcode.anyLteMax, 2),
-        LAST_CLAIM_REPORT(),
-        TIER_REPORT(),
-        op(Opcode.blockNumber),
+          CURRENT_BLOCK_AS_REPORT(),
+          op(Opcode.anyLteMax, 2),
+            LAST_CLAIM_REPORT(),
+            TIER_REPORT(),
+          op(Opcode.blockNumber),
       ]);
 
     console.log("tierwise diff", TIERWISE_DIFF());
 
+    // prettier-ignore
     const SOURCE = () =>
       concat([
-        //
         op(Opcode.add, 8),
-        op(Opcode.zipmap, Util.callSize(0, 3, 1)),
-        op(Opcode.val, 0), // fn0
-        // op(Opcode.val, 1), // fn1
-        // op(Opcode.val, 2), // fn2
-        // op(Opcode.val, 3), // fn3
-        valBaseRewardPerTier, // val1
-        TIERWISE_DIFF(), // val0
+          op(Opcode.zipmap, Util.callSize(0, 3, 1)),
+            op(Opcode.val, 0), // fn start index
+            valBaseRewardPerTier, // val1
+            TIERWISE_DIFF(), // val0
       ]);
 
     const constants = [
@@ -361,29 +360,30 @@ describe("EmissionsERC20", async function () {
         },
         source: {
           source: [
+            // prettier-ignore
             concat([
               op(Opcode.diff),
 
-              op(
-                Opcode.updateBlocksForTierRange,
-                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
-              ),
-              op(Opcode.never),
-              op(Opcode.blockNumber),
+                op(
+                  Opcode.updateBlocksForTierRange,
+                  claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+                ),
+                  op(Opcode.never),
+                  op(Opcode.blockNumber),
 
-              op(Opcode.everyLteMax, 2),
+                op(Opcode.everyLteMax, 2),
 
-              // lastClaimReport
-              op(Opcode.report),
-              op(Opcode.thisAddress),
-              op(Opcode.account),
+                  // lastClaimReport
+                  op(Opcode.report),
+                    op(Opcode.thisAddress),
+                    op(Opcode.account),
 
-              // tierReport
-              op(Opcode.report),
-              op(Opcode.val, 0),
-              op(Opcode.account),
+                  // tierReport
+                  op(Opcode.report),
+                    op(Opcode.val, 0),
+                    op(Opcode.account),
 
-              op(Opcode.blockNumber),
+                op(Opcode.blockNumber),
             ]),
             0,
             0,
