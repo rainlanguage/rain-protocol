@@ -182,6 +182,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.never),
           op(Opcode.blockNumber),
       ]);
+
     // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
@@ -189,6 +190,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.thisAddress),
           op(Opcode.account),
       ]);
+
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
@@ -196,6 +198,7 @@ describe("EmissionsERC20", async function () {
           valTierAddress,
           op(Opcode.account),
       ]);
+
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
@@ -214,7 +217,7 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.add, 8),
           op(Opcode.zipmap, Util.callSize(0, 3, 1)),
-            op(Opcode.val, 0), // fn start index
+            op(Opcode.val, 0), // fn0
             valBaseRewardPerTier, // val1
             TIERWISE_DIFF(), // val0
       ]);
@@ -535,9 +538,9 @@ describe("EmissionsERC20", async function () {
     );
 
     assert(
-      beforeClaimReport.isZero(),
+      beforeClaimReport.eq(Util.NEVER),
       `wrong emissions report before claim
-      expected  0x00
+      expected  ${Util.NEVER}
       got       ${hexlify(beforeClaimReport)}`
     );
   });
@@ -809,6 +812,44 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    // prettier-ignore
+    const CURRENT_BLOCK_AS_REPORT = () =>
+      concat([
+        op(
+          Opcode.updateBlocksForTierRange,
+          claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+        ),
+          op(Opcode.never),
+          op(Opcode.blockNumber),
+      ]);
+
+    // prettier-ignore
+    const LAST_CLAIM_REPORT = () =>
+      concat([
+        op(Opcode.report),
+          op(Opcode.thisAddress),
+          op(Opcode.account),
+      ]);
+
+    // prettier-ignore
+    const TIER_REPORT = () =>
+      concat([
+        op(Opcode.report),
+          op(Opcode.val, 0),
+          op(Opcode.account),
+      ]);
+
+    // prettier-ignore
+    const TIERWISE_DIFF = () =>
+      concat([
+        op(Opcode.diff),
+          CURRENT_BLOCK_AS_REPORT(),
+          op(Opcode.anyLteMax, 2),
+            LAST_CLAIM_REPORT(),
+            TIER_REPORT(),
+          op(Opcode.blockNumber),
+      ]);
+
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
       emissionsERC20Factory,
@@ -819,35 +860,7 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: [
-            concat([
-              op(Opcode.diff),
-
-              op(
-                Opcode.updateBlocksForTierRange,
-                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
-              ),
-              op(Opcode.never),
-              op(Opcode.blockNumber),
-
-              op(Opcode.everyLteMax, 2),
-
-              // lastClaimReport
-              op(Opcode.report),
-              op(Opcode.thisAddress),
-              op(Opcode.account),
-
-              // tierReport
-              op(Opcode.report),
-              op(Opcode.val, 0),
-              op(Opcode.account),
-
-              op(Opcode.blockNumber),
-            ]),
-            0,
-            0,
-            0,
-          ],
+          source: [TIERWISE_DIFF(), 0, 0, 0],
           constants: [
             readWriteTier.address,
             0,
@@ -878,6 +891,10 @@ describe("EmissionsERC20", async function () {
 
     await Util.createEmptyBlock(5);
 
+    console.log(
+      "claimer tier report",
+      await readWriteTier.report(claimer.address)
+    );
     const claimReport = paddedReport(
       await emissionsERC20.calculateClaim(claimer.address)
     );

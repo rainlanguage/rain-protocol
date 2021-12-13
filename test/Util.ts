@@ -184,6 +184,9 @@ export const max_uint256 = ethers.BigNumber.from(
 );
 export const max_uint32 = ethers.BigNumber.from("0xffffffff");
 
+export const ALWAYS = 0;
+export const NEVER = max_uint256;
+
 export const estimateReserveDust = (bPoolReserveBalance: BigNumber) => {
   let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
   if (dust.lt(RESERVE_MIN_BALANCE)) {
