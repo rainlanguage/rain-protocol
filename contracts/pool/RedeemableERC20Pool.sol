@@ -330,6 +330,9 @@ contract RedeemableERC20Pool is Ownable, Phased {
         IBPool(crp.bPool()).gulp(address(reserve));
         IBPool(crp.bPool()).gulp(address(token));
 
+        uint256 selfPoolTokens_ = IERC20(address(crp))
+            .balanceOf(address(this));
+
         // Balancer enforces a global minimum pool LP token supply as
         // `MIN_POOL_SUPPLY`.
         // Balancer also indirectly enforces local minimums on pool token
@@ -339,14 +342,14 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // - The LP token supply implied by the reserve
         // - The LP token supply implied by the token
         uint256 minReservePoolTokens
-            = ( MIN_BALANCER_POOL_BALANCE * IBalancerConstants.MAX_POOL_SUPPLY)
+            = ( MIN_BALANCER_POOL_BALANCE * selfPoolTokens_ )
             // It's important to use the balance in the opinion of the bPool to
             // be sure that the pool token calculations are the same.
             / IBPool(crp.bPool()).getBalance(address(reserve));
         // The minimum redeemable token supply is `10 ** 18` so it is near
         // impossible to hit this before the reserve or global pool minimums.
         uint256 minRedeemablePoolTokens
-            = ( MIN_BALANCER_POOL_BALANCE * IBalancerConstants.MAX_POOL_SUPPLY)
+            = ( MIN_BALANCER_POOL_BALANCE * selfPoolTokens_ )
             // It's important to use the balance in the opinion of the bPool to
             // be sure that the pool token calculations are the same.
             / IBPool(crp.bPool()).getBalance(address(token));
@@ -366,7 +369,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // The redeemable token will be burned when it moves to its own
         // `Phase.ONE`.
         crp.exitPool(
-            IERC20(address(crp)).balanceOf(address(this)) - minPoolSupply_,
+            selfPoolTokens_ - minPoolSupply_,
             new uint256[](2)
         );
 
