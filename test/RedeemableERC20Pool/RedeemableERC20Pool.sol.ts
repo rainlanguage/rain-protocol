@@ -504,7 +504,7 @@ describe("RedeemableERC20Pool", async function () {
     const ownerReserveAfterExit = await reserve.balanceOf(signers[0].address);
 
     const reserveDust = Util.estimateReserveDust(bPoolReserveBeforeExit).add(
-      1 // rounding error
+      2 // 1 left behind + 1 for rounding error
     );
 
     assert(
@@ -667,12 +667,12 @@ describe("RedeemableERC20Pool", async function () {
     await pool.ownerEndDutchAuction();
   });
 
-  it("should correctly calculate exit balances if people grief balancer", async function() {
+  it("should correctly calculate exit balances if people grief balancer", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const owner = signers[3]
+    const owner = signers[3];
 
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -693,7 +693,7 @@ describe("RedeemableERC20Pool", async function () {
     const redeemInit = ethers.BigNumber.from("50000" + Util.sixZeros);
     const totalTokenSupply = ethers.BigNumber.from(
       "200000" + Util.eighteenZeros
-    )
+    );
     const minRaise = ethers.BigNumber.from("50000" + Util.sixZeros);
 
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
@@ -744,7 +744,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await pool.deployed();
 
-    pool.transferOwnership(owner.address)
+    pool.transferOwnership(owner.address);
 
     // Trust normally does this internally.
     await redeemable.grantRole(
@@ -761,7 +761,7 @@ describe("RedeemableERC20Pool", async function () {
 
     // send excess reserve before the auction starts.
     // random ppl could do this.
-    await reserve.transfer(pool.address, '100000000')
+    await reserve.transfer(pool.address, "100000000");
 
     await pool.startDutchAuction({
       gasLimit: 10000000,
@@ -788,7 +788,7 @@ describe("RedeemableERC20Pool", async function () {
 
     // send excess reserve to the bPool after the auction starts and gulp it.
     // random ppl could do this.
-    await reserve.transfer(await crp.bPool(), '100000000');
+    await reserve.transfer(await crp.bPool(), "100000000");
     const bPool = new ethers.Contract(
       await crp.bPool(),
       (await artifacts.readArtifact("contracts/pool/IBPool.sol:IBPool")).abi
@@ -802,20 +802,22 @@ describe("RedeemableERC20Pool", async function () {
 
     // Send a bunch of reserve to the bPool that it won't have accounted for
     // in its internal records, because there is no gulp.
-    await reserve.transfer(await crp.bPool(), '100000000');
+    await reserve.transfer(await crp.bPool(), "100000000");
 
     // send excess reserve to the pool after the auction starts.
     // random ppl could do this.
-    await reserve.transfer(pool.address, '100000000');
+    await reserve.transfer(pool.address, "100000000");
 
     await pool.connect(owner).ownerEndDutchAuction();
 
     assert(
-      // 4x grief reserves - 1000001
-      (await reserve.balanceOf(owner.address)).eq(ethers.BigNumber.from("50398999999")),
+      // 4x grief reserves - 1000001 - 1 intentional dust
+      (await reserve.balanceOf(owner.address)).eq(
+        ethers.BigNumber.from("50398999998")
+      ),
       "wrong final balance"
-    )
-  })
+    );
+  });
 
   it("should construct a pool with whitelisting", async function () {
     this.timeout(0);
