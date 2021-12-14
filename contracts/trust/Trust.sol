@@ -96,9 +96,6 @@ struct DistributionProgress {
 /// Configuration specific to constructing the `Trust`.
 /// `Trust` contracts also take inner config for the pool and token.
 struct TrustConfig {
-    // Address of the creator who will receive reserve assets on successful
-    // distribution.
-    address creator;
     // Minimum amount to raise for the creator from the distribution period.
     // A successful distribution raises at least this AND also the seed fee and
     // `redeemInit`;
@@ -156,6 +153,9 @@ struct TrustRedeemableERC20Config {
 struct TrustRedeemableERC20PoolConfig {
     // The `RedeemableERC20PoolFactory` on the current network.
     RedeemableERC20PoolFactory redeemableERC20PoolFactory;
+    // Address of the creator who will receive reserve assets on successful
+    // distribution.
+    address creator;
     // The reserve erc20 token.
     // The reserve token anchors our newly minted redeemable tokens to an
     // existant value system.
@@ -299,8 +299,6 @@ contract Trust is ReentrancyGuard {
     /// @param data Opaque binary data for the GUI/tooling/indexer to read.
     event Notice(address indexed sender, bytes data);
 
-    /// Creator from the initial config.
-    address public immutable creator;
     /// minimum creator raise from the initial config.
     uint256 public immutable minimumCreatorRaise;
     /// Seeder from the initial config.
@@ -362,7 +360,6 @@ contract Trust is ReentrancyGuard {
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
         TrustRedeemableERC20PoolConfig memory trustRedeemableERC20PoolConfig_
     ) {
-        require(config_.creator != address(0), "CREATOR_0");
         // There are additional minimum reserve init and token supply
         // restrictions enforced by `RedeemableERC20` and
         // `RedeemableERC20Pool`. This ensures that the weightings and
@@ -379,7 +376,6 @@ contract Trust is ReentrancyGuard {
             + config_.redeemInit
             + config_.minimumCreatorRaise;
 
-        creator = config_.creator;
         seederFee = config_.seederFee;
         seederUnits = config_.seederUnits;
         seederCooldownDuration = config_.seederCooldownDuration;
@@ -405,6 +401,7 @@ contract Trust is ReentrancyGuard {
                     RedeemableERC20PoolFactoryRedeemableERC20PoolConfig(
                         trustRedeemableERC20PoolConfig_.reserve,
                         redeemableERC20_,
+                        trustRedeemableERC20PoolConfig_.creator,
                         trustRedeemableERC20PoolConfig_.reserveInit,
                         trustRedeemableERC20PoolConfig_.initialValuation,
                         trustRedeemableERC20PoolConfig_.finalValuation,
@@ -465,7 +462,7 @@ contract Trust is ReentrancyGuard {
         // The trust needs the ability to burn the distributor.
         redeemableERC20_.grantRole(
             redeemableERC20_.DISTRIBUTOR_BURNER(),
-            address(this)
+            address(redeemableERC20Pool_)
         );
 
         // The pool reserve must always be one of the treasury assets.
@@ -579,76 +576,11 @@ contract Trust is ReentrancyGuard {
     /// Else the initial reserve is refunded to the seeder and sale proceeds
     /// rolled forward to token holders (not the creator).
     function anonEndDistribution() external nonReentrant {
-        finalBalance = pool.reserve().balanceOf(address(pool.crp().bPool()));
-
-        pool.ownerEndDutchAuction();
-        // Burning the distributor moves the token to its `Phase.ONE` and
-        // unlocks redemptions.
-        // The distributor is the `bPool` itself.
-        // Requires that the `Trust` has been granted `ONLY_DISTRIBUTOR_BURNER`
-        // role on the `redeemableERC20`.
-        token.burnDistributor(
-            address(pool.crp().bPool())
-        );
-
-        // Balancer traps a tiny amount of reserve in the pool when it exits.
-        uint256 poolDust_ = pool.reserve()
-            .balanceOf(address(pool.crp().bPool()));
-        // The dust is included in the final balance for UX reasons.
-        // We don't want to fail the raise due to dust, even if technically it
-        // was a failure.
-        // To ensure a good UX for creators and token holders we subtract the
-        // dust from the seeder.
-        uint256 availableBalance_ = pool.reserve().balanceOf(address(this));
-
-        // Base payments for each fundraiser.
-        uint256 seederPay_ = pool.reserveInit() - poolDust_;
-        uint256 creatorPay_ = 0;
-
-        // Set aside the redemption and seed fee if we reached the minimum.
-        if (finalBalance >= successBalance) {
-            // The seeder gets an additional fee on success.
-            seederPay_ = seederPay_ + seederFee;
-
-            // The creators get new funds raised minus redeem and seed fees.
-            // Can subtract without underflow due to the inequality check for
-            // this code block.
-            // Proof (assuming all positive integers):
-            // final balance >= success balance
-            // AND seed pay = seed init + seed fee
-            // AND success = seed init + seed fee + token pay + min raise
-            // SO success = seed pay + token pay + min raise
-            // SO success >= seed pay + token pay
-            // SO success - (seed pay + token pay) >= 0
-            // SO final balance - (seed pay + token pay) >= 0
-            //
-            // Implied is the remainder of finalBalance_ as redeemInit
-            // This will be transferred to the token holders below.
-            creatorPay_ = availableBalance_ - ( seederPay_ + redeemInit );
-        }
-
-        if (creatorPay_ > 0) {
-            pool.reserve().safeTransfer(
-                creator,
-                creatorPay_
-            );
-        }
-
-        pool.reserve().safeTransfer(
+        pool.ownerEndDutchAuction(
             seeder,
-            seederPay_
+            successBalance,
+            seederFee,
+            redeemInit
         );
-
-        // Send everything left to the token holders.
-        // Implicitly the remainder of the finalBalance_ is:
-        // - the redeem init if successful
-        // - whatever users deposited in the AMM if unsuccessful
-        uint256 remainder_ = pool.reserve().balanceOf(address(this));
-        if (remainder_ > 0) {
-            pool.reserve().safeTransfer(
-                address(token),
-                remainder_
-            );
-        }
     }
 }

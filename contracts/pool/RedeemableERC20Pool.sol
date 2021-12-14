@@ -28,6 +28,9 @@ struct RedeemableERC20PoolConfig {
     // This is an address published by Balancer or deployed locally during
     // testing.
     address balancerFactory;
+    // Address of the creator who will receive reserve assets on successful
+    // distribution.
+    address creator;
     // The reserve erc20 token.
     // The reserve token anchors our newly minted redeemable tokens to an
     // existant value system.
@@ -121,6 +124,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// RedeemableERC20 token.
     RedeemableERC20 public immutable token;
 
+    address public immutable creator;
+
     /// Minimum trading duration from the initial config.
     uint256 public immutable minimumTradingDuration;
 
@@ -151,7 +156,9 @@ contract RedeemableERC20Pool is Ownable, Phased {
             config_.initialValuation >= config_.finalValuation,
             "MIN_INITIAL_VALUTION"
         );
+        require(config_.creator != address(0), "CREATOR_0");
 
+        creator = config_.creator;
         token = config_.token;
         reserve = config_.reserve;
         reserveInit = config_.reserveInit;
@@ -321,7 +328,12 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// Removes all LP tokens from the Balancer pool.
     /// Burns all unsold redeemable tokens.
     /// Forwards the reserve balance to the owner.
-    function ownerEndDutchAuction() external onlyOwner onlyPhase(Phase.TWO) {
+    function ownerEndDutchAuction(
+        address seeder_,
+        uint256 successBalance_,
+        uint256 seederFee_,
+        uint256 redeemInit_
+    ) external onlyOwner onlyPhase(Phase.TWO) {
         // Move to `Phase.THREE` immediately.
         // In `Phase.THREE` all `RedeemableERC20Pool` functions are no longer
         // callable.
@@ -366,6 +378,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
             // `crp.exitPool` subtracts one so token amounts round down.
             + 1;
 
+        uint256 finalBalance_ = reserve.balanceOf(address(crp.bPool()));
+
         // This removes as much as is allowable which leaves behind some dust.
         // The reserve dust will be trapped.
         // The redeemable token will be burned when it moves to its own
@@ -378,12 +392,74 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // Burn all unsold token inventory.
         token.burn(token.balanceOf(address(this)));
 
-        // Send reserve back to owner (`Trust`) to be distributed to
-        // stakeholders.
-        reserve.safeTransfer(
-            owner(),
-            reserve.balanceOf(address(this))
+        // Burning the distributor moves the token to its `Phase.ONE` and
+        // unlocks redemptions.
+        // The distributor is the `bPool` itself.
+        // Requires that the `Trust` has been granted `ONLY_DISTRIBUTOR_BURNER`
+        // role on the `redeemableERC20`.
+        token.burnDistributor(
+            address(crp.bPool())
         );
+
+        // Balancer traps a tiny amount of reserve in the pool when it exits.
+        uint256 poolDust_ = reserve
+            .balanceOf(address(crp.bPool()));
+        // The dust is included in the final balance for UX reasons.
+        // We don't want to fail the raise due to dust, even if technically it
+        // was a failure.
+        // To ensure a good UX for creators and token holders we subtract the
+        // dust from the seeder.
+        uint256 availableBalance_ = reserve.balanceOf(address(this));
+
+        // Base payments for each fundraiser.
+        uint256 seederPay_ = reserveInit - poolDust_;
+        uint256 creatorPay_ = 0;
+
+        // Set aside the redemption and seed fee if we reached the minimum.
+        if (finalBalance_ >= successBalance_) {
+            // The seeder gets an additional fee on success.
+            seederPay_ = seederPay_ + seederFee_;
+
+            // The creators get new funds raised minus redeem and seed fees.
+            // Can subtract without underflow due to the inequality check for
+            // this code block.
+            // Proof (assuming all positive integers):
+            // final balance >= success balance
+            // AND seed pay = seed init + seed fee
+            // AND success = seed init + seed fee + token pay + min raise
+            // SO success = seed pay + token pay + min raise
+            // SO success >= seed pay + token pay
+            // SO success - (seed pay + token pay) >= 0
+            // SO final balance - (seed pay + token pay) >= 0
+            //
+            // Implied is the remainder of finalBalance_ as redeemInit
+            // This will be transferred to the token holders below.
+            creatorPay_ = availableBalance_ - ( seederPay_ + redeemInit_ );
+        }
+
+        if (creatorPay_ > 0) {
+            reserve.approve(
+                creator,
+                creatorPay_
+            );
+        }
+
+        reserve.approve(
+            seeder_,
+            seederPay_
+        );
+
+        // Send everything left to the token holders.
+        // Implicitly the remainder of the finalBalance_ is:
+        // - the redeem init if successful
+        // - whatever users deposited in the AMM if unsuccessful
+        uint256 remainder_ = reserve.balanceOf(address(this));
+        if (remainder_ > 0) {
+            reserve.approve(
+                address(token),
+                remainder_
+            );
+        }
     }
 
     /// Enforce `Phase.THREE` as the last phase.

@@ -37,6 +37,9 @@ struct RedeemableERC20PoolFactoryRedeemableERC20PoolConfig {
     // For example, USDC could freeze the tokens owned by the RedeemableERC20
     // contract or close their business.
     RedeemableERC20 token;
+    // Address of the creator who will receive reserve assets on successful
+    // distribution.
+    address creator;
     // Amount of reserve token to initialize the pool.
     // The starting/final weights are calculated against this.
     uint256 reserveInit;
@@ -93,6 +96,7 @@ contract RedeemableERC20PoolFactory is Factory {
             RedeemableERC20PoolConfig(
                 crpFactory,
                 balancerFactory,
+                config_.creator,
                 config_.reserve,
                 config_.token,
                 config_.reserveInit,

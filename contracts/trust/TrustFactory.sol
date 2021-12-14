@@ -40,9 +40,6 @@ struct TrustFactoryConfig {
 }
 
 struct TrustFactoryTrustConfig {
-    // Address of the creator who will receive reserve assets on successful
-    // distribution.
-    address creator;
     // Minimum amount to raise for the creator from the distribution period.
     // A successful distribution raises at least this AND also the seed fee and
     // `redeemInit`;
@@ -94,6 +91,9 @@ struct TrustFactoryTrustRedeemableERC20Config {
 }
 
 struct TrustFactoryTrustRedeemableERC20PoolConfig {
+    // Address of the creator who will receive reserve assets on successful
+    // distribution.
+    address creator;
     // The reserve erc20 token.
     // The reserve token anchors our newly minted redeemable tokens to an
     // existant value system.
@@ -201,7 +201,6 @@ contract TrustFactory is Factory {
 
         address trust_ = address(new Trust(
             TrustConfig(
-                trustFactoryTrustConfig_.creator,
                 trustFactoryTrustConfig_.minimumCreatorRaise,
                 seedERC20Factory,
                 trustFactoryTrustConfig_.seeder,
@@ -220,6 +219,7 @@ contract TrustFactory is Factory {
             ),
             TrustRedeemableERC20PoolConfig(
                 redeemableERC20PoolFactory,
+                trustFactoryTrustRedeemableERC20PoolConfig_.creator,
                 trustFactoryTrustRedeemableERC20PoolConfig_.reserve,
                 trustFactoryTrustRedeemableERC20PoolConfig_.reserveInit,
                 trustFactoryTrustRedeemableERC20PoolConfig_.initialValuation,
