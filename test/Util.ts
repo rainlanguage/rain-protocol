@@ -197,6 +197,13 @@ export const determineReserveDust = (bPoolDust: BigNumber) => {
   return bPoolDust;
 };
 
+export const isDustLike = (
+  maybeDust: BigNumber,
+  minBalance: BigNumber
+): boolean => {
+  return maybeDust.lte(minBalance) ? true : false;
+};
+
 export const assertError = async (f, s: string, e: string) => {
   let didError = false;
   try {
