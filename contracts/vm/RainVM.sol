@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "hardhat/console.sol";
-
 struct Source {
     uint256[] source;
     uint256[] constants;
@@ -123,8 +121,6 @@ abstract contract RainVM {
                 )
             );
 
-            if (op_.code > 0) console.log("op: %s %s", op_.code, op_.val);
-
             if (op_.code < uint8(Ops.length)) {
                 if (op_.code == uint8(Ops.skip)) {
                     i_ -= op_.val * 2;
@@ -136,11 +132,9 @@ abstract contract RainVM {
                     stack_.vals[stack_.index] = fromArguments_
                         ? source_.arguments[valIndex_]
                         : source_.constants[valIndex_];
-                    console.log("val: %s %s %s", fromArguments_, stack_.vals[stack_.index], valIndex_);
                     stack_.index++;
                 }
                 else if (op_.code == uint8(Ops.zipmap)) {
-                    console.log("zipmap");
                     // stack_ modified by reference.
                     zipmap(
                         context_,
@@ -152,7 +146,6 @@ abstract contract RainVM {
                             (op_.val >> 5) & 0x07
                         )
                     );
-                    console.log("zipmap end");
                 }
             }
             else {
@@ -163,7 +156,6 @@ abstract contract RainVM {
                     op_
                 );
             }
-            console.log("i_: %s", i_);
         }
     }
 
