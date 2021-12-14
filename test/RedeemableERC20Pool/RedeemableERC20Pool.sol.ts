@@ -649,6 +649,13 @@ describe("RedeemableERC20Pool", async function () {
       await redeemable.DEFAULT_ADMIN_ROLE(),
       pool.address
     );
+    await redeemable.transfer(pool.address, await redeemable.totalSupply());
+
+    const reserve1 = new ethers.Contract(
+      reserve.address,
+      reserve.interface,
+      signers[1]
+    );
 
     // The trust would do this internally but we need to do it here to test.
     const [crp] = await Util.poolContracts(signers, pool);
