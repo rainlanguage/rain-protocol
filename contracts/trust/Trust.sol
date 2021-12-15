@@ -19,6 +19,7 @@ import { SeedERC20, SeedERC20Config } from "../seed/SeedERC20.sol";
 // solhint-disable-next-line max-line-length
 import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factory.sol";
 import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
+import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
 import { ERC20Config } from "../erc20/ERC20Config.sol";
 import { Phase, Phased } from "../phased/Phased.sol";
 
@@ -101,6 +102,7 @@ struct DistributionProgress {
 /// Configuration specific to constructing the `Trust`.
 /// `Trust` contracts also take inner config for the pool and token.
 struct TrustConfig {
+    BPoolFeeEscrow bPoolFeeEscrow;
     address crpFactory;
     address balancerFactory;
     IERC20 reserve;
@@ -261,6 +263,8 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
+    BPoolFeeEscrow public immutable bPoolFeeEscrow;
+
     /// Anyone can emit a `Notice`.
     /// This is open ended content related to the `Trust`.
     /// Some examples:
@@ -375,6 +379,7 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
         minimumCreatorRaise = config_.minimumCreatorRaise;
         seederFee = config_.seederFee;
         redeemInit = config_.redeemInit;
+        bPoolFeeEscrow = config_.bPoolFeeEscrow;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             trustRedeemableERC20Config_.redeemableERC20Factory
@@ -459,6 +464,10 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
             redeemableERC20_.approve(address(crp_),
             redeemableERC20_.totalSupply()),
             "TOKEN_APPROVE"
+        );
+        redeemableERC20_.grantRole(
+            redeemableERC20_.RECEIVER(),
+            address(bPoolFeeEscrow)
         );
 
         // The trust needs the ability to burn the distributor.

@@ -49,6 +49,11 @@ describe("TrustSeed", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const deployer = signers[1]; // deployer is not creator
+    const seeder1 = signers[2];
+    const seeder2 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -58,7 +63,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -70,11 +75,6 @@ describe("TrustSeed", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const deployer = signers[1]; // deployer is not creator
-    const seeder1 = signers[2];
-    const seeder2 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 10;
@@ -158,7 +158,7 @@ describe("TrustSeed", async function () {
     ) {
       await Util.assertError(
         async () => await seederContract1.unseed(1),
-        "revert COOLDOWN",
+        "COOLDOWN",
         `seeder1 unseeded before their cooldown
         lastBlock   ${await ethers.provider.getBlockNumber()}
         unlockBlock ${delay1UnlockBlock}`
@@ -167,7 +167,6 @@ describe("TrustSeed", async function () {
       if (i === 1) {
         // seeder2 sends 1 unit to seeder contract
         await seederContract2.seed(0, 1);
-        console.log("seeder2 seeded contract");
 
         seed2Block = await ethers.provider.getBlockNumber();
         delay2UnlockBlock = seed2Block + seederCooldownDuration;
@@ -188,7 +187,7 @@ describe("TrustSeed", async function () {
     ) {
       await Util.assertError(
         async () => await seederContract2.unseed(1),
-        "revert COOLDOWN",
+        "COOLDOWN",
         `seeder2 unseeded before their cooldown
         lastBlock   ${await ethers.provider.getBlockNumber()}
         unlockBlock ${delay2UnlockBlock}`
@@ -282,7 +281,7 @@ describe("TrustSeed", async function () {
             cooldownDuration,
             erc20Config: { name: "SeedToken", symbol: "SDT" },
           })) as SeedERC20 & Contract,
-        "revert UNITS_0",
+        "UNITS_0",
         "seeder contract was wrongly constructed with seedUnits set to 0"
       );
     });
@@ -322,7 +321,7 @@ describe("TrustSeed", async function () {
             cooldownDuration,
             erc20Config: { name: "SeedToken", symbol: "SDT" },
           })) as SeedERC20 & Contract,
-        "revert PRICE_0",
+        "PRICE_0",
         "seeder contract was wrongly constructed with seedPrice set to 0"
       );
     });
@@ -333,6 +332,11 @@ describe("TrustSeed", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const deployer = signers[1]; // deployer is not creator
+    const seeder1 = signers[2];
+    const seeder2 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -342,7 +346,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -354,11 +358,6 @@ describe("TrustSeed", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const deployer = signers[1]; // deployer is not creator
-    const seeder1 = signers[2];
-    const seeder2 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 10;
@@ -454,6 +453,11 @@ describe("TrustSeed", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const deployer = signers[1]; // deployer is not creator
+    const seeder1 = signers[2];
+    const seeder2 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -463,7 +467,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -475,11 +479,6 @@ describe("TrustSeed", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const deployer = signers[1]; // deployer is not creator
-    const seeder1 = signers[2];
-    const seeder2 = signers[3];
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 10;
@@ -558,7 +557,7 @@ describe("TrustSeed", async function () {
 
     await Util.assertError(
       async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
-      "revert ERC20: transfer amount exceeds balance",
+      "ERC20: transfer amount exceeds balance",
       "raise begun with insufficient seed reserve"
     );
 
@@ -573,6 +572,12 @@ describe("TrustSeed", async function () {
 
       const signers = await ethers.getSigners();
 
+      const creator = signers[0];
+      const deployer = signers[1]; // deployer is not creator
+      const seeder1 = signers[2];
+      const seeder2 = signers[3];
+      const signer1 = signers[4];
+
       const [crpFactory, bFactory] = await Util.balancerDeploy();
 
       const reserve = (await Util.basicDeploy(
@@ -582,7 +587,7 @@ describe("TrustSeed", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.NIL;
+      const minimumStatus = Tier.GOLD;
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -596,12 +601,6 @@ describe("TrustSeed", async function () {
       );
       const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
       const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-      const creator = signers[0];
-      const deployer = signers[1]; // deployer is not creator
-      const seeder1 = signers[2];
-      const seeder2 = signers[3];
-      const signer1 = signers[4];
 
       const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 10;
@@ -617,6 +616,8 @@ describe("TrustSeed", async function () {
       const minimumTradingDuration = 50;
 
       const trustFactoryDeployer = trustFactory.connect(deployer);
+
+      await tier.setTier(signer1.address, Tier.GOLD, []);
 
       const trust = await Util.trustDeploy(
         trustFactoryDeployer,
@@ -695,7 +696,7 @@ describe("TrustSeed", async function () {
 
       await Util.assertError(
         async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
-        "revert ERC20: transfer amount exceeds balance",
+        "ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
 
@@ -704,7 +705,7 @@ describe("TrustSeed", async function () {
       // seeder cannot unseed after all units seeded
       await Util.assertError(
         async () => await seederContract1.unseed(seeder1Units),
-        "revert BAD_PHASE",
+        "BAD_PHASE",
         "seeder1 unseeded despite all units being seeded"
       );
 
@@ -775,7 +776,7 @@ describe("TrustSeed", async function () {
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert RESERVE_BALANCE",
+        "RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       );
 
@@ -844,7 +845,7 @@ describe("TrustSeed", async function () {
       // fails if they don't have seed units
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERC20: burn amount exceeds balance",
+        "ERC20: burn amount exceeds balance",
         "seeder1 redeemed when they had no seed units to redeem"
       );
     });
@@ -853,6 +854,11 @@ describe("TrustSeed", async function () {
       this.timeout(0);
 
       const signers = await ethers.getSigners();
+
+      const creator = signers[0];
+      const deployer = signers[1]; // deployer is not creator
+      const seeder1 = signers[2];
+      const seeder2 = signers[3];
 
       const [crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -863,7 +869,7 @@ describe("TrustSeed", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.NIL;
+      const minimumStatus = Tier.GOLD;
 
       const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -877,11 +883,6 @@ describe("TrustSeed", async function () {
       );
       const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
       const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-      const creator = signers[0];
-      const deployer = signers[1]; // deployer is not creator
-      const seeder1 = signers[2];
-      const seeder2 = signers[3];
 
       const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
       const seederUnits = 10;
@@ -967,14 +968,14 @@ describe("TrustSeed", async function () {
 
       await Util.assertError(
         async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
-        "revert ERC20: transfer amount exceeds balance",
+        "ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
 
       // redeem fails before seeding is complete
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert BAD_PHASE",
+        "BAD_PHASE",
         "redeemed before seeding is complete"
       );
 
@@ -1030,7 +1031,7 @@ describe("TrustSeed", async function () {
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert RESERVE_BALANCE",
+        "RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       );
 
@@ -1091,7 +1092,7 @@ describe("TrustSeed", async function () {
       // fails if they don't have seed units
       await Util.assertError(
         async () => await seederContract1.redeem(seeder1Units),
-        "revert ERC20: burn amount exceeds balance",
+        "ERC20: burn amount exceeds balance",
         "seeder1 redeemed when they had no seed units to redeem"
       );
     });

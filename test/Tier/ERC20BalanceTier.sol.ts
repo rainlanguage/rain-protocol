@@ -54,7 +54,7 @@ describe("ERC20BalanceTier", async function () {
   it("should not be possible to set tier directly", async function () {
     await assertError(
       async () => await erc20BalanceTier.setTier(owner.address, Tier.ONE, []),
-      "revert SET_TIER",
+      "SET_TIER",
       "tier was wrongly set directly"
     );
   });

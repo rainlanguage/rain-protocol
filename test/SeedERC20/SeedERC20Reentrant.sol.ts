@@ -63,7 +63,7 @@ describe("SeedERC20Reentrant", async function () {
 
     await Util.assertError(
       async () => await bobSeed.redeem(1),
-      "revert ERC20: burn amount exceeds balance",
+      "ERC20: burn amount exceeds balance",
       "did not guard against redeem reentrancy via immediate burning"
     );
   });
@@ -108,7 +108,7 @@ describe("SeedERC20Reentrant", async function () {
     await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
     await Util.assertError(
       async () => await bobSeed.seed(0, bobUnits),
-      "revert COOLDOWN",
+      "COOLDOWN",
       "did not guard against seed reentrancy spam via cooldown modifier"
     );
   });
@@ -159,7 +159,7 @@ describe("SeedERC20Reentrant", async function () {
 
     await Util.assertError(
       async () => await bobSeed.unseed(1),
-      "revert COOLDOWN",
+      "COOLDOWN",
       "did not guard against unseed reentrancy spam via cooldown modifier"
     );
   });

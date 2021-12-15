@@ -17,6 +17,7 @@ import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
 import { TrustRedeemableERC20Config, TrustSeedERC20Config } from "./Trust.sol";
+import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
 import { ERC20Config } from "../erc20/ERC20Config.sol";
 
 /// Everything required to construct a `TrustFactory`.
@@ -81,6 +82,7 @@ contract TrustFactory is Factory {
     address public immutable crpFactory;
     address public immutable balancerFactory;
     uint32 public immutable creatorFundsReleaseTimeout;
+    BPoolFeeEscrow public immutable bPoolFeeEscrow;
 
     /// @param config_ All configuration for the `TrustFactory`.
     constructor(TrustFactoryConfig memory config_) {
@@ -89,6 +91,7 @@ contract TrustFactory is Factory {
         crpFactory = config_.crpFactory;
         balancerFactory = config_.balancerFactory;
         creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
+        bPoolFeeEscrow = new BPoolFeeEscrow(this);
     }
 
     /// Allows calling `createChild` with TrustConfig,
@@ -146,6 +149,7 @@ contract TrustFactory is Factory {
 
         address trust_ = address(new Trust(
             TrustConfig(
+                bPoolFeeEscrow,
                 crpFactory,
                 balancerFactory,
                 trustFactoryTrustConfig_.reserve,

@@ -32,10 +32,18 @@ enum Tier {
 }
 
 describe("TrustTrade", async function () {
-  it("should allow token transfers before redemption phase if and only if receiver has the minimum tier level set OR the receiver does NOT have the status but is unfreezable", async function () {
+  it("should allow token transfers before redemption phase if and only if receiver has the minimum tier level set", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
+
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+    const signerBronze = signers[3];
+    const signerSilver = signers[4];
+    const signerGold = signers[5];
+    const signerPlatinum = signers[6];
 
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -63,20 +71,6 @@ describe("TrustTrade", async function () {
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
-    const signerBronze = signers[3];
-    const signerSilver = signers[4];
-    const signerGold = signers[5];
-    const signerPlatinum = signers[6];
-
-    // Set tier levels
-    await tier.setTier(signerBronze.address, Tier.BRONZE, []);
-    await tier.setTier(signerSilver.address, Tier.SILVER, []);
-    await tier.setTier(signerGold.address, Tier.GOLD, []);
-    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
-
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
       .add(seederFee)
@@ -85,6 +79,12 @@ describe("TrustTrade", async function () {
     const minimumTradingDuration = 50;
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
+
+    // Set tier levels
+    await tier.setTier(signerBronze.address, Tier.BRONZE, []);
+    await tier.setTier(signerSilver.address, Tier.SILVER, []);
+    await tier.setTier(signerGold.address, Tier.GOLD, []);
+    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
     const trust = await Util.trustDeploy(
       trustFactoryDeployer,
@@ -140,6 +140,56 @@ describe("TrustTrade", async function () {
       creator
     ) as RedeemableERC20Pool & Contract;
 
+    // not possible for creator, deployer or anon to grant SENDER or RECEIVER roles, which would bypass Tier gating
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(creator)
+          .grantRole(await token.RECEIVER(), signerBronze.address),
+      `AccessControl: account ${creator.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+      "creator wrongly granted a role of RECEIVER"
+    );
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(deployer)
+          .grantRole(await token.RECEIVER(), signerBronze.address),
+      `AccessControl: account ${deployer.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+      "deployer wrongly granted a role of RECEIVER"
+    );
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(signerPlatinum)
+          .grantRole(await token.RECEIVER(), signerBronze.address),
+      `AccessControl: account ${signerPlatinum.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+      "anon wrongly granted a role of RECEIVER"
+    );
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(creator)
+          .grantRole(await token.SENDER(), signerBronze.address),
+      `AccessControl: account ${creator.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+      "creator wrongly granted a role of SENDER"
+    );
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(deployer)
+          .grantRole(await token.SENDER(), signerBronze.address),
+      `AccessControl: account ${deployer.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+      "deployer wrongly granted a role of SENDER"
+    );
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(signerPlatinum)
+          .grantRole(await token.SENDER(), signerBronze.address),
+      `AccessControl: account ${signerPlatinum.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+      "anon wrongly granted a role of SENDER"
+    );
+
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
     const [crp, bPool] = await Util.poolContracts(signers, pool);
@@ -168,19 +218,46 @@ describe("TrustTrade", async function () {
     // bronze signer attempts swap for tokens
     await Util.assertError(
       async () => await swapReserveForTokens(signerBronze, reserveSpend),
-      "revert MIN_TIER",
+      "MIN_TIER",
       "bronze signer swapped reserve for tokens, despite being below min status of gold"
     );
 
-    // TODO: all signers attempt swap
+    // silver signer attempts swap for tokens
+    await Util.assertError(
+      async () => await swapReserveForTokens(signerSilver, reserveSpend),
+      "MIN_TIER",
+      "silver signer swapped reserve for tokens, despite being below min status of gold"
+    );
 
-    // TODO: test token transfers before redemption phase
+    await swapReserveForTokens(signerGold, reserveSpend);
+    await swapReserveForTokens(signerPlatinum, reserveSpend);
+
+    // signers happily trade tokens directly with each other before redemption phase
+    await token
+      .connect(signerGold)
+      .transfer(signerPlatinum.address, reserveSpend.div(10));
+    await token
+      .connect(signerPlatinum)
+      .transfer(signerGold.address, reserveSpend.div(10));
+
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(signerGold)
+          .transfer(signerBronze.address, reserveSpend.div(10)),
+      "MIN_TIER",
+      "gold signer transferred tokens to bronze signer, despite bronze signer being below min status of gold"
+    );
   });
 
   it("should set unnecessary configurable rights to 0", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
+
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
 
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -191,7 +268,7 @@ describe("TrustTrade", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -207,10 +284,6 @@ describe("TrustTrade", async function () {
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -307,6 +380,10 @@ describe("TrustTrade", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -316,7 +393,7 @@ describe("TrustTrade", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -332,10 +409,6 @@ describe("TrustTrade", async function () {
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;
     const seederCooldownDuration = 0;
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
 
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
@@ -559,6 +632,13 @@ describe("TrustTrade", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+    const signerSilver = signers[3];
+    const signerGold = signers[4];
+    const signerPlatinum = signers[5];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -585,18 +665,6 @@ describe("TrustTrade", async function () {
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
-    const signerSilver = signers[3];
-    const signerGold = signers[4];
-    const signerPlatinum = signers[5];
-
-    // Set tier levels
-    await tier.setTier(signerSilver.address, Tier.SILVER, []);
-    await tier.setTier(signerGold.address, Tier.GOLD, []);
-    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
-
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
       .add(seederFee)
@@ -605,6 +673,11 @@ describe("TrustTrade", async function () {
     const minimumTradingDuration = 50;
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
+
+    // Set tier levels
+    await tier.setTier(signerSilver.address, Tier.SILVER, []);
+    await tier.setTier(signerGold.address, Tier.GOLD, []);
+    await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
     const trust = await Util.trustDeploy(
       trustFactoryDeployer,
@@ -709,7 +782,7 @@ describe("TrustTrade", async function () {
           reserveSilver,
           bPoolSilver
         ),
-      "revert MIN_TIER",
+      "MIN_TIER",
       "Silver signer swapped reserve for tokens, despite being below min status of Gold"
     );
 
@@ -744,6 +817,11 @@ describe("TrustTrade", async function () {
 
     const signers = await ethers.getSigners();
 
+    const creator = signers[0];
+    const seeder = signers[1]; // seeder is not creator
+    const deployer = signers[2]; // deployer is not creator
+    const signer1 = signers[3];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -753,7 +831,7 @@ describe("TrustTrade", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
@@ -790,11 +868,6 @@ describe("TrustTrade", async function () {
     const seederUnits = 0;
     const seederCooldownDuration = 0;
 
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-
     const successLevel = redeemInit
       .add(minimumCreatorRaise)
       .add(seederFee)
@@ -811,6 +884,8 @@ describe("TrustTrade", async function () {
         .gte(ethers.BigNumber.from("50" + Util.sixZeros)),
       "wrong intended spot price for max weight test"
     );
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
 
     await Util.assertError(
       async () =>
@@ -842,7 +917,7 @@ describe("TrustTrade", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "revert MAX_WEIGHT_VALUATION",
+      "MAX_WEIGHT_VALUATION",
       "wrongly deployed trust with pool at 50:1 weight ratio"
     );
 

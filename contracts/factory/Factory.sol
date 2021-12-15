@@ -66,6 +66,7 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     /// contract factory, otherwise `false`.
     function isChild(address maybeChild_)
         external
+        view
         virtual
         override
         returns(bool)

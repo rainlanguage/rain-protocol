@@ -11,6 +11,130 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 describe("SeedERC20", async function () {
+  it("should behave correctly if people grief contract with reserve transfers", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const alice = signers[0];
+    const bob = signers[1];
+    const carol = signers[2];
+    const dave = signers[3];
+    const griefer = signers[4];
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    // let griefer hold 1m reserve, for whatever reasons
+    await reserve.transfer(griefer.address, "1000000");
+
+    const aliceReserve = reserve.connect(alice);
+    const bobReserve = reserve.connect(bob);
+    const carolReserve = reserve.connect(carol);
+    const daveReserve = reserve.connect(dave);
+
+    const seedPrice = 100;
+    const seedUnits = 10;
+    const cooldownDuration = 1;
+
+    const bobUnits = 6;
+    const carolUnits = 4;
+
+    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
+    const seedERC20 = (await seedERC20Factory.deploy({
+      reserve: reserve.address,
+      recipient: dave.address,
+      seedPrice,
+      seedUnits,
+      cooldownDuration,
+      erc20Config: { name: "SeedToken", symbol: "SDT" },
+    })) as SeedERC20 & Contract;
+
+    const bobSeed = seedERC20.connect(bob);
+    const carolSeed = seedERC20.connect(carol);
+
+    assert((await seedERC20.reserve()) == reserve.address, `reserve not set`);
+    assert((await seedERC20.seedPrice()).eq(seedPrice), `seed price not set`);
+    assert(
+      (await seedERC20.totalSupply()).eq(seedUnits),
+      `seed total supply is wrong`
+    );
+    assert(
+      (await seedERC20.recipient()) == dave.address,
+      `failed to set recipient`
+    );
+
+    await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
+    await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
+
+    assert(
+      (await reserve.balanceOf(bob.address)).eq(bobUnits * seedPrice),
+      `failed to send reserve to bob`
+    );
+    assert(
+      (await seedERC20.balanceOf(bob.address)).eq(0),
+      `bob did not start with zero seed erc20`
+    );
+
+    // attempt to grief contract by sending a small amount of reserve
+    await reserve
+      .connect(griefer)
+      .transfer(seedERC20.address, ethers.BigNumber.from("10"));
+
+    // Bob and carol co-fund the seed round.
+
+    await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
+    await bobSeed.seed(0, bobUnits);
+    await bobSeed.unseed(2);
+
+    await bobReserve.approve(seedERC20.address, 2 * seedPrice);
+    await bobSeed.seed(0, 2);
+
+    await carolReserve.approve(seedERC20.address, carolUnits * seedPrice);
+    await carolSeed.seed(0, carolUnits);
+
+    // seed contract automatically transfers to recipient on successful seed
+    assert(
+      (await reserve.balanceOf(seedERC20.address)).isZero(),
+      `seed contract did not transfer reserve to recipient`
+    );
+    assert(
+      (await reserve.balanceOf(dave.address)).gte(seedPrice * seedUnits),
+      `recipient did not receive transferred funds
+      expected  ${seedPrice * seedUnits}
+      got       ${await reserve.balanceOf(dave.address)}`
+    );
+
+    // Dave gets 10% extra reserve from somewhere.
+
+    await aliceReserve.transfer(dave.address, seedPrice * seedUnits * 0.1);
+
+    // Dave sends reserve back to the seed contract.
+
+    await daveReserve.transfer(
+      seedERC20.address,
+      await daveReserve.balanceOf(dave.address)
+    );
+
+    // Bob and carol can redeem their seed tokens.
+    await bobSeed.redeem(bobUnits);
+    await carolSeed.redeem(carolUnits);
+
+    const bobFinalBalance = await bobReserve.balanceOf(bob.address);
+    const carolFinalBalance = await carolReserve.balanceOf(carol.address);
+
+    // bob and carol should have 10% more reserve than they put in after redemption.
+    assert(
+      bobFinalBalance.gte(660),
+      `Wrong final balance for bob ${bobFinalBalance}`
+    );
+    assert(
+      carolFinalBalance.gte(440),
+      `Wrong final balance for carol ${carolFinalBalance}`
+    );
+  });
+
   it("should emit Redeem, Seed, Unseed events", async function () {
     this.timeout(0);
 
@@ -173,7 +297,7 @@ describe("SeedERC20", async function () {
     await carolReserve.approve(seedERC20.address, (carolUnits + 1) * seedPrice);
     await Util.assertError(
       async () => await carolSeed.seed(carolUnits + 1, carolUnits + 1),
-      "revert INSUFFICIENT_STOCK",
+      "INSUFFICIENT_STOCK",
       "seedUnits stock calculation was affected by forcibly sending eth to contract"
     );
   });
@@ -258,12 +382,12 @@ describe("SeedERC20", async function () {
     await bobReserve.approve(seedERC20.address, bobUnits.desired * seedPrice);
     await Util.assertError(
       async () => await bobSeed.seed(1, 0), // max === 0
-      "revert DESIRED_0",
+      "DESIRED_0",
       "bob successfully called seed with 0 max desired units"
     );
     await Util.assertError(
       async () => await bobSeed.seed(2, 1), // min > max
-      "revert MINIMUM_OVER_DESIRED",
+      "MINIMUM_OVER_DESIRED",
       "bob successfully called seed with min greater than max"
     );
     await bobSeed.seed(bobUnits.min, bobUnits.desired); // normal
@@ -283,7 +407,7 @@ describe("SeedERC20", async function () {
     );
     await Util.assertError(
       async () => await carolSeed.seed(carolUnits.min, carolUnits.desired),
-      "revert INSUFFICIENT_STOCK",
+      "INSUFFICIENT_STOCK",
       "carol's minimum did not cause seed to fail"
     );
 

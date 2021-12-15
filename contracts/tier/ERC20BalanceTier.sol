@@ -5,7 +5,7 @@ pragma solidity ^0.8.10;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 //solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { TierUtil } from "../libraries/TierUtil.sol";
+import { TierReport } from "./libraries/TierReport.sol";
 import { ValueTier } from "./ValueTier.sol";
 import { ITier } from "./ITier.sol";
 import "./ReadOnlyTier.sol";
@@ -52,8 +52,8 @@ contract ERC20BalanceTier is ReadOnlyTier, ValueTier {
     /// Report simply truncates all tiers above the highest value held.
     /// @inheritdoc ITier
     function report(address account_) public view override returns (uint256) {
-        return TierUtil.truncateTiersAbove(
-            uint(ITier.Tier.ZERO),
+        return TierReport.truncateTiersAbove(
+            0,
             valueToTier(erc20.balanceOf(account_))
         );
     }
