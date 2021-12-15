@@ -446,9 +446,6 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
                 CRPConfig(
                     config_.crpFactory,
                     config_.balancerFactory,
-                    config_.reserve,
-                    redeemableERC20_,
-                    config_.reserveInit,
                     config_.initialValuation
                 )
             );
