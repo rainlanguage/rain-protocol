@@ -120,7 +120,6 @@ describe("EmissionsERC20", async function () {
 
     // FN uses constants 0-3
     const valTierAddress = op(Opcode.val, 4);
-    console.log("valTierAddress", valTierAddress);
     const valBaseRewardPerTier = op(Opcode.val, 5);
     const valBlocksPerYear = op(Opcode.val, 6);
     const valBOne = op(Opcode.val, 7);
@@ -210,8 +209,6 @@ describe("EmissionsERC20", async function () {
           op(Opcode.blockNumber),
       ]);
 
-    console.log("tierwise diff", TIERWISE_DIFF());
-
     // prettier-ignore
     const SOURCE = () =>
       concat([
@@ -231,11 +228,6 @@ describe("EmissionsERC20", async function () {
     ];
 
     // END Source snippets
-
-    console.log("source", SOURCE());
-
-    console.log("chunked", chunkedSource(concat([SOURCE()])));
-    console.log("constants", constants);
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
@@ -257,17 +249,10 @@ describe("EmissionsERC20", async function () {
     // Has Platinum Tier
     await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
 
-    console.log(
-      "claimer tier report",
-      await readWriteTier.report(claimer.address)
-    );
-
     const tierBlock = await ethers.provider.getBlockNumber();
 
-    console.log("block before", tierBlock);
     await Util.createEmptyBlock(BLOCKS_PER_YEAR / 2); // ~50% claim progress
     const claimBlock = await ethers.provider.getBlockNumber();
-    console.log("block after", claimBlock);
 
     // 183
     const claimDuration = claimBlock - tierBlock;
@@ -313,8 +298,6 @@ describe("EmissionsERC20", async function () {
     );
 
     const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
-
-    console.log(claimAmount);
 
     console.log(`expectations:
     claimDuration                 ${claimDuration}
@@ -891,10 +874,6 @@ describe("EmissionsERC20", async function () {
 
     await Util.createEmptyBlock(5);
 
-    console.log(
-      "claimer tier report",
-      await readWriteTier.report(claimer.address)
-    );
     const claimReport = paddedReport(
       await emissionsERC20.calculateClaim(claimer.address)
     );
