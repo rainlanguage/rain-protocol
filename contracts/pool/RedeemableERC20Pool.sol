@@ -269,7 +269,7 @@ library RedeemableERC20Pool {
         else if (poolPhase_ == Phase.TWO) {
             return DistributionStatus.TradingCanEnd;
         }
-        else if (poolPhase_ == Phase.THREE) {
+        else if (poolPhase_ == Phase.THREE || poolPhase_ == Phase.FOUR) {
             if (self_.finalBalance() >= self_.successBalance()) {
                 return DistributionStatus.Success;
             }
