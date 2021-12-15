@@ -506,7 +506,6 @@ describe("RedeemableERC20", async function () {
       let i = 0;
       const expectedDiff = "10000000";
       while (i < 3) {
-        console.log(`redemption check 1: ${i}`);
         const balanceBefore = await reserve.balanceOf(signers[0].address);
         await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
@@ -535,7 +534,6 @@ describe("RedeemableERC20", async function () {
       const expectedDiff = "10208333";
 
       while (i < 3) {
-        console.log(`redemption check 2: ${i}`);
         const balanceBefore = await reserve.balanceOf(signers[0].address);
         await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
           .to.emit(redeemableERC20, "Redeem")

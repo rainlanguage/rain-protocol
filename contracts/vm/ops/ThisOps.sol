@@ -4,11 +4,11 @@ pragma solidity ^0.8.10;
 import { Stack, Op } from "../RainVM.sol";
 
 enum Ops {
-    blockNumber,
+    thisAddress,
     length
 }
 
-library BlockOps {
+library ThisOps {
     function applyOp(
         bytes memory,
         Stack memory stack_,
@@ -17,8 +17,8 @@ library BlockOps {
     internal
     view
     {
-        if (op_.code == uint8(Ops.blockNumber)) {
-            stack_.vals[stack_.index] = block.number;
+        if (op_.code == uint8(Ops.thisAddress)) {
+            stack_.vals[stack_.index] = uint256(uint160(address(this)));
             stack_.index++;
         }
     }
