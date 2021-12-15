@@ -470,10 +470,6 @@ contract Trust is ReentrancyGuard {
             redeemableERC20_.SENDER(),
             address(redeemableERC20Pool_.crp())
         );
-        redeemableERC20_.grantRole(
-            redeemableERC20_.SENDER(),
-            address(bPoolFeeEscrow)
-        );
 
         // The trust needs the ability to burn the distributor.
         redeemableERC20_.grantRole(

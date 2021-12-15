@@ -27,44 +27,38 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { escrow, trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
     const { trustFactory: trustFactory2 } = await deployGlobals();
 
-    const { recipient, trust } = await basicSetup(
-      signers,
-      trustFactory,
-      tier,
-      escrow
-    );
-    const { trust: unknownTrust } = await basicSetup(
+    const { recipient, trust } = await basicSetup(signers, trustFactory, tier);
+    const { trust: unknownTrust, bPoolFeeEscrow } = await basicSetup(
       signers,
       trustFactory2,
-      tier,
-      escrow
+      tier
     );
 
-    const fees0 = await escrow.fees(trust.address, recipient.address);
-    const feesUnknown0 = await escrow.fees(
+    const fees0 = await bPoolFeeEscrow.fees(trust.address, recipient.address);
+    const feesUnknown0 = await bPoolFeeEscrow.fees(
       unknownTrust.address,
       recipient.address
     );
-    const aggregateFees0 = await escrow.aggregateFees(trust.address);
-    const aggregateFeesUnknown0 = await escrow.aggregateFees(
+    const aggregateFees0 = await bPoolFeeEscrow.aggregateFees(trust.address);
+    const aggregateFeesUnknown0 = await bPoolFeeEscrow.aggregateFees(
       unknownTrust.address
     );
 
-    await escrow.connect(recipient).anonClaimFees(
+    await bPoolFeeEscrow.connect(recipient).anonClaimFees(
       recipient.address,
       unknownTrust.address // unknown trust created by different trust factory
     );
 
-    const fees1 = await escrow.fees(trust.address, recipient.address);
-    const feesUnknown1 = await escrow.fees(
+    const fees1 = await bPoolFeeEscrow.fees(trust.address, recipient.address);
+    const feesUnknown1 = await bPoolFeeEscrow.fees(
       unknownTrust.address,
       recipient.address
     );
-    const aggregateFees1 = await escrow.aggregateFees(trust.address);
-    const aggregateFeesUnknown1 = await escrow.aggregateFees(
+    const aggregateFees1 = await bPoolFeeEscrow.aggregateFees(trust.address);
+    const aggregateFeesUnknown1 = await bPoolFeeEscrow.aggregateFees(
       unknownTrust.address
     );
 
@@ -94,7 +88,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { escrow, trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
     // do first raise
     const {
@@ -103,20 +97,25 @@ describe("BPoolFeeEscrow", async function () {
       fee,
       buyCount: buyCount1,
       trust: trust1,
-    } = await successfulRaise(signers, escrow, trustFactory, tier);
+      bPoolFeeEscrow,
+    } = await successfulRaise(signers, trustFactory, tier);
 
     // do second raise
     const {
       reserve: reserve2,
       buyCount: buyCount2,
       trust: trust2,
-    } = await successfulRaise(signers, escrow, trustFactory, tier);
+    } = await successfulRaise(signers, trustFactory, tier);
 
     const paidFees1 = fee.mul(buyCount1);
     const paidFees2 = fee.mul(buyCount2);
 
-    const aggregateFeesTrust1 = await escrow.aggregateFees(trust1.address);
-    const aggregateFeesTrust2 = await escrow.aggregateFees(trust2.address);
+    const aggregateFeesTrust1 = await bPoolFeeEscrow.aggregateFees(
+      trust1.address
+    );
+    const aggregateFeesTrust2 = await bPoolFeeEscrow.aggregateFees(
+      trust2.address
+    );
 
     assert(
       aggregateFeesTrust1.eq(paidFees1),
@@ -138,7 +137,7 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // recipient batch claims fees
-    await escrow
+    await bPoolFeeEscrow
       .connect(recipient)
       .anonClaimFeesMulti(recipient.address, [trust1.address, trust2.address]);
 
@@ -168,7 +167,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { escrow, trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
     const {
       reserve,
@@ -177,7 +176,8 @@ describe("BPoolFeeEscrow", async function () {
       signer1,
       minimumTradingDuration,
       redeemableERC20,
-    } = await basicSetup(signers, trustFactory, tier, escrow);
+      bPoolFeeEscrow,
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -185,9 +185,11 @@ describe("BPoolFeeEscrow", async function () {
       // give signer some reserve
       await reserve.transfer(signer.address, spend.add(fee));
 
-      await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+      await reserve
+        .connect(signer)
+        .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-      await escrow
+      await bPoolFeeEscrow
         .connect(signer)
         .buyToken(
           recipient.address,
@@ -227,7 +229,7 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // attempting claim fees is no-op.
-    await escrow
+    await bPoolFeeEscrow
       .connect(recipient)
       .anonClaimFees(recipient.address, trust.address);
 
@@ -235,16 +237,16 @@ describe("BPoolFeeEscrow", async function () {
       redeemableERC20.address
     );
 
-    const totalRefund = await escrow.aggregateFees(trust.address);
+    const totalRefund = await bPoolFeeEscrow.aggregateFees(trust.address);
 
     // anyone can trigger refund.
-    const refundFeesPromise = escrow
+    const refundFeesPromise = bPoolFeeEscrow
       .connect(signer1)
       .anonRefundFees(trust.address);
 
     // RefundFees event
     await expect(refundFeesPromise)
-      .to.emit(escrow, "RefundFees")
+      .to.emit(bPoolFeeEscrow, "RefundFees")
       .withArgs(getAddress(trust.address), totalRefund);
 
     const reserveRedeemableERC20_2 = await reserve.balanceOf(
@@ -290,7 +292,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { escrow, trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
     const {
       reserve,
@@ -300,7 +302,8 @@ describe("BPoolFeeEscrow", async function () {
       successLevel,
       bPool,
       minimumTradingDuration,
-    } = await basicSetup(signers, trustFactory, tier, escrow);
+      bPoolFeeEscrow,
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -308,9 +311,11 @@ describe("BPoolFeeEscrow", async function () {
       // give signer some reserve
       await reserve.transfer(signer.address, spend.add(fee));
 
-      await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+      await reserve
+        .connect(signer)
+        .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-      await escrow
+      await bPoolFeeEscrow
         .connect(signer)
         .buyToken(
           recipient.address,
@@ -346,7 +351,7 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // cannot claim before successful raise is closed
-    await escrow
+    await bPoolFeeEscrow
       .connect(recipient)
       .anonClaimFees(recipient.address, trust.address);
 
@@ -357,7 +362,7 @@ describe("BPoolFeeEscrow", async function () {
       `wrong recipient claim amount
       expected      0
       got           ${reserveBalanceRecipient1}
-      reserveEscrow ${await reserve.balanceOf(escrow.address)}`
+      reserveEscrow ${await reserve.balanceOf(bPoolFeeEscrow.address)}`
     );
 
     // actually end raise
@@ -369,30 +374,39 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // check fees are registered for trust and recipient
-    const recipientFees1 = await escrow.fees(trust.address, recipient.address);
+    const recipientFees1 = await bPoolFeeEscrow.fees(
+      trust.address,
+      recipient.address
+    );
     assert(
       recipientFees1.eq(fee.mul(buyCount)),
       "wrong registered fee amount for trust and recipient"
     );
 
     // Attempting refund is no-op.
-    await escrow.connect(signer1).anonRefundFees(trust.address);
+    await bPoolFeeEscrow.connect(signer1).anonRefundFees(trust.address);
 
-    const claimableFee = await escrow.fees(trust.address, recipient.address);
+    const claimableFee = await bPoolFeeEscrow.fees(
+      trust.address,
+      recipient.address
+    );
 
-    const claimFeesPromise = escrow
+    const claimFeesPromise = bPoolFeeEscrow
       .connect(recipient)
       .anonClaimFees(recipient.address, trust.address);
 
     // ClaimFees event
     await expect(claimFeesPromise)
-      .to.emit(escrow, "ClaimFees")
+      .to.emit(bPoolFeeEscrow, "ClaimFees")
       .withArgs(recipient.address, getAddress(trust.address), claimableFee);
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
 
     // check fees are deleted for trust and recipient
-    const recipientFees2 = await escrow.fees(trust.address, recipient.address);
+    const recipientFees2 = await bPoolFeeEscrow.fees(
+      trust.address,
+      recipient.address
+    );
     assert(
       recipientFees2.isZero(),
       "did not delete fee amount for trust and recipient"
@@ -404,7 +418,7 @@ describe("BPoolFeeEscrow", async function () {
       `wrong recipient claim amount
       expected      ${fee.mul(buyCount)}
       got           ${reserveBalanceRecipient2}
-      reserveEscrow ${await reserve.balanceOf(escrow.address)}`
+      reserveEscrow ${await reserve.balanceOf(bPoolFeeEscrow.address)}`
     );
   });
 
@@ -413,14 +427,10 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { escrow, trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
-    const { reserve, trust, recipient, signer1 } = await basicSetup(
-      signers,
-      trustFactory,
-      tier,
-      escrow
-    );
+    const { reserve, trust, recipient, signer1, bPoolFeeEscrow } =
+      await basicSetup(signers, trustFactory, tier);
 
     const buyTokensViaEscrow = async (signer, spend, fee) => {
       // give signer some reserve
@@ -428,9 +438,9 @@ describe("BPoolFeeEscrow", async function () {
 
       const reserveSigner = reserve.connect(signer);
 
-      await reserveSigner.approve(escrow.address, spend.add(fee));
+      await reserveSigner.approve(bPoolFeeEscrow.address, spend.add(fee));
 
-      const buyTokenPromise = escrow
+      const buyTokenPromise = bPoolFeeEscrow
         .connect(signer)
         .buyToken(
           recipient.address,
@@ -443,27 +453,29 @@ describe("BPoolFeeEscrow", async function () {
 
       // Fee event
       await expect(buyTokenPromise)
-        .to.emit(escrow, "Fee")
+        .to.emit(bPoolFeeEscrow, "Fee")
         .withArgs(recipient.address, getAddress(trust.address), fee);
     };
 
     const spend = ethers.BigNumber.from("250" + Util.sixZeros);
     const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
-    // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
+    // signer1 uses a front end to buy token. Front end makes call to bPoolFeeEscrow contract so it takes a fee on behalf of recipient.
     await buyTokensViaEscrow(signer1, spend, fee);
 
-    const reserveBalanceEscrow1 = await reserve.balanceOf(escrow.address);
+    const reserveBalanceEscrow1 = await reserve.balanceOf(
+      bPoolFeeEscrow.address
+    );
 
     assert(
       reserveBalanceEscrow1.eq(fee),
-      `wrong escrow reserve balance
+      `wrong bPoolFeeEscrow reserve balance
       expected  ${fee}
       got       ${reserveBalanceEscrow1}`
     );
 
     // no-op claim if raise is still ongoing
-    await escrow
+    await bPoolFeeEscrow
       .connect(recipient)
       .anonClaimFees(recipient.address, trust.address);
 
@@ -482,20 +494,16 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { escrow, trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
-    const registeredTrustFactory = await escrow.trustedFactory();
+    const { reserve, trust, recipient, signer1, bPoolFeeEscrow } =
+      await basicSetup(signers, trustFactory, tier);
+
+    const registeredTrustFactory = await bPoolFeeEscrow.trustedFactory();
 
     assert(
       registeredTrustFactory === getAddress(trustFactory.address),
       "trust factory was not correctly registered on construction"
-    );
-
-    const { reserve, trust, recipient, signer1 } = await basicSetup(
-      signers,
-      trustFactory,
-      tier,
-      escrow
     );
 
     const buyTokensViaEscrow = async (signer, spend, fee) => {
@@ -504,11 +512,11 @@ describe("BPoolFeeEscrow", async function () {
 
       const reserveSigner = reserve.connect(signer);
 
-      await reserveSigner.approve(escrow.address, spend.add(fee));
+      await reserveSigner.approve(bPoolFeeEscrow.address, spend.add(fee));
 
       await Util.assertError(
         async () =>
-          await escrow.connect(signer).buyToken(
+          await bPoolFeeEscrow.connect(signer).buyToken(
             recipient.address,
             signers[19].address, // bad trust address
             fee,
@@ -520,7 +528,7 @@ describe("BPoolFeeEscrow", async function () {
         "buyToken proceeded despite trust address not being child of factory"
       );
 
-      await escrow
+      await bPoolFeeEscrow
         .connect(signer)
         .buyToken(
           recipient.address,
