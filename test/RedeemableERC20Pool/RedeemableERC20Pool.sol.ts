@@ -12,6 +12,18 @@ chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
+enum Tier {
+  NIL,
+  COPPER,
+  BRONZE,
+  SILVER,
+  GOLD,
+  PLATINUM,
+  DIAMOND,
+  CHAD,
+  JAWAD,
+}
+
 enum Phase {
   ZERO,
   ONE,
@@ -39,7 +51,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -91,6 +103,14 @@ describe("RedeemableERC20Pool", async function () {
       await redeemable.DEFAULT_ADMIN_ROLE(),
       pool.address
     );
+
+    // The trust would do this internally but we need to do it here to test.
+    const [crp] = await Util.poolContracts(signers, pool);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
+
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     await reserve.transfer(pool.address, reserveInit);
@@ -114,7 +134,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -179,7 +199,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -231,6 +251,14 @@ describe("RedeemableERC20Pool", async function () {
       await redeemable.DEFAULT_ADMIN_ROLE(),
       pool.address
     );
+
+    // The trust would do this internally but we need to do it here to test.
+    const [crp] = await Util.poolContracts(signers, pool);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
+
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     await reserve.transfer(pool.address, reserveInit);
@@ -258,8 +286,6 @@ describe("RedeemableERC20Pool", async function () {
       `wrong end block from pool.phaseBlocks
         expected ${expectedPhaseTwoBlock} got ${actualPhaseTwoBlock}`
     );
-
-    const [crp] = await Util.poolContracts(signers, pool);
 
     while (
       (await ethers.provider.getBlockNumber()) <=
@@ -300,7 +326,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -362,6 +388,10 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
+    const admin = signers[0];
+    const signer1 = signers[1];
+    const signer2 = signers[2];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -371,7 +401,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -392,8 +422,11 @@ describe("RedeemableERC20Pool", async function () {
 
     const minimumTradingDuration = 50;
 
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+    await tier.setTier(signer2.address, Tier.GOLD, []);
+
     const redeemable = (await redeemableFactory.deploy({
-      admin: signers[0].address,
+      admin: admin.address,
       erc20Config,
       reserve: reserve.address,
       tier: tier.address,
@@ -423,6 +456,14 @@ describe("RedeemableERC20Pool", async function () {
       await redeemable.DEFAULT_ADMIN_ROLE(),
       pool.address
     );
+
+    // The trust would do this internally but we need to do it here to test.
+    const [crp] = await Util.poolContracts(signers, pool);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
+
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     await reserve.transfer(pool.address, reserveInit);
@@ -446,13 +487,7 @@ describe("RedeemableERC20Pool", async function () {
       `expected phase ${Phase.ONE} but got ${await pool.currentPhase()}`
     );
 
-    // // The trust would do this internally but we need to do it here to test.
-    const [crp, bPool] = await Util.poolContracts(signers, pool);
-
-    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
-    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
-    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
-    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
+    const [, bPool] = await Util.poolContracts(signers, pool);
 
     // raise some funds
     const swapReserveForTokens = async (signer, spend) => {
@@ -475,11 +510,11 @@ describe("RedeemableERC20Pool", async function () {
     };
 
     const reserveSpend = finalValuation.div(10); // 10% of target raise amount
-    await swapReserveForTokens(signers[3], reserveSpend);
+    await swapReserveForTokens(signer1, reserveSpend);
 
     // create a few blocks by sending some tokens around
     while ((await ethers.provider.getBlockNumber()) < raiseEndBlock + 1) {
-      await reserve.transfer(signers[1].address, 1);
+      await reserve.transfer(signer2.address, 1);
     }
 
     // moves to phase TWO 1 block after trading finishes
@@ -489,7 +524,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     const bPoolReserveBeforeExit = await reserve.balanceOf(bPool.address);
-    const ownerReserveBeforeExit = await reserve.balanceOf(signers[0].address);
+    const ownerReserveBeforeExit = await reserve.balanceOf(admin.address);
 
     await pool.ownerEndDutchAuction();
 
@@ -500,7 +535,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address);
-    const ownerReserveAfterExit = await reserve.balanceOf(signers[0].address);
+    const ownerReserveAfterExit = await reserve.balanceOf(admin.address);
 
     const reserveDust = Util.estimateReserveDust(bPoolReserveBeforeExit).add(
       1 // rounding error
@@ -532,6 +567,10 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
+    const admin = signers[0];
+    const signer1 = signers[1];
+    const signer2 = signers[2];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -541,7 +580,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -562,8 +601,11 @@ describe("RedeemableERC20Pool", async function () {
 
     const minimumTradingDuration = 50;
 
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+    await tier.setTier(signer2.address, Tier.GOLD, []);
+
     const redeemable = (await redeemableFactory.deploy({
-      admin: signers[0].address,
+      admin: admin.address,
       erc20Config,
       reserve: reserve.address,
       tier: tier.address,
@@ -588,8 +630,6 @@ describe("RedeemableERC20Pool", async function () {
 
     await pool.deployed();
 
-    const pool1 = pool.connect(signers[1]);
-
     // Before init
 
     await Util.assertError(
@@ -607,20 +647,21 @@ describe("RedeemableERC20Pool", async function () {
       await redeemable.DEFAULT_ADMIN_ROLE(),
       pool.address
     );
+
+    // The trust would do this internally but we need to do it here to test.
+    const [crp] = await Util.poolContracts(signers, pool);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
+
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
-    const reserve1 = new ethers.Contract(
-      reserve.address,
-      reserve.interface,
-      signers[1]
-    );
-
-    await reserve.transfer(signers[1].address, reserveInit);
-
-    await reserve1.transfer(pool.address, reserveInit);
+    await reserve.transfer(pool.address, reserveInit);
+    await redeemable.approve(pool.address, totalTokenSupply);
 
     // non-owner able to start pool trading
-    await pool1.startDutchAuction({
+    await pool.connect(signer1).startDutchAuction({
       gasLimit: 10000000,
     });
 
@@ -638,13 +679,6 @@ describe("RedeemableERC20Pool", async function () {
 
     // Exit pool
 
-    // The trust would do this internally but we need to do it here to test.
-    const crp = await pool.crp();
-    await redeemable.grantRole(await redeemable.SENDER(), crp);
-    await redeemable.grantRole(await redeemable.RECEIVER(), crp);
-    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
-    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
-
     // Before raiseEndBlock
     await Util.assertError(
       async () => await pool.ownerEndDutchAuction(),
@@ -654,11 +688,11 @@ describe("RedeemableERC20Pool", async function () {
 
     // create a few blocks by sending some tokens around
     while ((await ethers.provider.getBlockNumber()) < raiseEndBlock) {
-      await reserve.transfer(signers[2].address, 1);
+      await reserve.transfer(signer2.address, 1);
     }
 
     await Util.assertError(
-      async () => await pool1.ownerEndDutchAuction(),
+      async () => await pool.connect(signer1).ownerEndDutchAuction(),
       "Ownable: caller is not the owner",
       "non-owner was wrongly able to end pool trading directly"
     );
@@ -671,6 +705,9 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
+    const admin = signers[0];
+    const signer1 = signers[1];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -680,7 +717,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -706,8 +743,10 @@ describe("RedeemableERC20Pool", async function () {
 
     const minimumTradingDuration = 15;
 
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+
     const redeemable = (await redeemableFactory.deploy({
-      admin: signers[0].address,
+      admin: admin.address,
       erc20Config,
       reserve: reserve.address,
       tier: tier.address,
@@ -752,10 +791,18 @@ describe("RedeemableERC20Pool", async function () {
       await redeemable.DEFAULT_ADMIN_ROLE(),
       pool.address
     );
+
+    // The trust would do this internally but we need to do it here to test.
+    const [crp] = await Util.poolContracts(signers, pool);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
+
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     assert((await pool.token()) === redeemable.address, "wrong token address");
-    assert((await pool.owner()) === signers[0].address, "wrong owner");
+    assert((await pool.owner()) === admin.address, "wrong owner");
     assert(
       await redeemable.hasRole(
         await redeemable.DEFAULT_ADMIN_ROLE(),
@@ -773,8 +820,6 @@ describe("RedeemableERC20Pool", async function () {
 
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + minimumTradingDuration;
-
-    const [crp] = await Util.poolContracts(signers, pool);
 
     const actualRights = await crp.rights();
 
@@ -806,7 +851,7 @@ describe("RedeemableERC20Pool", async function () {
 
     // create a few blocks by sending some tokens around
     while ((await ethers.provider.getBlockNumber()) <= phaseOneBlock) {
-      await reserve.transfer(signers[1].address, 1);
+      await reserve.transfer(signer1.address, 1);
     }
 
     await pool.ownerEndDutchAuction();
@@ -817,6 +862,9 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
+    const admin = signers[0];
+    const signer1 = signers[1];
+
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
     const reserve = (await Util.basicDeploy(
@@ -826,7 +874,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -847,8 +895,10 @@ describe("RedeemableERC20Pool", async function () {
 
     const minimumTradingDuration = 15;
 
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+
     const redeemable = (await redeemableFactory.deploy({
-      admin: signers[0].address,
+      admin: admin.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -892,10 +942,18 @@ describe("RedeemableERC20Pool", async function () {
       await redeemable.DEFAULT_ADMIN_ROLE(),
       pool.address
     );
+
+    // The trust would do this internally but we need to do it here to test.
+    const [crp] = await Util.poolContracts(signers, pool);
+    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
+    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
+
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
     assert((await pool.token()) === redeemable.address, "wrong token address");
-    assert((await pool.owner()) === signers[0].address, "wrong owner");
+    assert((await pool.owner()) === admin.address, "wrong owner");
     assert(
       await redeemable.hasRole(
         await redeemable.DEFAULT_ADMIN_ROLE(),
@@ -914,13 +972,6 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + minimumTradingDuration;
 
-    // The trust would do this internally but we need to do it here to test.
-    const [crp] = await Util.poolContracts(signers, pool);
-    await redeemable.grantRole(await redeemable.SENDER(), crp.address);
-    await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
-    await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
-    await redeemable.grantRole(await redeemable.RECEIVER(), pool.address);
-
     await Util.assertError(
       async () => await pool.ownerEndDutchAuction(),
       "BAD_PHASE",
@@ -929,7 +980,7 @@ describe("RedeemableERC20Pool", async function () {
 
     // create a few blocks by sending some tokens around
     while ((await ethers.provider.getBlockNumber()) <= phaseOneBlock) {
-      await reserve.transfer(signers[1].address, 1);
+      await reserve.transfer(signer1.address, 1);
     }
 
     await pool.ownerEndDutchAuction();
@@ -949,7 +1000,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -1030,7 +1081,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = 0;
+    const minimumStatus = Tier.GOLD;
 
     const redeemableFactory = await ethers.getContractFactory(
       "RedeemableERC20"

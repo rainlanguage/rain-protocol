@@ -7,10 +7,12 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { TrustFactory } from "../../typechain/TrustFactory";
-import type { Contract } from "ethers";
+import type { BigNumber, Contract } from "ethers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
+const escrowJson = require("../../artifacts/contracts/escrow/BPoolFeeEscrow.sol/BPoolFeeEscrow.json");
 
 enum Tier {
   NIL,
@@ -32,28 +34,24 @@ export const deployGlobals = async () => {
 
   const { trustFactory } = await Util.factoriesDeploy(crpFactory, bFactory);
 
-  // Deploy global Escrow contract
-  const escrowFactory = await ethers.getContractFactory("BPoolFeeEscrow");
-  const escrow = (await escrowFactory.deploy(
-    trustFactory.address
-  )) as BPoolFeeEscrow & Contract;
-
   return {
     crpFactory,
     bFactory,
     tierFactory,
     tier,
     trustFactory,
-    escrowFactory,
-    escrow,
   };
 };
 
-export const basicSetup = async (signers, trustFactory, tier) => {
+export const basicSetup = async (
+  signers: SignerWithAddress[],
+  trustFactory: TrustFactory & Contract,
+  tier: ReadWriteTier & Contract
+) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
     Contract;
 
-  const minimumStatus = Tier.NIL;
+  const minimumStatus = Tier.GOLD;
   const erc20Config = { name: "Token", symbol: "TKN" };
   const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
@@ -81,6 +79,8 @@ export const basicSetup = async (signers, trustFactory, tier) => {
   const minimumTradingDuration = 100;
 
   const trustFactory1 = trustFactory.connect(deployer);
+
+  await tier.setTier(signer1.address, Tier.GOLD, []);
 
   const trust = await Util.trustDeploy(
     trustFactory1,
@@ -135,6 +135,11 @@ export const basicSetup = async (signers, trustFactory, tier) => {
     poolJson.abi,
     creator
   ) as RedeemableERC20Pool & Contract;
+  const bPoolFeeEscrow = new ethers.Contract(
+    await trust.bPoolFeeEscrow(),
+    escrowJson.abi,
+    creator
+  ) as BPoolFeeEscrow & Contract;
 
   // seeder must transfer funds to pool
   await reserveSeeder.transfer(poolAddress, reserveInit);
@@ -155,12 +160,12 @@ export const basicSetup = async (signers, trustFactory, tier) => {
     bPool,
     minimumTradingDuration,
     redeemableERC20,
+    bPoolFeeEscrow,
   };
 };
 
 export const successfulRaise = async (
-  signers,
-  escrow: BPoolFeeEscrow & Contract,
+  signers: SignerWithAddress[],
   trustFactory: TrustFactory,
   tier: ReadWriteTier
 ) => {
@@ -175,17 +180,24 @@ export const successfulRaise = async (
     bPool,
     minimumTradingDuration,
     redeemableERC20,
+    bPoolFeeEscrow,
   } = await basicSetup(signers, trustFactory, tier);
 
   const startBlock = await ethers.provider.getBlockNumber();
 
-  const buyTokensViaEscrow = async (signer, spend, fee) => {
+  const buyTokensViaEscrow = async (
+    signer: SignerWithAddress,
+    spend: BigNumber,
+    fee: BigNumber
+  ) => {
     // give signer some reserve
     await reserve.transfer(signer.address, spend.add(fee));
 
-    await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+    await reserve
+      .connect(signer)
+      .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-    await escrow
+    await bPoolFeeEscrow
       .connect(signer)
       .buyToken(
         recipient.address,
@@ -222,7 +234,7 @@ export const successfulRaise = async (
 
   return {
     reserve,
-    escrow,
+    bPoolFeeEscrow,
     trust,
     recipient,
     signer1,
@@ -241,8 +253,7 @@ export const successfulRaise = async (
 };
 
 export const failedRaise = async (
-  signers,
-  escrow: BPoolFeeEscrow & Contract,
+  signers: SignerWithAddress[],
   trustFactory: TrustFactory,
   tier: ReadWriteTier
 ) => {
@@ -257,17 +268,24 @@ export const failedRaise = async (
     pool,
     crp,
     redeemableERC20,
+    bPoolFeeEscrow,
   } = await basicSetup(signers, trustFactory, tier);
 
   const startBlock = await ethers.provider.getBlockNumber();
 
-  const buyTokensViaEscrow = async (signer, spend, fee) => {
+  const buyTokensViaEscrow = async (
+    signer: SignerWithAddress,
+    spend: BigNumber,
+    fee: BigNumber
+  ) => {
     // give signer some reserve
     await reserve.transfer(signer.address, spend.add(fee));
 
-    await reserve.connect(signer).approve(escrow.address, spend.add(fee));
+    await reserve
+      .connect(signer)
+      .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-    await escrow
+    await bPoolFeeEscrow
       .connect(signer)
       .buyToken(
         recipient.address,
@@ -283,7 +301,9 @@ export const failedRaise = async (
   const fee = ethers.BigNumber.from("10" + Util.sixZeros);
 
   // set min fee for the reserve that signer1 will be using
-  await escrow.connect(recipient).recipientSetMinFees(reserve.address, fee);
+  await bPoolFeeEscrow
+    .connect(recipient)
+    .recipientSetMinFees(reserve.address, fee);
 
   // raise all necessary funds
   await buyTokensViaEscrow(signer1, spend, fee);
@@ -300,7 +320,7 @@ export const failedRaise = async (
 
   return {
     reserve,
-    escrow,
+    bPoolFeeEscrow,
     trust,
     recipient,
     signer1,
