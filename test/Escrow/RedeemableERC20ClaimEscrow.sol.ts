@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import { basicSetup, deployGlobals } from "./ClaimUtil";
+import { basicSetup, deployGlobals } from "./EscrowUtil";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
@@ -12,6 +12,18 @@ import type { Contract } from "ethers";
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
+
+enum Tier {
+  NIL,
+  COPPER,
+  BRONZE,
+  SILVER,
+  GOLD,
+  PLATINUM,
+  DIAMOND,
+  CHAD,
+  JAWAD,
+}
 
 enum DistributionStatus {
   PENDING,
@@ -46,6 +58,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
     const signer2 = signers[4];
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+    await tier.setTier(signer2.address, Tier.GOLD, []);
 
     const {
       redeemableERC20,
@@ -197,6 +212,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
     const signer2 = signers[4];
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+    await tier.setTier(signer2.address, Tier.GOLD, []);
 
     const {
       redeemableERC20,
@@ -356,6 +374,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signer1 = signers[3];
     const signer2 = signers[4];
 
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+    await tier.setTier(signer2.address, Tier.GOLD, []);
+
     const {
       redeemableERC20,
       trust,
@@ -472,6 +493,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
 
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+
     const {
       redeemableERC20,
       trust,
@@ -587,6 +610,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
 
     const {
       redeemableERC20,
@@ -724,6 +749,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
 
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+
     const {
       redeemableERC20,
       trust,
@@ -825,6 +852,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const signers = await ethers.getSigners();
     const signer1 = signers[3];
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
 
     const {
       redeemableERC20,

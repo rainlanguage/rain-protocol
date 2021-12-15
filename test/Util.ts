@@ -172,6 +172,7 @@ export const eighteenZeros = "000000000000000000";
 
 export const fourZeros = "0000";
 export const sixZeros = "000000";
+export const nineZeros = "000000000";
 export const tenZeros = "0000000000";
 
 export const ONE = ethers.BigNumber.from("1" + eighteenZeros);
@@ -182,6 +183,9 @@ export const max_uint256 = ethers.BigNumber.from(
   "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
 );
 export const max_uint32 = ethers.BigNumber.from("0xffffffff");
+
+export const ALWAYS = 0;
+export const NEVER = max_uint256;
 
 export const estimateReserveDust = (bPoolReserveBalance: BigNumber) => {
   let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
@@ -240,9 +244,11 @@ export const trustDeploy = async (
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory[
     "createChild((address,uint256,address,uint256,uint16,uint16,uint256,(string,string)),((string,string),address,uint8,uint256),(address,uint256,uint256,uint256,uint256))"
+  ](
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-  ](...args);
+    ...args
+  );
   const receipt = await tx.wait();
 
   const trust = new ethers.Contract(
@@ -377,6 +383,13 @@ export function callSize(
   return callSize;
 }
 
+export function arg(valIndex: number): number {
+  let arg = 1;
+  arg <<= 7;
+  arg += valIndex;
+  return arg;
+}
+
 /**
  * Converts an opcode and operand to bytes, and returns their concatenation.
  * @param code - the opcode
@@ -423,7 +436,7 @@ export const array8BitUInts = (length) =>
     .fill(0)
     .map((_, i) => wrap8BitUInt(i));
 
-export const pack2BitUIntsIntoByte = (numArray: number[]): number[] => {
+export const pack32UIntsIntoByte = (numArray: number[]): number[] => {
   const val: number[] = [];
   let valIndex = 0;
 
@@ -445,12 +458,14 @@ export const paddedReport = (report: BigNumber): string => {
   return "0x" + report.toHexString().substring(2).padStart(64, "0");
 };
 
-export const paddedBlock = (blockNumber: number): string => {
+export const paddedBlock = (
+  blockNumber: number | BytesLike | Hexable
+): string => {
   return hexlify(blockNumber).substring(2).padStart(8, "0");
 };
 
 export type Source = [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
-export type Vals = [
+export type Constants = [
   BigNumberish,
   BigNumberish,
   BigNumberish,
@@ -468,3 +483,20 @@ export type Vals = [
   BigNumberish,
   BigNumberish
 ];
+
+export function chunkedSource(monolithicSource: Uint8Array): Source {
+  const source: Source = [0, 0, 0, 0];
+
+  for (let sourceIndex = 0; sourceIndex < 4; sourceIndex++) {
+    const sourceElement: Array<number> = [];
+
+    let i = 0;
+    for (i = 0; i < 32 && monolithicSource?.[i + sourceIndex * 32] >= 0; i++) {
+      sourceElement[i] = monolithicSource[i + sourceIndex * 32];
+    }
+
+    source[sourceIndex] = i === 0 ? 0 : sourceElement;
+  }
+
+  return source;
+}

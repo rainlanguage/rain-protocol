@@ -2,18 +2,22 @@
 
 pragma solidity 0.8.10;
 
-import "../vm/RainVM.sol";
+import { RainVM, Ops as RainVMOps, Stack, Op } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
-import { BlockOps } from "../vm/ops/BlockOps.sol";
+import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
 import { MathOps } from "../vm/ops/MathOps.sol";
 
-contract CalculatorTest is RainVM, ImmutableSource, BlockOps, MathOps {
+contract CalculatorTest is RainVM, ImmutableSource {
+
+    uint8 public immutable blockOpsStart;
+    uint8 public immutable mathOpsStart;
 
     constructor(Source memory source_)
         ImmutableSource(source_)
-        BlockOps(VM_OPS_LENGTH)
-        MathOps(VM_OPS_LENGTH + BLOCK_OPS_LENGTH)
-    { } // solhint-disable-line no-empty-blocks
+    {
+        blockOpsStart = uint8(RainVMOps.length);
+        mathOpsStart = blockOpsStart + uint8(BlockOpsOps.length);
+    }
 
     function applyOp(
         bytes memory context_,
@@ -21,26 +25,25 @@ contract CalculatorTest is RainVM, ImmutableSource, BlockOps, MathOps {
         Op memory op_
     )
         internal
-        override(RainVM, BlockOps, MathOps)
+        override
         view
-        returns (Stack memory)
     {
-        if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
-            return BlockOps.applyOp(
+        if (op_.code < mathOpsStart) {
+            op_.code -= blockOpsStart;
+            BlockOps.applyOp(
                 context_,
                 stack_,
                 op_
             );
         }
-        else if (op_.code < mathOpsStart + MATH_OPS_LENGTH) {
-            return MathOps.applyOp(
+        else {
+            op_.code -= mathOpsStart;
+            MathOps.applyOp(
                 context_,
                 stack_,
                 op_
             );
         }
-
-        return stack_;
     }
 
     function run()
@@ -51,7 +54,7 @@ contract CalculatorTest is RainVM, ImmutableSource, BlockOps, MathOps {
     {
         Stack memory stack_;
         bytes memory context_ = new bytes(0);
-        stack_ = eval(
+        eval(
             context_,
             source(),
             stack_
@@ -68,7 +71,7 @@ contract CalculatorTest is RainVM, ImmutableSource, BlockOps, MathOps {
     {
         Stack memory stack_;
         bytes memory context_ = new bytes(0);
-        stack_ = eval(
+        eval(
             context_,
             source_,
             stack_
@@ -85,7 +88,7 @@ contract CalculatorTest is RainVM, ImmutableSource, BlockOps, MathOps {
     {
         Stack memory stack_;
         bytes memory context_ = new bytes(0);
-        stack_ = eval(
+        eval(
             context_,
             source_,
             stack_

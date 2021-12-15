@@ -7,6 +7,8 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { Contract } from "ethers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { TrustFactory } from "../../typechain/TrustFactory";
 
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
@@ -50,11 +52,15 @@ export const deployGlobals = async () => {
   };
 };
 
-export const basicSetup = async (signers, trustFactory, tier) => {
+export const basicSetup = async (
+  signers: SignerWithAddress[],
+  trustFactory: TrustFactory & Contract,
+  tier: ReadWriteTier & Contract
+) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
     Contract;
 
-  const minimumStatus = Tier.NIL;
+  const minimumStatus = Tier.GOLD;
 
   const erc20Config = { name: "Token", symbol: "TKN" };
   const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
