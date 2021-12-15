@@ -12,6 +12,9 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Phase, Phased } from "../phased/Phased.sol";
 import { Cooldown } from "../cooldown/Cooldown.sol";
 
+import { ERC20Pull } from "../erc20/ERC20Pull.sol";
+import { ERC20Push } from "../erc20/ERC20Push.sol";
+
 /// Everything required to construct a `SeedERC20` contract.
 struct SeedERC20Config {
     // Reserve erc20 token contract used to purchase seed tokens.
@@ -89,7 +92,7 @@ struct SeedERC20Config {
 /// at a later date.
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
-contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
+contract SeedERC20 is Ownable, ERC20, Phased, Cooldown, ERC20Pull, ERC20Push {
 
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -199,7 +202,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
             address(this),
             reserveAmount_
         );
-        // Immediately transfer to the recipient.
+        // Immediately approve for the recipient.
         // The transfer is immediate rather than only approving for the
         // recipient.
         // This avoids the situation where a seeder immediately redeems their
@@ -208,7 +211,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
         // transfer. If this fails then everyone can call `unseed` after their
         // individual cooldowns to exit.
         if (currentPhase() == Phase.ONE) {
-            reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
+            reserve.approve(recipient, reserve.balanceOf(address(this)));
         }
     }
 

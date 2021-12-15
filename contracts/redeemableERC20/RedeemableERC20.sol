@@ -18,6 +18,8 @@ import { ITier } from "../tier/ITier.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 
+import { ERC20Pull } from "../erc20/ERC20Pull.sol";
+
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
     // Account that will be the admin for the `RedeemableERC20` contract.
@@ -98,7 +100,8 @@ contract RedeemableERC20 is
     TierByConstruction,
     ERC20,
     ReentrancyGuard,
-    ERC20Burnable
+    ERC20Burnable,
+    ERC20Pull
     {
 
     using SafeERC20 for IERC20;
