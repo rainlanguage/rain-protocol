@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.10;
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ITier } from "../tier/ITier.sol";
+import { IClaim } from "./IClaim.sol";
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
 
 /// @title TierByConstructionClaim
@@ -49,7 +49,7 @@ import { TierByConstruction } from "../tier/TierByConstruction.sol";
 /// to the tier contract.
 /// In general it is INSECURE to inherit `TierByConstructionClaim` without
 /// implementing `_afterClaim` with appropriate access checks.
-contract TierByConstructionClaim is TierByConstruction {
+contract TierByConstructionClaim is IClaim, TierByConstruction {
     /// The minimum tier required for an address to claim anything at all.
     /// This tier must have been held continuously since before this
     /// contract was constructed.
@@ -58,11 +58,6 @@ contract TierByConstructionClaim is TierByConstruction {
     /// Tracks every address that has already claimed to prevent duplicate
     /// claims.
     mapping(address => bool) public claims;
-
-    /// A claim has been successfully processed for an account.
-    /// @param account The account the claim is for MAY NOT be `msg.sender`.
-    /// @param data The claim proof, if required.
-    event Claim(address indexed account, bytes data);
 
     /// Nothing special needs to happen in the constructor.
     /// Simply forwards the desired ITier contract to the `TierByConstruction`

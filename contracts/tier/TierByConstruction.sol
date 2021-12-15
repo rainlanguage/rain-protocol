@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.10;
 
-import { TierUtil } from "../libraries/TierUtil.sol";
+import { TierReport } from "./libraries/TierReport.sol";
 import { ITier } from "./ITier.sol";
 
 /// @title TierByConstruction
@@ -65,7 +65,7 @@ contract TierByConstruction {
         view
         returns (bool)
     {
-        return constructionBlock >= TierUtil.tierBlock(
+        return constructionBlock >= TierReport.tierBlock(
             tierContract.report(account_),
             minimumTier_
         );

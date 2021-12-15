@@ -141,7 +141,7 @@ describe("ERC20TransferTier", async function () {
         await erc20TransferTier
           .connect(bob)
           .setTier(alice.address, Tier.ONE, []),
-      "revert DELEGATED_TIER_LOSS",
+      "DELEGATED_TIER_LOSS",
       "bob downgraded alice's tier"
     );
 
@@ -176,7 +176,7 @@ describe("ERC20TransferTier", async function () {
     await assertError(
       async () =>
         await bobErc20TransferTier.setTier(alice.address, Tier.TWO, []),
-      "revert DELEGATED_TIER_LOSS",
+      "DELEGATED_TIER_LOSS",
       "bob wrongly set tier when start and end tiers were equivalent"
     );
   });
@@ -187,7 +187,7 @@ describe("ERC20TransferTier", async function () {
         await erc20TransferTier
           .connect(alice)
           .setTier(alice.address, Tier.ZERO, []),
-      "revert SET_ZERO_TIER",
+      "SET_ZERO_TIER",
       "alice directly set to tier ZERO"
     );
   });
@@ -204,7 +204,7 @@ describe("ERC20TransferTier", async function () {
         await erc20TransferTier
           .connect(alice)
           .setTier(alice.address, Tier.ONE, []),
-      "revert ERC20: transfer amount exceeds balance",
+      "ERC20: transfer amount exceeds balance",
       "alice set to tier ONE with a zero ERC20 balance"
     );
 

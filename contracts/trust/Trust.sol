@@ -23,6 +23,7 @@ import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factor
 // solhint-disable-next-line max-line-length
 import { RedeemableERC20PoolFactory, RedeemableERC20PoolFactoryRedeemableERC20PoolConfig } from "../pool/RedeemableERC20PoolFactory.sol";
 import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
+import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
 import { ERC20Config } from "../erc20/ERC20Config.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
@@ -136,6 +137,7 @@ struct TrustConfig {
     // any time to increase redemption value. Successful the redeemInit is sent
     // to token holders, otherwise the failed raise is refunded instead.
     uint256 redeemInit;
+    BPoolFeeEscrow bPoolFeeEscrow;
     // ERC20Config forwarded to the seedERC20.
     ERC20Config seedERC20Config;
 }
@@ -287,6 +289,8 @@ contract Trust is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
+    BPoolFeeEscrow public immutable bPoolFeeEscrow;
+
     /// Anyone can emit a `Notice`.
     /// This is open ended content related to the `Trust`.
     /// Some examples:
@@ -387,6 +391,7 @@ contract Trust is ReentrancyGuard {
         minimumCreatorRaise = config_.minimumCreatorRaise;
         seedERC20Factory = config_.seedERC20Factory;
         successBalance = successBalance_;
+        bPoolFeeEscrow = config_.bPoolFeeEscrow;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             trustRedeemableERC20Config_.redeemableERC20Factory
@@ -456,6 +461,10 @@ contract Trust is ReentrancyGuard {
         redeemableERC20_.grantRole(
             redeemableERC20_.RECEIVER(),
             address(redeemableERC20Pool_)
+        );
+        redeemableERC20_.grantRole(
+            redeemableERC20_.RECEIVER(),
+            address(bPoolFeeEscrow)
         );
         redeemableERC20_.grantRole(
             redeemableERC20_.SENDER(),

@@ -21,5 +21,5 @@ interface IFactory {
     /// @param maybeChild_ Address to check registration for.
     /// @return `true` if address was deployed by this contract factory,
     /// otherwise `false`.
-    function isChild(address maybeChild_) external returns(bool);
+    function isChild(address maybeChild_) external view returns(bool);
 }

@@ -297,7 +297,7 @@ describe("SeedERC20", async function () {
     await carolReserve.approve(seedERC20.address, (carolUnits + 1) * seedPrice);
     await Util.assertError(
       async () => await carolSeed.seed(carolUnits + 1, carolUnits + 1),
-      "revert INSUFFICIENT_STOCK",
+      "INSUFFICIENT_STOCK",
       "seedUnits stock calculation was affected by forcibly sending eth to contract"
     );
   });
@@ -382,12 +382,12 @@ describe("SeedERC20", async function () {
     await bobReserve.approve(seedERC20.address, bobUnits.desired * seedPrice);
     await Util.assertError(
       async () => await bobSeed.seed(1, 0), // max === 0
-      "revert DESIRED_0",
+      "DESIRED_0",
       "bob successfully called seed with 0 max desired units"
     );
     await Util.assertError(
       async () => await bobSeed.seed(2, 1), // min > max
-      "revert MINIMUM_OVER_DESIRED",
+      "MINIMUM_OVER_DESIRED",
       "bob successfully called seed with min greater than max"
     );
     await bobSeed.seed(bobUnits.min, bobUnits.desired); // normal
@@ -407,7 +407,7 @@ describe("SeedERC20", async function () {
     );
     await Util.assertError(
       async () => await carolSeed.seed(carolUnits.min, carolUnits.desired),
-      "revert INSUFFICIENT_STOCK",
+      "INSUFFICIENT_STOCK",
       "carol's minimum did not cause seed to fail"
     );
 
