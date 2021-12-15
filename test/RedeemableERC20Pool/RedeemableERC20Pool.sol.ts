@@ -672,7 +672,9 @@ describe("RedeemableERC20Pool", async function () {
 
     const signers = await ethers.getSigners();
 
+    const dummy = signers[1];
     const owner = signers[3];
+    const signer1 = signers[4];
 
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -770,7 +772,7 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + minimumTradingDuration;
 
-    const [crp] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, pool);
 
     // The trust would do this internally but we need to do it here to test.
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
@@ -784,38 +786,94 @@ describe("RedeemableERC20Pool", async function () {
       "failed to error on early exit"
     );
 
-    await reserve.transfer(signers[1].address, 1);
+    await reserve.transfer(dummy.address, 1);
+
+    // raise some funds
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
+
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
+
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
+        reserve.address,
+        spend,
+        redeemable.address,
+        ethers.BigNumber.from("1"),
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
+      );
+    };
+
+    const reserveSpend = "100000000";
+    await swapReserveForTokens(signer1, reserveSpend);
 
     // send excess reserve to the bPool after the auction starts and gulp it.
     // random ppl could do this.
-    await reserve.transfer(await crp.bPool(), "100000000");
-    const bPool = new ethers.Contract(
-      await crp.bPool(),
-      (await artifacts.readArtifact("contracts/pool/IBPool.sol:IBPool")).abi
-    ) as Contract & IBPool;
-    await bPool.connect(signers[2]).gulp(reserve.address);
+    await reserve.transfer(bPool.address, "100000000");
+    await bPool.connect(signer1).gulp(reserve.address);
+    // send signer1 tokens to the bPool after the auction starts and gulp it.
+    // random ppl could do this.
+    await redeemable
+      .connect(signer1)
+      .transfer(bPool.address, await redeemable.balanceOf(signer1.address));
+    await bPool.connect(signer1).gulp(redeemable.address);
 
     // create a few blocks by sending some tokens around
     while ((await ethers.provider.getBlockNumber()) <= phaseOneBlock) {
-      await reserve.transfer(signers[1].address, 1);
+      await reserve.transfer(dummy.address, 1);
     }
+
+    await swapReserveForTokens(signer1, reserveSpend);
 
     // Send a bunch of reserve to the bPool that it won't have accounted for
     // in its internal records, because there is no gulp.
-    await reserve.transfer(await crp.bPool(), "100000000");
+    await reserve.transfer(bPool.address, "100000000");
+    // Send signer1 tokens to the bPool that it won't have accounted for
+    // in its internal records, because there is no gulp.
+    await redeemable
+      .connect(signer1)
+      .transfer(bPool.address, await redeemable.balanceOf(signer1.address));
+
+    await swapReserveForTokens(signer1, reserveSpend);
 
     // send excess reserve to the pool after the auction starts.
     // random ppl could do this.
     await reserve.transfer(pool.address, "100000000");
+    // send signer1 tokens to the pool after the auction starts.
+    // random ppl could do this.
+    await redeemable
+      .connect(signer1)
+      .transfer(pool.address, await redeemable.balanceOf(signer1.address));
 
     await pool.connect(owner).ownerEndDutchAuction();
 
     assert(
-      // 4x grief reserves - 1000001 - 1 intentional dust
+      // 4x grief reserves - 1000001 - 1 intentional dust + 3x reserveSpend from token purchases
       (await reserve.balanceOf(owner.address)).eq(
-        ethers.BigNumber.from("50398999998")
+        ethers.BigNumber.from("50698999998")
       ),
-      "wrong final balance"
+      `wrong owner final reserve balance
+      expected  50698999998
+      got       ${await reserve.balanceOf(owner.address)}`
+    );
+
+    assert(
+      (await redeemable.balanceOf(pool.address)).isZero(),
+      `wrong pool final token balance, should've been burned
+      expected  0
+      got       ${await redeemable.balanceOf(pool.address)}`
+    );
+    assert(
+      (await redeemable.totalSupply()).eq(
+        (await redeemable.balanceOf(signer1.address)).add(
+          await redeemable.balanceOf(bPool.address) // token dust
+        )
+      ),
+      "wrong final redeemable token supply"
     );
   });
 
