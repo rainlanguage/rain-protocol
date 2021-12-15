@@ -436,14 +436,17 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
         minimumTradingDuration = config_.minimumTradingDuration;
 
         IConfigurableRightsPool crp_ = RedeemableERC20Pool
-            .createCRP(CRPConfig(
-                config_.crpFactory,
-                config_.balancerFactory,
-                config_.reserve,
-                redeemableERC20_,
-                config_.reserveInit,
-                config_.initialValuation
-            ));
+            .setupCRP(
+                this,
+                CRPConfig(
+                    config_.crpFactory,
+                    config_.balancerFactory,
+                    config_.reserve,
+                    redeemableERC20_,
+                    config_.reserveInit,
+                    config_.initialValuation
+                )
+            );
 
         // Preapprove all tokens and reserve for the CRP.
         require(
@@ -454,25 +457,6 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
             redeemableERC20_.approve(address(crp_),
             redeemableERC20_.totalSupply()),
             "TOKEN_APPROVE"
-        );
-
-        // Need to grant transfers for a few balancer addresses to facilitate
-        // setup and exits.
-        redeemableERC20_.grantRole(
-            redeemableERC20_.RECEIVER(),
-            address(crp_.bFactory())
-        );
-        redeemableERC20_.grantRole(
-            redeemableERC20_.RECEIVER(),
-            address(crp_)
-        );
-        redeemableERC20_.grantRole(
-            redeemableERC20_.RECEIVER(),
-            address(this)
-        );
-        redeemableERC20_.grantRole(
-            redeemableERC20_.SENDER(),
-            address(crp_)
         );
 
         // The trust needs the ability to burn the distributor.
@@ -508,33 +492,15 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
         view
         returns(DistributionProgress memory)
     {
-        address balancerPool_ = address(crp.bPool());
-        uint256 poolReserveBalance_;
-        uint256 poolTokenBalance_;
-        if (balancerPool_ != address(0)) {
-            poolReserveBalance_ = reserve.balanceOf(balancerPool_);
-            poolTokenBalance_ = token.balanceOf(balancerPool_);
-        }
-        else {
-            poolReserveBalance_ = 0;
-            poolTokenBalance_ = 0;
-        }
-
-        return DistributionProgress(
-            getDistributionStatus(),
-            phaseBlocks[0],
-            phaseBlocks[1],
-            poolReserveBalance_,
-            poolTokenBalance_,
-            reserveInit,
-            minimumCreatorRaise,
-            seederFee,
-            redeemInit
-        );
+        return RedeemableERC20Pool.getDistributionProgress(this);
     }
 
     /// Accessor for the `DistributionStatus` of this `Trust`.
-    function getDistributionStatus() public view returns (DistributionStatus) {
+    function getDistributionStatus()
+        external
+        view
+        returns (DistributionStatus)
+    {
         return RedeemableERC20Pool.getDistributionStatus(this);
     }
 
