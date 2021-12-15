@@ -630,8 +630,6 @@ describe("RedeemableERC20Pool", async function () {
 
     await pool.deployed();
 
-    const pool1 = pool.connect(signer1);
-
     // Before init
 
     await Util.assertError(
@@ -649,13 +647,6 @@ describe("RedeemableERC20Pool", async function () {
       await redeemable.DEFAULT_ADMIN_ROLE(),
       pool.address
     );
-    await redeemable.transfer(pool.address, await redeemable.totalSupply());
-
-    const reserve1 = new ethers.Contract(
-      reserve.address,
-      reserve.interface,
-      signers[1]
-    );
 
     // The trust would do this internally but we need to do it here to test.
     const [crp] = await Util.poolContracts(signers, pool);
@@ -666,12 +657,11 @@ describe("RedeemableERC20Pool", async function () {
 
     await redeemable.transfer(pool.address, await redeemable.totalSupply());
 
-    await reserve.transfer(signers[1].address, reserveInit);
-
-    await reserve.connect(signer1).transfer(pool.address, reserveInit);
+    await reserve.transfer(pool.address, reserveInit);
+    await redeemable.approve(pool.address, totalTokenSupply);
 
     // non-owner able to start pool trading
-    await pool1.startDutchAuction({
+    await pool.connect(signer1).startDutchAuction({
       gasLimit: 10000000,
     });
 
@@ -702,7 +692,7 @@ describe("RedeemableERC20Pool", async function () {
     }
 
     await Util.assertError(
-      async () => await pool1.ownerEndDutchAuction(),
+      async () => await pool.connect(signer1).ownerEndDutchAuction(),
       "Ownable: caller is not the owner",
       "non-owner was wrongly able to end pool trading directly"
     );
