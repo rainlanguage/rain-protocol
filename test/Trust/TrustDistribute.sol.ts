@@ -1169,7 +1169,11 @@ describe("TrustDistribute", async function () {
 
     const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address);
 
-    const expectedDust = Util.estimateReserveDust(bPoolReserveAfterExit).add(1);
+    const expectedDust = Util.estimateReserveDust(bPoolReserveAfterExit)
+      // intentional dust
+      .add(1)
+      // rounding dust
+      .add(1);
 
     assert(
       bPoolReserveAfterExit.eq(expectedDust),

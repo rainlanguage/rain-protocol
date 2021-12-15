@@ -18,4 +18,8 @@ interface IBPool {
     )
     external
     returns (uint tokenAmountOut, uint spotPriceAfter);
+
+    function getBalance(address token) external view returns (uint256);
+
+    function gulp(address token) external;
 }
