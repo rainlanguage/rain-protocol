@@ -816,7 +816,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => await pool.connect(owner).ownerEndDutchAuction(),
-      "revert BAD_PHASE",
+      "BAD_PHASE",
       "failed to error on early exit"
     );
 
