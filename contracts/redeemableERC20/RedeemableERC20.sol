@@ -161,6 +161,12 @@ contract RedeemableERC20 is
         _setupRole(RECEIVER, address(0));
 
         _mint(config_.admin, config_.totalSupply);
+
+        // Smoke test on whatever is on the other side of `config_.tier`.
+        // It is a common mistake to pass in a contract without the `ITier`
+        // interface and brick transfers. We want to discover that ASAP.
+        // E.g. `Verify` instead of `VerifyTier`.
+        ITier(config_.tier).report(msg.sender);
     }
 
     /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
