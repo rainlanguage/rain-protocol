@@ -167,7 +167,6 @@ describe("TrustSeed", async function () {
       if (i === 1) {
         // seeder2 sends 1 unit to seeder contract
         await seederContract2.seed(0, 1);
-        console.log("seeder2 seeded contract");
 
         seed2Block = await ethers.provider.getBlockNumber();
         delay2UnlockBlock = seed2Block + seederCooldownDuration;
