@@ -31,6 +31,7 @@ struct TrustFactoryConfig {
     SeedERC20Factory seedERC20Factory;
     address crpFactory;
     address balancerFactory;
+    uint32 creatorFundsReleaseTimeout;
 }
 
 struct TrustFactoryTrustConfig {
@@ -79,6 +80,7 @@ contract TrustFactory is Factory {
     SeedERC20Factory public immutable seedERC20Factory;
     address public immutable crpFactory;
     address public immutable balancerFactory;
+    uint32 public immutable creatorFundsReleaseTimeout;
 
     /// @param config_ All configuration for the `TrustFactory`.
     constructor(TrustFactoryConfig memory config_) {
@@ -86,6 +88,7 @@ contract TrustFactory is Factory {
         seedERC20Factory = config_.seedERC20Factory;
         crpFactory = config_.crpFactory;
         balancerFactory = config_.balancerFactory;
+        creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
     }
 
     /// Allows calling `createChild` with TrustConfig,
@@ -151,6 +154,7 @@ contract TrustFactory is Factory {
                 trustFactoryTrustConfig_.finalValuation,
                 trustFactoryTrustConfig_.minimumTradingDuration,
                 trustFactoryTrustConfig_.creator,
+                creatorFundsReleaseTimeout,
                 trustFactoryTrustConfig_.minimumCreatorRaise,
                 trustFactoryTrustConfig_.seederFee,
                 trustFactoryTrustConfig_.redeemInit

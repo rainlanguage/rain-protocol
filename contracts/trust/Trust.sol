@@ -111,6 +111,7 @@ struct TrustConfig {
     // Address of the creator who will receive reserve assets on successful
     // distribution.
     address creator;
+    uint32 creatorFundsReleaseTimeout;
     // Minimum amount to raise for the creator from the distribution period.
     // A successful distribution raises at least this AND also the seed fee and
     // `redeemInit`;
@@ -272,13 +273,15 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
     /// @param data Opaque binary data for the GUI/tooling/indexer to read.
     event Notice(address indexed sender, bytes data);
 
-    /// Seeder from the initial config.
-    address public immutable seeder;
+    event CreatorFundsRelease(address token, uint256 amount);
+
     /// Seeder units from the initial config.
     uint16 public immutable seederUnits;
     /// Seeder cooldown duration from the initial config.
     uint16 public immutable seederCooldownDuration;
     /// SeedERC20Factory from the initial config.
+    /// Seeder from the initial config.
+    address public immutable seeder;
     SeedERC20Factory public immutable seedERC20Factory;
     /// Balance of the reserve asset in the Balance pool at the moment
     /// `anonEndDistribution` is called. This must be greater than or equal to
@@ -310,6 +313,7 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
     uint256 public immutable minimumCreatorRaise;
 
     address public immutable creator;
+    uint32 public immutable creatorFundsReleaseTimeout;
 
     uint256 public immutable seederFee;
     uint256 public immutable redeemInit;
@@ -365,6 +369,7 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
         seedERC20Factory = trustSeedERC20Config_.seedERC20Factory;
 
         creator = config_.creator;
+        creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
         reserve = config_.reserve;
         reserveInit = config_.reserveInit;
         minimumCreatorRaise = config_.minimumCreatorRaise;
@@ -525,10 +530,56 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
 
     function endDutchAuction() external onlyPhase(Phase.TWO) nonReentrant {
         // Move to `Phase.THREE` immediately.
-        // In `Phase.THREE` all `RedeemableERC20Pool` functions are no longer
-        // callable.
         scheduleNextPhase(uint32(block.number));
         RedeemableERC20Pool.endDutchAuction(this);
+    }
+
+    function enableCreatorFundsRelease() external nonReentrant {
+        if (currentPhase() == Phase.ZERO) {
+            // @TODO - how to back out of the pre-seed stage??
+            // Someone sent reserve but not enough to start the auction, and
+            // auction will never start?
+            revert("UNSUPPORTED_PHASE_ZERO");
+        }
+        // we're mid-distribution, creator will need to wait.
+        else if (currentPhase() == Phase.ONE) {
+            revert("UNSUPPORTED_PHASE_ONE");
+        }
+        // `endDutchAuction` is apparently critically failing.
+        // Either it did not run at all, or somehow it failed to grant access
+        // to funds.
+        else if (currentPhase() == Phase.TWO
+            || currentPhase() == Phase.THREE
+        ) {
+            require(
+                blockNumberForPhase(
+                    phaseBlocks,
+                    currentPhase()
+                ) + creatorFundsReleaseTimeout <= block.number,
+                "EARLY_RELEASE"
+            );
+            // Move to `Phase.FOUR` immediately.
+            scheduleNextPhase(uint32(block.number));
+            if (currentPhase() == Phase.TWO) {
+                scheduleNextPhase(uint32(block.number));
+            }
+        }
+    }
+
+    function creatorFundsRelease(address token_, uint256 amount_) external
+    {
+        require(msg.sender == creator, "NON_CREATOR_RELEASE");
+        // If the creator is asking for funds the `Trust` knows about and is
+        // actively managing then we MUST ensure we've reached `Phase.FOUR`.
+        if (
+            token_ == address(reserve)
+            || token_ == address(token)
+            || token_ == address(crp)
+        ) {
+            require(currentPhase() == Phase.FOUR, "NON_RELEASE_PHASE");
+        }
+        emit CreatorFundsRelease(token_, amount_);
+        IERC20(token_).approve(msg.sender, amount_);
     }
 
     /// Enforce `Phase.THREE` as the last phase.
@@ -539,6 +590,6 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
         virtual
     {
         super._beforeScheduleNextPhase(nextPhaseBlock_);
-        assert(currentPhase() < Phase.THREE);
+        assert(currentPhase() < Phase.FOUR);
     }
 }

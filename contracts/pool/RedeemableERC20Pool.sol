@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 // solhint-disable-next-line max-line-length
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { RainMath } from "../math/RainMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -103,6 +104,7 @@ struct CRPConfig {
 /// - Handling the reserve proceeds of the raise
 library RedeemableERC20Pool {
     using Math for uint256;
+    using RainMath for uint256;
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
@@ -353,6 +355,7 @@ library RedeemableERC20Pool {
         IBPool(self_.crp().bPool()).gulp(address(self_.reserve()));
         IBPool(self_.crp().bPool()).gulp(address(self_.token()));
 
+        uint256 totalPoolTokens_ = IERC20(address(self_.crp())).totalSupply();
         uint256 selfPoolTokens_ = IERC20(address(self_.crp()))
             .balanceOf(address(this));
 
@@ -364,18 +367,26 @@ library RedeemableERC20Pool {
         // - The global minimum
         // - The LP token supply implied by the reserve
         // - The LP token supply implied by the token
-        uint256 minReservePoolTokens
-            = ( MIN_BALANCER_POOL_BALANCE * selfPoolTokens_ )
-            // It's important to use the balance in the opinion of the bPool to
-            // be sure that the pool token calculations are the same.
-            / IBPool(self_.crp().bPool()).getBalance(address(self_.reserve()));
+        uint256 minReservePoolTokens = MIN_BALANCER_POOL_BALANCE
+                .saturatingMul(totalPoolTokens_)
+                // It's important to use the balance in the opinion of the
+                // bPool to be sure that the pool token calculations are the
+                // same.
+                .saturatingDiv(
+                    IBPool(self_.crp().bPool())
+                        .getBalance(address(self_.reserve()))
+                );
         // The minimum redeemable token supply is `10 ** 18` so it is near
         // impossible to hit this before the reserve or global pool minimums.
-        uint256 minRedeemablePoolTokens
-            = ( MIN_BALANCER_POOL_BALANCE * selfPoolTokens_ )
-            // It's important to use the balance in the opinion of the bPool to
-            // be sure that the pool token calculations are the same.
-            / IBPool(self_.crp().bPool()).getBalance(address(self_.token()));
+        uint256 minRedeemablePoolTokens = MIN_BALANCER_POOL_BALANCE
+                .saturatingMul(totalPoolTokens_)
+                // It's important to use the balance in the opinion of the
+                // bPool tovbe sure that the pool token calculations are the
+                // same.
+                .saturatingDiv(
+                    IBPool(self_.crp().bPool())
+                        .getBalance(address(self_.token()))
+                );
         uint256 minPoolSupply_ = IBalancerConstants.MIN_POOL_SUPPLY
             .max(minReservePoolTokens)
             .max(minRedeemablePoolTokens)
@@ -395,7 +406,9 @@ library RedeemableERC20Pool {
         // The redeemable token will be burned when it moves to its own
         // `Phase.ONE`.
         self_.crp().exitPool(
-            selfPoolTokens_ - minPoolSupply_,
+            selfPoolTokens_.min(
+                totalPoolTokens_.saturatingSub(minPoolSupply_)
+            ),
             new uint256[](2)
         );
 
@@ -422,13 +435,13 @@ library RedeemableERC20Pool {
         uint256 availableBalance_ = self_.reserve().balanceOf(address(this));
 
         // Base payments for each fundraiser.
-        uint256 seederPay_ = self_.reserveInit() - poolDust_;
+        uint256 seederPay_ = self_.reserveInit().saturatingSub(poolDust_);
         uint256 creatorPay_ = 0;
 
         // Set aside the redemption and seed fee if we reached the minimum.
         if ( finalBalance_ >= self_.successBalance() ) {
             // The seeder gets an additional fee on success.
-            seederPay_ = seederPay_ + self_.seederFee();
+            seederPay_ = seederPay_.saturatingAdd(self_.seederFee());
 
             // The creators get new funds raised minus redeem and seed fees.
             // Can subtract without underflow due to the inequality check for
@@ -444,25 +457,30 @@ library RedeemableERC20Pool {
             //
             // Implied is the remainder of finalBalance_ as redeemInit
             // This will be transferred to the token holders below.
-            creatorPay_
-                = availableBalance_ - ( seederPay_ + self_.redeemInit() );
+            creatorPay_ = availableBalance_
+                    .saturatingSub( seederPay_ + self_.redeemInit() );
         }
 
-        self_.reserve().approve(
-            self_.creator(),
-            creatorPay_
-        );
+        if (creatorPay_ > 0) {
+            self_.reserve().approve(
+                self_.creator(),
+                creatorPay_
+            );
+        }
 
-        self_.reserve().approve(
-            self_.seeder(),
-            seederPay_
-        );
+        if (seederPay_ > 0) {
+            self_.reserve().approve(
+                self_.seeder(),
+                seederPay_
+            );
+        }
 
         // Approve everything left to the token holders.
         // Implicitly the remainder of the finalBalance_ is:
         // - the redeem init if successful
         // - whatever users deposited in the AMM if unsuccessful
-        uint256 remainder_ = availableBalance_ - (creatorPay_ + seederPay_);
+        uint256 remainder_ = availableBalance_
+            .saturatingSub(creatorPay_.saturatingAdd(seederPay_));
         if (remainder_ > 0) {
             self_.reserve().approve(
                 address(self_.token()),
