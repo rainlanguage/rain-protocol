@@ -30,11 +30,17 @@ describe("BPoolFeeEscrow", async function () {
     const { escrow, trustFactory, tier } = await deployGlobals();
     const { trustFactory: trustFactory2 } = await deployGlobals();
 
-    const { recipient, trust } = await basicSetup(signers, trustFactory, tier);
+    const { recipient, trust } = await basicSetup(
+      signers,
+      trustFactory,
+      tier,
+      escrow
+    );
     const { trust: unknownTrust } = await basicSetup(
       signers,
       trustFactory2,
-      tier
+      tier,
+      escrow
     );
 
     const fees0 = await escrow.fees(trust.address, recipient.address);
@@ -171,7 +177,7 @@ describe("BPoolFeeEscrow", async function () {
       signer1,
       minimumTradingDuration,
       redeemableERC20,
-    } = await basicSetup(signers, trustFactory, tier);
+    } = await basicSetup(signers, trustFactory, tier, escrow);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -294,7 +300,7 @@ describe("BPoolFeeEscrow", async function () {
       successLevel,
       bPool,
       minimumTradingDuration,
-    } = await basicSetup(signers, trustFactory, tier);
+    } = await basicSetup(signers, trustFactory, tier, escrow);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -412,7 +418,8 @@ describe("BPoolFeeEscrow", async function () {
     const { reserve, trust, recipient, signer1 } = await basicSetup(
       signers,
       trustFactory,
-      tier
+      tier,
+      escrow
     );
 
     const buyTokensViaEscrow = async (signer, spend, fee) => {
@@ -487,7 +494,8 @@ describe("BPoolFeeEscrow", async function () {
     const { reserve, trust, recipient, signer1 } = await basicSetup(
       signers,
       trustFactory,
-      tier
+      tier,
+      escrow
     );
 
     const buyTokensViaEscrow = async (signer, spend, fee) => {

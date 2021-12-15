@@ -53,7 +53,8 @@ export const deployGlobals = async () => {
 export const basicSetup = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
-  tier: ReadWriteTier & Contract
+  tier: ReadWriteTier & Contract,
+  bPoolFeeEscrow: BPoolFeeEscrow & Contract
 ) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
     Contract;
@@ -100,6 +101,7 @@ export const basicSetup = async (
       seederUnits,
       seederCooldownDuration,
       redeemInit,
+      bPoolFeeEscrow: bPoolFeeEscrow.address,
       seedERC20Config,
     },
     {
@@ -119,6 +121,9 @@ export const basicSetup = async (
   );
 
   await trust.deployed();
+
+  console.log("configured bPoolFeeEscrow", bPoolFeeEscrow.address);
+  console.log("registered bPoolFeeEscrow", await trust.bPoolFeeEscrow());
 
   // seeder needs some cash, give enough to seeder
   await reserve.transfer(seeder.address, reserveInit);
@@ -182,7 +187,7 @@ export const successfulRaise = async (
     bPool,
     minimumTradingDuration,
     redeemableERC20,
-  } = await basicSetup(signers, trustFactory, tier);
+  } = await basicSetup(signers, trustFactory, tier, escrow);
 
   const startBlock = await ethers.provider.getBlockNumber();
 
@@ -268,7 +273,7 @@ export const failedRaise = async (
     pool,
     crp,
     redeemableERC20,
-  } = await basicSetup(signers, trustFactory, tier);
+  } = await basicSetup(signers, trustFactory, tier, escrow);
 
   const startBlock = await ethers.provider.getBlockNumber();
 
