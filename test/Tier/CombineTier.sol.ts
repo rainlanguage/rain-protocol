@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, op, paddedBlock, paddedReport } from "../Util";
+import { bytify, op, paddedUInt32, paddedUInt256 } from "../Util";
 import type { Contract, ContractFactory } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
@@ -695,20 +695,20 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    const rightReport = paddedReport(
+    const rightReport = paddedUInt256(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport = paddedReport(
+    const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 12) +
-          paddedBlock(startBlock + 11) +
-          paddedBlock(startBlock + 10) +
-          paddedBlock(startBlock + 3) +
-          paddedBlock(startBlock + 2) +
-          paddedBlock(startBlock + 1)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 12) +
+          paddedUInt32(startBlock + 11) +
+          paddedUInt32(startBlock + 10) +
+          paddedUInt32(startBlock + 3) +
+          paddedUInt32(startBlock + 2) +
+          paddedUInt32(startBlock + 1)
       )
     );
     assert(
@@ -718,19 +718,19 @@ describe("CombineTier", async function () {
       got       ${rightReport}`
     );
 
-    const leftReport = paddedReport(
+    const leftReport = paddedUInt256(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport = paddedReport(
+    const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
     assert(
@@ -740,19 +740,19 @@ describe("CombineTier", async function () {
       got       ${leftReport}`
     );
 
-    const resultAndOld = paddedReport(
+    const resultAndOld = paddedUInt256(
       await combineTier.report(signers[0].address)
     );
-    const expectedAndOld = paddedReport(
+    const expectedAndOld = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 3) +
-          paddedBlock(startBlock + 2) +
-          paddedBlock(startBlock + 1)
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 3) +
+          paddedUInt32(startBlock + 2) +
+          paddedUInt32(startBlock + 1)
       )
     );
     assert(
@@ -846,20 +846,20 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    const rightReport = paddedReport(
+    const rightReport = paddedUInt256(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport = paddedReport(
+    const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 12) +
-          paddedBlock(startBlock + 11) +
-          paddedBlock(startBlock + 10) +
-          paddedBlock(startBlock + 3) +
-          paddedBlock(startBlock + 2) +
-          paddedBlock(startBlock + 1)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 12) +
+          paddedUInt32(startBlock + 11) +
+          paddedUInt32(startBlock + 10) +
+          paddedUInt32(startBlock + 3) +
+          paddedUInt32(startBlock + 2) +
+          paddedUInt32(startBlock + 1)
       )
     );
 
@@ -870,19 +870,19 @@ describe("CombineTier", async function () {
       got       ${rightReport}`
     );
 
-    const leftReport = paddedReport(
+    const leftReport = paddedUInt256(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport = paddedReport(
+    const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
 
@@ -893,19 +893,19 @@ describe("CombineTier", async function () {
       got       ${leftReport}`
     );
 
-    const resultAndNew = paddedReport(
+    const resultAndNew = paddedUInt256(
       await combineTier.report(signers[0].address)
     );
-    const expectedAndNew = paddedReport(
+    const expectedAndNew = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedBlock(startBlock + 12) +
-          paddedBlock(startBlock + 11) +
-          paddedBlock(startBlock + 10) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 12) +
+          paddedUInt32(startBlock + 11) +
+          paddedUInt32(startBlock + 10) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
     assert(
@@ -999,20 +999,20 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    const rightReport = paddedReport(
+    const rightReport = paddedUInt256(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport = paddedReport(
+    const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 12) +
-          paddedBlock(startBlock + 11) +
-          paddedBlock(startBlock + 10) +
-          paddedBlock(startBlock + 3) +
-          paddedBlock(startBlock + 2) +
-          paddedBlock(startBlock + 1)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 12) +
+          paddedUInt32(startBlock + 11) +
+          paddedUInt32(startBlock + 10) +
+          paddedUInt32(startBlock + 3) +
+          paddedUInt32(startBlock + 2) +
+          paddedUInt32(startBlock + 1)
       )
     );
     assert(
@@ -1022,19 +1022,19 @@ describe("CombineTier", async function () {
       got       ${rightReport}`
     );
 
-    const leftReport = paddedReport(
+    const leftReport = paddedUInt256(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport = paddedReport(
+    const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
     assert(
@@ -1044,7 +1044,7 @@ describe("CombineTier", async function () {
       got       ${leftReport}`
     );
 
-    const resultAndLeft = paddedReport(
+    const resultAndLeft = paddedUInt256(
       await combineTier.report(signers[0].address)
     );
     const expectedAndLeft = leftReport;
@@ -1139,20 +1139,20 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    const rightReport = paddedReport(
+    const rightReport = paddedUInt256(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport = paddedReport(
+    const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 12) +
-          paddedBlock(startBlock + 11) +
-          paddedBlock(startBlock + 10) +
-          paddedBlock(startBlock + 3) +
-          paddedBlock(startBlock + 2) +
-          paddedBlock(startBlock + 1)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 12) +
+          paddedUInt32(startBlock + 11) +
+          paddedUInt32(startBlock + 10) +
+          paddedUInt32(startBlock + 3) +
+          paddedUInt32(startBlock + 2) +
+          paddedUInt32(startBlock + 1)
       )
     );
     assert(
@@ -1162,19 +1162,19 @@ describe("CombineTier", async function () {
       got       ${rightReport}`
     );
 
-    const leftReport = paddedReport(
+    const leftReport = paddedUInt256(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport = paddedReport(
+    const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
     assert(
@@ -1184,20 +1184,20 @@ describe("CombineTier", async function () {
       got       ${leftReport}`
     );
 
-    const resultOrOld = paddedReport(
+    const resultOrOld = paddedUInt256(
       await combineTier.report(signers[0].address)
     );
-    const expectedOrOld = paddedReport(
+    const expectedOrOld = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 3) +
-          paddedBlock(startBlock + 2) +
-          paddedBlock(startBlock + 1)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 3) +
+          paddedUInt32(startBlock + 2) +
+          paddedUInt32(startBlock + 1)
       )
     );
     assert(
@@ -1291,20 +1291,20 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    const rightReport = paddedReport(
+    const rightReport = paddedUInt256(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport = paddedReport(
+    const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 12) +
-          paddedBlock(startBlock + 11) +
-          paddedBlock(startBlock + 10) +
-          paddedBlock(startBlock + 3) +
-          paddedBlock(startBlock + 2) +
-          paddedBlock(startBlock + 1)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 12) +
+          paddedUInt32(startBlock + 11) +
+          paddedUInt32(startBlock + 10) +
+          paddedUInt32(startBlock + 3) +
+          paddedUInt32(startBlock + 2) +
+          paddedUInt32(startBlock + 1)
       )
     );
     assert(
@@ -1314,19 +1314,19 @@ describe("CombineTier", async function () {
       got       ${rightReport}`
     );
 
-    const leftReport = paddedReport(
+    const leftReport = paddedUInt256(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport = paddedReport(
+    const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
     assert(
@@ -1336,20 +1336,20 @@ describe("CombineTier", async function () {
       got       ${leftReport}`
     );
 
-    const resultOrNew = paddedReport(
+    const resultOrNew = paddedUInt256(
       await combineTier.report(signers[0].address)
     );
-    const expectedOrNew = paddedReport(
+    const expectedOrNew = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 12) +
-          paddedBlock(startBlock + 11) +
-          paddedBlock(startBlock + 10) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 12) +
+          paddedUInt32(startBlock + 11) +
+          paddedUInt32(startBlock + 10) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
     assert(
@@ -1443,20 +1443,20 @@ describe("CombineTier", async function () {
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
 
-    const rightReport = paddedReport(
+    const rightReport = paddedUInt256(
       await readWriteTierRight.report(signers[0].address)
     );
-    const expectedRightReport = paddedReport(
+    const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 12) +
-          paddedBlock(startBlock + 11) +
-          paddedBlock(startBlock + 10) +
-          paddedBlock(startBlock + 3) +
-          paddedBlock(startBlock + 2) +
-          paddedBlock(startBlock + 1)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 12) +
+          paddedUInt32(startBlock + 11) +
+          paddedUInt32(startBlock + 10) +
+          paddedUInt32(startBlock + 3) +
+          paddedUInt32(startBlock + 2) +
+          paddedUInt32(startBlock + 1)
       )
     );
     assert(
@@ -1466,19 +1466,19 @@ describe("CombineTier", async function () {
       got       ${rightReport}`
     );
 
-    const leftReport = paddedReport(
+    const leftReport = paddedUInt256(
       await readWriteTierLeft.report(signers[0].address)
     );
-    const expectedLeftReport = paddedReport(
+    const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
     assert(
@@ -1488,20 +1488,20 @@ describe("CombineTier", async function () {
       got       ${leftReport}`
     );
 
-    const resultOrLeft = paddedReport(
+    const resultOrLeft = paddedUInt256(
       await combineTier.report(signers[0].address)
     );
-    const expectedOrLeft = paddedReport(
+    const expectedOrLeft = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 13) +
-          paddedBlock(startBlock + 9) +
-          paddedBlock(startBlock + 8) +
-          paddedBlock(startBlock + 7) +
-          paddedBlock(startBlock + 6) +
-          paddedBlock(startBlock + 5) +
-          paddedBlock(startBlock + 4)
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 13) +
+          paddedUInt32(startBlock + 9) +
+          paddedUInt32(startBlock + 8) +
+          paddedUInt32(startBlock + 7) +
+          paddedUInt32(startBlock + 6) +
+          paddedUInt32(startBlock + 5) +
+          paddedUInt32(startBlock + 4)
       )
     );
     assert(

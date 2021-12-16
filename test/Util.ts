@@ -183,6 +183,7 @@ export const max_uint256 = ethers.BigNumber.from(
   "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
 );
 export const max_uint32 = ethers.BigNumber.from("0xffffffff");
+export const max_uint16 = ethers.BigNumber.from("0xffff");
 
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
@@ -454,14 +455,18 @@ export const pack32UIntsIntoByte = (numArray: number[]): number[] => {
   return val;
 };
 
-export const paddedReport = (report: BigNumber): string => {
+export const paddedUInt256 = (report: BigNumber): string => {
+  if (report.gt(max_uint256)) {
+    throw new Error(`${report} exceeds max uint256`);
+  }
   return "0x" + report.toHexString().substring(2).padStart(64, "0");
 };
 
-export const paddedBlock = (
-  blockNumber: number | BytesLike | Hexable
-): string => {
-  return hexlify(blockNumber).substring(2).padStart(8, "0");
+export const paddedUInt32 = (number: number | BytesLike | Hexable): string => {
+  if (ethers.BigNumber.from(number).gt(max_uint32)) {
+    throw new Error(`${number} exceeds max uint32`);
+  }
+  return hexlify(number).substring(2).padStart(8, "0");
 };
 
 export type Source = [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
