@@ -624,6 +624,8 @@ describe("RainVM", async function () {
       1,
     ];
 
+    console.log(constants);
+
     // zero-based counting
     const fnSize = 1;
     const loopSize = 0;
