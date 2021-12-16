@@ -63,7 +63,7 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it("should calculate correct emissions amount", async function () {
+  it.only("should calculate correct emissions amount", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -220,7 +220,8 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.div, 2),
           op(Opcode.add, 8),
-            op(Opcode.zipmap, Util.callSize(0, 3, 1)),
+            op(Opcode.zipmap, Util.callSize(1, 3, 1)),
+              op(Opcode.val, 1), // fn1
               op(Opcode.val, 0), // fn0
               valBaseRewardPerTier, // val1
               TIERWISE_DIFF(), // val0

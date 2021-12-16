@@ -3,6 +3,8 @@ pragma solidity ^0.8.10;
 
 import { Source } from "./RainVM.sol";
 
+import "hardhat/console.sol";
+
 abstract contract ImmutableSource {
     uint256 public immutable constant0;
     uint256 public immutable constant1;
@@ -59,6 +61,9 @@ abstract contract ImmutableSource {
 
         constantsLength = uint8(source_.constants.length);
         sourceLength = uint8(source_.source.length);
+        console.log(source0);
+        console.log(source1);
+        console.log(sourceLength);
     }
 
     function source() internal view returns(Source memory) {
@@ -76,6 +81,10 @@ abstract contract ImmutableSource {
                 }
             }
         }
+
+        console.log("source");
+        console.log(source_[0]);
+        console.log(source_[1]);
 
         uint256[] memory constants_ = new uint256[](constantsLength);
 
