@@ -225,7 +225,7 @@ describe("EmissionsERC20", async function () {
       ]);
 
     const constants = [
-      ...chunkedSource(concat([FN()])),
+      ...[FN(), 0, 0, 0],
       readWriteTier.address,
       BASE_REWARD_PER_TIER,
       BLOCKS_PER_YEAR,
@@ -244,7 +244,7 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
-          source: chunkedSource(concat([SOURCE()])),
+          source: chunkedSource(SOURCE()),
           constants,
           arguments: [],
         },
