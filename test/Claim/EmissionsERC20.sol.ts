@@ -128,6 +128,7 @@ describe("EmissionsERC20", async function () {
     const valBaseRewardPerTier = op(Opcode.val, 5);
     const valBlocksPerYear = op(Opcode.val, 6);
     const valBOne = op(Opcode.val, 7);
+    const valBOneReward = op(Opcode.val, 8);
 
     // END global constants
 
@@ -217,11 +218,13 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const SOURCE = () =>
       concat([
-        op(Opcode.add, 8),
-          op(Opcode.zipmap, Util.callSize(0, 3, 1)),
-            op(Opcode.val, 0), // fn0
-            valBaseRewardPerTier, // val1
-            TIERWISE_DIFF(), // val0
+        op(Opcode.div, 2),
+          op(Opcode.add, 8),
+            op(Opcode.zipmap, Util.callSize(0, 3, 1)),
+              op(Opcode.val, 0), // fn0
+              valBaseRewardPerTier, // val1
+              TIERWISE_DIFF(), // val0
+          valBOneReward // scale result down by reward per block scaler
       ]);
 
     const constants = [
@@ -230,6 +233,7 @@ describe("EmissionsERC20", async function () {
       BASE_REWARD_PER_TIER,
       BLOCKS_PER_YEAR,
       BONE,
+      BONE_REWARD,
     ];
 
     // END Source snippets
@@ -306,10 +310,7 @@ describe("EmissionsERC20", async function () {
       .mul(sumBaseRewardByDuration)
       .div(BONE_REWARD); // reduce by reward per block scaler
 
-    // When using calculateClaim, the calling contract will need to scale the reward per block to increase precision (to avoid a reward per block less than 1), and scale the result back down.
-    const claimAmount = (
-      await emissionsERC20.calculateClaim(claimer.address)
-    ).div(BONE_REWARD);
+    const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
 
     console.log(`expectations:
     claimDuration                 ${claimDuration}
