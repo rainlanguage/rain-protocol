@@ -103,7 +103,7 @@ library RedeemableERC20Pool {
     // Slither false positive. Constructors cannot be reentrant.
     // https://github.com/crytic/slither/issues/887
     // slither-disable-next-line reentrancy-benign
-    function setupCRP (Trust self_, CRPConfig memory config_)
+    function setupCRP(Trust self_, CRPConfig memory config_)
         external
         returns (IConfigurableRightsPool)
     {

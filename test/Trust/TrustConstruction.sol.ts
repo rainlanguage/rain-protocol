@@ -223,10 +223,8 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     const trust = await Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -310,10 +308,8 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     const trust = await Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -449,12 +445,10 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     await Util.assertError(
       async () =>
         await Util.trustDeploy(
-          trustFactory1,
+          trustFactory.connect(deployer),
           creator,
           {
             creator: creator.address,
@@ -528,12 +522,10 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     await Util.assertError(
       async () =>
         await Util.trustDeploy(
-          trustFactory1,
+          trustFactory.connect(deployer),
           creator,
           {
             creator: creator.address,
@@ -607,12 +599,10 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     // a redeemInit value of zero causes division by zero in following pool calculation
     // i.e. _tokenWeightFinal = _targetSpotFinal / redeemInit
     await Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -684,12 +674,10 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
     const trust = await Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -1028,10 +1016,8 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     const trust = await Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -1113,10 +1099,8 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     const trust = await Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -1200,10 +1184,8 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     const trust = await Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -1289,10 +1271,8 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     const trust = await Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -1376,10 +1356,8 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     const trustPromise = Util.trustDeploy(
-      trustFactory1,
+      trustFactory.connect(deployer),
       creator,
       {
         creator: creator.address,
@@ -1455,12 +1433,10 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     await Util.assertError(
       async () =>
         await Util.trustDeploy(
-          trustFactory1,
+          trustFactory.connect(deployer),
           creator,
           {
             creator: creator.address,
@@ -1534,12 +1510,10 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     await Util.assertError(
       async () =>
         await Util.trustDeploy(
-          trustFactory1,
+          trustFactory.connect(deployer),
           creator,
           {
             creator: creator.address,
@@ -1608,12 +1582,10 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trustFactory1 = trustFactory.connect(deployer);
-
     await Util.assertError(
       async () =>
         await Util.trustDeploy(
-          trustFactory1,
+          trustFactory.connect(deployer),
           creator,
           {
             creator: creator.address,
@@ -1647,7 +1619,7 @@ describe("TrustConstruction", async function () {
     await Util.assertError(
       async () =>
         await Util.trustDeploy(
-          trustFactory1,
+          trustFactory.connect(deployer),
           creator,
           {
             creator: creator.address,
