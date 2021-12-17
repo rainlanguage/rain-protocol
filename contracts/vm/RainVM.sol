@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "hardhat/console.sol";
-
 struct Source {
     uint256[] source;
     uint256[] constants;
@@ -122,8 +120,6 @@ abstract contract RainVM {
                     )
                 )
             );
-
-            console.log("op: %s %s", op_.code, op_.val);
 
             if (op_.code < uint8(Ops.length)) {
                 if (op_.code == uint8(Ops.skip)) {

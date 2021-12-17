@@ -63,7 +63,7 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it.only("should calculate correct emissions amount", async function () {
+  it("should calculate correct emissions amount", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -172,9 +172,11 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const FN = () =>
       concat([
-        op(Opcode.mul, 2),
-          MULTIPLIER(),
-          REWARD(),
+        op(Opcode.div, 2),
+          op(Opcode.mul, 2),
+            MULTIPLIER(),
+            REWARD(),
+          valBOneReward // scale each result down by reward per block scaler
       ]);
 
     // prettier-ignore
@@ -218,15 +220,15 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const SOURCE = () =>
       concat([
-        op(Opcode.div, 2),
-          op(Opcode.add, 8),
-            op(Opcode.zipmap, Util.callSize(1, 3, 1)),
-              op(Opcode.val, 1), // fn1
-              op(Opcode.val, 0), // fn0
-              valBaseRewardPerTier, // val1
-              TIERWISE_DIFF(), // val0
-          valBOneReward // scale result down by reward per block scaler
+        op(Opcode.add, 8),
+          op(Opcode.zipmap, Util.callSize(1, 3, 1)),
+            op(Opcode.val, 1), // fn1
+            op(Opcode.val, 0), // fn0
+            valBaseRewardPerTier, // val1
+            TIERWISE_DIFF(), // val0
       ]);
+
+    // END Source snippets
 
     const constants = [
       ...[FN(), 0, 0, 0],
@@ -236,8 +238,6 @@ describe("EmissionsERC20", async function () {
       BONE,
       BONE_REWARD,
     ];
-
-    // END Source snippets
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
@@ -306,10 +306,24 @@ describe("EmissionsERC20", async function () {
       .add(baseRewardByDurationSilver)
       .add(baseRewardByDurationBronze);
 
-    // 93480728701802418
-    const expectedClaimAmount = fractionalClaimDurationRemoveExcessAddOneBN
-      .mul(sumBaseRewardByDuration)
-      .div(BONE_REWARD); // reduce by reward per block scaler
+    const expectedClaimAmountPlat = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(baseRewardByDurationPlatinum)
+      .div(BONE_REWARD);
+    const expectedClaimAmountGold = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(baseRewardByDurationGold)
+      .div(BONE_REWARD);
+    const expectedClaimAmountSilv = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(baseRewardByDurationSilver)
+      .div(BONE_REWARD);
+    const expectedClaimAmountBrnz = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(baseRewardByDurationBronze)
+      .div(BONE_REWARD);
+
+    // 93480728701802416
+    const expectedClaimAmount = expectedClaimAmountPlat
+      .add(expectedClaimAmountGold)
+      .add(expectedClaimAmountSilv)
+      .add(expectedClaimAmountBrnz);
 
     const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
 
