@@ -63,7 +63,277 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it("should calculate correct emissions amount", async function () {
+  it("should calculate correct emissions amount (if division is performed on final result)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const creator = signers[0];
+    const claimer = signers[1];
+
+    const readWriteTierFactory = await ethers.getContractFactory(
+      "ReadWriteTier"
+    );
+    const readWriteTier =
+      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+    await readWriteTier.deployed();
+
+    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+
+    const BONE = BigNumber.from("1" + eighteenZeros);
+
+    // We're using uints, so we need to scale reward per block up to get out of the decimal places, but a precision of 18 zeros is too much to fit within a uint32 (since we store block rewards per tier in a report-like format). Six zeros should be enough.
+    const BONE_REWARD = BigNumber.from("1" + sixZeros);
+
+    // 2 seconds per block
+    const BLOCKS_PER_YEAR = 43200 * 365.25;
+
+    const BLOCKS_PER_MONTH = Math.floor(BLOCKS_PER_YEAR / 12);
+
+    const MONTHLY_REWARD_BRNZ = BigNumber.from(100).mul(BONE_REWARD);
+
+    const MONTHLY_REWARD_SILV = BigNumber.from(200)
+      .mul(BONE_REWARD)
+      .sub(MONTHLY_REWARD_BRNZ);
+
+    const MONTHLY_REWARD_GOLD = BigNumber.from(500)
+      .mul(BONE_REWARD)
+      .sub(MONTHLY_REWARD_SILV.add(MONTHLY_REWARD_BRNZ));
+
+    const MONTHLY_REWARD_PLAT = BigNumber.from(1000)
+      .mul(BONE_REWARD)
+      .sub(
+        MONTHLY_REWARD_GOLD.add(MONTHLY_REWARD_SILV).add(MONTHLY_REWARD_BRNZ)
+      );
+
+    const REWARD_PER_BLOCK_BRNZ = MONTHLY_REWARD_BRNZ.div(BLOCKS_PER_MONTH);
+    const REWARD_PER_BLOCK_SILV = MONTHLY_REWARD_SILV.div(BLOCKS_PER_MONTH);
+    const REWARD_PER_BLOCK_GOLD = MONTHLY_REWARD_GOLD.div(BLOCKS_PER_MONTH);
+    const REWARD_PER_BLOCK_PLAT = MONTHLY_REWARD_PLAT.div(BLOCKS_PER_MONTH);
+
+    const BASE_REWARD_PER_TIER = paddedUInt256(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedUInt32(0).repeat(4) +
+          paddedUInt32(REWARD_PER_BLOCK_PLAT) +
+          paddedUInt32(REWARD_PER_BLOCK_GOLD) +
+          paddedUInt32(REWARD_PER_BLOCK_SILV) +
+          paddedUInt32(REWARD_PER_BLOCK_BRNZ)
+      )
+    );
+
+    // BEGIN global constants
+
+    // FN uses constants 0-3
+    const valTierAddress = op(Opcode.val, 4);
+    const valBaseRewardPerTier = op(Opcode.val, 5);
+    const valBlocksPerYear = op(Opcode.val, 6);
+    const valBOne = op(Opcode.val, 7);
+    const valBOneReward = op(Opcode.val, 8);
+
+    // END global constants
+
+    // BEGIN zipmap args
+
+    const valDuration = op(Opcode.val, arg(0));
+    const valBaseReward = op(Opcode.val, arg(1));
+
+    // END zipmap args
+
+    // BEGIN Source snippets
+
+    // prettier-ignore
+    const REWARD = () =>
+      concat([
+        op(Opcode.mul, 2),
+          valBaseReward,
+          valDuration,
+      ]);
+
+    // prettier-ignore
+    const PROGRESS = () =>
+      concat([
+        op(Opcode.min, 2),
+          op(Opcode.div, 2),
+            op(Opcode.mul, 2),
+              valBOne,
+              valDuration,
+            valBlocksPerYear,
+          valBOne,
+      ]);
+
+    // prettier-ignore
+    const MULTIPLIER = () =>
+      concat([
+        op(Opcode.add, 2),
+          valBOne,
+          PROGRESS(),
+      ]);
+
+    // prettier-ignore
+    const FN = () =>
+      concat([
+        op(Opcode.mul, 2),
+          MULTIPLIER(),
+          REWARD(),
+      ]);
+
+    // prettier-ignore
+    const CURRENT_BLOCK_AS_REPORT = () =>
+      concat([
+        op(
+          Opcode.updateBlocksForTierRange,
+          claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+        ),
+          op(Opcode.never),
+          op(Opcode.blockNumber),
+      ]);
+
+    // prettier-ignore
+    const LAST_CLAIM_REPORT = () =>
+      concat([
+        op(Opcode.report),
+          op(Opcode.thisAddress),
+          op(Opcode.account),
+      ]);
+
+    // prettier-ignore
+    const TIER_REPORT = () =>
+      concat([
+        op(Opcode.report),
+          valTierAddress,
+          op(Opcode.account),
+      ]);
+
+    // prettier-ignore
+    const TIERWISE_DIFF = () =>
+      concat([
+        op(Opcode.diff),
+          CURRENT_BLOCK_AS_REPORT(),
+          op(Opcode.anyLteMax, 2),
+            LAST_CLAIM_REPORT(),
+            TIER_REPORT(),
+          op(Opcode.blockNumber),
+      ]);
+
+    // prettier-ignore
+    const SOURCE = () =>
+      concat([
+        op(Opcode.div, 2),
+          op(Opcode.add, 8),
+            op(Opcode.zipmap, Util.callSize(1, 3, 1)),
+              op(Opcode.val, 1), // fn1
+              op(Opcode.val, 0), // fn0
+              valBaseRewardPerTier, // val1
+              TIERWISE_DIFF(), // val0
+            valBOneReward // scale FINAL result down by reward per block scaler
+      ]);
+
+    // END Source snippets
+
+    const constants = [
+      ...[FN(), 0, 0, 0],
+      readWriteTier.address,
+      BASE_REWARD_PER_TIER,
+      BLOCKS_PER_YEAR,
+      BONE,
+      BONE_REWARD,
+    ];
+
+    const emissionsERC20 = await claimUtil.emissionsDeploy(
+      creator,
+      emissionsERC20Factory,
+      {
+        allowDelegatedClaims: false,
+        erc20Config: {
+          name: "Emissions",
+          symbol: "EMS",
+        },
+        source: {
+          source: chunkedSource(SOURCE()),
+          constants,
+          arguments: [],
+        },
+      }
+    );
+
+    // Has Platinum Tier
+    await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
+
+    const tierBlock = await ethers.provider.getBlockNumber();
+
+    const expectedClaimDuration = 123;
+
+    await Util.createEmptyBlock(expectedClaimDuration); // ~0.001%
+    const claimBlock = await ethers.provider.getBlockNumber();
+
+    // 123
+    const claimDuration = claimBlock - tierBlock;
+
+    // 123000000000000000000
+    const claimDurationBN = BigNumber.from(claimDuration + eighteenZeros);
+
+    // 7795269602251
+    const fractionalClaimDurationBN = claimDurationBN.div(BLOCKS_PER_YEAR);
+
+    // account for saturation, no extra bonus beyond 1 year
+    // 7795269602251
+    const fractionalClaimDurationRemoveExcessBN = fractionalClaimDurationBN.lt(
+      BONE
+    )
+      ? fractionalClaimDurationBN
+      : BONE;
+
+    // 1501369863013698630
+    const fractionalClaimDurationRemoveExcessAddOneBN =
+      fractionalClaimDurationRemoveExcessBN.add(BONE);
+
+    // 9348
+    const baseRewardByDurationBronze = REWARD_PER_BLOCK_BRNZ.mul(claimDuration);
+
+    // 9348
+    const baseRewardByDurationSilver = REWARD_PER_BLOCK_SILV.mul(claimDuration);
+
+    // 28044
+    const baseRewardByDurationGold = REWARD_PER_BLOCK_GOLD.mul(claimDuration);
+
+    // 46740
+    const baseRewardByDurationPlatinum =
+      REWARD_PER_BLOCK_PLAT.mul(claimDuration);
+
+    // 93480
+    const sumBaseRewardByDuration = baseRewardByDurationPlatinum
+      .add(baseRewardByDurationGold)
+      .add(baseRewardByDurationSilver)
+      .add(baseRewardByDurationBronze);
+
+    // 93480728701802418
+    const expectedClaimAmount = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(sumBaseRewardByDuration)
+      .div(BONE_REWARD);
+
+    const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
+
+    console.log(`expectations:
+    claimDuration                 ${claimDuration}
+    claimDurationBN               ${claimDurationBN}
+    fractionalClaimDurationBN     ${fractionalClaimDurationBN}
+    baseRewardByDurationBronze    ${baseRewardByDurationBronze}
+    baseRewardByDurationSilver    ${baseRewardByDurationSilver}
+    baseRewardByDurationGold      ${baseRewardByDurationGold}
+    baseRewardByDurationPlatinum  ${baseRewardByDurationPlatinum}
+    sumBaseRewardByDuration       ${sumBaseRewardByDuration}
+    expectedClaimAmount           ${expectedClaimAmount}
+    `);
+
+    assert(
+      claimAmount.eq(expectedClaimAmount),
+      `wrong claim calculation result
+      expected  ${expectedClaimAmount}
+      got       ${claimAmount}`
+    );
+  });
+
+  it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -176,7 +446,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.mul, 2),
             MULTIPLIER(),
             REWARD(),
-          valBOneReward // scale each result down by reward per block scaler
+          valBOneReward // scale EACH tier result down by reward per block scaler
       ]);
 
     // prettier-ignore
