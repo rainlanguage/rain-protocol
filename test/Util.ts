@@ -2,7 +2,12 @@ import { ethers, artifacts } from "hardhat";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
-import type { TrustFactory } from "../typechain/TrustFactory";
+import type {
+  TrustFactory,
+  TrustFactoryTrustConfigStruct,
+  TrustFactoryTrustRedeemableERC20ConfigStruct,
+  TrustFactoryTrustSeedERC20ConfigStruct,
+} from "../typechain/TrustFactory";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
@@ -237,13 +242,17 @@ export const poolContracts = async (
 export const trustDeploy = async (
   trustFactory: TrustFactory & Contract,
   creator: SignerWithAddress,
+  trustFactoryTrustConfig: TrustFactoryTrustConfigStruct,
+  trustFactoryTrustRedeemableERC20Config: TrustFactoryTrustRedeemableERC20ConfigStruct,
+  trustFactoryTrustSeedERC20Config: TrustFactoryTrustSeedERC20ConfigStruct,
   ...args
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory[
     "createChild((address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint256),((string,string),address,uint8,uint256),(address,address,uint16,uint16,(string,string)))"
   ](
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    trustFactoryTrustConfig,
+    trustFactoryTrustRedeemableERC20Config,
+    trustFactoryTrustSeedERC20Config,
     ...args
   );
   const receipt = await tx.wait();
