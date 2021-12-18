@@ -73,7 +73,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -118,12 +121,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: Util.zeroAddress,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -132,11 +136,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation,
-        minimumTradingDuration,
+        seeder: Util.zeroAddress,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -344,7 +348,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -386,12 +393,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -400,11 +408,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -531,7 +539,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -563,12 +574,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -577,11 +589,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -617,7 +629,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -649,12 +664,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -663,11 +679,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -781,7 +797,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -813,12 +832,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -827,11 +847,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -931,7 +951,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -962,12 +985,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -976,11 +1000,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -1079,7 +1103,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1111,12 +1138,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -1125,11 +1153,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -1250,7 +1278,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1280,12 +1311,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -1294,11 +1326,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -1383,7 +1415,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1413,12 +1448,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -1427,11 +1463,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -1501,7 +1537,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1531,12 +1570,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -1545,11 +1585,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -1677,7 +1717,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1709,12 +1752,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -1723,11 +1767,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -1789,7 +1833,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1821,12 +1868,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -1835,11 +1883,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -1908,7 +1956,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1940,12 +1991,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -1954,11 +2006,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -2020,7 +2072,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -2050,12 +2105,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -2064,11 +2120,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -2139,7 +2195,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -2172,12 +2231,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -2186,11 +2246,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -2510,7 +2570,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -2543,12 +2606,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -2557,11 +2621,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -2859,7 +2923,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -2889,12 +2956,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -2903,11 +2971,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -2974,7 +3042,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -3006,12 +3077,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -3020,11 +3092,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -3108,7 +3180,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -3141,12 +3216,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -3155,11 +3231,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -3303,7 +3379,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -3338,12 +3417,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -3352,11 +3432,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -3483,7 +3563,10 @@ describe("Trust", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumStatus = Tier.GOLD;
 
-    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -3515,12 +3598,13 @@ describe("Trust", async function () {
       {
         creator: creator.address,
         minimumCreatorRaise,
-        seeder: seeder.address,
         seederFee,
-        seederUnits,
-        seederCooldownDuration,
         redeemInit,
-        seedERC20Config,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
       },
       {
         erc20Config,
@@ -3529,11 +3613,11 @@ describe("Trust", async function () {
         totalSupply: totalTokenSupply,
       },
       {
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
+        seeder: seeder.address,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );

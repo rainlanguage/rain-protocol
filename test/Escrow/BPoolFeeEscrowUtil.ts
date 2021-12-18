@@ -9,6 +9,7 @@ import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { BigNumber, Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
 
 const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
@@ -32,7 +33,10 @@ export const deployGlobals = async () => {
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-  const { trustFactory } = await Util.factoriesDeploy(crpFactory, bFactory);
+  const { trustFactory, seedERC20Factory } = await Util.factoriesDeploy(
+    crpFactory,
+    bFactory
+  );
 
   return {
     crpFactory,
@@ -40,12 +44,14 @@ export const deployGlobals = async () => {
     tierFactory,
     tier,
     trustFactory,
+    seedERC20Factory,
   };
 };
 
 export const basicSetup = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
+  seedERC20Factory: SeedERC20Factory & Contract,
   tier: ReadWriteTier & Contract
 ) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
@@ -88,12 +94,13 @@ export const basicSetup = async (
     {
       creator: creator.address,
       minimumCreatorRaise,
-      seeder: seeder.address,
       seederFee,
-      seederUnits,
-      seederCooldownDuration,
       redeemInit,
-      seedERC20Config,
+      reserve: reserve.address,
+      reserveInit,
+      initialValuation,
+      finalValuation: successLevel,
+      minimumTradingDuration,
     },
     {
       erc20Config,
@@ -102,11 +109,11 @@ export const basicSetup = async (
       totalSupply: totalTokenSupply,
     },
     {
-      reserve: reserve.address,
-      reserveInit,
-      initialValuation,
-      finalValuation: successLevel,
-      minimumTradingDuration,
+      seeder: seeder.address,
+      seederUnits,
+      seederCooldownDuration,
+      seedERC20Config,
+      seedERC20Factory: seedERC20Factory.address,
     },
     { gasLimit: 100000000 }
   );
@@ -166,8 +173,9 @@ export const basicSetup = async (
 
 export const successfulRaise = async (
   signers: SignerWithAddress[],
-  trustFactory: TrustFactory,
-  tier: ReadWriteTier
+  trustFactory: TrustFactory & Contract,
+  seedERC20Factory: SeedERC20Factory & Contract,
+  tier: ReadWriteTier & Contract
 ) => {
   const {
     reserve,
@@ -181,7 +189,7 @@ export const successfulRaise = async (
     minimumTradingDuration,
     redeemableERC20,
     bPoolFeeEscrow,
-  } = await basicSetup(signers, trustFactory, tier);
+  } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
 
   const startBlock = await ethers.provider.getBlockNumber();
 
@@ -254,8 +262,9 @@ export const successfulRaise = async (
 
 export const failedRaise = async (
   signers: SignerWithAddress[],
-  trustFactory: TrustFactory,
-  tier: ReadWriteTier
+  trustFactory: TrustFactory & Contract,
+  seedERC20Factory: SeedERC20Factory & Contract,
+  tier: ReadWriteTier & Contract
 ) => {
   const {
     reserve,
@@ -269,7 +278,7 @@ export const failedRaise = async (
     crp,
     redeemableERC20,
     bPoolFeeEscrow,
-  } = await basicSetup(signers, trustFactory, tier);
+  } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
 
   const startBlock = await ethers.provider.getBlockNumber();
 
