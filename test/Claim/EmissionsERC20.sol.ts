@@ -225,7 +225,7 @@ describe("EmissionsERC20", async function () {
     const SOURCE = () =>
       concat([
         // op(Opcode.skip, 0),
-        op(Opcode.skip, 0),
+        // op(Opcode.skip, 0),
         op(Opcode.div, 2),
           op(Opcode.add, 8),
             op(Opcode.zipmap, Util.callSize(0, 3, 1)),

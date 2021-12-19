@@ -40,15 +40,23 @@ abstract contract RainVM {
         bytes memory context_,
         Source memory source_,
         Stack memory stack_,
-        CallSize memory callSize_
+        uint256 callSize_
     ) internal view {
         unchecked {
+            uint256 fnSize_;
+            uint256 loopSize_;
+            uint256 valSize_;
+            assembly {
+                fnSize_ := and(callSize_, 0x03)
+                loopSize_ := and(shr(2, callSize_), 0x07)
+                valSize_ := and(shr(5, callSize_), 0x07)
+            }
             uint256 fnIndex_ = stack_.index - 1;
-            stack_.index -= (callSize_.fnSize + callSize_.valSize + 2);
+            stack_.index -= (fnSize_ + valSize_ + 2);
 
-            bytes memory mapSource_ = new bytes((callSize_.fnSize + 1) * 32);
+            bytes memory mapSource_ = new bytes((fnSize_ + 1) * 32);
 
-            for (uint256 f_ = 0; f_ < callSize_.fnSize + 1; f_++) {
+            for (uint256 f_ = 0; f_ < fnSize_ + 1; f_++) {
                 uint256 offset_ = 32 + (32 * f_);
                 uint256 fnVal_ = stack_.vals[fnIndex_ - f_];
                 assembly {
@@ -56,12 +64,12 @@ abstract contract RainVM {
                 }
             }
 
-            uint256[] memory baseVals_ = new uint256[](callSize_.valSize + 1);
+            uint256[] memory baseVals_ = new uint256[](valSize_ + 1);
             for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
                 baseVals_[a_] = stack_.vals[stack_.index + a_];
             }
 
-            uint256 stepSize_ = 256 >> callSize_.loopSize;
+            uint256 stepSize_ = 256 >> loopSize_;
 
             for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
                 uint256[] memory arguments_ = new uint256[](
@@ -136,11 +144,7 @@ abstract contract RainVM {
                             context_,
                             source_,
                             stack_,
-                            CallSize(
-                                opval_ & 0x03,
-                                (opval_ >> 2) & 0x07,
-                                (opval_ >> 5) & 0x07
-                            )
+                            opval_
                         );
                     }
                 }
