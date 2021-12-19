@@ -63,7 +63,7 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it("should calculate correct emissions amount (if division is performed on final result)", async function () {
+  it.only("should calculate correct emissions amount (if division is performed on final result)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -339,6 +339,10 @@ describe("EmissionsERC20", async function () {
       expected  ${expectedClaimAmount}
       got       ${claimAmount}`
     );
+
+    await emissionsERC20.connect(claimer).claim(claimer.address, []);
+
+    console.log(await emissionsERC20.balanceOf(claimer.address))
   });
 
   it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
