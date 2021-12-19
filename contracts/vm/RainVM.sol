@@ -106,19 +106,16 @@ abstract contract RainVM {
             i_ > 0;
             i_ = i_ - 2
         ) {
-            SourceCursor memory sourceCursor_ = SourceCursor(
-                uint8((i_ - 2) / 32),
-                uint8((i_ - 2) % 32)
-            );
-
+            uint8 item_ = uint8((i_ - 2) / 32);
+            uint8 index_ = uint8((i_ - 2) % 32);
             op_.code = uint8(
-                uint256(source_.source[sourceCursor_.item]
-                    >> (256 - uint256(sourceCursor_.index + 2) * 8)
+                uint256(source_.source[item_]
+                    >> (256 - uint256(index_ + 2) * 8)
                 )
             );
             op_.val = uint8(
-                uint256(source_.source[sourceCursor_.item]
-                    >> (256 - uint256(sourceCursor_.index + 1) * 8)
+                uint256(source_.source[item_]
+                    >> (256 - uint256(index_ + 1) * 8)
                 )
             );
 
