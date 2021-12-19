@@ -4,8 +4,8 @@ pragma solidity ^0.8.10;
 import "hardhat/console.sol";
 
 struct Source {
-    uint8 stackSize;
     bytes source;
+    uint8 stackSize;
     uint256[] constants;
     uint256[] arguments;
 }
@@ -74,8 +74,8 @@ abstract contract RainVM {
                     );
                 }
                 Source memory evalSource_ = Source(
-                    source_.stackSize,
                     mapSource_,
+                    source_.stackSize,
                     source_.constants,
                     arguments_
                 );
@@ -98,11 +98,17 @@ abstract contract RainVM {
             // less gas to read this once.
             uint256 sourceLength_ = source_.source.length;
             uint256 i_ = sourceLength_;
+            uint16 opcode_;
+            bytes memory sourceBytes_ = source_.source;
             while (0 < i_ && i_ <= sourceLength_) {
                 // console.log(i_);
-                op_.code = uint8(source_.source[i_ - 1]);
-                op_.val = uint8(source_.source[i_ - 2]);
+                assembly {
+                    opcode_ := mload(add(sourceBytes_, i_))
+                }
                 i_ -= 2;
+                // console.log(opcode_);
+                op_.code = uint8(opcode_);
+                op_.val = uint8(opcode_ >> 8);
 
                 // console.log("op: %s %s", op_.code, op_.val);
 

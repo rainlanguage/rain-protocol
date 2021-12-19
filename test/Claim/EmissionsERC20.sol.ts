@@ -247,8 +247,8 @@ describe("EmissionsERC20", async function () {
       BONE_REWARD,
     ];
 
-    console.log(SOURCE())
-    console.log(constants)
+    console.log('source', SOURCE())
+    console.log('constants', constants)
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,

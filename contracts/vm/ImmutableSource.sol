@@ -27,6 +27,6 @@ abstract contract ImmutableSource {
         );
 
         uint256[] memory arguments_ = new uint256[](0);
-        return Source(stackSize, source_, constants_, arguments_);
+        return Source(source_, stackSize, constants_, arguments_);
     }
 }
