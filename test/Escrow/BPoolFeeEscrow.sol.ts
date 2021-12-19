@@ -22,7 +22,7 @@ enum DistributionStatus {
 }
 
 describe("BPoolFeeEscrow", async function () {
-  it("should not change contract state if unknown trust is claimed against", async function () {
+  it.only("should not change contract state if unknown trust is claimed against", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();

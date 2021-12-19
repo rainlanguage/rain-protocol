@@ -35,6 +35,9 @@ struct CRPConfig {
     // This is an address published by Balancer or deployed locally during
     // testing.
     address balancerFactory;
+    IERC20 reserve;
+    RedeemableERC20 token;
+    uint256 reserveInit;
     // Initial marketcap of the token according to the balancer pool
     // denominated in reserve token.
     // The spot price of the token is ( market cap / token supply ) where
@@ -109,18 +112,18 @@ library RedeemableERC20Pool {
     {
         // The addresses in the `RedeemableERC20Pool`, as `[reserve, token]`.
         address[] memory poolAddresses_ = new address[](2);
-        poolAddresses_[0] = address(self_.reserve());
-        poolAddresses_[1] = address(self_.token());
+        poolAddresses_[0] = address(config_.reserve);
+        poolAddresses_[1] = address(config_.token);
 
         uint256[] memory poolAmounts_ = new uint256[](2);
-        poolAmounts_[0] = self_.reserveInit();
-        poolAmounts_[1] = self_.token().totalSupply();
+        poolAmounts_[0] = config_.reserveInit;
+        poolAmounts_[1] = config_.token.totalSupply();
         require(poolAmounts_[1] > 0, "TOKEN_INIT_0");
 
         uint256[] memory initialWeights_ = new uint256[](2);
         initialWeights_[0] = IBalancerConstants.MIN_WEIGHT;
         initialWeights_[1] = valuationWeight(
-            self_.reserveInit(),
+            config_.reserveInit,
             config_.initialValuation
         );
 
@@ -154,20 +157,20 @@ library RedeemableERC20Pool {
 
         // Need to grant transfers for a few balancer addresses to facilitate
         // setup and exits.
-        self_.token().grantRole(
-            self_.token().RECEIVER(),
+        config_.token.grantRole(
+            config_.token.RECEIVER(),
             address(IConfigurableRightsPool(crp_).bFactory())
         );
-        self_.token().grantRole(
-            self_.token().RECEIVER(),
+        config_.token.grantRole(
+            config_.token.RECEIVER(),
             crp_
         );
-        self_.token().grantRole(
-            self_.token().RECEIVER(),
+        config_.token.grantRole(
+            config_.token.RECEIVER(),
             address(self_)
         );
-        self_.token().grantRole(
-            self_.token().SENDER(),
+        config_.token.grantRole(
+            config_.token.SENDER(),
             crp_
         );
 
