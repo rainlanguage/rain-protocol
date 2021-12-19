@@ -94,51 +94,53 @@ abstract contract RainVM {
         Stack memory stack_
     ) internal view {
         unchecked {
-            Op memory op_;
+            // Op memory op_;
             // less gas to read this once.
-            uint256 sourceLength_ = source_.source.length;
-            uint256 i_ = sourceLength_;
-            uint16 opcode_;
+            uint256 i_;
+            uint8 opcode_;
+            uint8 opval_;
+            i_ = source_.source.length;
             bytes memory sourceBytes_ = source_.source;
-            while (0 < i_ && i_ <= sourceLength_) {
+            while (0 < i_) {
                 // console.log(i_);
                 assembly {
+                    // mstore(i_, sub(i_, 2))
                     opcode_ := mload(add(sourceBytes_, i_))
+                    opval_ := mload(add(sourceBytes_, sub(i_, 1)))
+                    // mstore(0x0, sub(i_, 2))
                 }
                 i_ -= 2;
                 // console.log(opcode_);
-                op_.code = uint8(opcode_);
-                op_.val = uint8(opcode_ >> 8);
+                // op_.code = uint8(opcode_);
+                // op_.val = uint8(opcode_ >> 8);
 
-                // console.log("op: %s %s", op_.code, op_.val);
+                // console.log("op: %s %s", opcode_, opval_);
 
-                if (op_.code < uint8(Ops.length)) {
-                    if (op_.code == uint8(Ops.skip)) {
-                        i_ -= op_.val * 2;
+                if (opcode_ < uint8(Ops.length)) {
+                    if (opcode_ == uint8(Ops.skip)) {
+                        i_ -= opval_ * 2;
                         continue;
                     }
-                    else if (op_.code == uint8(Ops.val)) {
-                        uint8 valIndex_ = op_.val & 0x7F;
-                        bool fromArguments_ = (op_.val >> 7) > 0;
+                    else if (opcode_ == uint8(Ops.val)) {
+                        uint8 valIndex_ = opval_ & 0x7F;
+                        bool fromArguments_ = (opval_ >> 7) > 0;
                         stack_.vals[stack_.index] = fromArguments_
                             ? source_.arguments[valIndex_]
                             : source_.constants[valIndex_];
                         stack_.index++;
                     }
-                    else if (op_.code == uint8(Ops.zipmap)) {
+                    else if (opcode_ == uint8(Ops.zipmap)) {
                         // stack_ modified by reference.
-                        // console.log("zipmap start");
                         zipmap(
                             context_,
                             source_,
                             stack_,
                             CallSize(
-                                op_.val & 0x03,
-                                (op_.val >> 2) & 0x07,
-                                (op_.val >> 5) & 0x07
+                                opval_ & 0x03,
+                                (opval_ >> 2) & 0x07,
+                                (opval_ >> 5) & 0x07
                             )
                         );
-                        // console.log("zipmap end");
                     }
                 }
                 else {
@@ -146,7 +148,7 @@ abstract contract RainVM {
                     applyOp(
                         context_,
                         stack_,
-                        op_
+                        Op(opcode_, opval_)
                     );
                 }
             }

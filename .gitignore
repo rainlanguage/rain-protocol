@@ -13,3 +13,4 @@ docs/api
 .npmrc
 solt
 !dist/**
+tenderly.yaml
