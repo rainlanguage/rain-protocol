@@ -244,6 +244,7 @@ describe("EmissionsERC20", async function () {
       BONE_REWARD,
     ];
 
+    console.log(chunkedSource(SOURCE()))
     console.log(constants)
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
@@ -262,6 +263,10 @@ describe("EmissionsERC20", async function () {
         },
       }
     );
+
+    const immutableSource = await emissionsERC20.source();
+    console.log("IS", immutableSource);
+    console.log(await emissionsERC20.sourceLength())
 
     // Has Platinum Tier
     await readWriteTier.setTier(claimer.address, Tier.FOUR, []);

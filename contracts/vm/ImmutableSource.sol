@@ -3,6 +3,12 @@ pragma solidity ^0.8.10;
 
 import { Source } from "./RainVM.sol";
 
+struct ChunkedSource {
+    uint256[] source;
+    uint256[] constants;
+    uint256[] arguments;
+}
+
 abstract contract ImmutableSource {
     uint256 public immutable constant0;
     uint256 public immutable constant1;
@@ -30,7 +36,7 @@ abstract contract ImmutableSource {
     uint8 public immutable sourceLength;
 
     constructor(
-        Source memory source_
+        ChunkedSource memory source_
     ) {
         require(source_.constants.length <= 16, "IMMUTABLE_CONSTANTS_LIMIT");
         require(source_.source.length <= 4, "IMMUTABLE_SOURCE_LIMIT");
@@ -61,17 +67,21 @@ abstract contract ImmutableSource {
         sourceLength = uint8(source_.source.length);
     }
 
-    function source() internal view returns(Source memory) {
-        uint256[] memory source_ = new uint256[](sourceLength);
+    function source() public view returns(Source memory) {
+        bytes memory source_ = new bytes(sourceLength * 32);
 
         if (0 < sourceLength) {
-            source_[0] = source0;
+            uint256 sourceChunk_ = source0;
+            assembly { mstore(add(source_, 32), sourceChunk_) }
             if (1 < sourceLength) {
-                source_[1] = source1;
+                sourceChunk_ = source1;
+                assembly { mstore(add(source_, 64), sourceChunk_) }
                 if (2 < sourceLength) {
-                    source_[2] = source2;
+                    sourceChunk_ = source2;
+                    assembly { mstore(add(source_, 96), sourceChunk_) }
                     if (3 < sourceLength) {
-                        source_[3] = source3;
+                        sourceChunk_ = source3;
+                        assembly { mstore(add(source_, 128), sourceChunk_) }
                     }
                 }
             }

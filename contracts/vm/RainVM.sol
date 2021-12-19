@@ -4,14 +4,9 @@ pragma solidity ^0.8.10;
 import "hardhat/console.sol";
 
 struct Source {
-    uint256[] source;
+    bytes source;
     uint256[] constants;
     uint256[] arguments;
-}
-
-struct SourceCursor {
-    uint8 item;
-    uint8 index;
 }
 
 struct CallSize {
@@ -52,10 +47,16 @@ abstract contract RainVM {
         uint256 fnIndex_ = stack_.index - 1;
         stack_.index -= (callSize_.fnSize + callSize_.valSize + 2);
 
-        uint256[] memory mapSource_ = new uint256[](callSize_.fnSize + 1);
+        bytes memory mapSource_ = new bytes((callSize_.fnSize + 1) * 32);
 
-        for (uint256 f_ = 0; f_ < mapSource_.length; f_++) {
-            mapSource_[f_] = stack_.vals[fnIndex_ - f_];
+        for (uint256 f_ = 0; f_ < callSize_.fnSize + 1; f_++) {
+            // mapSource_[f_] = stack_.vals[fnIndex_ - f_];
+            uint256 offset_ = 32 + (32 * f_);
+            uint256 fnVal_ = stack_.vals[fnIndex_ - f_];
+            // console.log("offset: %s %s", offset_, fnVal_);
+            assembly {
+                mstore(add(mapSource_, offset_), fnVal_)
+            }
         }
 
         uint256[] memory baseVals_ = new uint256[](callSize_.valSize + 1);
@@ -102,22 +103,24 @@ abstract contract RainVM {
     ) internal view {
         Op memory op_;
         for (
-            uint256 i_ = source_.source.length * 32;
+            uint256 i_ = source_.source.length;
             i_ > 0;
             i_ = i_ - 2
         ) {
-            uint8 item_ = uint8((i_ - 2) / 32);
-            uint8 index_ = uint8((i_ - 2) % 32);
-            op_.code = uint8(
-                uint256(source_.source[item_]
-                    >> (256 - uint256(index_ + 2) * 8)
-                )
-            );
-            op_.val = uint8(
-                uint256(source_.source[item_]
-                    >> (256 - uint256(index_ + 1) * 8)
-                )
-            );
+            op_.code = uint8(source_.source[i_ - 1]);
+            op_.val = uint8(source_.source[i_ - 2]);
+            // uint8 item_ = uint8((i_ - 2) / 32);
+            // uint8 index_ = uint8((i_ - 2) % 32);
+            // op_.code = uint8(
+            //     uint256(source_.source[item_]
+            //         >> (256 - uint256(index_ + 2) * 8)
+            //     )
+            // );
+            // op_.val = uint8(
+            //     uint256(source_.source[item_]
+            //         >> (256 - uint256(index_ + 1) * 8)
+            //     )
+            // );
 
             // console.log("op: %s %s", op_.code, op_.val);
 
@@ -136,6 +139,7 @@ abstract contract RainVM {
                 }
                 else if (op_.code == uint8(Ops.zipmap)) {
                     // stack_ modified by reference.
+                    // console.log("zipmap start");
                     zipmap(
                         context_,
                         source_,
@@ -146,6 +150,7 @@ abstract contract RainVM {
                             (op_.val >> 5) & 0x07
                         )
                     );
+                    // console.log("zipmap end");
                 }
             }
             else {
