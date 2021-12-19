@@ -225,8 +225,8 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.div, 2),
           op(Opcode.add, 8),
-            op(Opcode.zipmap, Util.callSize(1, 3, 1)),
-              op(Opcode.val, 1), // fn1
+            op(Opcode.zipmap, Util.callSize(0, 3, 1)),
+              // op(Opcode.val, 1), // fn1
               op(Opcode.val, 0), // fn0
               valBaseRewardPerTier, // val1
               TIERWISE_DIFF(), // val0

@@ -100,6 +100,7 @@ abstract contract RainVM {
         Source memory source_,
         Stack memory stack_
     ) internal view {
+        Op memory op_;
         for (
             uint256 i_ = source_.source.length * 32;
             i_ > 0;
@@ -110,16 +111,14 @@ abstract contract RainVM {
                 uint8((i_ - 2) % 32)
             );
 
-            Op memory op_ = Op(
-                uint8(
-                    uint256(source_.source[sourceCursor_.item]
-                        >> (256 - uint256(sourceCursor_.index + 2) * 8)
-                    )
-                ),
-                uint8(
-                    uint256(source_.source[sourceCursor_.item]
-                        >> (256 - uint256(sourceCursor_.index + 1) * 8)
-                    )
+            op_.code = uint8(
+                uint256(source_.source[sourceCursor_.item]
+                    >> (256 - uint256(sourceCursor_.index + 2) * 8)
+                )
+            );
+            op_.val = uint8(
+                uint256(source_.source[sourceCursor_.item]
+                    >> (256 - uint256(sourceCursor_.index + 1) * 8)
                 )
             );
 
