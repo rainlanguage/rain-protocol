@@ -224,6 +224,8 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const SOURCE = () =>
       concat([
+        // op(Opcode.skip, 0),
+        op(Opcode.skip, 0),
         op(Opcode.div, 2),
           op(Opcode.add, 8),
             op(Opcode.zipmap, Util.callSize(0, 3, 1)),
@@ -258,6 +260,7 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         source: {
+          stackSize: 13,
           source: SOURCE(),
           constants,
           arguments: [],

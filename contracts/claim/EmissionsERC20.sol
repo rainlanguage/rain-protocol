@@ -131,10 +131,14 @@ contract EmissionsERC20 is
         view
         returns (uint256)
     {
-        Stack memory stack_;
+        Source memory source_ = source();
+        Stack memory stack_ = Stack(
+            new uint256[](source_.stackSize),
+            0
+        );
         eval(
             abi.encode(account_),
-            source(),
+            source_,
             stack_
         );
         return stack_.vals[stack_.index - 1];

@@ -6,12 +6,14 @@ import { Source } from "./RainVM.sol";
 import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 
 abstract contract ImmutableSource {
+    uint8 private immutable stackSize;
     address private immutable constantsPointer;
     address private immutable sourcePointer;
 
     constructor(
         Source memory source_
     ) {
+        stackSize = source_.stackSize;
         constantsPointer = SSTORE2.write(abi.encode(source_.constants));
         sourcePointer = SSTORE2.write(source_.source);
     }
@@ -25,6 +27,6 @@ abstract contract ImmutableSource {
         );
 
         uint256[] memory arguments_ = new uint256[](0);
-        return Source(source_, constants_, arguments_);
+        return Source(stackSize, source_, constants_, arguments_);
     }
 }
