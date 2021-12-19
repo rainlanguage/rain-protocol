@@ -6,7 +6,7 @@ import { Source } from "./RainVM.sol";
 import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 
 abstract contract ImmutableSource {
-    uint8 private immutable stackSize;
+    uint256 private immutable stackSize;
     address private immutable constantsPointer;
     address private immutable sourcePointer;
 

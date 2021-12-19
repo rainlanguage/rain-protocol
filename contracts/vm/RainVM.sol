@@ -5,25 +5,25 @@ import "hardhat/console.sol";
 
 struct Source {
     bytes source;
-    uint8 stackSize;
+    uint256 stackSize;
     uint256[] constants;
     uint256[] arguments;
 }
 
 struct CallSize {
-    uint8 fnSize;
-    uint8 loopSize;
-    uint8 valSize;
+    uint256 fnSize;
+    uint256 loopSize;
+    uint256 valSize;
 }
 
 struct Stack {
     uint256[] vals;
-    uint8 index;
+    uint256 index;
 }
 
 struct Op {
-    uint8 code;
-    uint8 val;
+    uint256 code;
+    uint256 val;
 }
 
 enum Ops {
@@ -99,24 +99,19 @@ abstract contract RainVM {
             uint256 i_;
             uint256 opcode_;
             uint256 opval_;
+            uint256 valIndex_;
+            bool fromArguments_;
             uint256 sourceLength_ = source_.source.length;
             i_ = sourceLength_;
             bytes memory sourceBytes_ = source_.source;
             // loop until underflow.
             while (i_ > 0) {
-                // console.log(i_);
                 assembly {
                     let op_ := mload(add(sourceBytes_, i_))
                     opcode_ := and(op_, 0xFF)
                     opval_ := and(shr(8, op_), 0xFF)
                     i_ := sub(i_, 0x2)
                 }
-                // i_ -= 2;
-                // console.log(opcode_);
-                // op_.code = uint8(opcode_);
-                // op_.val = uint8(opcode_ >> 8);
-
-                // console.log("op: %s %s", opcode_, opval_);
 
                 if (opcode_ < 3) {
                     if (opcode_ == 0) {
@@ -126,8 +121,10 @@ abstract contract RainVM {
                         continue;
                     }
                     else if (opcode_ == 1) {
-                        uint8 valIndex_ = uint8(opval_) & 0x7F;
-                        bool fromArguments_ = (opval_ >> 7) > 0;
+                        assembly {
+                            valIndex_ := and(opval_, 0x7F)
+                            fromArguments_ := gt(shr(7, opval_), 0)
+                        }
                         stack_.vals[stack_.index] = fromArguments_
                             ? source_.arguments[valIndex_]
                             : source_.constants[valIndex_];
@@ -140,9 +137,9 @@ abstract contract RainVM {
                             source_,
                             stack_,
                             CallSize(
-                                uint8(opval_) & 0x03,
-                                (uint8(opval_) >> 2) & 0x07,
-                                (uint8(opval_) >> 5) & 0x07
+                                opval_ & 0x03,
+                                (opval_ >> 2) & 0x07,
+                                (opval_ >> 5) & 0x07
                             )
                         );
                     }
@@ -152,7 +149,7 @@ abstract contract RainVM {
                     applyOp(
                         context_,
                         stack_,
-                        Op(uint8(opcode_), uint8(opval_))
+                        Op(opcode_, opval_)
                     );
                 }
             }
