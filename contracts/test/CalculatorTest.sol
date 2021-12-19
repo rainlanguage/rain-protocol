@@ -12,7 +12,7 @@ contract CalculatorTest is RainVM, ImmutableSource {
     uint8 public immutable blockOpsStart;
     uint8 public immutable mathOpsStart;
 
-    constructor(ChunkedSource memory source_)
+    constructor(Source memory source_)
         ImmutableSource(source_)
     {
         blockOpsStart = uint8(RainVMOps.length);

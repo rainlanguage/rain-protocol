@@ -50,10 +50,8 @@ abstract contract RainVM {
         bytes memory mapSource_ = new bytes((callSize_.fnSize + 1) * 32);
 
         for (uint256 f_ = 0; f_ < callSize_.fnSize + 1; f_++) {
-            // mapSource_[f_] = stack_.vals[fnIndex_ - f_];
             uint256 offset_ = 32 + (32 * f_);
             uint256 fnVal_ = stack_.vals[fnIndex_ - f_];
-            // console.log("offset: %s %s", offset_, fnVal_);
             assembly {
                 mstore(add(mapSource_, offset_), fnVal_)
             }
@@ -109,18 +107,6 @@ abstract contract RainVM {
         ) {
             op_.code = uint8(source_.source[i_ - 1]);
             op_.val = uint8(source_.source[i_ - 2]);
-            // uint8 item_ = uint8((i_ - 2) / 32);
-            // uint8 index_ = uint8((i_ - 2) % 32);
-            // op_.code = uint8(
-            //     uint256(source_.source[item_]
-            //         >> (256 - uint256(index_ + 2) * 8)
-            //     )
-            // );
-            // op_.val = uint8(
-            //     uint256(source_.source[item_]
-            //         >> (256 - uint256(index_ + 1) * 8)
-            //     )
-            // );
 
             // console.log("op: %s %s", op_.code, op_.val);
 

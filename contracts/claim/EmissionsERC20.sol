@@ -20,7 +20,7 @@ enum Ops {
 struct EmissionsERC20Config {
     bool allowDelegatedClaims;
     ERC20Config erc20Config;
-    ChunkedSource source;
+    Source source;
 }
 
 contract EmissionsERC20 is

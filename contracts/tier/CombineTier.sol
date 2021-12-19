@@ -22,7 +22,7 @@ contract CombineTier is
     uint8 public immutable tierOpsStart;
     uint8 public immutable combineTierOpsStart;
 
-    constructor(ChunkedSource memory source_)
+    constructor(Source memory source_)
         ImmutableSource(source_)
     {
         blockOpsStart = uint8(RainVMOps.length);
