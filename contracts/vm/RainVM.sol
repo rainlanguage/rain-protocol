@@ -58,7 +58,7 @@ abstract contract RainVM {
 
         uint256[] memory baseVals_ = new uint256[](callSize_.valSize + 1);
         for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
-            baseVals_[a_] = stack_.vals[a_];
+            baseVals_[a_] = stack_.vals[stack_.index + a_];
         }
 
         uint256 stepSize_ = 256 >> callSize_.loopSize;

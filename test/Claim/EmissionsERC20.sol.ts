@@ -63,7 +63,7 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it("should calculate correct emissions amount (if division is performed on final result)", async function () {
+  it.only("should calculate correct emissions amount (if division is performed on final result)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -120,6 +120,11 @@ describe("EmissionsERC20", async function () {
           paddedUInt32(REWARD_PER_BLOCK_BRNZ)
       )
     );
+
+    console.log("bronze", REWARD_PER_BLOCK_BRNZ);
+    console.log("silver", REWARD_PER_BLOCK_SILV);
+    console.log("gold", REWARD_PER_BLOCK_GOLD);
+    console.log("platinum", REWARD_PER_BLOCK_PLAT);
 
     // BEGIN global constants
 
@@ -212,7 +217,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.anyLteMax, 2),
             LAST_CLAIM_REPORT(),
             TIER_REPORT(),
-          op(Opcode.blockNumber),
+            op(Opcode.blockNumber),
       ]);
 
     // prettier-ignore
@@ -225,7 +230,7 @@ describe("EmissionsERC20", async function () {
               op(Opcode.val, 0), // fn0
               valBaseRewardPerTier, // val1
               TIERWISE_DIFF(), // val0
-            valBOneReward // scale FINAL result down by reward per block scaler
+          valBOneReward // scale FINAL result down by reward per block scaler
       ]);
 
     // END Source snippets
@@ -238,6 +243,8 @@ describe("EmissionsERC20", async function () {
       BONE,
       BONE_REWARD,
     ];
+
+    console.log(constants)
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
@@ -314,15 +321,16 @@ describe("EmissionsERC20", async function () {
     const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
 
     console.log(`expectations:
-    claimDuration                 ${claimDuration}
-    claimDurationBN               ${claimDurationBN}
-    fractionalClaimDurationBN     ${fractionalClaimDurationBN}
-    baseRewardByDurationBronze    ${baseRewardByDurationBronze}
-    baseRewardByDurationSilver    ${baseRewardByDurationSilver}
-    baseRewardByDurationGold      ${baseRewardByDurationGold}
-    baseRewardByDurationPlatinum  ${baseRewardByDurationPlatinum}
-    sumBaseRewardByDuration       ${sumBaseRewardByDuration}
-    expectedClaimAmount           ${expectedClaimAmount}
+    claimDuration                               ${claimDuration}
+    claimDurationBN                             ${claimDurationBN}
+    fractionalClaimDurationBN                   ${fractionalClaimDurationBN}
+    baseRewardByDurationBronze                  ${baseRewardByDurationBronze}
+    baseRewardByDurationSilver                  ${baseRewardByDurationSilver}
+    baseRewardByDurationGold                    ${baseRewardByDurationGold}
+    baseRewardByDurationPlatinum                ${baseRewardByDurationPlatinum}
+    sumBaseRewardByDuration                     ${sumBaseRewardByDuration}
+    expectedClaimAmount                         ${expectedClaimAmount}
+    fractionalClaimDurationRemoveExcessAddOneBN ${fractionalClaimDurationRemoveExcessAddOneBN}
     `);
 
     assert(
