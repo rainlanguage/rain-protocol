@@ -10,12 +10,6 @@ struct Source {
     uint256[] arguments;
 }
 
-struct CallSize {
-    uint256 fnSize;
-    uint256 loopSize;
-    uint256 valSize;
-}
-
 struct Stack {
     uint256[] vals;
     uint256 index;
@@ -109,8 +103,7 @@ abstract contract RainVM {
             uint256 opval_;
             uint256 valIndex_;
             bool fromArguments_;
-            uint256 sourceLength_ = source_.source.length;
-            i_ = sourceLength_;
+            i_ = source_.source.length;
             bytes memory sourceBytes_ = source_.source;
             // loop until underflow.
             while (i_ > 0) {
