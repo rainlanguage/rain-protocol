@@ -858,11 +858,6 @@ describe("TrustTrade", async function () {
     // Bt / Br = 1 (in our case)
     // Hence, Wt / Wr = Spot
 
-    // console.log(`Weight Ratio Wt/Wr ${
-    //   spotInit
-    //   .mul(redeemInit.div(reserveInit)
-    // )}`);
-
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 0;

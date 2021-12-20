@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "hardhat/console.sol";
-
 struct State {
     bytes[] sources;
     uint[] constants;
@@ -83,13 +81,14 @@ abstract contract RainVM {
             // with a value larger than the remaining source.
             while (i_ > 0) {
                 assembly {
+                    // mload taking 32 bytes and source_ starts with 32 byte
+                    // length, so i_ offset moves the end of the loaded bytes
+                    // to the op we want.
                     let op_ := mload(add(source_, i_))
                     opcode_ := and(op_, 0xFF)
                     opval_ := and(shr(8, op_), 0xFF)
                     i_ := sub(i_, 0x2)
                 }
-
-                // console.log("op: %s %s", opcode_, opval_);
 
                 if (opcode_ < 3) {
                     if (opcode_ == 0) {

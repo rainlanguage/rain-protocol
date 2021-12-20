@@ -12,8 +12,6 @@ import { MathOps, Ops as MathOpsOps } from "../vm/ops/MathOps.sol";
 import { TierOps, Ops as TierOpsOps } from "../vm/ops/TierOps.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import "hardhat/console.sol";
-
 enum Ops {
     account,
     constructionBlockNumber
@@ -142,9 +140,6 @@ contract EmissionsERC20 is
             state_,
             0
         );
-        // console.log("stack index: %s", state_.stackIndex);
-        // console.log("stack: %s %s %s", state_.stack[0], state_.stack[1], state_.stack[2]);
-        // console.log("stack 2: %s %s %s", state_.stack[3], state_.stack[4], state_.stack[5]);
         return state_.stack[state_.stackIndex - 1];
     }
 
