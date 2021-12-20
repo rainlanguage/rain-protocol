@@ -259,11 +259,11 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        source: {
-          stackSize: 13,
+        immutableSourceConfig: {
           source: SOURCE(),
           constants,
-          arguments: [],
+          argumentsLength: 16,
+          stackLength: 16,
         },
       }
     );

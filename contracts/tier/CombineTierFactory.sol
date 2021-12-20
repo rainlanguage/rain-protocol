@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Source } from "../vm/RainVM.sol";
+import "../vm/ImmutableSource.sol";
 import { Factory } from "../factory/Factory.sol";
 import { CombineTier } from "./CombineTier.sol";
 
@@ -13,8 +13,9 @@ contract CombineTierFactory is Factory {
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {
-        (Source memory source_) = abi.decode(data_, (Source));
-        CombineTier combineTier_ = new CombineTier(source_);
+        (ImmutableSourceConfig memory config_)
+            = abi.decode(data_, (ImmutableSourceConfig));
+        CombineTier combineTier_ = new CombineTier(config_);
         return address(combineTier_);
     }
 
@@ -22,11 +23,11 @@ contract CombineTierFactory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param source_ `Source` of the `CombineTier` logic.
+    /// @param config_ `ImmutableSourceConfig` of the `CombineTier` logic.
     /// @return New `CombineTier` child contract address.
-    function createChild(Source calldata source_)
+    function createChild(ImmutableSourceConfig calldata config_)
         external
         returns(address) {
-        return this.createChild(abi.encode(source_));
+        return this.createChild(abi.encode(config_));
     }
 }

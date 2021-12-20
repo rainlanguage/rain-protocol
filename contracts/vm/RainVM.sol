@@ -3,16 +3,11 @@ pragma solidity ^0.8.10;
 
 import "hardhat/console.sol";
 
-struct Source {
-    bytes source;
-    uint256 stackSize;
+struct State {
     uint256[] constants;
     uint256[] arguments;
-}
-
-struct Stack {
-    uint256[] vals;
-    uint256 index;
+    uint256[] stack;
+    uint256 stackIndex;
 }
 
 struct Op {
@@ -32,8 +27,7 @@ abstract contract RainVM {
     /// Separate function to avoid blowing solidity compile time stack.
     function zipmap(
         bytes memory context_,
-        Source memory source_,
-        Stack memory stack_,
+        State memory state_,
         uint256 callSize_
     ) internal view {
         unchecked {
@@ -45,46 +39,37 @@ abstract contract RainVM {
                 loopSize_ := and(shr(2, callSize_), 0x07)
                 valSize_ := and(shr(5, callSize_), 0x07)
             }
-            uint256 fnIndex_ = stack_.index - 1;
-            stack_.index -= (fnSize_ + valSize_ + 2);
+            uint256 fnIndex_ = state_.stackIndex - 1;
+            state_.stackIndex -= (fnSize_ + valSize_ + 2);
 
-            bytes memory mapSource_ = new bytes((fnSize_ + 1) * 32);
+            bytes memory source_ = new bytes((fnSize_ + 1) * 32);
 
             for (uint256 f_ = 0; f_ < fnSize_ + 1; f_++) {
                 uint256 offset_ = 32 + (32 * f_);
-                uint256 fnVal_ = stack_.vals[fnIndex_ - f_];
+                uint256 fnVal_ = state_.stack[fnIndex_ - f_];
                 assembly {
-                    mstore(add(mapSource_, offset_), fnVal_)
+                    mstore(add(source_, offset_), fnVal_)
                 }
             }
 
             uint256[] memory baseVals_ = new uint256[](valSize_ + 1);
             for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
-                baseVals_[a_] = stack_.vals[stack_.index + a_];
+                baseVals_[a_] = state_.stack[state_.stackIndex + a_];
             }
 
             uint256 stepSize_ = 256 >> loopSize_;
 
             for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-                uint256[] memory arguments_ = new uint256[](
-                    baseVals_.length * 256 / stepSize_
-                );
                 for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
-                    arguments_[a_] = uint256(
+                    state_.arguments[a_] = uint256(
                         uint256(baseVals_[a_] << 256 - step_ - stepSize_)
                         >> 256 - stepSize_
                     );
                 }
-                Source memory evalSource_ = Source(
-                    mapSource_,
-                    source_.stackSize,
-                    source_.constants,
-                    arguments_
-                );
                 eval(
                     context_,
-                    evalSource_,
-                    stack_
+                    source_,
+                    state_
                 );
             }
         }
@@ -92,8 +77,8 @@ abstract contract RainVM {
 
     function eval(
         bytes memory context_,
-        Source memory source_,
-        Stack memory stack_
+        bytes memory source_,
+        State memory state_
     ) internal view {
         unchecked {
             // Op memory op_;
@@ -103,12 +88,11 @@ abstract contract RainVM {
             uint256 opval_;
             uint256 valIndex_;
             bool fromArguments_;
-            i_ = source_.source.length;
-            bytes memory sourceBytes_ = source_.source;
+            i_ = source_.length;
             // loop until underflow.
             while (i_ > 0) {
                 assembly {
-                    let op_ := mload(add(sourceBytes_, i_))
+                    let op_ := mload(add(source_, i_))
                     opcode_ := and(op_, 0xFF)
                     opval_ := and(shr(8, op_), 0xFF)
                     i_ := sub(i_, 0x2)
@@ -126,26 +110,25 @@ abstract contract RainVM {
                             valIndex_ := and(opval_, 0x7F)
                             fromArguments_ := gt(shr(7, opval_), 0)
                         }
-                        stack_.vals[stack_.index] = fromArguments_
-                            ? source_.arguments[valIndex_]
-                            : source_.constants[valIndex_];
-                        stack_.index++;
+                        state_.stack[state_.stackIndex] = fromArguments_
+                            ? state_.arguments[valIndex_]
+                            : state_.constants[valIndex_];
+                        state_.stackIndex++;
                     }
                     else if (opcode_ == 2) {
-                        // stack_ modified by reference.
+                        // state_ modified by reference.
                         zipmap(
                             context_,
-                            source_,
-                            stack_,
+                            state_,
                             opval_
                         );
                     }
                 }
                 else {
-                    // stack_ modified by reference.
+                    // state_ modified by reference.
                     applyOp(
                         context_,
-                        stack_,
+                        state_,
                         Op(opcode_, opval_)
                     );
                 }
@@ -158,7 +141,7 @@ abstract contract RainVM {
     /// by eval for each dispatch.
     function applyOp(
         bytes memory context_,
-        Stack memory stack_,
+        State memory state_,
         Op memory op_
     )
     internal

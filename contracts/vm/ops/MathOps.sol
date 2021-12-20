@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Stack, Op } from "../RainVM.sol";
+import { State, Op } from "../RainVM.sol";
 
 enum Ops {
     add,
@@ -20,18 +20,18 @@ library MathOps {
 
     function applyOp(
         bytes memory,
-        Stack memory stack_,
+        State memory state_,
         Op memory op_
     )
     internal
     pure
     {
-        stack_.index -= op_.val;
+        state_.stackIndex -= op_.val;
 
-        uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
+        uint256 accumulator_ = state_.stack[state_.stackIndex + op_.val - 1];
 
         for (uint256 a_ = 2; a_ <= op_.val; a_++) {
-            uint256 item_ = stack_.vals[stack_.index + a_ - 2];
+            uint256 item_ = state_.stack[state_.stackIndex + a_ - 2];
             if (op_.code == uint8(Ops.add)) {
                 accumulator_ += item_;
             }
@@ -61,8 +61,8 @@ library MathOps {
                     + (accumulator_ ^ item_) / 2;
             }
         }
-        stack_.vals[stack_.index] = accumulator_;
-        stack_.index++;
+        state_.stack[state_.stackIndex] = accumulator_;
+        state_.stackIndex++;
     }
 
 }

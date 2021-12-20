@@ -1,32 +1,46 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Source } from "./RainVM.sol";
-
+import { State } from "./RainVM.sol";
 import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 
-abstract contract ImmutableSource {
-    uint256 private immutable stackSize;
-    address private immutable constantsPointer;
-    address private immutable sourcePointer;
+struct ImmutableSourceConfig {
+    bytes source;
+    uint256[] constants;
+    uint8 argumentsLength;
+    uint8 stackLength;
+}
 
-    constructor(
-        Source memory source_
-    ) {
-        stackSize = source_.stackSize;
-        constantsPointer = SSTORE2.write(abi.encode(source_.constants));
-        sourcePointer = SSTORE2.write(source_.source);
+abstract contract ImmutableSource {
+    address private immutable sourcePointer;
+    address private immutable constantsPointer;
+    uint8 private immutable argumentsLength;
+    uint8 private immutable stackLength;
+
+    constructor(ImmutableSourceConfig memory config_) {
+        sourcePointer = SSTORE2.write(config_.source);
+        constantsPointer = SSTORE2.write(abi.encode(config_.constants));
+        argumentsLength = config_.argumentsLength;
+        stackLength = config_.stackLength;
     }
 
-    function source() public view returns(Source memory) {
-        bytes memory source_ = SSTORE2.read(sourcePointer);
+    function source() public view returns(bytes memory) {
+        return SSTORE2.read(sourcePointer);
+    }
 
-        uint256[] memory constants_ = abi.decode(
+    function constants() public view returns(uint256[] memory) {
+        return abi.decode(
             SSTORE2.read(constantsPointer),
             (uint256[])
         );
+    }
 
-        uint256[] memory arguments_ = new uint256[](0);
-        return Source(source_, stackSize, constants_, arguments_);
+    function newState() public view returns(State memory) {
+        return State(
+            constants(),
+            new uint256[](argumentsLength),
+            new uint256[](stackLength),
+            0
+        );
     }
 }

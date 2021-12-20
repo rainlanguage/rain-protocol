@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import { ERC20Config } from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import { RainVM, Stack, Op, Ops as RainVMOps } from "../vm/RainVM.sol";
+import { RainVM, State, Op, Ops as RainVMOps } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
 import { ThisOps, Ops as ThisOpsOps } from "../vm/ops/ThisOps.sol";
@@ -20,7 +20,7 @@ enum Ops {
 struct EmissionsERC20Config {
     bool allowDelegatedClaims;
     ERC20Config erc20Config;
-    Source source;
+    ImmutableSourceConfig immutableSourceConfig;
 }
 
 contract EmissionsERC20 is
@@ -46,7 +46,7 @@ contract EmissionsERC20 is
     mapping(address => uint256) public reports;
 
     constructor(EmissionsERC20Config memory config_)
-        ImmutableSource(config_.source)
+        ImmutableSource(config_.immutableSourceConfig)
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
     {
         blockOpsStart = uint8(RainVMOps.length);
@@ -62,7 +62,7 @@ contract EmissionsERC20 is
 
     function applyOp(
         bytes memory context_,
-        Stack memory stack_,
+        State memory state_,
         Op memory op_
     )
         internal
@@ -73,7 +73,7 @@ contract EmissionsERC20 is
             op_.code -= blockOpsStart;
             BlockOps.applyOp(
                 context_,
-                stack_,
+                state_,
                 op_
             );
         }
@@ -81,7 +81,7 @@ contract EmissionsERC20 is
             op_.code -= thisOpsStart;
             ThisOps.applyOp(
                 context_,
-                stack_,
+                state_,
                 op_
             );
         }
@@ -89,7 +89,7 @@ contract EmissionsERC20 is
             op_.code -= mathOpsStart;
             MathOps.applyOp(
                 context_,
-                stack_,
+                state_,
                 op_
             );
         }
@@ -97,7 +97,7 @@ contract EmissionsERC20 is
             op_.code -= tierOpsStart;
             TierOps.applyOp(
                 context_,
-                stack_,
+                state_,
                 op_
             );
         }
@@ -105,12 +105,12 @@ contract EmissionsERC20 is
             op_.code -= emissionsOpsStart;
             if (op_.code == uint8(Ops.account)) {
                 (address account_) = abi.decode(context_, (address));
-                stack_.vals[stack_.index] = uint256(uint160(account_));
-                stack_.index++;
+                state_.stack[state_.stackIndex] = uint256(uint160(account_));
+                state_.stackIndex++;
             }
             else if (op_.code == uint8(Ops.constructionBlockNumber)) {
-                stack_.vals[stack_.index] = constructionBlockNumber;
-                stack_.index++;
+                state_.stack[state_.stackIndex] = constructionBlockNumber;
+                state_.stackIndex++;
             }
         }
     }
@@ -131,17 +131,13 @@ contract EmissionsERC20 is
         view
         returns (uint256)
     {
-        Source memory source_ = source();
-        Stack memory stack_ = Stack(
-            new uint256[](source_.stackSize),
-            0
-        );
+        State memory state_ = newState();
         eval(
             abi.encode(account_),
-            source_,
-            stack_
+            source(),
+            state_
         );
-        return stack_.vals[stack_.index - 1];
+        return state_.stack[state_.stackIndex - 1];
     }
 
     function claim(address account_, bytes memory data_) external {
