@@ -14,7 +14,8 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 enum Ops {
     account,
-    constructionBlockNumber
+    constructionBlockNumber,
+    length
 }
 
 struct EmissionsERC20Config {
@@ -104,13 +105,13 @@ contract EmissionsERC20 is
             }
             else {
                 op_.code -= emissionsOpsStart;
-                if (op_.code == uint8(Ops.account)) {
+                if (op_.code == 0) {
                     (address account_) = abi.decode(context_, (address));
                     state_.stack[state_.stackIndex]
                     = uint256(uint160(account_));
                     state_.stackIndex++;
                 }
-                else if (op_.code == uint8(Ops.constructionBlockNumber)) {
+                else if (op_.code == 1) {
                     state_.stack[state_.stackIndex] = constructionBlockNumber;
                     state_.stackIndex++;
                 }
