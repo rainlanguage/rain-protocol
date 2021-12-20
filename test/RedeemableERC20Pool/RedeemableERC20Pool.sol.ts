@@ -3,7 +3,6 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers, artifacts } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { IBPool } from "../../typechain/IBPool";
@@ -37,6 +36,7 @@ enum Phase {
   EIGHT,
 }
 
+/*
 describe("RedeemableERC20Pool", async function () {
   it("should construct with minimum raise duration of 1", async function () {
     this.timeout(0);
@@ -106,7 +106,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // The trust would do this internally but we need to do it here to test.
-    const [crp] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, trust);
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
@@ -254,7 +254,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // The trust would do this internally but we need to do it here to test.
-    const [crp] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, trust);
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
@@ -459,7 +459,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // The trust would do this internally but we need to do it here to test.
-    const [crp] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, trust);
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
@@ -488,7 +488,7 @@ describe("RedeemableERC20Pool", async function () {
       `expected phase ${Phase.ONE} but got ${await pool.currentPhase()}`
     );
 
-    const [, bPool] = await Util.poolContracts(signers, pool);
+    const [, bPool] = await Util.poolContracts(signers, trust);
 
     // raise some funds
     const swapReserveForTokens = async (signer, spend) => {
@@ -650,7 +650,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // The trust would do this internally but we need to do it here to test.
-    const [crp] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, trust);
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
@@ -806,7 +806,7 @@ describe("RedeemableERC20Pool", async function () {
     const now = await ethers.provider.getBlockNumber();
     const phaseOneBlock = now + minimumTradingDuration;
 
-    const [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, trust);
 
     // The trust would do this internally but we need to do it here to test.
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
@@ -1004,7 +1004,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // The trust would do this internally but we need to do it here to test.
-    const [crp] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, trust);
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
@@ -1155,7 +1155,7 @@ describe("RedeemableERC20Pool", async function () {
     );
 
     // The trust would do this internally but we need to do it here to test.
-    const [crp] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, trust);
     await redeemable.grantRole(await redeemable.SENDER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), crp.address);
     await redeemable.grantRole(await redeemable.RECEIVER(), bFactory.address);
@@ -1352,3 +1352,4 @@ describe("RedeemableERC20Pool", async function () {
     })) as RedeemableERC20Pool & Contract;
   });
 });
+*/

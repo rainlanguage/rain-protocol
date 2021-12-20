@@ -424,7 +424,7 @@ library RedeemableERC20Pool {
         uint256 creatorPay_ = 0;
 
         // Set aside the redemption and seed fee if we reached the minimum.
-        if ( finalBalance_ >= self_.successBalance() ) {
+        if (finalBalance_ >= self_.successBalance()) {
             // The seeder gets an additional fee on success.
             seederPay_ = seederPay_.saturatingAdd(self_.seederFee());
 

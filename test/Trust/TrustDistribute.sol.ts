@@ -7,14 +7,12 @@ import * as Util from "../Util";
 import type { Contract } from "ethers";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import { factoriesDeploy } from "../Util";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
-const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 enum Tier {
@@ -132,24 +130,19 @@ describe("TrustDistribute", async function () {
     ) as ReserveToken & Contract;
 
     // seeder must transfer seed funds before pool init
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
+    await reserveSeeder.transfer(trust.address, reserveInit);
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
       creator
     ) as RedeemableERC20 & Contract;
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool & Contract;
 
-    await pool.startDutchAuction({ gasLimit: 100000000 });
+    await trust.startDutchAuction({ gasLimit: 100000000 });
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, trust);
 
     const reserveSpend = successLevel.div(10);
     const tokenSpend = ethers.BigNumber.from("10000000000");
@@ -205,7 +198,7 @@ describe("TrustDistribute", async function () {
       await reserve.transfer(signers[9].address, 0);
     }
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
   });
 
   it("should exit with absolute minimum token balance when using min reserve init", async function () {
@@ -301,24 +294,19 @@ describe("TrustDistribute", async function () {
     ) as ReserveToken & Contract;
 
     // seeder must transfer seed funds before pool init
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
+    await reserveSeeder.transfer(trust.address, reserveInit);
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
       creator
     ) as RedeemableERC20 & Contract;
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool & Contract;
 
-    await pool.startDutchAuction({ gasLimit: 100000000 });
+    await trust.startDutchAuction({ gasLimit: 100000000 });
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, trust);
 
     const reserveSpend = successLevel.div(10);
 
@@ -354,7 +342,7 @@ describe("TrustDistribute", async function () {
       await reserve.transfer(signers[9].address, 0);
     }
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
   });
 
   it("blocks small token balance", async function () {
@@ -534,24 +522,19 @@ describe("TrustDistribute", async function () {
     ) as ReserveToken & Contract;
 
     // seeder must transfer seed funds before pool init
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
+    await reserveSeeder.transfer(trust.address, reserveInit);
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
       creator
     ) as RedeemableERC20 & Contract;
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool & Contract;
 
-    await pool.startDutchAuction({ gasLimit: 100000000 });
+    await trust.startDutchAuction({ gasLimit: 100000000 });
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, trust);
 
     const reserveSpend = successLevel.div(10);
 
@@ -587,7 +570,7 @@ describe("TrustDistribute", async function () {
       await reserve.transfer(signers[9].address, 0);
     }
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
   });
 
   describe("should update distribution status correctly", async function () {
@@ -691,7 +674,7 @@ describe("TrustDistribute", async function () {
       ) as ReserveToken & Contract;
 
       // seeder must transfer seed funds before pool init
-      await reserveSeeder.transfer(await trust.pool(), reserveInit);
+      await reserveSeeder.transfer(trust.address, reserveInit);
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.SEEDED,
@@ -703,13 +686,8 @@ describe("TrustDistribute", async function () {
         redeemableTokenJson.abi,
         creator
       ) as RedeemableERC20 & Contract;
-      const pool = new ethers.Contract(
-        await trust.pool(),
-        poolJson.abi,
-        creator
-      ) as RedeemableERC20Pool & Contract;
 
-      await pool.startDutchAuction({ gasLimit: 100000000 });
+      await trust.startDutchAuction({ gasLimit: 100000000 });
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.TRADING,
@@ -718,7 +696,7 @@ describe("TrustDistribute", async function () {
 
       const startBlock = await ethers.provider.getBlockNumber();
 
-      const [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [crp, bPool] = await Util.poolContracts(signers, trust);
 
       const reserveSpend = successLevel.div(10);
 
@@ -761,7 +739,7 @@ describe("TrustDistribute", async function () {
 
       const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
 
-      await trust.anonEndDistribution();
+      await trust.endDutchAuction();
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.SUCCESS,
@@ -871,20 +849,14 @@ describe("TrustDistribute", async function () {
       ) as ReserveToken & Contract;
 
       // seeder must transfer seed funds before pool init
-      await reserveSeeder.transfer(await trust.pool(), reserveInit);
+      await reserveSeeder.transfer(trust.address, reserveInit);
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.SEEDED,
         `distribution status not set to seeded`
       );
 
-      const pool = new ethers.Contract(
-        await trust.pool(),
-        poolJson.abi,
-        creator
-      ) as RedeemableERC20Pool & Contract;
-
-      await pool.startDutchAuction({ gasLimit: 100000000 });
+      await trust.startDutchAuction({ gasLimit: 100000000 });
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.TRADING,
@@ -906,11 +878,11 @@ describe("TrustDistribute", async function () {
         `distribution status not trading can end`
       );
 
-      const [, bPool] = await Util.poolContracts(signers, pool);
+      const [, bPool] = await Util.poolContracts(signers, trust);
 
       const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
 
-      await trust.anonEndDistribution();
+      await trust.endDutchAuction();
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.FAIL,
@@ -1017,24 +989,19 @@ describe("TrustDistribute", async function () {
     ) as ReserveToken & Contract;
 
     // seeder must transfer funds before pool can init
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
+    await reserveSeeder.transfer(trust.address, reserveInit);
 
     const token = new ethers.Contract(
       await trust.token(),
       redeemableTokenJson.abi,
       creator
     ) as RedeemableERC20 & Contract;
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool & Contract;
 
-    await pool.startDutchAuction({ gasLimit: 100000000 });
+    await trust.startDutchAuction({ gasLimit: 100000000 });
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, trust);
 
     const reserveSpend = successLevel.div(10);
 
@@ -1072,7 +1039,7 @@ describe("TrustDistribute", async function () {
       await reserve.transfer(signers[9].address, 0);
     }
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     const totalSupply = await token.totalSupply();
 
@@ -1175,19 +1142,13 @@ describe("TrustDistribute", async function () {
     ) as ReserveToken & Contract;
 
     // seeder must transfer seed funds before pool can init
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
+    await reserveSeeder.transfer(trust.address, reserveInit);
 
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool & Contract;
-
-    await pool.startDutchAuction({ gasLimit: 100000000 });
+    await trust.startDutchAuction({ gasLimit: 100000000 });
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const [, bPool] = await Util.poolContracts(signers, pool);
+    const [, bPool] = await Util.poolContracts(signers, trust);
 
     // create empty transfer blocks until reaching next phase, so distribution can end
     while (
@@ -1204,7 +1165,7 @@ describe("TrustDistribute", async function () {
       "wrong amount of reserve in balancer pool"
     );
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address);
 
@@ -1320,24 +1281,19 @@ describe("TrustDistribute", async function () {
       ) as ReserveToken & Contract;
 
       // seeder must transfer seed funds before pool init
-      await reserveSeeder.transfer(await trust.pool(), reserveInit);
+      await reserveSeeder.transfer(trust.address, reserveInit);
 
       const token = new ethers.Contract(
         await trust.token(),
         redeemableTokenJson.abi,
         creator
       ) as RedeemableERC20 & Contract;
-      const pool = new ethers.Contract(
-        await trust.pool(),
-        poolJson.abi,
-        creator
-      ) as RedeemableERC20Pool & Contract;
 
-      await pool.startDutchAuction({ gasLimit: 100000000 });
+      await trust.startDutchAuction({ gasLimit: 100000000 });
 
       const startBlock = await ethers.provider.getBlockNumber();
 
-      const [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [crp, bPool] = await Util.poolContracts(signers, trust);
 
       const reserveSpend = successLevel.div(10);
 
@@ -1373,9 +1329,29 @@ describe("TrustDistribute", async function () {
         await reserve.transfer(signers[9].address, 0);
       }
 
+      const creatorBalanceBeforeEndAuction = await reserve.balanceOf(
+        creator.address
+      );
+
+      await trust.endDutchAuction();
+
+      const creatorBalanceAfterEndAuction = await reserve.balanceOf(
+        creator.address
+      );
+
+      assert(
+        creatorBalanceBeforeEndAuction.eq(creatorBalanceAfterEndAuction),
+        "creator balance did not remain unchanged"
+      );
+
+      const allowance = await reserve.allowance(trust.address, creator.address);
+
       const creatorBalanceBefore = await reserve.balanceOf(creator.address);
 
-      await trust.anonEndDistribution();
+      // creator retrieves creatorPay
+      await reserve
+        .connect(creator)
+        .transferFrom(trust.address, creator.address, allowance);
 
       const creatorBalanceAfter = await reserve.balanceOf(creator.address);
 
@@ -1480,24 +1456,19 @@ describe("TrustDistribute", async function () {
       ) as ReserveToken & Contract;
 
       // seeder must transfer seed funds before pool init
-      await reserveSeeder.transfer(await trust.pool(), reserveInit);
+      await reserveSeeder.transfer(trust.address, reserveInit);
 
       const token = new ethers.Contract(
         await trust.token(),
         redeemableTokenJson.abi,
         creator
       ) as RedeemableERC20 & Contract;
-      const pool = new ethers.Contract(
-        await trust.pool(),
-        poolJson.abi,
-        creator
-      ) as RedeemableERC20Pool & Contract;
 
-      await pool.startDutchAuction({ gasLimit: 100000000 });
+      await trust.startDutchAuction({ gasLimit: 100000000 });
 
       const startBlock = await ethers.provider.getBlockNumber();
 
-      const [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [crp, bPool] = await Util.poolContracts(signers, trust);
 
       const reserveSpend = successLevel.div(10);
 
@@ -1535,7 +1506,7 @@ describe("TrustDistribute", async function () {
 
       const creatorBalanceBefore = await reserve.balanceOf(creator.address);
 
-      await trust.anonEndDistribution();
+      await trust.endDutchAuction();
 
       const creatorBalanceAfter = await reserve.balanceOf(creator.address);
 

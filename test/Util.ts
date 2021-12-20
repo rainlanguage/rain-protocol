@@ -145,6 +145,7 @@ export const factoriesDeploy = async (
     (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
   await seedERC20Factory.deployed();
 
+  // library
   const redeemableER20Pool = await basicDeploy("RedeemableERC20Pool", {});
 
   const trustFactoryFactory = await ethers.getContractFactory("TrustFactory", {
@@ -224,10 +225,10 @@ export const assertError = async (f, s: string, e: string) => {
 
 export const poolContracts = async (
   signers: SignerWithAddress[],
-  pool: RedeemableERC20Pool & Contract
+  trust: Trust & Contract
 ): Promise<[ConfigurableRightsPool & Contract, BPool & Contract]> => {
   const crp = new ethers.Contract(
-    await pool.crp(),
+    await trust.crp(),
     (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
     signers[0]
   ) as ConfigurableRightsPool & Contract;

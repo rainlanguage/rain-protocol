@@ -271,7 +271,7 @@ describe("TrustConstruction", async function () {
 
     assert((await redeemableERC20.balanceOf(trust.address)).eq(0));
     assert(
-      (await redeemableERC20.balanceOf(await trust.pool())).eq(totalTokenSupply)
+      (await redeemableERC20.balanceOf(trust.address)).eq(totalTokenSupply)
     );
   });
 
@@ -356,12 +356,12 @@ describe("TrustConstruction", async function () {
 
     const token = await trust.token();
     const pool = new ethers.Contract(
-      await trust.pool(),
+      trust.address,
       poolJson.abi,
       creator
     ) as RedeemableERC20Pool & Contract;
 
-    const [crp] = await Util.poolContracts(signers, pool);
+    const [crp] = await Util.poolContracts(signers, trust);
 
     assert(
       getContractsDeployed.reserveERC20 === reserve.address,
@@ -402,11 +402,11 @@ describe("TrustConstruction", async function () {
     ) as ReserveToken & Contract;
 
     // seeder must transfer funds to pool
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
+    await reserveSeeder.transfer(trust.address, reserveInit);
 
     await pool.startDutchAuction({ gasLimit: 100000000 });
 
-    const [, bPool2] = await Util.poolContracts(signers, pool);
+    const [, bPool2] = await Util.poolContracts(signers, trust);
 
     const getContractsTrading = (await trust.getContracts()) as TrustContracts;
 
@@ -822,13 +822,13 @@ describe("TrustConstruction", async function () {
     ) as ReserveToken & Contract;
 
     // seeder must transfer funds to pool
-    await reserveSeeder.transfer(await trust.pool(), reserveInit);
+    await reserveSeeder.transfer(trust.address, reserveInit);
 
     const raiseProgressSeeded: DistributionProgress =
       await trust.getDistributionProgress();
 
     const pool = new ethers.Contract(
-      await trust.pool(),
+      trust.address,
       poolJson.abi,
       creator
     ) as RedeemableERC20Pool & Contract;
@@ -884,7 +884,7 @@ describe("TrustConstruction", async function () {
       creator
     ) as RedeemableERC20 & Contract;
 
-    const [crp, bPool] = await Util.poolContracts(signers, pool);
+    const [crp, bPool] = await Util.poolContracts(signers, trust);
 
     assert(
       distributionProgressTrading.distributionStatus ===

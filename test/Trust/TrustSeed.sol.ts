@@ -6,7 +6,6 @@ import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { SeedERC20 } from "../../typechain/SeedERC20";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { factoriesDeploy } from "../Util";
 import type { Contract } from "ethers";
@@ -39,7 +38,6 @@ enum Phase {
   EIGHT,
 }
 
-const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/SeedERC20.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
@@ -561,21 +559,15 @@ describe("TrustSeed", async function () {
     // seeders send reserve to seeder contract
     await seederContract1.seed(0, seeder1Units);
 
-    const pool = new ethers.Contract(
-      await trust.pool(),
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool & Contract;
-
     await Util.assertError(
-      async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
+      async () => await trust.startDutchAuction({ gasLimit: 100000000 }),
       "ERC20: transfer amount exceeds balance",
       "raise begun with insufficient seed reserve"
     );
 
     await seederContract2.seed(0, seeder2Units);
 
-    await pool.startDutchAuction({ gasLimit: 100000000 });
+    await trust.startDutchAuction({ gasLimit: 100000000 });
   });
 
   describe("should allow many seeders to seed trust", async function () {
@@ -678,13 +670,8 @@ describe("TrustSeed", async function () {
         redeemableTokenJson.abi,
         creator
       ) as RedeemableERC20 & Contract;
-      const pool = new ethers.Contract(
-        await trust.pool(),
-        poolJson.abi,
-        creator
-      ) as RedeemableERC20Pool & Contract;
 
-      const recipient = await trust.pool();
+      const recipient = trust.address;
 
       const seeder1Units = 4;
       const seeder2Units = 6;
@@ -711,7 +698,7 @@ describe("TrustSeed", async function () {
       await seederContract1.seed(0, seeder1Units);
 
       await Util.assertError(
-        async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
+        async () => await trust.startDutchAuction({ gasLimit: 100000000 }),
         "ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
@@ -737,16 +724,16 @@ describe("TrustSeed", async function () {
       );
 
       assert(
-        (await reserve.balanceOf(pool.address)).eq(reserveInit),
-        `pool should have received all funds from seeder contract
+        (await reserve.balanceOf(trust.address)).eq(reserveInit),
+        `trust should have received all funds from seeder contract
         expected  ${reserveInit}
-        actual    ${await reserve.balanceOf(pool.address)}
+        actual    ${await reserve.balanceOf(trust.address)}
       `
       );
 
-      await pool.startDutchAuction({ gasLimit: 100000000 });
+      await trust.startDutchAuction({ gasLimit: 100000000 });
 
-      const [crp, bPool] = await Util.poolContracts(signers, pool);
+      const [crp, bPool] = await Util.poolContracts(signers, trust);
 
       const startBlock = await ethers.provider.getBlockNumber();
 
@@ -797,7 +784,14 @@ describe("TrustSeed", async function () {
       );
 
       // seeder1 ends raise
-      await trust.connect(seeder1).anonEndDistribution();
+      await trust.connect(seeder1).endDutchAuction();
+
+      const allowance = await reserve.allowance(trust.address, seeder);
+
+      // seeder1 pulls erc20
+      await seederContract
+        .connect(seeder1)
+        .pullERC20(trust.address, reserve.address, allowance);
 
       const poolDust = await reserve.balanceOf(bPool.address);
 
@@ -956,12 +950,6 @@ describe("TrustSeed", async function () {
         signers[0]
       ) as SeedERC20 & Contract;
 
-      const pool = new ethers.Contract(
-        await trust.pool(),
-        poolJson.abi,
-        creator
-      ) as RedeemableERC20Pool & Contract;
-
       const seeder1Units = 4;
       const seeder2Units = 6;
 
@@ -987,7 +975,7 @@ describe("TrustSeed", async function () {
       await seederContract1.seed(0, seeder1Units);
 
       await Util.assertError(
-        async () => await pool.startDutchAuction({ gasLimit: 100000000 }),
+        async () => await trust.startDutchAuction({ gasLimit: 100000000 }),
         "ERC20: transfer amount exceeds balance",
         "raise begun with insufficient seed reserve"
       );
@@ -1010,16 +998,16 @@ describe("TrustSeed", async function () {
       );
 
       assert(
-        (await reserve.balanceOf(pool.address)).eq(reserveInit),
-        `pool should have received all funds from seeder contract
+        (await reserve.balanceOf(trust.address)).eq(reserveInit),
+        `trust should have received all funds from seeder contract
         expected  ${reserveInit}
-        actual    ${await reserve.balanceOf(pool.address)}
+        actual    ${await reserve.balanceOf(trust.address)}
       `
       );
 
-      await pool.startDutchAuction({ gasLimit: 100000000 });
+      await trust.startDutchAuction({ gasLimit: 100000000 });
 
-      const [, bPool] = await Util.poolContracts(signers, pool);
+      const [, bPool] = await Util.poolContracts(signers, trust);
 
       const startBlock = await ethers.provider.getBlockNumber();
 
@@ -1056,7 +1044,14 @@ describe("TrustSeed", async function () {
       );
 
       // seeder1 ends raise
-      await trust.connect(seeder1).anonEndDistribution();
+      await trust.connect(seeder1).endDutchAuction();
+
+      const allowance = await reserve.allowance(trust.address, seeder);
+
+      // seeder1 pulls erc20
+      await seederContract
+        .connect(seeder1)
+        .pullERC20(trust.address, reserve.address, allowance);
 
       // seederContract should now hold reserve equal to final balance
       assert(

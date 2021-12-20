@@ -120,7 +120,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // create empty blocks to end of raise duration
     await Util.createEmptyBlock(emptyBlocks);
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     // Distribution Status is Success
     assert(
@@ -274,7 +274,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // create empty blocks to end of raise duration
     await Util.createEmptyBlock(emptyBlocks);
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     // Distribution Status is Success
     assert(
@@ -436,7 +436,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // create empty blocks to end of raise duration
     await Util.createEmptyBlock(emptyBlocks);
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     // Distribution Status is Success
     assert(
@@ -580,7 +580,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "wrongly withdrew during TradingCanEnd"
     );
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     // Distribution Status is Success
     assert(
@@ -700,7 +700,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "wrongly undeposited during TradingCanEnd"
     );
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     // Distribution Status is Fail
     assert(
@@ -823,7 +823,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // create empty blocks to end of raise duration
     await Util.createEmptyBlock(emptyBlocks);
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     // Distribution Status is Fail
     assert(
@@ -966,7 +966,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       got       ${deposited1}`
     );
 
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     // Distribution Status is Success
     assert(

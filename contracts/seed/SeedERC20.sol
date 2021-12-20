@@ -202,7 +202,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown, ERC20Pull, ERC20Push {
             address(this),
             reserveAmount_
         );
-        // Immediately approve for the recipient.
+        // Immediately transfer to the recipient.
         // The transfer is immediate rather than only approving for the
         // recipient.
         // This avoids the situation where a seeder immediately redeems their
@@ -211,7 +211,7 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown, ERC20Pull, ERC20Push {
         // transfer. If this fails then everyone can call `unseed` after their
         // individual cooldowns to exit.
         if (currentPhase() == Phase.ONE) {
-            reserve.approve(recipient, reserve.balanceOf(address(this)));
+            reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
         }
     }
 
