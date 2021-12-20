@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: CAL
+pragma solidity ^0.8.10;
 
-pragma solidity ^0.8.6;
-
-// solhint-disable-next-line max-line-length
-import "@zoralabs/nft-editions-contracts/contracts/SingleEditionMintableCreator.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import "hardhat/console.sol";
 import "./ApprovingSingleEditionMintable.sol";
+import "./ISingleEditionMintableCreator.sol";
 
 contract ApprovingSingleEditionMintableCreator {
     address private factory;
@@ -45,7 +43,7 @@ contract ApprovingSingleEditionMintableCreator {
         uint256 _editionSize,
         uint256 _royaltyBPS
     ) external returns (uint256) {
-        uint256 id = SingleEditionMintableCreator(factory).createEdition(
+        uint256 id = ISingleEditionMintableCreator(factory).createEdition(
             _name,
             _symbol,
             _description,
@@ -57,8 +55,8 @@ contract ApprovingSingleEditionMintableCreator {
             _royaltyBPS
         );
 
-        SingleEditionMintable underlyingContract =
-            SingleEditionMintableCreator(factory).getEditionAtId(id);
+        ISingleEditionMintable underlyingContract =
+            ISingleEditionMintableCreator(factory).getEditionAtId(id);
 
         address wrapperContract = ClonesUpgradeable.cloneDeterministic(
             implementation,
