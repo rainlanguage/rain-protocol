@@ -63,13 +63,13 @@ describe("CombineTier", async function () {
       sources: [sourceAlways],
       constants: [],
       stackLength: 8,
-      argumentsLength: 0
+      argumentsLength: 0,
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       sources: [sourceNever],
       constants: [],
       stackLength: 8,
-      argumentsLength: 0
+      argumentsLength: 0,
     })) as CombineTier & Contract;
 
     const constants = [
@@ -78,15 +78,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.OR_LEFT, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.OR_LEFT, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTier = (await combineTierFactory.deploy({
       sources: [source],
@@ -137,21 +137,21 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.OR_NEW, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.OR_NEW, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTier = (await combineTierFactory.deploy({
       sources: [source],
       constants,
       argumentsLength: 0,
-      stackLength: 8
+      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -196,21 +196,21 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.OR_OLD, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.OR_OLD, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTier = (await combineTierFactory.deploy({
       sources: [source],
       constants,
       argumentsLength: 0,
-      stackLength: 8
+      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -240,13 +240,13 @@ describe("CombineTier", async function () {
       sources: [sourceAlways],
       constants: [],
       argumentsLength: 0,
-      stackLength: 8
+      stackLength: 8,
     })) as CombineTier & Contract;
     const neverTier = (await combineTierFactory.deploy({
       sources: [sourceNever],
       constants: [],
       argumentsLength: 0,
-      stackLength: 8
+      stackLength: 8,
     })) as CombineTier & Contract;
 
     const constants = [
@@ -255,15 +255,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.AND_LEFT, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.AND_LEFT, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTier = (await combineTierFactory.deploy({
       sources: [source],
@@ -314,15 +314,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.AND_OLD, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.AND_OLD, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTier = (await combineTierFactory.deploy({
       sources: [source],
@@ -373,15 +373,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.AND_NEW, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.AND_NEW, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTier = (await combineTierFactory.deploy({
       sources: [source],
@@ -431,9 +431,17 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(neverTier.address),
     ];
 
-    const sourceAlwaysReport = concat([op(Opcode.REPORT, 0), op(Opcode.VAL, 0), op(Opcode.ACCOUNT, 0)])
+    const sourceAlwaysReport = concat([
+      op(Opcode.REPORT, 0),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT, 0),
+    ]);
 
-    const sourceNeverReport = concat([op(Opcode.REPORT, 0), op(Opcode.VAL, 1), op(Opcode.ACCOUNT, 0)])
+    const sourceNeverReport = concat([
+      op(Opcode.REPORT, 0),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT, 0),
+    ]);
 
     const combineTierAlways = (await combineTierFactory.deploy({
       sources: [sourceAlwaysReport],
@@ -477,7 +485,7 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const source = concat([bytify(0), bytify(Opcode.ACCOUNT)])
+    const source = concat([bytify(0), bytify(Opcode.ACCOUNT)]);
 
     const combineTierFactory = (await ethers.getContractFactory(
       "CombineTier"
@@ -518,15 +526,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.AND_OLD, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.AND_OLD, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTierFactory = (await ethers.getContractFactory(
       "CombineTier"
@@ -651,15 +659,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.AND_NEW, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.AND_NEW, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTierFactory = (await ethers.getContractFactory(
       "CombineTier"
@@ -786,15 +794,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.AND_LEFT, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.AND_LEFT, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTierFactory = (await ethers.getContractFactory(
       "CombineTier"
@@ -908,15 +916,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.OR_OLD, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.OR_OLD, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTierFactory = (await ethers.getContractFactory(
       "CombineTier"
@@ -1042,15 +1050,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.OR_NEW, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.OR_NEW, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTierFactory = (await ethers.getContractFactory(
       "CombineTier"
@@ -1176,15 +1184,15 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-        op(Opcode.OR_LEFT, 2),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 0),
-        op(Opcode.ACCOUNT),
-        op(Opcode.REPORT),
-        op(Opcode.VAL, 1),
-        op(Opcode.ACCOUNT),
-        op(Opcode.BLOCK_NUMBER),
-      ])
+      op(Opcode.OR_LEFT, 2),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 0),
+      op(Opcode.ACCOUNT),
+      op(Opcode.REPORT),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
+      op(Opcode.BLOCK_NUMBER),
+    ]);
 
     const combineTierFactory = (await ethers.getContractFactory(
       "CombineTier"

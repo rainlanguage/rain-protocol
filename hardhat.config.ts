@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-ethers";
-import "@tenderly/hardhat-tenderly"
+import "@tenderly/hardhat-tenderly";
 
 const config: HardhatUserConfig = {
   typechain: {

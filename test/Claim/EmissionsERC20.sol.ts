@@ -245,8 +245,8 @@ describe("EmissionsERC20", async function () {
       BONE_REWARD,
     ];
 
-    console.log('source', SOURCE())
-    console.log('constants', constants)
+    console.log("source", SOURCE());
+    console.log("constants", constants);
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
@@ -347,7 +347,7 @@ describe("EmissionsERC20", async function () {
 
     await emissionsERC20.connect(claimer).claim(claimer.address, []);
 
-    console.log(await emissionsERC20.balanceOf(claimer.address))
+    console.log(await emissionsERC20.balanceOf(claimer.address));
   });
 
   xit("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
@@ -658,7 +658,7 @@ describe("EmissionsERC20", async function () {
               op(Opcode.report),
               op(Opcode.thisAddress),
               op(Opcode.account),
-            ])
+            ]),
           ],
           constants: [],
           argumentsLength: 0,
@@ -744,9 +744,7 @@ describe("EmissionsERC20", async function () {
         },
         immutableSourceConfig: {
           sources: [TIERWISE_DIFF()],
-          constants: [
-            readWriteTier.address,
-          ],
+          constants: [readWriteTier.address],
           argumentsLength: 0,
           stackLength: 8,
         },
@@ -823,9 +821,7 @@ describe("EmissionsERC20", async function () {
               op(Opcode.account),
             ]),
           ],
-          constants: [
-            readWriteTier.address,
-          ],
+          constants: [readWriteTier.address],
           argumentsLength: 0,
           stackLength: 8,
         },
