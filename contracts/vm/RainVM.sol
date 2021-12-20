@@ -44,13 +44,13 @@ abstract contract RainVM {
             }
             state_.stackIndex -= valLength_;
 
-            uint256[] memory baseVals_ = new uint256[](valLength_);
-            for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
+            uint[] memory baseVals_ = new uint[](valLength_);
+            for (uint a_ = 0; a_ < baseVals_.length; a_++) {
                 baseVals_[a_] = state_.stack[state_.stackIndex + a_];
             }
 
-            for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-                for (uint256 a_ = 0; a_ < valLength_; a_++) {
+            for (uint step_ = 0; step_ < 256; step_ += stepSize_) {
+                for (uint a_ = 0; a_ < valLength_; a_++) {
                     state_.arguments[a_]
                         = (baseVals_[a_] << offset_ - step_) >> offset_;
                 }
@@ -72,10 +72,10 @@ abstract contract RainVM {
             // Op memory op_;
             // less gas to read this once.
             bytes memory source_ = state_.sources[sourceIndex_];
-            uint256 i_;
-            uint256 opcode_;
-            uint256 opval_;
-            uint256 valIndex_;
+            uint i_;
+            uint opcode_;
+            uint opval_;
+            uint valIndex_;
             bool fromArguments_;
             i_ = source_.length;
             // Loop until 0.
