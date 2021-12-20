@@ -34,7 +34,7 @@ export const emissionsDeploy = async (
   emissionsERC20ConfigStruct: EmissionsERC20ConfigStruct
 ): Promise<EmissionsERC20 & Contract> => {
   const tx = await emissionsERC20Factory[
-    "createChild((bool,(string,string),(bytes,uint256[],uint8,uint8)))"
+    "createChild((bool,(string,string),(bytes[],uint256[],uint8,uint8)))"
   ](emissionsERC20ConfigStruct);
 
   const receipt = await tx.wait();

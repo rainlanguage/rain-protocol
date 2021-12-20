@@ -65,8 +65,8 @@ contract CalculatorTest is RainVM, ImmutableSource {
         State memory state_ = newState();
         eval(
             "",
-            source(),
-            state_
+            state_,
+            0
         );
         return state_;
     }

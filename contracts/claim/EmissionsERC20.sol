@@ -12,6 +12,8 @@ import { MathOps, Ops as MathOpsOps } from "../vm/ops/MathOps.sol";
 import { TierOps, Ops as TierOpsOps } from "../vm/ops/TierOps.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import "hardhat/console.sol";
+
 enum Ops {
     account,
     constructionBlockNumber
@@ -134,9 +136,12 @@ contract EmissionsERC20 is
         State memory state_ = newState();
         eval(
             abi.encode(account_),
-            source(),
-            state_
+            state_,
+            0
         );
+        // console.log("stack index: %s", state_.stackIndex);
+        // console.log("stack: %s %s %s", state_.stack[0], state_.stack[1], state_.stack[2]);
+        // console.log("stack 2: %s %s %s", state_.stack[3], state_.stack[4], state_.stack[5]);
         return state_.stack[state_.stackIndex - 1];
     }
 
@@ -148,10 +153,7 @@ contract EmissionsERC20 is
 
         // Mint the claim.
         uint256 amount_ = calculateClaim(account_);
-        _mint(
-            account_,
-            amount_
-        );
+        _mint(account_, amount_);
 
         // Record the current block as the latest claim.
         // This can be diffed/combined with external reports in future claim
@@ -164,10 +166,7 @@ contract EmissionsERC20 is
         );
 
         // Notify the world of the claim.
-        emit Claim(
-            account_,
-            data_
-        );
+        emit Claim(account_, data_);
     }
 
 }

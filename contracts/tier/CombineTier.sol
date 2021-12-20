@@ -75,8 +75,8 @@ contract CombineTier is
         State memory state_ = newState();
         eval(
             abi.encode(account_),
-            source(),
-            state_
+            state_,
+            0
         );
         return state_.stack[state_.stackIndex - 1];
     }

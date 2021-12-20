@@ -4,15 +4,16 @@ pragma solidity ^0.8.10;
 import "hardhat/console.sol";
 
 struct State {
-    uint256[] constants;
-    uint256[] arguments;
-    uint256[] stack;
-    uint256 stackIndex;
+    bytes[] sources;
+    uint[] constants;
+    uint[] arguments;
+    uint[] stack;
+    uint stackIndex;
 }
 
 struct Op {
-    uint256 code;
-    uint256 val;
+    uint code;
+    uint val;
 }
 
 enum Ops {
@@ -28,48 +29,35 @@ abstract contract RainVM {
     function zipmap(
         bytes memory context_,
         State memory state_,
-        uint256 callSize_
+        uint config_
     ) internal view {
         unchecked {
-            uint256 fnSize_;
-            uint256 loopSize_;
-            uint256 valSize_;
+            uint sourceIndex_;
+            uint stepSize_;
+            uint offset_;
+            uint valLength_;
             assembly {
-                fnSize_ := and(callSize_, 0x03)
-                loopSize_ := and(shr(2, callSize_), 0x07)
-                valSize_ := and(shr(5, callSize_), 0x07)
+                sourceIndex_ := and(config_, 0x03)
+                stepSize_ := shr(and(shr(2, config_), 0x07), 256)
+                offset_ := sub(256, stepSize_)
+                valLength_ := add(and(shr(5, config_), 0x07), 1)
             }
-            uint256 fnIndex_ = state_.stackIndex - 1;
-            state_.stackIndex -= (fnSize_ + valSize_ + 2);
+            state_.stackIndex -= valLength_;
 
-            bytes memory source_ = new bytes((fnSize_ + 1) * 32);
-
-            for (uint256 f_ = 0; f_ < fnSize_ + 1; f_++) {
-                uint256 offset_ = 32 + (32 * f_);
-                uint256 fnVal_ = state_.stack[fnIndex_ - f_];
-                assembly {
-                    mstore(add(source_, offset_), fnVal_)
-                }
-            }
-
-            uint256[] memory baseVals_ = new uint256[](valSize_ + 1);
+            uint256[] memory baseVals_ = new uint256[](valLength_);
             for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
                 baseVals_[a_] = state_.stack[state_.stackIndex + a_];
             }
 
-            uint256 stepSize_ = 256 >> loopSize_;
-
             for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-                for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
-                    state_.arguments[a_] = uint256(
-                        uint256(baseVals_[a_] << 256 - step_ - stepSize_)
-                        >> 256 - stepSize_
-                    );
+                for (uint256 a_ = 0; a_ < valLength_; a_++) {
+                    state_.arguments[a_]
+                        = (baseVals_[a_] << offset_ - step_) >> offset_;
                 }
                 eval(
                     context_,
-                    source_,
-                    state_
+                    state_,
+                    sourceIndex_
                 );
             }
         }
@@ -77,19 +65,22 @@ abstract contract RainVM {
 
     function eval(
         bytes memory context_,
-        bytes memory source_,
-        State memory state_
+        State memory state_,
+        uint sourceIndex_
     ) internal view {
         unchecked {
             // Op memory op_;
             // less gas to read this once.
+            bytes memory source_ = state_.sources[sourceIndex_];
             uint256 i_;
             uint256 opcode_;
             uint256 opval_;
             uint256 valIndex_;
             bool fromArguments_;
             i_ = source_.length;
-            // loop until underflow.
+            // Loop until 0.
+            // It is up to the rain script to not underflow by calling `skip`
+            // with a value larger than the remaining source.
             while (i_ > 0) {
                 assembly {
                     let op_ := mload(add(source_, i_))
@@ -98,11 +89,11 @@ abstract contract RainVM {
                     i_ := sub(i_, 0x2)
                 }
 
+                // console.log("op: %s %s", opcode_, opval_);
+
                 if (opcode_ < 3) {
                     if (opcode_ == 0) {
-                        assembly {
-                            i_ := sub(i_, mul(opval_, 2))
-                        }
+                        assembly { i_ := sub(i_, mul(opval_, 2)) }
                         continue;
                     }
                     else if (opcode_ == 1) {

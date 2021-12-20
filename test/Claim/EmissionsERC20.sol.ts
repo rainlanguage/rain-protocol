@@ -177,7 +177,6 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const FN = () =>
       concat([
-        op(Opcode.skip, 2),
         op(Opcode.mul, 2),
           MULTIPLIER(),
           REWARD(),
@@ -228,9 +227,9 @@ describe("EmissionsERC20", async function () {
         // op(Opcode.skip, 0),
         op(Opcode.div, 2),
           op(Opcode.add, 8),
-            op(Opcode.zipmap, Util.callSize(0, 3, 1)),
+            op(Opcode.zipmap, Util.callSize(1, 3, 1)),
               // op(Opcode.val, 1), // fn1
-              op(Opcode.val, 0), // fn0
+              // op(Opcode.val, 0), // fn0
               valBaseRewardPerTier, // val1
               TIERWISE_DIFF(), // val0
           valBOneReward // scale FINAL result down by reward per block scaler
@@ -260,15 +259,15 @@ describe("EmissionsERC20", async function () {
           symbol: "EMS",
         },
         immutableSourceConfig: {
-          source: SOURCE(),
+          sources: [SOURCE(), FN()],
           constants,
-          argumentsLength: 16,
+          argumentsLength: 2,
           stackLength: 16,
         },
       }
     );
 
-    const immutableSource = await emissionsERC20.source();
+    // const immutableSource = await emissionsERC20.source();
 
     // Has Platinum Tier
     await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
