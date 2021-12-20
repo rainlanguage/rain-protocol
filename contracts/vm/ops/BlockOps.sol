@@ -17,9 +17,11 @@ library BlockOps {
     internal
     view
     {
-        if (op_.code == uint8(Ops.blockNumber)) {
-            state_.stack[state_.stackIndex] = block.number;
-            state_.stackIndex++;
+        unchecked {
+            if (op_.code == 0) {
+                state_.stack[state_.stackIndex] = block.number;
+                state_.stackIndex++;
+            }
         }
     }
 

@@ -48,12 +48,16 @@ library TierReport {
     )
         internal pure returns (ITier.Tier)
     {
-        for (uint256 i_ = 0; i_ < 8; i_++) {
-            if (uint32(uint256(report_ >> (i_*32))) > uint32(blockNumber_)) {
-                return ITier.Tier(i_);
+        unchecked {
+            for (uint256 i_ = 0; i_ < 8; i_++) {
+                if (uint32(uint256(report_ >> (i_*32)))
+                    > uint32(blockNumber_)
+                ) {
+                    return ITier.Tier(i_);
+                }
             }
+            return ITier.Tier(8);
         }
-        return ITier.Tier(8);
     }
 
     /// Returns the block that a given tier has been held since from a report.
@@ -69,16 +73,18 @@ library TierReport {
         pure
         returns (uint256)
     {
-        // ZERO is a special case. Everyone has always been at least ZERO,
-        // since block 0.
-        if (tier_ == ITier.Tier.ZERO) { return 0; }
+        unchecked {
+            // ZERO is a special case. Everyone has always been at least ZERO,
+            // since block 0.
+            if (tier_ == ITier.Tier.ZERO) { return 0; }
 
-        uint256 offset_ = (uint256(tier_) - 1) * 32;
-        return uint256(uint32(
-            uint256(
-                report_ >> offset_
-            )
-        ));
+            uint256 offset_ = (uint256(tier_) - 1) * 32;
+            return uint256(uint32(
+                uint256(
+                    report_ >> offset_
+                )
+            ));
+        }
     }
 
     /// Resets all the tiers above the reference tier to 0xFFFFFFFF.
@@ -91,9 +97,11 @@ library TierReport {
         pure
         returns (uint256)
     {
-        uint256 offset_ = uint256(tier_) * 32;
-        uint256 mask_ = (NEVER >> offset_) << offset_;
-        return report_ | mask_;
+        unchecked {
+            uint256 offset_ = uint256(tier_) * 32;
+            uint256 mask_ = (NEVER >> offset_) << offset_;
+            return report_ | mask_;
+        }
     }
 
     /// Updates a report with a block number for every status integer in a
@@ -114,14 +122,16 @@ library TierReport {
     )
         internal pure returns (uint256)
     {
-        uint256 offset_;
-        for (uint256 i_ = uint256(startTier_); i_ < uint256(endTier_); i_++) {
-            offset_ = i_ * 32;
-            report_ =
-                (report_ & ~uint256(uint256(uint32(NEVER)) << offset_))
-                | uint256(blockNumber_ << offset_);
+        unchecked {
+            uint256 offset_;
+            for (uint256 i_ = uint256(startTier_); i_ < uint256(endTier_); i_++) {
+                offset_ = i_ * 32;
+                report_ =
+                    (report_ & ~uint256(uint256(uint32(NEVER)) << offset_))
+                    | uint256(blockNumber_ << offset_);
+            }
+            return report_;
         }
-        return report_;
     }
 
     /// Updates a report to a new status.

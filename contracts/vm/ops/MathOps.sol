@@ -26,43 +26,52 @@ library MathOps {
     internal
     pure
     {
-        state_.stackIndex -= op_.val;
+        uint accumulator_;
+        uint item_;
+        uint opval_ = op_.val;
+        unchecked {
+            state_.stackIndex -= opval_;
+            accumulator_ = state_.stack[state_.stackIndex + opval_ - 1];
+        }
 
-        uint256 accumulator_ = state_.stack[state_.stackIndex + op_.val - 1];
-
-        for (uint256 a_ = 2; a_ <= op_.val; a_++) {
-            uint256 item_ = state_.stack[state_.stackIndex + a_ - 2];
-            if (op_.code == uint8(Ops.add)) {
+        for (uint a_ = 2; a_ <= opval_; a_++) {
+            unchecked {
+                item_ = state_.stack[state_.stackIndex + a_ - 2];
+            }
+            if (op_.code == 0) {
                 accumulator_ += item_;
             }
-            else if (op_.code == uint8(Ops.sub)) {
+            else if (op_.code == 1) {
                 accumulator_ -= item_;
             }
-            else if (op_.code == uint8(Ops.mul)) {
+            else if (op_.code == 2) {
                 accumulator_ *= item_;
             }
-            else if (op_.code == uint8(Ops.pow)) {
+            else if (op_.code == 3) {
                 accumulator_ = accumulator_ ** item_;
             }
-            else if (op_.code == uint8(Ops.div)) {
+            else if (op_.code == 4) {
                 accumulator_ /= item_;
             }
-            else if (op_.code == uint8(Ops.mod)) {
+            else if (op_.code == 5) {
                 accumulator_ %= item_;
             }
-            else if (op_.code == uint8(Ops.min)) {
+            else if (op_.code == 6) {
                 if (item_ < accumulator_) accumulator_ = item_;
             }
-            else if (op_.code == uint8(Ops.max)) {
+            else if (op_.code == 7) {
                 if (item_ > accumulator_) accumulator_ = item_;
             }
-            else if (op_.code == uint8(Ops.average)) {
+            else if (op_.code == 8) {
                 accumulator_ = (accumulator_ & item_)
                     + (accumulator_ ^ item_) / 2;
             }
         }
-        state_.stack[state_.stackIndex] = accumulator_;
-        state_.stackIndex++;
+
+        unchecked {
+            state_.stack[state_.stackIndex] = accumulator_;
+            state_.stackIndex++;
+        }
     }
 
 }

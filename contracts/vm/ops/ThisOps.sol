@@ -17,9 +17,12 @@ library ThisOps {
     internal
     view
     {
-        if (op_.code == uint8(Ops.thisAddress)) {
-            state_.stack[state_.stackIndex] = uint256(uint160(address(this)));
-            state_.stackIndex++;
+        unchecked {
+            if (op_.code == 0) {
+                state_.stack[state_.stackIndex]
+                    = uint256(uint160(address(this)));
+                state_.stackIndex++;
+            }
         }
     }
 

@@ -71,48 +71,51 @@ contract EmissionsERC20 is
         override
         view
     {
-        if (op_.code < thisOpsStart) {
-            op_.code -= blockOpsStart;
-            BlockOps.applyOp(
-                context_,
-                state_,
-                op_
-            );
-        }
-        else if (op_.code < mathOpsStart) {
-            op_.code -= thisOpsStart;
-            ThisOps.applyOp(
-                context_,
-                state_,
-                op_
-            );
-        }
-        else if (op_.code < tierOpsStart) {
-            op_.code -= mathOpsStart;
-            MathOps.applyOp(
-                context_,
-                state_,
-                op_
-            );
-        }
-        else if (op_.code < emissionsOpsStart) {
-            op_.code -= tierOpsStart;
-            TierOps.applyOp(
-                context_,
-                state_,
-                op_
-            );
-        }
-        else {
-            op_.code -= emissionsOpsStart;
-            if (op_.code == uint8(Ops.account)) {
-                (address account_) = abi.decode(context_, (address));
-                state_.stack[state_.stackIndex] = uint256(uint160(account_));
-                state_.stackIndex++;
+        unchecked {
+            if (op_.code < thisOpsStart) {
+                op_.code -= blockOpsStart;
+                BlockOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
             }
-            else if (op_.code == uint8(Ops.constructionBlockNumber)) {
-                state_.stack[state_.stackIndex] = constructionBlockNumber;
-                state_.stackIndex++;
+            else if (op_.code < mathOpsStart) {
+                op_.code -= thisOpsStart;
+                ThisOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
+            }
+            else if (op_.code < tierOpsStart) {
+                op_.code -= mathOpsStart;
+                MathOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
+            }
+            else if (op_.code < emissionsOpsStart) {
+                op_.code -= tierOpsStart;
+                TierOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
+            }
+            else {
+                op_.code -= emissionsOpsStart;
+                if (op_.code == uint8(Ops.account)) {
+                    (address account_) = abi.decode(context_, (address));
+                    state_.stack[state_.stackIndex]
+                    = uint256(uint160(account_));
+                    state_.stackIndex++;
+                }
+                else if (op_.code == uint8(Ops.constructionBlockNumber)) {
+                    state_.stack[state_.stackIndex] = constructionBlockNumber;
+                    state_.stackIndex++;
+                }
             }
         }
     }
