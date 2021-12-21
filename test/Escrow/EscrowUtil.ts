@@ -5,12 +5,11 @@ import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import type { Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { TrustFactory } from "../../typechain/TrustFactory";
+import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
 
-const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 enum Tier {
@@ -31,7 +30,10 @@ export const deployGlobals = async () => {
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-  const { trustFactory } = await Util.factoriesDeploy(crpFactory, bFactory);
+  const { trustFactory, seedERC20Factory } = await Util.factoriesDeploy(
+    crpFactory,
+    bFactory
+  );
 
   // Deploy global Claim contract
   const claimFactory = await ethers.getContractFactory(
@@ -47,6 +49,7 @@ export const deployGlobals = async () => {
     tierFactory,
     tier,
     trustFactory,
+    seedERC20Factory,
     claimFactory,
     claim,
   };
@@ -55,6 +58,7 @@ export const deployGlobals = async () => {
 export const basicSetup = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
+  seedERC20Factory: SeedERC20Factory & Contract,
   tier: ReadWriteTier & Contract
 ) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
@@ -94,12 +98,13 @@ export const basicSetup = async (
     {
       creator: creator.address,
       minimumCreatorRaise,
-      seeder: seeder.address,
       seederFee,
-      seederUnits,
-      seederCooldownDuration,
       redeemInit,
-      seedERC20Config,
+      reserve: reserve.address,
+      reserveInit,
+      initialValuation,
+      finalValuation: successLevel,
+      minimumTradingDuration,
     },
     {
       erc20Config,
@@ -108,11 +113,11 @@ export const basicSetup = async (
       totalSupply: totalTokenSupply,
     },
     {
-      reserve: reserve.address,
-      reserveInit,
-      initialValuation,
-      finalValuation: successLevel,
-      minimumTradingDuration,
+      seeder: seeder.address,
+      seederUnits,
+      seederCooldownDuration,
+      seedERC20Config,
+      seedERC20Factory: seedERC20Factory.address,
     },
     { gasLimit: 100000000 }
   );
@@ -129,26 +134,20 @@ export const basicSetup = async (
   ) as ReserveToken & Contract;
 
   const redeemableERC20Address = await trust.token();
-  const poolAddress = await trust.pool();
 
   const redeemableERC20 = new ethers.Contract(
     redeemableERC20Address,
     tokenJson.abi,
     creator
   ) as RedeemableERC20 & Contract;
-  const pool = new ethers.Contract(
-    poolAddress,
-    poolJson.abi,
-    creator
-  ) as RedeemableERC20Pool & Contract;
 
   // seeder must transfer funds to pool
-  await reserveSeeder.transfer(poolAddress, reserveInit);
+  await reserveSeeder.transfer(trust.address, reserveInit);
 
-  await pool.startDutchAuction({ gasLimit: 100000000 });
+  await trust.startDutchAuction({ gasLimit: 100000000 });
 
   // crp and bPool are now defined
-  const [crp, bPool] = await Util.poolContracts(signers, pool);
+  const [crp, bPool] = await Util.poolContracts(signers, trust);
 
   return {
     creator,
@@ -157,7 +156,6 @@ export const basicSetup = async (
     reserve,
     trust,
     successLevel,
-    pool,
     crp,
     bPool,
     minimumTradingDuration,

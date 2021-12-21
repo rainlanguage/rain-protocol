@@ -1,31 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-struct Source {
-    uint256[] source;
-    uint256[] constants;
-    uint256[] arguments;
-}
-
-struct SourceCursor {
-    uint8 item;
-    uint8 index;
-}
-
-struct CallSize {
-    uint8 fnSize;
-    uint8 loopSize;
-    uint8 valSize;
-}
-
-struct Stack {
-    uint256[32] vals;
-    uint8 index;
+struct State {
+    bytes[] sources;
+    uint[] constants;
+    uint[] arguments;
+    uint[] stack;
+    uint stackIndex;
 }
 
 struct Op {
-    uint8 code;
-    uint8 val;
+    uint code;
+    uint val;
 }
 
 enum Ops {
@@ -37,124 +23,105 @@ enum Ops {
 
 abstract contract RainVM {
 
-    // 32 bytes * 4 items.
-    uint8 public constant MAX_SOURCE_LENGTH = 128;
-
     /// Separate function to avoid blowing solidity compile time stack.
     function zipmap(
         bytes memory context_,
-        Source memory source_,
-        Stack memory stack_,
-        CallSize memory callSize_
+        State memory state_,
+        uint config_
     ) internal view {
-        uint256 fnIndex_ = stack_.index - 1;
-        stack_.index -= (callSize_.fnSize + callSize_.valSize + 2);
+        unchecked {
+            uint sourceIndex_;
+            uint stepSize_;
+            uint offset_;
+            uint valLength_;
+            assembly {
+                sourceIndex_ := and(config_, 0x03)
+                stepSize_ := shr(and(shr(2, config_), 0x07), 256)
+                offset_ := sub(256, stepSize_)
+                valLength_ := add(and(shr(5, config_), 0x07), 1)
+            }
+            state_.stackIndex -= valLength_;
 
-        uint256[] memory mapSource_ = new uint256[](callSize_.fnSize + 1);
+            uint[] memory baseVals_ = new uint[](valLength_);
+            for (uint a_ = 0; a_ < baseVals_.length; a_++) {
+                baseVals_[a_] = state_.stack[state_.stackIndex + a_];
+            }
 
-        for (uint256 f_ = 0; f_ < mapSource_.length; f_++) {
-            mapSource_[f_] = stack_.vals[fnIndex_ - f_];
-        }
-
-        uint256[] memory baseVals_ = new uint256[](callSize_.valSize + 1);
-        for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
-            baseVals_[a_] = stack_.vals[a_];
-        }
-
-        uint256 stepSize_ = 256 >> callSize_.loopSize;
-
-        for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-            uint256[] memory arguments_ = new uint256[](
-                baseVals_.length * 256 / stepSize_
-            );
-            for (uint256 a_ = 0; a_ < baseVals_.length; a_++) {
-                arguments_[a_] = uint256(
-                    uint256(baseVals_[a_] << 256 - step_ - stepSize_)
-                    >> 256 - stepSize_
+            for (uint step_ = 0; step_ < 256; step_ += stepSize_) {
+                for (uint a_ = 0; a_ < valLength_; a_++) {
+                    state_.arguments[a_]
+                        = (baseVals_[a_] << offset_ - step_) >> offset_;
+                }
+                eval(
+                    context_,
+                    state_,
+                    sourceIndex_
                 );
             }
-            Source memory evalSource_ = Source(
-                mapSource_,
-                source_.constants,
-                arguments_
-            );
-            Stack memory evalStack_;
-            // evalStack_ modified by reference.
-            eval(
-                context_,
-                evalSource_,
-                evalStack_
-            );
-
-            for (uint256 m_ = 0; m_ < evalStack_.index; m_++) {
-                stack_.vals[stack_.index + m_] = evalStack_.vals[m_];
-            }
-            stack_.index = stack_.index + evalStack_.index;
         }
     }
 
     function eval(
         bytes memory context_,
-        Source memory source_,
-        Stack memory stack_
+        State memory state_,
+        uint sourceIndex_
     ) internal view {
-        for (
-            uint256 i_ = source_.source.length * 32;
-            i_ > 0;
-            i_ = i_ - 2
-        ) {
-            SourceCursor memory sourceCursor_ = SourceCursor(
-                uint8((i_ - 2) / 32),
-                uint8((i_ - 2) % 32)
-            );
-
-            Op memory op_ = Op(
-                uint8(
-                    uint256(source_.source[sourceCursor_.item]
-                        >> (256 - uint256(sourceCursor_.index + 2) * 8)
-                    )
-                ),
-                uint8(
-                    uint256(source_.source[sourceCursor_.item]
-                        >> (256 - uint256(sourceCursor_.index + 1) * 8)
-                    )
-                )
-            );
-
-            if (op_.code < uint8(Ops.length)) {
-                if (op_.code == uint8(Ops.skip)) {
-                    i_ -= op_.val * 2;
-                    continue;
+        unchecked {
+            // Op memory op_;
+            // less gas to read this once.
+            bytes memory source_ = state_.sources[sourceIndex_];
+            uint i_;
+            uint opcode_;
+            uint opval_;
+            uint valIndex_;
+            bool fromArguments_;
+            i_ = source_.length;
+            // Loop until 0.
+            // It is up to the rain script to not underflow by calling `skip`
+            // with a value larger than the remaining source.
+            while (i_ > 0) {
+                assembly {
+                    // mload taking 32 bytes and source_ starts with 32 byte
+                    // length, so i_ offset moves the end of the loaded bytes
+                    // to the op we want.
+                    let op_ := mload(add(source_, i_))
+                    opcode_ := and(op_, 0xFF)
+                    opval_ := and(shr(8, op_), 0xFF)
+                    i_ := sub(i_, 0x2)
                 }
-                else if (op_.code == uint8(Ops.val)) {
-                    uint8 valIndex_ = op_.val & 0x7F;
-                    bool fromArguments_ = (op_.val >> 7) > 0;
-                    stack_.vals[stack_.index] = fromArguments_
-                        ? source_.arguments[valIndex_]
-                        : source_.constants[valIndex_];
-                    stack_.index++;
+
+                if (opcode_ < 3) {
+                    if (opcode_ == 0) {
+                        assembly { i_ := sub(i_, mul(opval_, 2)) }
+                        continue;
+                    }
+                    else if (opcode_ == 1) {
+                        assembly {
+                            valIndex_ := and(opval_, 0x7F)
+                            fromArguments_ := gt(shr(7, opval_), 0)
+                        }
+                        state_.stack[state_.stackIndex] = fromArguments_
+                            ? state_.arguments[valIndex_]
+                            : state_.constants[valIndex_];
+                        state_.stackIndex++;
+                    }
+                    else if (opcode_ == 2) {
+                        // state_ modified by reference.
+                        zipmap(
+                            context_,
+                            state_,
+                            opval_
+                        );
+                    }
                 }
-                else if (op_.code == uint8(Ops.zipmap)) {
-                    // stack_ modified by reference.
-                    zipmap(
+                else {
+                    // state_ modified by reference.
+                    applyOp(
                         context_,
-                        source_,
-                        stack_,
-                        CallSize(
-                            op_.val & 0x03,
-                            (op_.val >> 2) & 0x07,
-                            (op_.val >> 5) & 0x07
-                        )
+                        state_,
+                        Op(opcode_, opval_)
                     );
                 }
-            }
-            else {
-                // stack_ modified by reference.
-                applyOp(
-                    context_,
-                    stack_,
-                    op_
-                );
             }
         }
     }
@@ -164,7 +131,7 @@ abstract contract RainVM {
     /// by eval for each dispatch.
     function applyOp(
         bytes memory context_,
-        Stack memory stack_,
+        State memory state_,
         Op memory op_
     )
     internal

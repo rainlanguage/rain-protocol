@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.10;
 
-import { RainVM, Stack, Op, Ops as RainVMOps } from "../vm/RainVM.sol";
+import { RainVM, State, Op, Ops as RainVMOps } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
 import { TierOps, Ops as TierOpsOps } from "../vm/ops/TierOps.sol";
@@ -22,8 +22,8 @@ contract CombineTier is
     uint8 public immutable tierOpsStart;
     uint8 public immutable combineTierOpsStart;
 
-    constructor(Source memory source_)
-        ImmutableSource(source_)
+    constructor(ImmutableSourceConfig memory config_)
+        ImmutableSource(config_)
     {
         blockOpsStart = uint8(RainVMOps.length);
         tierOpsStart = blockOpsStart + uint8(BlockOpsOps.length);
@@ -32,7 +32,7 @@ contract CombineTier is
 
     function applyOp(
         bytes memory context_,
-        Stack memory stack_,
+        State memory state_,
         Op memory op_
     )
         internal
@@ -43,7 +43,7 @@ contract CombineTier is
             op_.code -= blockOpsStart;
             BlockOps.applyOp(
                 context_,
-                stack_,
+                state_,
                 op_
             );
         }
@@ -51,7 +51,7 @@ contract CombineTier is
             op_.code -= tierOpsStart;
             TierOps.applyOp(
                 context_,
-                stack_,
+                state_,
                 op_
             );
         }
@@ -59,8 +59,8 @@ contract CombineTier is
             op_.code -= combineTierOpsStart;
             if (op_.code == uint8(Ops.account)) {
                 (address account_) = abi.decode(context_, (address));
-                stack_.vals[stack_.index] = uint256(uint160(account_));
-                stack_.index++;
+                state_.stack[state_.stackIndex] = uint256(uint160(account_));
+                state_.stackIndex++;
             }
         }
     }
@@ -72,27 +72,12 @@ contract CombineTier is
         virtual
         returns (uint256)
     {
-        Stack memory stack_;
+        State memory state_ = newState();
         eval(
             abi.encode(account_),
-            source(),
-            stack_
+            state_,
+            0
         );
-        return stack_.vals[stack_.index - 1];
-    }
-
-    function reportStack(address account_)
-        external
-        view
-        virtual
-        returns (Stack memory)
-    {
-        Stack memory stack_;
-        eval(
-            abi.encode(account_),
-            source(),
-            stack_
-        );
-        return stack_;
+        return state_.stack[state_.stackIndex - 1];
     }
 }

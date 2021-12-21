@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Stack, Op } from "../RainVM.sol";
+import { State, Op } from "../RainVM.sol";
 
 enum Ops {
     blockNumber,
@@ -11,15 +11,17 @@ enum Ops {
 library BlockOps {
     function applyOp(
         bytes memory,
-        Stack memory stack_,
+        State memory state_,
         Op memory op_
     )
     internal
     view
     {
-        if (op_.code == uint8(Ops.blockNumber)) {
-            stack_.vals[stack_.index] = block.number;
-            stack_.index++;
+        unchecked {
+            if (op_.code == 0) {
+                state_.stack[state_.stackIndex] = block.number;
+                state_.stackIndex++;
+            }
         }
     }
 

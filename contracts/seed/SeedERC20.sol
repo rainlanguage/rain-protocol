@@ -12,6 +12,8 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Phase, Phased } from "../phased/Phased.sol";
 import { Cooldown } from "../cooldown/Cooldown.sol";
 
+import { ERC20Pull } from "../erc20/ERC20Pull.sol";
+
 /// Everything required to construct a `SeedERC20` contract.
 struct SeedERC20Config {
     // Reserve erc20 token contract used to purchase seed tokens.
@@ -89,7 +91,7 @@ struct SeedERC20Config {
 /// at a later date.
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
-contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
+contract SeedERC20 is Ownable, ERC20, Phased, Cooldown, ERC20Pull {
 
     using Math for uint256;
     using SafeERC20 for IERC20;

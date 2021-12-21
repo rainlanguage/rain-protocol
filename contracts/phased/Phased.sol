@@ -111,8 +111,8 @@ abstract contract Phased {
     /// @param phase_ Determine the relevant block number for this phase.
     /// @return The block number for the phase according to the phase blocks
     ///         list, as uint32.
-    function blockNumberForPhase(uint32[8] calldata phaseBlocks_, Phase phase_)
-        external
+    function blockNumberForPhase(uint32[8] memory phaseBlocks_, Phase phase_)
+        public
         pure
         returns(uint32)
     {
