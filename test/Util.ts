@@ -10,7 +10,6 @@ import type {
 } from "../typechain/TrustFactory";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
 import type { BigNumber, Contract, BytesLike, BigNumberish } from "ethers";
@@ -188,6 +187,7 @@ export const max_uint256 = ethers.BigNumber.from(
   "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
 );
 export const max_uint32 = ethers.BigNumber.from("0xffffffff");
+export const max_uint16 = ethers.BigNumber.from("0xffff");
 
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
@@ -362,12 +362,12 @@ export function bytify(
 /**
  * Constructs the operand for RainVM's `call` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
- * @param fnSize - number of elements on stack to allocate for functions (range 0-3)
+ * @param sourceIndex - index of function source in `immutableSourceConfig.sources`
  * @param loopSize - number of times to subdivide vals, reduces uint size but allows for more vals (range 0-7)
  * @param valSize - number of vals in outer stack (range 0-7)
  */
 export function callSize(
-  fnSize: number,
+  sourceIndex: number,
   loopSize: number,
   valSize: number
 ): number {
@@ -377,7 +377,7 @@ export function callSize(
   //   op_.val & 0xE0  //     11100000
   // )
 
-  if (fnSize < 0 || fnSize > 3) {
+  if (sourceIndex < 0 || sourceIndex > 3) {
     throw new Error("Invalid fnSize");
   } else if (loopSize < 0 || loopSize > 7) {
     throw new Error("Invalid loopSize");
@@ -388,7 +388,7 @@ export function callSize(
   callSize <<= 3;
   callSize += loopSize;
   callSize <<= 2;
-  callSize += fnSize;
+  callSize += sourceIndex;
   return callSize;
 }
 
@@ -463,14 +463,18 @@ export const pack32UIntsIntoByte = (numArray: number[]): number[] => {
   return val;
 };
 
-export const paddedReport = (report: BigNumber): string => {
+export const paddedUInt256 = (report: BigNumber): string => {
+  if (report.gt(max_uint256)) {
+    throw new Error(`${report} exceeds max uint256`);
+  }
   return "0x" + report.toHexString().substring(2).padStart(64, "0");
 };
 
-export const paddedBlock = (
-  blockNumber: number | BytesLike | Hexable
-): string => {
-  return hexlify(blockNumber).substring(2).padStart(8, "0");
+export const paddedUInt32 = (number: number | BytesLike | Hexable): string => {
+  if (ethers.BigNumber.from(number).gt(max_uint32)) {
+    throw new Error(`${number} exceeds max uint32`);
+  }
+  return hexlify(number).substring(2).padStart(8, "0");
 };
 
 export type Source = [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
@@ -492,20 +496,3 @@ export type Constants = [
   BigNumberish,
   BigNumberish
 ];
-
-export function chunkedSource(monolithicSource: Uint8Array): Source {
-  const source: Source = [0, 0, 0, 0];
-
-  for (let sourceIndex = 0; sourceIndex < 4; sourceIndex++) {
-    const sourceElement: Array<number> = [];
-
-    let i = 0;
-    for (i = 0; i < 32 && monolithicSource?.[i + sourceIndex * 32] >= 0; i++) {
-      sourceElement[i] = monolithicSource[i + sourceIndex * 32];
-    }
-
-    source[sourceIndex] = i === 0 ? 0 : sourceElement;
-  }
-
-  return source;
-}

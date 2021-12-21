@@ -153,6 +153,8 @@ pkgs.stdenv.mkDerivation {
   name = "shell";
   buildInputs = [
     pkgs.nixpkgs-fmt
+    pkgs.nodePackages.npm
+    pkgs.yarn
     pkgs.nodejs-14_x
     pkgs.slither-analyzer
     local-node

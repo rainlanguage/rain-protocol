@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import { ERC20Config } from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import { RainVM, Stack, Op, Ops as RainVMOps } from "../vm/RainVM.sol";
+import { RainVM, State, Op, Ops as RainVMOps } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
 import { ThisOps, Ops as ThisOpsOps } from "../vm/ops/ThisOps.sol";
@@ -14,13 +14,14 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 enum Ops {
     account,
-    constructionBlockNumber
+    constructionBlockNumber,
+    length
 }
 
 struct EmissionsERC20Config {
     bool allowDelegatedClaims;
     ERC20Config erc20Config;
-    Source source;
+    ImmutableSourceConfig immutableSourceConfig;
 }
 
 contract EmissionsERC20 is
@@ -46,7 +47,7 @@ contract EmissionsERC20 is
     mapping(address => uint256) public reports;
 
     constructor(EmissionsERC20Config memory config_)
-        ImmutableSource(config_.source)
+        ImmutableSource(config_.immutableSourceConfig)
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
     {
         blockOpsStart = uint8(RainVMOps.length);
@@ -62,55 +63,58 @@ contract EmissionsERC20 is
 
     function applyOp(
         bytes memory context_,
-        Stack memory stack_,
+        State memory state_,
         Op memory op_
     )
         internal
         override
         view
     {
-        if (op_.code < thisOpsStart) {
-            op_.code -= blockOpsStart;
-            BlockOps.applyOp(
-                context_,
-                stack_,
-                op_
-            );
-        }
-        else if (op_.code < mathOpsStart) {
-            op_.code -= thisOpsStart;
-            ThisOps.applyOp(
-                context_,
-                stack_,
-                op_
-            );
-        }
-        else if (op_.code < tierOpsStart) {
-            op_.code -= mathOpsStart;
-            MathOps.applyOp(
-                context_,
-                stack_,
-                op_
-            );
-        }
-        else if (op_.code < emissionsOpsStart) {
-            op_.code -= tierOpsStart;
-            TierOps.applyOp(
-                context_,
-                stack_,
-                op_
-            );
-        }
-        else {
-            op_.code -= emissionsOpsStart;
-            if (op_.code == uint8(Ops.account)) {
-                (address account_) = abi.decode(context_, (address));
-                stack_.vals[stack_.index] = uint256(uint160(account_));
-                stack_.index++;
+        unchecked {
+            if (op_.code < thisOpsStart) {
+                op_.code -= blockOpsStart;
+                BlockOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
             }
-            else if (op_.code == uint8(Ops.constructionBlockNumber)) {
-                stack_.vals[stack_.index] = constructionBlockNumber;
-                stack_.index++;
+            else if (op_.code < mathOpsStart) {
+                op_.code -= thisOpsStart;
+                ThisOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
+            }
+            else if (op_.code < tierOpsStart) {
+                op_.code -= mathOpsStart;
+                MathOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
+            }
+            else if (op_.code < emissionsOpsStart) {
+                op_.code -= tierOpsStart;
+                TierOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
+            }
+            else {
+                op_.code -= emissionsOpsStart;
+                if (op_.code == 0) {
+                    (address account_) = abi.decode(context_, (address));
+                    state_.stack[state_.stackIndex]
+                    = uint256(uint160(account_));
+                    state_.stackIndex++;
+                }
+                else if (op_.code == 1) {
+                    state_.stack[state_.stackIndex] = constructionBlockNumber;
+                    state_.stackIndex++;
+                }
             }
         }
     }
@@ -131,13 +135,13 @@ contract EmissionsERC20 is
         view
         returns (uint256)
     {
-        Stack memory stack_;
+        State memory state_ = newState();
         eval(
             abi.encode(account_),
-            source(),
-            stack_
+            state_,
+            0
         );
-        return stack_.vals[stack_.index - 1];
+        return state_.stack[state_.stackIndex - 1];
     }
 
     function claim(address account_, bytes memory data_) external {
@@ -148,10 +152,7 @@ contract EmissionsERC20 is
 
         // Mint the claim.
         uint256 amount_ = calculateClaim(account_);
-        _mint(
-            account_,
-            amount_
-        );
+        _mint(account_, amount_);
 
         // Record the current block as the latest claim.
         // This can be diffed/combined with external reports in future claim
@@ -164,10 +165,7 @@ contract EmissionsERC20 is
         );
 
         // Notify the world of the claim.
-        emit Claim(
-            account_,
-            data_
-        );
+        emit Claim(account_, data_);
     }
 
 }

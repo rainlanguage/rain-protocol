@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Stack, Op } from "../RainVM.sol";
+import { State, Op } from "../RainVM.sol";
 
 enum Ops {
     add,
@@ -20,49 +20,58 @@ library MathOps {
 
     function applyOp(
         bytes memory,
-        Stack memory stack_,
+        State memory state_,
         Op memory op_
     )
     internal
     pure
     {
-        stack_.index -= op_.val;
+        uint accumulator_;
+        uint item_;
+        uint opval_ = op_.val;
+        unchecked {
+            state_.stackIndex -= opval_;
+            accumulator_ = state_.stack[state_.stackIndex + opval_ - 1];
+        }
 
-        uint256 accumulator_ = stack_.vals[stack_.index + op_.val - 1];
-
-        for (uint256 a_ = 2; a_ <= op_.val; a_++) {
-            uint256 item_ = stack_.vals[stack_.index + a_ - 2];
-            if (op_.code == uint8(Ops.add)) {
+        for (uint a_ = 2; a_ <= opval_; a_++) {
+            unchecked {
+                item_ = state_.stack[state_.stackIndex + a_ - 2];
+            }
+            if (op_.code == 0) {
                 accumulator_ += item_;
             }
-            else if (op_.code == uint8(Ops.sub)) {
+            else if (op_.code == 1) {
                 accumulator_ -= item_;
             }
-            else if (op_.code == uint8(Ops.mul)) {
+            else if (op_.code == 2) {
                 accumulator_ *= item_;
             }
-            else if (op_.code == uint8(Ops.pow)) {
+            else if (op_.code == 3) {
                 accumulator_ = accumulator_ ** item_;
             }
-            else if (op_.code == uint8(Ops.div)) {
+            else if (op_.code == 4) {
                 accumulator_ /= item_;
             }
-            else if (op_.code == uint8(Ops.mod)) {
+            else if (op_.code == 5) {
                 accumulator_ %= item_;
             }
-            else if (op_.code == uint8(Ops.min)) {
+            else if (op_.code == 6) {
                 if (item_ < accumulator_) accumulator_ = item_;
             }
-            else if (op_.code == uint8(Ops.max)) {
+            else if (op_.code == 7) {
                 if (item_ > accumulator_) accumulator_ = item_;
             }
-            else if (op_.code == uint8(Ops.average)) {
+            else if (op_.code == 8) {
                 accumulator_ = (accumulator_ & item_)
                     + (accumulator_ ^ item_) / 2;
             }
         }
-        stack_.vals[stack_.index] = accumulator_;
-        stack_.index++;
+
+        unchecked {
+            state_.stack[state_.stackIndex] = accumulator_;
+            state_.stackIndex++;
+        }
     }
 
 }

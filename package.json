@@ -31,11 +31,11 @@
   },
   "devDependencies": {
     "@maticnetwork/maticjs": "^2.0.22",
-    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
-    "@truffle/hdwallet-provider": "^1.2.1",
+    "@tenderly/hardhat-tenderly": "^1.0.13",
     "@tsconfig/svelte": "^2.0.1",
-    "@typechain/ethers-v5": "^8.0.2",
+    "@typechain/ethers-v5": "^8.0.5",
     "@typechain/hardhat": "^3.0.0",
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.22",
@@ -45,10 +45,9 @@
     "bn.js": "^5.1.3",
     "chai": "^4.2.0",
     "eslint": "^8.2.0",
-    "ethereum-waffle": "^3.2.1",
-    "ethers": "^5.5.1",
-    "ganache-cli": "^6.12.2",
-    "hardhat": "^2.6.8",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.2",
+    "hardhat": "^2.8.0",
     "hardhat-contract-sizer": "^2.1.1",
     "hardhat-gas-reporter": "^1.0.4",
     "hardhat-preprocessor": "^0.1.4",
@@ -59,7 +58,6 @@
     "nth-check": ">=2.0.1",
     "prettier": "^2.3.2",
     "pretty-quick": "^3.1.1",
-    "remixd": "^0.2.4-alpha.0",
     "set-value": ">=4.0.1",
     "simple-statistics": "^7.7.0",
     "sirv-cli": "^1.0.0",
@@ -67,17 +65,19 @@
     "solhint": "^3.3.4",
     "solidity-docgen": "^0.5.13",
     "trim": ">=0.0.3",
-    "truffle": "^5.1.62",
     "ts-generator": "^0.1.1",
     "ts-node": "^9.1.1",
     "tslib": "^2.0.0",
-    "typechain": "^6.0.2",
-    "typescript": "^3.9.3"
+    "typechain": "^6.0.2"
   },
   "dependencies": {
+    "@0xsequence/sstore2": "git+https://github.com/0xsequence/sstore2.git",
     "@beehiveinnovation/balancer-core": "0.0.7",
     "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@openzeppelin/contracts": "^4.3.3"
+  },
+  "overrides": {
+    "ethers": "5.5.2"
   },
   "husky": {
     "hooks": {
