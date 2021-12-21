@@ -10,6 +10,7 @@ import type {
 import type { SingleEditionMintable } from "../../typechain/SingleEditionMintable";
 import type { SingleEditionMintableCreator } from "../../typechain/SingleEditionMintableCreator";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -19,6 +20,7 @@ describe("ApprovingSingleEditionMintable", async function () {
   let approvingSingleEditionMintableCreator: ApprovingSingleEditionMintableCreator &
     Contract;
   let signers: SignerWithAddress[];
+  let tier: ReadWriteTier & Contract;
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -43,22 +45,18 @@ describe("ApprovingSingleEditionMintable", async function () {
         singleEditionMintable.address
       )) as SingleEditionMintableCreator & Contract;
 
-    const approvingSingleEditionMintableFactory =
-      await ethers.getContractFactory("ApprovingSingleEditionMintable");
-    const approvingSingleEditionMintable =
-      (await approvingSingleEditionMintableFactory.deploy()) as ApprovingSingleEditionMintable &
-        Contract;
-
     const approvingSingleEditionMintableCreatorFactory =
       await ethers.getContractFactory("ApprovingSingleEditionMintableCreator");
     approvingSingleEditionMintableCreator =
       (await approvingSingleEditionMintableCreatorFactory.deploy(
-        singleEditionMintableCreator.address,
-        approvingSingleEditionMintable.address
+        singleEditionMintableCreator.address
       )) as ApprovingSingleEditionMintableCreator & Contract;
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
   });
 
-  it("something", async () => {
+  it("approves minting based on tier ", async () => {
     const createEditionTx =
       await approvingSingleEditionMintableCreator.createEdition(
         "Test",
@@ -69,7 +67,9 @@ describe("ApprovingSingleEditionMintable", async function () {
         "",
         "0x0000000000000000000000000000000000000000000000000000000000000000",
         100,
-        10
+        10,
+        tier.address,
+        2 // TODO: Make this an enum value (E.g. GOLD)
       );
 
     const createEditionReceipt = await createEditionTx.wait();
@@ -83,9 +83,21 @@ describe("ApprovingSingleEditionMintable", async function () {
       createdApprovingEditionEvent.args.wrapperContractAddress
     )) as ApprovingSingleEditionMintable & Contract;
 
-    const mintEditionTx = await wrapperContract.mintEdition(signers[1].address);
-    const mintEditionReceipt = await mintEditionTx.wait();
+    await tier.setTier(signers[1].address, 2, []);
+    await tier.setTier(signers[2].address, 1, []);
 
-    console.log(mintEditionReceipt);
+    const allowedMintEditionTx = await wrapperContract.mintEdition(
+      signers[1].address
+    );
+    const allowedMintEditionReceipt = await allowedMintEditionTx.wait();
+
+    console.log(allowedMintEditionReceipt);
+
+    const rejectedMintEditionTx = await wrapperContract.mintEdition(
+      signers[2].address
+    );
+    const rejectedMintEditionReceipt = await rejectedMintEditionTx.wait();
+
+    console.log(rejectedMintEditionReceipt);
   });
 });

@@ -77,8 +77,7 @@
   "dependencies": {
     "@beehiveinnovation/balancer-core": "0.0.7",
     "@beehiveinnovation/configurable-rights-pool": "0.0.1",
-    "@openzeppelin/contracts": "^4.3.3",
-    "@openzeppelin/contracts-upgradeable": "^4.4.1"
+    "@openzeppelin/contracts": "^4.3.3"
   },
   "husky": {
     "hooks": {

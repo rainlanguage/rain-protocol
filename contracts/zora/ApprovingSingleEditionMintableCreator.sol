@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import "hardhat/console.sol";
 import "./ApprovingSingleEditionMintable.sol";
 import "./ISingleEditionMintableCreator.sol";
+import { ITier } from "../tier/ITier.sol";
 
 contract ApprovingSingleEditionMintableCreator {
     address private factory;
-
-    address private implementation;
 
     event CreatedApprovingEdition(
         uint256 indexed editionId,
@@ -21,12 +19,8 @@ contract ApprovingSingleEditionMintableCreator {
 
     /// @param factory_ The address of the underlying
     ///   `SingleEditionMintableFactory` that will be used to create editions.
-    /// @param implementation_ The address of the
-    ///   `ApprovingSingleEditionMintable` contract that will be cloned for
-    ///   each `SingleEditionMintable` contract created by the factory.
-    constructor(address factory_, address implementation_) {
+    constructor(address factory_) {
         factory = factory_;
-        implementation = implementation_;
     }
 
     /// Calls the underlying `createEdition` method on
@@ -41,7 +35,9 @@ contract ApprovingSingleEditionMintableCreator {
         string memory _imageUrl,
         bytes32 _imageHash,
         uint256 _editionSize,
-        uint256 _royaltyBPS
+        uint256 _royaltyBPS,
+        ITier _tier,
+        ITier.Tier _minimumStatus
     ) external returns (uint256) {
         uint256 id = ISingleEditionMintableCreator(factory).createEdition(
             _name,
@@ -58,40 +54,25 @@ contract ApprovingSingleEditionMintableCreator {
         ISingleEditionMintable underlyingContract =
             ISingleEditionMintableCreator(factory).getEditionAtId(id);
 
-        address wrapperContract = ClonesUpgradeable.cloneDeterministic(
-            implementation,
-            bytes32(abi.encodePacked(id))
-        );
+        ApprovingSingleEditionMintable wrapperContract =
+            new ApprovingSingleEditionMintable(
+                address(underlyingContract),
+                _tier,
+                _minimumStatus
+            );
 
-        ApprovingSingleEditionMintable(wrapperContract)
-            .initialize(address(underlyingContract));
-
-        underlyingContract.setApprovedMinter(wrapperContract, true);
+        underlyingContract.setApprovedMinter(address(wrapperContract), true);
         underlyingContract.setApprovedMinter(address(this), false);
+        underlyingContract.transferOwnership(address(wrapperContract));
 
         emit CreatedApprovingEdition(
             id,
             msg.sender,
             _editionSize,
-            wrapperContract,
+            address(wrapperContract),
             address(underlyingContract)
         );
 
         return id;
-    }
-
-    function getEditionAtId(uint256 editionId)
-        external
-        view
-        returns (ApprovingSingleEditionMintable)
-    {
-        return
-            ApprovingSingleEditionMintable(
-                ClonesUpgradeable.predictDeterministicAddress(
-                    implementation,
-                    bytes32(abi.encodePacked(editionId)),
-                    address(this)
-                )
-            );
     }
 }
