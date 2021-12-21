@@ -8,7 +8,6 @@ import * as Util from "../Util";
 import type { Contract } from "ethers";
 import type { BigNumber } from "ethers";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type { RedeemableERC20Pool } from "../../typechain/RedeemableERC20Pool";
 import { factoriesDeploy, max_uint32 } from "../Util";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 
@@ -16,7 +15,6 @@ chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
-const poolJson = require("../../artifacts/contracts/pool/RedeemableERC20Pool.sol/RedeemableERC20Pool.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 enum Tier {
@@ -269,7 +267,6 @@ describe("TrustConstruction", async function () {
       creator
     ) as RedeemableERC20 & Contract;
 
-    assert((await redeemableERC20.balanceOf(trust.address)).eq(0));
     assert(
       (await redeemableERC20.balanceOf(trust.address)).eq(totalTokenSupply)
     );
@@ -355,11 +352,6 @@ describe("TrustConstruction", async function () {
     const getContractsDeployed: TrustContracts = await trust.getContracts();
 
     const token = await trust.token();
-    const pool = new ethers.Contract(
-      trust.address,
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool & Contract;
 
     const [crp] = await Util.poolContracts(signers, trust);
 
@@ -370,10 +362,6 @@ describe("TrustConstruction", async function () {
     assert(
       getContractsDeployed.redeemableERC20 === token,
       `wrong token contract address ${getContractsDeployed.redeemableERC20} ${token}`
-    );
-    assert(
-      getContractsDeployed.redeemableERC20Pool === pool.address,
-      `wrong pool contract address ${getContractsDeployed.redeemableERC20Pool} ${pool.address}`
     );
     assert(
       getContractsDeployed.seeder === seeder.address,
@@ -404,7 +392,7 @@ describe("TrustConstruction", async function () {
     // seeder must transfer funds to pool
     await reserveSeeder.transfer(trust.address, reserveInit);
 
-    await pool.startDutchAuction({ gasLimit: 100000000 });
+    await trust.startDutchAuction({ gasLimit: 100000000 });
 
     const [, bPool2] = await Util.poolContracts(signers, trust);
 
@@ -827,12 +815,6 @@ describe("TrustConstruction", async function () {
     const raiseProgressSeeded: DistributionProgress =
       await trust.getDistributionProgress();
 
-    const pool = new ethers.Contract(
-      trust.address,
-      poolJson.abi,
-      creator
-    ) as RedeemableERC20Pool & Contract;
-
     assert(
       raiseProgressSeeded.distributionStatus === DistributionStatus.SEEDED,
       `did not get correct value for DistributionProgress.distributionStatus on seeding pool
@@ -869,7 +851,7 @@ describe("TrustConstruction", async function () {
     `
     );
 
-    await pool.startDutchAuction({ gasLimit: 100000000 });
+    await trust.startDutchAuction({ gasLimit: 100000000 });
 
     const distributionProgressTrading: DistributionProgress =
       await trust.getDistributionProgress();
