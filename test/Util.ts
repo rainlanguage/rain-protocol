@@ -488,20 +488,3 @@ export type Constants = [
   BigNumberish,
   BigNumberish
 ];
-
-export function chunkedSource(monolithicSource: Uint8Array): Source {
-  const source: Source = [0, 0, 0, 0];
-
-  for (let sourceIndex = 0; sourceIndex < 4; sourceIndex++) {
-    const sourceElement: Array<number> = [];
-
-    let i = 0;
-    for (i = 0; i < 32 && monolithicSource?.[i + sourceIndex * 32] >= 0; i++) {
-      sourceElement[i] = monolithicSource[i + sourceIndex * 32];
-    }
-
-    source[sourceIndex] = i === 0 ? 0 : sourceElement;
-  }
-
-  return source;
-}
