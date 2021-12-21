@@ -747,6 +747,8 @@ describe("RedeemableERC20", async function () {
       signers[0].address
     );
 
+    await redeemableERC20.transfer(signers[1].address, totalSupply)
+
     await redeemableERC20.burnDistributor(Util.oneAddress);
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
@@ -754,7 +756,10 @@ describe("RedeemableERC20", async function () {
     await reserve.transfer(redeemableERC20.address, reserveTotal);
 
     // GOLD signer can redeem.
-    await redeemableERC20.redeem([reserve.address], 1);
+    await redeemableERC20.connect(signers[1]).redeem(
+      [reserve.address],
+      await redeemableERC20.balanceOf(signers[1].address)
+    );
 
     // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
     await Util.assertError(
@@ -1021,6 +1026,11 @@ describe("RedeemableERC20", async function () {
     await reserve2.transfer(
       redeemableERC20.address,
       await reserve2.totalSupply()
+    );
+
+    await reserve1.transfer(
+      redeemableERC20.address,
+      (await reserve1.totalSupply()).div(5),
     );
 
     // reserve 1 blacklists signer 1. Signer 1 cannot receive reserve 1 upon redeeming contract tokens

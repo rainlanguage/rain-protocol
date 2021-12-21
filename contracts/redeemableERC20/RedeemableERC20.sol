@@ -189,7 +189,10 @@ contract RedeemableERC20 is
             "ONLY_DISTRIBUTOR_BURNER"
         );
         scheduleNextPhase(uint32(block.number));
-        _burn(distributorAccount_, balanceOf(distributorAccount_));
+        uint distributorBalance_ = balanceOf(distributorAccount_);
+        if (distributorBalance_ > 0) {
+            _burn(distributorAccount_, balanceOf(distributorAccount_));
+        }
     }
 
     /// Anyone can emit a `TreasuryAsset` event to notify token holders that
