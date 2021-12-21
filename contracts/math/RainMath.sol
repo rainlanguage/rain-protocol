@@ -10,7 +10,9 @@ library RainMath {
         pure
         returns (uint256)
     {
-        return a_ > b_ ? a_ - b_ : 0;
+        unchecked {
+            return a_ > b_ ? a_ - b_ : 0;
+        }
     }
 
     function saturatingAdd(uint256 a_, uint256 b_)
