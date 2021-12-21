@@ -3,6 +3,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-ethers";
+import "hardhat-contract-sizer";
 
 const config: HardhatUserConfig = {
   typechain: {

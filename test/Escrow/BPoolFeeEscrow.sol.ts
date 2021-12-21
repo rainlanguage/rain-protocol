@@ -27,13 +27,19 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier, seedERC20Factory } = await deployGlobals();
     const { trustFactory: trustFactory2 } = await deployGlobals();
 
-    const { recipient, trust } = await basicSetup(signers, trustFactory, tier);
+    const { recipient, trust } = await basicSetup(
+      signers,
+      trustFactory,
+      seedERC20Factory,
+      tier
+    );
     const { trust: unknownTrust, bPoolFeeEscrow } = await basicSetup(
       signers,
       trustFactory2,
+      seedERC20Factory,
       tier
     );
 
@@ -88,7 +94,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier, seedERC20Factory } = await deployGlobals();
 
     // do first raise
     const {
@@ -98,14 +104,14 @@ describe("BPoolFeeEscrow", async function () {
       buyCount: buyCount1,
       trust: trust1,
       bPoolFeeEscrow,
-    } = await successfulRaise(signers, trustFactory, tier);
+    } = await successfulRaise(signers, trustFactory, seedERC20Factory, tier);
 
     // do second raise
     const {
       reserve: reserve2,
       buyCount: buyCount2,
       trust: trust2,
-    } = await successfulRaise(signers, trustFactory, tier);
+    } = await successfulRaise(signers, trustFactory, seedERC20Factory, tier);
 
     const paidFees1 = fee.mul(buyCount1);
     const paidFees2 = fee.mul(buyCount2);
@@ -167,7 +173,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, tier } = await deployGlobals();
+    const { trustFactory, tier, seedERC20Factory } = await deployGlobals();
 
     const {
       reserve,
@@ -177,7 +183,7 @@ describe("BPoolFeeEscrow", async function () {
       minimumTradingDuration,
       redeemableERC20,
       bPoolFeeEscrow,
-    } = await basicSetup(signers, trustFactory, tier);
+    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -221,7 +227,7 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // actually end raise
-    await trust.anonEndDistribution();
+    await trust.endDutchAuctionAndTransfer();
 
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
@@ -292,7 +298,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, tier } = await deployGlobals();
+    const { trustFactory, seedERC20Factory, tier } = await deployGlobals();
 
     const {
       reserve,
@@ -303,7 +309,7 @@ describe("BPoolFeeEscrow", async function () {
       bPool,
       minimumTradingDuration,
       bPoolFeeEscrow,
-    } = await basicSetup(signers, trustFactory, tier);
+    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -366,7 +372,7 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // actually end raise
-    await trust.anonEndDistribution();
+    await trust.endDutchAuction();
 
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
@@ -427,10 +433,10 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, tier } = await deployGlobals();
+    const { trustFactory, seedERC20Factory, tier } = await deployGlobals();
 
     const { reserve, trust, recipient, signer1, bPoolFeeEscrow } =
-      await basicSetup(signers, trustFactory, tier);
+      await basicSetup(signers, trustFactory, seedERC20Factory, tier);
 
     const buyTokensViaEscrow = async (signer, spend, fee) => {
       // give signer some reserve
@@ -494,10 +500,10 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, tier } = await deployGlobals();
+    const { trustFactory, seedERC20Factory, tier } = await deployGlobals();
 
     const { reserve, trust, recipient, signer1, bPoolFeeEscrow } =
-      await basicSetup(signers, trustFactory, tier);
+      await basicSetup(signers, trustFactory, seedERC20Factory, tier);
 
     const registeredTrustFactory = await bPoolFeeEscrow.trustedFactory();
 
