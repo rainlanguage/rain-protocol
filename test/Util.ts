@@ -22,7 +22,7 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
-const CREATOR_FUNDS_RELEASE_TIMEOUT_DEFAULT = 10000;
+export const CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING = 100;
 
 const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
 if (smartPoolManagerAddress) {
@@ -158,7 +158,7 @@ export const factoriesDeploy = async (
     seedERC20Factory: seedERC20Factory.address,
     crpFactory: crpFactory.address,
     balancerFactory: balancerFactory.address,
-    creatorFundsReleaseTimeout: CREATOR_FUNDS_RELEASE_TIMEOUT_DEFAULT,
+    creatorFundsReleaseTimeout: CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING,
   })) as TrustFactory & Contract;
   await trustFactory.deployed();
 

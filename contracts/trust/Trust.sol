@@ -569,7 +569,7 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
             );
             // Move to `Phase.FOUR` immediately.
             scheduleNextPhase(uint32(block.number));
-            if (currentPhase() == Phase.TWO) {
+            if (currentPhase() == Phase.THREE) {
                 scheduleNextPhase(uint32(block.number));
             }
         }
@@ -591,7 +591,7 @@ contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
         IERC20(token_).approve(msg.sender, amount_);
     }
 
-    /// Enforce `Phase.THREE` as the last phase.
+    /// Enforce `Phase.FOUR` as the last phase.
     /// @inheritdoc Phased
     function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
         internal

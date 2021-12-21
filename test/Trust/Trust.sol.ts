@@ -1960,12 +1960,6 @@ describe("Trust", async function () {
       creator
     ) as RedeemableERC20 & Contract;
 
-    // the trust renounces the admin role after deploying the redeemable token.
-    assert(
-      !(await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), trust.address)),
-      "trust did not renounce admin role"
-    );
-
     // creator cannot add unfreezable
     await Util.assertError(
       async () =>
@@ -1986,6 +1980,34 @@ describe("Trust", async function () {
         await token1.grantRole(await token.RECEIVER(), signers[3].address),
       "is missing role",
       "anon added receiver, despite not being token admin"
+    );
+
+    // seeder needs some cash, give enough to seeder
+    await reserve.transfer(seeder.address, reserveInit);
+    const seederStartingReserveBalance = await reserve.balanceOf(
+      seeder.address
+    );
+
+    assert(
+      seederStartingReserveBalance.eq(reserveInit),
+      "wrong starting balance for seeder"
+    );
+
+    const reserveSeeder = new ethers.Contract(
+      reserve.address,
+      reserve.interface,
+      signers[1]
+    ) as ReserveToken & Contract;
+
+    // seeder must transfer before pool init
+    await reserveSeeder.transfer(trust.address, reserveInit);
+
+    await trust.startDutchAuction({ gasLimit: 100000000 });
+
+    // the trust renounces the admin role after starting the raise.
+    assert(
+      !(await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), trust.address)),
+      "trust did not renounce admin role after starting raise"
     );
   });
 
