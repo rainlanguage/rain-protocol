@@ -382,6 +382,7 @@ library RedeemableERC20Pool {
 
         uint256 finalBalance_ = self_.reserve()
             .balanceOf(address(self_.crp().bPool()));
+        self_.setFinalBalance(finalBalance_);
 
         // This removes as much as is allowable which leaves behind some dust.
         // The reserve dust will be trapped.

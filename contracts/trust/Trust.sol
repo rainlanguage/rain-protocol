@@ -523,6 +523,12 @@ contract Trust is Phased, ReentrancyGuard {
         emit Notice(msg.sender, data_);
     }
 
+    function setFinalBalance(uint finalBalance_) external {
+        // Library access only.
+        assert(msg.sender == address(this));
+        finalBalance = finalBalance_;
+    }
+
     function startDutchAuction() external onlyPhase(Phase.ZERO) {
         uint256 finalAuctionBlock_
             = minimumTradingDuration + block.number;
