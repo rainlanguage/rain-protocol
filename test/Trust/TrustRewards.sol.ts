@@ -199,7 +199,7 @@ describe("TrustRewards", async function () {
 
     const finalBalance = await reserveA.balanceOf(bPool.address);
 
-    await trust.endDutchAuction();
+    await trust.endDutchAuctionAndTransfer();
 
     // on successful raise
     const poolDustA = await reserveA.balanceOf(bPool.address);
@@ -569,7 +569,7 @@ describe("TrustRewards", async function () {
     const trust1 = trust.connect(signer1);
 
     // after endRaise is called, token is now next phase
-    await trust1.endDutchAuction();
+    await trust1.endDutchAuctionAndTransfer();
 
     assert(
       (await token.phaseBlocks(0)) === (await ethers.provider.getBlockNumber()),
