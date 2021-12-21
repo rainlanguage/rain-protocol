@@ -544,27 +544,26 @@ contract Trust is Phased, ReentrancyGuard {
     /// for at least `creatorFundsReleaseTimeout` blocks.
     /// Either it did not run at all, or somehow it failed to grant access
     /// to funds.
-    /// Phase.ZERO unsupported:
-    /// How to back out of the pre-seed stage??
-    /// Someone sent reserve but not enough to start the auction, and
-    /// auction will never start?
-    /// Phase.ONE unsupported:
-    /// We're mid-distribution, creator will need to wait.
     function enableCreatorFundsRelease() external nonReentrant {
         Phase startPhase_ = currentPhase();
-        if (startPhase_ > Phase.ONE) {
-            require(
-                blockNumberForPhase(
-                    phaseBlocks,
-                    startPhase_
-                ) + creatorFundsReleaseTimeout <= block.number,
-                "EARLY_RELEASE"
-            );
-            // Move to `Phase.FOUR` immediately.
+        /// Phase.ZERO unsupported:
+        /// How to back out of the pre-seed stage??
+        /// Someone sent reserve but not enough to start the auction, and
+        /// auction will never start?
+        /// Phase.ONE unsupported:
+        /// We're mid-distribution, creator will need to wait.
+        require(startPhase_ > Phase.ONE, "UNSUPPORTED_FUNDS_RELEASE");
+        require(
+            blockNumberForPhase(
+                phaseBlocks,
+                startPhase_
+            ) + creatorFundsReleaseTimeout <= block.number,
+            "EARLY_RELEASE"
+        );
+        // Move to `Phase.FOUR` immediately.
+        scheduleNextPhase(uint32(block.number));
+        if (startPhase_ == Phase.TWO) {
             scheduleNextPhase(uint32(block.number));
-            if (startPhase_ == Phase.TWO) {
-                scheduleNextPhase(uint32(block.number));
-            }
         }
     }
 
