@@ -132,8 +132,7 @@ export const factoriesDeploy = async (
 ): Promise<Factories> => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory",
-    {
-    }
+    {}
   );
   const redeemableERC20Factory =
     (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
@@ -142,16 +141,14 @@ export const factoriesDeploy = async (
 
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory",
-    {
-    }
+    {}
   );
   const seedERC20Factory =
     (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
   await seedERC20Factory.deployed();
 
   // library
-  const redeemableER20Pool = await basicDeploy("RedeemableERC20Pool", {
-  });
+  const redeemableER20Pool = await basicDeploy("RedeemableERC20Pool", {});
 
   const trustFactoryFactory = await ethers.getContractFactory("TrustFactory", {
     libraries: {
