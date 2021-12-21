@@ -18,9 +18,6 @@ import { IBalancerConstants } from "./IBalancerConstants.sol";
 
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 
-import { ERC20Pull } from "../erc20/ERC20Pull.sol";
-import { ERC20Push } from "../erc20/ERC20Push.sol";
-
 // solhint-disable-next-line max-line-length
 import { Trust, DistributionStatus, DistributionProgress } from "../trust/Trust.sol";
 import { Phase, Phased } from "../phased/Phased.sol";

@@ -28,9 +28,6 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 // solhint-disable-next-line max-line-length
 import { PoolParams, IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
 
-import { ERC20Pull } from "../erc20/ERC20Pull.sol";
-import { ERC20Push } from "../erc20/ERC20Push.sol";
-
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
     // Reserve erc20 token used to provide value to the created Balancer pool.
@@ -256,7 +253,7 @@ struct TrustRedeemableERC20Config {
 /// creates. The `Trust` never transfers ownership so it directly controls all
 /// internal workflows. No stakeholder, even the deployer or creator, can act
 /// as owner of the internals.
-contract Trust is Phased, ReentrancyGuard, ERC20Pull, ERC20Push {
+contract Trust is Phased, ReentrancyGuard {
 
     using Math for uint256;
 
