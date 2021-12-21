@@ -2,9 +2,13 @@ import { ethers, artifacts } from "hardhat";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
-import type { TrustFactory } from "../typechain/TrustFactory";
+import type {
+  TrustFactory,
+  TrustFactoryTrustConfigStruct,
+  TrustFactoryTrustRedeemableERC20ConfigStruct,
+  TrustFactoryTrustSeedERC20ConfigStruct,
+} from "../typechain/TrustFactory";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
-import type { RedeemableERC20PoolFactory } from "../typechain/RedeemableERC20PoolFactory";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
@@ -17,6 +21,8 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
+
+export const CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING = 100;
 
 const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
 if (smartPoolManagerAddress) {
@@ -116,7 +122,6 @@ export const balancerDeploy = async (): Promise<
 
 export interface Factories {
   redeemableERC20Factory: RedeemableERC20Factory & Contract;
-  redeemableERC20PoolFactory: RedeemableERC20PoolFactory & Contract;
   seedERC20Factory: SeedERC20Factory & Contract;
   trustFactory: TrustFactory & Contract;
 }
@@ -126,41 +131,41 @@ export const factoriesDeploy = async (
   balancerFactory: BFactory & Contract
 ): Promise<Factories> => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
-    "RedeemableERC20Factory"
+    "RedeemableERC20Factory",
+    {}
   );
   const redeemableERC20Factory =
     (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
       Contract;
   await redeemableERC20Factory.deployed();
 
-  const redeemableERC20PoolFactoryFactory = await ethers.getContractFactory(
-    "RedeemableERC20PoolFactory"
-  );
-  const redeemableERC20PoolFactory =
-    (await redeemableERC20PoolFactoryFactory.deploy({
-      crpFactory: crpFactory.address,
-      balancerFactory: balancerFactory.address,
-    })) as RedeemableERC20PoolFactory & Contract;
-  await redeemableERC20PoolFactory.deployed();
-
   const seedERC20FactoryFactory = await ethers.getContractFactory(
-    "SeedERC20Factory"
+    "SeedERC20Factory",
+    {}
   );
   const seedERC20Factory =
     (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
   await seedERC20Factory.deployed();
 
-  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
+  // library
+  const redeemableER20Pool = await basicDeploy("RedeemableERC20Pool", {});
+
+  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory", {
+    libraries: {
+      RedeemableERC20Pool: redeemableER20Pool.address,
+    },
+  });
   const trustFactory = (await trustFactoryFactory.deploy({
     redeemableERC20Factory: redeemableERC20Factory.address,
-    redeemableERC20PoolFactory: redeemableERC20PoolFactory.address,
     seedERC20Factory: seedERC20Factory.address,
+    crpFactory: crpFactory.address,
+    balancerFactory: balancerFactory.address,
+    creatorFundsReleaseTimeout: CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING,
   })) as TrustFactory & Contract;
   await trustFactory.deployed();
 
   return {
     redeemableERC20Factory,
-    redeemableERC20PoolFactory,
     seedERC20Factory,
     trustFactory,
   };
@@ -223,10 +228,10 @@ export const assertError = async (f, s: string, e: string) => {
 
 export const poolContracts = async (
   signers: SignerWithAddress[],
-  pool: RedeemableERC20Pool & Contract
+  trust: Trust & Contract
 ): Promise<[ConfigurableRightsPool & Contract, BPool & Contract]> => {
   const crp = new ethers.Contract(
-    await pool.crp(),
+    await trust.crp(),
     (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
     signers[0]
   ) as ConfigurableRightsPool & Contract;
@@ -241,13 +246,17 @@ export const poolContracts = async (
 export const trustDeploy = async (
   trustFactory: TrustFactory & Contract,
   creator: SignerWithAddress,
+  trustFactoryTrustConfig: TrustFactoryTrustConfigStruct,
+  trustFactoryTrustRedeemableERC20Config: TrustFactoryTrustRedeemableERC20ConfigStruct,
+  trustFactoryTrustSeedERC20Config: TrustFactoryTrustSeedERC20ConfigStruct,
   ...args
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory[
-    "createChild((address,uint256,address,uint256,uint16,uint16,uint256,(string,string)),((string,string),address,uint8,uint256),(address,uint256,uint256,uint256,uint256))"
+    "createChild((address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint256),((string,string),address,uint8,uint256),(address,address,uint16,uint16,(string,string)))"
   ](
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    trustFactoryTrustConfig,
+    trustFactoryTrustRedeemableERC20Config,
+    trustFactoryTrustSeedERC20Config,
     ...args
   );
   const receipt = await tx.wait();

@@ -18,6 +18,8 @@ import { ITier } from "../tier/ITier.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 
+import { ERC20Pull } from "../erc20/ERC20Pull.sol";
+
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
     // Account that will be the admin for the `RedeemableERC20` contract.
@@ -98,7 +100,8 @@ contract RedeemableERC20 is
     TierByConstruction,
     ERC20,
     ReentrancyGuard,
-    ERC20Burnable
+    ERC20Burnable,
+    ERC20Pull
     {
 
     using SafeERC20 for IERC20;
@@ -160,6 +163,12 @@ contract RedeemableERC20 is
         _setupRole(RECEIVER, address(0));
 
         _mint(config_.admin, config_.totalSupply);
+
+        // Smoke test on whatever is on the other side of `config_.tier`.
+        // It is a common mistake to pass in a contract without the `ITier`
+        // interface and brick transfers. We want to discover that ASAP.
+        // E.g. `Verify` instead of `VerifyTier`.
+        ITier(config_.tier).report(msg.sender);
     }
 
     /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
@@ -180,7 +189,10 @@ contract RedeemableERC20 is
             "ONLY_DISTRIBUTOR_BURNER"
         );
         scheduleNextPhase(uint32(block.number));
-        _burn(distributorAccount_, balanceOf(distributorAccount_));
+        uint distributorBalance_ = balanceOf(distributorAccount_);
+        if (distributorBalance_ > 0) {
+            _burn(distributorAccount_, balanceOf(distributorAccount_));
+        }
     }
 
     /// Anyone can emit a `TreasuryAsset` event to notify token holders that
@@ -231,6 +243,7 @@ contract RedeemableERC20 is
             uint256 assetAmount_
                 = ( ithRedeemable_.balanceOf(address(this)) * redeemAmount_ )
                 / supplyBeforeBurn_;
+            require(assetAmount_ > 0, "ZERO_TRANSFER");
             emit Redeem(
                 msg.sender,
                 address(ithRedeemable_),
@@ -290,14 +303,15 @@ contract RedeemableERC20 is
             && !(hasRole(SENDER, sender_) || hasRole(RECEIVER, receiver_))) {
             // During `Phase.ZERO` transfers are only restricted by the
             // tier of the recipient.
-            if (currentPhase() == Phase.ZERO) {
+            Phase currentPhase_ = currentPhase();
+            if (currentPhase_ == Phase.ZERO) {
                 require(
                     isTier(receiver_, minimumTier),
                     "MIN_TIER"
                 );
             }
             // During `Phase.ONE` only token burns are allowed.
-            else if (currentPhase() == Phase.ONE) {
+            else if (currentPhase_ == Phase.ONE) {
                 require(receiver_ == address(0), "FROZEN");
             }
             // There are no other phases.
