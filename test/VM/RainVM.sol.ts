@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import { concat, hexlify } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { bytify, callSize, op, arg } from "../Util";
 import type { Contract } from "ethers";
 

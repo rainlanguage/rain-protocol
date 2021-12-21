@@ -9,7 +9,6 @@ import type { Contract, ContractFactory } from "ethers";
 import type { CombineTier } from "../../typechain/CombineTier";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { CombineTierFactory } from "../../typechain/CombineTierFactory";
-import type { Source } from "../Util";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

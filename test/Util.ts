@@ -10,7 +10,6 @@ import type {
 } from "../typechain/TrustFactory";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
 import type { BigNumber, Contract, BytesLike, BigNumberish } from "ethers";
