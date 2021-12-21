@@ -354,12 +354,12 @@ export function bytify(
 /**
  * Constructs the operand for RainVM's `call` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
- * @param fnSize - number of elements on stack to allocate for functions (range 0-3)
+ * @param sourceIndex - index of function source in `immutableSourceConfig.sources`
  * @param loopSize - number of times to subdivide vals, reduces uint size but allows for more vals (range 0-7)
  * @param valSize - number of vals in outer stack (range 0-7)
  */
 export function callSize(
-  fnSize: number,
+  sourceIndex: number,
   loopSize: number,
   valSize: number
 ): number {
@@ -369,7 +369,7 @@ export function callSize(
   //   op_.val & 0xE0  //     11100000
   // )
 
-  if (fnSize < 0 || fnSize > 3) {
+  if (sourceIndex < 0 || sourceIndex > 3) {
     throw new Error("Invalid fnSize");
   } else if (loopSize < 0 || loopSize > 7) {
     throw new Error("Invalid loopSize");
@@ -380,7 +380,7 @@ export function callSize(
   callSize <<= 3;
   callSize += loopSize;
   callSize <<= 2;
-  callSize += fnSize;
+  callSize += sourceIndex;
   return callSize;
 }
 
