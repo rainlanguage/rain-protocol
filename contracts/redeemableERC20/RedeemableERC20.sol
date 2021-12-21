@@ -234,6 +234,7 @@ contract RedeemableERC20 is
             uint256 assetAmount_
                 = ( ithRedeemable_.balanceOf(address(this)) * redeemAmount_ )
                 / supplyBeforeBurn_;
+            require(assetAmount_ > 0, "ZERO_TRANSFER");
             emit Redeem(
                 msg.sender,
                 address(ithRedeemable_),
