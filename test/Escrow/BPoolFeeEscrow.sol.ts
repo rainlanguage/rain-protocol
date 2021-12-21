@@ -227,7 +227,7 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // actually end raise
-    await trust.endDutchAuction();
+    await trust.endDutchAuctionAndTransfer();
 
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.FAIL,

@@ -274,8 +274,6 @@ contract Trust is Phased, ReentrancyGuard {
     /// @param data Opaque binary data for the GUI/tooling/indexer to read.
     event Notice(address indexed sender, bytes data);
 
-    event CreatorFundsRelease(address token, uint256 amount);
-
     /// Seeder units from the initial config.
     uint16 public immutable seederUnits;
     /// Seeder cooldown duration from the initial config.
@@ -454,17 +452,6 @@ contract Trust is Phased, ReentrancyGuard {
                     config_.initialValuation
                 )
             );
-
-        // Preapprove all tokens and reserve for the CRP.
-        require(
-            config_.reserve.approve(address(crp_), config_.reserveInit),
-            "RESERVE_APPROVE"
-        );
-        require(
-            redeemableERC20_.approve(address(crp_),
-            redeemableERC20_.totalSupply()),
-            "TOKEN_APPROVE"
-        );
         redeemableERC20_.grantRole(
             redeemableERC20_.RECEIVER(),
             address(bPoolFeeEscrow)
@@ -540,58 +527,53 @@ contract Trust is Phased, ReentrancyGuard {
         RedeemableERC20Pool.startDutchAuction(this, finalAuctionBlock_);
     }
 
-    function endDutchAuction() external onlyPhase(Phase.TWO) nonReentrant {
+    function endDutchAuction() public onlyPhase(Phase.TWO) nonReentrant {
         // Move to `Phase.THREE` immediately.
         scheduleNextPhase(uint32(block.number));
         RedeemableERC20Pool.endDutchAuction(this);
     }
 
+    function endDutchAuctionAndTransfer() public {
+        endDutchAuction();
+        RedeemableERC20Pool.transferApprovedTokens(this);
+    }
+
+    /// `endDutchAuction` is apparently critically failing.
+    /// Move to Phase.FOUR immediately.
+    /// This can ONLY be done when the contract has been in the current phase
+    /// for at least `creatorFundsReleaseTimeout` blocks.
+    /// Either it did not run at all, or somehow it failed to grant access
+    /// to funds.
+    /// Phase.ZERO unsupported:
+    /// How to back out of the pre-seed stage??
+    /// Someone sent reserve but not enough to start the auction, and
+    /// auction will never start?
+    /// Phase.ONE unsupported:
+    /// We're mid-distribution, creator will need to wait.
     function enableCreatorFundsRelease() external nonReentrant {
-        if (currentPhase() == Phase.ZERO) {
-            // @TODO - how to back out of the pre-seed stage??
-            // Someone sent reserve but not enough to start the auction, and
-            // auction will never start?
-            revert("UNSUPPORTED_PHASE_ZERO");
-        }
-        // we're mid-distribution, creator will need to wait.
-        else if (currentPhase() == Phase.ONE) {
-            revert("UNSUPPORTED_PHASE_ONE");
-        }
-        // `endDutchAuction` is apparently critically failing.
-        // Either it did not run at all, or somehow it failed to grant access
-        // to funds.
-        else if (currentPhase() == Phase.TWO
-            || currentPhase() == Phase.THREE
-        ) {
+        Phase startPhase_ = currentPhase();
+        if (startPhase_ > Phase.ONE) {
             require(
                 blockNumberForPhase(
                     phaseBlocks,
-                    currentPhase()
+                    startPhase_
                 ) + creatorFundsReleaseTimeout <= block.number,
                 "EARLY_RELEASE"
             );
             // Move to `Phase.FOUR` immediately.
             scheduleNextPhase(uint32(block.number));
-            if (currentPhase() == Phase.THREE) {
+            if (startPhase_ == Phase.TWO) {
                 scheduleNextPhase(uint32(block.number));
             }
         }
     }
 
-    function creatorFundsRelease(address token_, uint256 amount_) external
-    {
-        require(msg.sender == creator, "NON_CREATOR_RELEASE");
-        // If the creator is asking for funds the `Trust` knows about and is
-        // actively managing then we MUST ensure we've reached `Phase.FOUR`.
-        if (
-            token_ == address(reserve)
-            || token_ == address(token)
-            || token_ == address(crp)
-        ) {
-            require(currentPhase() == Phase.FOUR, "NON_RELEASE_PHASE");
-        }
-        emit CreatorFundsRelease(token_, amount_);
-        IERC20(token_).approve(msg.sender, amount_);
+    function creatorFundsRelease(address token_, uint256 amount_) external {
+        RedeemableERC20Pool.creatorFundsRelease(
+            this,
+            token_,
+            amount_
+        );
     }
 
     /// Enforce `Phase.FOUR` as the last phase.

@@ -90,6 +90,8 @@ library RedeemableERC20Pool {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
+    event CreatorFundsRelease(address token, uint256 amount);
+
     /// Balancer requires a minimum balance of `10 ** 6` for all tokens at all
     /// times. ConfigurableRightsPool repo misreports this as 10 ** 12 but the
     /// Balancer Core repo has it set as `10 ** 6`. We add one here to protect
@@ -169,6 +171,17 @@ library RedeemableERC20Pool {
         config_.token.grantRole(
             config_.token.SENDER(),
             crp_
+        );
+
+        // Preapprove all tokens and reserve for the CRP.
+        require(
+            config_.reserve.approve(address(crp_), config_.reserveInit),
+            "RESERVE_APPROVE"
+        );
+        require(
+            config_.token.approve(address(crp_),
+            config_.token.totalSupply()),
+            "TOKEN_APPROVE"
         );
 
         return IConfigurableRightsPool(crp_);
@@ -472,5 +485,48 @@ library RedeemableERC20Pool {
                 remainder_
             );
         }
+    }
+
+    function transferApprovedTokens(Trust self_) public {
+        IERC20 reserve_ = self_.reserve();
+        IERC20 token_ = self_.token();
+        address creator_ = self_.creator();
+        address seeder_ = self_.seeder();
+        reserve_.safeTransfer(
+            creator_,
+            reserve_.allowance(address(this), creator_)
+        );
+        reserve_.safeTransfer(
+            seeder_,
+            reserve_.allowance(address(this), seeder_)
+        );
+        reserve_.safeTransfer(
+            address(token_),
+            reserve_.allowance(address(this), address(token_))
+        );
+    }
+
+    function creatorFundsRelease(
+        Trust self_,
+        address token_,
+        uint256 amount_
+    )
+        external
+    {
+        require(msg.sender == self_.creator(), "NON_CREATOR_RELEASE");
+        // If the creator is asking for funds the `Trust` knows about and is
+        // actively managing then we MUST ensure we've reached `Phase.FOUR`.
+        if (
+            token_ == address(self_.reserve())
+            || token_ == address(self_.token())
+            || token_ == address(self_.crp())
+        ) {
+            require(
+                self_.currentPhase() == Phase.FOUR,
+                "NON_RELEASE_PHASE"
+            );
+        }
+        emit CreatorFundsRelease(token_, amount_);
+        IERC20(token_).approve(msg.sender, amount_);
     }
 }

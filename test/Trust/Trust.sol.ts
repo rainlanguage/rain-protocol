@@ -2329,7 +2329,7 @@ describe("Trust", async function () {
     const finalBalance = await reserve.balanceOf(bPool.address);
     const tokenPay = redeemInit;
 
-    await trust.endDutchAuction();
+    await trust.endDutchAuctionAndTransfer();
 
     const poolDust = await reserve.balanceOf(bPool.address);
     const availableBalance = finalBalance.sub(poolDust);
@@ -2685,7 +2685,7 @@ describe("Trust", async function () {
       `got zero final balance ${await bPool.address}`
     );
 
-    await trust.endDutchAuction();
+    await trust.endDutchAuctionAndTransfer();
 
     const creatorEndingReserveBalance = await reserve.balanceOf(
       creator.address
@@ -3072,7 +3072,7 @@ describe("Trust", async function () {
     }
 
     // some other signer triggers trust to exit after phase change, should succeed
-    await trust2.endDutchAuction();
+    await trust2.endDutchAuctionAndTransfer();
 
     // trust should no longer hold any reserve
     assert(
@@ -3226,7 +3226,7 @@ describe("Trust", async function () {
     }
 
     const seederBefore = await reserve.balanceOf(seeder.address);
-    await trust.endDutchAuction();
+    await trust.endDutchAuctionAndTransfer();
     const dust = await reserve.balanceOf(bPool.address);
     const seederAfter = await reserve.balanceOf(seeder.address);
     const seederDiff = seederAfter.sub(seederBefore);
@@ -3420,7 +3420,7 @@ describe("Trust", async function () {
       await reserve.transfer(signer1.address, 1);
     }
 
-    await trust.endDutchAuction();
+    await trust.endDutchAuctionAndTransfer();
 
     const token1 = new ethers.Contract(
       await trust.token(),

@@ -300,14 +300,15 @@ contract RedeemableERC20 is
             && !(hasRole(SENDER, sender_) || hasRole(RECEIVER, receiver_))) {
             // During `Phase.ZERO` transfers are only restricted by the
             // tier of the recipient.
-            if (currentPhase() == Phase.ZERO) {
+            Phase currentPhase_ = currentPhase();
+            if (currentPhase_ == Phase.ZERO) {
                 require(
                     isTier(receiver_, minimumTier),
                     "MIN_TIER"
                 );
             }
             // During `Phase.ONE` only token burns are allowed.
-            else if (currentPhase() == Phase.ONE) {
+            else if (currentPhase_ == Phase.ONE) {
                 require(receiver_ == address(0), "FROZEN");
             }
             // There are no other phases.
