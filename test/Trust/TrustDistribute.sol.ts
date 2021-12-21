@@ -8,12 +8,14 @@ import type { Contract } from "ethers";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { factoriesDeploy } from "../Util";
+import type { SeedERC20 } from "../../typechain/SeedERC20";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
+const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/SeedERC20.json");
 
 enum Tier {
   NIL,
@@ -49,6 +51,234 @@ enum Phase {
 }
 
 describe("TrustDistribute", async function () {
+  it("should allow pulling approved ERC20 into seed and token contracts after auction has ended", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const creator = signers[0];
+    const deployer = signers[1]; // deployer is not creator
+    const seeder1 = signers[2];
+    const seeder2 = signers[3];
+    const signer1 = signers[4];
+
+    const [crpFactory, bFactory] = await Util.balancerDeploy();
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumStatus = Tier.GOLD;
+
+    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+      crpFactory,
+      bFactory
+    );
+
+    const erc20Config = { name: "Token", symbol: "TKN" };
+    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederUnits = 10;
+    const seederCooldownDuration = 1;
+    const seedPrice = reserveInit.div(10);
+
+    const successLevel = redeemInit
+      .add(minimumCreatorRaise)
+      .add(seederFee)
+      .add(reserveInit);
+    const finalValuation = successLevel;
+
+    const minimumTradingDuration = 50;
+
+    const trustFactoryDeployer = trustFactory.connect(deployer);
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+
+    const trust = await Util.trustDeploy(
+      trustFactoryDeployer,
+      creator,
+      {
+        creator: creator.address,
+        minimumCreatorRaise,
+        seederFee,
+        redeemInit,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation,
+        minimumTradingDuration,
+      },
+      {
+        erc20Config,
+        tier: tier.address,
+        minimumStatus,
+        totalSupply: totalTokenSupply,
+      },
+      {
+        seeder: Util.zeroAddress,
+        seederUnits,
+        seederCooldownDuration,
+        seedERC20Config,
+        seedERC20Factory: seedERC20Factory.address,
+      },
+      { gasLimit: 100000000 }
+    );
+
+    await trust.deployed();
+
+    const seeder = await trust.seeder();
+    const seederContract = new ethers.Contract(
+      seeder,
+      seedERC20Json.abi,
+      creator
+    ) as SeedERC20 & Contract;
+
+    const token = new ethers.Contract(
+      await trust.token(),
+      redeemableTokenJson.abi,
+      creator
+    ) as RedeemableERC20 & Contract;
+
+    const recipient = trust.address;
+
+    const seeder1Units = 4;
+    const seeder2Units = 6;
+
+    // seeders needs some cash, give enough each for seeding
+    await reserve.transfer(seeder1.address, seedPrice.mul(seeder1Units));
+    await reserve.transfer(seeder2.address, seedPrice.mul(seeder2Units));
+
+    await reserve
+      .connect(seeder1)
+      .approve(seederContract.address, seedPrice.mul(seeder1Units));
+    await reserve
+      .connect(seeder2)
+      .approve(seederContract.address, seedPrice.mul(seeder2Units));
+
+    // seeders send reserve to seeder contract
+    await seederContract.connect(seeder1).seed(0, seeder1Units);
+
+    await seederContract.connect(seeder2).seed(0, seeder2Units);
+
+    // Recipient gains infinite approval on reserve token withdrawals from seed contract
+    await reserve.allowance(seederContract.address, recipient);
+
+    await trust.startDutchAuction({ gasLimit: 100000000 });
+
+    const [crp, bPool] = await Util.poolContracts(signers, trust);
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
+    const reserveSpend = finalValuation.div(10);
+
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
+
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
+
+      await reserveSigner.approve(bPool.address, spend);
+      await crpSigner.pokeWeights();
+      await bPoolSigner.swapExactAmountIn(
+        reserve.address,
+        spend,
+        token.address,
+        ethers.BigNumber.from("1"),
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
+      );
+    };
+
+    // signer1 fully funds raise
+    while ((await reserve.balanceOf(bPool.address)).lte(successLevel)) {
+      await swapReserveForTokens(signer1, reserveSpend);
+    }
+
+    // add blocks until raise can end
+    while (
+      (await ethers.provider.getBlockNumber()) <=
+      startBlock + minimumTradingDuration
+    ) {
+      await reserve.transfer(signers[9].address, 0);
+    }
+
+    // seeder1 ends raise
+    await trust.connect(seeder1).endDutchAuction();
+
+    // Guard against someone accidentally calling redeem before any reserve has been returned.
+    await Util.assertError(
+      async () => await seederContract.connect(seeder1).redeem(seeder1Units),
+      "RESERVE_BALANCE",
+      "did not prevent redemption before approved seederPay was pulled"
+    );
+
+    // seeder1 pulls erc20 into SeedERC20 contract
+    await seederContract
+      .connect(seeder1)
+      .pullERC20(
+        trust.address,
+        reserve.address,
+        await reserve.allowance(trust.address, seeder)
+      );
+
+    // seeders redeem funds
+    await seederContract.connect(seeder1).redeem(seeder1Units);
+    await seederContract.connect(seeder2).redeem(seeder2Units);
+
+    // before reserve funds pulled into RedeemableERC20
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(signer1)
+          .redeem([reserve.address], await token.balanceOf(signer1.address)),
+      "ZERO_TRANSFER",
+      "RedeemableERC20 did not protect redeemer, should have checked for non-zero balance for every treasury asset"
+    );
+
+    // signer1 pulls erc20 into RedeemableERC20 contract
+    await token
+      .connect(signer1)
+      .pullERC20(
+        trust.address,
+        reserve.address,
+        await reserve.allowance(trust.address, token.address)
+      );
+
+    const signer1ReserveBefore = await reserve.balanceOf(signer1.address);
+    const signer1TokensBefore = await token.balanceOf(signer1.address);
+
+    assert(
+      !signer1TokensBefore.isZero(),
+      "expected non-zero redeemable token amount for signer1"
+    );
+
+    // signer1 can now safely redeem all redeemable tokens
+    await token.connect(signer1).redeem([reserve.address], signer1TokensBefore);
+
+    const signer1ReserveAfter = await reserve.balanceOf(signer1.address);
+    const signer1TokensAfter = await token.balanceOf(signer1.address);
+
+    assert(
+      signer1TokensAfter.isZero(),
+      "expected zero redeemable token amount for signer1 after redemption (as normal)"
+    );
+    assert(
+      signer1ReserveAfter.gt(signer1ReserveBefore),
+      "signer1 did not gain reserve tokens after redeeming their RedeemablERC20 balance"
+    );
+  });
+
   describe("should support creatorFundsRelease escape hatch", async function () {
     it("in phase TWO", async function () {
       this.timeout(0);
