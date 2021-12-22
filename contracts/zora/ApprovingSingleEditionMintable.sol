@@ -22,7 +22,7 @@ contract ApprovingSingleEditionMintable is TierByConstruction {
     function mintEdition(address to) external returns (uint256) {
         // TODO: Should this be the address of the sender or recipient?
         require(
-            isTier(to, ITier.Tier.ONE),
+            isTier(to, minimumStatus),
             "MIN_TIER"
         );
         return ISingleEditionMintable(underlyingContract).mintEdition(to);

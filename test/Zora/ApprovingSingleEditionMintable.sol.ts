@@ -57,6 +57,9 @@ describe("ApprovingSingleEditionMintable", async function () {
   });
 
   it("approves minting based on tier ", async () => {
+    await tier.setTier(signers[1].address, 2, []);
+    await tier.setTier(signers[2].address, 1, []);
+
     const createEditionTx =
       await approvingSingleEditionMintableCreator.createEdition(
         "Test",
@@ -83,21 +86,8 @@ describe("ApprovingSingleEditionMintable", async function () {
       createdApprovingEditionEvent.args.wrapperContractAddress
     )) as ApprovingSingleEditionMintable & Contract;
 
-    await tier.setTier(signers[1].address, 2, []);
-    await tier.setTier(signers[2].address, 1, []);
+    await wrapperContract.mintEdition(signers[1].address);
 
-    const allowedMintEditionTx = await wrapperContract.mintEdition(
-      signers[1].address
-    );
-    const allowedMintEditionReceipt = await allowedMintEditionTx.wait();
-
-    console.log(allowedMintEditionReceipt);
-
-    const rejectedMintEditionTx = await wrapperContract.mintEdition(
-      signers[2].address
-    );
-    const rejectedMintEditionReceipt = await rejectedMintEditionTx.wait();
-
-    console.log(rejectedMintEditionReceipt);
+    await expect(wrapperContract.mintEdition(signers[2].address)).to.be.revertedWith('MIN_TIER');
   });
 });
