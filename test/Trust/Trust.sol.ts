@@ -218,11 +218,23 @@ describe("Trust", async function () {
     // seeder1 ends raise
     await trust.connect(seeder1).endDutchAuction();
 
-    const allowance = await reserve.allowance(trust.address, seeder);
+    // owner pulls reserve
+    await reserve
+      .connect(creator)
+      .transferFrom(
+        trust.address,
+        creator.address,
+        await reserve.allowance(trust.address, creator.address)
+      );
+
     // seeder1 pulls erc20
     await seederContract
       .connect(seeder1)
-      .pullERC20(trust.address, reserve.address, allowance);
+      .pullERC20(
+        trust.address,
+        reserve.address,
+        await reserve.allowance(trust.address, seeder)
+      );
 
     // seeders redeem funds
     await seederContract1.redeem(seeder1Units);
