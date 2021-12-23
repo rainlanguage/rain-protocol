@@ -744,7 +744,7 @@ describe("TrustSeed", async function () {
 
       const reserveSpend = finalValuation.div(10);
 
-      // holder1 fully funds raise
+      // signer1 fully funds raise
       const swapReserveForTokens = async (signer, spend) => {
         // give signer some reserve
         await reserve.transfer(signer.address, spend);
