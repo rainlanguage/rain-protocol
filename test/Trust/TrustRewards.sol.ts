@@ -252,7 +252,7 @@ describe("TrustRewards", async function () {
         tokenSupply.div(10)
       );
 
-    // holder1 should get 10% of each reserve
+    // signer1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     const balanceA = await reserveA.balanceOf(signer1.address);
     const expectedBalanceA = tokenReserveA.div(10).sub(1);
@@ -337,7 +337,7 @@ describe("TrustRewards", async function () {
         tokenSupply2.div(10)
       );
 
-    // holder1 should get 10% of each reserve
+    // signer1 should get 10% of each reserve
     // (some rounding errors fixed manually)
     const balanceA2 = await reserveA.balanceOf(signer1.address);
     const expectedBalanceA2 = tokenReserveA2.div(10);
