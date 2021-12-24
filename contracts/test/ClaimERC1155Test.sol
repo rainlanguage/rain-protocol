@@ -35,7 +35,7 @@ contract ClaimERC1155Test is
         ERC20BalanceTier(ERC20BalanceTierConfig(
             redeemableToken_,
             tierValues_
-        )) { }
+        )) { } // solhint-disable-line no-empty-blocks
 
     function _afterClaim(
         address account_,
