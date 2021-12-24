@@ -45,7 +45,7 @@ describe("ERC20BalanceTier", async function () {
     );
     erc20BalanceTier = (await erc20BalanceTierFactory.deploy({
       erc20: reserve.address,
-      tierValues: LEVELS
+      tierValues: LEVELS,
     })) as ERC20BalanceTier & Contract;
 
     await erc20BalanceTier.deployed();
