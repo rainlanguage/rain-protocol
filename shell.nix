@@ -32,6 +32,8 @@ let
   '';
 
   ci-lint = pkgs.writeShellScriptBin "ci-lint" ''
+    flush-all
+    npm install
     solhint 'contracts/**/*.sol'
     prettier-check
     npm run lint
