@@ -78,6 +78,8 @@ let
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
+    flush-all
+    npm install
     hardhat compile --force
     hardhat test
   '';
