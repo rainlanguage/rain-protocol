@@ -404,12 +404,6 @@ describe("RedeemableERC20Pool", async function () {
       creator
     ) as SeedERC20 & Contract;
 
-    const token = new ethers.Contract(
-      await trust.token(),
-      redeemableTokenJson.abi,
-      creator
-    ) as RedeemableERC20 & Contract;
-
     const recipient = trust.address;
 
     const seeder1Units = 4;
