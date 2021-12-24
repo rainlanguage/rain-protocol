@@ -24,8 +24,6 @@ import { ERC20Config } from "../erc20/ERC20Config.sol";
 import { Phase, Phased } from "../phased/Phased.sol";
 
 // solhint-disable-next-line max-line-length
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-// solhint-disable-next-line max-line-length
 import { PoolParams, IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
 
 /// Summary of every contract built or referenced internally by `Trust`.
@@ -253,7 +251,7 @@ struct TrustRedeemableERC20Config {
 /// creates. The `Trust` never transfers ownership so it directly controls all
 /// internal workflows. No stakeholder, even the deployer or creator, can act
 /// as owner of the internals.
-contract Trust is Phased, ReentrancyGuard {
+contract Trust is Phased {
 
     using Math for uint256;
 
@@ -527,8 +525,9 @@ contract Trust is Phased, ReentrancyGuard {
         RedeemableERC20Pool.startDutchAuction(this, finalAuctionBlock_);
     }
 
-    function endDutchAuction() public onlyPhase(Phase.TWO) nonReentrant {
+    function endDutchAuction() public onlyPhase(Phase.TWO) {
         // Move to `Phase.THREE` immediately.
+        // Prevents reentrancy.
         scheduleNextPhase(uint32(block.number));
         RedeemableERC20Pool.endDutchAuction(this);
     }
@@ -562,7 +561,7 @@ contract Trust is Phased, ReentrancyGuard {
     /// for at least `creatorFundsReleaseTimeout` blocks.
     /// Either it did not run at all, or somehow it failed to grant access
     /// to funds.
-    function enableCreatorFundsRelease() external nonReentrant {
+    function enableCreatorFundsRelease() external {
         Phase startPhase_ = currentPhase();
         /// Phase.ZERO unsupported:
         /// How to back out of the pre-seed stage??
