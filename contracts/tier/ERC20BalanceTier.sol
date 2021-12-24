@@ -10,6 +10,16 @@ import { ValueTier } from "./ValueTier.sol";
 import { ITier } from "./ITier.sol";
 import "./ReadOnlyTier.sol";
 
+/// Constructor config for ERC20BalanceTier.
+struct ERC20BalanceTierConfig {
+    /// The erc20 token contract to check the balance
+    /// of at `report` time.
+    IERC20 erc20;
+    /// 8 values corresponding to minimum erc20
+    /// balances for `Tier.ONE` through `Tier.EIGHT`.
+    uint256[8] tierValues;
+}
+
 /// @title ERC20BalanceTier
 /// @notice `ERC20BalanceTier` inherits from `ReadOnlyTier`.
 ///
@@ -39,14 +49,11 @@ import "./ReadOnlyTier.sol";
 contract ERC20BalanceTier is ReadOnlyTier, ValueTier {
     IERC20 public immutable erc20;
 
-    /// @param erc20_ The erc20 token contract to check the balance
-    /// of at `report` time.
-    /// @param tierValues_ 8 values corresponding to minimum erc20
-    /// balances for `Tier.ONE` through `Tier.EIGHT`.
-    constructor(IERC20 erc20_, uint256[8] memory tierValues_)
-        ValueTier(tierValues_)
+    /// @param config_ Constructor config.
+    constructor(ERC20BalanceTierConfig memory config_)
+        ValueTier(config_.tierValues)
     {
-        erc20 = erc20_;
+        erc20 = config_.erc20;
     }
 
     /// Report simply truncates all tiers above the highest value held.
