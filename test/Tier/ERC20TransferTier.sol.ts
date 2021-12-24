@@ -42,10 +42,10 @@ describe("ERC20TransferTier", async function () {
       "ERC20TransferTier"
     );
 
-    erc20TransferTier = (await erc20TransferTierFactory.deploy(
-      reserve.address,
-      LEVELS
-    )) as ERC20TransferTier & Contract;
+    erc20TransferTier = (await erc20TransferTierFactory.deploy({
+      erc20: reserve.address,
+      tierValues: LEVELS,
+    })) as ERC20TransferTier & Contract;
 
     await erc20TransferTier.deployed();
   });

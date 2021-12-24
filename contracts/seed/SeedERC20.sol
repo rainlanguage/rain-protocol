@@ -7,10 +7,11 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 import { Cooldown } from "../cooldown/Cooldown.sol";
+
+import { ERC20Pull } from "../erc20/ERC20Pull.sol";
 
 /// Everything required to construct a `SeedERC20` contract.
 struct SeedERC20Config {
@@ -89,7 +90,7 @@ struct SeedERC20Config {
 /// at a later date.
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
-contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
+contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
 
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -133,8 +134,9 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown {
     /// Mint all seed tokens.
     /// @param config_ All config required to construct the contract.
     constructor (SeedERC20Config memory config_)
-    ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
-    Cooldown(config_.cooldownDuration) {
+        ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
+        Cooldown(config_.cooldownDuration)
+    {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
         require(config_.recipient != address(0), "RECIPIENT_0");

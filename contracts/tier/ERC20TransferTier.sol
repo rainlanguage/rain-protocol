@@ -9,6 +9,15 @@ import { TierReport } from "./libraries/TierReport.sol";
 import { ValueTier } from "./ValueTier.sol";
 import "./ReadWriteTier.sol";
 
+struct ERC20TransferTierConfig {
+    /// @param erc20_ The erc20 token contract to transfer balances
+    /// from/to during `setTier`.
+    IERC20 erc20;
+    /// @param tierValues_ 8 values corresponding to minimum erc20
+    /// balances for tiers ONE through EIGHT.
+    uint256[8] tierValues;
+}
+
 /// @title ERC20TransferTier
 /// @notice `ERC20TransferTier` inherits from `ReadWriteTier`.
 ///
@@ -53,14 +62,11 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
 
     IERC20 public immutable erc20;
 
-    /// @param erc20_ The erc20 token contract to transfer balances
-    /// from/to during `setTier`.
-    /// @param tierValues_ 8 values corresponding to minimum erc20
-    /// balances for tiers ONE through EIGHT.
-    constructor(IERC20 erc20_, uint256[8] memory tierValues_)
-        ValueTier(tierValues_)
+    /// @param config_ Constructor config.
+    constructor(ERC20TransferTierConfig memory config_)
+        ValueTier(config_.tierValues)
     {
-        erc20 = erc20_;
+        erc20 = config_.erc20;
     }
 
     /// Transfers balances of erc20 from/to the tiered account according to the

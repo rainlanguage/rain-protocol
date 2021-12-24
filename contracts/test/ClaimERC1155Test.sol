@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import { ERC20BalanceTier } from "../tier/ERC20BalanceTier.sol";
+import "../tier/ERC20BalanceTier.sol";
 import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
 import { ITier } from "../tier/ITier.sol";
 
@@ -32,7 +32,10 @@ contract ClaimERC1155Test is
         ERC1155("https://example.com/{id}.json")
         TierByConstructionClaim(this, ITier.Tier.THREE)
         // solhint-disable-next-line no-empty-blocks
-        ERC20BalanceTier(redeemableToken_, tierValues_) { }
+        ERC20BalanceTier(ERC20BalanceTierConfig(
+            redeemableToken_,
+            tierValues_
+        )) { } // solhint-disable-line no-empty-blocks
 
     function _afterClaim(
         address account_,

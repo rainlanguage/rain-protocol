@@ -2,11 +2,14 @@ import { ethers, artifacts } from "hardhat";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
-import type { TrustFactory } from "../typechain/TrustFactory";
+import type {
+  TrustFactory,
+  TrustFactoryTrustConfigStruct,
+  TrustFactoryTrustRedeemableERC20ConfigStruct,
+  TrustFactoryTrustSeedERC20ConfigStruct,
+} from "../typechain/TrustFactory";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
-import type { RedeemableERC20PoolFactory } from "../typechain/RedeemableERC20PoolFactory";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
-import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
 import type { BigNumber, Contract, BytesLike, BigNumberish } from "ethers";
@@ -17,6 +20,8 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
+
+export const CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING = 100;
 
 const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
 if (smartPoolManagerAddress) {
@@ -116,7 +121,6 @@ export const balancerDeploy = async (): Promise<
 
 export interface Factories {
   redeemableERC20Factory: RedeemableERC20Factory & Contract;
-  redeemableERC20PoolFactory: RedeemableERC20PoolFactory & Contract;
   seedERC20Factory: SeedERC20Factory & Contract;
   trustFactory: TrustFactory & Contract;
 }
@@ -126,41 +130,41 @@ export const factoriesDeploy = async (
   balancerFactory: BFactory & Contract
 ): Promise<Factories> => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
-    "RedeemableERC20Factory"
+    "RedeemableERC20Factory",
+    {}
   );
   const redeemableERC20Factory =
     (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
       Contract;
   await redeemableERC20Factory.deployed();
 
-  const redeemableERC20PoolFactoryFactory = await ethers.getContractFactory(
-    "RedeemableERC20PoolFactory"
-  );
-  const redeemableERC20PoolFactory =
-    (await redeemableERC20PoolFactoryFactory.deploy({
-      crpFactory: crpFactory.address,
-      balancerFactory: balancerFactory.address,
-    })) as RedeemableERC20PoolFactory & Contract;
-  await redeemableERC20PoolFactory.deployed();
-
   const seedERC20FactoryFactory = await ethers.getContractFactory(
-    "SeedERC20Factory"
+    "SeedERC20Factory",
+    {}
   );
   const seedERC20Factory =
     (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
   await seedERC20Factory.deployed();
 
-  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
+  // library
+  const redeemableER20Pool = await basicDeploy("RedeemableERC20Pool", {});
+
+  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory", {
+    libraries: {
+      RedeemableERC20Pool: redeemableER20Pool.address,
+    },
+  });
   const trustFactory = (await trustFactoryFactory.deploy({
     redeemableERC20Factory: redeemableERC20Factory.address,
-    redeemableERC20PoolFactory: redeemableERC20PoolFactory.address,
     seedERC20Factory: seedERC20Factory.address,
+    crpFactory: crpFactory.address,
+    balancerFactory: balancerFactory.address,
+    creatorFundsReleaseTimeout: CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING,
   })) as TrustFactory & Contract;
   await trustFactory.deployed();
 
   return {
     redeemableERC20Factory,
-    redeemableERC20PoolFactory,
     seedERC20Factory,
     trustFactory,
   };
@@ -183,6 +187,7 @@ export const max_uint256 = ethers.BigNumber.from(
   "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
 );
 export const max_uint32 = ethers.BigNumber.from("0xffffffff");
+export const max_uint16 = ethers.BigNumber.from("0xffff");
 
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
@@ -202,13 +207,6 @@ export const determineReserveDust = (bPoolDust: BigNumber) => {
   return bPoolDust;
 };
 
-export const isDustLike = (
-  maybeDust: BigNumber,
-  minBalance: BigNumber
-): boolean => {
-  return maybeDust.lte(minBalance) ? true : false;
-};
-
 export const assertError = async (f, s: string, e: string) => {
   let didError = false;
   try {
@@ -222,10 +220,10 @@ export const assertError = async (f, s: string, e: string) => {
 
 export const poolContracts = async (
   signers: SignerWithAddress[],
-  pool: RedeemableERC20Pool & Contract
+  trust: Trust & Contract
 ): Promise<[ConfigurableRightsPool & Contract, BPool & Contract]> => {
   const crp = new ethers.Contract(
-    await pool.crp(),
+    await trust.crp(),
     (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
     signers[0]
   ) as ConfigurableRightsPool & Contract;
@@ -240,13 +238,17 @@ export const poolContracts = async (
 export const trustDeploy = async (
   trustFactory: TrustFactory & Contract,
   creator: SignerWithAddress,
+  trustFactoryTrustConfig: TrustFactoryTrustConfigStruct,
+  trustFactoryTrustRedeemableERC20Config: TrustFactoryTrustRedeemableERC20ConfigStruct,
+  trustFactoryTrustSeedERC20Config: TrustFactoryTrustSeedERC20ConfigStruct,
   ...args
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory[
-    "createChild((address,uint256,address,uint256,uint16,uint16,uint256,(string,string)),((string,string),address,uint8,uint256),(address,uint256,uint256,uint256,uint256))"
+    "createChild((address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint256),((string,string),address,uint8,uint256),(address,address,uint16,uint16,(string,string)))"
   ](
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    trustFactoryTrustConfig,
+    trustFactoryTrustRedeemableERC20Config,
+    trustFactoryTrustSeedERC20Config,
     ...args
   );
   const receipt = await tx.wait();
@@ -353,12 +355,12 @@ export function bytify(
 /**
  * Constructs the operand for RainVM's `call` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
- * @param fnSize - number of elements on stack to allocate for functions (range 0-3)
+ * @param sourceIndex - index of function source in `immutableSourceConfig.sources`
  * @param loopSize - number of times to subdivide vals, reduces uint size but allows for more vals (range 0-7)
  * @param valSize - number of vals in outer stack (range 0-7)
  */
 export function callSize(
-  fnSize: number,
+  sourceIndex: number,
   loopSize: number,
   valSize: number
 ): number {
@@ -368,7 +370,7 @@ export function callSize(
   //   op_.val & 0xE0  //     11100000
   // )
 
-  if (fnSize < 0 || fnSize > 3) {
+  if (sourceIndex < 0 || sourceIndex > 3) {
     throw new Error("Invalid fnSize");
   } else if (loopSize < 0 || loopSize > 7) {
     throw new Error("Invalid loopSize");
@@ -379,7 +381,7 @@ export function callSize(
   callSize <<= 3;
   callSize += loopSize;
   callSize <<= 2;
-  callSize += fnSize;
+  callSize += sourceIndex;
   return callSize;
 }
 
@@ -454,14 +456,18 @@ export const pack32UIntsIntoByte = (numArray: number[]): number[] => {
   return val;
 };
 
-export const paddedReport = (report: BigNumber): string => {
+export const paddedUInt256 = (report: BigNumber): string => {
+  if (report.gt(max_uint256)) {
+    throw new Error(`${report} exceeds max uint256`);
+  }
   return "0x" + report.toHexString().substring(2).padStart(64, "0");
 };
 
-export const paddedBlock = (
-  blockNumber: number | BytesLike | Hexable
-): string => {
-  return hexlify(blockNumber).substring(2).padStart(8, "0");
+export const paddedUInt32 = (number: number | BytesLike | Hexable): string => {
+  if (ethers.BigNumber.from(number).gt(max_uint32)) {
+    throw new Error(`${number} exceeds max uint32`);
+  }
+  return hexlify(number).substring(2).padStart(8, "0");
 };
 
 export type Source = [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
@@ -483,20 +489,3 @@ export type Constants = [
   BigNumberish,
   BigNumberish
 ];
-
-export function chunkedSource(monolithicSource: Uint8Array): Source {
-  const source: Source = [0, 0, 0, 0];
-
-  for (let sourceIndex = 0; sourceIndex < 4; sourceIndex++) {
-    const sourceElement: Array<number> = [];
-
-    let i = 0;
-    for (i = 0; i < 32 && monolithicSource?.[i + sourceIndex * 32] >= 0; i++) {
-      sourceElement[i] = monolithicSource[i + sourceIndex * 32];
-    }
-
-    source[sourceIndex] = i === 0 ? 0 : sourceElement;
-  }
-
-  return source;
-}

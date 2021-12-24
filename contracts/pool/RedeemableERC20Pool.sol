@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+// solhint-disable-next-line max-line-length
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { RainMath } from "../math/RainMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -15,11 +16,14 @@ import { PoolParams, IConfigurableRightsPool } from "./IConfigurableRightsPool.s
 
 import { IBalancerConstants } from "./IBalancerConstants.sol";
 
-import { Phase, Phased } from "../phased/Phased.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 
+// solhint-disable-next-line max-line-length
+import { Trust, DistributionStatus, DistributionProgress } from "../trust/Trust.sol";
+import { Phase, Phased } from "../phased/Phased.sol";
+
 /// Everything required to construct a `RedeemableERC20Pool`.
-struct RedeemableERC20PoolConfig {
+struct CRPConfig {
     // The CRPFactory on the current network.
     // This is an address published by Balancer or deployed locally during
     // testing.
@@ -28,23 +32,8 @@ struct RedeemableERC20PoolConfig {
     // This is an address published by Balancer or deployed locally during
     // testing.
     address balancerFactory;
-    // The reserve erc20 token.
-    // The reserve token anchors our newly minted redeemable tokens to an
-    // existant value system.
-    // The weights and balances of the reserve token and the minted token
-    // define a dynamic spot price in the AMM.
     IERC20 reserve;
-    // The newly minted redeemable token contract.
-    // 100% of the total supply of the token MUST be transferred to the
-    // `RedeemableERC20Pool` for it to function.
-    // This implies a 1:1 relationship between redeemable pools and tokens.
-    // IMPORTANT: It is up to the caller to define a reserve that will remain
-    // functional and outlive the RedeemableERC20.
-    // For example, USDC could freeze the tokens owned by the RedeemableERC20
-    // contract or close their business.
     RedeemableERC20 token;
-    // Amount of reserve token to initialize the pool.
-    // The starting/final weights are calculated against this.
     uint256 reserveInit;
     // Initial marketcap of the token according to the balancer pool
     // denominated in reserve token.
@@ -57,15 +46,6 @@ struct RedeemableERC20PoolConfig {
     // reserve. The reserve weight is set to the minimum allowable value to
     // achieve maximum capital efficiency for the fund raising.
     uint256 initialValuation;
-    // Final valuation is treated the same as initial valuation.
-    // The final valuation will ONLY be achieved if NO TRADING OCCURS.
-    // Any trading activity that net deposits reserve funds into the pool will
-    // increase the spot price permanently.
-    uint256 finalValuation;
-    // Minimum duration IN BLOCKS of the trading on Balancer.
-    // The trading does not stop until the `anonEndDistribution` function is
-    // called on the owning `Trust`.
-    uint256 minimumTradingDuration;
 }
 
 /// @title RedeemableERC20Pool
@@ -104,10 +84,13 @@ struct RedeemableERC20PoolConfig {
 /// - Providing all token and reserve balances
 /// - Calling start and end raise functions
 /// - Handling the reserve proceeds of the raise
-contract RedeemableERC20Pool is Ownable, Phased {
+library RedeemableERC20Pool {
     using Math for uint256;
+    using RainMath for uint256;
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
+
+    event CreatorFundsRelease(address token, uint256 amount);
 
     /// Balancer requires a minimum balance of `10 ** 6` for all tokens at all
     /// times. ConfigurableRightsPool repo misreports this as 10 ** 12 but the
@@ -118,54 +101,14 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// enforce a minimum starting reserve balance 100x the minimum.
     uint256 public constant MIN_RESERVE_INIT = 10 ** 8;
 
-    /// RedeemableERC20 token.
-    RedeemableERC20 public immutable token;
-
-    /// Minimum trading duration from the initial config.
-    uint256 public immutable minimumTradingDuration;
-
-    /// Reserve token.
-    IERC20 public immutable reserve;
-    /// Initial reserve balance of the pool.
-    uint256 public immutable reserveInit;
-
-    /// The `ConfigurableRightsPool` built during construction.
-    IConfigurableRightsPool public immutable crp;
-
-    /// The final weight on the last block of the raise.
-    /// Note the spot price is unknown until the end because we don't know
-    /// either of the final token balances.
-    uint256 public immutable finalWeight;
-    uint256 public immutable finalValuation;
-
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
     // Slither false positive. Constructors cannot be reentrant.
     // https://github.com/crytic/slither/issues/887
     // slither-disable-next-line reentrancy-benign
-    constructor (RedeemableERC20PoolConfig memory config_) {
-        require(
-            config_.reserveInit >= MIN_RESERVE_INIT,
-            "RESERVE_INIT_MINIMUM"
-        );
-        require(
-            config_.initialValuation >= config_.finalValuation,
-            "MIN_INITIAL_VALUTION"
-        );
-
-        token = config_.token;
-        reserve = config_.reserve;
-        reserveInit = config_.reserveInit;
-
-        finalWeight = valuationWeight(
-            config_.reserveInit,
-            config_.finalValuation
-        );
-        finalValuation = config_.finalValuation;
-
-        require(config_.minimumTradingDuration > 0, "0_TRADING_DURATION");
-        minimumTradingDuration = config_.minimumTradingDuration;
-
-        // Build the CRP.
+    function setupCRP(Trust self_, CRPConfig memory config_)
+        external
+        returns (IConfigurableRightsPool)
+    {
         // The addresses in the `RedeemableERC20Pool`, as `[reserve, token]`.
         address[] memory poolAddresses_ = new address[](2);
         poolAddresses_[0] = address(config_.reserve);
@@ -210,7 +153,25 @@ contract RedeemableERC20Pool is Ownable, Phased {
                 false
             )
         );
-        crp = IConfigurableRightsPool(crp_);
+
+        // Need to grant transfers for a few balancer addresses to facilitate
+        // setup and exits.
+        config_.token.grantRole(
+            config_.token.RECEIVER(),
+            address(IConfigurableRightsPool(crp_).bFactory())
+        );
+        config_.token.grantRole(
+            config_.token.RECEIVER(),
+            crp_
+        );
+        config_.token.grantRole(
+            config_.token.RECEIVER(),
+            address(self_)
+        );
+        config_.token.grantRole(
+            config_.token.SENDER(),
+            crp_
+        );
 
         // Preapprove all tokens and reserve for the CRP.
         require(
@@ -222,6 +183,8 @@ contract RedeemableERC20Pool is Ownable, Phased {
             config_.token.totalSupply()),
             "TOKEN_APPROVE"
         );
+
+        return IConfigurableRightsPool(crp_);
     }
 
     /// https://balancer.finance/whitepaper/
@@ -245,7 +208,7 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// @param valuation_ Valuation as ( market cap * price ) denominated in
     /// reserve to calculate a weight for.
     function valuationWeight(uint256 reserveInit_, uint256 valuation_)
-        private
+        public
         pure
         returns (uint256)
     {
@@ -266,6 +229,72 @@ contract RedeemableERC20Pool is Ownable, Phased {
         return weight_;
     }
 
+    /// Accessor for the `DistributionProgress` of this `Trust`.
+    function getDistributionProgress(Trust self_)
+        external
+        view
+        returns(DistributionProgress memory)
+    {
+        address balancerPool_ = address(self_.crp().bPool());
+        uint256 poolReserveBalance_;
+        uint256 poolTokenBalance_;
+        if (balancerPool_ != address(0)) {
+            poolReserveBalance_ = self_.reserve().balanceOf(balancerPool_);
+            poolTokenBalance_ = self_.token().balanceOf(balancerPool_);
+        }
+        else {
+            poolReserveBalance_ = 0;
+            poolTokenBalance_ = 0;
+        }
+
+        return DistributionProgress(
+            self_.getDistributionStatus(),
+            self_.phaseBlocks(0),
+            self_.phaseBlocks(1),
+            poolReserveBalance_,
+            poolTokenBalance_,
+            self_.reserveInit(),
+            self_.minimumCreatorRaise(),
+            self_.seederFee(),
+            self_.redeemInit()
+        );
+    }
+
+    /// Accessor for the `DistributionStatus` of this `Trust`.
+    function getDistributionStatus(Trust self_)
+        external
+        view
+        returns (DistributionStatus)
+    {
+        Phase poolPhase_ = self_.currentPhase();
+        if (poolPhase_ == Phase.ZERO) {
+            if (
+                self_.reserve().balanceOf(address(this)) >= self_.reserveInit()
+            ) {
+                return DistributionStatus.Seeded;
+            } else {
+                return DistributionStatus.Pending;
+            }
+        }
+        else if (poolPhase_ == Phase.ONE) {
+            return DistributionStatus.Trading;
+        }
+        else if (poolPhase_ == Phase.TWO) {
+            return DistributionStatus.TradingCanEnd;
+        }
+        else if (poolPhase_ == Phase.THREE || poolPhase_ == Phase.FOUR) {
+            if (self_.finalBalance() >= self_.successBalance()) {
+                return DistributionStatus.Success;
+            }
+            else {
+                return DistributionStatus.Fail;
+            }
+        }
+        else {
+            revert("UNKNOWN_POOL_PHASE");
+        }
+    }
+
     /// Allow anyone to start the Balancer style dutch auction.
     /// The auction won't start unless this contract owns enough of both the
     /// tokens for the pool, so it is safe for anon to call.
@@ -275,39 +304,33 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// `Phase.THREE` indicates the auction has ended.
     /// Creates the pool via. the CRP contract and configures the weight change
     /// curve.
-    function startDutchAuction() external onlyPhase(Phase.ZERO)
+    function startDutchAuction(Trust self_, uint256 finalAuctionBlock_)
+        external
     {
-        uint256 finalAuctionBlock_ = minimumTradingDuration + block.number;
-        // Move to `Phase.ONE` immediately.
-        scheduleNextPhase(uint32(block.number));
-        // Schedule `Phase.TWO` for `1` block after auctions weights have
-        // stopped changing.
-        scheduleNextPhase(uint32(finalAuctionBlock_ + 1));
-
         // Define the weight curve.
         uint256[] memory finalWeights_ = new uint256[](2);
         finalWeights_[0] = IBalancerConstants.MIN_WEIGHT;
-        finalWeights_[1] = finalWeight;
+        finalWeights_[1] = self_.finalWeight();
 
         // Max pool tokens to minimise dust on exit.
         // No minimum weight change period.
         // No time lock (we handle our own locks in the trust).
-        crp.createPool(IBalancerConstants.MAX_POOL_SUPPLY, 0, 0);
+        self_.crp().createPool(IBalancerConstants.MAX_POOL_SUPPLY, 0, 0);
         // Now that the bPool has a known address we need it to be a RECEIVER
         // as it is impossible in general for `Tier` restricted tokens to be
         // able to approve the pool itself. This ensures that token holders can
         // always sell back into the pool.
         // Note: We do NOT grant the bPool the SENDER role as that would bypass
         // `Tier` restrictions for everyone buying the token.
-        token.grantRole(
-            token.RECEIVER(),
-            crp.bPool()
+        self_.token().grantRole(
+            self_.token().RECEIVER(),
+            self_.crp().bPool()
         );
-        token.renounceRole(
-            token.DEFAULT_ADMIN_ROLE(),
+        self_.token().renounceRole(
+            self_.token().DEFAULT_ADMIN_ROLE(),
             address(this)
         );
-        crp.updateWeightsGradually(
+        self_.crp().updateWeightsGradually(
             finalWeights_,
             block.number,
             finalAuctionBlock_
@@ -321,19 +344,14 @@ contract RedeemableERC20Pool is Ownable, Phased {
     /// Removes all LP tokens from the Balancer pool.
     /// Burns all unsold redeemable tokens.
     /// Forwards the reserve balance to the owner.
-    function ownerEndDutchAuction() external onlyOwner onlyPhase(Phase.TWO) {
-        // Move to `Phase.THREE` immediately.
-        // In `Phase.THREE` all `RedeemableERC20Pool` functions are no longer
-        // callable.
-        scheduleNextPhase(uint32(block.number));
-
+    function endDutchAuction(Trust self_) external  {
         // Ensure the bPool is aware of the real internal token balances.
         // Balancer will ignore tokens transferred to it until they are gulped.
-        IBPool(crp.bPool()).gulp(address(reserve));
-        IBPool(crp.bPool()).gulp(address(token));
+        IBPool(self_.crp().bPool()).gulp(address(self_.reserve()));
+        IBPool(self_.crp().bPool()).gulp(address(self_.token()));
 
-        uint256 totalPoolTokens_ = IERC20(address(crp)).totalSupply();
-        uint256 selfPoolTokens_ = IERC20(address(crp))
+        uint256 totalPoolTokens_ = IERC20(address(self_.crp())).totalSupply();
+        uint256 selfPoolTokens_ = IERC20(address(self_.crp()))
             .balanceOf(address(this));
 
         // Balancer enforces a global minimum pool LP token supply as
@@ -344,18 +362,26 @@ contract RedeemableERC20Pool is Ownable, Phased {
         // - The global minimum
         // - The LP token supply implied by the reserve
         // - The LP token supply implied by the token
-        uint256 minReservePoolTokens
-            = ( MIN_BALANCER_POOL_BALANCE * totalPoolTokens_ )
-            // It's important to use the balance in the opinion of the bPool to
-            // be sure that the pool token calculations are the same.
-            / IBPool(crp.bPool()).getBalance(address(reserve));
+        uint256 minReservePoolTokens = MIN_BALANCER_POOL_BALANCE
+                .saturatingMul(totalPoolTokens_)
+                // It's important to use the balance in the opinion of the
+                // bPool to be sure that the pool token calculations are the
+                // same.
+                .saturatingDiv(
+                    IBPool(self_.crp().bPool())
+                        .getBalance(address(self_.reserve()))
+                );
         // The minimum redeemable token supply is `10 ** 18` so it is near
         // impossible to hit this before the reserve or global pool minimums.
-        uint256 minRedeemablePoolTokens
-            = ( MIN_BALANCER_POOL_BALANCE * totalPoolTokens_ )
-            // It's important to use the balance in the opinion of the bPool to
-            // be sure that the pool token calculations are the same.
-            / IBPool(crp.bPool()).getBalance(address(token));
+        uint256 minRedeemablePoolTokens = MIN_BALANCER_POOL_BALANCE
+                .saturatingMul(totalPoolTokens_)
+                // It's important to use the balance in the opinion of the
+                // bPool tovbe sure that the pool token calculations are the
+                // same.
+                .saturatingDiv(
+                    IBPool(self_.crp().bPool())
+                        .getBalance(address(self_.token()))
+                );
         uint256 minPoolSupply_ = IBalancerConstants.MIN_POOL_SUPPLY
             .max(minReservePoolTokens)
             .max(minRedeemablePoolTokens)
@@ -367,34 +393,140 @@ contract RedeemableERC20Pool is Ownable, Phased {
             // `crp.exitPool` subtracts one so token amounts round down.
             + 1;
 
+        uint256 finalBalance_ = self_.reserve()
+            .balanceOf(address(self_.crp().bPool()));
+        self_.setFinalBalance(finalBalance_);
+
         // This removes as much as is allowable which leaves behind some dust.
         // The reserve dust will be trapped.
         // The redeemable token will be burned when it moves to its own
         // `Phase.ONE`.
-        crp.exitPool(
-            selfPoolTokens_.min(totalPoolTokens_ - minPoolSupply_),
+        self_.crp().exitPool(
+            selfPoolTokens_.min(
+                totalPoolTokens_.saturatingSub(minPoolSupply_)
+            ),
             new uint256[](2)
         );
 
         // Burn all unsold token inventory.
-        token.burn(token.balanceOf(address(this)));
+        self_.token().burn(self_.token().balanceOf(address(this)));
 
-        // Send reserve back to owner (`Trust`) to be distributed to
-        // stakeholders.
-        reserve.safeTransfer(
-            owner(),
-            reserve.balanceOf(address(this))
+        // Burning the distributor moves the token to its `Phase.ONE` and
+        // unlocks redemptions.
+        // The distributor is the `bPool` itself.
+        // Requires that the `Trust` has been granted `ONLY_DISTRIBUTOR_BURNER`
+        // role on the `redeemableERC20`.
+        self_.token().burnDistributor(
+            address(self_.crp().bPool())
+        );
+
+        // Balancer traps a tiny amount of reserve in the pool when it exits.
+        uint256 poolDust_ = self_.reserve()
+            .balanceOf(address(self_.crp().bPool()));
+        // The dust is included in the final balance for UX reasons.
+        // We don't want to fail the raise due to dust, even if technically it
+        // was a failure.
+        // To ensure a good UX for creators and token holders we subtract the
+        // dust from the seeder.
+        uint256 availableBalance_ = self_.reserve().balanceOf(address(this));
+
+        // Base payments for each fundraiser.
+        uint256 seederPay_ = self_.reserveInit().saturatingSub(poolDust_);
+        uint256 creatorPay_ = 0;
+
+        // Set aside the redemption and seed fee if we reached the minimum.
+        if (finalBalance_ >= self_.successBalance()) {
+            // The seeder gets an additional fee on success.
+            seederPay_ = seederPay_.saturatingAdd(self_.seederFee());
+
+            // The creators get new funds raised minus redeem and seed fees.
+            // Can subtract without underflow due to the inequality check for
+            // this code block.
+            // Proof (assuming all positive integers):
+            // final balance >= success balance
+            // AND seed pay = seed init + seed fee
+            // AND success = seed init + seed fee + token pay + min raise
+            // SO success = seed pay + token pay + min raise
+            // SO success >= seed pay + token pay
+            // SO success - (seed pay + token pay) >= 0
+            // SO final balance - (seed pay + token pay) >= 0
+            //
+            // Implied is the remainder of finalBalance_ as redeemInit
+            // This will be transferred to the token holders below.
+            creatorPay_ = availableBalance_
+                    .saturatingSub(
+                        seederPay_.saturatingAdd(self_.redeemInit())
+                    );
+        }
+
+        if (creatorPay_ > 0) {
+            self_.reserve().approve(
+                self_.creator(),
+                creatorPay_
+            );
+        }
+
+        if (seederPay_ > 0) {
+            self_.reserve().approve(
+                self_.seeder(),
+                seederPay_
+            );
+        }
+
+        // Approve everything left to the token holders.
+        // Implicitly the remainder of the finalBalance_ is:
+        // - the redeem init if successful
+        // - whatever users deposited in the AMM if unsuccessful
+        uint256 remainder_ = availableBalance_
+            .saturatingSub(creatorPay_.saturatingAdd(seederPay_));
+        if (remainder_ > 0) {
+            self_.reserve().approve(
+                address(self_.token()),
+                remainder_
+            );
+        }
+    }
+
+    function transferApprovedTokens(Trust self_) public {
+        IERC20 reserve_ = self_.reserve();
+        IERC20 token_ = self_.token();
+        address creator_ = self_.creator();
+        address seeder_ = self_.seeder();
+        reserve_.safeTransfer(
+            creator_,
+            reserve_.allowance(address(this), creator_)
+        );
+        reserve_.safeTransfer(
+            seeder_,
+            reserve_.allowance(address(this), seeder_)
+        );
+        reserve_.safeTransfer(
+            address(token_),
+            reserve_.allowance(address(this), address(token_))
         );
     }
 
-    /// Enforce `Phase.THREE` as the last phase.
-    /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
-        internal
-        override
-        virtual
+    function creatorFundsRelease(
+        Trust self_,
+        address token_,
+        uint256 amount_
+    )
+        external
     {
-        super._beforeScheduleNextPhase(nextPhaseBlock_);
-        assert(currentPhase() < Phase.THREE);
+        require(msg.sender == self_.creator(), "NON_CREATOR_RELEASE");
+        // If the creator is asking for funds the `Trust` knows about and is
+        // actively managing then we MUST ensure we've reached `Phase.FOUR`.
+        if (
+            token_ == address(self_.reserve())
+            || token_ == address(self_.token())
+            || token_ == address(self_.crp())
+        ) {
+            require(
+                self_.currentPhase() == Phase.FOUR,
+                "NON_RELEASE_PHASE"
+            );
+        }
+        emit CreatorFundsRelease(token_, amount_);
+        IERC20(token_).approve(msg.sender, amount_);
     }
 }
