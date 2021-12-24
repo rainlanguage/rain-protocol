@@ -22,6 +22,7 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { expect, assert } = chai;
 
 export const CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING = 100;
+export const MAX_RAISE_DURATION_TESTING = 100;
 
 const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
 if (smartPoolManagerAddress) {
@@ -160,6 +161,7 @@ export const factoriesDeploy = async (
     crpFactory: crpFactory.address,
     balancerFactory: balancerFactory.address,
     creatorFundsReleaseTimeout: CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING,
+    maxRaiseDuration: MAX_RAISE_DURATION_TESTING,
   })) as TrustFactory & Contract;
   await trustFactory.deployed();
 
