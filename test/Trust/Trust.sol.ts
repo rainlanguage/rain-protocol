@@ -55,10 +55,16 @@ const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/Seed
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 describe("Trust", async function () {
-  it("should work happily if griefer sends small amount of reserve to contracts and signers including SeedERC20 contract", async function () {
+  it("should work on the happy path", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
+
+    const creator = signers[0];
+    const deployer = signers[1]; // deployer is not creator
+    const seeder1 = signers[2];
+    const seeder2 = signers[3];
+    const signer1 = signers[4];
 
     const [crpFactory, bFactory] = await Util.balancerDeploy();
 
@@ -69,7 +75,9 @@ describe("Trust", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.NIL;
+    const minimumStatus = Tier.GOLD;
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -84,19 +92,6 @@ describe("Trust", async function () {
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-
-    const creator = signers[0];
-    const deployer = signers[1]; // deployer is not creator
-    const seeder1 = signers[2];
-    const seeder2 = signers[3];
-    const signer1 = signers[4];
-    const griefer = signers[5];
-
-    // griefer acquires 1m reserve somehow
-    await reserve.transfer(
-      griefer.address,
-      ethers.BigNumber.from("1000000" + Util.sixZeros)
-    );
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederUnits = 10;
@@ -149,7 +144,7 @@ describe("Trust", async function () {
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
-      signers[0]
+      creator
     ) as SeedERC20 & Contract;
 
     const token = new ethers.Contract(
@@ -157,32 +152,6 @@ describe("Trust", async function () {
       redeemableTokenJson.abi,
       creator
     ) as RedeemableERC20 & Contract;
-
-    // attempt to grief contracts and signers
-    await reserve
-      .connect(griefer)
-      .transfer(trust.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(token.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(creator.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seederContract.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(deployer.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seeder1.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seeder2.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(signer1.address, "10" + Util.sixZeros);
 
     const recipient = trust.address;
 
@@ -212,17 +181,11 @@ describe("Trust", async function () {
 
     const [crp, bPool] = await Util.poolContracts(signers, trust);
 
-    // attempt to grief contracts
-    await reserve.connect(griefer).transfer(crp.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(bPool.address, "10" + Util.sixZeros);
-
     const startBlock = await ethers.provider.getBlockNumber();
 
     const reserveSpend = finalValuation.div(10);
 
-    // holder1 fully funds raise
+    // signer1 fully funds raise
     const swapReserveForTokens = async (signer, spend) => {
       // give signer some reserve
       await reserve.transfer(signer.address, spend);
@@ -246,80 +209,49 @@ describe("Trust", async function () {
       await swapReserveForTokens(signer1, reserveSpend);
     }
 
-    // add blocks until raise can end
-    while (
-      (await ethers.provider.getBlockNumber()) <=
-      startBlock + minimumTradingDuration
-    ) {
-      await reserve.transfer(signers[9].address, 0);
-    }
-
-    // attempt to grief contracts and signers
-    await reserve
-      .connect(griefer)
-      .transfer(trust.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(token.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(creator.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seederContract.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(deployer.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seeder1.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seeder2.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(signer1.address, "10" + Util.sixZeros);
-    await reserve.connect(griefer).transfer(crp.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(bPool.address, "10" + Util.sixZeros);
+    await Util.createEmptyBlock(
+      startBlock +
+        minimumTradingDuration -
+        (await ethers.provider.getBlockNumber())
+    );
 
     // seeder1 ends raise
     await trust.connect(seeder1).endDutchAuction();
 
-    // attempt to grief contracts and signers
+    // owner pulls reserve
     await reserve
-      .connect(griefer)
-      .transfer(trust.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(token.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(creator.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seederContract.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(deployer.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seeder1.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(seeder2.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(signer1.address, "10" + Util.sixZeros);
-    await reserve.connect(griefer).transfer(crp.address, "10" + Util.sixZeros);
-    await reserve
-      .connect(griefer)
-      .transfer(bPool.address, "10" + Util.sixZeros);
+      .connect(creator)
+      .transferFrom(
+        trust.address,
+        creator.address,
+        await reserve.allowance(trust.address, creator.address)
+      );
+
+    // seeder1 pulls erc20
+    await seederContract
+      .connect(seeder1)
+      .pullERC20(
+        trust.address,
+        reserve.address,
+        await reserve.allowance(trust.address, seeder)
+      );
 
     // seeders redeem funds
     await seederContract1.redeem(seeder1Units);
     await seederContract2.redeem(seeder2Units);
+
+    // signer1 pulls erc20 into RedeemableERC20 contract
+    await token
+      .connect(signer1)
+      .pullERC20(
+        trust.address,
+        reserve.address,
+        await reserve.allowance(trust.address, token.address)
+      );
+
+    await token
+      .connect(signer1)
+      .redeem([reserve.address], await token.balanceOf(signer1.address));
   });
 
   it("should work happily if griefer sends small amount of reserve to contracts and signers", async function () {
