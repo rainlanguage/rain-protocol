@@ -32,6 +32,8 @@ let
   '';
 
   ci-lint = pkgs.writeShellScriptBin "ci-lint" ''
+    flush-all
+    npm install
     solhint 'contracts/**/*.sol'
     prettier-check
     npm run lint
@@ -43,11 +45,11 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
-    npm install
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
     flush-all
+    npm install
 
     # Run slither against all our contracts.
     # Disable npx as nix-shell already handles availability of what we need.
@@ -65,6 +67,7 @@ let
 
   cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
     flush-all
+    npm install
 
     hardhat compile --force
     dir=`git rev-parse HEAD`
@@ -77,6 +80,8 @@ let
   '';
 
   ci-test = pkgs.writeShellScriptBin "ci-test" ''
+    flush-all
+    npm install
     hardhat compile --force
     hardhat test
   '';
@@ -109,6 +114,7 @@ let
 
     flush-all
 
+    npm install
     npm run build
 
     cp artifacts/contracts/**/*.json artifacts
@@ -153,9 +159,8 @@ pkgs.stdenv.mkDerivation {
   name = "shell";
   buildInputs = [
     pkgs.nixpkgs-fmt
-    pkgs.nodePackages.npm
     pkgs.yarn
-    pkgs.nodejs-14_x
+    pkgs.nodejs-16_x
     pkgs.slither-analyzer
     local-node
     local-fork

@@ -33,6 +33,7 @@ struct TrustFactoryConfig {
     address crpFactory;
     address balancerFactory;
     uint32 creatorFundsReleaseTimeout;
+    uint32 maxRaiseDuration;
 }
 
 struct TrustFactoryTrustConfig {
@@ -82,6 +83,7 @@ contract TrustFactory is Factory {
     address public immutable crpFactory;
     address public immutable balancerFactory;
     uint32 public immutable creatorFundsReleaseTimeout;
+    uint32 public immutable maxRaiseDuration;
     BPoolFeeEscrow public immutable bPoolFeeEscrow;
 
     /// @param config_ All configuration for the `TrustFactory`.
@@ -91,6 +93,7 @@ contract TrustFactory is Factory {
         crpFactory = config_.crpFactory;
         balancerFactory = config_.balancerFactory;
         creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
+        maxRaiseDuration = config_.maxRaiseDuration;
         bPoolFeeEscrow = new BPoolFeeEscrow(this);
     }
 
@@ -145,6 +148,12 @@ contract TrustFactory is Factory {
                 TrustFactoryTrustRedeemableERC20Config,
                 TrustFactoryTrustSeedERC20Config
             )
+        );
+
+        require(
+            trustFactoryTrustConfig_.minimumTradingDuration
+                <= maxRaiseDuration,
+            "MAX_RAISE_DURATION"
         );
 
         address trust_ = address(new Trust(
