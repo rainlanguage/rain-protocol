@@ -227,6 +227,9 @@ contract RedeemableERC20 is
         onlyPhase(Phase.ONE)
         nonReentrant
     {
+        // Guard against redemptions for no treasury assets.
+        require(treasuryAssets_.length > 0, "EMPTY_ASSETS");
+
         // The fraction of the assets we release is the fraction of the
         // outstanding total supply of the redeemable burned.
         // Every treasury asset is released in the same proportion.

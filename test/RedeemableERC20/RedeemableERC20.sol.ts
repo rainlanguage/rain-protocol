@@ -35,6 +35,77 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
+  it("should guard against null treasury assets redemptions", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const alice = signers[1];
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumStatus = Tier.GOLD;
+
+    const redeemableERC20Factory = await ethers.getContractFactory(
+      "RedeemableERC20"
+    );
+    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+
+    await tier.setTier(alice.address, Tier.GOLD, []);
+
+    const redeemableERC20 = (await redeemableERC20Factory.deploy({
+      admin: signers[0].address,
+      erc20Config,
+      tier: tier.address,
+      minimumStatus: minimumStatus,
+      totalSupply: totalSupply,
+    })) as RedeemableERC20 & Contract;
+
+    await redeemableERC20.deployed();
+
+    // Redemption not allowed yet.
+    await Util.assertError(
+      async () => await redeemableERC20.redeem([reserve.address], 100),
+      "BAD_PHASE",
+      "redeem did not error"
+    );
+
+    // Send alice some tokens.
+    await redeemableERC20.transfer(alice.address, 10);
+
+    await redeemableERC20.grantRole(
+      await redeemableERC20.DISTRIBUTOR_BURNER(),
+      signers[0].address
+    );
+
+    await redeemableERC20.burnDistributor(Util.oneAddress);
+
+    const aliceRedeemableERC20 = redeemableERC20.connect(alice);
+    // owner is on the unfreezable list.
+    await aliceRedeemableERC20.transfer(signers[0].address, 1);
+
+    // pool exits and reserve tokens sent to redeemable ERC20 address
+    const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
+    await reserve.transfer(redeemableERC20.address, reserveTotal);
+
+    // redeem should work now
+    const redeemAmount = ethers.BigNumber.from("50" + Util.eighteenZeros);
+
+    // signer redeems all tokens they have for fraction of each asset
+    await Util.assertError(
+      async () => await redeemableERC20.redeem([], redeemAmount),
+      "EMPTY_ASSETS",
+      "wrongly redeemed null treasury assets"
+    );
+  });
+
   it("should emit TreasuryAsset event", async function () {
     this.timeout(0);
 
