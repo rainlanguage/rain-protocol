@@ -533,9 +533,27 @@ contract Trust is Phased, ReentrancyGuard {
         RedeemableERC20Pool.endDutchAuction(this);
     }
 
+    /// After `endDutchAuction` has been called this function will sweep all
+    /// the approvals atomically. This MAY fail if there is some bug or reason
+    /// ANY of the transfers can't succeed. In that case each transfer should
+    /// be attempted by each entity unatomically. This is provided as a public
+    /// function as anyone can call `endDutchAuction` even if the transfers
+    /// WILL succeed, so in that case it is best to process them all together
+    /// as a single transaction.
+    function transferApprovedTokens() public {
+        RedeemableERC20Pool.transferApprovedTokens(this);
+    }
+
+    /// Atomically calls `endDutchAuction` and `transferApprovedTokens`.
+    /// This should be the defacto approach to end the auction as it performs
+    /// all necessary steps to clear funds in a single transaction. However it
+    /// MAY fail if there is some bug or reason ANY of the transfers can't
+    /// succeed. In that case it is better to call `endDutchAuction` to merely
+    /// approve funds and then let each entity attempt to withdraw tokens for
+    /// themselves unatomically.
     function endDutchAuctionAndTransfer() public {
         endDutchAuction();
-        RedeemableERC20Pool.transferApprovedTokens(this);
+        transferApprovedTokens();
     }
 
     /// `endDutchAuction` is apparently critically failing.
