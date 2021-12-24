@@ -14,8 +14,8 @@ contract ERC20TransferTierFactory is Factory {
     ) internal virtual override returns(address) {
         (ERC20TransferTierConfig memory config_)
             = abi.decode(data_, (ERC20TransferTierConfig));
-        ERC20TransferTier ERC20TransferTier_ = new ERC20TransferTier(config_);
-        return address(ERC20TransferTier_);
+        ERC20TransferTier erc20TransferTier_ = new ERC20TransferTier(config_);
+        return address(erc20TransferTier_);
     }
 
     /// Typed wrapper for `createChild` with `ERC20TransferTierConfig`.
