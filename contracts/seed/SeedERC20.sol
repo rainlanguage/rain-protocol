@@ -135,8 +135,9 @@ contract SeedERC20 is Ownable, ERC20, Phased, Cooldown, ERC20Pull {
     /// Mint all seed tokens.
     /// @param config_ All config required to construct the contract.
     constructor (SeedERC20Config memory config_)
-    ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
-    Cooldown(config_.cooldownDuration) {
+        ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
+        Cooldown(config_.cooldownDuration)
+    {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
         require(config_.recipient != address(0), "RECIPIENT_0");
