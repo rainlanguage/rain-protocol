@@ -14,7 +14,7 @@ contract CombineTier is
     RainVM,
     ImmutableSource
 {
-    uint internal ACCOUNT = 0;
+    uint internal constant ACCOUNT = 0;
     uint internal immutable blockOpsStart;
     uint internal immutable tierOpsStart;
     uint internal immutable combineTierOpsStart;
