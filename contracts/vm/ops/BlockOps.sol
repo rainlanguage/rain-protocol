@@ -3,12 +3,11 @@ pragma solidity ^0.8.10;
 
 import { State, Op } from "../RainVM.sol";
 
-enum Ops {
-    blockNumber,
-    length
-}
-
 library BlockOps {
+
+    uint constant internal BLOCK_NUMBER = 0;
+    uint constant internal OPS_LENGTH = 1;
+
     function applyOp(
         bytes memory,
         State memory state_,
@@ -18,7 +17,7 @@ library BlockOps {
     view
     {
         unchecked {
-            if (op_.code == 0) {
+            if (op_.code == BLOCK_NUMBER) {
                 state_.stack[state_.stackIndex] = block.number;
                 state_.stackIndex++;
             }

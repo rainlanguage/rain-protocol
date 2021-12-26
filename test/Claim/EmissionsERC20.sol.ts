@@ -28,9 +28,9 @@ const enum Opcode {
   add,
   sub,
   mul,
-  pow,
   div,
   mod,
+  pow,
   min,
   max,
   average,
@@ -1097,8 +1097,7 @@ describe("EmissionsERC20", async function () {
 
     assert(await emissionsERC20.allowDelegatedClaims());
     assert(
-      (await emissionsERC20.constructionBlockNumber()) ===
-        constructionBlockNumber,
+      (await emissionsERC20.constructionBlockNumber()).eq(constructionBlockNumber),
       `wrong construction block number
       expected  ${constructionBlockNumber}
       got       ${await emissionsERC20.constructionBlockNumber()}`

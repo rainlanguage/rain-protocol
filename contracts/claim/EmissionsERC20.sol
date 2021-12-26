@@ -6,10 +6,10 @@ import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
 import { RainVM, State, Op } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
-import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
-import { ThisOps, Ops as ThisOpsOps } from "../vm/ops/ThisOps.sol";
-import { MathOps, Ops as MathOpsOps } from "../vm/ops/MathOps.sol";
-import { TierOps, Ops as TierOpsOps } from "../vm/ops/TierOps.sol";
+import { BlockOps } from "../vm/ops/BlockOps.sol";
+import { ThisOps } from "../vm/ops/ThisOps.sol";
+import { MathOps } from "../vm/ops/MathOps.sol";
+import { TierOps } from "../vm/ops/TierOps.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 enum Ops {
@@ -31,16 +31,20 @@ contract EmissionsERC20 is
     RainVM,
     ImmutableSource
 {
+    uint internal constant ACCOUNT = 0;
+    uint internal constant CONSTRUCTION_BLOCK_NUMBER = 1;
+
+    uint internal immutable blockOpsStart;
+    uint internal immutable thisOpsStart;
+    uint internal immutable mathOpsStart;
+    uint internal immutable tierOpsStart;
+    uint internal immutable emissionsOpsStart;
+
     bool public immutable allowDelegatedClaims;
-    uint8 public immutable blockOpsStart;
-    uint8 public immutable thisOpsStart;
-    uint8 public immutable mathOpsStart;
-    uint8 public immutable tierOpsStart;
-    uint8 public immutable emissionsOpsStart;
     /// Block this contract was constructed.
     /// Can be used to calculate claim entitlements relative to the deployment
     /// of the emissions contract itself.
-    uint32 public immutable constructionBlockNumber;
+    uint public immutable constructionBlockNumber;
 
     /// Each claim is modelled as a report so that the claim report can be
     /// diffed against the upstream report from a tier based emission scheme.
@@ -50,15 +54,15 @@ contract EmissionsERC20 is
         ImmutableSource(config_.immutableSourceConfig)
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
     {
-        blockOpsStart = uint8(RainVM.OPS_LENGTH);
-        thisOpsStart = blockOpsStart + uint8(BlockOpsOps.length);
-        mathOpsStart = thisOpsStart + uint8(ThisOpsOps.length);
-        tierOpsStart = mathOpsStart + uint8(MathOpsOps.length);
-        emissionsOpsStart = tierOpsStart + uint8(TierOpsOps.length);
+        blockOpsStart = RainVM.OPS_LENGTH;
+        thisOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
+        mathOpsStart = thisOpsStart + ThisOps.OPS_LENGTH;
+        tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
+        emissionsOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
 
         allowDelegatedClaims = config_.allowDelegatedClaims;
 
-        constructionBlockNumber = uint32(block.number);
+        constructionBlockNumber = block.number;
     }
 
     function applyOp(
@@ -105,13 +109,13 @@ contract EmissionsERC20 is
             }
             else {
                 op_.code -= emissionsOpsStart;
-                if (op_.code == 0) {
+                if (op_.code == ACCOUNT) {
                     (address account_) = abi.decode(context_, (address));
                     state_.stack[state_.stackIndex]
                     = uint256(uint160(account_));
                     state_.stackIndex++;
                 }
-                else if (op_.code == 1) {
+                else if (op_.code == CONSTRUCTION_BLOCK_NUMBER) {
                     state_.stack[state_.stackIndex] = constructionBlockNumber;
                     state_.stackIndex++;
                 }

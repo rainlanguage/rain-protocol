@@ -5,22 +5,20 @@ import { State, Op } from "../RainVM.sol";
 import "../../tier/libraries/TierReport.sol";
 import "../../tier/libraries/TierwiseCombine.sol";
 
-enum Ops {
-    report,
-    never,
-    always,
-    diff,
-    updateBlocksForTierRange,
-    everyLteMin,
-    everyLteMax,
-    everyLteFirst,
-    anyLteMin,
-    anyLteMax,
-    anyLteFirst,
-    length
-}
-
 library TierOps {
+
+    uint constant internal REPORT = 0;
+    uint constant internal NEVER = 1;
+    uint constant internal ALWAYS = 2;
+    uint constant internal DIFF = 3;
+    uint constant internal UPDATE_BLOCKS_FOR_TIER_RANGE = 4;
+    uint constant internal EVERY_LTE_MIN = 5;
+    uint constant internal EVERY_LTE_MAX = 6;
+    uint constant internal EVERY_LTE_FIRST = 7;
+    uint constant internal ANY_LTE_MIN = 8;
+    uint constant internal ANY_LTE_MAX = 9;
+    uint constant internal ANY_LTE_FIRST = 10;
+    uint constant internal OPS_LENGTH = 11;
 
     function applyOp(
         bytes memory,
@@ -31,7 +29,7 @@ library TierOps {
     view {
         unchecked {
             uint baseIndex_;
-            if (op_.code == 0) {
+            if (op_.code == REPORT) {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
                 state_.stack[baseIndex_] =
@@ -39,15 +37,15 @@ library TierOps {
                         .report(address(uint160(state_.stack[baseIndex_])));
                 state_.stackIndex++;
             }
-            else if (op_.code == 1) {
+            else if (op_.code == NEVER) {
                 state_.stack[state_.stackIndex] = TierReport.NEVER;
                 state_.stackIndex++;
             }
-            else if (op_.code == 2) {
+            else if (op_.code == ALWAYS) {
                 state_.stack[state_.stackIndex] = TierReport.ALWAYS;
                 state_.stackIndex++;
             }
-            else if (op_.code == 3) {
+            else if (op_.code == DIFF) {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
                 uint256 olderReport_ = state_.stack[baseIndex_];
@@ -58,7 +56,7 @@ library TierOps {
                 );
                 state_.stackIndex++;
             }
-            else if (op_.code == 4) {
+            else if (op_.code == UPDATE_BLOCKS_FOR_TIER_RANGE) {
                 Tier startTier_ = Tier(op_.val & 0x0f);
                 Tier endTier_ = Tier((op_.val >> 4) & 0x0f);
                 state_.stackIndex -= 2;
@@ -86,42 +84,42 @@ library TierOps {
 
                 uint256 blockNumber_ = state_.stack[baseIndex_];
 
-                if (op_.code == 5) {
+                if (op_.code == EVERY_LTE_MIN) {
                     state_.stack[baseIndex_]
                          = TierwiseCombine.everyLteMin(
                             args_,
                             blockNumber_
                         );
                 }
-                else if (op_.code == 6) {
+                else if (op_.code == EVERY_LTE_MAX) {
                     state_.stack[baseIndex_]
                         = TierwiseCombine.everyLteMax(
                             args_,
                             blockNumber_
                         );
                 }
-                else if (op_.code == 7) {
+                else if (op_.code == EVERY_LTE_FIRST) {
                     state_.stack[baseIndex_]
                         = TierwiseCombine.everyLteFirst(
                             args_,
                             blockNumber_
                         );
                 }
-                else if (op_.code == 8) {
+                else if (op_.code == ANY_LTE_MIN) {
                     state_.stack[baseIndex_]
                         = TierwiseCombine.anyLteMin(
                             args_,
                             blockNumber_
                         );
                 }
-                else if (op_.code == 9) {
+                else if (op_.code == ANY_LTE_MAX) {
                     state_.stack[baseIndex_]
                         = TierwiseCombine.anyLteMax(
                             args_,
                             blockNumber_
                         );
                 }
-                else if (op_.code == 10) {
+                else if (op_.code == ANY_LTE_FIRST) {
                     state_.stack[baseIndex_]
                         = TierwiseCombine.anyLteFirst(
                             args_,

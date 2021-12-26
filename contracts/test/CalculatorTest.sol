@@ -4,19 +4,19 @@ pragma solidity 0.8.10;
 
 import { RainVM, State, Op } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
-import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
+import { BlockOps } from "../vm/ops/BlockOps.sol";
 import { MathOps } from "../vm/ops/MathOps.sol";
 
 contract CalculatorTest is RainVM, ImmutableSource {
 
-    uint8 public immutable blockOpsStart;
-    uint8 public immutable mathOpsStart;
+    uint public immutable blockOpsStart;
+    uint public immutable mathOpsStart;
 
     constructor(ImmutableSourceConfig memory config_)
         ImmutableSource(config_)
     {
-        blockOpsStart = uint8(RainVM.OPS_LENGTH);
-        mathOpsStart = blockOpsStart + uint8(BlockOpsOps.length);
+        blockOpsStart = RainVM.OPS_LENGTH;
+        mathOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
     }
 
     function applyOp(
