@@ -231,7 +231,6 @@ describe("Trust", async function () {
     await seederContract
       .connect(seeder1)
       .pullERC20(
-        trust.address,
         reserve.address,
         await reserve.allowance(trust.address, seeder)
       );
@@ -244,7 +243,6 @@ describe("Trust", async function () {
     await token
       .connect(signer1)
       .pullERC20(
-        trust.address,
         reserve.address,
         await reserve.allowance(trust.address, token.address)
       );

@@ -7,8 +7,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
-import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
-// solhint-disable-next-line max-line-length
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 // solhint-disable-next-line max-line-length
 import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
@@ -95,7 +93,6 @@ struct RedeemableERC20Config {
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
 contract RedeemableERC20 is
-    AccessControl,
     Phased,
     TierByConstruction,
     ERC20,
@@ -106,10 +103,14 @@ contract RedeemableERC20 is
 
     using SafeERC20 for IERC20;
 
-    bytes32 public constant SENDER = keccak256("SENDER");
-    bytes32 public constant RECEIVER = keccak256("RECEIVER");
-    bytes32 public constant DISTRIBUTOR_BURNER =
-        keccak256("DISTRIBUTOR_BURNER");
+    uint private constant RECEIVER = 0x1;
+    uint private constant SENDER = 0x3;
+
+    /// To be clear, this admin is NOT intended to be an EOA.
+    /// This contract is designed assuming the admin is a `Trust` or equivalent
+    /// contract that itself does NOT have an admin key.
+    address public immutable admin;
+    mapping (address => uint) private access;
 
     /// Treasury Asset notification.
     /// @param emitter The `msg.sender` notifying about this asset.
@@ -149,6 +150,7 @@ contract RedeemableERC20 is
     )
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
         TierByConstruction(config_.tier)
+        ERC20Pull(config_.admin)
     {
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
@@ -156,13 +158,14 @@ contract RedeemableERC20 is
         );
         minimumTier = config_.minimumStatus;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, config_.admin);
-        _setupRole(RECEIVER, config_.admin);
         // Minting and burning must never fail.
-        _setupRole(SENDER, address(0));
-        _setupRole(RECEIVER, address(0));
+        access[address(0)] = SENDER;
 
+        // Admin receives full supply.
+        access[config_.admin] = RECEIVER;
         _mint(config_.admin, config_.totalSupply);
+
+        admin = config_.admin;
 
         // Smoke test on whatever is on the other side of `config_.tier`.
         // It is a common mistake to pass in a contract without the `ITier`
@@ -173,6 +176,29 @@ contract RedeemableERC20 is
         // blatantly errors out.
         // slither-disable-next-line unused-return
         ITier(config_.tier).report(msg.sender);
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "ONLY_ADMIN");
+        _;
+    }
+
+    function isReceiver(address maybeReceiver_) public view returns(bool) {
+        return access[maybeReceiver_] > 0;
+    }
+
+    function grantReceiver(address newReceiver_) external onlyAdmin {
+        // Using `|` preserves sender if previously granted.
+        access[newReceiver_] = access[newReceiver_] | 0x1;
+    }
+
+    function isSender(address maybeSender_) public view returns(bool) {
+        return access[maybeSender_] > 1;
+    }
+
+    function grantSender(address newSender_) external onlyAdmin {
+        // Sender is also a receiver.
+        access[newSender_] = 0x3;
     }
 
     /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
@@ -187,11 +213,8 @@ contract RedeemableERC20 is
     function burnDistributor(address distributorAccount_)
         external
         onlyPhase(Phase.ZERO)
+        onlyAdmin
     {
-        require(
-            hasRole(DISTRIBUTOR_BURNER, msg.sender),
-            "ONLY_DISTRIBUTOR_BURNER"
-        );
         scheduleNextPhase(uint32(block.number));
         uint distributorBalance_ = balanceOf(distributorAccount_);
         if (distributorBalance_ > 0) {
@@ -307,7 +330,7 @@ contract RedeemableERC20 is
         // value transfers.
         if (amount_ > 0
             // The sender and receiver lists bypass all access restrictions.
-            && !(hasRole(SENDER, sender_) || hasRole(RECEIVER, receiver_))) {
+            && !(isSender(sender_) || isReceiver(receiver_))) {
             // During `Phase.ZERO` transfers are only restricted by the
             // tier of the recipient.
             Phase currentPhase_ = currentPhase();
