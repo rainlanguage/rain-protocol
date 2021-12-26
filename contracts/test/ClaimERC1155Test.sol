@@ -6,7 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "../tier/ERC20BalanceTier.sol";
 import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
-import { ITier } from "../tier/ITier.sol";
+import { Tier, ITier } from "../tier/ITier.sol";
 
 /// @title ClaimERC1155Test
 /// Contract that implements claiming an erc1155 contingent on tiers for
@@ -30,7 +30,7 @@ contract ClaimERC1155Test is
 
     constructor(IERC20 redeemableToken_, uint256[8] memory tierValues_)
         ERC1155("https://example.com/{id}.json")
-        TierByConstructionClaim(this, ITier.Tier.THREE)
+        TierByConstructionClaim(this, Tier.THREE)
         // solhint-disable-next-line no-empty-blocks
         ERC20BalanceTier(ERC20BalanceTierConfig(
             redeemableToken_,

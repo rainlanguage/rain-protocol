@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.10;
 
-import { RainVM, State, Op, Ops as RainVMOps } from "../vm/RainVM.sol";
+import { RainVM, State, Op } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
 import { TierOps, Ops as TierOpsOps } from "../vm/ops/TierOps.sol";
@@ -25,7 +25,7 @@ contract CombineTier is
     constructor(ImmutableSourceConfig memory config_)
         ImmutableSource(config_)
     {
-        blockOpsStart = uint8(RainVMOps.length);
+        blockOpsStart = uint8(RainVM.OPS_LENGTH);
         tierOpsStart = blockOpsStart + uint8(BlockOpsOps.length);
         combineTierOpsStart = tierOpsStart + uint8(TierOpsOps.length);
     }

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.10;
 
-import { ITier } from "../ITier.sol";
+import { Tier, ITier } from "../ITier.sol";
 
 /// @title TierReport
 /// @notice `TierReport` implements several pure functions that can be
@@ -46,17 +46,17 @@ library TierReport {
         uint256 report_,
         uint256 blockNumber_
     )
-        internal pure returns (ITier.Tier)
+        internal pure returns (Tier)
     {
         unchecked {
             for (uint256 i_ = 0; i_ < 8; i_++) {
                 if (uint32(uint256(report_ >> (i_*32)))
                     > uint32(blockNumber_)
                 ) {
-                    return ITier.Tier(i_);
+                    return Tier(i_);
                 }
             }
-            return ITier.Tier(8);
+            return Tier(8);
         }
     }
 
@@ -68,7 +68,7 @@ library TierReport {
     /// @param report_ The report to read a block number from.
     /// @param tier_ The Tier to read the block number for.
     /// @return The block number this has been held since.
-    function tierBlock(uint256 report_, ITier.Tier tier_)
+    function tierBlock(uint256 report_, Tier tier_)
         internal
         pure
         returns (uint256)
@@ -76,7 +76,7 @@ library TierReport {
         unchecked {
             // ZERO is a special case. Everyone has always been at least ZERO,
             // since block 0.
-            if (tier_ == ITier.Tier.ZERO) { return 0; }
+            if (tier_ == Tier.ZERO) { return 0; }
 
             uint256 offset_ = (uint256(tier_) - 1) * 32;
             return uint256(uint32(
@@ -92,7 +92,7 @@ library TierReport {
     /// @param report_ Report to truncate with high bit 1s.
     /// @param tier_ Tier to truncate above (exclusive).
     /// @return Truncated report.
-    function truncateTiersAbove(uint256 report_, ITier.Tier tier_)
+    function truncateTiersAbove(uint256 report_, Tier tier_)
         internal
         pure
         returns (uint256)
@@ -116,8 +116,8 @@ library TierReport {
     /// @return The updated report.
     function updateBlocksForTierRange(
         uint256 report_,
-        ITier.Tier startTier_,
-        ITier.Tier endTier_,
+        Tier startTier_,
+        Tier endTier_,
         uint256 blockNumber_
     )
         internal pure returns (uint256)
@@ -158,8 +158,8 @@ library TierReport {
     /// @return The updated report.
     function updateReportWithTierAtBlock(
         uint256 report_,
-        ITier.Tier startTier_,
-        ITier.Tier endTier_,
+        Tier startTier_,
+        Tier endTier_,
         uint256 blockNumber_
     )
         internal pure returns (uint256)

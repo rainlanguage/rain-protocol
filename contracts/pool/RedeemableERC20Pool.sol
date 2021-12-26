@@ -460,14 +460,14 @@ library RedeemableERC20Pool {
         }
 
         if (creatorPay_ > 0) {
-            self_.reserve().approve(
+            self_.reserve().safeApprove(
                 self_.creator(),
                 creatorPay_
             );
         }
 
         if (seederPay_ > 0) {
-            self_.reserve().approve(
+            self_.reserve().safeApprove(
                 self_.seeder(),
                 seederPay_
             );
@@ -480,7 +480,7 @@ library RedeemableERC20Pool {
         uint256 remainder_ = availableBalance_
             .saturatingSub(creatorPay_.saturatingAdd(seederPay_));
         if (remainder_ > 0) {
-            self_.reserve().approve(
+            self_.reserve().safeApprove(
                 address(self_.token()),
                 remainder_
             );
@@ -513,9 +513,10 @@ library RedeemableERC20Pool {
     )
         external
     {
-        require(msg.sender == self_.creator(), "NON_CREATOR_RELEASE");
-        // If the creator is asking for funds the `Trust` knows about and is
-        // actively managing then we MUST ensure we've reached `Phase.FOUR`.
+        // For funds the `Trust` knows about and is actively managing we MUST
+        // ensure we've reached `Phase.FOUR`. For everything else, the `Trust`
+        // has no knowledge of it so the creator is expected to deal with it,
+        // we have to assume it is a mistake by someone.
         if (
             token_ == address(self_.reserve())
             || token_ == address(self_.token())
@@ -527,6 +528,13 @@ library RedeemableERC20Pool {
             );
         }
         emit CreatorFundsRelease(token_, amount_);
-        IERC20(token_).approve(msg.sender, amount_);
+        // We do NOT use `safeApprove` here because in addition to checking the
+        // bool return value, `safeApprove` also requires that the starting
+        // value is `0`, which may not be the case. Ideally this function is
+        // NEVER called so we can't assume much about how or why we got here.
+        require(
+            IERC20(token_).approve(self_.creator(), amount_),
+            "APPROVE_FAILED"
+        );
     }
 }

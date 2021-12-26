@@ -59,8 +59,8 @@ library TierOps {
                 state_.stackIndex++;
             }
             else if (op_.code == 4) {
-                ITier.Tier startTier_ = ITier.Tier(op_.val & 0x0f);
-                ITier.Tier endTier_ = ITier.Tier((op_.val >> 4) & 0x0f);
+                Tier startTier_ = Tier(op_.val & 0x0f);
+                Tier endTier_ = Tier((op_.val >> 4) & 0x0f);
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
                 uint256 blockNumber_ = state_.stack[baseIndex_];

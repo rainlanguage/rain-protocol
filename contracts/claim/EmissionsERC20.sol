@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import { ERC20Config } from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import { RainVM, State, Op, Ops as RainVMOps } from "../vm/RainVM.sol";
+import { RainVM, State, Op } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
 import { ThisOps, Ops as ThisOpsOps } from "../vm/ops/ThisOps.sol";
@@ -50,7 +50,7 @@ contract EmissionsERC20 is
         ImmutableSource(config_.immutableSourceConfig)
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
     {
-        blockOpsStart = uint8(RainVMOps.length);
+        blockOpsStart = uint8(RainVM.OPS_LENGTH);
         thisOpsStart = blockOpsStart + uint8(BlockOpsOps.length);
         mathOpsStart = thisOpsStart + uint8(ThisOpsOps.length);
         tierOpsStart = mathOpsStart + uint8(MathOpsOps.length);

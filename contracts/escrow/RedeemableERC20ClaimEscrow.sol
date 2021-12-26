@@ -137,10 +137,10 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
             trust_.getDistributionStatus() != DistributionStatus.Fail,
             "FAIL_DEPOSIT"
         );
+        emit Deposit(address(trust_), address(token_), msg.sender, amount_);
 
         token_.safeTransferFrom(msg.sender, address(this), amount_);
 
-        emit Deposit(address(trust_), address(token_), msg.sender, amount_);
     }
 
     /// The inverse of `deposit`.
@@ -173,15 +173,14 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
                 trust_.getDistributionStatus() == DistributionStatus.Fail,
                 "ONLY_FAIL"
             );
-
-            token_.safeTransfer(msg.sender, amount_);
-
             emit Undeposit(
                 address(trust_),
                 address(token_),
                 msg.sender,
                 amount_
             );
+
+            token_.safeTransfer(msg.sender, amount_);
         }
     }
 
@@ -206,14 +205,14 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// @param trust_ The trust to `withdraw` against.
     /// @param token_ The token to `withdraw`.
     function withdraw(Trust trust_, IERC20 token_) external {
-        uint256 totalDeposit_
+        uint256 totalDeposited_
             = totalDeposits[address(trust_)][address(token_)];
         uint256 withdrawn_
             = withdrawals[address(trust_)][address(token_)][msg.sender];
 
-        if (totalDeposit_ > withdrawn_) {
+        if (totalDeposited_ > withdrawn_) {
             withdrawals[address(trust_)][address(token_)][msg.sender]
-                = totalDeposit_;
+                = totalDeposited_;
 
             // Technically reentrant call to our trusted trust.
             // Called after state changes to help automated audit tools.
@@ -234,19 +233,19 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
             // each account will receive 33 tokens, effectively burning 1
             // token as it cannot be withdrawn from the escrow contract.
             uint256 amount_ = token_.balanceOf(address(this)).min(
-                ( totalDeposit_ - withdrawn_ )
+                ( totalDeposited_ - withdrawn_ )
                 * RedeemableERC20(trustContracts_.redeemableERC20)
                     .balanceOf(msg.sender)
                 / RedeemableERC20(trustContracts_.redeemableERC20)
                     .totalSupply()
             );
-            token_.safeTransfer(
-                msg.sender,
-                amount_
-            );
             emit Withdraw(
                 address(trust_),
                 address(token_),
+                msg.sender,
+                amount_
+            );
+            token_.safeTransfer(
                 msg.sender,
                 amount_
             );
