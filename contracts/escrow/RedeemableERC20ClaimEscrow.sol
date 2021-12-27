@@ -36,13 +36,12 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /// is deployed for. This prevents deposits for some token under a malicious
 /// `Trust` that lies about its current distribution status to drain the escrow
 /// of funds by "double spending" deposits as both `undeposit` and `withdraw`
-/// calls. Both `withdraw` and `undeposit` against an unknown/unfunded `Trust`
-/// are noops so there is no additional check against the `TrustFactory` at
-/// this point.
+/// calls. Both `withdraw` and `undeposit` for an unknown `Trust` are errors.
 ///
 /// This mechanism is very similar to the native burn mechanism on
 /// `redeemableERC20` itself under `redeem` but without requiring any tokens to
-/// be burned in the process.
+/// be burned in the process. Users can claim the same token many times safely,
+/// simply receiving 0 tokens if there is nothing left to claim.
 ///
 /// This does NOT support rebase/elastic token _balance_ mechanisms on the
 /// escrowed token as the escrow has no way to track deposits/withdrawals other
@@ -60,7 +59,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /// Using a real-world example, stETH from LIDO would be NOT be supported as
 /// the balance changes every day to reflect incoming ETH from validators, but
 /// wstETH IS supported as balances remain static while the underlying assets
-/// per unit of wstETH increase each day.
+/// per unit of wstETH increase each day. This is of course exactly why wstETH
+/// was created in the first place.
 ///
 /// Every escrowed token has a separate space in the deposited/withdrawn
 /// mappings so that some broken/malicious/hacked token that leads to incorrect
@@ -104,7 +104,7 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// @param trustFactory_ forwarded to `FactoryTruster`.
     constructor(address trustFactory_)
         FactoryTruster(trustFactory_)
-        { } //solhint-disable-line no-empty-blocks
+        { } // solhint-disable-line no-empty-blocks
 
     /// Any address can deposit any amount of its own `IERC20` under a `Trust`.
     /// The `Trust` MUST be a child of the trusted factory.
