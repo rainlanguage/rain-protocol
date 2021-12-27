@@ -791,7 +791,7 @@ describe("TrustSeed", async function () {
       // seeder1 pulls erc20
       await seederContract
         .connect(seeder1)
-        .pullERC20(reserve.address, allowance);
+        .pullERC20(allowance);
 
       const poolDust = await reserve.balanceOf(bPool.address);
 
@@ -1051,7 +1051,7 @@ describe("TrustSeed", async function () {
       // seeder1 pulls erc20
       await seederContract
         .connect(seeder1)
-        .pullERC20(reserve.address, allowance);
+        .pullERC20(allowance);
 
       // seederContract should now hold reserve equal to final balance
       assert(

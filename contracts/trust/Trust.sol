@@ -379,6 +379,7 @@ contract Trust is Phased {
                 .createChild(abi.encode(
                     RedeemableERC20Config(
                         address(this),
+                        address(config_.reserve),
                         trustRedeemableERC20Config_.erc20Config,
                         trustRedeemableERC20Config_.tier,
                         trustRedeemableERC20Config_.minimumStatus,
@@ -452,11 +453,6 @@ contract Trust is Phased {
             );
         redeemableERC20_.grantReceiver(
             address(bPoolFeeEscrow)
-        );
-
-        // The pool reserve must always be one of the treasury assets.
-        redeemableERC20_.newTreasuryAsset(
-            address(config_.reserve)
         );
 
         crp = crp_;

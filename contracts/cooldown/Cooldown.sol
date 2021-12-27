@@ -42,7 +42,8 @@ abstract contract Cooldown {
     /// Time in blocks to restrict access to modified functions.
     uint public immutable cooldownDuration;
 
-    /// Every address has its own cooldown state.
+    /// Every caller has its own cooldown, the minimum block that the caller
+    /// call another function sharing the same cooldown state.
     mapping (address => uint) public cooldowns;
     address private caller;
 
@@ -63,6 +64,7 @@ abstract contract Cooldown {
         // Every action that requires a cooldown also triggers a cooldown.
         cooldowns[caller_] = block.number + cooldownDuration;
         _;
+        // Refund as much gas as we can.
         delete caller;
     }
 }

@@ -16,13 +16,16 @@ import { Tier, ITier } from "../tier/ITier.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 
-import { ERC20Pull } from "../erc20/ERC20Pull.sol";
+import { ERC20Pull, ERC20PullConfig } from "../erc20/ERC20Pull.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
     // Account that will be the admin for the `RedeemableERC20` contract.
     // Useful for factory contracts etc.
     address admin;
+    // Reserve token that the associated `Trust` or equivalent raise contract
+    // will be forwarding to the `RedeemableERC20` contract.
+    address reserve;
     // ERC20 config forwarded to the ERC20 constructor.
     ERC20Config erc20Config;
     // Tier contract to compare statuses against on transfer.
@@ -150,7 +153,10 @@ contract RedeemableERC20 is
     )
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
         TierByConstruction(config_.tier)
-        ERC20Pull(config_.admin)
+        ERC20Pull(ERC20PullConfig(
+            config_.admin,
+            config_.reserve
+        ))
     {
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
@@ -166,6 +172,9 @@ contract RedeemableERC20 is
         _mint(config_.admin, config_.totalSupply);
 
         admin = config_.admin;
+
+        // The reserve must always be one of the treasury assets.
+        emit TreasuryAsset(config_.admin, config_.reserve);
 
         // Smoke test on whatever is on the other side of `config_.tier`.
         // It is a common mistake to pass in a contract without the `ITier`

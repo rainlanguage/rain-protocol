@@ -11,7 +11,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { Phase, Phased } from "../phased/Phased.sol";
 import { Cooldown } from "../cooldown/Cooldown.sol";
 
-import { ERC20Pull } from "../erc20/ERC20Pull.sol";
+import { ERC20Pull, ERC20PullConfig } from "../erc20/ERC20Pull.sol";
 
 /// Everything required to construct a `SeedERC20` contract.
 struct SeedERC20Config {
@@ -136,7 +136,10 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     constructor (SeedERC20Config memory config_)
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
         Cooldown(config_.cooldownDuration)
-        ERC20Pull(config_.recipient)
+        ERC20Pull(ERC20PullConfig(
+            config_.recipient,
+            address(config_.reserve)
+        ))
     {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
