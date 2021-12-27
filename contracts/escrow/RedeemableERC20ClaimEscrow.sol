@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IFactory } from "../factory/IFactory.sol";
 import { FactoryTruster } from "../factory/FactoryTruster.sol";
 import { Trust, DistributionStatus, TrustContracts } from "../trust/Trust.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
@@ -72,23 +71,23 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     using SafeERC20 for IERC20;
 
     event Deposit(
-        address indexed trust,
-        address indexed token,
-        address indexed depositor,
+        address trust,
+        address token,
+        address depositor,
         uint256 amount
     );
 
     event Undeposit(
-        address indexed trust,
-        address indexed token,
-        address indexed undepositor,
+        address trust,
+        address token,
+        address undepositor,
         uint256 amount
     );
 
     event Withdraw(
-        address indexed trust,
-        address indexed token,
-        address indexed withdrawer,
+        address trust,
+        address token,
+        address withdrawer,
         uint256 amount
     );
 
@@ -103,7 +102,7 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     mapping(address => mapping(address => uint256)) public totalDeposits;
 
     /// @param trustFactory_ forwarded to `FactoryTruster`.
-    constructor(IFactory trustFactory_)
+    constructor(address trustFactory_)
         FactoryTruster(trustFactory_)
         { } //solhint-disable-line no-empty-blocks
 

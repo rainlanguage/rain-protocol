@@ -163,7 +163,7 @@ contract Verify is AccessControl {
     /// @param data The evidence to support an approval.
     /// NOT written to contract storage.
     event RequestApprove(
-        address indexed account,
+        address account,
         bytes data
     );
     /// Emitted when a previously added account is approved.
@@ -172,8 +172,8 @@ contract Verify is AccessControl {
     /// @param data Any additional data the `approver` deems relevant.
     /// NOT written to contract storage.
     event Approve(
-        address indexed approver,
-        address indexed account,
+        address approver,
+        address account,
         bytes data
     );
 
@@ -185,8 +185,8 @@ contract Verify is AccessControl {
     /// @param data Any additional data the `requestor` feels will strengthen
     /// its case for the ban. NOT written to contract storage.
     event RequestBan(
-        address indexed requestor,
-        address indexed account,
+        address requestor,
+        address account,
         bytes data
     );
     /// Emitted when an added or approved account is banned.
@@ -195,8 +195,8 @@ contract Verify is AccessControl {
     /// @param data The evidence to support a ban.
     /// NOT written to contract storage.
     event Ban(
-        address indexed banner,
-        address indexed account,
+        address banner,
+        address account,
         bytes data
     );
 
@@ -208,8 +208,8 @@ contract Verify is AccessControl {
     /// @param data Any additional data the `requestor` feels will strengthen
     /// its case for the ban. NOT written to contract storage.
     event RequestRemove(
-        address indexed requestor,
-        address indexed account,
+        address requestor,
+        address account,
         bytes data
     );
     /// Emitted when an account is scrubbed from blockchain state.
@@ -218,8 +218,8 @@ contract Verify is AccessControl {
     /// @param data The evidence to support a remove.
     /// NOT written to contract storage.
     event Remove(
-        address indexed remover,
-        address indexed account,
+        address remover,
+        address account,
         bytes data
     );
 

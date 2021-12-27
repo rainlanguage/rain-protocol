@@ -118,7 +118,7 @@ contract RedeemableERC20 is
     /// Treasury Asset notification.
     /// @param emitter The `msg.sender` notifying about this asset.
     /// @param asset The asset added to the treasury for this contract.
-    event TreasuryAsset(address indexed emitter, address indexed asset);
+    event TreasuryAsset(address emitter, address asset);
 
     /// Redeemable token burn for reserve.
     /// @param redeemer Account burning and receiving.
@@ -126,8 +126,8 @@ contract RedeemableERC20 is
     /// @param redeemAmounts The amounts of the redeemable and treasury asset
     /// as `[redeemAmount, assetAmount]`.
     event Redeem(
-        address indexed redeemer,
-        address indexed treasuryAsset,
+        address redeemer,
+        address treasuryAsset,
         uint256[2] redeemAmounts
     );
 

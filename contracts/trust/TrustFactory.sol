@@ -94,7 +94,7 @@ contract TrustFactory is Factory {
         balancerFactory = config_.balancerFactory;
         creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
         maxRaiseDuration = config_.maxRaiseDuration;
-        bPoolFeeEscrow = new BPoolFeeEscrow(this);
+        bPoolFeeEscrow = new BPoolFeeEscrow(address(this));
     }
 
     /// Allows calling `createChild` with TrustConfig,

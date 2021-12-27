@@ -13,7 +13,7 @@ interface IClaim {
     /// @param claimant The claimant receiving the `Claim`.
     /// @param data Associated data for the claim call.
     event Claim(
-        address indexed claimant,
+        address claimant,
         bytes data
     );
 

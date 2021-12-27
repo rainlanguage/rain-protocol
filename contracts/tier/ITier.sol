@@ -75,9 +75,9 @@ interface ITier {
     /// @param startTier The previous tier the account held.
     /// @param endTier the newly acquired tier the account now holds.
     event TierChange(
-        address indexed account,
-        Tier indexed startTier,
-        Tier indexed endTier
+        address account,
+        Tier startTier,
+        Tier endTier
     );
 
     /// @notice Users can set their own tier by calling `setTier`.

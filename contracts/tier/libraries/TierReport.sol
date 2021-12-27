@@ -21,11 +21,11 @@ import { Tier, ITier } from "../ITier.sol";
 library TierReport {
 
     /// NEVER is 0xFF.. as it is infinitely in the future.
-    uint256 public constant NEVER
+    uint public constant NEVER
         = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     /// Always is 0 as it is the genesis block. Tiers can't predate the chain.
-    uint256 public constant ALWAYS = 0;
+    uint public constant ALWAYS = 0;
 
     /// Returns the highest tier achieved relative to a block number
     /// and report.
@@ -43,8 +43,8 @@ library TierReport {
     /// @param blockNumber_ The block number to check the tiers against.
     /// @return The highest tier held since `blockNumber` as per `report`.
     function tierAtBlockFromReport(
-        uint256 report_,
-        uint256 blockNumber_
+        uint report_,
+        uint blockNumber_
     )
         internal pure returns (Tier)
     {
@@ -68,10 +68,10 @@ library TierReport {
     /// @param report_ The report to read a block number from.
     /// @param tier_ The Tier to read the block number for.
     /// @return The block number this has been held since.
-    function tierBlock(uint256 report_, Tier tier_)
+    function tierBlock(uint report_, Tier tier_)
         internal
         pure
-        returns (uint256)
+        returns (uint)
     {
         unchecked {
             // ZERO is a special case. Everyone has always been at least ZERO,
@@ -92,10 +92,10 @@ library TierReport {
     /// @param report_ Report to truncate with high bit 1s.
     /// @param tier_ Tier to truncate above (exclusive).
     /// @return Truncated report.
-    function truncateTiersAbove(uint256 report_, Tier tier_)
+    function truncateTiersAbove(uint report_, Tier tier_)
         internal
         pure
-        returns (uint256)
+        returns (uint)
     {
         unchecked {
             uint256 offset_ = uint256(tier_) * 32;
@@ -115,12 +115,12 @@ library TierReport {
     /// in the range.
     /// @return The updated report.
     function updateBlocksForTierRange(
-        uint256 report_,
+        uint report_,
         Tier startTier_,
         Tier endTier_,
-        uint256 blockNumber_
+        uint blockNumber_
     )
-        internal pure returns (uint256)
+        internal pure returns (uint)
     {
         unchecked {
             uint256 offset_;
@@ -157,12 +157,12 @@ library TierReport {
     /// intermediate tiers from `startTier_`.
     /// @return The updated report.
     function updateReportWithTierAtBlock(
-        uint256 report_,
+        uint report_,
         Tier startTier_,
         Tier endTier_,
-        uint256 blockNumber_
+        uint blockNumber_
     )
-        internal pure returns (uint256)
+        internal pure returns (uint)
     {
         return endTier_ < startTier_
             ? truncateTiersAbove(report_, endTier_)

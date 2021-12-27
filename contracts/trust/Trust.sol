@@ -270,7 +270,7 @@ contract Trust is Phased {
     /// interpret it in context because the contract does not.
     /// @param sender The `msg.sender` that emitted the `Notice`.
     /// @param data Opaque binary data for the GUI/tooling/indexer to read.
-    event Notice(address indexed sender, bytes data);
+    event Notice(address sender, bytes data);
 
     /// Seeder units from the initial config.
     uint16 public immutable seederUnits;

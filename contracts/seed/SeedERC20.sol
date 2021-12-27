@@ -101,7 +101,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// Number of reserve redeemed for burned seed tokens.
     /// `[seedAmount, reserveAmount]`
     event Redeem(
-        address indexed redeemer,
+        address redeemer,
         uint256[2] redeemAmounts
     );
 
@@ -109,7 +109,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// @param seedAmounts Number of tokens seeded.
     /// Number of reserve sent for seed tokens.
     event Seed(
-        address indexed seeder,
+        address seeder,
         uint256[2] seedAmounts
     );
 
@@ -117,7 +117,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// @param unseedAmounts Number of tokens unseeded.
     /// Number of reserve tokens returned for unseeded tokens.
     event Unseed(
-        address indexed unseeder,
+        address unseeder,
         uint256[2] unseedAmounts
     );
 

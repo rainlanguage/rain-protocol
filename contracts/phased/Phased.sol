@@ -63,7 +63,7 @@ abstract contract Phased {
     uint32 public constant UNINITIALIZED = 0xFFFFFFFF;
 
     /// `PhaseShiftScheduled` is emitted when the next phase is scheduled.
-    event PhaseShiftScheduled(uint32 indexed newPhaseBlock_);
+    event PhaseShiftScheduled(uint newPhaseBlock_);
 
     /// 8 phases each as 32 bits to fit a single 32 byte word.
     uint32[8] public phaseBlocks;
