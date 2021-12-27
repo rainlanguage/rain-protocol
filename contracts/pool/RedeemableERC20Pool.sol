@@ -516,13 +516,8 @@ library RedeemableERC20Pool {
             );
         }
         emit CreatorFundsRelease(token_, amount_);
-        // We do NOT use `safeApprove` here because in addition to checking the
-        // bool return value, `safeApprove` also requires that the starting
-        // value is `0`, which may not be the case. Ideally this function is
-        // NEVER called so we can't assume much about how or why we got here.
-        require(
-            IERC20(token_).approve(self_.creator(), amount_),
-            "APPROVE_FAILED"
-        );
+        // Strictly increase allowance here as this function is world callable
+        // we do not want anons to decrease what the creator can access.
+        IERC20(token_).safeIncreaseAllowance(self_.creator(), amount_);
     }
 }
