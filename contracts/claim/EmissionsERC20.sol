@@ -12,12 +12,6 @@ import { MathOps } from "../vm/ops/MathOps.sol";
 import { TierOps } from "../vm/ops/TierOps.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-enum Ops {
-    account,
-    constructionBlockNumber,
-    length
-}
-
 struct EmissionsERC20Config {
     bool allowDelegatedClaims;
     ERC20Config erc20Config;
