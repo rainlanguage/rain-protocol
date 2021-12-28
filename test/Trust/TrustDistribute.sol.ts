@@ -50,7 +50,7 @@ enum Phase {
   EIGHT,
 }
 
-describe.only("TrustDistribute", async function () {
+describe("TrustDistribute", async function () {
   it("should allow pulling approved ERC20 into seed and token contracts after auction has ended", async () => {
     this.timeout(0);
 
@@ -915,21 +915,21 @@ describe.only("TrustDistribute", async function () {
         .transferFrom(
           trust.address,
           creator.address,
-          await reserve.allowance(trust.address, creator.address)
+          await reserve.balanceOf(trust.address)
         );
       await token
         .connect(creator)
         .transferFrom(
           trust.address,
           creator.address,
-          await token.allowance(trust.address, creator.address)
+          await token.balanceOf(trust.address)
         );
       await crp
         .connect(creator)
         .transferFrom(
           trust.address,
           creator.address,
-          await crp.allowance(trust.address, creator.address)
+          await crp.balanceOf(trust.address)
         );
 
       const reserveTrustAfter = await reserve.balanceOf(trust.address);
