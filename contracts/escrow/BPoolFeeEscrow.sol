@@ -3,13 +3,13 @@ pragma solidity ^0.8.10;
 
 // solhint-disable-next-line max-line-length
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { FactoryTruster } from "../factory/FactoryTruster.sol";
 // solhint-disable-next-line max-line-length
-import { RedeemableERC20, Trust, DistributionStatus } from "../trust/Trust.sol";
+import { RedeemableERC20, Trust } from "../trust/Trust.sol";
 import { IBPool } from "../pool/IBPool.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
+import "./TrustEscrow.sol";
 
 /// Represents fees as they are claimed by a recipient on a per-trust basis.
 /// Used to work around a limitation in the EVM i.e. return values must be
@@ -60,20 +60,11 @@ struct ClaimedFees {
 /// - ANYONE can process a claim for a recipient and/or a refund for a trust.
 /// - The information about which trusts to claim/refund is available offchain
 ///   via the `Fee` event.
-/// - The security of the escrow is only as good as the implementation of the
-///   `TrustFactory` it is deployed for. A malicious `Trust` can "double spend"
-///   funds from the escrow by lying about its pass/fail status to BOTH process
-///   a "refund" to the "token" (any address it wants) AND to forward fees to
-///   the nominated recipient. An attacker could roll out many bad trusts to
-///   drain the escrow. For this reason non-zero fees will only ever be set
-///   aside by `buyToken` for trusts that are a child of the known trust
-///   factory, and zero-fee claims are always noops, so malicious/unknown
-///   trusts have no way to execute external contract code.
 ///
 /// We cannot prevent FEs implementing their own smart contracts to take fees
 /// outside the scope of the escrow, but we aren't encouraging or implementing
 /// it for them either.
-contract BPoolFeeEscrow is FactoryTruster, ReentrancyGuard {
+contract BPoolFeeEscrow is TrustEscrow, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     /// A claim has been processed for a recipient.
@@ -96,104 +87,73 @@ contract BPoolFeeEscrow is FactoryTruster, ReentrancyGuard {
         uint fee
     );
 
+    /// Fees set aside under a trust for a specific recipient.
+    /// Denominated in the reserve asset of the trust.
+    /// There can be many recipients for a single trust.
+    /// Fees are forwarded to each recipient when they claim. The recicpient
+    /// receives all the fees collected under a trust in a single claim.
+    /// Fee claims are mutually exclusive with refund claims.
     /// trust => recipient => amount
     mapping(address => mapping(address => uint)) public fees;
 
+    /// Refunds for a trust are the same as the sum of all its fees.
+    /// Denominated in the reserve asset of the trust.
+    /// Refunds are forwarded to the raise token created by the trust.
+    /// Refunds are mutually exclusive with any fee claims.
+    /// All fees are forwarded to the same token address which is singular per
+    /// trust.
     /// trust => amount
-    mapping(address => uint) public refunds;
+    mapping(address => uint) public totalFees;
 
-    /// @param trustFactory_ `TrustFactory` that every `Trust` MUST be a child
-    /// of. The security model of the escrow REQUIRES that the `TrustFactory`
-    /// implements `IFactory` correctly and that the `Trust` contracts that it
-    /// deploys are not buggy or malicious re: tracking distribution status.
+    /// @param trustFactory_ forwarded to `TrustEscrow` only.
     constructor(address trustFactory_)
-        FactoryTruster(trustFactory_)
+        TrustEscrow(trustFactory_)
         {} //solhint-disable-line no-empty-blocks
 
-    modifier onlyCompleteDistribution(Trust trust_) {
-        DistributionStatus distributionStatus_
-            = trust_.getDistributionStatus();
-        require(
-            distributionStatus_ == DistributionStatus.Success
-            || distributionStatus_ == DistributionStatus.Fail,
-            "INCOMPLETE_DISTRIBUTION"
-        );
-        _;
-    }
-
-    /// Batch wrapper that loops over `claimFees` for all passed trusts.
+    /// Anon can pay the gas to send all claimable fees to any recipient.
     /// Caller is expected to infer profitable trusts for the recipient by
-    /// parsing the event log for `Fee` events.
-    /// @param feeRecipient_ Recipient to claim fees for.
-    /// @param trusts_ Trusts to claim fees for.
-    /// @return All the claimed fees from the inner loop.
-    function claimFeesMulti(address feeRecipient_, Trust[] memory trusts_)
-        external
-        returns (ClaimedFees[] memory)
-    {
-        uint length_ = trusts_.length;
-        ClaimedFees[] memory claimedFees_ = new ClaimedFees[](length_);
-        for (uint i_ = 0; i_ < length_; i_++) {
-            claimedFees_[i_] = ClaimedFees(address(trusts_[i_]), claimFees(
-                feeRecipient_,
-                trusts_[i_]
-            ));
-        }
-        return claimedFees_;
-    }
-
-    /// Anyone can pay the gas to send all claimable fees to any recipient.
+    /// parsing the event log for `Fee` events. Caller pays gas and there is no
+    /// benefit to not claiming fees, so anon can claim for any recipient.
     /// Claims are processed on a per-trust basis.
     /// Processing a claim before the trust distribution has reached either a
-    /// success/fail state is a no-op.
+    /// success/fail state is an error.
     /// Processing a claim for a failed distribution simply deletes the record
-    /// of claimable fees for the recipient.
+    /// of claimable fees for the recipient without sending tokens.
     /// Processing a claim for a successful distribution transfers the accrued
-    /// fees to the recipient.
-    /// @param feeRecipient_ The recipient of the fees.
+    /// fees to the recipient (and deletes the record for gas refund).
+    /// @param recipient_ The recipient of the fees.
     /// @param trust_ The trust to process claims for. MUST be a child of the
     /// trusted `TrustFactory`.
     /// @return The fees claimed.
-    function claimFees(address feeRecipient_, Trust trust_)
+    function claimFees(address recipient_, Trust trust_)
         public
-        onlyTrustedFactoryChild(address(trust_))
-        onlyCompleteDistribution(trust_)
         /// Even with a known `Trust` contract we do NOT know the reserve token
         /// so best to guard against reentrancy from the transfer and approval.
         nonReentrant
         returns (uint)
     {
-        // Process the claim either way, clearing out the escrow contract state
-        // for the claim.
-        // Tokens are only sent to the recipient on success.
-        uint claimableFee_ = fees[address(trust_)][feeRecipient_];
-        if (claimableFee_ > 0) {
-            // Claim a gas refund.
-            delete fees[address(trust_)][feeRecipient_];
-            if (trust_.getDistributionStatus() == DistributionStatus.Success) {
-                emit ClaimFees(feeRecipient_, address(trust_), claimableFee_);
-                // At this point we could attempt a gas refund on the `refunds`
-                // for this `trust_` but that would benefit only the first
-                // recipient and everyone else would have to pay to query the
-                // storage. Instead, if you want the gas refund you should call
-                // `refundFees` on a successful raise.
-                trust_.reserve().safeTransfer(
-                    feeRecipient_,
-                    claimableFee_
-                );
-            }
-            else {
-                // If the distribution status is a fail then in real the
-                // claimable fee is 0. We've just deleted the recorded fee
-                // to earn the gas refund and NOT transferred anything at
-                // this point. This correctly sets the return value.
-                claimableFee_ = 0;
-            }
+        EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
+        require(escrowStatus_ == EscrowStatus.Success, "NOT_SUCCESS");
+
+        uint fee_ = fees[address(trust_)][recipient_];
+        // Guard against outputs exceeding inputs.
+        // Last `receipient_` gets gas refund.
+        totalFees[(address(trust_))] -= fee_;
+
+        if (fee_ > 0) {
+            // Gas refund.
+            delete fees[address(trust_)][recipient_];
+
+            emit ClaimFees(recipient_, address(trust_), fee_);
+            trust_.reserve().safeTransfer(
+                recipient_,
+                fee_
+            );
         }
-        return claimableFee_;
+        return fee_;
     }
 
-    /// Anyone can pay the gas to refund fees for a `Trust`.
+    /// Anon can pay the gas to refund fees for a `Trust`.
     ///
     /// Refunding forwards the fees as `Trust` reserve to its redeemable token.
     /// Refunding does NOT directly return fees to the sender nor directly to
@@ -215,35 +175,26 @@ contract BPoolFeeEscrow is FactoryTruster, ReentrancyGuard {
     /// @return The total refund.
     function refundFees(Trust trust_)
         external
-        onlyTrustedFactoryChild(address(trust_))
-        onlyCompleteDistribution(trust_)
         /// Even with a known `Trust` contract we do NOT know the reserve token
         /// so best to guard against reentrancy from the transfer and approval.
         nonReentrant
-        returns (uint) {
+        returns (uint)
+    {
+        EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
+        require(escrowStatus_ == EscrowStatus.Fail, "NOT_FAIL");
 
-        uint refund_ = refunds[address(trust_)];
+        uint refund_ = totalFees[address(trust_)];
+
         if (refund_ > 0) {
-            // Clear out the failure refund even if the raise succeeded.
-            // Claim the gas refund here as soon as we know it is non-zero.
-            delete refunds[address(trust_)];
-            // Only process a refund if the distribution failed.
-            if (trust_.getDistributionStatus() == DistributionStatus.Fail) {
-                emit RefundFees(address(trust_), refund_);
-                trust_.reserve().safeTransfer(
-                    address(trust_.token()),
-                    refund_
-                );
-            }
-            else {
-                // If the distribution status is a success then in real the
-                // refundable fee is 0. We've just deleted the recorded refund
-                // to earn the gas refund and NOT transferred anything at
-                // this point. This correctly sets the return value.
-                refund_ = 0;
-            }
-        }
+            // Gas refund.
+            delete totalFees[address(trust_)];
 
+            emit RefundFees(address(trust_), refund_);
+            trust_.reserve().safeTransfer(
+                address(trust_.token()),
+                refund_
+            );
+        }
         return refund_;
     }
 
@@ -296,12 +247,6 @@ contract BPoolFeeEscrow is FactoryTruster, ReentrancyGuard {
         uint maxPrice_
     )
         external
-        /// Requiring the trust is a child of the known factory means we know
-        /// exactly how it operates internally, not only the interface.
-        /// Without this check we'd need to guard against the `Trust`:
-        /// - lying about distribution status to allow double spending fees
-        /// - lying about reserve and redeemable tokens
-        onlyTrustedFactoryChild(address(trust_))
         /// Even with a known `Trust` contract we do NOT know the reserve token
         /// so best to guard against reentrancy from the transfer and approval.
         nonReentrant
@@ -310,11 +255,22 @@ contract BPoolFeeEscrow is FactoryTruster, ReentrancyGuard {
         // Zero fee makes no sense, simply call `swapExactAmountIn` directly
         // rather than using the escrow.
         require(fee_ > 0, "ZERO_FEE");
+        require(getEscrowStatus(trust_) == EscrowStatus.Pending, "ENDED");
         fees[address(trust_)][feeRecipient_] += fee_;
-        refunds[address(trust_)] += fee_;
+        totalFees[address(trust_)] += fee_;
 
         emit Fee(feeRecipient_, address(trust_), fee_);
 
+        // Everything except reserve is built by a trusted `Trust`
+        // (getEscrowStatus enforces this) but it shouldn't matter to the
+        // integrity of the escrow.
+        // A bad reserve could set itself up to be drained from the escrow, but
+        // cannot interfere with other reserve balances.
+        // e.g. rebasing reserves are NOT supported.
+        // A bad token could fail to send itself to `msg.sender` which doesn't
+        // hurt the escrow.
+        // A bad crp or pool is not approved to touch escrow fees, only the
+        // `msg.sender` funds.
         IERC20 reserve_ = trust_.reserve();
         RedeemableERC20 token_ = trust_.token();
         IConfigurableRightsPool crp_ = trust_.crp();
@@ -330,11 +286,14 @@ contract BPoolFeeEscrow is FactoryTruster, ReentrancyGuard {
             address(this),
             fee_ + reserveAmountIn_
         );
-        IERC20(reserve_).safeIncreaseAllowance(
+        // The pool is never approved for anything other than this swap so we
+        // can set the allowance directly rather than increment it.
+        IERC20(reserve_).safeApprove(
             pool_,
             reserveAmountIn_
         );
 
+        // Perform the swap sans fee.
         (uint tokenAmountOut_, uint spotPriceAfter_) =
             IBPool(pool_)
                 .swapExactAmountIn(
@@ -344,10 +303,12 @@ contract BPoolFeeEscrow is FactoryTruster, ReentrancyGuard {
                     minTokenAmountOut_,
                     maxPrice_
                 );
+        // Return the result of the swap to `msg.sender`.
         IERC20(token_).safeTransfer(
             msg.sender,
             tokenAmountOut_
         );
+        // Mimic return signature of `swapExactAmountIn`.
         return ((tokenAmountOut_, spotPriceAfter_));
     }
 }

@@ -33,10 +33,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 ///
 /// Any supported ERC20 token can be deposited at any time BUT ONLY under a
 /// `Trust` contract that is the child of the `TrustFactory` that the escrow
-/// is deployed for. This prevents deposits for some token under a malicious
-/// `Trust` that lies about its current distribution status to drain the escrow
-/// of funds by "double spending" deposits as both `undeposit` and `withdraw`
-/// calls. Both `withdraw` and `undeposit` for an unknown `Trust` are errors.
+/// is deployed for. If a `Trust` lies about its distribution status then both
+/// `undeposit` and `withdraw` calls could succeed/fail inappropriately.
 ///
 /// This mechanism is very similar to the native burn mechanism on
 /// `redeemableERC20` itself under `redeem` but without requiring any tokens to
@@ -46,10 +44,11 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /// This does NOT support rebase/elastic token _balance_ mechanisms on the
 /// escrowed token as the escrow has no way to track deposits/withdrawals other
 /// than 1:1 conservation of input/output. For example, if 100 tokens are
-/// deposited and then that token rebases all balances to half, there will be
-/// 50 tokens in the escrow, but users will still be able to claim their share
-/// of 100 tokens - i.e. they will get paid out twice as much as the escrow
-/// actually holds.
+/// deposited under two different trusts and then that token rebases all
+/// balances to half, there will be 50 tokens in the escrow but the escrow will
+/// attempt transfers up to 100 tokens between the two trusts. Essentially the
+/// first 50 tokens will send and the next 50 tokens will fail because the
+/// trust literally doesn't have 100 tokens at that point.
 ///
 /// Elastic _supply_ tokens are supported as every token to be withdrawn must
 /// be first deposited, with the caveat that if some mechanism can
@@ -74,32 +73,48 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
         address trust,
         address token,
         address depositor,
-        uint256 amount
+        uint amount
     );
 
     event Undeposit(
         address trust,
         address token,
         address undepositor,
-        uint256 amount
+        uint amount
     );
 
     event Withdraw(
         address trust,
         address token,
         address withdrawer,
-        uint256 amount
+        uint amount
     );
 
+    /// Every time an address calls `withdraw` their withdrawals increases to
+    /// match the current `totalDeposits` for that trust/token combination.
+    /// The token amount they actually receive is only their prorata share of
+    /// that deposited balance. The prorata scaling calculation happens inline
+    /// within the `withdraw` function.
     /// trust => withdrawn token => withdrawer => amount
-    mapping(address => mapping(address => mapping(address => uint256)))
+    mapping(address => mapping(address => mapping(address => uint)))
         public withdrawals;
 
+    /// Every time an address calls `deposit` their deposited trust/token
+    /// combination is increased. If they call `undeposit` when the raise has
+    /// failed they will receive the full amount they deposited back. Every
+    /// depositor must call `undeposit` for themselves.
     /// trust => deposited token => depositor => amount
-    mapping(address => mapping(address => mapping(address => uint256)))
+    mapping(address => mapping(address => mapping(address => uint)))
         public deposits;
+
+    /// Every time an address calls `deposit` the amount is added to that
+    /// trust/token combination. This increase becomes the "high water mark"
+    /// that withdrawals move up to with each `withdraw` call.
     /// trust => deposited token => amount
-    mapping(address => mapping(address => uint256)) public totalDeposits;
+    mapping(address => mapping(address => uint)) public totalDeposits;
+
+    ///
+    mapping(address => mapping(address => uint)) public maxWithdrawal;
 
     /// @param trustFactory_ forwarded to `FactoryTruster`.
     constructor(address trustFactory_)
@@ -114,32 +129,24 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// The depositor is responsible for approving the token for this contract.
     /// `deposit` is disabled when the distribution fails; only `undeposit` is
     /// allowed in case of a fail. Multiple `deposit` calls before and after a
-    /// success result are supported.
+    /// success result are supported. If a depositor deposits when a raise has
+    /// failed they will need to undeposit it again manually.
     /// Delegated `deposit` is not supported. Every depositor is directly
     /// responsible for every `deposit`.
     /// @param trust_ The `Trust` to assign this deposit to.
     /// @param token_ The `IERC20` token to deposit to the escrow.
     /// @param amount_ The amount of token to deposit. Assumes depositor has
     /// approved at least this amount to succeed.
-    function deposit(Trust trust_, IERC20 token_, uint256 amount_)
+    function deposit(Trust trust_, IERC20 token_, uint amount_)
         external
         onlyTrustedFactoryChild(address(trust_))
     {
-        deposits[address(trust_)][address(token_)][msg.sender]
-            = amount_ + deposits[address(trust_)][address(token_)][msg.sender];
-        totalDeposits[address(trust_)][address(token_)]
-            = amount_ + totalDeposits[address(trust_)][address(token_)];
+        deposits[address(trust_)][address(token_)][msg.sender] += amount_;
+        totalDeposits[address(trust_)][address(token_)] += amount_;
 
-        // Technically a reentrant `require` even though we explicitly trust
-        // the `trust_` this helps automated auditing tools.
-        require(
-            trust_.getDistributionStatus() != DistributionStatus.Fail,
-            "FAIL_DEPOSIT"
-        );
         emit Deposit(address(trust_), address(token_), msg.sender, amount_);
 
         token_.safeTransferFrom(msg.sender, address(this), amount_);
-
     }
 
     /// The inverse of `deposit`.
@@ -148,11 +155,9 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// Ideally the distribution is a success and this does not need to be
     /// called but it is important that we can walk back deposits and try again
     /// for some future raise if needed.
-    /// Partial `undeposit` is not supported. Several `deposits` under a single
-    /// depositor will all be processed as a single `undeposit`.
     /// Delegated `undeposit` is not supported, only the depositor can wind
     /// back their original deposit.
-    /// 0 amount `undeposit` is a noop.
+    /// `amount_` must be non-zero.
     /// If several tokens have been deposited against a given trust for the
     /// depositor then each token must be individually undeposited. There is
     /// no onchain tracking or bulk processing for the depositor, they are
@@ -160,27 +165,22 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// process an `undeposit`.
     /// @param trust_ The `Trust` to undeposit from.
     /// @param token_ The token to undeposit.
-    function undeposit(Trust trust_, IERC20 token_) external {
-        uint256 amount_
-            = deposits[address(trust_)][address(token_)][msg.sender];
-        if (amount_ > 0) {
-            delete deposits[address(trust_)][address(token_)][msg.sender];
-            totalDeposits[address(trust_)][address(token_)]
-                = amount_ - totalDeposits[address(trust_)][address(token_)];
+    function undeposit(Trust trust_, IERC20 token_, uint amount_) external {
+        require(amount_ > 0, "ZERO_AMOUNT");
+        deposits[address(trust_)][address(token_)][msg.sender] -= amount_;
+        totalDeposits[address(trust_)][address(token_)] -= amount_;
+        emit Undeposit(
+            address(trust_),
+            address(token_),
+            msg.sender,
+            amount_
+        );
 
-            require(
-                trust_.getDistributionStatus() == DistributionStatus.Fail,
-                "ONLY_FAIL"
-            );
-            emit Undeposit(
-                address(trust_),
-                address(token_),
-                msg.sender,
-                amount_
-            );
-
-            token_.safeTransfer(msg.sender, amount_);
-        }
+        require(
+            trust_.getDistributionStatus() == DistributionStatus.Fail,
+            "ONLY_FAIL"
+        );
+        token_.safeTransfer(msg.sender, amount_);
     }
 
     /// The successful handover of a `deposit` to a recipient.

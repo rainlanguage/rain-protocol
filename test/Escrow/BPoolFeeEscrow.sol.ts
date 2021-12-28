@@ -42,14 +42,14 @@ describe("BPoolFeeEscrow", async function () {
         await bPoolFeeEscrow
           .connect(recipient)
           .claimFees(recipient.address, trust.address),
-      "INCOMPLETE_DISTRIBUTION",
+      "NOT_SUCCESS",
       "wrongly attempted claim before raise ended"
     );
 
     await Util.assertError(
       async () =>
         await bPoolFeeEscrow.connect(recipient).refundFees(trust.address),
-      "INCOMPLETE_DISTRIBUTION",
+      "NOT_FAIL",
       "wrongly attempted refund before raise ended"
     );
   });
