@@ -65,11 +65,6 @@ describe("RedeemableERC20Reentrant", async function () {
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
 
-    await redeemableERC20.grantRole(
-      await redeemableERC20.DISTRIBUTOR_BURNER(),
-      signers[0].address
-    );
-
     await redeemableERC20.burnDistributor(Util.oneAddress);
 
     // theoretical pool amount being sent to redeemable token

@@ -9,13 +9,18 @@ contract ERC20Pull {
 
     using SafeERC20 for IERC20;
 
+    address public immutable sender;
+
+    constructor(address sender_) {
+        sender = sender_;
+    }
+
     function pullERC20(
-        address sender_,
         IERC20 token_,
         uint256 amount_
     ) external {
         IERC20(token_).safeTransferFrom(
-            sender_,
+            sender,
             address(this),
             amount_
         );

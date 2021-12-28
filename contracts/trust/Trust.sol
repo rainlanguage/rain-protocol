@@ -452,15 +452,8 @@ contract Trust is Phased {
                     config_.initialValuation
                 )
             );
-        redeemableERC20_.grantRole(
-            redeemableERC20_.RECEIVER(),
+        redeemableERC20_.grantReceiver(
             address(bPoolFeeEscrow)
-        );
-
-        // The trust needs the ability to burn the distributor.
-        redeemableERC20_.grantRole(
-            redeemableERC20_.DISTRIBUTOR_BURNER(),
-            address(this)
         );
 
         // The pool reserve must always be one of the treasury assets.
