@@ -62,6 +62,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -131,6 +132,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve1.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -169,8 +171,14 @@ describe("RedeemableERC20", async function () {
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
     const token = await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -272,8 +280,14 @@ describe("RedeemableERC20", async function () {
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
     const token = (await redeemableERC20Factory.deploy({
       admin: owner.address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -339,8 +353,14 @@ describe("RedeemableERC20", async function () {
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -388,6 +408,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -624,8 +645,14 @@ describe("RedeemableERC20", async function () {
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -669,8 +696,14 @@ describe("RedeemableERC20", async function () {
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -713,6 +746,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -762,6 +796,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -845,6 +880,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: admin.address,
+      reserve: reserve1.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -1046,6 +1082,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: admin.address,
+      reserve: reserve1.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -1138,8 +1175,14 @@ describe("RedeemableERC20", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: admin.address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,

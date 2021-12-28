@@ -45,11 +45,17 @@ describe("RedeemableERC20Reentrant", async function () {
     const maliciousReserveFactory = await ethers.getContractFactory(
       "RedeemableERC20Reentrant"
     );
+
+    const maliciousReserve =
+      (await maliciousReserveFactory.deploy()) as RedeemableERC20Reentrant &
+        Contract;
+
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const redeemableERC20 = (await redeemableERC20Factory.deploy({
       admin: signers[0].address,
+      reserve: maliciousReserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -58,9 +64,7 @@ describe("RedeemableERC20Reentrant", async function () {
 
     await redeemableERC20.deployed();
 
-    const maliciousReserve = (await maliciousReserveFactory.deploy(
-      redeemableERC20.address
-    )) as RedeemableERC20Reentrant & Contract;
+    await maliciousReserve.addReentrantTarget(redeemableERC20.address);
 
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
