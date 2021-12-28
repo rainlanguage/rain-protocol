@@ -266,7 +266,7 @@ export const trustDeploy = async (
       ethers.utils.hexStripZeros(
         receipt.events?.filter(
           (x) => x.event == "NewContract" && x.address == trustFactory.address
-        )[0].topics[1]
+        )[0].args[0]
       ),
       20 // address bytes length
     ),
