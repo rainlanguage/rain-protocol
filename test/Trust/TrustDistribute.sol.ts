@@ -544,7 +544,7 @@ describe("TrustDistribute", async function () {
           .connect(creator)
           .creatorFundsRelease(reserve.address, reserveTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(reserve.address, reserveTrustBefore);
 
       await expect(
@@ -552,13 +552,13 @@ describe("TrustDistribute", async function () {
           .connect(creator)
           .creatorFundsRelease(token.address, tokenTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(token.address, tokenTrustBefore);
 
       await expect(
         trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(crp.address, crpTrustBefore);
 
       // perform transfers
@@ -890,7 +890,7 @@ describe("TrustDistribute", async function () {
           .connect(creator)
           .creatorFundsRelease(reserve.address, reserveTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(reserve.address, reserveTrustBefore);
 
       await expect(
@@ -898,13 +898,13 @@ describe("TrustDistribute", async function () {
           .connect(creator)
           .creatorFundsRelease(token.address, tokenTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(token.address, tokenTrustBefore);
 
       await expect(
         trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(crp.address, crpTrustBefore);
 
       // perform transfers
@@ -913,21 +913,21 @@ describe("TrustDistribute", async function () {
         .transferFrom(
           trust.address,
           creator.address,
-          await reserve.allowance(trust.address, creator.address)
+          await reserve.balanceOf(trust.address)
         );
       await token
         .connect(creator)
         .transferFrom(
           trust.address,
           creator.address,
-          await token.allowance(trust.address, creator.address)
+          await token.balanceOf(trust.address)
         );
       await crp
         .connect(creator)
         .transferFrom(
           trust.address,
           creator.address,
-          await crp.allowance(trust.address, creator.address)
+          await crp.balanceOf(trust.address)
         );
 
       const reserveTrustAfter = await reserve.balanceOf(trust.address);
