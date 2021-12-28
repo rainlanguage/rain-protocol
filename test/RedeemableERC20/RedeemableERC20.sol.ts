@@ -217,10 +217,16 @@ describe("RedeemableERC20", async function () {
 
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
 
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
     await Util.assertError(
       async () =>
         await redeemableFactory.deploy({
           admin: signers[0].address,
+          reserve: reserve.address,
           erc20Config,
           tier: tier.address,
           minimumStatus: minimumStatus,
@@ -234,6 +240,7 @@ describe("RedeemableERC20", async function () {
       async () =>
         await redeemableFactory.deploy({
           admin: signers[0].address,
+          reserve: reserve.address,
           erc20Config,
           tier: tier.address,
           minimumStatus: minimumStatus,
@@ -245,6 +252,7 @@ describe("RedeemableERC20", async function () {
 
     const redeemable = await redeemableFactory.deploy({
       admin: signers[0].address,
+      reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumStatus,

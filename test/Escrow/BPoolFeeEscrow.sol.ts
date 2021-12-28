@@ -48,12 +48,10 @@ describe("BPoolFeeEscrow", async function () {
       unknownTrust.address,
       recipient.address
     );
-    const aggregateFees0 = await bPoolFeeEscrow.aggregateFees(trust.address);
-    const aggregateFeesUnknown0 = await bPoolFeeEscrow.aggregateFees(
-      unknownTrust.address
-    );
+    const refunds0 = await bPoolFeeEscrow.refunds(trust.address);
+    const refundsUnknown0 = await bPoolFeeEscrow.refunds(unknownTrust.address);
 
-    await bPoolFeeEscrow.connect(recipient).anonClaimFees(
+    await bPoolFeeEscrow.connect(recipient).claimFees(
       recipient.address,
       unknownTrust.address // unknown trust created by different trust factory
     );
@@ -63,23 +61,11 @@ describe("BPoolFeeEscrow", async function () {
       unknownTrust.address,
       recipient.address
     );
-    const aggregateFees1 = await bPoolFeeEscrow.aggregateFees(trust.address);
-    const aggregateFeesUnknown1 = await bPoolFeeEscrow.aggregateFees(
-      unknownTrust.address
-    );
+    const refunds1 = await bPoolFeeEscrow.refunds(trust.address);
+    const refundsUnknown1 = await bPoolFeeEscrow.refunds(unknownTrust.address);
 
-    const beforeState = [
-      fees0,
-      feesUnknown0,
-      aggregateFees0,
-      aggregateFeesUnknown0,
-    ];
-    const afterState = [
-      fees1,
-      feesUnknown1,
-      aggregateFees1,
-      aggregateFeesUnknown1,
-    ];
+    const beforeState = [fees0, feesUnknown0, refunds0, refundsUnknown0];
+    const afterState = [fees1, feesUnknown1, refunds1, refundsUnknown1];
 
     for (let i = 0; i < beforeState.length; i++) {
       const before = beforeState[i];
@@ -116,36 +102,32 @@ describe("BPoolFeeEscrow", async function () {
     const paidFees1 = fee.mul(buyCount1);
     const paidFees2 = fee.mul(buyCount2);
 
-    const aggregateFeesTrust1 = await bPoolFeeEscrow.aggregateFees(
-      trust1.address
-    );
-    const aggregateFeesTrust2 = await bPoolFeeEscrow.aggregateFees(
-      trust2.address
-    );
+    const refundsTrust1 = await bPoolFeeEscrow.refunds(trust1.address);
+    const refundsTrust2 = await bPoolFeeEscrow.refunds(trust2.address);
 
     assert(
-      aggregateFeesTrust1.eq(paidFees1),
+      refundsTrust1.eq(paidFees1),
       `wrong aggregate fees for trust1
       expected  ${paidFees1}
-      got       ${aggregateFeesTrust1}`
+      got       ${refundsTrust1}`
     );
     assert(
-      aggregateFeesTrust2.eq(paidFees2),
+      refundsTrust2.eq(paidFees2),
       `wrong aggregate fees for trust2
       expected  ${paidFees2}
-      got       ${aggregateFeesTrust2}`
+      got       ${refundsTrust2}`
     );
     assert(
-      aggregateFeesTrust1.eq(aggregateFeesTrust2),
+      refundsTrust1.eq(refundsTrust2),
       `aggregate fees should match
-      left  ${aggregateFeesTrust1}
-      right ${aggregateFeesTrust2}`
+      left  ${refundsTrust1}
+      right ${refundsTrust2}`
     );
 
     // recipient batch claims fees
     await bPoolFeeEscrow
       .connect(recipient)
-      .anonClaimFeesMulti(recipient.address, [trust1.address, trust2.address]);
+      .claimFeesMulti(recipient.address, [trust1.address, trust2.address]);
 
     const recipientReserve1FeesClaimed = await reserve1.balanceOf(
       recipient.address
@@ -237,18 +219,18 @@ describe("BPoolFeeEscrow", async function () {
     // attempting claim fees is no-op.
     await bPoolFeeEscrow
       .connect(recipient)
-      .anonClaimFees(recipient.address, trust.address);
+      .claimFees(recipient.address, trust.address);
 
     const reserveRedeemableERC20_1 = await reserve.balanceOf(
       redeemableERC20.address
     );
 
-    const totalRefund = await bPoolFeeEscrow.aggregateFees(trust.address);
+    const totalRefund = await bPoolFeeEscrow.refunds(trust.address);
 
     // anyone can trigger refund.
     const refundFeesPromise = bPoolFeeEscrow
       .connect(signer1)
-      .anonRefundFees(trust.address);
+      .refundFees(trust.address);
 
     // RefundFees event
     await expect(refundFeesPromise)
@@ -359,7 +341,7 @@ describe("BPoolFeeEscrow", async function () {
     // cannot claim before successful raise is closed
     await bPoolFeeEscrow
       .connect(recipient)
-      .anonClaimFees(recipient.address, trust.address);
+      .claimFees(recipient.address, trust.address);
 
     const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
 
@@ -390,7 +372,7 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // Attempting refund is no-op.
-    await bPoolFeeEscrow.connect(signer1).anonRefundFees(trust.address);
+    await bPoolFeeEscrow.connect(signer1).refundFees(trust.address);
 
     const claimableFee = await bPoolFeeEscrow.fees(
       trust.address,
@@ -399,7 +381,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const claimFeesPromise = bPoolFeeEscrow
       .connect(recipient)
-      .anonClaimFees(recipient.address, trust.address);
+      .claimFees(recipient.address, trust.address);
 
     // ClaimFees event
     await expect(claimFeesPromise)
@@ -418,7 +400,7 @@ describe("BPoolFeeEscrow", async function () {
       "did not delete fee amount for trust and recipient"
     );
 
-    // recipient should have claimed fees after calling `anonClaimFees` after successful raise
+    // recipient should have claimed fees after calling `claimFees` after successful raise
     assert(
       reserveBalanceRecipient2.eq(fee.mul(buyCount)),
       `wrong recipient claim amount
@@ -483,7 +465,7 @@ describe("BPoolFeeEscrow", async function () {
     // no-op claim if raise is still ongoing
     await bPoolFeeEscrow
       .connect(recipient)
-      .anonClaimFees(recipient.address, trust.address);
+      .claimFees(recipient.address, trust.address);
 
     const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
 

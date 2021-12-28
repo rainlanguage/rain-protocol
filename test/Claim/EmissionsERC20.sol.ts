@@ -1074,9 +1074,6 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const constructionBlockNumber =
-      (await ethers.provider.getBlockNumber()) + 1;
-
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
       emissionsERC20Factory,
@@ -1096,11 +1093,5 @@ describe("EmissionsERC20", async function () {
     );
 
     assert(await emissionsERC20.allowDelegatedClaims());
-    assert(
-      (await emissionsERC20.constructionBlockNumber()).eq(constructionBlockNumber),
-      `wrong construction block number
-      expected  ${constructionBlockNumber}
-      got       ${await emissionsERC20.constructionBlockNumber()}`
-    );
   });
 });
