@@ -50,7 +50,7 @@ enum Phase {
   EIGHT,
 }
 
-describe("TrustDistribute", async function () {
+describe.only("TrustDistribute", async function () {
   it("should allow pulling approved ERC20 into seed and token contracts after auction has ended", async () => {
     this.timeout(0);
 
@@ -546,7 +546,7 @@ describe("TrustDistribute", async function () {
           .connect(creator)
           .creatorFundsRelease(reserve.address, reserveTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(reserve.address, reserveTrustBefore);
 
       await expect(
@@ -554,13 +554,13 @@ describe("TrustDistribute", async function () {
           .connect(creator)
           .creatorFundsRelease(token.address, tokenTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(token.address, tokenTrustBefore);
 
       await expect(
         trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(crp.address, crpTrustBefore);
 
       // perform transfers
@@ -892,7 +892,7 @@ describe("TrustDistribute", async function () {
           .connect(creator)
           .creatorFundsRelease(reserve.address, reserveTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(reserve.address, reserveTrustBefore);
 
       await expect(
@@ -900,13 +900,13 @@ describe("TrustDistribute", async function () {
           .connect(creator)
           .creatorFundsRelease(token.address, tokenTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(token.address, tokenTrustBefore);
 
       await expect(
         trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
       )
-        .to.emit(redeemableERC20Pool, "CreatorFundsRelease")
+        .to.emit(trust, "CreatorFundsRelease")
         .withArgs(crp.address, crpTrustBefore);
 
       // perform transfers

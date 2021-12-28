@@ -90,8 +90,6 @@ library RedeemableERC20Pool {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
-    event CreatorFundsRelease(address token, uint256 amount);
-
     /// Balancer requires a minimum balance of `10 ** 6` for all tokens at all
     /// times. ConfigurableRightsPool repo misreports this as 10 ** 12 but the
     /// Balancer Core repo has it set as `10 ** 6`. We add one here to protect
@@ -527,7 +525,6 @@ library RedeemableERC20Pool {
                 "NON_RELEASE_PHASE"
             );
         }
-        emit CreatorFundsRelease(token_, amount_);
         // Strictly increase allowance here as this function is world callable
         // we do not want anons to decrease what the creator can access.
         IERC20(token_).safeIncreaseAllowance(self_.creator(), amount_);
