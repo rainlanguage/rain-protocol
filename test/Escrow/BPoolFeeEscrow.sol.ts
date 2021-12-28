@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import {
   basicSetup,
   deployGlobals,
+  failedRaise,
   successfulRaise,
 } from "./BPoolFeeEscrowUtil";
 import { getAddress } from "ethers/lib/utils";
@@ -22,7 +23,38 @@ enum DistributionStatus {
 }
 
 describe("BPoolFeeEscrow", async function () {
-  it("should not change contract state if unknown trust is claimed against", async function () {
+  it("should prevent claiming and refunding until raise has ended", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const { trustFactory, tier, seedERC20Factory } = await deployGlobals();
+
+    const { recipient, trust, bPoolFeeEscrow } = await basicSetup(
+      signers,
+      trustFactory,
+      seedERC20Factory,
+      tier
+    );
+
+    await Util.assertError(
+      async () =>
+        await bPoolFeeEscrow
+          .connect(recipient)
+          .claimFees(recipient.address, trust.address),
+      "INCOMPLETE_DISTRIBUTION",
+      "wrongly attempted claim before raise ended"
+    );
+
+    await Util.assertError(
+      async () =>
+        await bPoolFeeEscrow.connect(recipient).refundFees(trust.address),
+      "INCOMPLETE_DISTRIBUTION",
+      "wrongly attempted refund before raise ended"
+    );
+  });
+
+  it("should revert if unknown trust is claimed against", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -30,13 +62,14 @@ describe("BPoolFeeEscrow", async function () {
     const { trustFactory, tier, seedERC20Factory } = await deployGlobals();
     const { trustFactory: trustFactory2 } = await deployGlobals();
 
-    const { recipient, trust } = await basicSetup(
+    const { recipient, trust, bPoolFeeEscrow } = await successfulRaise(
       signers,
       trustFactory,
       seedERC20Factory,
       tier
     );
-    const { trust: unknownTrust, bPoolFeeEscrow } = await basicSetup(
+
+    const { trust: unknownTrust } = await successfulRaise(
       signers,
       trustFactory2,
       seedERC20Factory,
@@ -51,9 +84,14 @@ describe("BPoolFeeEscrow", async function () {
     const refunds0 = await bPoolFeeEscrow.refunds(trust.address);
     const refundsUnknown0 = await bPoolFeeEscrow.refunds(unknownTrust.address);
 
-    await bPoolFeeEscrow.connect(recipient).claimFees(
-      recipient.address,
-      unknownTrust.address // unknown trust created by different trust factory
+    await Util.assertError(
+      async () =>
+        await bPoolFeeEscrow.connect(recipient).claimFees(
+          recipient.address,
+          unknownTrust.address // unknown trust created by different trust factory
+        ),
+      "NOT_TRUSTED_CHILD",
+      "wrongly claimed fees against unknown trust"
     );
 
     const fees1 = await bPoolFeeEscrow.fees(trust.address, recipient.address);
@@ -287,74 +325,10 @@ describe("BPoolFeeEscrow", async function () {
       trust,
       recipient,
       signer1,
-      successLevel,
-      bPool,
-      minimumTradingDuration,
       bPoolFeeEscrow,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
-
-    const startBlock = await ethers.provider.getBlockNumber();
-
-    const buyTokensViaEscrow = async (signer, spend, fee) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend.add(fee));
-
-      await reserve
-        .connect(signer)
-        .approve(bPoolFeeEscrow.address, spend.add(fee));
-
-      await bPoolFeeEscrow
-        .connect(signer)
-        .buyToken(
-          recipient.address,
-          trust.address,
-          fee,
-          spend,
-          ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
-        );
-    };
-
-    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
-    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
-
-    // raise all necessary funds
-    let buyCount = 0;
-    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await buyTokensViaEscrow(signer1, spend, fee);
-      buyCount++;
-    }
-
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
-
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    assert(
-      (await trust.getDistributionStatus()) ===
-        DistributionStatus.TRADINGCANEND,
-      "raise incomplete"
-    );
-
-    // cannot claim before successful raise is closed
-    await bPoolFeeEscrow
-      .connect(recipient)
-      .claimFees(recipient.address, trust.address);
-
-    const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
-
-    assert(
-      reserveBalanceRecipient1.isZero(),
-      `wrong recipient claim amount
-      expected      0
-      got           ${reserveBalanceRecipient1}
-      reserveEscrow ${await reserve.balanceOf(bPoolFeeEscrow.address)}`
-    );
-
-    // actually end raise
-    await trust.endDutchAuction();
+      fee,
+      buyCount,
+    } = await successfulRaise(signers, trustFactory, seedERC20Factory, tier);
 
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
@@ -417,39 +391,9 @@ describe("BPoolFeeEscrow", async function () {
 
     const { trustFactory, seedERC20Factory, tier } = await deployGlobals();
 
-    const { reserve, trust, recipient, signer1, bPoolFeeEscrow } =
-      await basicSetup(signers, trustFactory, seedERC20Factory, tier);
-
-    const buyTokensViaEscrow = async (signer, spend, fee) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend.add(fee));
-
-      const reserveSigner = reserve.connect(signer);
-
-      await reserveSigner.approve(bPoolFeeEscrow.address, spend.add(fee));
-
-      const buyTokenPromise = bPoolFeeEscrow
-        .connect(signer)
-        .buyToken(
-          recipient.address,
-          trust.address,
-          fee,
-          spend,
-          ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
-        );
-
-      // Fee event
-      await expect(buyTokenPromise)
-        .to.emit(bPoolFeeEscrow, "Fee")
-        .withArgs(recipient.address, getAddress(trust.address), fee);
-    };
-
-    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
-    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
-
     // signer1 uses a front end to buy token. Front end makes call to bPoolFeeEscrow contract so it takes a fee on behalf of recipient.
-    await buyTokensViaEscrow(signer1, spend, fee);
+    const { reserve, trust, recipient, bPoolFeeEscrow, fee } =
+      await failedRaise(signers, trustFactory, seedERC20Factory, tier);
 
     const reserveBalanceEscrow1 = await reserve.balanceOf(
       bPoolFeeEscrow.address
