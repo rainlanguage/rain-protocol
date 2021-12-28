@@ -258,6 +258,8 @@ contract Trust is Phased {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
+    event CreatorFundsRelease(address token, uint256 amount);
+
     BPoolFeeEscrow public immutable bPoolFeeEscrow;
 
     /// Anyone can emit a `Notice`.
@@ -574,6 +576,7 @@ contract Trust is Phased {
     }
 
     function creatorFundsRelease(address token_, uint256 amount_) external {
+        emit CreatorFundsRelease(token_, amount_);
         RedeemableERC20Pool.creatorFundsRelease(
             this,
             token_,
