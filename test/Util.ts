@@ -24,6 +24,8 @@ const { expect, assert } = chai;
 
 export const CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING = 100;
 export const MAX_RAISE_DURATION_TESTING = 100;
+export const RECEIVER = 0x1;
+export const SENDER = 0x3;
 
 const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
 if (smartPoolManagerAddress) {
