@@ -46,7 +46,7 @@ export const emissionsDeploy = async (
           (x) =>
             x.event == "NewContract" &&
             x.address == emissionsERC20Factory.address
-        )[0].topics[1]
+        )[0].args[0]
       ),
       20 // address bytes length
     ),
