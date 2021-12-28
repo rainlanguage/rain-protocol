@@ -8,7 +8,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { ITier } from "../tier/ITier.sol";
+import { Tier, ITier } from "../tier/ITier.sol";
 
 import { Phase } from "../phased/Phased.sol";
 // solhint-disable-next-line max-line-length
@@ -153,7 +153,7 @@ struct TrustRedeemableERC20Config {
     // `ITier` contract to compare statuses against on transfer.
     ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    ITier.Tier minimumStatus;
+    Tier minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
 }
@@ -257,6 +257,8 @@ contract Trust is Phased {
 
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
+
+    event CreatorFundsRelease(address token, uint256 amount);
 
     BPoolFeeEscrow public immutable bPoolFeeEscrow;
 
@@ -585,6 +587,7 @@ contract Trust is Phased {
     }
 
     function creatorFundsRelease(address token_, uint256 amount_) external {
+        emit CreatorFundsRelease(token_, amount_);
         RedeemableERC20Pool.creatorFundsRelease(
             this,
             token_,

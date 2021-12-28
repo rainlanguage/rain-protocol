@@ -3,7 +3,7 @@
 pragma solidity ^0.8.10;
 
 import { TierReport } from "./libraries/TierReport.sol";
-import { ITier } from "./ITier.sol";
+import { Tier, ITier } from "./ITier.sol";
 
 /// @title TierByConstruction
 /// @notice `TierByConstruction` is a base contract for other
@@ -60,7 +60,7 @@ contract TierByConstruction {
     /// @param account_ Account to check status of.
     /// @param minimumTier_ Minimum tier for the account.
     /// @return True if the status is currently held.
-    function isTier(address account_, ITier.Tier minimumTier_)
+    function isTier(address account_, Tier minimumTier_)
         public
         view
         returns (bool)
@@ -88,7 +88,7 @@ contract TierByConstruction {
     ///
     /// @param account_ Account to enforce tier of.
     /// @param minimumTier_ Minimum tier for the account.
-    modifier onlyTier(address account_, ITier.Tier minimumTier_) {
+    modifier onlyTier(address account_, Tier minimumTier_) {
         _;
         require(
             isTier(account_, minimumTier_),

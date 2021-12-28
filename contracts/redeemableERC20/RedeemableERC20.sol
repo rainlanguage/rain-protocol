@@ -14,7 +14,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
-import { ITier } from "../tier/ITier.sol";
+import { Tier, ITier } from "../tier/ITier.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 
@@ -30,7 +30,7 @@ struct RedeemableERC20Config {
     // Tier contract to compare statuses against on transfer.
     ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    ITier.Tier minimumStatus;
+    Tier minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
 }
@@ -139,7 +139,7 @@ contract RedeemableERC20 is
     /// the status is held during `_beforeTokenTransfer`.
     /// Not immutable because it is read during the constructor by the `_mint`
     /// call.
-    ITier.Tier public minimumTier;
+    Tier public minimumTier;
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions.
@@ -168,6 +168,10 @@ contract RedeemableERC20 is
         // It is a common mistake to pass in a contract without the `ITier`
         // interface and brick transfers. We want to discover that ASAP.
         // E.g. `Verify` instead of `VerifyTier`.
+        // Slither does not like this unused return, but we're not looking for
+        // any specific return value, just trying to avoid something that
+        // blatantly errors out.
+        // slither-disable-next-line unused-return
         ITier(config_.tier).report(msg.sender);
     }
 

@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.10;
 
-import { ITier } from "../tier/ITier.sol";
+import { Tier, ITier } from "../tier/ITier.sol";
 import { TierReport } from "../tier/libraries/TierReport.sol";
 
 /// @title TierReportTest
@@ -14,7 +14,7 @@ contract TierReportTest {
     function tierAtBlockFromReport(uint256 report_, uint256 blockNumber_)
         external
         pure
-        returns (ITier.Tier)
+        returns (Tier)
     {
         return TierReport.tierAtBlockFromReport(report_, blockNumber_);
     }
@@ -22,7 +22,7 @@ contract TierReportTest {
     /// Wraps `TierReport.tierBlock`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function tierBlock(uint256 report_, ITier.Tier tier_)
+    function tierBlock(uint256 report_, Tier tier_)
         external
         pure
         returns (uint256)
@@ -33,7 +33,7 @@ contract TierReportTest {
     /// Wraps `TierReport.truncateTiersAbove`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function truncateTiersAbove(uint256 report_, ITier.Tier tier_)
+    function truncateTiersAbove(uint256 report_, Tier tier_)
         external
         pure
         returns (uint256)
@@ -48,8 +48,8 @@ contract TierReportTest {
     /// @param blockNumber_ Forwarded to TestUtil.
     function updateBlocksForTierRange(
         uint256 report_,
-        ITier.Tier startTier_,
-        ITier.Tier endTier_,
+        Tier startTier_,
+        Tier endTier_,
         uint256 blockNumber_
     ) external pure returns (uint256) {
         return
@@ -68,8 +68,8 @@ contract TierReportTest {
     /// @param blockNumber_ Forwarded to TestUtil.
     function updateReportWithTierAtBlock(
         uint256 report_,
-        ITier.Tier startTier_,
-        ITier.Tier endTier_,
+        Tier startTier_,
+        Tier endTier_,
         uint256 blockNumber_
     ) external pure returns (uint256) {
         return

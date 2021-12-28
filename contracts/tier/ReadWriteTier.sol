@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.10;
 
-import { ITier } from "./ITier.sol";
+import { Tier, ITier } from "./ITier.sol";
 import { TierReport } from "./libraries/TierReport.sol";
 
 /// @title ReadWriteTier
@@ -58,7 +58,7 @@ contract ReadWriteTier is ITier {
 
         uint256 report_ = report(account_);
 
-        ITier.Tier startTier_ = TierReport.tierAtBlockFromReport(
+        Tier startTier_ = TierReport.tierAtBlockFromReport(
             report_,
             block.number
         );

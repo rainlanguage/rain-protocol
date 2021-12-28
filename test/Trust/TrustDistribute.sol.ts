@@ -301,10 +301,8 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumStatus = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory, seedERC20Factory, redeemableERC20Pool } =
+        await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -497,6 +495,18 @@ describe("TrustDistribute", async function () {
         got       ${await trust.currentPhase()}`
       );
 
+      await Util.assertError(
+        async () =>
+          await trust
+            .connect(signer1)
+            .creatorFundsRelease(
+              reserve.address,
+              await reserve.balanceOf(trust.address)
+            ),
+        "NON_RELEASE_PHASE",
+        "wrongly released creator funds before release phase"
+      );
+
       // schedule Phase.FOUR immediately
       await trust.connect(signer1).enableCreatorFundsRelease();
 
@@ -511,18 +521,6 @@ describe("TrustDistribute", async function () {
         async () => await trust.endDutchAuction(),
         "BAD_PHASE",
         "ended dutch auction despite moving to creator funds release phase"
-      );
-
-      await Util.assertError(
-        async () =>
-          await trust
-            .connect(signer1)
-            .creatorFundsRelease(
-              reserve.address,
-              await reserve.balanceOf(trust.address)
-            ),
-        "NON_CREATOR_RELEASE",
-        "non-creator wrongly called creatorFundsRelease"
       );
 
       const reserveTrustBefore = await reserve.balanceOf(trust.address);
@@ -542,15 +540,28 @@ describe("TrustDistribute", async function () {
       });
 
       // approve all for transfer
-      await trust
-        .connect(creator)
-        .creatorFundsRelease(reserve.address, reserveTrustBefore);
-      await trust
-        .connect(creator)
-        .creatorFundsRelease(token.address, tokenTrustBefore);
-      await trust
-        .connect(creator)
-        .creatorFundsRelease(crp.address, crpTrustBefore);
+
+      await expect(
+        trust
+          .connect(creator)
+          .creatorFundsRelease(reserve.address, reserveTrustBefore)
+      )
+        .to.emit(trust, "CreatorFundsRelease")
+        .withArgs(reserve.address, reserveTrustBefore);
+
+      await expect(
+        trust
+          .connect(creator)
+          .creatorFundsRelease(token.address, tokenTrustBefore)
+      )
+        .to.emit(trust, "CreatorFundsRelease")
+        .withArgs(token.address, tokenTrustBefore);
+
+      await expect(
+        trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
+      )
+        .to.emit(trust, "CreatorFundsRelease")
+        .withArgs(crp.address, crpTrustBefore);
 
       // perform transfers
       await reserve
@@ -633,10 +644,8 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumStatus = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory, seedERC20Factory, redeemableERC20Pool } =
+        await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -838,16 +847,6 @@ describe("TrustDistribute", async function () {
         got       ${await trust.currentPhase()}`
       );
 
-      // schedule Phase.FOUR after Phase.THREE
-      await trust.connect(signer1).enableCreatorFundsRelease();
-
-      assert(
-        (await trust.currentPhase()) === Phase.FOUR,
-        `wrong phase (assert no. 7)
-        expected  ${Phase.FOUR}
-        got       ${await trust.currentPhase()}`
-      );
-
       await Util.assertError(
         async () =>
           await trust
@@ -856,8 +855,18 @@ describe("TrustDistribute", async function () {
               reserve.address,
               await reserve.balanceOf(trust.address)
             ),
-        "NON_CREATOR_RELEASE",
-        "non-creator wrongly called creatorFundsRelease"
+        "NON_RELEASE_PHASE",
+        "wrongly released creator funds before release phase"
+      );
+
+      // schedule Phase.FOUR after Phase.THREE
+      await trust.connect(signer1).enableCreatorFundsRelease();
+
+      assert(
+        (await trust.currentPhase()) === Phase.FOUR,
+        `wrong phase (assert no. 7)
+        expected  ${Phase.FOUR}
+        got       ${await trust.currentPhase()}`
       );
 
       const reserveTrustBefore = await reserve.balanceOf(trust.address);
@@ -877,15 +886,28 @@ describe("TrustDistribute", async function () {
       });
 
       // approve all for transfer
-      await trust
-        .connect(creator)
-        .creatorFundsRelease(reserve.address, reserveTrustBefore);
-      await trust
-        .connect(creator)
-        .creatorFundsRelease(token.address, tokenTrustBefore);
-      await trust
-        .connect(creator)
-        .creatorFundsRelease(crp.address, crpTrustBefore);
+
+      await expect(
+        trust
+          .connect(creator)
+          .creatorFundsRelease(reserve.address, reserveTrustBefore)
+      )
+        .to.emit(trust, "CreatorFundsRelease")
+        .withArgs(reserve.address, reserveTrustBefore);
+
+      await expect(
+        trust
+          .connect(creator)
+          .creatorFundsRelease(token.address, tokenTrustBefore)
+      )
+        .to.emit(trust, "CreatorFundsRelease")
+        .withArgs(token.address, tokenTrustBefore);
+
+      await expect(
+        trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
+      )
+        .to.emit(trust, "CreatorFundsRelease")
+        .withArgs(crp.address, crpTrustBefore);
 
       // perform transfers
       await reserve
@@ -893,21 +915,21 @@ describe("TrustDistribute", async function () {
         .transferFrom(
           trust.address,
           creator.address,
-          await reserve.allowance(trust.address, creator.address)
+          await reserve.balanceOf(trust.address)
         );
       await token
         .connect(creator)
         .transferFrom(
           trust.address,
           creator.address,
-          await token.allowance(trust.address, creator.address)
+          await token.balanceOf(trust.address)
         );
       await crp
         .connect(creator)
         .transferFrom(
           trust.address,
           creator.address,
-          await crp.allowance(trust.address, creator.address)
+          await crp.balanceOf(trust.address)
         );
 
       const reserveTrustAfter = await reserve.balanceOf(trust.address);

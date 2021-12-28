@@ -14,14 +14,12 @@ struct Op {
     uint val;
 }
 
-enum Ops {
-    skip,
-    val,
-    zipmap,
-    length
-}
-
 abstract contract RainVM {
+
+    uint constant internal OP_SKIP = 0;
+    uint constant internal OP_VAL = 1;
+    uint constant internal OP_ZIPMAP = 2;
+    uint constant internal OPS_LENGTH = 3;
 
     /// Separate function to avoid blowing solidity compile time stack.
     function zipmap(
@@ -34,11 +32,30 @@ abstract contract RainVM {
             uint stepSize_;
             uint offset_;
             uint valLength_;
+            // assembly here to shave some gas.
             assembly {
+                // rightmost 2 bits are the index of the source to use from
+                // sources in `state_`.
                 sourceIndex_ := and(config_, 0x03)
+                // bits 2-5 indicate size of the loop. Each 1 increment of the
+                // size halves the bits of the arguments to the zipmap.
+                // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
+                // into args for the inner `eval`. A loop size of `1` would
+                // shift `stepSize_` by 1 (halving it) and meaning the uint256
+                // is `eval` as 2x 128 bit values (runs twice). A loop size of
+                // `2` would run 4 times as 64 bit values, and so on.
+                //
+                // Slither false positive here for the shift of constant `256`.
+                // slither-disable-next-line incorrect-shift
                 stepSize_ := shr(and(shr(2, config_), 0x07), 256)
+                // `offset_` is used by the actual bit shifting operations and
+                // is precalculated here to save some gas as this is a hot
+                // performance path.
                 offset_ := sub(256, stepSize_)
-                valLength_ := add(and(shr(5, config_), 0x07), 1)
+                // bits 5+ determine the number of vals to be zipped. At least
+                // one value must be provided so a `valLength_` of `0` is one
+                // value to loop over.
+                valLength_ := add(shr(5, config_), 1)
             }
             state_.stackIndex -= valLength_;
 
@@ -90,12 +107,12 @@ abstract contract RainVM {
                     i_ := sub(i_, 0x2)
                 }
 
-                if (opcode_ < 3) {
-                    if (opcode_ == 0) {
+                if (opcode_ < OPS_LENGTH) {
+                    if (opcode_ == OP_SKIP) {
                         assembly { i_ := sub(i_, mul(opval_, 2)) }
                         continue;
                     }
-                    else if (opcode_ == 1) {
+                    else if (opcode_ == OP_VAL) {
                         assembly {
                             valIndex_ := and(opval_, 0x7F)
                             fromArguments_ := gt(shr(7, opval_), 0)
@@ -105,7 +122,7 @@ abstract contract RainVM {
                             : state_.constants[valIndex_];
                         state_.stackIndex++;
                     }
-                    else if (opcode_ == 2) {
+                    else if (opcode_ == OP_ZIPMAP) {
                         // state_ modified by reference.
                         zipmap(
                             context_,

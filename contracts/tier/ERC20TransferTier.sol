@@ -80,8 +80,8 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
     /// @inheritdoc ReadWriteTier
     function _afterSetTier(
         address account_,
-        ITier.Tier startTier_,
-        ITier.Tier endTier_,
+        Tier startTier_,
+        Tier endTier_,
         bytes memory
     )
         internal

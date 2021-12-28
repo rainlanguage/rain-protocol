@@ -150,7 +150,7 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_;
+            uint256 accumulator_ = 0;
             bool anyTrue_ = false;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
                 if (vals_[i_] <= blockNumber_) {
@@ -184,7 +184,7 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_;
+            uint256 accumulator_ = 0;
             bool anyTrue_ = false;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
                 if (vals_[i_] <= blockNumber_) {
@@ -217,7 +217,7 @@ library TierwiseCombine {
                     >> 256 - 32
                 );
             }
-            uint256 accumulator_;
+            uint256 accumulator_ = 0;
             bool anyTrue_ = false;
             for (uint256 i_ = 0; i_ < vals_.length; i_++) {
                 if (vals_[i_] <= blockNumber_ && !anyTrue_) {

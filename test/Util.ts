@@ -14,6 +14,7 @@ import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool
 import type { BPool } from "../typechain/BPool";
 import type { BigNumber, Contract, BytesLike, BigNumberish } from "ethers";
 import type { Trust } from "../typechain/Trust";
+import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -124,6 +125,7 @@ export interface Factories {
   redeemableERC20Factory: RedeemableERC20Factory & Contract;
   seedERC20Factory: SeedERC20Factory & Contract;
   trustFactory: TrustFactory & Contract;
+  redeemableERC20Pool: RedeemableERC20Pool & Contract;
 }
 
 export const factoriesDeploy = async (
@@ -148,11 +150,14 @@ export const factoriesDeploy = async (
   await seedERC20Factory.deployed();
 
   // library
-  const redeemableER20Pool = await basicDeploy("RedeemableERC20Pool", {});
+  const redeemableERC20Pool = (await basicDeploy(
+    "RedeemableERC20Pool",
+    {}
+  )) as RedeemableERC20Pool & Contract;
 
   const trustFactoryFactory = await ethers.getContractFactory("TrustFactory", {
     libraries: {
-      RedeemableERC20Pool: redeemableER20Pool.address,
+      RedeemableERC20Pool: redeemableERC20Pool.address,
     },
   });
   const trustFactory = (await trustFactoryFactory.deploy({
@@ -169,6 +174,7 @@ export const factoriesDeploy = async (
     redeemableERC20Factory,
     seedERC20Factory,
     trustFactory,
+    redeemableERC20Pool,
   };
 };
 

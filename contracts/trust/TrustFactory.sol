@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ITier } from "../tier/ITier.sol";
+import { Tier, ITier } from "../tier/ITier.sol";
 
 import { Factory } from "../factory/Factory.sol";
 import { Trust, TrustConfig } from "../trust/Trust.sol";
@@ -54,7 +54,7 @@ struct TrustFactoryTrustRedeemableERC20Config {
     // Tier contract to compare statuses against on transfer.
     ITier tier;
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    ITier.Tier minimumStatus;
+    Tier minimumStatus;
     // Number of redeemable tokens to mint.
     uint256 totalSupply;
 }

@@ -2,6 +2,23 @@
 
 pragma solidity ^0.8.10;
 
+/// 9 Possible tiers.
+/// Fits nicely as uint32 in uint256 which is helpful for internal storage
+/// concerns.
+/// 8 tiers can be achieved, ZERO is the tier when no tier has been
+/// achieved.
+enum Tier {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT
+}
+
 /// @title ITier
 /// @notice `ITier` is a simple interface that contracts can
 /// implement to provide membership lists for other contracts.
@@ -49,23 +66,6 @@ pragma solidity ^0.8.10;
 /// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
 ///   - Contracts that cannot meaningfully set a tier are exempt.
 interface ITier {
-
-    /// 9 Possible tiers.
-    /// Fits nicely as uint32 in uint256 which is helpful for internal storage
-    /// concerns.
-    /// 8 tiers can be achieved, ZERO is the tier when no tier has been
-    /// achieved.
-    enum Tier {
-        ZERO,
-        ONE,
-        TWO,
-        THREE,
-        FOUR,
-        FIVE,
-        SIX,
-        SEVEN,
-        EIGHT
-    }
 
     /// Every time a Tier changes we log start and end Tier against the
     /// account.

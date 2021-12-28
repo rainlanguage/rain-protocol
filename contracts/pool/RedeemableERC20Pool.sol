@@ -90,8 +90,6 @@ library RedeemableERC20Pool {
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
-    event CreatorFundsRelease(address token, uint256 amount);
-
     /// Balancer requires a minimum balance of `10 ** 6` for all tokens at all
     /// times. ConfigurableRightsPool repo misreports this as 10 ** 12 but the
     /// Balancer Core repo has it set as `10 ** 6`. We add one here to protect
@@ -460,14 +458,14 @@ library RedeemableERC20Pool {
         }
 
         if (creatorPay_ > 0) {
-            self_.reserve().approve(
+            self_.reserve().safeApprove(
                 self_.creator(),
                 creatorPay_
             );
         }
 
         if (seederPay_ > 0) {
-            self_.reserve().approve(
+            self_.reserve().safeApprove(
                 self_.seeder(),
                 seederPay_
             );
@@ -480,7 +478,7 @@ library RedeemableERC20Pool {
         uint256 remainder_ = availableBalance_
             .saturatingSub(creatorPay_.saturatingAdd(seederPay_));
         if (remainder_ > 0) {
-            self_.reserve().approve(
+            self_.reserve().safeApprove(
                 address(self_.token()),
                 remainder_
             );
@@ -513,9 +511,10 @@ library RedeemableERC20Pool {
     )
         external
     {
-        require(msg.sender == self_.creator(), "NON_CREATOR_RELEASE");
-        // If the creator is asking for funds the `Trust` knows about and is
-        // actively managing then we MUST ensure we've reached `Phase.FOUR`.
+        // For funds the `Trust` knows about and is actively managing we MUST
+        // ensure we've reached `Phase.FOUR`. For everything else, the `Trust`
+        // has no knowledge of it so the creator is expected to deal with it,
+        // we have to assume it is a mistake by someone.
         if (
             token_ == address(self_.reserve())
             || token_ == address(self_.token())
@@ -526,7 +525,8 @@ library RedeemableERC20Pool {
                 "NON_RELEASE_PHASE"
             );
         }
-        emit CreatorFundsRelease(token_, amount_);
-        IERC20(token_).approve(msg.sender, amount_);
+        // Strictly increase allowance here as this function is world callable
+        // we do not want anons to decrease what the creator can access.
+        IERC20(token_).safeIncreaseAllowance(self_.creator(), amount_);
     }
 }

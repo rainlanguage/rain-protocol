@@ -185,6 +185,7 @@ contract BPoolFeeEscrow is FactoryTruster {
             // is waiting for them to claim. Recipient is free to abandon a
             // trust to completely opt out of a claim.
             claimableFee_ = fees[address(trust_)][feeRecipient_];
+            emit ClaimFees(feeRecipient_, address(trust_), claimableFee_);
             if (claimableFee_ > 0) {
                 delete fees[address(trust_)][feeRecipient_];
                 if (distributionStatus_ == DistributionStatus.Success) {
@@ -203,7 +204,6 @@ contract BPoolFeeEscrow is FactoryTruster {
                     claimableFee_ = 0;
                 }
             }
-            emit ClaimFees(feeRecipient_, address(trust_), claimableFee_);
         }
         return claimableFee_;
     }
@@ -239,13 +239,13 @@ contract BPoolFeeEscrow is FactoryTruster {
                 delete aggregateFees[address(trust_)];
 
                 if (distributionStatus_ == DistributionStatus.Fail) {
+                    emit RefundFees(address(trust_), refund_);
                     TrustContracts memory trustContracts_ = trust_
                         .getContracts();
                     IERC20(trustContracts_.reserveERC20).safeTransfer(
                         trustContracts_.redeemableERC20,
                         refund_
                     );
-                    emit RefundFees(address(trust_), refund_);
                 }
             }
         }
@@ -315,6 +315,7 @@ contract BPoolFeeEscrow is FactoryTruster {
             = fee_ + aggregateFees[address(trust_)];
 
         TrustContracts memory trustContracts_ = trust_.getContracts();
+        emit Fee(feeRecipient_, address(trust_), fee_);
 
         IERC20(trustContracts_.reserveERC20).safeTransferFrom(
             msg.sender,
@@ -360,9 +361,6 @@ contract BPoolFeeEscrow is FactoryTruster {
             msg.sender,
             tokenAmountOut_
         );
-
-        emit Fee(feeRecipient_, address(trust_), fee_);
-
         return ((tokenAmountOut_, spotPriceAfter_));
     }
 }

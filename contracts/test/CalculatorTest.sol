@@ -2,21 +2,21 @@
 
 pragma solidity 0.8.10;
 
-import { RainVM, Ops as RainVMOps, State, Op } from "../vm/RainVM.sol";
+import { RainVM, State, Op } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
-import { BlockOps, Ops as BlockOpsOps } from "../vm/ops/BlockOps.sol";
+import { BlockOps } from "../vm/ops/BlockOps.sol";
 import { MathOps } from "../vm/ops/MathOps.sol";
 
 contract CalculatorTest is RainVM, ImmutableSource {
 
-    uint8 public immutable blockOpsStart;
-    uint8 public immutable mathOpsStart;
+    uint public immutable blockOpsStart;
+    uint public immutable mathOpsStart;
 
     constructor(ImmutableSourceConfig memory config_)
         ImmutableSource(config_)
     {
-        blockOpsStart = uint8(RainVMOps.length);
-        mathOpsStart = blockOpsStart + uint8(BlockOpsOps.length);
+        blockOpsStart = RainVM.OPS_LENGTH;
+        mathOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
     }
 
     function applyOp(
@@ -28,21 +28,23 @@ contract CalculatorTest is RainVM, ImmutableSource {
         override
         view
     {
-        if (op_.code < mathOpsStart) {
-            op_.code -= blockOpsStart;
-            BlockOps.applyOp(
-                context_,
-                state_,
-                op_
-            );
-        }
-        else {
-            op_.code -= mathOpsStart;
-            MathOps.applyOp(
-                context_,
-                state_,
-                op_
-            );
+        unchecked {
+            if (op_.code < mathOpsStart) {
+                op_.code -= blockOpsStart;
+                BlockOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
+            }
+            else {
+                op_.code -= mathOpsStart;
+                MathOps.applyOp(
+                    context_,
+                    state_,
+                    op_
+                );
+            }
         }
     }
 
