@@ -231,7 +231,6 @@ describe("Trust", async function () {
     await seederContract
       .connect(seeder1)
       .pullERC20(
-        trust.address,
         reserve.address,
         await reserve.allowance(trust.address, seeder)
       );
@@ -244,7 +243,6 @@ describe("Trust", async function () {
     await token
       .connect(signer1)
       .pullERC20(
-        trust.address,
         reserve.address,
         await reserve.allowance(trust.address, token.address)
       );
@@ -1894,9 +1892,8 @@ describe("Trust", async function () {
 
     // creator cannot add unfreezable
     await Util.assertError(
-      async () =>
-        await token.grantRole(await token.RECEIVER(), signers[3].address),
-      "is missing role",
+      async () => await token.grantReceiver(signers[3].address),
+      "ONLY_ADMIN",
       "creator added receiver, despite not being token admin"
     );
 
@@ -1908,9 +1905,8 @@ describe("Trust", async function () {
 
     // non-creator cannot add unfreezable, (no one but admin can add receiver)
     await Util.assertError(
-      async () =>
-        await token1.grantRole(await token.RECEIVER(), signers[3].address),
-      "is missing role",
+      async () => await token1.grantReceiver(signers[3].address),
+      "ONLY_ADMIN",
       "anon added receiver, despite not being token admin"
     );
 
@@ -1935,12 +1931,6 @@ describe("Trust", async function () {
     await reserveSeeder.transfer(trust.address, reserveInit);
 
     await trust.startDutchAuction({ gasLimit: 100000000 });
-
-    // the trust renounces the admin role after starting the raise.
-    assert(
-      !(await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), trust.address)),
-      "trust did not renounce admin role after starting raise"
-    );
   });
 
   it("should correctly calculate duration of pool, denominated in blocks from the block that seed funds are claimed", async function () {

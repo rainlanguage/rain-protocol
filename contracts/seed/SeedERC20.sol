@@ -136,6 +136,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     constructor (SeedERC20Config memory config_)
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
         Cooldown(config_.cooldownDuration)
+        ERC20Pull(config_.recipient)
     {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");

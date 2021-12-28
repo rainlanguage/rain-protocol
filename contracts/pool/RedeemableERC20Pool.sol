@@ -154,20 +154,13 @@ library RedeemableERC20Pool {
 
         // Need to grant transfers for a few balancer addresses to facilitate
         // setup and exits.
-        config_.token.grantRole(
-            config_.token.RECEIVER(),
+        config_.token.grantReceiver(
             address(IConfigurableRightsPool(crp_).bFactory())
         );
-        config_.token.grantRole(
-            config_.token.RECEIVER(),
-            crp_
-        );
-        config_.token.grantRole(
-            config_.token.RECEIVER(),
+        config_.token.grantReceiver(
             address(self_)
         );
-        config_.token.grantRole(
-            config_.token.SENDER(),
+        config_.token.grantSender(
             crp_
         );
 
@@ -320,13 +313,8 @@ library RedeemableERC20Pool {
         // always sell back into the pool.
         // Note: We do NOT grant the bPool the SENDER role as that would bypass
         // `Tier` restrictions for everyone buying the token.
-        self_.token().grantRole(
-            self_.token().RECEIVER(),
+        self_.token().grantReceiver(
             self_.crp().bPool()
-        );
-        self_.token().renounceRole(
-            self_.token().DEFAULT_ADMIN_ROLE(),
-            address(this)
         );
         self_.crp().updateWeightsGradually(
             finalWeights_,

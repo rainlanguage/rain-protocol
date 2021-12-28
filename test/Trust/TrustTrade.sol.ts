@@ -140,50 +140,38 @@ describe("TrustTrade", async function () {
     // not possible for creator, deployer or anon to grant SENDER or RECEIVER roles, which would bypass Tier gating
     await Util.assertError(
       async () =>
-        await token
-          .connect(creator)
-          .grantRole(await token.RECEIVER(), signerBronze.address),
-      `AccessControl: account ${creator.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+        await token.connect(creator).grantSender(signerBronze.address),
+      `ONLY_ADMIN`,
       "creator wrongly granted a role of RECEIVER"
     );
     await Util.assertError(
       async () =>
-        await token
-          .connect(deployer)
-          .grantRole(await token.RECEIVER(), signerBronze.address),
-      `AccessControl: account ${deployer.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+        await token.connect(deployer).grantReceiver(signerBronze.address),
+      `ONLY_ADMIN`,
       "deployer wrongly granted a role of RECEIVER"
     );
     await Util.assertError(
       async () =>
-        await token
-          .connect(signerPlatinum)
-          .grantRole(await token.RECEIVER(), signerBronze.address),
-      `AccessControl: account ${signerPlatinum.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+        await token.connect(signerPlatinum).grantReceiver(signerBronze.address),
+      `ONLY_ADMIN`,
       "anon wrongly granted a role of RECEIVER"
     );
     await Util.assertError(
       async () =>
-        await token
-          .connect(creator)
-          .grantRole(await token.SENDER(), signerBronze.address),
-      `AccessControl: account ${creator.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+        await token.connect(creator).grantSender(signerBronze.address),
+      `ONLY_ADMIN`,
       "creator wrongly granted a role of SENDER"
     );
     await Util.assertError(
       async () =>
-        await token
-          .connect(deployer)
-          .grantRole(await token.SENDER(), signerBronze.address),
-      `AccessControl: account ${deployer.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+        await token.connect(deployer).grantSender(signerBronze.address),
+      `ONLY_ADMIN`,
       "deployer wrongly granted a role of SENDER"
     );
     await Util.assertError(
       async () =>
-        await token
-          .connect(signerPlatinum)
-          .grantRole(await token.SENDER(), signerBronze.address),
-      `AccessControl: account ${signerPlatinum.address.toLowerCase()} is missing role ${await token.DEFAULT_ADMIN_ROLE()}`,
+        await token.connect(signerPlatinum).grantSender(signerBronze.address),
+      `ONLY_ADMIN`,
       "anon wrongly granted a role of SENDER"
     );
 

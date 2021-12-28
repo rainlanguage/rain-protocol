@@ -80,11 +80,7 @@ describe("RedeemableERC20", async function () {
     // Send alice some tokens.
     await redeemableERC20.transfer(alice.address, 10);
 
-    await redeemableERC20.grantRole(
-      await redeemableERC20.DISTRIBUTOR_BURNER(),
-      signers[0].address
-    );
-
+    // admin can burn all tokens of a single address to end `Phase.ZERO`
     await redeemableERC20.burnDistributor(Util.oneAddress);
 
     const aliceRedeemableERC20 = redeemableERC20.connect(alice);
@@ -250,7 +246,7 @@ describe("RedeemableERC20", async function () {
     await redeemable.deployed();
   });
 
-  it("should allow granting sender/receiver/distributor-burner roles, bypassing BlockBlockable restrictions", async function () {
+  it("should allow admin to grant sender/receiver roles, and burn undistributed tokens, bypassing BlockBlockable restrictions", async function () {
     this.timeout(0);
 
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
@@ -277,7 +273,7 @@ describe("RedeemableERC20", async function () {
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
     const token = (await redeemableERC20Factory.deploy({
-      admin: signers[0].address,
+      admin: owner.address,
       erc20Config,
       tier: tier.address,
       minimumStatus: minimumStatus,
@@ -294,22 +290,23 @@ describe("RedeemableERC20", async function () {
     );
 
     // remove transfer restrictions for sender and receiver
-    await token.grantRole(await token.SENDER(), sender.address);
-    assert(
-      await token.hasRole(await token.SENDER(), sender.address),
-      "sender status was wrong"
-    );
+    await token.grantSender(sender.address);
+    assert(await token.isSender(sender.address), "sender status was wrong");
 
-    await token.grantRole(await token.RECEIVER(), receiver.address);
+    await token.grantReceiver(receiver.address);
     assert(
-      await token.hasRole(await token.RECEIVER(), receiver.address),
+      await token.isReceiver(receiver.address),
       "receiver status was wrong"
     );
 
     // sender needs tokens (actually needs permission to receive these tokens anyway)
-    await token.grantRole(await token.RECEIVER(), sender.address);
+    await token.grantReceiver(sender.address);
     assert(
-      await token.hasRole(await token.SENDER(), sender.address),
+      await token.isReceiver(sender.address),
+      "sender did not also become receiver"
+    );
+    assert(
+      await token.isSender(sender.address),
       "sender did not remain sender after also becoming receiver"
     );
 
@@ -318,14 +315,6 @@ describe("RedeemableERC20", async function () {
 
     // should work now
     await token.connect(sender).transfer(receiver.address, 1);
-
-    await Util.assertError(
-      async () => await token.burnDistributor(Util.oneAddress),
-      "ONLY_DISTRIBUTOR_BURNER",
-      "called burnDistributor without sufficient role permissions"
-    );
-
-    await token.grantRole(await token.DISTRIBUTOR_BURNER(), owner.address);
 
     await token.burnDistributor(Util.oneAddress);
 
@@ -451,11 +440,6 @@ describe("RedeemableERC20", async function () {
 
     // Send alice some tokens.
     await redeemableERC20.transfer(alice.address, 10);
-
-    await redeemableERC20.grantRole(
-      await redeemableERC20.DISTRIBUTOR_BURNER(),
-      signers[0].address
-    );
 
     const now = await ethers.provider.getBlockNumber();
 
@@ -663,13 +647,8 @@ describe("RedeemableERC20", async function () {
 
     await Util.assertError(
       async () => await redeemableERC201.burnDistributor(Util.oneAddress),
-      "ONLY_DISTRIBUTOR_BURNER",
+      "ONLY_ADMIN",
       "was wrongly able to set phase block with insuffient role permissions"
-    );
-
-    await redeemableERC20.grantRole(
-      await redeemableERC20.DISTRIBUTOR_BURNER(),
-      signers[0].address
     );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
@@ -701,10 +680,7 @@ describe("RedeemableERC20", async function () {
     await redeemableERC20.deployed();
 
     assert(
-      await redeemableERC20.hasRole(
-        await redeemableERC20.RECEIVER(),
-        signers[0].address
-      ),
+      await redeemableERC20.isReceiver(signers[0].address),
       "owner not set as receiver on token construction"
     );
   });
@@ -747,16 +723,8 @@ describe("RedeemableERC20", async function () {
 
     // admin is made receiver during construction, so required token transfers can go ahead
     assert(
-      await redeemableERC20.hasRole(
-        await redeemableERC20.RECEIVER(),
-        signers[0].address
-      ),
+      await redeemableERC20.isReceiver(signers[0].address),
       "admin not made receiver during construction"
-    );
-
-    await redeemableERC20.grantRole(
-      await redeemableERC20.DISTRIBUTOR_BURNER(),
-      signers[0].address
     );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
@@ -811,11 +779,6 @@ describe("RedeemableERC20", async function () {
       async () => await redeemableERC20.transfer(signers[2].address, 1),
       "MIN_TIER",
       "user could receive transfers despite not meeting minimum status"
-    );
-
-    await redeemableERC20.grantRole(
-      await redeemableERC20.DISTRIBUTOR_BURNER(),
-      signers[0].address
     );
 
     await redeemableERC20.transfer(signers[1].address, totalSupply);
@@ -899,11 +862,6 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.transfer(signer1.address, TEN_TOKENS);
     await redeemableERC20.transfer(signer2.address, TWENTY_TOKENS);
-
-    await redeemableERC20.grantRole(
-      await redeemableERC20.DISTRIBUTOR_BURNER(),
-      admin.address
-    );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
 
@@ -1111,11 +1069,6 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.transfer(signer1.address, TEN_TOKENS);
     await redeemableERC20.transfer(signer2.address, TWENTY_TOKENS);
-
-    await redeemableERC20.grantRole(
-      await redeemableERC20.DISTRIBUTOR_BURNER(),
-      signers[0].address
-    );
 
     await redeemableERC20.burnDistributor(Util.oneAddress);
 
