@@ -204,6 +204,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         external
         onlyTrustedFactoryChild(address(trust_))
     {
+        require(amount_ > 0, "ZERO_DEPOSIT");
         uint supply_ = trust_.token().totalSupply();
         deposits
             [address(trust_)]
