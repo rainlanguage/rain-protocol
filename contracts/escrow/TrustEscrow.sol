@@ -4,7 +4,10 @@ pragma solidity ^0.8.10;
 import { Trust, DistributionStatus } from "../trust/Trust.sol";
 import { FactoryTruster } from "../factory/FactoryTruster.sol";
 
+/// Represents the 3 possible statuses an escrow could care about.
+/// Either the escrow takes no action, or allows a pass/fail action.
 enum EscrowStatus {
+    /// The underlying `Trust` has not reached a definitive pass/fail state.
     /// Important this is the first item in the enum as inequality is used to
     /// check pending vs. pass/fail in security sensitive code.
     Pending,
@@ -15,6 +18,12 @@ enum EscrowStatus {
 }
 
 /// @title TrustEscrow
+/// An escrow that is designed to work with known `Trust` bytecode. The escrow
+/// uses `FactoryTruster` to ensure the `Trust` is trustworthy.
+/// `getEscrowStatus` wraps the `Trust.getDistributionStatus` to guarantee that
+/// a pass/fail result is one-way. Even if some bug in the `Trust` causes the
+/// pass/fail status to flip, this will not result in the escrow double
+/// spending or otherwise changing the direction that it sends funds.
 abstract contract TrustEscrow is FactoryTruster {
     EscrowStatus private escrowStatus = EscrowStatus.Pending;
 
