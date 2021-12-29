@@ -135,13 +135,18 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const claimableTokensInEscrowDeposit0 = await claim.totalDeposits(
       trust.address,
-      claimableToken.address
+      claimableToken.address,
+      await redeemableERC20.totalSupply()
     );
 
     // signer1 should withdraw roughly 50% of claimable tokens in escrow
     await claim
       .connect(signer1)
-      .withdraw(trust.address, claimableToken.address);
+      .withdraw(
+        trust.address,
+        claimableToken.address,
+        await redeemableERC20.totalSupply()
+      );
 
     const expectedSigner1Withdrawal0 = depositAmount
       .mul(signer1Prop)
@@ -168,7 +173,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
-      claimableToken.address
+      claimableToken.address,
+      await redeemableERC20.totalSupply()
     );
 
     // signer2 burns their RedeemableERC20 token balance
@@ -186,7 +192,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // signer1 2nd withdraw
     await claim
       .connect(signer1)
-      .withdraw(trust.address, claimableToken.address);
+      .withdraw(
+        trust.address,
+        claimableToken.address,
+        await redeemableERC20.totalSupply()
+      );
 
     const expectedSigner1Withdrawal1 = depositAmount
       .mul(signer1PropAfterBurn)
@@ -289,13 +299,18 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const claimableTokensInEscrowDeposit0 = await claim.totalDeposits(
       trust.address,
-      claimableToken.address
+      claimableToken.address,
+      await redeemableERC20.totalSupply()
     );
 
     // signer1 should withdraw roughly 25% of claimable tokens in escrow
     await claim
       .connect(signer1)
-      .withdraw(trust.address, claimableToken.address);
+      .withdraw(
+        trust.address,
+        claimableToken.address,
+        await redeemableERC20.totalSupply()
+      );
 
     const expectedSigner1Withdrawal0 = depositAmount
       .mul(signer1Prop)
@@ -323,7 +338,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // instantly withdrawing again is effectively a no-op
     await claim
       .connect(signer1)
-      .withdraw(trust.address, claimableToken.address);
+      .withdraw(
+        trust.address,
+        claimableToken.address,
+        await redeemableERC20.totalSupply()
+      );
     const signer1TokensAfter2ndWithdraw = await claimableToken.balanceOf(
       signer1.address
     );
@@ -341,13 +360,18 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
-      claimableToken.address
+      claimableToken.address,
+      await redeemableERC20.totalSupply()
     );
 
     // signer1 3rd withdraw
     await claim
       .connect(signer1)
-      .withdraw(trust.address, claimableToken.address);
+      .withdraw(
+        trust.address,
+        claimableToken.address,
+        await redeemableERC20.totalSupply()
+      );
 
     const expectedSigner1Withdrawal1 = depositAmount
       .mul(signer1Prop)
@@ -450,7 +474,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const claimableTokensInEscrow = await claim.totalDeposits(
       trust.address,
-      claimableToken.address
+      claimableToken.address,
+      await redeemableERC20.totalSupply()
     );
 
     const expectedWithdrawal = depositAmount.mul(signer1Prop).div(Util.ONE);
@@ -458,7 +483,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // signer1 should withdraw roughly 25% of claimable tokens in escrow
     await claim
       .connect(signer1)
-      .withdraw(trust.address, claimableToken.address);
+      .withdraw(
+        trust.address,
+        claimableToken.address,
+        await redeemableERC20.totalSupply()
+      );
 
     const actualWithdrawal = await claimableToken.balanceOf(signer1.address);
 
@@ -476,7 +505,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // signer2 should withdraw remaining claimable tokens in escrow
     await claim
       .connect(signer2)
-      .withdraw(trust.address, claimableToken.address);
+      .withdraw(
+        trust.address,
+        claimableToken.address,
+        await redeemableERC20.totalSupply()
+      );
 
     const finalEscrowClaimableTokenBalance = await claimableToken.balanceOf(
       claim.address
@@ -553,8 +586,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       async () =>
         await claim
           .connect(signer1)
-          .withdraw(trust.address, claimableToken.address),
-      "ONLY_SUCCESS",
+          .withdraw(
+            trust.address,
+            claimableToken.address,
+            await redeemableERC20.totalSupply()
+          ),
+      "NOT_SUCCESS",
       "wrongly withrew during Trading"
     );
 
@@ -575,8 +612,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       async () =>
         await claim
           .connect(signer1)
-          .withdraw(trust.address, claimableToken.address),
-      "ONLY_SUCCESS",
+          .withdraw(
+            trust.address,
+            claimableToken.address,
+            await redeemableERC20.totalSupply()
+          ),
+      "NOT_SUCCESS",
       "wrongly withdrew during TradingCanEnd"
     );
 
@@ -590,12 +631,17 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claim
       .connect(signer1)
-      .withdraw(trust.address, claimableToken.address);
+      .withdraw(
+        trust.address,
+        claimableToken.address,
+        await redeemableERC20.totalSupply()
+      );
 
     const registeredWithdrawnAmountSigner1 = await claim.withdrawals(
       trust.address,
       claimableToken.address,
-      signer1.address
+      signer1.address,
+      await redeemableERC20.totalSupply()
     );
 
     // total amount withdrawn and registered value should match
@@ -670,7 +716,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const deposited0 = await claim.deposits(
       trust.address,
       claimableToken.address,
-      creator.address
+      creator.address,
+      await redeemableERC20.totalSupply()
     );
 
     assert(
@@ -682,8 +729,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     // prevent undeposit until status Fail
     await Util.assertError(
-      async () => await claim.undeposit(trust.address, claimableToken.address),
-      "ONLY_FAIL",
+      async () =>
+        await claim.undeposit(
+          trust.address,
+          claimableToken.address,
+          await redeemableERC20.totalSupply(),
+          await claimableToken.balanceOf(signers[0].address)
+        ),
+      "NOT_FAIL",
       "wrongly undeposited during Trading"
     );
 
@@ -695,8 +748,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     // prevent undeposit until status Fail
     await Util.assertError(
-      async () => await claim.undeposit(trust.address, claimableToken.address),
-      "ONLY_FAIL",
+      async () =>
+        await claim.undeposit(
+          trust.address,
+          claimableToken.address,
+          await redeemableERC20.totalSupply(),
+          await claimableToken.balanceOf(signers[0].address)
+        ),
+      "NOT_FAIL",
       "wrongly undeposited during TradingCanEnd"
     );
 
@@ -713,13 +772,19 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     // undeposit claimable tokens
-    await claim.undeposit(trust.address, claimableToken.address);
+    await claim.undeposit(
+      trust.address,
+      claimableToken.address,
+      await redeemableERC20.totalSupply(),
+      await claimableToken.balanceOf(signers[0].address)
+    );
 
     // read registered value
     const deposited1 = await claim.deposits(
       trust.address,
       claimableToken.address,
-      creator.address
+      creator.address,
+      await redeemableERC20.totalSupply()
     );
 
     assert(
@@ -808,7 +873,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const deposited0 = await claim.deposits(
       trust.address,
       claimableToken.address,
-      creator.address
+      creator.address,
+      await redeemableERC20.totalSupply()
     );
 
     assert(
@@ -913,7 +979,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const deposited0 = await claim.deposits(
       trust.address,
       claimableToken.address,
-      creator.address
+      creator.address,
+      await redeemableERC20.totalSupply()
     );
 
     assert(
@@ -954,7 +1021,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const deposited1 = await claim.deposits(
       trust.address,
       claimableToken.address,
-      creator.address
+      creator.address,
+      await redeemableERC20.totalSupply()
     );
 
     assert(
@@ -987,7 +1055,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const deposited2 = await claim.deposits(
       trust.address,
       claimableToken.address,
-      creator.address
+      creator.address,
+      await redeemableERC20.totalSupply()
     );
 
     assert(
@@ -1001,7 +1070,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const totalDeposits = await claim.totalDeposits(
       trust.address,
-      claimableToken.address
+      claimableToken.address,
+      await redeemableERC20.totalSupply()
     );
 
     assert(
