@@ -81,8 +81,10 @@ describe("BPoolFeeEscrow", async function () {
       unknownTrust.address,
       recipient.address
     );
-    const refunds0 = await bPoolFeeEscrow.refunds(trust.address);
-    const refundsUnknown0 = await bPoolFeeEscrow.refunds(unknownTrust.address);
+    const totalFees0 = await bPoolFeeEscrow.totalFees(trust.address);
+    const totalFeesUnknown0 = await bPoolFeeEscrow.totalFees(
+      unknownTrust.address
+    );
 
     await Util.assertError(
       async () =>
@@ -99,11 +101,13 @@ describe("BPoolFeeEscrow", async function () {
       unknownTrust.address,
       recipient.address
     );
-    const refunds1 = await bPoolFeeEscrow.refunds(trust.address);
-    const refundsUnknown1 = await bPoolFeeEscrow.refunds(unknownTrust.address);
+    const totalFees1 = await bPoolFeeEscrow.totalFees(trust.address);
+    const totalFeesUnknown1 = await bPoolFeeEscrow.totalFees(
+      unknownTrust.address
+    );
 
-    const beforeState = [fees0, feesUnknown0, refunds0, refundsUnknown0];
-    const afterState = [fees1, feesUnknown1, refunds1, refundsUnknown1];
+    const beforeState = [fees0, feesUnknown0, totalFees0, totalFeesUnknown0];
+    const afterState = [fees1, feesUnknown1, totalFees1, totalFeesUnknown1];
 
     for (let i = 0; i < beforeState.length; i++) {
       const before = beforeState[i];
@@ -140,26 +144,26 @@ describe("BPoolFeeEscrow", async function () {
     const paidFees1 = fee.mul(buyCount1);
     const paidFees2 = fee.mul(buyCount2);
 
-    const refundsTrust1 = await bPoolFeeEscrow.refunds(trust1.address);
-    const refundsTrust2 = await bPoolFeeEscrow.refunds(trust2.address);
+    const totalFeesTrust1 = await bPoolFeeEscrow.totalFees(trust1.address);
+    const totalFeesTrust2 = await bPoolFeeEscrow.totalFees(trust2.address);
 
     assert(
-      refundsTrust1.eq(paidFees1),
+      totalFeesTrust1.eq(paidFees1),
       `wrong aggregate fees for trust1
       expected  ${paidFees1}
-      got       ${refundsTrust1}`
+      got       ${totalFeesTrust1}`
     );
     assert(
-      refundsTrust2.eq(paidFees2),
+      totalFeesTrust2.eq(paidFees2),
       `wrong aggregate fees for trust2
       expected  ${paidFees2}
-      got       ${refundsTrust2}`
+      got       ${totalFeesTrust2}`
     );
     assert(
-      refundsTrust1.eq(refundsTrust2),
+      totalFeesTrust1.eq(totalFeesTrust2),
       `aggregate fees should match
-      left  ${refundsTrust1}
-      right ${refundsTrust2}`
+      left  ${totalFeesTrust1}
+      right ${totalFeesTrust2}`
     );
 
     // recipient batch claims fees
@@ -254,16 +258,21 @@ describe("BPoolFeeEscrow", async function () {
       "raise wasn't failure"
     );
 
-    // attempting claim fees is no-op.
-    await bPoolFeeEscrow
-      .connect(recipient)
-      .claimFees(recipient.address, trust.address);
+    // attempting claim fees on failed raise should revert.
+    await Util.assertError(
+      async () =>
+        bPoolFeeEscrow
+          .connect(recipient)
+          .claimFees(recipient.address, trust.address),
+      "NOT_SUCCESS",
+      "wrongly claimed fees after failed raise"
+    );
 
     const reserveRedeemableERC20_1 = await reserve.balanceOf(
       redeemableERC20.address
     );
 
-    const totalRefund = await bPoolFeeEscrow.refunds(trust.address);
+    const totalRefund = await bPoolFeeEscrow.totalFees(trust.address);
 
     // anyone can trigger refund.
     const refundFeesPromise = bPoolFeeEscrow
@@ -345,8 +354,13 @@ describe("BPoolFeeEscrow", async function () {
       "wrong registered fee amount for trust and recipient"
     );
 
-    // Attempting refund is no-op.
-    await bPoolFeeEscrow.connect(signer1).refundFees(trust.address);
+    // Attempting refund on successful raise should revert
+    await Util.assertError(
+      async () =>
+        await bPoolFeeEscrow.connect(signer1).refundFees(trust.address),
+      "NOT_FAIL",
+      "wrongly refunded fees after successful raise"
+    );
 
     const claimableFee = await bPoolFeeEscrow.fees(
       trust.address,
@@ -406,10 +420,22 @@ describe("BPoolFeeEscrow", async function () {
       got       ${reserveBalanceEscrow1}`
     );
 
-    // no-op claim if raise is still ongoing
-    await bPoolFeeEscrow
-      .connect(recipient)
-      .claimFees(recipient.address, trust.address);
+    // should revert if raise ongoing
+    await Util.assertError(
+      async () =>
+        await bPoolFeeEscrow
+          .connect(recipient)
+          .claimFees(recipient.address, trust.address),
+      "NOT_SUCCESS",
+      "wrongly claimed fees while raise was ongoing"
+    );
+    // should revert if raise ongoing
+    await Util.assertError(
+      async () =>
+        await bPoolFeeEscrow.connect(recipient).refundFees(trust.address),
+      "NOT_FAIL",
+      "wrongly refunded fees while raise was ongoing"
+    );
 
     const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
 
