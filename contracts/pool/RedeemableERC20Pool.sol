@@ -57,8 +57,8 @@ struct CRPConfig {
 /// decouple the implementation from the `Trust`.
 ///
 /// It also ensures the pool tokens created during the initialization of the
-/// Balancer LBP are owned by the `RedeemableERC20Pool` and never touch either
-/// the `Trust` nor an externally owned account (EOA).
+/// Balancer LBP are owned by the `Trust` and never touch an externally owned
+/// account.
 ///
 /// `RedeemableERC20Pool` has several phases:
 ///
@@ -69,8 +69,11 @@ struct CRPConfig {
 /// `ownerEndDutchAuction`
 /// - `Phase.THREE`: Trading closed
 ///
+/// `RedeemableERC20Pool` expects the `Trust` to schedule the phases correctly
+/// and ensure proper guards around these library functions.
+///
 /// @dev Deployer and controller for a Balancer ConfigurableRightsPool.
-/// This contract is intended in turn to be owned by a `Trust`.
+/// This library is intended in turn to be used by a `Trust`.
 ///
 /// Responsibilities of `RedeemableERC20Pool`:
 /// - Configure and deploy Balancer contracts with correct weights, rights and
