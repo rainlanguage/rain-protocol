@@ -102,7 +102,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// `[seedAmount, reserveAmount]`
     event Redeem(
         address redeemer,
-        uint256[2] redeemAmounts
+        uint[2] redeemAmounts
     );
 
     /// @param seeder Account seeding.
@@ -110,7 +110,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// Number of reserve sent for seed tokens.
     event Seed(
         address seeder,
-        uint256[2] seedAmounts
+        uint[2] seedAmounts
     );
 
     /// @param unseeder Account unseeding.
@@ -118,7 +118,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// Number of reserve tokens returned for unseeded tokens.
     event Unseed(
         address unseeder,
-        uint256[2] unseedAmounts
+        uint[2] unseedAmounts
     );
 
     /// Reserve erc20 token contract used to purchase seed tokens.
@@ -127,7 +127,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// complete.
     address public immutable recipient;
     /// Price in reserve for a unit of seed token.
-    uint256 public immutable seedPrice;
+    uint public immutable seedPrice;
 
     /// Sanity checks on configuration.
     /// Store relevant config as contract state.
@@ -175,23 +175,23 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// @param minimumUnits_ The minimum units the caller will accept for a
     /// successful `seed` call.
     /// @param desiredUnits_ The maximum units the caller is willing to fund.
-    function seed(uint256 minimumUnits_, uint256 desiredUnits_)
+    function seed(uint minimumUnits_, uint desiredUnits_)
         external
         onlyPhase(Phase.ZERO)
         onlyAfterCooldown
     {
         require(desiredUnits_ > 0, "DESIRED_0");
         require(minimumUnits_ <= desiredUnits_, "MINIMUM_OVER_DESIRED");
-        uint256 remainingStock_ = balanceOf(address(this));
+        uint remainingStock_ = balanceOf(address(this));
         require(minimumUnits_ <= remainingStock_, "INSUFFICIENT_STOCK");
 
-        uint256 units_ = desiredUnits_.min(remainingStock_);
-        uint256 reserveAmount_ = seedPrice * units_;
+        uint units_ = desiredUnits_.min(remainingStock_);
+        uint reserveAmount_ = seedPrice * units_;
 
         // If `remainingStock_` is less than units then the transfer below will
         // fail and rollback.
         if (remainingStock_ == units_) {
-            scheduleNextPhase(uint32(block.number));
+            scheduleNextPhase(block.number);
         }
         _transfer(address(this), msg.sender, units_);
 
@@ -230,12 +230,12 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// - Call redeem and burn the seed tokens
     ///
     /// @param units_ Units to unseed.
-    function unseed(uint256 units_)
+    function unseed(uint units_)
         external
         onlyPhase(Phase.ZERO)
         onlyAfterCooldown
     {
-        uint256 reserveAmount_ = seedPrice * units_;
+        uint reserveAmount_ = seedPrice * units_;
         _transfer(msg.sender, address(this), units_);
 
         emit Unseed(
@@ -266,15 +266,15 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// (in this repo) it will receive a refund or refund + fee.
     /// @param units_ Amount of seed units to burn and redeem for reserve
     /// assets.
-    function redeem(uint256 units_) external onlyPhase(Phase.ONE) {
-        uint256 supplyBeforeBurn_ = totalSupply();
+    function redeem(uint units_) external onlyPhase(Phase.ONE) {
+        uint supplyBeforeBurn_ = totalSupply();
         _burn(msg.sender, units_);
 
-        uint256 currentReserveBalance_ = reserve.balanceOf(address(this));
+        uint currentReserveBalance_ = reserve.balanceOf(address(this));
         // Guard against someone accidentally calling redeem before any reserve
         // has been returned.
         require(currentReserveBalance_ > 0, "RESERVE_BALANCE");
-        uint256 reserveAmount_
+        uint reserveAmount_
             = ( units_ * currentReserveBalance_ )
             / supplyBeforeBurn_;
         emit Redeem(
@@ -289,7 +289,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
 
     /// Sanity check the last phase is `Phase.ONE`.
     /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
         internal
         override
         virtual

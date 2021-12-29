@@ -263,8 +263,9 @@ contract RedeemableERC20 is
         onlyPhase(Phase.ONE)
         nonReentrant
     {
+        uint assetsLength_ = treasuryAssets_.length;
         // Guard against redemptions for no treasury assets.
-        require(treasuryAssets_.length > 0, "EMPTY_ASSETS");
+        require(assetsLength_ > 0, "EMPTY_ASSETS");
 
         // The fraction of the assets we release is the fraction of the
         // outstanding total supply of the redeemable burned.
@@ -277,9 +278,9 @@ contract RedeemableERC20 is
         // This function is `nonReentrant` but we burn before redeeming anyway.
         _burn(msg.sender, redeemAmount_);
 
-        for(uint256 i_ = 0; i_ < treasuryAssets_.length; i_++) {
+        for(uint i_ = 0; i_ < assetsLength_; i_++) {
             IERC20 ithRedeemable_ = treasuryAssets_[i_];
-            uint256 assetAmount_
+            uint assetAmount_
                 = ( ithRedeemable_.balanceOf(address(this)) * redeemAmount_ )
                 / supplyBeforeBurn_;
             require(assetAmount_ > 0, "ZERO_TRANSFER");
@@ -297,7 +298,7 @@ contract RedeemableERC20 is
 
     /// Sanity check to ensure `Phase.ONE` is the final phase.
     /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
         internal
         override
         virtual
@@ -315,7 +316,7 @@ contract RedeemableERC20 is
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
-        uint256 amount_
+        uint amount_
     )
         internal
         override
