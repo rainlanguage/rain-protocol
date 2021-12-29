@@ -443,7 +443,6 @@ contract Trust is Phased {
 
         IConfigurableRightsPool crp_ = RedeemableERC20Pool
             .setupCRP(
-                this,
                 CRPConfig(
                     config_.crpFactory,
                     config_.balancerFactory,
@@ -479,7 +478,7 @@ contract Trust is Phased {
         view
         returns(DistributionProgress memory)
     {
-        return RedeemableERC20Pool.getDistributionProgress(this);
+        return RedeemableERC20Pool.getDistributionProgress();
     }
 
     /// Accessor for the `DistributionStatus` of this `Trust`.
@@ -488,7 +487,7 @@ contract Trust is Phased {
         view
         returns (DistributionStatus)
     {
-        return RedeemableERC20Pool.getDistributionStatus(this);
+        return RedeemableERC20Pool.getDistributionStatus();
     }
 
     /// Anyone can send a notice about this `Trust`.
@@ -513,14 +512,14 @@ contract Trust is Phased {
         // Schedule `Phase.TWO` for `1` block after auctions weights have
         // stopped changing.
         scheduleNextPhase(finalAuctionBlock_ + 1);
-        RedeemableERC20Pool.startDutchAuction(this, finalAuctionBlock_);
+        RedeemableERC20Pool.startDutchAuction(finalAuctionBlock_);
     }
 
     function endDutchAuction() public onlyPhase(Phase.TWO) {
         // Move to `Phase.THREE` immediately.
         // Prevents reentrancy.
         scheduleNextPhase(block.number);
-        RedeemableERC20Pool.endDutchAuction(this);
+        RedeemableERC20Pool.endDutchAuction();
     }
 
     /// After `endDutchAuction` has been called this function will sweep all
@@ -531,7 +530,7 @@ contract Trust is Phased {
     /// WILL succeed, so in that case it is best to process them all together
     /// as a single transaction.
     function transferApprovedTokens() public {
-        RedeemableERC20Pool.transferApprovedTokens(this);
+        RedeemableERC20Pool.transferApprovedTokens();
     }
 
     /// Atomically calls `endDutchAuction` and `transferApprovedTokens`.
@@ -578,7 +577,6 @@ contract Trust is Phased {
     function creatorFundsRelease(address token_, uint amount_) external {
         emit CreatorFundsRelease(token_, amount_);
         RedeemableERC20Pool.creatorFundsRelease(
-            this,
             token_,
             amount_
         );
