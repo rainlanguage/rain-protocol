@@ -5,7 +5,8 @@ import { Trust, DistributionStatus } from "../trust/Trust.sol";
 import { FactoryTruster } from "../factory/FactoryTruster.sol";
 
 /// Represents the 3 possible statuses an escrow could care about.
-/// Either the escrow takes no action, or allows a pass/fail action.
+/// Either the escrow takes no action or consistently allows a success/fail
+/// action.
 enum EscrowStatus {
     /// The underlying `Trust` has not reached a definitive pass/fail state.
     /// Important this is the first item in the enum as inequality is used to
@@ -19,7 +20,7 @@ enum EscrowStatus {
 
 /// @title TrustEscrow
 /// An escrow that is designed to work with known `Trust` bytecode. The escrow
-/// uses `FactoryTruster` to ensure the `Trust` is trustworthy.
+/// uses `FactoryTruster` to ensure the `Trust` is known.
 /// `getEscrowStatus` wraps the `Trust.getDistributionStatus` to guarantee that
 /// a pass/fail result is one-way. Even if some bug in the `Trust` causes the
 /// pass/fail status to flip, this will not result in the escrow double
@@ -34,12 +35,12 @@ abstract contract TrustEscrow is FactoryTruster {
     constructor(address trustFactory_) FactoryTruster(trustFactory_)
         {} //solhint-disable-line no-empty-blocks
 
-    /// Read the one-way, one-time transition from pending to pass/fail.
-    /// We never change our opinion of a pass/fail outcome.
-    /// If a buggy/malicious `Trust` somehow changes pass/fail state then that
-    /// is obviously bad as the escrow will release funds in the wrong
+    /// Read the one-way, one-time transition from pending to success/fail.
+    /// We never change our opinion of a success/fail outcome.
+    /// If a buggy/malicious `Trust` somehow changes success/fail state then
+    /// that is obviously bad as the escrow will release funds in the wrong
     /// direction. But if we were to change our opinion that would be worse as
-    /// claims/refunds could be attempted to be "double spent" somehow.
+    /// claims/refunds could potentially be "double spent" somehow.
     function getEscrowStatus(Trust trust_)
         public
         // Only want to be calling external functions on `Trust` that we trust.
@@ -51,7 +52,7 @@ abstract contract TrustEscrow is FactoryTruster {
         if (escrowStatus > EscrowStatus.Pending) {
             return escrowStatus_;
         }
-        // We have never seen a pass/fail outcome so need to ask the `Trust`
+        // We have never seen a success/fail outcome so need to ask the `Trust`
         // for the distribution status.
         else {
             // This is technically reentrant, but we trust the `Trust` right?

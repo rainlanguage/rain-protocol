@@ -196,6 +196,12 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// failed they will need to undeposit it again manually.
     /// Delegated `deposit` is not supported. Every depositor is directly
     /// responsible for every `deposit`.
+    /// WARNING: As `undeposit` can only be called when the `Trust` reports
+    /// failure, `deposit` should only be called when the caller is sure the
+    /// `Trust` will reach a clear success/fail status. For example, when a
+    /// `Trust` has not yet been seeded it may never even start the raise so
+    /// depositing at this point is dangerous. If the `Trust` never starts the
+    /// raise it will never fail the raise either.
     /// @param trust_ The `Trust` to assign this deposit to.
     /// @param token_ The `IERC20` token to deposit to the escrow.
     /// @param amount_ The amount of token to deposit. Assumes depositor has
@@ -247,6 +253,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         external
     {
         require(amount_ > 0, "ZERO_AMOUNT");
+        // Can only undeposit when the `Trust` reports failure.
         require(getEscrowStatus(trust_) == EscrowStatus.Fail, "NOT_FAIL");
 
         deposits[address(trust_)][address(token_)][msg.sender][supply_]
@@ -289,6 +296,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// @param trust_ The trust to `withdraw` against.
     /// @param token_ The token to `withdraw`.
     function withdraw(Trust trust_, IERC20 token_, uint supply_) external {
+        // Can only withdraw when the `Trust` reports success.
         require(
             getEscrowStatus(trust_) == EscrowStatus.Success,
             "NOT_SUCCESS"
@@ -316,8 +324,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
             // 33 tokens each, leaving 1 TKN as escrow dust, for example. If
             // someone burns before withdrawing they will receive less, so
             // 0/33/33 from 100 with 34 TKN as escrow dust, for example.
-            * redeemable_.balanceOf(msg.sender)
-            / supply_;
+            * ( redeemable_.balanceOf(msg.sender) / supply_ );
         require(amount_ > 0, "ZERO_WITHDRAW");
         emit Withdraw(
             address(trust_),

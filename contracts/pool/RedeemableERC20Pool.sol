@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 // solhint-disable-next-line max-line-length
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
-import { RainMath } from "../math/RainMath.sol";
+import { SaturatingMath } from "../math/SaturatingMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -86,7 +86,7 @@ struct CRPConfig {
 /// - Handling the reserve proceeds of the raise
 library RedeemableERC20Pool {
     using Math for uint256;
-    using RainMath for uint256;
+    using SaturatingMath for uint256;
     using SafeERC20 for IERC20;
     using SafeERC20 for RedeemableERC20;
 
@@ -353,10 +353,13 @@ library RedeemableERC20Pool {
                 // It's important to use the balance in the opinion of the
                 // bPool to be sure that the pool token calculations are the
                 // same.
-                .saturatingDiv(
-                    IBPool(self_.crp().bPool())
-                        .getBalance(address(self_.reserve()))
-                );
+                // WARNING: This will error if reserve balance in the pool is
+                // somehow `0`. That should not be possible as balancer should
+                // be preventing zero balance due to trades. If this ever
+                // happens even emergency mode probably won't help because it's
+                // unlikely that `exitPool` will succeed for any input values.
+                / IBPool(self_.crp().bPool())
+                    .getBalance(address(self_.reserve()));
         // The minimum redeemable token supply is `10 ** 18` so it is near
         // impossible to hit this before the reserve or global pool minimums.
         uint256 minRedeemablePoolTokens = MIN_BALANCER_POOL_BALANCE
@@ -364,10 +367,10 @@ library RedeemableERC20Pool {
                 // It's important to use the balance in the opinion of the
                 // bPool tovbe sure that the pool token calculations are the
                 // same.
-                .saturatingDiv(
-                    IBPool(self_.crp().bPool())
-                        .getBalance(address(self_.token()))
-                );
+                // WARNING: As above, this will error if token balance in the
+                // pool is `0`.
+                / IBPool(self_.crp().bPool())
+                        .getBalance(address(self_.token()));
         uint256 minPoolSupply_ = IBalancerConstants.MIN_POOL_SUPPLY
             .max(minReservePoolTokens)
             .max(minRedeemablePoolTokens)
