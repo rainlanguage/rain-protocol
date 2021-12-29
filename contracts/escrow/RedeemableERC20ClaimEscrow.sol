@@ -199,6 +199,23 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         TrustEscrow(trustFactory_)
         { } // solhint-disable-line no-empty-blocks
 
+    /// Depositor can set aside tokens during pending raise status to be swept
+    /// into a real deposit later.
+    /// The problem with doing a normal deposit while the raise is still active
+    /// is that the `Trust` will burn all unsold tokens when the raise ends. If
+    /// we captured the token supply mid-raise then many deposited TKN would
+    /// be allocated to unsold rTKN. Instead we set aside TKN so that raise
+    /// participants can be sure that they will be claimable upon raise success
+    /// but they remain unbound to any rTKN supply until `sweepPending` is
+    /// called.
+    /// `depositPending` is a one-way function, there is no way to `undeposit`
+    /// until after the raise fails. Strongly recommended that depositors do
+    /// NOT call `depositPending` until raise starts, so they know it will also
+    /// end.
+    /// @param trust_ The `Trust` to assign this deposit to.
+    /// @param token_ The `IERC20` token to deposit to the escrow.
+    /// @param amount_ The amount of token to despoit. Requires depositor has
+    /// approved at least this amount to succeed.
     function depositPending(Trust trust_, IERC20 token_, uint amount_)
         external
         onlyTrustedFactoryChild(address(trust_))
@@ -221,6 +238,13 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         token_.safeTransferFrom(msg.sender, address(this), amount_);
     }
 
+    /// Anon can convert any existing pending deposit to a deposit with known
+    /// rTKN supply once the escrow has moved out of pending status.
+    /// As `sweepPending` is anon callable, raise participants know that the
+    /// depositor cannot later prevent a sweep, and depositor knows that raise
+    /// participants cannot prevent a sweep. As per normal deposits, the output
+    /// of swept tokens depends on success/fail state allowing `undeposit` or
+    /// `withdraw` to be called subsequently.
     function sweepPending(Trust trust_, address token_, address depositor_)
         external
         onlyTrustedFactoryChild(address(trust_))
@@ -275,7 +299,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// raise it will never fail the raise either.
     /// @param trust_ The `Trust` to assign this deposit to.
     /// @param token_ The `IERC20` token to deposit to the escrow.
-    /// @param amount_ The amount of token to deposit. Assumes depositor has
+    /// @param amount_ The amount of token to deposit. Requires depositor has
     /// approved at least this amount to succeed.
     function deposit(Trust trust_, IERC20 token_, uint amount_)
         external
