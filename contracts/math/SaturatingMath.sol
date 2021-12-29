@@ -47,6 +47,10 @@ library SaturatingMath {
         }
     }
 
+    /// Saturating multiplication.
+    /// @param a_ First term.
+    /// @param b_ Second term.
+    /// @return Minimum of a_ * b_ and `MAX`.
     function saturatingMul(uint a_, uint b_)
         internal
         pure
