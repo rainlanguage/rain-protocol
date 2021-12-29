@@ -72,10 +72,10 @@ struct DistributionProgress {
     DistributionStatus distributionStatus;
     // First block that the distribution can be traded.
     // Will be `-1` before trading.
-    uint32 distributionStartBlock;
+    uint distributionStartBlock;
     // First block that the distribution can be ended.
     // Will be `-1` before trading.
-    uint32 distributionEndBlock;
+    uint distributionEndBlock;
     // Current reserve balance in the Balancer pool.
     // Will be `0` before trading.
     // Will be the exit dust after trading.
@@ -108,7 +108,7 @@ struct TrustConfig {
     // Address of the creator who will receive reserve assets on successful
     // distribution.
     address creator;
-    uint32 creatorFundsReleaseTimeout;
+    uint creatorFundsReleaseTimeout;
     // Minimum amount to raise for the creator from the distribution period.
     // A successful distribution raises at least this AND also the seed fee and
     // `redeemInit`;
@@ -133,14 +133,14 @@ struct TrustSeedERC20Config {
     // Recommended to keep seed units to a small value (single-triple digits).
     // The ability for users to buy/sell or not buy/sell dust seed quantities
     // is likely NOT desired.
-    uint16 seederUnits;
+    uint seederUnits;
     // Cooldown duration in blocks for seed/unseed cycles.
     // Seeding requires locking funds for at least the cooldown period.
     // Ideally `unseed` is never called and `seed` leaves funds in the contract
     // until all seed tokens are sold out.
     // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
     // but it should be called rarely.
-    uint16 seederCooldownDuration;
+    uint seederCooldownDuration;
     // ERC20Config forwarded to the seedERC20.
     ERC20Config seedERC20Config;
 }
@@ -275,9 +275,9 @@ contract Trust is Phased {
     event Notice(address sender, bytes data);
 
     /// Seeder units from the initial config.
-    uint16 public immutable seederUnits;
+    uint public immutable seederUnits;
     /// Seeder cooldown duration from the initial config.
-    uint16 public immutable seederCooldownDuration;
+    uint public immutable seederCooldownDuration;
     /// SeedERC20Factory from the initial config.
     /// Seeder from the initial config.
     address public immutable seeder;
@@ -312,7 +312,7 @@ contract Trust is Phased {
     uint public immutable minimumCreatorRaise;
 
     address public immutable creator;
-    uint32 public immutable creatorFundsReleaseTimeout;
+    uint public immutable creatorFundsReleaseTimeout;
 
     uint public immutable seederFee;
     uint public immutable redeemInit;
@@ -460,6 +460,7 @@ contract Trust is Phased {
     }
 
     /// Accessor for the `TrustContracts` of this `Trust`.
+    /// DEPRECATED: This will be lifted offchain in the future.
     function getContracts() external view returns(TrustContracts memory) {
         return TrustContracts(
             address(reserve),
@@ -473,6 +474,7 @@ contract Trust is Phased {
     }
 
     /// Accessor for the `DistributionProgress` of this `Trust`.
+    /// DEPRECATED: This will be lifted offchain in the future.
     function getDistributionProgress()
         external
         view
@@ -491,19 +493,21 @@ contract Trust is Phased {
     }
 
     /// Anyone can send a notice about this `Trust`.
-    /// The notice is opaque bytes that the indexer/GUI is expected to
-    /// understand the context to decode/interpret it.
+    /// The notice is opaque bytes. The indexer/GUI is expected to understand
+    /// the context to decode/interpret it.
     /// @param data_ The data associated with this notice.
     function sendNotice(bytes memory data_) external {
         emit Notice(msg.sender, data_);
     }
 
+    /// Allow `RedeemableERC20Pool` to set `finalBalance`.
     function setFinalBalance(uint finalBalance_) external {
         // Library access only.
         assert(msg.sender == address(this));
         finalBalance = finalBalance_;
     }
 
+    /// Exposes `RedeemableERC20Pool.startDutchAuction`.
     function startDutchAuction() external onlyPhase(Phase.ZERO) {
         uint finalAuctionBlock_
             = minimumTradingDuration + block.number;
@@ -515,6 +519,7 @@ contract Trust is Phased {
         RedeemableERC20Pool.startDutchAuction(finalAuctionBlock_);
     }
 
+    /// Exposes `RedeemableERC20Pool.endDutchAuction`.
     function endDutchAuction() public onlyPhase(Phase.TWO) {
         // Move to `Phase.THREE` immediately.
         // Prevents reentrancy.
@@ -529,8 +534,8 @@ contract Trust is Phased {
     /// function as anyone can call `endDutchAuction` even if the transfers
     /// WILL succeed, so in that case it is best to process them all together
     /// as a single transaction.
-    function transferApprovedTokens() public {
-        RedeemableERC20Pool.transferApprovedTokens();
+    function transferAuctionTokens() public onlyAtLeastPhase(Phase.THREE) {
+        RedeemableERC20Pool.transferAuctionTokens();
     }
 
     /// Atomically calls `endDutchAuction` and `transferApprovedTokens`.
@@ -542,7 +547,7 @@ contract Trust is Phased {
     /// themselves unatomically.
     function endDutchAuctionAndTransfer() public {
         endDutchAuction();
-        transferApprovedTokens();
+        transferAuctionTokens();
     }
 
     /// `endDutchAuction` is apparently critically failing.
@@ -551,15 +556,14 @@ contract Trust is Phased {
     /// for at least `creatorFundsReleaseTimeout` blocks.
     /// Either it did not run at all, or somehow it failed to grant access
     /// to funds.
-    function enableCreatorFundsRelease() external {
+    /// Phase.ZERO unsupported:
+    /// How to back out of the pre-seed stage??
+    /// Someone sent reserve but not enough to start the auction, and auction
+    /// will never start?
+    /// Phase.ONE unsupported:
+    /// We're mid-distribution, creator will need to wait.
+    function enableCreatorFundsRelease() external onlyAtLeastPhase(Phase.TWO) {
         Phase startPhase_ = currentPhase();
-        /// Phase.ZERO unsupported:
-        /// How to back out of the pre-seed stage??
-        /// Someone sent reserve but not enough to start the auction, and
-        /// auction will never start?
-        /// Phase.ONE unsupported:
-        /// We're mid-distribution, creator will need to wait.
-        require(startPhase_ > Phase.ONE, "UNSUPPORTED_FUNDS_RELEASE");
         require(
             blockNumberForPhase(
                 phaseBlocks,
@@ -574,7 +578,13 @@ contract Trust is Phased {
         }
     }
 
-    function creatorFundsRelease(address token_, uint amount_) external {
+    /// Wrapper for `RedeemableERC20Pool.creatorFundsRelease`.
+    /// @param token_ Forwarded to `RedeemableERC20Pool.creatorFundsRelease`.
+    /// @param amount_ Forwarded to `RedeemableERC20Pool.creatorFundsRelease`.
+    function creatorFundsRelease(address token_, uint amount_)
+        external
+        onlyPhase(Phase.FOUR)
+    {
         emit CreatorFundsRelease(token_, amount_);
         RedeemableERC20Pool.creatorFundsRelease(
             token_,

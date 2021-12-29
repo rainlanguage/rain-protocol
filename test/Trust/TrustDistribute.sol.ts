@@ -368,7 +368,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 0"
       );
 
@@ -393,7 +393,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 0"
       );
 
@@ -414,7 +414,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 1"
       );
 
@@ -457,7 +457,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 1"
       );
 
@@ -499,7 +499,7 @@ describe("TrustDistribute", async function () {
               reserve.address,
               await reserve.balanceOf(trust.address)
             ),
-        "NON_RELEASE_PHASE",
+        "BAD_PHASE",
         "wrongly released creator funds before release phase"
       );
 
@@ -711,7 +711,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 0"
       );
 
@@ -736,7 +736,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 0"
       );
 
@@ -757,7 +757,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 1"
       );
 
@@ -800,7 +800,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 1"
       );
 
@@ -851,7 +851,7 @@ describe("TrustDistribute", async function () {
               reserve.address,
               await reserve.balanceOf(trust.address)
             ),
-        "NON_RELEASE_PHASE",
+        "BAD_PHASE",
         "wrongly released creator funds before release phase"
       );
 

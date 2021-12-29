@@ -20,20 +20,20 @@ struct SeedERC20Config {
     // Recipient address for all reserve funds raised when seeding is complete.
     address recipient;
     // Price per seed unit denominated in reserve token.
-    uint256 seedPrice;
+    uint seedPrice;
     // Total seed units to be mint and sold.
     // 100% of all seed units must be sold for seeding to complete.
     // Recommended to keep seed units to a small value (single-triple digits).
     // The ability for users to buy/sell or not buy/sell dust seed quantities
     // is likely NOT desired.
-    uint16 seedUnits;
+    uint seedUnits;
     // Cooldown duration in blocks for seed/unseed cycles.
     // Seeding requires locking funds for at least the cooldown period.
     // Ideally `unseed` is never called and `seed` leaves funds in the contract
     // until all seed tokens are sold out.
     // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
     // but it should be called rarely.
-    uint16 cooldownDuration;
+    uint cooldownDuration;
     // ERC20 config.
     ERC20Config erc20Config;
 }

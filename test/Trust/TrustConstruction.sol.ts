@@ -40,8 +40,8 @@ enum DistributionStatus {
 
 interface DistributionProgress {
   distributionStatus: DistributionStatus;
-  distributionStartBlock: number;
-  distributionEndBlock: number;
+  distributionStartBlock: BigNumber;
+  distributionEndBlock: BigNumber;
   poolReserveBalance: BigNumber;
   poolTokenBalance: BigNumber;
   reserveInit: BigNumber;
@@ -878,8 +878,7 @@ describe("TrustConstruction", async function () {
     );
 
     assert(
-      distributionStartBlock ===
-        distributionProgressTrading.distributionStartBlock,
+      distributionProgressTrading.distributionStartBlock.eq(distributionStartBlock),
       `did not get correct value for DistributionProgress.distributionStartBlock on starting raise
     expected  ${distributionStartBlock}
     got       ${distributionProgressTrading.distributionStartBlock}
@@ -887,7 +886,7 @@ describe("TrustConstruction", async function () {
     );
 
     assert(
-      distributionEndBlock === distributionProgressTrading.distributionEndBlock,
+      distributionProgressTrading.distributionEndBlock.eq(distributionEndBlock),
       `did not get correct value for DistributionProgress.distributionEndBlock on starting raise
     expected  ${distributionEndBlock}
     got       ${distributionProgressTrading.distributionEndBlock}
@@ -949,8 +948,7 @@ describe("TrustConstruction", async function () {
     );
 
     assert(
-      distributionStartBlock ===
-        distributionProgressSwap.distributionStartBlock,
+      distributionProgressSwap.distributionStartBlock.eq(distributionStartBlock),
       `did not get correct value for DistributionProgress.distributionStartBlock after a swap
     expected  ${distributionStartBlock}
     got       ${distributionProgressSwap.distributionStartBlock}
@@ -958,7 +956,7 @@ describe("TrustConstruction", async function () {
     );
 
     assert(
-      distributionEndBlock === distributionProgressSwap.distributionEndBlock,
+      distributionProgressSwap.distributionEndBlock.eq(distributionEndBlock),
       `did not get correct value for DistributionProgress.distributionEndBlock after a swap
     expected  ${distributionEndBlock}
     got       ${distributionProgressSwap.distributionEndBlock}

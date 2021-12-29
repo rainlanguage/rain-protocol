@@ -245,6 +245,8 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// participants cannot prevent a sweep. As per normal deposits, the output
     /// of swept tokens depends on success/fail state allowing `undeposit` or
     /// `withdraw` to be called subsequently.
+    /// Partial sweeps are NOT supported, to avoid griefers splitting a deposit
+    /// across many different `supply_` values.
     function sweepPending(Trust trust_, address token_, address depositor_)
         external
         onlyTrustedFactoryChild(address(trust_))
