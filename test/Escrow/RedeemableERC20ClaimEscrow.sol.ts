@@ -111,14 +111,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount);
     // creator deposits claimable tokens
-    const deposit0 = await claim.deposit(
+    await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount
     );
-    const supply0 = (await deposit0.wait()).events.filter(
-      (x) => x.event == "Deposit" && x.address == claim.address
-    )[0].args[3];
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
     const emptyBlocks =
@@ -128,6 +125,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     await Util.createEmptyBlock(emptyBlocks);
 
     await trust.endDutchAuction();
+
+    const sweep0 = await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+
+    const supply0 = (await sweep0.wait()).events.filter(
+      (x) => x.event == "Deposit" && x.address == claim.address
+    )[0].args[3];
 
     // Distribution Status is Success
     assert(
@@ -170,24 +173,28 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       got             ${actualSigner1Withdrawal0}`
     );
 
+    // signer2 burns their RedeemableERC20 token balance
+    await redeemableERC20
+    .connect(signer2)
+    .burn(await redeemableERC20.balanceOf(signer2.address));
+
     // more claimable tokens are deposited by creator
     await claimableReserveToken.approve(claim.address, depositAmount);
-    await claim.deposit(
+    const deposit1 = await claim.deposit(
       trust.address,
       claimableReserveToken.address,
       depositAmount
     );
+
+    const supply1 = (await deposit1.wait()).events.filter(
+      (x) => x.event == "Deposit" && x.address == claim.address
+    )[0].args[3];
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
       claimableReserveToken.address,
       await redeemableERC20.totalSupply()
     );
-
-    // signer2 burns their RedeemableERC20 token balance
-    await redeemableERC20
-      .connect(signer2)
-      .burn(await redeemableERC20.balanceOf(signer2.address));
 
     // recalculate real RedeemableERC20 proportions
     const signer1PropAfterBurn = (
@@ -199,7 +206,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // signer1 2nd withdraw
     await claim
       .connect(signer1)
-      .withdraw(trust.address, claimableReserveToken.address, supply0);
+      .withdraw(trust.address, claimableReserveToken.address, supply1);
 
     const expectedSigner1Withdrawal1 = depositAmount
       .mul(signer1PropAfterBurn)

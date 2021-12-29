@@ -106,6 +106,18 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
+    /// Emitted for every successful pending deposit.
+    event PendingDeposit(
+        /// `Trust` contract deposit is under.
+        address trust,
+        /// `IERC20` token being deposited.
+        address token,
+        /// Address depositing the token.
+        address depositor,
+        /// Amount of token deposited.
+        uint amount
+    );
+
     /// Emitted for every successful deposit.
     event Deposit(
         /// `Trust` contract deposit is under.
@@ -160,6 +172,9 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
                 mapping(uint => uint))))
         public withdrawals;
 
+    mapping(address => mapping(address => mapping(address => uint)))
+        public pendingDeposits;
+
     /// Every time an address calls `deposit` their deposited trust/token
     /// combination is increased. If they call `undeposit` when the raise has
     /// failed they will receive the full amount they deposited back. Every
@@ -183,6 +198,62 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     constructor(address trustFactory_)
         TrustEscrow(trustFactory_)
         { } // solhint-disable-line no-empty-blocks
+
+    function depositPending(Trust trust_, IERC20 token_, uint amount_)
+        external
+        onlyTrustedFactoryChild(address(trust_))
+    {
+        require(amount_ > 0, "ZERO_DEPOSIT");
+        require(
+            getEscrowStatus(trust_) == EscrowStatus.Pending,
+            "NOT_PENDING"
+        );
+        pendingDeposits[address(trust_)][address(token_)][msg.sender]
+            += amount_;
+
+        emit PendingDeposit(
+            address(trust_),
+            address(token_),
+            msg.sender,
+            amount_
+        );
+
+        token_.safeTransferFrom(msg.sender, address(this), amount_);
+    }
+
+    function sweepPending(Trust trust_, address token_, address depositor_)
+        external
+        onlyTrustedFactoryChild(address(trust_))
+    {
+        require(
+            getEscrowStatus(trust_) > EscrowStatus.Pending,
+            "PENDING"
+        );
+        uint amount_
+            = pendingDeposits[address(trust_)][token_][depositor_];
+        delete pendingDeposits[address(trust_)][token_][depositor_];
+        require(amount_ > 0, "ZERO_DEPOSIT");
+
+        uint supply_ = trust_.token().totalSupply();
+
+        deposits
+            [address(trust_)]
+            [token_]
+            [depositor_]
+            [supply_] += amount_;
+        totalDeposits
+            [address(trust_)]
+            [token_]
+            [supply_] += amount_;
+
+        emit Deposit(
+            address(trust_),
+            address(token_),
+            depositor_,
+            supply_,
+            amount_
+        );
+    }
 
     /// Any address can deposit any amount of its own `IERC20` under a `Trust`.
     /// The `Trust` MUST be a child of the trusted factory.
@@ -211,6 +282,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         onlyTrustedFactoryChild(address(trust_))
     {
         require(amount_ > 0, "ZERO_DEPOSIT");
+        require(getEscrowStatus(trust_) > EscrowStatus.Pending, "PENDING");
         uint supply_ = trust_.token().totalSupply();
         deposits
             [address(trust_)]
@@ -316,15 +388,20 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
             = totalDeposited_;
 
         uint256 amount_ =
-            // Underflow MUST error here (should not be possible).
-            ( totalDeposited_ - withdrawn_ )
-            // prorata share of `msg.sender`'s current balance vs. supply as at
-            // the time deposit was made. If nobody burns they will all get a
-            // share rounded down by integer division. 100 split 3 ways will be
-            // 33 tokens each, leaving 1 TKN as escrow dust, for example. If
-            // someone burns before withdrawing they will receive less, so
-            // 0/33/33 from 100 with 34 TKN as escrow dust, for example.
-            * ( redeemable_.balanceOf(msg.sender) / supply_ );
+            (
+                // Underflow MUST error here (should not be possible).
+                ( totalDeposited_ - withdrawn_ )
+                // prorata share of `msg.sender`'s current balance vs. supply
+                // as at the time deposit was made. If nobody burns they will
+                // all get a share rounded down by integer division. 100 split
+                // 3 ways will be 33 tokens each, leaving 1 TKN as escrow dust,
+                // for example. If someone burns before withdrawing they will
+                // receive less, so 0/33/33 from 100 with 34 TKN as escrow
+                // dust, for example.
+                * redeemable_.balanceOf(msg.sender)
+            )
+            / supply_;
+
         require(amount_ > 0, "ZERO_WITHDRAW");
         emit Withdraw(
             address(trust_),
