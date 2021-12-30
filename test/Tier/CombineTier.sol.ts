@@ -48,7 +48,7 @@ const enum Opcode {
 const sourceAlways = concat([op(Opcode.ALWAYS)]);
 const sourceNever = concat([op(Opcode.NEVER)]);
 
-describe.only("CombineTier", async function () {
+describe("CombineTier", async function () {
   it("should correctly combine Always and Never tier contracts with orLeft", async () => {
     this.timeout(0);
 

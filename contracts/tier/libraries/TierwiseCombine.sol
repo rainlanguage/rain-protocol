@@ -48,35 +48,32 @@ library TierwiseCombine {
     /// preserve the __minimum__ block number
     /// on a per-tier basis.
     function everyLteMin(
-        uint256[] memory reports_,
-        uint256 blockNumber_
+        uint[] memory reports_,
+        uint blockNumber_
     ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < MAX_STEP; step_ += 32) {
-            uint256[] memory vals_ = new uint256[](reports_.length);
-            for (uint256 a_ = 0; a_ < vals_.length; a_++) {
-                vals_[a_] = uint256(
-                    uint256(reports_[a_] << 256 - step_ - 32)
-                    >> 256 - 32
+        unchecked {
+            uint ret_;
+            uint accumulator_;
+            uint block_;
+            uint length_ = reports_.length;
+            for (uint tier_ = 1; tier_ <= 8; tier_++) {
+                accumulator_ = TierReport.NEVER;
+                for (uint b_ = 0; b_ < length_; b_++) {
+                    block_ = TierReport.tierBlock(reports_[b_], tier_);
+                    if (block_ > blockNumber_) {
+                        accumulator_ = TierReport.NEVER;
+                        break;
+                    }
+                    accumulator_ = block_.min(accumulator_);
+                }
+                ret_ = TierReport.updateBlockAtTier(
+                    ret_,
+                    tier_ - 1,
+                    accumulator_
                 );
             }
-            uint256 accumulator_ = TierReport.NEVER;
-            bool allTrue_ = true;
-            for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                if (allTrue_ && vals_[i_] <= blockNumber_) {
-                    accumulator_ = vals_[i_].min(accumulator_);
-                }
-                else {
-                    allTrue_ = false;
-                    break;
-                }
-            }
-            if (!allTrue_) {
-                accumulator_ = TierReport.NEVER;
-            }
-            ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
+            return ret_;
         }
-        return ret_;
     }
 
     // IF __every__ block number is lte `blockNumber_`
