@@ -61,7 +61,7 @@ enum Tier {
   EIGHT,
 }
 
-describe.only("EmissionsERC20", async function () {
+describe("EmissionsERC20", async function () {
   it("should calculate correct emissions amount (if division is performed on final result)", async function () {
     this.timeout(0);
 

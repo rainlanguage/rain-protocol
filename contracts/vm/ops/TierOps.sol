@@ -20,6 +20,7 @@ library TierOps {
     uint constant internal ANY_LTE_FIRST = 10;
     uint constant internal OPS_LENGTH = 11;
 
+    /// @see RainVM
     function applyOp(
         bytes memory,
         State memory state_,
@@ -86,49 +87,55 @@ library TierOps {
 
                 if (op_.code == EVERY_LTE_MIN) {
                     state_.stack[baseIndex_]
-                         = TierwiseCombine.everyLte(
+                         = TierwiseCombine.selectLte(
                             args_,
                             blockNumber_,
+                            TierwiseCombine.LOGIC_EVERY,
                             TierwiseCombine.MODE_MIN
                         );
                 }
                 else if (op_.code == EVERY_LTE_MAX) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.everyLte(
+                        = TierwiseCombine.selectLte(
                             args_,
                             blockNumber_,
+                            TierwiseCombine.LOGIC_EVERY,
                             TierwiseCombine.MODE_MAX
                         );
                 }
                 else if (op_.code == EVERY_LTE_FIRST) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.everyLte(
+                        = TierwiseCombine.selectLte(
                             args_,
                             blockNumber_,
+                            TierwiseCombine.LOGIC_EVERY,
                             TierwiseCombine.MODE_FIRST
                         );
                 }
                 else if (op_.code == ANY_LTE_MIN) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLte(
+                        = TierwiseCombine.selectLte(
                             args_,
                             blockNumber_,
+                            TierwiseCombine.LOGIC_ANY,
                             TierwiseCombine.MODE_MIN
                         );
                 }
                 else if (op_.code == ANY_LTE_MAX) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLte(
+                        = TierwiseCombine.selectLte(
                             args_,
                             blockNumber_,
+                            TierwiseCombine.LOGIC_ANY,
                             TierwiseCombine.MODE_MAX
                         );
                 }
                 else if (op_.code == ANY_LTE_FIRST) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLte(
+                        = TierwiseCombine.selectLte(
                             args_,
                             blockNumber_,
+                            TierwiseCombine.LOGIC_ANY,
                             TierwiseCombine.MODE_FIRST
                         );
                 }
