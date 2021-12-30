@@ -22,6 +22,7 @@ library BlockOps {
     view
     {
         unchecked {
+            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             // Stack the current `block.number`.
             if (opcode_ == BLOCK_NUMBER) {
                 state_.stack[state_.stackIndex] = block.number;

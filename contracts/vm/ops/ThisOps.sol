@@ -22,6 +22,7 @@ library ThisOps {
     view
     {
         unchecked {
+            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             // Put the current contract address on the stack.
             if (opcode_ == THIS_ADDRESS) {
                 state_.stack[state_.stackIndex]

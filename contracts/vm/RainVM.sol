@@ -55,7 +55,7 @@ abstract contract RainVM {
             state_.stackIndex -= valLength_;
 
             uint[] memory baseVals_ = new uint[](valLength_);
-            for (uint a_ = 0; a_ < baseVals_.length; a_++) {
+            for (uint a_ = 0; a_ < valLength_; a_++) {
                 baseVals_[a_] = state_.stack[state_.stackIndex + a_];
             }
 

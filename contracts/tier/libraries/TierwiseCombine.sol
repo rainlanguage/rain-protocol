@@ -21,12 +21,12 @@ library TierwiseCombine {
     /// Select the first block number that passes in `selectLte`.
     uint constant internal MODE_FIRST = 2;
 
-    /// Performs a tierwise diff of two reports.
+    /// Performs a tierwise saturating subtraction of two reports.
     /// Intepret as "# of blocks older report was held before newer report".
     /// If older report is in fact newer then `0` will be returned.
     /// i.e. the diff cannot be negative, older report as simply spent 0 blocks
     /// existing before newer report, if it is in truth the newer report.
-    function diff(
+    function saturatingSub(
         uint olderReport_,
         uint newerReport_
     ) internal pure returns (uint) {

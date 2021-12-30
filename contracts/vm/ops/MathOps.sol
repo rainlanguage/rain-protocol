@@ -36,8 +36,8 @@ library MathOps {
     internal
     pure
     {
+        require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
         uint accumulator_;
-        uint item_;
         uint cursor_;
         unchecked {
             state_.stackIndex -= opval_;
@@ -48,50 +48,60 @@ library MathOps {
             accumulator_ = state_.stack[cursor_];
         }
 
+        // Addition.
         if (opcode_ == ADD) {
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }
                 accumulator_ += state_.stack[cursor_];
             }
         }
+        // Subtraction.
         else if (opcode_ == SUB) {
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }
                 accumulator_ -= state_.stack[cursor_];
             }
         }
+        // Multiplication.
         else if (opcode_ == MUL) {
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }
                 accumulator_ *= state_.stack[cursor_];
             }
         }
+        // Division.
         else if (opcode_ == DIV) {
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }
                 accumulator_ /= state_.stack[cursor_];
             }
         }
+        // Modulo.
         else if (opcode_ == MOD) {
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }
                 accumulator_ %= state_.stack[cursor_];
             }
         }
+        // Exponentiation.
         else if (opcode_ == EXP) {
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }
                 accumulator_ ** state_.stack[cursor_];
             }
         }
+        // Minimum.
         else if (opcode_ == MIN) {
+            uint item_;
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }
                 item_ = state_.stack[cursor_];
                 if (item_ < accumulator_) { accumulator_ = item_; }
             }
         }
+        // Maximum.
         else if (opcode_ == MAX) {
+            uint item_;
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }
                 item_ = state_.stack[cursor_];

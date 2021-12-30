@@ -16,7 +16,7 @@ library TierOps {
     /// Opcode to stack a report that has always been held for all tiers.
     uint constant public ALWAYS = 2;
     /// Opcode to calculate the tierwise diff of two reports.
-    uint constant public DIFF = 3;
+    uint constant public SATURATING_DIFF = 3;
     /// Opcode to update the blocks over a range of tiers for a report.
     uint constant public UPDATE_BLOCKS_FOR_TIER_RANGE = 4;
     /// Opcode to tierwise select the min block if every block is lte a val.
@@ -43,7 +43,11 @@ library TierOps {
     internal
     view {
         unchecked {
+            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             uint baseIndex_;
+            // Stack the report returned by an `ITier` contract.
+            // Top two stack vals are used as the address and `ITier` contract
+            // to check against.
             if (opcode_ == REPORT) {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
@@ -52,25 +56,37 @@ library TierOps {
                         .report(address(uint160(state_.stack[baseIndex_])));
                 state_.stackIndex++;
             }
+            // Stack a report that has never been held at any tier.
             else if (opcode_ == NEVER) {
                 state_.stack[state_.stackIndex] = TierReport.NEVER;
                 state_.stackIndex++;
             }
+            // Stack a report that has always been held at every tier.
             else if (opcode_ == ALWAYS) {
                 state_.stack[state_.stackIndex] = TierReport.ALWAYS;
                 state_.stackIndex++;
             }
-            else if (opcode_ == DIFF) {
+            // Stack the tierwise saturating subtraction of two reports.
+            // If the older report is newer than newer report the result will
+            // be `0`, else a tierwise diff in blocks will be obtained.
+            // The older and newer report are taken from the stack.
+            else if (opcode_ == SATURATING_DIFF) {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
                 uint olderReport_ = state_.stack[baseIndex_];
                 uint newerReport_ = state_.stack[baseIndex_ + 1];
-                state_.stack[state_.stackIndex] = TierwiseCombine.diff(
-                    olderReport_,
-                    newerReport_
-                );
+                state_.stack[state_.stackIndex]
+                    = TierwiseCombine.saturatingSub(
+                        olderReport_,
+                        newerReport_
+                    );
                 state_.stackIndex++;
             }
+            // Stacks a report with updated blocks over tier range.
+            // The start and end tier are taken from the low and high bits of
+            // the `opval_` respectively.
+            // The block number to update to and the report to update over are
+            // both taken from the stack.
             else if (opcode_ == UPDATE_BLOCKS_FOR_TIER_RANGE) {
                 uint startTier_ = opval_ & 0x0f;
                 uint endTier_ = (opval_ >> 4) & 0x0f;
@@ -87,7 +103,10 @@ library TierOps {
                     );
                 state_.stackIndex++;
             }
-            // All the combinators share the same stack and argument handling.
+            // Stacks the result of a `selectLte` combinator.
+            // All `selectLte` share the same stack and argument handling.
+            // In the future these may be combined into a single opcode, taking
+            // the `logic_` and `mode_` from the `opval_` high bits.
             else {
                 state_.stackIndex -= opval_ + 1;
                 baseIndex_ = state_.stackIndex;
