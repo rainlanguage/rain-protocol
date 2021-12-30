@@ -12,11 +12,17 @@ import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
-import type { BigNumber, Contract, BytesLike, BigNumberish } from "ethers";
+import type {
+  BigNumber,
+  Contract,
+  BytesLike,
+  BigNumberish,
+  ContractTransaction,
+} from "ethers";
 import type { Trust } from "../typechain/Trust";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
-import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -259,14 +265,11 @@ export const trustDeploy = async (
     trustFactoryTrustSeedERC20Config,
     ...args
   );
-  const receipt = await tx.wait();
 
   const trust = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        receipt.events?.filter(
-          (x) => x.event == "NewContract" && x.address == trustFactory.address
-        )[0].args[0]
+        (await getEventArgs(tx, "NewContract", trustFactory.address))[0]
       ),
       20 // address bytes length
     ),
@@ -497,3 +500,12 @@ export type Constants = [
   BigNumberish,
   BigNumberish
 ];
+
+export const getEventArgs = async (
+  tx: ContractTransaction,
+  event: string,
+  contractAddress: string
+): Promise<Result> =>
+  (await tx.wait()).events.find(
+    (x) => x.event == event && x.address == contractAddress
+  ).args;

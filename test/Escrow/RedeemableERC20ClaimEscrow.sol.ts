@@ -9,6 +9,7 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { Contract } from "ethers";
 import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
+import { getEventArgs } from "../Util";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -126,11 +127,13 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await trust.endDutchAuction();
 
-    const sweep0 = await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+    const sweep0 = await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      signers[0].address
+    );
 
-    const supply0 = (await sweep0.wait()).events.filter(
-      (x) => x.event == "Deposit" && x.address == claim.address
-    )[0].args[3];
+    const supply0 = (await getEventArgs(sweep0, "Deposit", claim.address))[3];
 
     // Distribution Status is Success
     assert(
@@ -175,8 +178,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     // signer2 burns their RedeemableERC20 token balance
     await redeemableERC20
-    .connect(signer2)
-    .burn(await redeemableERC20.balanceOf(signer2.address));
+      .connect(signer2)
+      .burn(await redeemableERC20.balanceOf(signer2.address));
 
     // more claimable tokens are deposited by creator
     await claimableReserveToken.approve(claim.address, depositAmount);
@@ -186,9 +189,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       depositAmount
     );
 
-    const supply1 = (await deposit1.wait()).events.filter(
-      (x) => x.event == "Deposit" && x.address == claim.address
-    )[0].args[3];
+    const supply1 = (await getEventArgs(deposit1, "Deposit", claim.address))[3];
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
@@ -290,9 +291,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       depositAmount
     );
-    const supply0 = (await deposit0.wait()).events.filter(
-      (x) => x.event == "Deposit" && x.address == claim.address
-    )[0].args[3];
+    const supply0 = (await getEventArgs(deposit0, "Deposit", claim.address))[3];
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
     const emptyBlocks =
@@ -369,9 +368,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       depositAmount
     );
-    const supply1 = (await deposit1.wait()).events.filter(
-      (x) => x.event == "Deposit" && x.address == claim.address
-    )[0].args[3];
+    const supply1 = (await getEventArgs(deposit1, "Deposit", claim.address))[3];
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
@@ -467,9 +464,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       depositAmount
     );
-    const supply = (await deposit.wait()).events.filter(
-      (x) => x.event == "Deposit" && x.address == claim.address
-    )[0].args[3];
+    const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
     const emptyBlocks =
@@ -595,9 +590,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       depositAmount
     );
-    const supply = (await deposit.wait()).events.filter(
-      (x) => x.event == "Deposit" && x.address == claim.address
-    )[0].args[3];
+    const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
 
     // prevent withdraw until status Success
     await Util.assertError(
@@ -721,9 +714,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       depositAmount0
     );
-    const supply0 = (await deposit0.wait()).events.filter(
-      (x) => x.event == "Deposit" && x.address == claim.address
-    )[0].args[3];
+    const supply0 = (await getEventArgs(deposit0, "Deposit", claim.address))[3];
 
     // read registered value
     const deposited0 = await claim.deposits(
