@@ -71,7 +71,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -121,7 +121,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -295,7 +295,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory, redeemableERC20Pool } =
         await factoriesDeploy(crpFactory, bFactory);
@@ -344,7 +344,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -638,7 +638,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory, redeemableERC20Pool } =
         await factoriesDeploy(crpFactory, bFactory);
@@ -687,7 +687,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -985,7 +985,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1034,7 +1034,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -1149,7 +1149,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1198,7 +1198,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -1292,7 +1292,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1341,7 +1341,7 @@ describe("TrustDistribute", async function () {
           {
             erc20Config,
             tier: tier.address,
-            minimumStatus,
+            minimumTier,
             totalSupply: totalTokenSupply,
           },
           {
@@ -1377,7 +1377,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1426,7 +1426,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -1522,7 +1522,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -1573,7 +1573,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -1699,7 +1699,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -1748,7 +1748,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -1844,7 +1844,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1893,7 +1893,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -1999,7 +1999,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -2046,7 +2046,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -2134,7 +2134,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -2185,7 +2185,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -2309,7 +2309,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -2360,7 +2360,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {

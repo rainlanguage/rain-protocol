@@ -2,23 +2,6 @@
 
 pragma solidity ^0.8.10;
 
-/// 9 Possible tiers.
-/// Fits nicely as uint32 in uint256 which is helpful for internal storage
-/// concerns.
-/// 8 tiers can be achieved, ZERO is the tier when no tier has been
-/// achieved.
-enum Tier {
-    ZERO,
-    ONE,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    EIGHT
-}
-
 /// @title ITier
 /// @notice `ITier` is a simple interface that contracts can
 /// implement to provide membership lists for other contracts.
@@ -76,8 +59,8 @@ interface ITier {
     /// @param endTier the newly acquired tier the account now holds.
     event TierChange(
         address account,
-        Tier startTier,
-        Tier endTier
+        uint startTier,
+        uint endTier
     );
 
     /// @notice Users can set their own tier by calling `setTier`.
@@ -134,7 +117,7 @@ interface ITier {
     /// (e.g. NFTs to lock).
     function setTier(
         address account,
-        Tier endTier,
+        uint endTier,
         bytes memory data
     )
         external;

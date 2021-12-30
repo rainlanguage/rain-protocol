@@ -12,7 +12,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 
@@ -30,8 +30,8 @@ struct RedeemableERC20Config {
     ERC20Config erc20Config;
     // Tier contract to compare statuses against on transfer.
     ITier tier;
-    // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    Tier minimumStatus;
+    // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
+    uint minimumTier;
     // Number of redeemable tokens to mint.
     uint totalSupply;
 }
@@ -148,7 +148,7 @@ contract RedeemableERC20 is
     /// the status is held during `_beforeTokenTransfer`.
     /// Not immutable because it is read during the constructor by the `_mint`
     /// call.
-    Tier public minimumTier;
+    uint public minimumTier;
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions.
@@ -167,7 +167,7 @@ contract RedeemableERC20 is
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
             "MINIMUM_INITIAL_SUPPLY"
         );
-        minimumTier = config_.minimumStatus;
+        minimumTier = config_.minimumTier;
 
         // Minting and burning must never fail.
         access[address(0)] = SENDER;

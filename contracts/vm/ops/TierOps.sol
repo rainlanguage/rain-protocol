@@ -48,8 +48,8 @@ library TierOps {
             else if (op_.code == DIFF) {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
-                uint256 olderReport_ = state_.stack[baseIndex_];
-                uint256 newerReport_ = state_.stack[baseIndex_ + 1];
+                uint olderReport_ = state_.stack[baseIndex_];
+                uint newerReport_ = state_.stack[baseIndex_ + 1];
                 state_.stack[state_.stackIndex] = TierwiseCombine.diff(
                     olderReport_,
                     newerReport_
@@ -57,12 +57,12 @@ library TierOps {
                 state_.stackIndex++;
             }
             else if (op_.code == UPDATE_BLOCKS_FOR_TIER_RANGE) {
-                Tier startTier_ = Tier(op_.val & 0x0f);
-                Tier endTier_ = Tier((op_.val >> 4) & 0x0f);
+                uint startTier_ = op_.val & 0x0f;
+                uint endTier_ = (op_.val >> 4) & 0x0f;
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
-                uint256 blockNumber_ = state_.stack[baseIndex_];
-                uint256 report_ = state_.stack[baseIndex_ + 1];
+                uint blockNumber_ = state_.stack[baseIndex_];
+                uint report_ = state_.stack[baseIndex_ + 1];
                 state_.stack[baseIndex_]
                     = TierReport.updateBlocksForTierRange(
                         report_,
@@ -77,12 +77,12 @@ library TierOps {
                 uint opval_ = op_.val;
                 state_.stackIndex -= opval_ + 1;
                 baseIndex_ = state_.stackIndex;
-                uint256[] memory args_ = new uint256[](opval_);
-                for (uint256 a_ = 0; a_ < opval_; a_++) {
+                uint[] memory args_ = new uint[](opval_);
+                for (uint a_ = 0; a_ < opval_; a_++) {
                     args_[a_] = state_.stack[baseIndex_ + a_ + 1];
                 }
 
-                uint256 blockNumber_ = state_.stack[baseIndex_];
+                uint blockNumber_ = state_.stack[baseIndex_];
 
                 if (op_.code == EVERY_LTE_MIN) {
                     state_.stack[baseIndex_]

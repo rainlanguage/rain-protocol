@@ -8,7 +8,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 import { Phase } from "../phased/Phased.sol";
 // solhint-disable-next-line max-line-length
@@ -145,16 +145,12 @@ struct TrustSeedERC20Config {
     ERC20Config seedERC20Config;
 }
 
+/// Forwarded config for `RedeemableERC20Config`.
 struct TrustRedeemableERC20Config {
-    // The `RedeemableERC20Factory` on the current network.
     RedeemableERC20Factory redeemableERC20Factory;
-    // ERC20Config forwarded to redeemableERC20 constructor.
     ERC20Config erc20Config;
-    // `ITier` contract to compare statuses against on transfer.
     ITier tier;
-    // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    Tier minimumStatus;
-    // Number of redeemable tokens to mint.
+    uint minimumTier;
     uint totalSupply;
 }
 
@@ -384,7 +380,7 @@ contract Trust is Phased {
                         address(config_.reserve),
                         trustRedeemableERC20Config_.erc20Config,
                         trustRedeemableERC20Config_.tier,
-                        trustRedeemableERC20Config_.minimumStatus,
+                        trustRedeemableERC20Config_.minimumTier,
                         trustRedeemableERC20Config_.totalSupply
         ))));
 

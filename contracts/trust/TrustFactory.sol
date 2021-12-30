@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 import { Factory } from "../factory/Factory.sol";
 import { Trust, TrustConfig } from "../trust/Trust.sol";
@@ -32,20 +32,20 @@ struct TrustFactoryConfig {
     SeedERC20Factory seedERC20Factory;
     address crpFactory;
     address balancerFactory;
-    uint32 creatorFundsReleaseTimeout;
-    uint32 maxRaiseDuration;
+    uint creatorFundsReleaseTimeout;
+    uint maxRaiseDuration;
 }
 
 struct TrustFactoryTrustConfig {
     IERC20 reserve;
-    uint256 reserveInit;
-    uint256 initialValuation;
-    uint256 finalValuation;
-    uint256 minimumTradingDuration;
+    uint reserveInit;
+    uint initialValuation;
+    uint finalValuation;
+    uint minimumTradingDuration;
     address creator;
-    uint256 minimumCreatorRaise;
-    uint256 seederFee;
-    uint256 redeemInit;
+    uint minimumCreatorRaise;
+    uint seederFee;
+    uint redeemInit;
 }
 
 struct TrustFactoryTrustRedeemableERC20Config {
@@ -53,18 +53,18 @@ struct TrustFactoryTrustRedeemableERC20Config {
     ERC20Config erc20Config;
     // Tier contract to compare statuses against on transfer.
     ITier tier;
-    // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    Tier minimumStatus;
+    // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
+    uint minimumTier;
     // Number of redeemable tokens to mint.
-    uint256 totalSupply;
+    uint totalSupply;
 }
 
 /// Partial config for `TrustRedeemableERC20PoolConfig`.
 struct TrustFactoryTrustSeedERC20Config {
     address seedERC20Factory;
     address seeder;
-    uint16 seederUnits;
-    uint16 seederCooldownDuration;
+    uint seederUnits;
+    uint seederCooldownDuration;
     ERC20Config seedERC20Config;
 }
 
@@ -82,8 +82,8 @@ contract TrustFactory is Factory {
     SeedERC20Factory public immutable seedERC20Factory;
     address public immutable crpFactory;
     address public immutable balancerFactory;
-    uint32 public immutable creatorFundsReleaseTimeout;
-    uint32 public immutable maxRaiseDuration;
+    uint public immutable creatorFundsReleaseTimeout;
+    uint public immutable maxRaiseDuration;
     BPoolFeeEscrow public immutable bPoolFeeEscrow;
 
     /// @param config_ All configuration for the `TrustFactory`.
@@ -176,7 +176,7 @@ contract TrustFactory is Factory {
                 redeemableERC20Factory,
                 trustFactoryTrustRedeemableERC20Config_.erc20Config,
                 trustFactoryTrustRedeemableERC20Config_.tier,
-                trustFactoryTrustRedeemableERC20Config_.minimumStatus,
+                trustFactoryTrustRedeemableERC20Config_.minimumTier,
                 trustFactoryTrustRedeemableERC20Config_.totalSupply
             ),
             TrustSeedERC20Config(

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 import { IClaim } from "./IClaim.sol";
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
 
@@ -58,7 +58,7 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
     /// The minimum tier required for an address to claim anything at all.
     /// This tier must have been held continuously since before this
     /// contract was constructed.
-    Tier public immutable minimumTier;
+    uint public immutable minimumTier;
 
     /// Tracks every address that has already claimed to prevent duplicate
     /// claims.
@@ -70,7 +70,7 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
     /// The minimum tier is set for `claim` logic.
     /// @param tierContract_ The tier contract to reference for each claim.
     /// @param minimumTier_ Minimum tier required for any claim to be valid.
-    constructor(ITier tierContract_, Tier minimumTier_)
+    constructor(ITier tierContract_, uint minimumTier_)
         TierByConstruction(tierContract_)
     {
         minimumTier = minimumTier_;

@@ -23,9 +23,7 @@ library TierwiseCombine {
     ) internal pure returns (uint) {
         unchecked {
             uint ret_;
-            Tier tier_;
-            for (uint i_ = 0; i_ < 8; i_++) {
-                tier_ = Tier(i_ + 1);
+            for (uint tier_ = 1; tier_ <= 8; tier_++) {
                 uint olderBlock_ = TierReport.tierBlock(
                     olderReport_,
                     tier_
@@ -36,10 +34,9 @@ library TierwiseCombine {
                 );
                 uint diff_ = newerBlock_.saturatingSub(olderBlock_);
                 ret_ = TierReport
-                    .updateBlocksForTierRange(
+                    .updateBlockAtTier(
                         ret_,
-                        Tier(i_),
-                        tier_,
+                        tier_ - 1,
                         diff_
                     );
             }

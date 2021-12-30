@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
 
 /// @title TierByConstructionClaimTest
@@ -36,7 +36,7 @@ contract TierByConstructionClaimTest is ERC20, TierByConstructionClaim {
     /// constructor.
     /// @param tier_ The tier contract to mediate the validity of claims.
     constructor(ITier tier_)
-        TierByConstructionClaim(tier_, Tier.FOUR)
+        TierByConstructionClaim(tier_, 4)
         ERC20("goldTkn", "GTKN")
     { } // solhint-disable-line no-empty-blocks
 

@@ -15,7 +15,7 @@ struct ERC20TransferTierConfig {
     IERC20 erc20;
     /// @param tierValues_ 8 values corresponding to minimum erc20
     /// balances for tiers ONE through EIGHT.
-    uint256[8] tierValues;
+    uint[8] tierValues;
 }
 
 /// @title ERC20TransferTier
@@ -80,8 +80,8 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
     /// @inheritdoc ReadWriteTier
     function _afterSetTier(
         address account_,
-        Tier startTier_,
-        Tier endTier_,
+        uint startTier_,
+        uint endTier_,
         bytes memory
     )
         internal
@@ -97,9 +97,9 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
 
         // Handle the erc20 transfer.
         // Convert the start tier to an erc20 amount.
-        uint256 startValue_ = tierToValue(startTier_);
+        uint startValue_ = tierToValue(startTier_);
         // Convert the end tier to an erc20 amount.
-        uint256 endValue_ = tierToValue(endTier_);
+        uint endValue_ = tierToValue(endTier_);
 
         // Short circuit if the values are the same for both tiers.
         if (endValue_ == startValue_) {

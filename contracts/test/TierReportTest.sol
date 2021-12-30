@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity 0.8.10;
 
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 import { TierReport } from "../tier/libraries/TierReport.sol";
 
 /// @title TierReportTest
@@ -13,7 +13,7 @@ contract TierReportTest {
     function tierAtBlockFromReport(uint report_, uint blockNumber_)
         external
         pure
-        returns (Tier)
+        returns (uint)
     {
         return TierReport.tierAtBlockFromReport(report_, blockNumber_);
     }
@@ -21,7 +21,7 @@ contract TierReportTest {
     /// Wraps `TierReport.tierBlock`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function tierBlock(uint report_, Tier tier_)
+    function tierBlock(uint report_, uint tier_)
         external
         pure
         returns (uint)
@@ -32,7 +32,7 @@ contract TierReportTest {
     /// Wraps `TierReport.truncateTiersAbove`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function truncateTiersAbove(uint report_, Tier tier_)
+    function truncateTiersAbove(uint report_, uint tier_)
         external
         pure
         returns (uint)
@@ -47,8 +47,8 @@ contract TierReportTest {
     /// @param blockNumber_ Forwarded to TestUtil.
     function updateBlocksForTierRange(
         uint report_,
-        Tier startTier_,
-        Tier endTier_,
+        uint startTier_,
+        uint endTier_,
         uint blockNumber_
     ) external pure returns (uint) {
         return
@@ -67,8 +67,8 @@ contract TierReportTest {
     /// @param blockNumber_ Forwarded to TestUtil.
     function updateReportWithTierAtBlock(
         uint report_,
-        Tier startTier_,
-        Tier endTier_,
+        uint startTier_,
+        uint endTier_,
         uint blockNumber_
     ) external pure returns (uint) {
         return

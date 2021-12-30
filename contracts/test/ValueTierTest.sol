@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import { ValueTier } from "../tier/ValueTier.sol";
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 /// @title ValueTierTest
 ///
@@ -15,7 +15,7 @@ contract ValueTierTest is ValueTier {
     { } // solhint-disable-line no-empty-blocks
 
     /// Wraps `tierToValue`.
-    function wrappedTierToValue(Tier tier_)
+    function wrappedTierToValue(uint tier_)
         external
         view
         returns(uint)
@@ -27,7 +27,7 @@ contract ValueTierTest is ValueTier {
     function wrappedValueToTier(uint value_)
         external
         view
-        returns(Tier)
+        returns(uint)
     {
         return ValueTier.valueToTier(value_);
     }

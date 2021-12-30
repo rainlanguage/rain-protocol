@@ -258,7 +258,7 @@ export const trustDeploy = async (
   ...args
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory[
-    "createChild((address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint256),((string,string),address,uint8,uint256),(address,address,uint16,uint16,(string,string)))"
+    "createChild((address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint256),((string,string),address,uint256,uint256),(address,address,uint256,uint256,(string,string)))"
   ](
     trustFactoryTrustConfig,
     trustFactoryTrustRedeemableERC20Config,

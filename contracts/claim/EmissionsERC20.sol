@@ -222,8 +222,8 @@ contract EmissionsERC20 is
         // calculations.
         reports[claimant_] = TierReport.updateBlocksForTierRange(
             0,
-            Tier.ZERO,
-            Tier.EIGHT,
+            0,
+            8,
             block.number
         );
 

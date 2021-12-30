@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
 
 /// @title TierByConstructionTest
@@ -23,62 +23,62 @@ contract TierByConstructionTest is TierByConstruction {
     function ifZero()
         external
         view
-        onlyTier(msg.sender, Tier.ZERO)
+        onlyTier(msg.sender, 0)
     { } // solhint-disable-line no-empty-blocks
 
     /// Requires `Tier.ONE` to call.
     function ifOne()
         external
         view
-        onlyTier(msg.sender, Tier.ONE)
+        onlyTier(msg.sender, 1)
     { } // solhint-disable-line no-empty-blocks
 
     /// Requires `Tier.TWO` to call.
     function ifTwo()
         external
         view
-        onlyTier(msg.sender, Tier.TWO)
+        onlyTier(msg.sender, 2)
     { } // solhint-disable-line no-empty-blocks
 
     /// Requires `Tier.THREE` to call.
     function ifThree()
         external
         view
-        onlyTier(msg.sender, Tier.THREE)
+        onlyTier(msg.sender, 3)
     { } // solhint-disable-line no-empty-blocks
 
     /// Requires `Tier.FOUR` to call.
     function ifFour()
         external
         view
-        onlyTier(msg.sender, Tier.FOUR)
+        onlyTier(msg.sender, 4)
     { } // solhint-disable-line no-empty-blocks
 
     /// Requires `Tier.FIVE` to call.
     function ifFive()
         external
         view
-        onlyTier(msg.sender, Tier.FIVE)
+        onlyTier(msg.sender, 5)
     { } // solhint-disable-line no-empty-blocks
 
     /// Requires `Tier.SIX` to call.
     function ifSix()
         external
         view
-        onlyTier(msg.sender, Tier.SIX)
+        onlyTier(msg.sender, 6)
     { } // solhint-disable-line no-empty-blocks
 
     /// Requires `Tier.SEVEN` to call.
     function ifSeven()
         external
         view
-        onlyTier(msg.sender, Tier.SEVEN)
+        onlyTier(msg.sender, 7)
     { } // solhint-disable-line no-empty-blocks
 
     /// Requires `Tier.EIGHT` to call.
     function ifEight()
         external
         view
-        onlyTier(msg.sender, Tier.EIGHT)
+        onlyTier(msg.sender, 8)
     { } // solhint-disable-line no-empty-blocks
 }

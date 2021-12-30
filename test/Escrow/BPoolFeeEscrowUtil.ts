@@ -57,7 +57,7 @@ export const basicSetup = async (
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
     Contract;
 
-  const minimumStatus = Tier.GOLD;
+  const minimumTier = Tier.GOLD;
   const erc20Config = { name: "Token", symbol: "TKN" };
   const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
@@ -105,7 +105,7 @@ export const basicSetup = async (
     {
       erc20Config,
       tier: tier.address,
-      minimumStatus,
+      minimumTier,
       totalSupply: totalTokenSupply,
     },
     {

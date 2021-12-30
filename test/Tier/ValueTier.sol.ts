@@ -72,18 +72,18 @@ describe("ValueTierTest", async function () {
   });
 
   it("should convert a value to the maximum Tier it qualifies for", async () => {
-    assert((await valueTier.wrappedValueToTier(0)) === Tier.ZERO);
-    assert((await valueTier.wrappedValueToTier(LEVELS[0])) === Tier.ONE);
+    assert((await valueTier.wrappedValueToTier(0)).eq(Tier.ZERO));
+    assert((await valueTier.wrappedValueToTier(LEVELS[0])).eq(Tier.ONE));
 
-    assert((await valueTier.wrappedValueToTier(LEVELS[1])) === Tier.TWO);
-    assert((await valueTier.wrappedValueToTier(LEVELS[1].add(1))) === Tier.TWO);
-    assert((await valueTier.wrappedValueToTier(LEVELS[1].sub(1))) === Tier.ONE);
+    assert((await valueTier.wrappedValueToTier(LEVELS[1])).eq(Tier.TWO));
+    assert((await valueTier.wrappedValueToTier(LEVELS[1].add(1))).eq(Tier.TWO));
+    assert((await valueTier.wrappedValueToTier(LEVELS[1].sub(1))).eq(Tier.ONE));
 
-    assert((await valueTier.wrappedValueToTier(LEVELS[2])) === Tier.THREE);
-    assert((await valueTier.wrappedValueToTier(LEVELS[3])) === Tier.FOUR);
-    assert((await valueTier.wrappedValueToTier(LEVELS[4])) === Tier.FIVE);
-    assert((await valueTier.wrappedValueToTier(LEVELS[5])) === Tier.SIX);
-    assert((await valueTier.wrappedValueToTier(LEVELS[6])) === Tier.SEVEN);
-    assert((await valueTier.wrappedValueToTier(LEVELS[7])) === Tier.EIGHT);
+    assert((await valueTier.wrappedValueToTier(LEVELS[2])).eq(Tier.THREE));
+    assert((await valueTier.wrappedValueToTier(LEVELS[3])).eq(Tier.FOUR));
+    assert((await valueTier.wrappedValueToTier(LEVELS[4])).eq(Tier.FIVE));
+    assert((await valueTier.wrappedValueToTier(LEVELS[5])).eq(Tier.SIX));
+    assert((await valueTier.wrappedValueToTier(LEVELS[6])).eq(Tier.SEVEN));
+    assert((await valueTier.wrappedValueToTier(LEVELS[7])).eq(Tier.EIGHT));
   });
 });

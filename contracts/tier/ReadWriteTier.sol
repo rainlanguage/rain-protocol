@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.10;
 
-import { Tier, ITier } from "./ITier.sol";
+import { ITier } from "./ITier.sol";
 import { TierReport } from "./libraries/TierReport.sol";
 
 /// @title ReadWriteTier
@@ -46,7 +46,7 @@ contract ReadWriteTier is ITier {
     /// @inheritdoc ITier
     function setTier(
         address account_,
-        Tier endTier_,
+        uint endTier_,
         bytes memory data_
     )
         external virtual override
@@ -54,11 +54,11 @@ contract ReadWriteTier is ITier {
         // The user must move to at least `Tier.ONE`.
         // The `Tier.ZERO` status is reserved for users that have never
         // interacted with the contract.
-        require(endTier_ != Tier.ZERO, "SET_ZERO_TIER");
+        require(endTier_ > 0, "SET_ZERO_TIER");
 
         uint256 report_ = report(account_);
 
-        Tier startTier_ = TierReport.tierAtBlockFromReport(
+        uint startTier_ = TierReport.tierAtBlockFromReport(
             report_,
             block.number
         );
@@ -92,8 +92,8 @@ contract ReadWriteTier is ITier {
     /// @param data_ Additional arbitrary data to inform update requirements.
     function _afterSetTier(
         address account_,
-        Tier startTier_,
-        Tier endTier_,
+        uint startTier_,
+        uint endTier_,
         bytes memory data_
     )
         internal virtual

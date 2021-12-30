@@ -5,7 +5,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "../tier/ERC20BalanceTier.sol";
 import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 /// @title ClaimERC1155Test
 /// Contract that implements claiming an erc1155 contingent on tiers for
@@ -29,7 +29,7 @@ contract ClaimERC1155Test is
 
     constructor(IERC20 redeemableToken_, uint256[8] memory tierValues_)
         ERC1155("https://example.com/{id}.json")
-        TierByConstructionClaim(this, Tier.THREE)
+        TierByConstructionClaim(this, 3)
         ERC20BalanceTier(ERC20BalanceTierConfig(
             redeemableToken_,
             tierValues_
@@ -41,7 +41,7 @@ contract ClaimERC1155Test is
         bytes memory
     ) internal override {
         // Anyone above `Tier.FIVE` gets more art and some good art.
-        bool isFive_ = isTier(account_, Tier.FIVE);
+        bool isFive_ = isTier(account_, 5);
 
         uint256[] memory ids_ = new uint[](2);
         uint256[] memory amounts_ = new uint[](2);

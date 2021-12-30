@@ -37,7 +37,7 @@ describe("RedeemableERC20Reentrant", async function () {
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const minimumStatus = Tier.NIL;
+    const minimumTier = Tier.NIL;
 
     const redeemableERC20Factory = await ethers.getContractFactory(
       "RedeemableERC20"
@@ -58,7 +58,7 @@ describe("RedeemableERC20Reentrant", async function () {
       reserve: maliciousReserve.address,
       erc20Config,
       tier: tier.address,
-      minimumStatus: minimumStatus,
+      minimumTier: minimumTier,
       totalSupply: totalSupply,
     })) as RedeemableERC20 & Contract;
 

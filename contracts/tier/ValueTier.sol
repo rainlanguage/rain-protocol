@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.10;
 
-import { Tier, ITier } from "./ITier.sol";
+import { ITier } from "./ITier.sol";
 
 /// @title ValueTier
 ///
@@ -15,17 +15,17 @@ import { Tier, ITier } from "./ITier.sol";
 /// `ValueTier` does include state however, to track the `tierValues` so is not
 /// a library.
 contract ValueTier {
-    uint256 private immutable tierOne;
-    uint256 private immutable tierTwo;
-    uint256 private immutable tierThree;
-    uint256 private immutable tierFour;
-    uint256 private immutable tierFive;
-    uint256 private immutable tierSix;
-    uint256 private immutable tierSeven;
-    uint256 private immutable tierEight;
+    uint private immutable tierOne;
+    uint private immutable tierTwo;
+    uint private immutable tierThree;
+    uint private immutable tierFour;
+    uint private immutable tierFive;
+    uint private immutable tierSix;
+    uint private immutable tierSeven;
+    uint private immutable tierEight;
 
     /// Set the `tierValues` on construction to be referenced immutably.
-    constructor(uint256[8] memory tierValues_) {
+    constructor(uint[8] memory tierValues_) {
         tierOne = tierValues_[0];
         tierTwo = tierValues_[1];
         tierThree = tierValues_[2];
@@ -40,7 +40,7 @@ contract ValueTier {
     /// Returns all the values in a list rather than requiring an index be
     /// specified.
     /// @return tierValues_ The immutable `tierValues`.
-    function tierValues() public view returns(uint256[8] memory tierValues_) {
+    function tierValues() public view returns(uint[8] memory tierValues_) {
         tierValues_[0] = tierOne;
         tierValues_[1] = tierTwo;
         tierValues_[2] = tierThree;
@@ -55,18 +55,18 @@ contract ValueTier {
     /// Converts a Tier to the minimum value it requires.
     /// `Tier.ZERO` is always value 0 as it is the fallback.
     /// @param tier_ The Tier to convert to a value.
-    function tierToValue(Tier tier_) internal view returns(uint256) {
-        return tier_ > Tier.ZERO ? tierValues()[uint256(tier_) - 1] : 0;
+    function tierToValue(uint tier_) internal view returns(uint) {
+        return tier_ > 0 ? tierValues()[tier_ - 1] : 0;
     }
 
     /// Converts a value to the maximum Tier it qualifies for.
     /// @param value_ The value to convert to a Tier.
-    function valueToTier(uint256 value_) internal view returns(Tier) {
-        for (uint256 i = 0; i < 8; i++) {
-            if (value_ < tierValues()[i]) {
-                return Tier(i);
+    function valueToTier(uint value_) internal view returns(uint) {
+        for (uint256 i_ = 0; i_ < 8; i_++) {
+            if (value_ < tierValues()[i_]) {
+                return i_;
             }
         }
-        return Tier.EIGHT;
+        return 8;
     }
 }
