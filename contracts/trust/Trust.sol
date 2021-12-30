@@ -412,10 +412,6 @@ contract Trust is Phased {
         seeder = trustSeedERC20Config_.seeder;
 
         require(
-            config_.reserveInit >= RedeemableERC20Pool.MIN_RESERVE_INIT,
-            "RESERVE_INIT_MINIMUM"
-        );
-        require(
             config_.initialValuation >= config_.finalValuation,
             "MIN_INITIAL_VALUTION"
         );

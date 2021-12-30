@@ -33,7 +33,7 @@ struct RedeemableERC20Config {
     // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
     Tier minimumStatus;
     // Number of redeemable tokens to mint.
-    uint256 totalSupply;
+    uint totalSupply;
 }
 
 /// @title RedeemableERC20
@@ -88,6 +88,7 @@ struct RedeemableERC20Config {
 ///   during `Phase.ONE`
 /// - Owner can end `Phase.ONE` during `Phase.ZERO` by specifying the address
 ///   of a distributor, which will have any undistributed tokens burned.
+/// The owner should be a `Trust` not an EOA.
 ///
 /// The redeem functions MUST be used to redeem and burn RedeemableERC20s
 /// (NOT regular transfers).
@@ -106,7 +107,9 @@ contract RedeemableERC20 is
 
     using SafeERC20 for IERC20;
 
+    /// Bits for a receiver.
     uint private constant RECEIVER = 0x1;
+    /// Bits for a sender. Sender is also receiver.
     uint private constant SENDER = 0x3;
 
     /// To be clear, this admin is NOT intended to be an EOA.
@@ -198,7 +201,7 @@ contract RedeemableERC20 is
 
     function grantReceiver(address newReceiver_) external onlyAdmin {
         // Using `|` preserves sender if previously granted.
-        access[newReceiver_] = access[newReceiver_] | 0x1;
+        access[newReceiver_] = access[newReceiver_] | RECEIVER;
     }
 
     function isSender(address maybeSender_) public view returns(bool) {
@@ -207,7 +210,7 @@ contract RedeemableERC20 is
 
     function grantSender(address newSender_) external onlyAdmin {
         // Sender is also a receiver.
-        access[newSender_] = 0x3;
+        access[newSender_] = SENDER;
     }
 
     /// The admin can burn all tokens of a single address to end `Phase.ZERO`.

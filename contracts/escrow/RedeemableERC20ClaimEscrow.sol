@@ -31,7 +31,7 @@ import "./TrustEscrow.sol";
 /// - Alice burns her 50 rTKN
 /// - Bob attempts to withdraw his 50 rTKN which is now 100% of supply
 /// - Escrow tries to pay 100% of 100 TKN deposited and fails as the escrow
-///   only holds 50 TKN.
+///   only holds 50 TKN (alice + bob = 150%).
 ///
 /// To avoid the escrow allowing more withdrawals than deposits we include the
 /// total rTKN supply in the key of each deposit mapping, and include it in the
@@ -66,6 +66,11 @@ import "./TrustEscrow.sol";
 /// distribution neither `withdraw` or `undeposit` will move tokens. This is
 /// necessary in part because it is only safe to calculate entitlements once
 /// the redeemable tokens are fully distributed and frozen.
+///
+/// Because much of the redeemable token supply will never be sold, and then
+/// burned, `depositPending` MUST be called rather than `deposit` while the
+/// raise is active. When the raise completes anon can call `sweepPending`
+/// which will calculate and emit a `Deposit` event for a useful `supply`.
 ///
 /// Any supported ERC20 token can be deposited at any time BUT ONLY under a
 /// `Trust` contract that is the child of the `TrustFactory` that the escrow
@@ -172,6 +177,11 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
                 mapping(uint => uint))))
         public withdrawals;
 
+    /// Deposits during an active raise are desirable to trustlessly prove to
+    /// raise participants that they will in fact be able to access the TKN
+    /// after the raise succeeds. Deposits during the pending stage are set
+    /// aside with no rTKN supply mapping, to be swept into a real deposit by
+    /// anon once the raise completes.
     mapping(address => mapping(address => mapping(address => uint)))
         public pendingDeposits;
 
@@ -238,6 +248,33 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         token_.safeTransferFrom(msg.sender, address(this), amount_);
     }
 
+    /// Internal accounting for a deposit.
+    /// Identical for both a direct deposit and sweeping a pending deposit.
+    function registerDeposit (
+        Trust trust_,
+        address token_,
+        address depositor_,
+        uint amount_
+    )
+        private
+    {
+        require(getEscrowStatus(trust_) > EscrowStatus.Pending, "PENDING");
+        require(amount_ > 0, "ZERO_DEPOSIT");
+
+        uint supply_ = trust_.token().totalSupply();
+
+        deposits[address(trust_)][token_][depositor_][supply_] += amount_;
+        totalDeposits[address(trust_)][token_][supply_] += amount_;
+
+        emit Deposit(
+            address(trust_),
+            address(token_),
+            depositor_,
+            supply_,
+            amount_
+        );
+    }
+
     /// Anon can convert any existing pending deposit to a deposit with known
     /// rTKN supply once the escrow has moved out of pending status.
     /// As `sweepPending` is anon callable, raise participants know that the
@@ -251,34 +288,9 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         external
         onlyTrustedFactoryChild(address(trust_))
     {
-        require(
-            getEscrowStatus(trust_) > EscrowStatus.Pending,
-            "PENDING"
-        );
-        uint amount_
-            = pendingDeposits[address(trust_)][token_][depositor_];
+        uint amount_ = pendingDeposits[address(trust_)][token_][depositor_];
         delete pendingDeposits[address(trust_)][token_][depositor_];
-        require(amount_ > 0, "ZERO_DEPOSIT");
-
-        uint supply_ = trust_.token().totalSupply();
-
-        deposits
-            [address(trust_)]
-            [token_]
-            [depositor_]
-            [supply_] += amount_;
-        totalDeposits
-            [address(trust_)]
-            [token_]
-            [supply_] += amount_;
-
-        emit Deposit(
-            address(trust_),
-            address(token_),
-            depositor_,
-            supply_,
-            amount_
-        );
+        registerDeposit(trust_, token_, depositor_, amount_);
     }
 
     /// Any address can deposit any amount of its own `IERC20` under a `Trust`.
@@ -307,27 +319,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         external
         onlyTrustedFactoryChild(address(trust_))
     {
-        require(amount_ > 0, "ZERO_DEPOSIT");
-        require(getEscrowStatus(trust_) > EscrowStatus.Pending, "PENDING");
-        uint supply_ = trust_.token().totalSupply();
-        deposits
-            [address(trust_)]
-            [address(token_)]
-            [msg.sender]
-            [supply_] += amount_;
-        totalDeposits
-            [address(trust_)]
-            [address(token_)]
-            [supply_] += amount_;
-
-        emit Deposit(
-            address(trust_),
-            address(token_),
-            msg.sender,
-            supply_,
-            amount_
-        );
-
+        registerDeposit(trust_, address(token_), msg.sender, amount_);
         token_.safeTransferFrom(msg.sender, address(this), amount_);
     }
 
@@ -413,7 +405,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         withdrawals[address(trust_)][address(token_)][msg.sender][supply_]
             = totalDeposited_;
 
-        uint256 amount_ =
+        uint amount_ =
             (
                 // Underflow MUST error here (should not be possible).
                 ( totalDeposited_ - withdrawn_ )

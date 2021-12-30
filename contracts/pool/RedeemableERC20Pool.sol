@@ -53,10 +53,7 @@ struct CRPConfig {
 /// @title RedeemableERC20Pool
 /// @notice The Balancer LBP functionality is wrapped by `RedeemableERC20Pool`.
 ///
-/// Balancer pools require significant configuration so this contract helps
-/// decouple the implementation from the `Trust`.
-///
-/// It also ensures the pool tokens created during the initialization of the
+/// Ensures the pool tokens created during the initialization of the
 /// Balancer LBP are owned by the `Trust` and never touch an externally owned
 /// account.
 ///
@@ -107,6 +104,10 @@ library RedeemableERC20Pool {
         uint[] memory poolAmounts_ = new uint[](2);
         poolAmounts_[0] = config_.reserveInit;
         poolAmounts_[1] = config_.token.totalSupply();
+        require(
+            poolAmounts_[0] >= MIN_RESERVE_INIT,
+            "RESERVE_INIT_MINIMUM"
+        );
         require(poolAmounts_[1] > 0, "TOKEN_INIT_0");
 
         // Initital weights follow initial valuation reserve denominated.
@@ -409,6 +410,8 @@ library RedeemableERC20Pool {
             totalPoolTokens_
                 .saturatingSub(minPoolSupply_)
                 // Don't attempt to exit more tokens than the `Trust` owns.
+                // This SHOULD be the same as `totalPoolTokens_` so it's just
+                // guarding against some bug or edge case.
                 .min(IERC20(address(self_.crp())).balanceOf(address(this))),
             new uint[](2)
         );
