@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 /// Mirrors the Balancer `BPool` functions relevant to Rain.
 /// Much of the Balancer contract is elided intentionally.

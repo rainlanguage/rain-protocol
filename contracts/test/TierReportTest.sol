@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity 0.8.10;
 
 import { Tier, ITier } from "../tier/ITier.sol";
@@ -11,7 +10,7 @@ contract TierReportTest {
     /// Wraps `TierReport.tierAtBlockFromReport`.
     /// @param report_ Forwarded to TierReport.
     /// @param blockNumber_ Forwarded to TierReport.
-    function tierAtBlockFromReport(uint256 report_, uint256 blockNumber_)
+    function tierAtBlockFromReport(uint report_, uint blockNumber_)
         external
         pure
         returns (Tier)
@@ -22,10 +21,10 @@ contract TierReportTest {
     /// Wraps `TierReport.tierBlock`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function tierBlock(uint256 report_, Tier tier_)
+    function tierBlock(uint report_, Tier tier_)
         external
         pure
-        returns (uint256)
+        returns (uint)
     {
         return TierReport.tierBlock(report_, tier_);
     }
@@ -33,10 +32,10 @@ contract TierReportTest {
     /// Wraps `TierReport.truncateTiersAbove`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function truncateTiersAbove(uint256 report_, Tier tier_)
+    function truncateTiersAbove(uint report_, Tier tier_)
         external
         pure
-        returns (uint256)
+        returns (uint)
     {
         return TierReport.truncateTiersAbove(report_, tier_);
     }
@@ -47,11 +46,11 @@ contract TierReportTest {
     /// @param endTier_ Forwarded to TestUtil.
     /// @param blockNumber_ Forwarded to TestUtil.
     function updateBlocksForTierRange(
-        uint256 report_,
+        uint report_,
         Tier startTier_,
         Tier endTier_,
-        uint256 blockNumber_
-    ) external pure returns (uint256) {
+        uint blockNumber_
+    ) external pure returns (uint) {
         return
             TierReport.updateBlocksForTierRange(
                 report_,
@@ -67,11 +66,11 @@ contract TierReportTest {
     /// @param endTier_ Forwarded to TestUtil.
     /// @param blockNumber_ Forwarded to TestUtil.
     function updateReportWithTierAtBlock(
-        uint256 report_,
+        uint report_,
         Tier startTier_,
         Tier endTier_,
-        uint256 blockNumber_
-    ) external pure returns (uint256) {
+        uint blockNumber_
+    ) external pure returns (uint) {
         return
             TierReport.updateReportWithTierAtBlock(
                 report_,

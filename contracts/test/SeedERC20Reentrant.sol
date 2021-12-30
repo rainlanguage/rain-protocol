@@ -35,7 +35,7 @@ contract SeedERC20Reentrant is ReserveToken {
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
-        uint256 amount_
+        uint amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         if (

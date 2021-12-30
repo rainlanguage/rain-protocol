@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -41,7 +40,7 @@ contract TierByConstructionClaimTest is ERC20, TierByConstructionClaim {
         ERC20("goldTkn", "GTKN")
     { } // solhint-disable-line no-empty-blocks
 
-    function _afterClaim(address account_, uint256, bytes memory)
+    function _afterClaim(address account_, uint, bytes memory)
         internal
         override
     {

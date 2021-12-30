@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -31,7 +30,6 @@ contract ClaimERC1155Test is
     constructor(IERC20 redeemableToken_, uint256[8] memory tierValues_)
         ERC1155("https://example.com/{id}.json")
         TierByConstructionClaim(this, Tier.THREE)
-        // solhint-disable-next-line no-empty-blocks
         ERC20BalanceTier(ERC20BalanceTierConfig(
             redeemableToken_,
             tierValues_
@@ -39,14 +37,14 @@ contract ClaimERC1155Test is
 
     function _afterClaim(
         address account_,
-        uint256,
+        uint,
         bytes memory
     ) internal override {
         // Anyone above `Tier.FIVE` gets more art and some good art.
         bool isFive_ = isTier(account_, Tier.FIVE);
 
-        uint256[] memory ids_ = new uint256[](2);
-        uint256[] memory amounts_ = new uint256[](2);
+        uint256[] memory ids_ = new uint[](2);
+        uint256[] memory amounts_ = new uint[](2);
 
         ids_[0] = (ART);
         ids_[1] = (GOOD_ART);

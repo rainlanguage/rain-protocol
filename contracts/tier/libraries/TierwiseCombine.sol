@@ -4,9 +4,13 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./TierReport.sol";
+import "../../math/SaturatingMath.sol";
 
 library TierwiseCombine {
     using Math for uint256;
+    using SaturatingMath for uint256;
+
+    uint constant private MAX_STEP = 256;
 
     /// Performs a tierwise diff of two reports.
     /// Intepret as "# of blocks older report was held before newer report".
@@ -14,22 +18,33 @@ library TierwiseCombine {
     /// i.e. the diff cannot be negative, older report as simply spent 0 blocks
     /// existing before newer report, if it is in truth the newer report.
     function diff(
-        uint256 olderReport_,
-        uint256 newerReport_
-    ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
-            uint256 olderBlock_ = uint256(
-                uint256(olderReport_ << 256 - step_ - 32) >> 256 - 32
-            );
-            uint256 newerBlock_ = uint256(
-                uint256(newerReport_ << 256 - step_ - 32) >> 256 - 32
-            );
-            uint256 diff_ = newerBlock_ > olderBlock_
-                ? newerBlock_ - olderBlock_ : 0;
-            ret_ |= uint256(uint256(uint32(diff_)) << step_);
+        uint olderReport_,
+        uint newerReport_
+    ) internal pure returns (uint) {
+        unchecked {
+            uint ret_;
+            Tier tier_;
+            for (uint i_ = 0; i_ < 8; i_++) {
+                tier_ = Tier(i_ + 1);
+                uint olderBlock_ = TierReport.tierBlock(
+                    olderReport_,
+                    tier_
+                );
+                uint newerBlock_ = TierReport.tierBlock(
+                    newerReport_,
+                    tier_
+                );
+                uint diff_ = newerBlock_.saturatingSub(olderBlock_);
+                ret_ = TierReport
+                    .updateBlocksForTierRange(
+                        ret_,
+                        Tier(i_),
+                        tier_,
+                        diff_
+                    );
+            }
+            return ret_;
         }
-        return ret_;
     }
 
     /// IF __every__ block number is lte `blockNumber_`
@@ -40,7 +55,7 @@ library TierwiseCombine {
         uint256 blockNumber_
     ) internal pure returns (uint256) {
         uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
+        for (uint256 step_ = 0; step_ < MAX_STEP; step_ += 32) {
             uint256[] memory vals_ = new uint256[](reports_.length);
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
                 vals_[a_] = uint256(
@@ -75,7 +90,7 @@ library TierwiseCombine {
         uint256 blockNumber_
     ) internal pure returns (uint256) {
         uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
+        for (uint256 step_ = 0; step_ < MAX_STEP; step_ += 32) {
             uint256[] memory vals_ = new uint256[](reports_.length);
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
                 vals_[a_] = uint256(
@@ -110,7 +125,7 @@ library TierwiseCombine {
         uint256 blockNumber_
     ) internal pure returns (uint256) {
         uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
+        for (uint256 step_ = 0; step_ < MAX_STEP; step_ += 32) {
             uint256[] memory vals_ = new uint256[](reports_.length);
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
                 vals_[a_] = uint256(
@@ -142,7 +157,7 @@ library TierwiseCombine {
         uint256 blockNumber_
     ) internal pure returns (uint256) {
         uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
+        for (uint256 step_ = 0; step_ < MAX_STEP; step_ += 32) {
             uint256[] memory vals_ = new uint256[](reports_.length);
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
                 vals_[a_] = uint256(
@@ -176,7 +191,7 @@ library TierwiseCombine {
         uint256 blockNumber_
     ) internal pure returns (uint256) {
         uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
+        for (uint256 step_ = 0; step_ < MAX_STEP; step_ += 32) {
             uint256[] memory vals_ = new uint256[](reports_.length);
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
                 vals_[a_] = uint256(
@@ -209,7 +224,7 @@ library TierwiseCombine {
         uint256 blockNumber_
     ) internal pure returns (uint256) {
         uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
+        for (uint256 step_ = 0; step_ < MAX_STEP; step_ += 32) {
             uint256[] memory vals_ = new uint256[](reports_.length);
             for (uint256 a_ = 0; a_ < vals_.length; a_++) {
                 vals_[a_] = uint256(

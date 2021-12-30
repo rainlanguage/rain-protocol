@@ -39,7 +39,7 @@ contract ReserveTokenTest is ERC20 {
     function _beforeTokenTransfer(
         address,
         address receiver_,
-        uint256
+        uint
     ) internal view override {
         require(
             receiver_ == address(0) || !(freezables[receiver_]),
