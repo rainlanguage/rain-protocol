@@ -1,73 +1,106 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { State, Op } from "../RainVM.sol";
+import { State } from "../RainVM.sol";
 
+/// @title BlockOps
+/// @notice RainVM opcode pack to perform basic checked math operations.
+/// Underflow and overflow will error as per default solidity behaviour.
 library MathOps {
 
-    uint constant internal ADD = 0;
-    uint constant internal SUB = 1;
-    uint constant internal MUL = 2;
-    uint constant internal DIV = 3;
-    uint constant internal MOD = 4;
-    uint constant internal POW = 5;
-    uint constant internal MIN = 6;
-    uint constant internal MAX = 7;
-    uint constant internal AVERAGE = 8;
-    uint constant internal OPS_LENGTH = 9;
+    /// Opcode for addition.
+    uint constant public ADD = 0;
+    /// Opcode for subtraction.
+    uint constant public SUB = 1;
+    /// Opcode for multiplication.
+    uint constant public MUL = 2;
+    /// Opcode for division.
+    uint constant public DIV = 3;
+    /// Opcode for modulo.
+    uint constant public MOD = 4;
+    /// Opcode for exponentiation.
+    uint constant public EXP = 5;
+    /// Opcode for minimum.
+    uint constant public MIN = 6;
+    /// Opcode for maximum.
+    uint constant public MAX = 7;
+    /// Number of provided opcodes for `MathOps`.
+    uint constant public OPS_LENGTH = 8;
 
     function applyOp(
         bytes memory,
         State memory state_,
-        Op memory op_
+        uint opcode_,
+        uint opval_
     )
     internal
     pure
     {
         uint accumulator_;
         uint item_;
-        uint opval_ = op_.val;
+        uint cursor_;
         unchecked {
             state_.stackIndex -= opval_;
-            accumulator_ = state_.stack[state_.stackIndex + opval_ - 1];
+        }
+        uint baseIndex_ = state_.stackIndex;
+        unchecked {
+            cursor_ = baseIndex_ + opval_ - 1;
+            accumulator_ = state_.stack[cursor_];
         }
 
-        for (uint a_ = 2; a_ <= opval_; a_++) {
-            unchecked {
-                item_ = state_.stack[state_.stackIndex + a_ - 2];
+        if (opcode_ == ADD) {
+            while (cursor_ > baseIndex_) {
+                unchecked { cursor_--; }
+                accumulator_ += state_.stack[cursor_];
             }
-            if (op_.code == ADD) {
-                accumulator_ += item_;
+        }
+        else if (opcode_ == SUB) {
+            while (cursor_ > baseIndex_) {
+                unchecked { cursor_--; }
+                accumulator_ -= state_.stack[cursor_];
             }
-            else if (op_.code == SUB) {
-                accumulator_ -= item_;
+        }
+        else if (opcode_ == MUL) {
+            while (cursor_ > baseIndex_) {
+                unchecked { cursor_--; }
+                accumulator_ *= state_.stack[cursor_];
             }
-            else if (op_.code == MUL) {
-                accumulator_ *= item_;
+        }
+        else if (opcode_ == DIV) {
+            while (cursor_ > baseIndex_) {
+                unchecked { cursor_--; }
+                accumulator_ /= state_.stack[cursor_];
             }
-            else if (op_.code == DIV) {
-                accumulator_ /= item_;
+        }
+        else if (opcode_ == MOD) {
+            while (cursor_ > baseIndex_) {
+                unchecked { cursor_--; }
+                accumulator_ %= state_.stack[cursor_];
             }
-            else if (op_.code == MOD) {
-                accumulator_ %= item_;
+        }
+        else if (opcode_ == EXP) {
+            while (cursor_ > baseIndex_) {
+                unchecked { cursor_--; }
+                accumulator_ ** state_.stack[cursor_];
             }
-            else if (op_.code == POW) {
-                accumulator_ = accumulator_ ** item_;
+        }
+        else if (opcode_ == MIN) {
+            while (cursor_ > baseIndex_) {
+                unchecked { cursor_--; }
+                item_ = state_.stack[cursor_];
+                if (item_ < accumulator_) { accumulator_ = item_; }
             }
-            else if (op_.code == MIN) {
-                if (item_ < accumulator_) accumulator_ = item_;
-            }
-            else if (op_.code == MAX) {
-                if (item_ > accumulator_) accumulator_ = item_;
-            }
-            else if (op_.code == AVERAGE) {
-                accumulator_ = (accumulator_ & item_)
-                    + (accumulator_ ^ item_) / 2;
+        }
+        else if (opcode_ == MAX) {
+            while (cursor_ > baseIndex_) {
+                unchecked { cursor_--; }
+                item_ = state_.stack[cursor_];
+                if (item_ > accumulator_) { accumulator_ = item_; }
             }
         }
 
         unchecked {
-            state_.stack[state_.stackIndex] = accumulator_;
+            state_.stack[baseIndex_] = accumulator_;
             state_.stackIndex++;
         }
     }

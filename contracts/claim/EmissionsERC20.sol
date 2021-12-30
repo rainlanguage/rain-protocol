@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import { ERC20Config } from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import { RainVM, State, Op } from "../vm/RainVM.sol";
+import { RainVM, State } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps } from "../vm/ops/BlockOps.sol";
 import { ThisOps } from "../vm/ops/ThisOps.sol";
@@ -28,11 +28,11 @@ struct EmissionsERC20Config {
 /// @notice Mints itself according to some predefined schedule. The schedule is
 /// expressed as a rainVM script and the `claim` function is world-callable.
 /// Intended behaviour is to avoid sybils infinitely minting by putting the
-/// claim functionality behind a `Tier` contract. The emissions contract itself
-/// implements `ReadOnlyTier` and every time a claim is processed it logs the
-/// block number of the claim against every tier claimed. So the block numbers
-/// in the tier report for `EmissionsERC20` are the last time that tier was
-/// claimed against this contract. The simplest way to make use of this
+/// claim functionality behind a `ITier` contract. The emissions contract
+/// itself implements `ReadOnlyTier` and every time a claim is processed it
+/// logs the block number of the claim against every tier claimed. So the block
+/// numbers in the tier report for `EmissionsERC20` are the last time that tier
+/// was claimed against this contract. The simplest way to make use of this
 /// information is to take the max block for the underlying tier and the last
 /// claim and then diff it against the current block number.
 /// See `test/Claim/EmissionsERC20.sol.ts` for examples, including providing
@@ -57,8 +57,8 @@ contract EmissionsERC20 is
     uint internal immutable mathOpsStart;
     /// @dev local offset for tier ops.
     uint internal immutable tierOpsStart;
-    /// @dev local offset for emissions ops.
-    uint internal immutable emissionsOpsStart;
+    /// @dev local offset for local ops.
+    uint internal immutable localOpsStart;
     /// @dev Block this contract was constructed.
     /// Can be used to calculate claim entitlements relative to the deployment
     /// of the emissions contract itself.
@@ -96,7 +96,7 @@ contract EmissionsERC20 is
         thisOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
         mathOpsStart = thisOpsStart + ThisOps.OPS_LENGTH;
         tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
-        emissionsOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -107,54 +107,55 @@ contract EmissionsERC20 is
     function applyOp(
         bytes memory context_,
         State memory state_,
-        Op memory op_
+        uint opcode_,
+        uint opval_
     )
         internal
         override
         view
     {
         unchecked {
-            if (op_.code < thisOpsStart) {
-                op_.code -= blockOpsStart;
+            if (opcode_ < thisOpsStart) {
                 BlockOps.applyOp(
                     context_,
                     state_,
-                    op_
+                    opcode_ - blockOpsStart,
+                    opval_
                 );
             }
-            else if (op_.code < mathOpsStart) {
-                op_.code -= thisOpsStart;
+            else if (opcode_ < mathOpsStart) {
                 ThisOps.applyOp(
                     context_,
                     state_,
-                    op_
+                    opcode_ - thisOpsStart,
+                    opval_
                 );
             }
-            else if (op_.code < tierOpsStart) {
-                op_.code -= mathOpsStart;
+            else if (opcode_ < tierOpsStart) {
                 MathOps.applyOp(
                     context_,
                     state_,
-                    op_
+                    opcode_ - mathOpsStart,
+                    opval_
                 );
             }
-            else if (op_.code < emissionsOpsStart) {
-                op_.code -= tierOpsStart;
+            else if (opcode_ < localOpsStart) {
                 TierOps.applyOp(
                     context_,
                     state_,
-                    op_
+                    opcode_ - tierOpsStart,
+                    opval_
                 );
             }
             else {
-                op_.code -= emissionsOpsStart;
-                if (op_.code == CLAIMANT_ACCOUNT) {
+                opcode_ -= localOpsStart;
+                if (opcode_ == CLAIMANT_ACCOUNT) {
                     (address account_) = abi.decode(context_, (address));
                     state_.stack[state_.stackIndex]
                     = uint256(uint160(account_));
                     state_.stackIndex++;
                 }
-                else if (op_.code == CONSTRUCTION_BLOCK_NUMBER) {
+                else if (opcode_ == CONSTRUCTION_BLOCK_NUMBER) {
                     state_.stack[state_.stackIndex] = constructionBlockNumber;
                     state_.stackIndex++;
                 }
@@ -221,7 +222,7 @@ contract EmissionsERC20 is
         // This can be diffed/combined with external reports in future claim
         // calculations.
         reports[claimant_] = TierReport.updateBlocksForTierRange(
-            0,
+            TierReport.NEVER,
             0,
             8,
             block.number

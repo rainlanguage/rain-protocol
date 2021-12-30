@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 //solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../math/SaturatingMath.sol";
 import { TierReport } from "./libraries/TierReport.sol";
 import { ValueTier } from "./ValueTier.sol";
 import "./ReadWriteTier.sol";
@@ -59,6 +59,7 @@ struct ERC20TransferTierConfig {
 /// - erc20 tokens without additonal restrictions on transfer
 contract ERC20TransferTier is ReadWriteTier, ValueTier {
     using SafeERC20 for IERC20;
+    using SaturatingMath for uint256;
 
     IERC20 public immutable erc20;
 
@@ -88,7 +89,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
         override
     {
         // As _anyone_ can call `setTier` we require that `msg.sender` and
-        // `account_` are the same if the end tier is lower.
+        // `account_` are the same if the end tier is not an improvement.
         // Anyone can increase anyone else's tier as the `msg.sender` is
         // responsible to pay the difference.
         if (endTier_ <= startTier_) {
@@ -110,13 +111,13 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
             erc20.safeTransferFrom(
                 msg.sender,
                 address(this),
-                endValue_ - startValue_
+                endValue_.saturatingSub(startValue_)
             );
         } else {
             // Going down, process a refund for the tiered account.
             erc20.safeTransfer(
                 account_,
-                startValue_ - endValue_
+                startValue_.saturatingSub(endValue_)
             );
         }
     }

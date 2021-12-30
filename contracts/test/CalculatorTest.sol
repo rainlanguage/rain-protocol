@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { RainVM, State, Op } from "../vm/RainVM.sol";
+import { RainVM, State } from "../vm/RainVM.sol";
 import "../vm/ImmutableSource.sol";
 import { BlockOps } from "../vm/ops/BlockOps.sol";
 import { MathOps } from "../vm/ops/MathOps.sol";
@@ -24,27 +24,28 @@ contract CalculatorTest is RainVM, ImmutableSource {
     function applyOp(
         bytes memory context_,
         State memory state_,
-        Op memory op_
+        uint opcode_,
+        uint opval_
     )
         internal
         override
         view
     {
         unchecked {
-            if (op_.code < mathOpsStart) {
-                op_.code -= blockOpsStart;
+            if (opcode_ < mathOpsStart) {
                 BlockOps.applyOp(
                     context_,
                     state_,
-                    op_
+                    opcode_ - blockOpsStart,
+                    opval_
                 );
             }
             else {
-                op_.code -= mathOpsStart;
                 MathOps.applyOp(
                     context_,
                     state_,
-                    op_
+                    opcode_ - mathOpsStart,
+                    opval_
                 );
             }
         }

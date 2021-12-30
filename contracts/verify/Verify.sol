@@ -2,20 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-
-/// Summary status derived from a `State` by comparing the `xSince` times
-/// against a specific block number.
-enum Status {
-    // Either no Status has ever been held or it was removed.
-    Nil,
-    // The account and associated ID has been added, pending verification.
-    Added,
-    // The associated ID has been reviewed and verified.
-    Approved,
-    // The associated ID has been reviewed and banned.
-    // (even if previously approved)
-    Banned
-}
+import "./libraries/VerifyConstants.sol";
 
 /// Records the block a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
@@ -282,10 +269,10 @@ contract Verify is AccessControl {
     /// Derives a single `Status` from a `State` and a reference block number.
     /// @param state_ The raw `State` to reduce into a `Status`.
     /// @param blockNumber_ The block number to compare `State` against.
-    function statusAtBlock(State memory state_, uint32 blockNumber_)
+    function statusAtBlock(State memory state_, uint blockNumber_)
         public
         pure
-        returns (Status)
+        returns (uint)
     {
         // The state hasn't even been added so is picking up block zero as the
         // evm fallback value. In this case if we checked other blocks using
@@ -293,32 +280,32 @@ contract Verify is AccessControl {
         // also having a `0` fallback value.
         // Using `< 1` here to silence slither.
         if (state_.addedSince < 1) {
-            return Status.Nil;
+            return VerifyConstants.STATUS_NIL;
         }
         // Banned takes priority over everything.
         else if (state_.bannedSince <= blockNumber_) {
-            return Status.Banned;
+            return VerifyConstants.STATUS_BANNED;
         }
         // Approved takes priority over added.
         else if (state_.approvedSince <= blockNumber_) {
-            return Status.Approved;
+            return VerifyConstants.STATUS_APPROVED;
         }
         // Added is lowest priority.
         else if (state_.addedSince <= blockNumber_) {
-            return Status.Added;
+            return VerifyConstants.STATUS_ADDED;
         }
         // The `addedSince` block is after `blockNumber_` so `Status` is nil
         // relative to `blockNumber_`.
         else {
-            return Status.Nil;
+            return VerifyConstants.STATUS_NIL;
         }
     }
 
     /// Requires that `msg.sender` is approved as at the current block.
     modifier onlyApproved {
         require(
-            statusAtBlock(states[msg.sender], uint32(block.number))
-                == Status.Approved,
+            statusAtBlock(states[msg.sender], block.number)
+                == VerifyConstants.STATUS_APPROVED,
             "ONLY_APPROVED"
         );
         _;

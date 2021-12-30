@@ -11,13 +11,13 @@ import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
 ///
 /// In this example users can mint 100 tokens for themselves if:
 ///
-/// - They held `Tier.FOUR` at the time the claim contract is constructed
-/// - They continue to hold `Tier.FOUR` until they claim
+/// - They held tier 4 at the time the claim contract is constructed
+/// - They continue to hold tier 4 until they claim
 ///
 /// The user can increase their tier at any point but must never drop below
-/// `Tier.FOUR` between the relevant blocks.
+/// tier 4 between the relevant blocks.
 ///
-/// If a user holds `Tier.FOUR` at construction but forgets to claim before
+/// If a user holds tier 4 at construction but forgets to claim before
 /// they downgrade they can NOT claim.
 ///
 /// This is just an example, the same basic principle can be applied to any

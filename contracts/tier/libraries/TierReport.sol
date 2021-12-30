@@ -28,6 +28,12 @@ library TierReport {
 
     uint public constant MAX_TIER = 8;
 
+    /// Enforce upper limit on tiers so we can do unchecked math.
+    modifier maxTier(uint tier_) {
+        require(tier_ <= MAX_TIER, "MAX_TIER");
+        _;
+    }
+
     /// Returns the highest tier achieved relative to a block number
     /// and report.
     ///
@@ -72,6 +78,7 @@ library TierReport {
     function tierBlock(uint report_, uint tier_)
         internal
         pure
+        maxTier(tier_)
         returns (uint)
     {
         unchecked {
@@ -96,6 +103,7 @@ library TierReport {
     function truncateTiersAbove(uint report_, uint tier_)
         internal
         pure
+        maxTier(tier_)
         returns (uint)
     {
         unchecked {
@@ -113,6 +121,7 @@ library TierReport {
     function updateBlockAtTier(uint report_, uint tier_, uint blockNumber_)
         internal
         pure
+        maxTier(tier_)
         returns (uint)
     {
         unchecked {
@@ -126,8 +135,8 @@ library TierReport {
     ///
     /// Does nothing if the end status is equal or less than the start tier.
     /// @param report_ The report to update.
-    /// @param startTier_ The `Tier` at the start of the range (exclusive).
-    /// @param endTier_ The `Tier` at the end of the range (inclusive).
+    /// @param startTier_ The tier at the start of the range (exclusive).
+    /// @param endTier_ The tier at the end of the range (inclusive).
     /// @param blockNumber_ The block number to set for every tier in the
     /// range.
     /// @return The updated report.
@@ -137,30 +146,15 @@ library TierReport {
         uint endTier_,
         uint blockNumber_
     )
-        internal pure returns (uint)
+        internal
+        pure
+        maxTier(startTier_)
+        maxTier(endTier_)
+        returns (uint)
     {
         unchecked {
-            // uint start_ = uint(startTier_);
-            // uint truncateOffset_ = uint(startTier_) * 32;
-            // uint mask_ = (NEVER >> truncateOffset_) << truncateOffset_;
-            // report_ &= ~mask_;
-
-            // for (uint i_ = start_; i_ < uint(endTier_); i_++) {
-            //     report_ |= blockNumber_ << (i_ * 32);
-            // }
-
-
-            // uint end_ = uint(endTier_);
-            // for (uint i_ = uint(startTier_); i_ < end_; i_++) {
-            //     report_ = updateBlockAtTier(report_, Tier(i_), blockNumber_);
-            // }
-
             uint offset_;
-            for (
-                uint i_ = startTier_;
-                i_ < endTier_;
-                i_++
-            ) {
+            for (uint i_ = startTier_; i_ < endTier_; i_++) {
                 offset_ = i_ * 32;
                 report_ =
                     (report_ & ~uint256(uint256(uint32(NEVER)) << offset_))

@@ -9,11 +9,6 @@ struct State {
     uint stackIndex;
 }
 
-struct Op {
-    uint code;
-    uint val;
-}
-
 abstract contract RainVM {
 
     uint constant internal OP_SKIP = 0;
@@ -136,7 +131,8 @@ abstract contract RainVM {
                     applyOp(
                         context_,
                         state_,
-                        Op(opcode_, opval_)
+                        opcode_,
+                        opval_
                     );
                 }
             }
@@ -149,7 +145,8 @@ abstract contract RainVM {
     function applyOp(
         bytes memory context_,
         State memory state_,
-        Op memory op_
+        uint opcode_,
+        uint opval_
     )
     internal
     virtual

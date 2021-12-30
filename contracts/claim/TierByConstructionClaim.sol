@@ -20,7 +20,7 @@ import { TierByConstruction } from "../tier/TierByConstruction.sol";
 ///
 /// The `claim` function checks `onlyTier` and `TierByConstruction` exposes
 /// `isTier` for `_afterClaim` hooks so that accounts can self-mint rewards
-/// such as erc20, erc1155, erc721, etc. if they meet the `Tier` requirements.
+/// such as erc20, erc1155, erc721, etc. if they meet the `ITier` requirements.
 ///
 /// The `claim` function can only be called once per account.
 ///

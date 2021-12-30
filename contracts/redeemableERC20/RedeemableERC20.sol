@@ -53,8 +53,8 @@ struct RedeemableERC20Config {
 /// events as a proof of participation in the original distribution by token
 /// holders.
 ///
-/// The token can optionally be restricted by the `Tier` contract to only allow
-/// receipients with a specified membership status.
+/// The token can optionally be restricted by the `ITier` contract to only
+/// allow receipients with a specified membership status.
 ///
 /// @dev `RedeemableERC20` is an ERC20 with 2 phases.
 ///

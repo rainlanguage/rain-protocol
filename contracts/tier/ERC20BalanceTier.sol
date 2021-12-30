@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -16,8 +15,8 @@ struct ERC20BalanceTierConfig {
     /// of at `report` time.
     IERC20 erc20;
     /// 8 values corresponding to minimum erc20
-    /// balances for `Tier.ONE` through `Tier.EIGHT`.
-    uint256[8] tierValues;
+    /// balances for tier 1 through tier 8.
+    uint[8] tierValues;
 }
 
 /// @title ERC20BalanceTier
@@ -34,8 +33,8 @@ struct ERC20BalanceTierConfig {
 /// @dev The `ERC20BalanceTier` simply checks the current balance of an erc20
 /// against tier values. As the current balance is always read from the erc20
 /// contract directly there is no historical block data.
-/// All tiers held at the current value will be 0x00000000 and tiers not held
-/// will be 0xFFFFFFFF.
+/// All tiers held at the current value will be `0x00000000` and tiers not held
+/// will be `0xFFFFFFFF`.
 /// `setTier` will error as this contract has no ability to write to the erc20
 /// contract state.
 ///
@@ -58,9 +57,9 @@ contract ERC20BalanceTier is ReadOnlyTier, ValueTier {
 
     /// Report simply truncates all tiers above the highest value held.
     /// @inheritdoc ITier
-    function report(address account_) public view override returns (uint256) {
+    function report(address account_) public view override returns (uint) {
         return TierReport.truncateTiersAbove(
-            0,
+            TierReport.ALWAYS,
             valueToTier(erc20.balanceOf(account_))
         );
     }

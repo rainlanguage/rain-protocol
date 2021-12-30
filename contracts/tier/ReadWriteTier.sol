@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import { ITier } from "./ITier.sol";
@@ -21,7 +20,7 @@ import { TierReport } from "./libraries/TierReport.sol";
 /// addresses move down the tiers.
 contract ReadWriteTier is ITier {
     /// account => reports
-    mapping(address => uint256) public reports;
+    mapping(address => uint) public reports;
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITier
@@ -30,12 +29,10 @@ contract ReadWriteTier is ITier {
         virtual
         override
         view
-        returns (uint256)
+        returns (uint)
     {
         // Inequality here to silence slither warnings.
-        return reports[account_] > 0
-            ? reports[account_]
-            : TierReport.NEVER;
+        return reports[account_] > 0 ? reports[account_] : TierReport.NEVER;
     }
 
     /// Errors if the user attempts to return to the ZERO tier.
@@ -51,12 +48,12 @@ contract ReadWriteTier is ITier {
     )
         external virtual override
     {
-        // The user must move to at least `Tier.ONE`.
-        // The `Tier.ZERO` status is reserved for users that have never
+        // The user must move to at least tier 1.
+        // The tier 0 status is reserved for users that have never
         // interacted with the contract.
         require(endTier_ > 0, "SET_ZERO_TIER");
 
-        uint256 report_ = report(account_);
+        uint report_ = report(account_);
 
         uint startTier_ = TierReport.tierAtBlockFromReport(
             report_,

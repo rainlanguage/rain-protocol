@@ -15,9 +15,9 @@ import { ITier } from "../tier/ITier.sol";
 /// - The balance tier compares the current holdings of an erc20 against preset
 ///   values.
 /// - The tier by construction ensures the claim is restricted to anyone
-///   `Tier.THREE` and above.
+///   tier 3 and above.
 /// - The tier by construction also exposes `isTier` to provide further goodies
-///   to `Tier.FIVE` and above.
+///   to tier 5 and above.
 /// - The erc1155 enables and tracks minted NFTs.
 contract ClaimERC1155Test is
     ERC20BalanceTier,
@@ -40,7 +40,7 @@ contract ClaimERC1155Test is
         uint,
         bytes memory
     ) internal override {
-        // Anyone above `Tier.FIVE` gets more art and some good art.
+        // Anyone above tier 5 gets more art and some good art.
         bool isFive_ = isTier(account_, 5);
 
         uint256[] memory ids_ = new uint[](2);

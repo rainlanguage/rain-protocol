@@ -19,63 +19,63 @@ contract TierByConstructionTest is TierByConstruction {
         view
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.ZERO` to call.
+    /// Requires tier 0 to call.
     function ifZero()
         external
         view
         onlyTier(msg.sender, 0)
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.ONE` to call.
+    /// Requires tier 1 to call.
     function ifOne()
         external
         view
         onlyTier(msg.sender, 1)
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.TWO` to call.
+    /// Requires tier 2 to call.
     function ifTwo()
         external
         view
         onlyTier(msg.sender, 2)
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.THREE` to call.
+    /// Requires tier 3 to call.
     function ifThree()
         external
         view
         onlyTier(msg.sender, 3)
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.FOUR` to call.
+    /// Requires tier 4 to call.
     function ifFour()
         external
         view
         onlyTier(msg.sender, 4)
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.FIVE` to call.
+    /// Requires tier 5 to call.
     function ifFive()
         external
         view
         onlyTier(msg.sender, 5)
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.SIX` to call.
+    /// Requires tier 6 to call.
     function ifSix()
         external
         view
         onlyTier(msg.sender, 6)
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.SEVEN` to call.
+    /// Requires tier 7 to call.
     function ifSeven()
         external
         view
         onlyTier(msg.sender, 7)
     { } // solhint-disable-line no-empty-blocks
 
-    /// Requires `Tier.EIGHT` to call.
+    /// Requires tier 8 to call.
     function ifEight()
         external
         view

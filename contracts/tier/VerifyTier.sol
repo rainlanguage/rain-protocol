@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import "./ReadOnlyTier.sol";
-import { State, Status, Verify } from "../verify/Verify.sol";
+import "../verify/libraries/VerifyConstants.sol";
+import { State, Verify } from "../verify/Verify.sol";
 import "./libraries/TierReport.sol";
 
 /// @title VerifyTier
@@ -17,24 +17,21 @@ contract VerifyTier is ReadOnlyTier {
 
     /// Sets the `verify` contract immutably.
     /// @param verify_ The contract to check to produce reports.
-    constructor(Verify verify_) {
-        verify = verify_;
-    }
+    constructor(Verify verify_) { verify = verify_; }
 
     /// Every tier will be the `State.since` block if `account_` is approved
     /// otherwise every tier will be uninitialized.
     /// @inheritdoc ITier
-    function report(address account_) public override view returns (uint256) {
+    function report(address account_) public override view returns (uint) {
         State memory state_ = verify.state(account_);
         if (
             // This is comparing an enum variant so it must be equal.
             // slither-disable-next-line incorrect-equality
-            verify.statusAtBlock(
-                state_,
-                uint32(block.number)
-            ) == Status.Approved) {
+            verify.statusAtBlock(state_, block.number)
+                == VerifyConstants.STATUS_APPROVED
+        ) {
             return TierReport.updateBlocksForTierRange(
-                0,
+                TierReport.NEVER,
                 0,
                 8,
                 state_.approvedSince
