@@ -116,29 +116,31 @@ contract RedeemableERC20 is
     /// This contract is designed assuming the admin is a `Trust` or equivalent
     /// contract that itself does NOT have an admin key.
     address public immutable admin;
+    /// Tracks addresses that can always send/receive regardless of phase.
+    /// sender/receiver => access bits
     mapping (address => uint) private access;
 
     /// Treasury Asset notification.
-    /// @param emitter The `msg.sender` notifying about this asset.
+    /// @param sender The `msg.sender` notifying about this asset.
     /// @param asset The asset added to the treasury for this contract.
-    event TreasuryAsset(address emitter, address asset);
+    event TreasuryAsset(address sender, address asset);
 
     /// Redeemable token burn for reserve.
-    /// @param redeemer Account burning and receiving.
+    /// @param sender `msg.sender` burning and receiving.
     /// @param treasuryAsset The treasury asset being sent to the burner.
     /// @param redeemAmounts The amounts of the redeemable and treasury asset
     /// as `[redeemAmount, assetAmount]`.
     event Redeem(
-        address redeemer,
+        address sender,
         address treasuryAsset,
-        uint256[2] redeemAmounts
+        uint[2] redeemAmounts
     );
 
     /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
     /// The minimum supply enforced by the constructor is "one" token which is
     /// `10 ** 18`.
     /// The minimum supply does not prevent subsequent redemption/burning.
-    uint256 public constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
+    uint public constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
 
     /// The minimum status that a user must hold to receive transfers during
     /// `Phase.ZERO`.
@@ -190,24 +192,36 @@ contract RedeemableERC20 is
         ITier(config_.tier).report(msg.sender);
     }
 
+    /// Require a function is only admin callable.
     modifier onlyAdmin() {
         require(msg.sender == admin, "ONLY_ADMIN");
         _;
     }
 
+    /// Check that an address is a receiver.
+    /// A sender is also a receiver.
+    /// @param maybeReceiver_ account to check.
+    /// @return True if account is a receiver.
     function isReceiver(address maybeReceiver_) public view returns(bool) {
         return access[maybeReceiver_] > 0;
     }
 
+    /// Admin can grant an address receiver rights.
+    /// @param newReceiver_ The account to grand receiver.
     function grantReceiver(address newReceiver_) external onlyAdmin {
         // Using `|` preserves sender if previously granted.
         access[newReceiver_] = access[newReceiver_] | RECEIVER;
     }
 
+    /// Check that an address is a sender.
+    /// @param maybeSender_ account to check.
+    /// @return True if account is a sender.
     function isSender(address maybeSender_) public view returns(bool) {
         return access[maybeSender_] > 1;
     }
 
+    /// Admin can grant an addres sender rights.
+    /// @param newSender_ The account to grant sender.
     function grantSender(address newSender_) external onlyAdmin {
         // Sender is also a receiver.
         access[newSender_] = SENDER;
@@ -234,10 +248,11 @@ contract RedeemableERC20 is
         }
     }
 
-    /// Anyone can emit a `TreasuryAsset` event to notify token holders that
+    /// Anon can emit a `TreasuryAsset` event to notify token holders that
     /// an asset could be redeemed by burning `RedeemableERC20` tokens.
     /// As this is callable by anon the events should be filtered by the
     /// indexer to those from trusted entities only.
+    /// @param newTreasuryAsset_ The asset to log.
     function newTreasuryAsset(address newTreasuryAsset_) external {
         emit TreasuryAsset(msg.sender, newTreasuryAsset_);
     }
@@ -258,9 +273,12 @@ contract RedeemableERC20 is
     ///
     /// I.e. whatever % of redeemable tokens the sender burns is the % of the
     /// current treasury assets they receive.
+    ///
+    /// Delegated redemption is NOT supported as users must only burn their own
+    /// tokens.
     function redeem(
         IERC20[] calldata treasuryAssets_,
-        uint256 redeemAmount_
+        uint redeemAmount_
     )
         external
         onlyPhase(Phase.ONE)
@@ -273,7 +291,7 @@ contract RedeemableERC20 is
         // The fraction of the assets we release is the fraction of the
         // outstanding total supply of the redeemable burned.
         // Every treasury asset is released in the same proportion.
-        uint256 supplyBeforeBurn_ = totalSupply();
+        uint supplyBeforeBurn_ = totalSupply();
 
         // Redeem __burns__ tokens which reduces the total supply and requires
         // no approval.
@@ -286,6 +304,9 @@ contract RedeemableERC20 is
             uint assetAmount_
                 = ( ithRedeemable_.balanceOf(address(this)) * redeemAmount_ )
                 / supplyBeforeBurn_;
+            /// Guard against zero value redemptions.
+            /// Redeemers should simply elide any assets they have 0 claim over
+            /// in the `treasuryAssets_` list.
             require(assetAmount_ > 0, "ZERO_TRANSFER");
             emit Redeem(
                 msg.sender,

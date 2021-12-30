@@ -13,8 +13,7 @@ contract VerifyFactory is Factory {
         bytes calldata data_
     ) internal virtual override returns(address) {
         (address admin_) = abi.decode(data_, (address));
-        Verify verify_ = new Verify(admin_);
-        return address(verify_);
+        return address(new Verify(admin_));
     }
 
     /// Typed wrapper for `createChild` with admin address.

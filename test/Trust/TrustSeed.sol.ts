@@ -828,6 +828,13 @@ describe("TrustSeed", async function () {
       `
       );
 
+      // fails if they don't have seed units
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "ERC20: burn amount exceeds balance",
+        "seeder1 redeemed when they had no seed units to redeem"
+      );
+
       await seederContract2.redeem(seeder2Units);
 
       // correct amount of units should have been redeemed
@@ -852,12 +859,6 @@ describe("TrustSeed", async function () {
       `
       );
 
-      // fails if they don't have seed units
-      await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
-        "ERC20: burn amount exceeds balance",
-        "seeder1 redeemed when they had no seed units to redeem"
-      );
     });
 
     it("failed raise", async function () {
@@ -1083,6 +1084,13 @@ describe("TrustSeed", async function () {
       `
       );
 
+      // fails if they don't have seed units
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "ERC20: burn amount exceeds balance",
+        "seeder1 redeemed when they had no seed units to redeem"
+      );
+
       await seederContract2.redeem(seeder2Units);
 
       // correct amount of units should have been redeemed
@@ -1102,13 +1110,6 @@ describe("TrustSeed", async function () {
       expected  ${expectedReturn2}
       actual    ${await reserve.balanceOf(seeder2.address)}
       `
-      );
-
-      // fails if they don't have seed units
-      await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
-        "ERC20: burn amount exceeds balance",
-        "seeder1 redeemed when they had no seed units to redeem"
       );
     });
   });

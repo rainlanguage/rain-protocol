@@ -14,8 +14,7 @@ contract VerifyTierFactory is Factory {
         bytes calldata data_
     ) internal virtual override returns(address) {
         (Verify verify_) = abi.decode(data_, (Verify));
-        VerifyTier verifyTier_ = new VerifyTier(verify_);
-        return address(verifyTier_);
+        return address(new VerifyTier(verify_));
     }
 
     /// Typed wrapper for `createChild` with `Verify`.

@@ -17,8 +17,7 @@ contract EmissionsERC20Factory is Factory {
             data_,
             (EmissionsERC20Config)
         );
-        EmissionsERC20 emissionsERC20_ = new EmissionsERC20(config_);
-        return address(emissionsERC20_);
+        return address(new EmissionsERC20(config_));
     }
 
     /// Allows calling `createChild` with `EmissionsERC20Config` struct.

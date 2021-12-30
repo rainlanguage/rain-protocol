@@ -46,13 +46,13 @@ struct SeedERC20Config {
 ///
 /// The `SeedERC20` has two phases:
 ///
-/// - `Phase.ZERO`: Can swap seed tokens for reserve assets with
-/// `seed` and `unseed`
+/// - `Phase.ZERO`: Can swap seed tokens for reserve assets with `seed` and
+///   `unseed`
 /// - `Phase.ONE`: Can redeem seed tokens pro-rata for reserve assets
 ///
-/// When the last seed token is distributed the `SeedERC20`
-/// immediately moves to `Phase.ONE` atomically within that
-/// transaction and forwards all reserve to the configured recipient.
+/// When the last seed token is distributed the `SeedERC20` immediately moves
+/// to `Phase.ONE` atomically within that transaction and forwards all reserve
+/// to the configured recipient.
 ///
 /// For our use-case the recipient is a `Trust` contract but `SeedERC20`
 /// could be used as a mini-fundraise contract for many purposes. In the case
@@ -63,7 +63,7 @@ struct SeedERC20Config {
 /// contract.
 /// The funds to raise and the recipient is fixed at construction.
 /// The total is calculated as `( seedPrice * seedUnits )` and so is a fixed
-/// amount. It is recommended to keep seedUnits relatively small so that each
+/// amount. It is recommended to keep `seedUnits` relatively small so that each
 /// unit represents a meaningful contribution to keep dust out of the system.
 ///
 /// The contract lifecycle is split into two phases:
@@ -96,28 +96,30 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     using SafeERC20 for IERC20;
 
     /// Seed token burn for reserve.
-    /// @param redeemer Account burning and receiving.
-    /// @param redeemAmounts Number of seed tokens burned.
     /// Number of reserve redeemed for burned seed tokens.
     /// `[seedAmount, reserveAmount]`
     event Redeem(
+        /// Account burning and receiving.
         address redeemer,
+        /// Number of seed tokens burned.
         uint[2] redeemAmounts
     );
 
-    /// @param seeder Account seeding.
-    /// @param seedAmounts Number of tokens seeded.
-    /// Number of reserve sent for seed tokens.
+    /// Reserve was paid in exchange for seed tokens.
     event Seed(
+        /// Account seeding.
         address seeder,
+        /// Seed amounts.
+        /// `[ Amount of tokens seeded, Amount of reserve sent ]`
         uint[2] seedAmounts
     );
 
-    /// @param unseeder Account unseeding.
-    /// @param unseedAmounts Number of tokens unseeded.
-    /// Number of reserve tokens returned for unseeded tokens.
+    /// Reserve was refunded for seed tokens.
     event Unseed(
+        /// Account unseeding.
         address unseeder,
+        /// Unseed amounts.
+        /// `[ Amount of tokens unseeded, Amount of reserve tokens returned ]`
         uint[2] unseedAmounts
     );
 
@@ -151,9 +153,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     }
 
     /// @inheritdoc ERC20
-    function decimals() public pure override returns(uint8) {
-        return 0;
-    }
+    function decimals() public pure override returns(uint8) { return 0; }
 
     /// Take reserve from seeder as `units * seedPrice`.
     ///
@@ -188,8 +188,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
         uint units_ = desiredUnits_.min(remainingStock_);
         uint reserveAmount_ = seedPrice * units_;
 
-        // If `remainingStock_` is less than units then the transfer below will
-        // fail and rollback.
+        // Sold out. Move to the next phase.
         if (remainingStock_ == units_) {
             scheduleNextPhase(block.number);
         }
@@ -243,7 +242,6 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
             [units_, reserveAmount_]
         );
 
-        // Reentrant reserve transfer.
         reserve.safeTransfer(msg.sender, reserveAmount_);
     }
 
@@ -267,20 +265,16 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// @param units_ Amount of seed units to burn and redeem for reserve
     /// assets.
     function redeem(uint units_) external onlyPhase(Phase.ONE) {
-        uint supplyBeforeBurn_ = totalSupply();
-        _burn(msg.sender, units_);
-
         uint currentReserveBalance_ = reserve.balanceOf(address(this));
         // Guard against someone accidentally calling redeem before any reserve
         // has been returned.
         require(currentReserveBalance_ > 0, "RESERVE_BALANCE");
         uint reserveAmount_
             = ( units_ * currentReserveBalance_ )
-            / supplyBeforeBurn_;
-        emit Redeem(
-            msg.sender,
-            [units_, reserveAmount_]
-        );
+            / totalSupply();
+
+        _burn(msg.sender, units_);
+        emit Redeem(msg.sender, [units_, reserveAmount_]);
         reserve.safeTransfer(
             msg.sender,
             reserveAmount_

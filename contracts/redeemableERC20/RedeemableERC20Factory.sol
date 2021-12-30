@@ -17,8 +17,7 @@ contract RedeemableERC20Factory is Factory {
             data_,
             (RedeemableERC20Config)
         );
-        RedeemableERC20 redeemableERC20_ = new RedeemableERC20(config_);
-        return address(redeemableERC20_);
+        return address(new RedeemableERC20(config_));
     }
 
     /// Allows calling `createChild` with `RedeemableERC20Config` struct.

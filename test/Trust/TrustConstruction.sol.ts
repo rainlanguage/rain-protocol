@@ -561,7 +561,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "RESERVE_INIT_MINIMUM",
+      "Division or modulo division by zero",
       "setting reserveInit to zero did not error"
     );
   });

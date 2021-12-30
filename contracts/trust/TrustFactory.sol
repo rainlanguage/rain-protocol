@@ -156,7 +156,7 @@ contract TrustFactory is Factory {
             "MAX_RAISE_DURATION"
         );
 
-        address trust_ = address(new Trust(
+        return address(new Trust(
             TrustConfig(
                 bPoolFeeEscrow,
                 crpFactory,
@@ -187,7 +187,5 @@ contract TrustFactory is Factory {
                 trustFactoryTrustSeedERC20Config_.seedERC20Config
             )
         ));
-
-        return trust_;
     }
 }

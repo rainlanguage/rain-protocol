@@ -15,8 +15,7 @@ contract CombineTierFactory is Factory {
     ) internal virtual override returns(address) {
         (ImmutableSourceConfig memory config_)
             = abi.decode(data_, (ImmutableSourceConfig));
-        CombineTier combineTier_ = new CombineTier(config_);
-        return address(combineTier_);
+        return address(new CombineTier(config_));
     }
 
     /// Typed wrapper for `createChild` with Source.
