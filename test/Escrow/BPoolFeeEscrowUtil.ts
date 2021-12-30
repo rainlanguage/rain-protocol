@@ -211,7 +211,7 @@ export const successfulRaise = async (
     // Fee event
     await expect(buyTokenPromise)
       .to.emit(bPoolFeeEscrow, "Fee")
-      .withArgs(recipient.address, getAddress(trust.address), fee);
+      .withArgs(signer.address, recipient.address, getAddress(trust.address), fee);
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
@@ -303,7 +303,7 @@ export const failedRaise = async (
     // Fee event
     await expect(buyTokenPromise)
       .to.emit(bPoolFeeEscrow, "Fee")
-      .withArgs(recipient.address, getAddress(trust.address), fee);
+      .withArgs(signer1.address, recipient.address, getAddress(trust.address), fee);
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);

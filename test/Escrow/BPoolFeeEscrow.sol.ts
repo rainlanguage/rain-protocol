@@ -207,7 +207,7 @@ describe("BPoolFeeEscrow", async function () {
     // RefundFees event
     await expect(refundFeesPromise)
       .to.emit(bPoolFeeEscrow, "RefundFees")
-      .withArgs(getAddress(trust.address), totalRefund);
+      .withArgs(signer1.address, getAddress(trust.address), totalRefund);
 
     const reserveRedeemableERC20_2 = await reserve.balanceOf(
       redeemableERC20.address
@@ -299,7 +299,7 @@ describe("BPoolFeeEscrow", async function () {
     // ClaimFees event
     await expect(claimFeesPromise)
       .to.emit(bPoolFeeEscrow, "ClaimFees")
-      .withArgs(recipient.address, getAddress(trust.address), claimableFee);
+      .withArgs(recipient.address, recipient.address, getAddress(trust.address), claimableFee);
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
 

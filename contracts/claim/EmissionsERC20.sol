@@ -224,7 +224,7 @@ contract EmissionsERC20 is
             0,
             Tier.ZERO,
             Tier.EIGHT,
-            uint32(block.number)
+            block.number
         );
 
         // Notify the world of the claim.

@@ -27,8 +27,8 @@ struct ERC20PullConfig {
 /// where EOA accounts inadvertantly "infinite approve" and lose their tokens.
 ///
 /// The token is singular and bound at construction to avoid the situation
-/// where anons can force the implementing contract to call `safeTransferFrom`
-/// on an arbitrary untrusted/malicious contract.
+/// where anons can force the implementing contract to call an arbitrary
+/// external contract.
 contract ERC20Pull {
 
     using SafeERC20 for IERC20;
@@ -39,7 +39,7 @@ contract ERC20Pull {
     /// `sender`.
     address public immutable token;
 
-    /// Constructor only sets the sender.
+    /// Constructor only copies config to immutables.
     constructor(ERC20PullConfig memory config_) {
         sender = config_.sender;
         token = config_.token;

@@ -43,7 +43,6 @@ abstract contract TrustEscrow is FactoryTruster {
     /// claims/refunds could potentially be "double spent" somehow.
     function getEscrowStatus(Trust trust_)
         public
-        // Only want to be calling external functions on `Trust` that we trust.
         onlyTrustedFactoryChild(address(trust_))
         returns(EscrowStatus)
     {
@@ -55,8 +54,6 @@ abstract contract TrustEscrow is FactoryTruster {
         // We have never seen a success/fail outcome so need to ask the `Trust`
         // for the distribution status.
         else {
-            // This is technically reentrant, but we trust the `Trust` right?
-            // For the paranoid, wrap `getEscrowStatus` in a reentrancy guard.
             DistributionStatus distributionStatus_
                 = trust_.getDistributionStatus();
             // Success maps to success.

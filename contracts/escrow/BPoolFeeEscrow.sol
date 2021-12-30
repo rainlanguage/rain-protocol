@@ -2,8 +2,6 @@
 pragma solidity ^0.8.10;
 
 // solhint-disable-next-line max-line-length
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-// solhint-disable-next-line max-line-length
 import { RedeemableERC20, Trust } from "../trust/Trust.sol";
 import { IBPool } from "../pool/IBPool.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -64,33 +62,48 @@ struct ClaimedFees {
 /// We cannot prevent FEs implementing their own smart contracts to take fees
 /// outside the scope of the escrow, but we aren't encouraging or implementing
 /// it for them either.
-contract BPoolFeeEscrow is TrustEscrow, ReentrancyGuard {
+contract BPoolFeeEscrow is TrustEscrow {
     using SafeERC20 for IERC20;
 
     /// A claim has been processed for a recipient.
     /// ONLY emitted if non-zero fees were claimed.
     event ClaimFees(
+        /// Anon who processed the claim.
+        address sender,
+        /// Recipient of the fees.
         address recipient,
+        /// Trust the fees were collected for.
         address trust,
+        /// Amount of fees claimed.
         uint claimedFees
     );
     /// A refund has been processed for a `Trust`.
     /// ONLY emitted if non-zero fees were refunded.
     event RefundFees(
+        /// Anon who processed the refund.
+        address sender,
+        /// `Trust` the fees were refunded to.
+        /// Fees go to the redeemable token, not the `Trust` itself.
         address trust,
+        /// Amount of fees refunded.
         uint refundedFees
     );
     /// A fee has been set aside for a recipient.
     event Fee(
+        /// Anon who sent fees.
+        address sender,
+        /// Recipient of the fee.
         address recipient,
+        /// `Trust` the fee was set aside for.
         address trust,
+        /// Amount of fee denominated in the reserve asset of the `trust`.
         uint fee
     );
 
     /// Fees set aside under a trust for a specific recipient.
     /// Denominated in the reserve asset of the trust.
     /// There can be many recipients for a single trust.
-    /// Fees are forwarded to each recipient when they claim. The recicpient
+    /// Fees are forwarded to each recipient when they claim. The recipient
     /// receives all the fees collected under a trust in a single claim.
     /// Fee claims are mutually exclusive with refund claims.
     /// trust => recipient => amount
@@ -121,81 +134,81 @@ contract BPoolFeeEscrow is TrustEscrow, ReentrancyGuard {
     /// of claimable fees for the recipient without sending tokens.
     /// Processing a claim for a successful distribution transfers the accrued
     /// fees to the recipient (and deletes the record for gas refund).
+    /// Partial claims are NOT supported, to avoid anon griefing claims by e.g.
+    /// claiming 95% of a recipient's value, leaving dust behind that isn't
+    /// worth the gas to claim, but meaningfully haircut's the recipients fees.
+    /// A 0 value claim is a noop rather than error, to make it possible to
+    /// write a batch claim wrapper that cannot be griefed. E.g. anon claims N
+    /// trusts and then another anon claims 1 of these trusts with higher gas,
+    /// causing the batch transaction to revert.
     /// @param recipient_ The recipient of the fees.
     /// @param trust_ The trust to process claims for. MUST be a child of the
     /// trusted `TrustFactory`.
     /// @return The fees claimed.
     function claimFees(address recipient_, Trust trust_)
         public
-        /// Even with a known `Trust` contract we do NOT know the reserve token
-        /// so best to guard against reentrancy from the transfer and approval.
-        nonReentrant
         returns (uint)
     {
         EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
         require(escrowStatus_ == EscrowStatus.Success, "NOT_SUCCESS");
 
-        uint fee_ = fees[address(trust_)][recipient_];
+        uint amount_ = fees[address(trust_)][recipient_];
         // Guard against outputs exceeding inputs.
         // Last `receipient_` gets gas refund.
-        totalFees[(address(trust_))] -= fee_;
+        totalFees[(address(trust_))] -= amount_;
 
-        if (fee_ > 0) {
+        // Zero `amount_` is noop not error.
+        // Allows batch wrappers to be written that cannot be front run
+        // and reverted.
+        if (amount_ > 0) {
             // Gas refund.
             delete fees[address(trust_)][recipient_];
 
-            emit ClaimFees(recipient_, address(trust_), fee_);
+            emit ClaimFees(msg.sender, recipient_, address(trust_), amount_);
             trust_.reserve().safeTransfer(
                 recipient_,
-                fee_
+                amount_
             );
         }
-        return fee_;
+        return amount_;
     }
 
     /// Anon can pay the gas to refund fees for a `Trust`.
-    ///
     /// Refunding forwards the fees as `Trust` reserve to its redeemable token.
     /// Refunding does NOT directly return fees to the sender nor directly to
     /// the `Trust`.
-    ///
     /// The refund will forward all fees collected if and only if the raise
     /// failed, according to the `Trust`.
-    ///
     /// This can be called many times but a failed raise will only have fees to
     /// refund once. Subsequent calls will be a noop if there is `0` refundable
     /// value remaining.
-    ///
-    /// It is critical that a `Trust` never oscillates between Fail/Success.
-    /// If this invariant is violated the escrow funds can be drained by first
-    /// claiming a fail, then ALSO claiming fees for a success.
     ///
     /// @param trust_ The `Trust` to refund for. This MUST be a child of the
     /// trusted `TrustFactory`.
     /// @return The total refund.
     function refundFees(Trust trust_)
         external
-        /// Even with a known `Trust` contract we do NOT know the reserve token
-        /// so best to guard against reentrancy from the transfer and approval.
-        nonReentrant
         returns (uint)
     {
         EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
         require(escrowStatus_ == EscrowStatus.Fail, "NOT_FAIL");
 
-        uint refund_ = totalFees[address(trust_)];
+        uint amount_ = totalFees[address(trust_)];
 
-        if (refund_ > 0) {
+        // Zero `amount_` is noop not error.
+        // Allows batch wrappers to be written that cannot be front run
+        // and reverted.
+        if (amount_ > 0) {
             // Gas refund.
             delete totalFees[address(trust_)];
 
-            emit RefundFees(address(trust_), refund_);
+            emit RefundFees(msg.sender, address(trust_), amount_);
             trust_.reserve().safeTransfer(
                 address(trust_.token()),
-                refund_
+                amount_
             );
         }
-        return refund_;
+        return amount_;
     }
 
     /// Unidirectional wrapper around `swapExactAmountIn` for 'buying tokens'.
@@ -224,12 +237,9 @@ contract BPoolFeeEscrow is TrustEscrow, ReentrancyGuard {
     /// - Poking the weights on the underlying pool to ensure the best price
     /// - Performing the trade and forwading the token back to the caller
     ///
-    /// Sadly this is gas intensive, it works out to a bit under double what it
-    /// would cost to directly poke weights and do a swap as two actions. Doing
-    /// the weights poke atomically with the trade has some nebulous benefit as
-    /// it reduces the chance that someone else 'uses' the benefit of the poke
-    /// but overall it has to be said the gas situation is something to be
-    /// mindful of. It certainly makes little sense to be doing this on L1.
+    /// Despite the additional "hop" with the escrow sitting between the user
+    /// and the pool this function is similar or even cheaper gas than the
+    /// user poking, trading and setting aside a fee as separate actions.
     ///
     /// @param feeRecipient_ The recipient of the fee as `Trust` reserve.
     /// @param trust_ The `Trust` to buy tokens from. This `Trust` MUST be
@@ -247,9 +257,6 @@ contract BPoolFeeEscrow is TrustEscrow, ReentrancyGuard {
         uint maxPrice_
     )
         external
-        /// Even with a known `Trust` contract we do NOT know the reserve token
-        /// so best to guard against reentrancy from the transfer and approval.
-        nonReentrant
         returns (uint tokenAmountOut, uint spotPriceAfter)
     {
         // Zero fee makes no sense, simply call `swapExactAmountIn` directly
@@ -259,7 +266,7 @@ contract BPoolFeeEscrow is TrustEscrow, ReentrancyGuard {
         fees[address(trust_)][feeRecipient_] += fee_;
         totalFees[address(trust_)] += fee_;
 
-        emit Fee(feeRecipient_, address(trust_), fee_);
+        emit Fee(msg.sender, feeRecipient_, address(trust_), fee_);
 
         // Everything except reserve is built by a trusted `Trust`
         // (getEscrowStatus enforces this) but it shouldn't matter to the

@@ -10,7 +10,7 @@ import { TierByConstruction } from "../tier/TierByConstruction.sol";
 ///
 /// @notice DEPRECATED:
 /// This contract was written before rainVM. In the future everything this
-/// contract does should be handled better and more generally by
+/// contract does should be handled better and more generally in the future by
 /// `EmissionsERC20` style contracts with appropriate opcodes.
 ///
 /// @notice `TierByConstructionClaim` is a base contract for other contracts to
