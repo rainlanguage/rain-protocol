@@ -11,6 +11,9 @@ library TierwiseCombine {
     using SaturatingMath for uint256;
 
     uint constant private MAX_STEP = 256;
+
+    uint constant internal LOGIC_EVERY = 0;
+
     uint constant internal MODE_MIN = 0;
     uint constant internal MODE_MAX = 1;
     uint constant internal MODE_FIRST = 2;
@@ -47,11 +50,12 @@ library TierwiseCombine {
         }
     }
 
-    function everyLte(
+    function selectLte(
         uint[] memory reports_,
         uint blockNumber_,
+        uint logic_,
         uint mode_
-    ) internal pure returns (uint256) {
+    ) internal pure returns (uint) {
         unchecked {
             uint ret_;
             uint accumulator_;
@@ -98,37 +102,62 @@ library TierwiseCombine {
             }
             return ret_;
         }
+
     }
 
-    // /// IF __every__ block number is lte `blockNumber_`
-    // /// preserve the __minimum__ block number
-    // /// on a per-tier basis.
-    // function everyLteMin(
-    //     uint[] memory reports_,
-    //     uint blockNumber_
-    // ) internal pure returns (uint) {
-    //     return everyLte(reports_, blockNumber_, MODE_MIN);
-    // }
+    function everyLte(
+        uint[] memory reports_,
+        uint blockNumber_,
+        uint mode_
+    ) internal pure returns (uint256) {
+        return selectLte(reports_, blockNumber_, LOGIC_EVERY, mode_);
+        // unchecked {
+        //     uint ret_;
+        //     uint accumulator_;
+        //     uint block_;
+        //     uint length_ = reports_.length;
+        //     for (uint tier_ = 1; tier_ <= 8; tier_++) {
+        //         for (uint i_ = 0; i_ < length_; i_++) {
+        //             block_ = TierReport.tierBlock(reports_[i_], tier_);
 
-    // // IF __every__ block number is lte `blockNumber_`
-    // // preserve the __maximum__ block number
-    // // on a per-tier basis.
-    // function everyLteMax(
-    //     uint[] memory reports_,
-    //     uint blockNumber_
-    // ) internal pure returns (uint) {
-    //     return everyLte(reports_, blockNumber_, MODE_MAX);
-    // }
+        //             // Initialize the accumulator.
+        //             if (i_ == 0) {
+        //                 if (mode_ == MODE_MIN) {
+        //                     accumulator_ = TierReport.NEVER;
+        //                 }
+        //                 else if (mode_ == MODE_MAX) {
+        //                     accumulator_ = 0;
+        //                 }
+        //                 else if (mode_ == MODE_FIRST) {
+        //                     accumulator_ = block_;
+        //                 }
+        //             }
 
-    // IF __every__ block number is lte `blockNumber_`
-    // preserve the __first__ block number in `reports_` order
-    // on a per-tier basis.
-    // function everyLteFirst(
-    //     uint[] memory reports_,
-    //     uint blockNumber_
-    // ) internal pure returns (uint) {
-    //     return everyLte(reports_, blockNumber_, MODE_FIRST);
-    // }
+        //             // Test the lte constraint.
+        //             if (block_ > blockNumber_) {
+        //                 accumulator_ = TierReport.NEVER;
+        //                 // Can short circuit for an "every" check.
+        //                 break;
+        //             }
+
+        //             // Min and max need to compare current value against the
+        //             // accumulator.
+        //             if (mode_ == MODE_MIN) {
+        //                 accumulator_ = block_.min(accumulator_);
+        //             }
+        //             else if (mode_ == MODE_MAX) {
+        //                 accumulator_ = block_.max(accumulator_);
+        //             }
+        //         }
+        //         ret_ = TierReport.updateBlockAtTier(
+        //             ret_,
+        //             tier_ - 1,
+        //             accumulator_
+        //         );
+        //     }
+        //     return ret_;
+        // }
+    }
 
     function anyLte(uint[] memory reports_, uint blockNumber_, uint mode_)
         internal
