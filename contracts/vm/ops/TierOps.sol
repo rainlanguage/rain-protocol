@@ -86,44 +86,50 @@ library TierOps {
 
                 if (op_.code == EVERY_LTE_MIN) {
                     state_.stack[baseIndex_]
-                         = TierwiseCombine.everyLteMin(
+                         = TierwiseCombine.everyLte(
                             args_,
-                            blockNumber_
+                            blockNumber_,
+                            TierwiseCombine.MODE_MIN
                         );
                 }
                 else if (op_.code == EVERY_LTE_MAX) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.everyLteMax(
+                        = TierwiseCombine.everyLte(
                             args_,
-                            blockNumber_
+                            blockNumber_,
+                            TierwiseCombine.MODE_MAX
                         );
                 }
                 else if (op_.code == EVERY_LTE_FIRST) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.everyLteFirst(
+                        = TierwiseCombine.everyLte(
                             args_,
-                            blockNumber_
+                            blockNumber_,
+                            TierwiseCombine.MODE_FIRST
                         );
                 }
                 else if (op_.code == ANY_LTE_MIN) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLteMin(
+                        = TierwiseCombine.anyLte(
                             args_,
-                            blockNumber_
+                            blockNumber_,
+                            TierwiseCombine.MODE_MIN
                         );
                 }
                 else if (op_.code == ANY_LTE_MAX) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLteMax(
+                        = TierwiseCombine.anyLte(
                             args_,
-                            blockNumber_
+                            blockNumber_,
+                            TierwiseCombine.MODE_MAX
                         );
                 }
                 else if (op_.code == ANY_LTE_FIRST) {
                     state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLteFirst(
+                        = TierwiseCombine.anyLte(
                             args_,
-                            blockNumber_
+                            blockNumber_,
+                            TierwiseCombine.MODE_FIRST
                         );
                 }
 
