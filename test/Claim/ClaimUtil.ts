@@ -69,15 +69,6 @@ export function tierRange(startTier: number, endTier: number): number {
   return range;
 }
 
-export function selectLte(logic: number, mode: number, length: number): number {
-  let lte = logic;
-  lte <<= 2;
-  lte += mode;
-  lte <<= 5;
-  lte += length;
-  return lte;
-}
-
 export function valOperand(index: number, forwardedVals?: boolean): number {
   //   op_.val & 0x7F, //     01111111
   //   op_.val & 0x80, //     10000000

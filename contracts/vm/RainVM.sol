@@ -1,14 +1,38 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+/// Everything required to evaluate and track the state of a rain script.
+/// As this is a struct it will be in memory when passed to `RainVM` and so
+/// will be modified by reference internally. This is important for gas
+/// efficiency; the stack, arguments and stackIndex will likely be mutated by
+/// the running script.
 struct State {
+    /// Sources available to be executed by `eval`.
+    /// Notably `ZIPMAP` can also select a source to execute by index.
     bytes[] sources;
+    /// Constants that can be copied to the stack by index by `VAL`.
     uint[] constants;
+    /// `ZIPMAP` populates arguments which can be copied to the stack by `VAL`.
     uint[] arguments;
+    /// Stack is the general purpose runtime state that opcodes can read from
+    /// and write to according to their functionality.
     uint[] stack;
+    /// Opcodes write to the stack at the stack index and can consume from the
+    /// stack by decrementing the index and reading between the old and new
+    /// stack index.
+    /// IMPORANT: The stack is never zeroed out so the index must be used to
+    /// find the "top" of the stack as the result of an `eval`.
     uint stackIndex;
 }
 
+/// @title RainVM
+/// @notice micro VM for implementing and executing custom contract DSLs.
+/// Libraries and contracts map opcodes to `view` functionality then RainVM
+/// runs rain scripts using these opcodes. Rain scripts dispatch as pairs of
+/// bytes. The first byte is an opcode to run and the second byte is a value
+/// the opcode can use contextually to inform how to run. Typically opcodes
+/// will read/write to the stack to produce some meaningful final state after
+/// all opcodes have been dispatched.
 abstract contract RainVM {
 
     uint constant internal OP_SKIP = 0;

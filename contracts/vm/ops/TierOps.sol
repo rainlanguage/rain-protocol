@@ -80,8 +80,8 @@ library TierOps {
             // The block number to update to and the report to update over are
             // both taken from the stack.
             else if (opcode_ == UPDATE_BLOCKS_FOR_TIER_RANGE) {
-                uint startTier_ = opval_ & 0x0f;
-                uint endTier_ = (opval_ >> 4) & 0x0f;
+                uint startTier_ = opval_ & 0x0f; // & 00001111
+                uint endTier_ = (opval_ >> 4) & 0x0f; // & 00001111
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
                 uint blockNumber_ = state_.stack[baseIndex_];
@@ -101,31 +101,28 @@ library TierOps {
             // the `logic_` and `mode_` from the `opval_` high bits.
             else {
                 uint logic_ = opval_ >> 7;
-                uint mode_ = (opval_ >> 5) & 0x3; // 00000011
-                uint reportsLength_ = opval_ & 0x1F; // 00011111
+                uint mode_ = (opval_ >> 5) & 0x3; // & 00000011
+                uint reportsLength_ = opval_ & 0x1F; // & 00011111
 
-                console.log("logic: %s", logic_);
-                console.log("mode: %s", mode_);
-                console.log("opval_: %s", opval_);
-                console.log("len: %s", reportsLength_);
-
+                // Need one more than reports length to include block number.
                 state_.stackIndex -= reportsLength_ + 1;
-                baseIndex_ = state_.stackIndex;
+                uint cursor_ = state_.stackIndex;
 
-                uint blockNumber_ = state_.stack[baseIndex_];
+                uint blockNumber_ = state_.stack[cursor_];
+                cursor_++;
 
                 uint[] memory reports_ = new uint[](reportsLength_);
                 for (uint a_ = 0; a_ < reportsLength_; a_++) {
-                    reports_[a_] = state_.stack[baseIndex_ + a_ + 1];
+                    reports_[a_] = state_.stack[cursor_];
+                    cursor_++;
                 }
 
-                state_.stack[baseIndex_] = TierwiseCombine.selectLte(
+                state_.stack[state_.stackIndex] = TierwiseCombine.selectLte(
                     reports_,
                     blockNumber_,
                     logic_,
                     mode_
                 );
-
                 state_.stackIndex++;
             }
         }

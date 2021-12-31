@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, op, paddedUInt32, paddedUInt256 } from "../Util";
+import { bytify, op, paddedUInt32, paddedUInt256, selectLte } from "../Util";
 import type { Contract, ContractFactory } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
@@ -36,12 +36,7 @@ const enum Opcode {
   ALWAYS,
   DIFF,
   UPDATE_BLOCKS_FOR_TIER_RANGE,
-  AND_OLD,
-  AND_NEW,
-  AND_LEFT,
-  OR_OLD,
-  OR_NEW,
-  OR_LEFT,
+  SELECT_LTE,
   ACCOUNT,
 }
 
@@ -77,7 +72,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_LEFT, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -136,7 +131,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_NEW, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -195,7 +190,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_OLD, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -254,7 +249,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_LEFT, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -313,7 +308,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_OLD, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -372,7 +367,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_NEW, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -525,7 +520,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_OLD, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -658,7 +653,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_NEW, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -793,7 +788,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_LEFT, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -915,7 +910,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_OLD, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -1049,7 +1044,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_NEW, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -1183,7 +1178,7 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_LEFT, 2),
+      op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),

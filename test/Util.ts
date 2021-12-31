@@ -509,3 +509,24 @@ export const getEventArgs = async (
   (await tx.wait()).events.find(
     (x) => x.event == event && x.address == contractAddress
   ).args;
+
+
+export function selectLte(logic: number, mode: number, length: number): number {
+  let lte = logic;
+  lte <<= 2;
+  lte += mode;
+  lte <<= 5;
+  lte += length;
+  return lte;
+}
+
+export enum selectLteLogic {
+  every,
+  any,
+}
+
+export enum selectLteMode {
+  min,
+  max,
+  first,
+}
