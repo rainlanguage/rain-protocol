@@ -301,7 +301,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await trust.endDutchAuction();
 
-    const deposit0 = await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+    const deposit0 = await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      signers[0].address
+    );
     const supply0 = (await getEventArgs(deposit0, "Deposit", claim.address))[3];
 
     // Distribution Status is Success
@@ -354,8 +358,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         await claim
           .connect(signer1)
           .withdraw(trust.address, claimableReserveToken.address, supply0),
-        "ZERO_WITHDRAW",
-        "Failed to error on zero withdraw"
+      "ZERO_WITHDRAW",
+      "Failed to error on zero withdraw"
     );
 
     // more claimable tokens are deposited by creator
@@ -471,7 +475,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await trust.endDutchAuction();
 
-    const deposit = await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+    const deposit = await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      signers[0].address
+    );
     const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
 
     // Distribution Status is Success
@@ -590,7 +598,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       depositAmount
     );
 
-    const preSupply = await claimableReserveToken.totalSupply()
+    const preSupply = await claimableReserveToken.totalSupply();
 
     // prevent withdraw until status Success
     await Util.assertError(
@@ -626,7 +634,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await trust.endDutchAuction();
 
-    const deposit = await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+    const deposit = await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      signers[0].address
+    );
     const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
 
     // Distribution Status is Success
@@ -720,7 +732,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
 
-    const preSupply = await claimableReserveToken.totalSupply()
+    const preSupply = await claimableReserveToken.totalSupply();
 
     // prevent undeposit until status Fail
     await Util.assertError(
@@ -897,9 +909,13 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await trust.endDutchAuction();
 
-    await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+    await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      signers[0].address
+    );
 
-    const supply = await redeemableERC20.totalSupply()
+    const supply = await redeemableERC20.totalSupply();
 
     // read registered value
     const deposited0 = await claim.deposits(
@@ -931,14 +947,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       trust.address,
       claimableReserveToken.address,
       depositAmount1
-    )
+    );
 
     await claim.undeposit(
       trust.address,
       claimableReserveToken.address,
       supply,
       depositAmount1
-    )
+    );
   });
 
   it("should allow depositing redeemable tokens when not failed raise (during trading or successfully closed)", async function () {
@@ -1081,7 +1097,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount2);
 
-    await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+    await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      signers[0].address
+    );
 
     await claim.deposit(
       trust.address,

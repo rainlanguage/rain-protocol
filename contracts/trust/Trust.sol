@@ -28,94 +28,115 @@ import { PoolParams, IConfigurableRightsPool } from "../pool/IConfigurableRights
 
 /// Summary of every contract built or referenced internally by `Trust`.
 struct TrustContracts {
-    // Reserve erc20 token used to provide value to the created Balancer pool.
+    /// Reserve erc20 token used to provide value to the created Balancer pool.
     address reserveERC20;
-    // Redeemable erc20 token that is minted and distributed.
+    /// Redeemable erc20 token that is minted and distributed.
     address redeemableERC20;
-    // Contract that builds, starts and exits the balancer pool.
+    /// Contract that builds, starts and exits the balancer pool.
     address redeemableERC20Pool;
-    // Address that provides the initial reserve token seed.
+    /// Address that provides the initial reserve token seed.
     address seeder;
-    // Address that defines and controls tier levels for users.
+    /// Address that defines and controls tier levels for users.
     address tier;
-    // The Balancer `ConfigurableRightsPool` deployed for this distribution.
+    /// The Balancer `ConfigurableRightsPool` deployed for this distribution.
     address crp;
-    // The Balancer pool that holds and trades tokens during the distribution.
+    /// The Balancer pool that holds and trades tokens during the distribution.
     address pool;
 }
 
 /// High level state of the distribution.
 /// An amalgamation of the phases and states of the internal contracts.
 enum DistributionStatus {
-    // Trust is created but does not have reserve funds required to start the
-    // distribution.
+    /// Trust is created but does not have reserve funds required to start the
+    /// distribution.
     Pending,
-    // Trust has enough reserve funds to start the distribution.
+    /// Trust has enough reserve funds to start the distribution.
     Seeded,
-    // The balancer pool is funded and trading.
+    /// The balancer pool is funded and trading.
     Trading,
-    // The last block of the balancer pool gradual weight changes is in the
-    // past.
+    /// The last block of the balancer pool gradual weight changes is in the
+    /// past.
     TradingCanEnd,
-    // The balancer pool liquidity has been removed and distribution is
-    // successful.
+    /// The balancer pool liquidity has been removed and distribution is
+    /// successful.
     Success,
-    // The balancer pool liquidity has been removed and distribution is a
-    // failure.
+    /// The balancer pool liquidity has been removed and distribution is a
+    /// failure.
     Fail
 }
 
 /// High level stats of the current state of the distribution.
 /// Includes the `DistributionStatus` and key configuration and metrics.
 struct DistributionProgress {
-    // `DistributionStatus` as above.
+    /// `DistributionStatus` as above.
     DistributionStatus distributionStatus;
-    // First block that the distribution can be traded.
-    // Will be `-1` before trading.
+    /// First block that the distribution can be traded.
+    /// Will be `-1` before trading.
     uint distributionStartBlock;
-    // First block that the distribution can be ended.
-    // Will be `-1` before trading.
+    /// First block that the distribution can be ended.
+    /// Will be `-1` before trading.
     uint distributionEndBlock;
-    // Current reserve balance in the Balancer pool.
-    // Will be `0` before trading.
-    // Will be the exit dust after trading.
+    /// Current reserve balance in the Balancer pool.
+    /// Will be `0` before trading.
+    /// Will be the exit dust after trading.
     uint poolReserveBalance;
-    // Current token balance in the Balancer pool.
-    // Will be `0` before trading.
-    // Will be `0` after distribution due to burn.
+    /// Current token balance in the Balancer pool.
+    /// Will be `0` before trading.
+    /// Will be `0` after distribution due to burn.
     uint poolTokenBalance;
-    // Initial reserve used to build the Balancer pool.
+    /// Initial reserve used to build the Balancer pool.
     uint reserveInit;
-    // Minimum creator reserve value for the distribution to succeed.
+    /// Minimum creator reserve value for the distribution to succeed.
     uint minimumCreatorRaise;
-    // Seeder fee paid in reserve if the distribution is a success.
+    /// Seeder fee paid in reserve if the distribution is a success.
     uint seederFee;
-    // Initial reserve value forwarded to minted redeemable tokens on success.
+    /// Initial reserve value forwarded to minted redeemable tokens on success.
     uint redeemInit;
 }
 
 /// Configuration specific to constructing the `Trust`.
 /// `Trust` contracts also take inner config for the pool and token.
 struct TrustConfig {
+    /// Fee escrow for the balancer pool that wraps swaps in `buyToken`.
     BPoolFeeEscrow bPoolFeeEscrow;
+    /// Balancer `ConfigurableRightsPool` factory.
     address crpFactory;
+    /// Balancer factory.
     address balancerFactory;
+    /// Reserve token address, e.g. USDC.
     IERC20 reserve;
+    /// Initital reserve amount to start the LBP with.
     uint reserveInit;
+    /// Initital valuation to weight the LBP against, relative to the reserve.
     uint initialValuation;
+    /// Final valuation to weight the LBP against, relative to the reserve,
+    /// assuming no trades.
     uint finalValuation;
+    /// Minimum number of blocks the raise can be active. Relies on anon to
+    /// call `endDutchAuction` to close out the auction after this many blocks.
     uint minimumTradingDuration;
-    // Address of the creator who will receive reserve assets on successful
-    // distribution.
+    /// Address of the creator who will receive reserve assets on successful
+    /// distribution.
     address creator;
+    /// Number of blocks after which emergency mode can be activated in phase
+    /// two or three. Ideally this never happens and instead anon ends the
+    /// auction successfully and all funds are cleared. If this does happen
+    /// then creator can access any trust related tokens owned by the trust.
     uint creatorFundsReleaseTimeout;
-    // Minimum amount to raise for the creator from the distribution period.
-    // A successful distribution raises at least this AND also the seed fee and
-    // `redeemInit`;
-    // On success the creator receives these funds.
-    // On failure the creator receives `0`.
+    /// Minimum amount to raise for the creator from the distribution period.
+    /// A successful distribution raises at least this AND also the seed fee
+    /// and `redeemInit`;
+    /// On success the creator receives these funds.
+    /// On failure the creator receives `0`.
     uint minimumCreatorRaise;
+    /// Absolute amount of reserve tokens that the seeders will receive in
+    /// addition to their initial capital in the case that the raise is
+    /// successful.
     uint seederFee;
+    /// The initial reserve token amount to forward to the redeemable token in
+    /// the case that the raise is successful. If the raise fails this is
+    /// ignored and instead the full reserve amount sans seeder refund is
+    /// forwarded instead.
     uint redeemInit;
 }
 

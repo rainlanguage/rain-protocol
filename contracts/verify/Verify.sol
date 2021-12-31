@@ -146,20 +146,20 @@ contract Verify is AccessControl {
 
     /// Emitted when evidence is first submitted to approve an account.
     /// The requestor is always the `msg.sender` of the user calling `add`.
-    /// @param account The address that submitted its own evidence.
+    /// @param sender The `msg.sender` that submitted its own evidence.
     /// @param data The evidence to support an approval.
     /// NOT written to contract storage.
     event RequestApprove(
-        address account,
+        address sender,
         bytes data
     );
     /// Emitted when a previously added account is approved.
-    /// @param approver The address that approved `account`.
+    /// @param sender The `msg.sender` that approved `account`.
     /// @param account The address that was approved.
     /// @param data Any additional data the `approver` deems relevant.
     /// NOT written to contract storage.
     event Approve(
-        address approver,
+        address sender,
         address account,
         bytes data
     );
@@ -167,22 +167,22 @@ contract Verify is AccessControl {
     /// Currently approved accounts can request that any account be banned.
     /// The requestor is expected to provide supporting data for the ban.
     /// The requestor MAY themselves be banned if vexatious.
-    /// @param requestor The address requesting a ban of `account`.
+    /// @param sender The `msg.sender` requesting a ban of `account`.
     /// @param account The address that `requestor` wants to ban.
     /// @param data Any additional data the `requestor` feels will strengthen
     /// its case for the ban. NOT written to contract storage.
     event RequestBan(
-        address requestor,
+        address sender,
         address account,
         bytes data
     );
     /// Emitted when an added or approved account is banned.
-    /// @param banner The address that banned `account`.
+    /// @param sender The `msg.sender` that banned `account`.
     /// @param account The address that `banner` has banned.
     /// @param data The evidence to support a ban.
     /// NOT written to contract storage.
     event Ban(
-        address banner,
+        address sender,
         address account,
         bytes data
     );
@@ -190,22 +190,23 @@ contract Verify is AccessControl {
     /// Currently approved accounts can request that any account be removed.
     /// The requestor is expected to provide supporting data for the removal.
     /// The requestor MAY themselves be banned if vexatious.
-    /// @param requestor The address requesting a removal of `account`.
+    /// @param sender The `msg.sender` requesting a removal of `account`.
     /// @param account The address that `requestor` wants to ban.
     /// @param data Any additional data the `requestor` feels will strengthen
     /// its case for the ban. NOT written to contract storage.
     event RequestRemove(
-        address requestor,
+        address sender,
         address account,
         bytes data
     );
     /// Emitted when an account is scrubbed from blockchain state.
-    /// @param remover The address that removed `account`.
+    /// Historical logs still visible offchain of course.
+    /// @param sender The `msg.sender` that removed `account`.
     /// @param account The address that `remover` has removed.
     /// @param data The evidence to support a remove.
     /// NOT written to contract storage.
     event Remove(
-        address remover,
+        address sender,
         address account,
         bytes data
     );
@@ -233,6 +234,8 @@ contract Verify is AccessControl {
     /// address is free and encouraged to delegate fine grained permissions to
     /// many other sub-admin addresses, then revoke it's own "root" access.
     constructor (address admin_) {
+        require(admin_ != address(0), "0_ACCOUNT");
+
         // `APPROVER_ADMIN` can admin each other in addition to
         // `APPROVER` addresses underneath.
         _setRoleAdmin(APPROVER_ADMIN, APPROVER_ADMIN);
@@ -254,10 +257,6 @@ contract Verify is AccessControl {
         _setupRole(APPROVER_ADMIN, admin_);
         _setupRole(REMOVER_ADMIN, admin_);
         _setupRole(BANNER_ADMIN, admin_);
-
-        // This is at the end of the constructor because putting it at the
-        // start seems to break the source map from the compiler 🙈
-        require(admin_ != address(0), "0_ACCOUNT");
     }
 
     /// Typed accessor into states.

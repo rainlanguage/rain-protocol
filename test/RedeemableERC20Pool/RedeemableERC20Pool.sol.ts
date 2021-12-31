@@ -207,9 +207,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const allowance = await reserve.allowance(trust.address, seeder);
     // seeder1 pulls erc20
-    await seederContract
-      .connect(seeder1)
-      .pullERC20(allowance);
+    await seederContract.connect(seeder1).pullERC20(allowance);
 
     // seeders redeem funds
     await seederContract1.redeem(seeder1Units);
@@ -218,9 +216,7 @@ describe("RedeemableERC20Pool", async function () {
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token
       .connect(signer1)
-      .pullERC20(
-        await reserve.allowance(trust.address, token.address)
-      );
+      .pullERC20(await reserve.allowance(trust.address, token.address));
 
     await token
       .connect(signer1)
@@ -765,16 +761,12 @@ describe("RedeemableERC20Pool", async function () {
     // seeder1 pulls reserve into SeedERC20 contract
     await seederContract
       .connect(seeder1)
-      .pullERC20(
-        await reserve.allowance(trust.address, seeder)
-      );
+      .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // signer1 pulls reserve into RedeemableERC20 contract
     await token
       .connect(signer1)
-      .pullERC20(
-        await reserve.allowance(trust.address, token.address)
-      );
+      .pullERC20(await reserve.allowance(trust.address, token.address));
 
     const bPoolReserveAfterTransferApproved = await reserve.balanceOf(
       bPool.address
@@ -1018,9 +1010,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const allowance = await reserve.allowance(trust.address, seeder);
     // seeder1 pulls erc20
-    await seederContract
-      .connect(seeder1)
-      .pullERC20(allowance);
+    await seederContract.connect(seeder1).pullERC20(allowance);
 
     // seeders redeem funds
     await seederContract1.redeem(seeder1Units);
@@ -1029,9 +1019,7 @@ describe("RedeemableERC20Pool", async function () {
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token
       .connect(signer1)
-      .pullERC20(
-        await reserve.allowance(trust.address, token.address)
-      );
+      .pullERC20(await reserve.allowance(trust.address, token.address));
 
     await token
       .connect(signer1)
@@ -1256,9 +1244,7 @@ describe("RedeemableERC20Pool", async function () {
     // seeder1 pulls erc20
     await seederContract
       .connect(seeder1)
-      .pullERC20(
-        await reserve.allowance(trust.address, seeder)
-      );
+      .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
     await seederContract1.redeem(seeder1Units);
@@ -1267,9 +1253,7 @@ describe("RedeemableERC20Pool", async function () {
     // griefer pulls erc20 into RedeemableERC20 contract
     await token
       .connect(griefer)
-      .pullERC20(
-        await reserve.allowance(trust.address, token.address)
-      );
+      .pullERC20(await reserve.allowance(trust.address, token.address));
 
     await token
       .connect(griefer)
@@ -1490,9 +1474,7 @@ describe("RedeemableERC20Pool", async function () {
     // seeder1 pulls erc20
     await seederContract
       .connect(seeder1)
-      .pullERC20(
-        await reserve.allowance(trust.address, seeder)
-      );
+      .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
     await seederContract1.redeem(seeder1Units);
@@ -1501,9 +1483,7 @@ describe("RedeemableERC20Pool", async function () {
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token
       .connect(signer1)
-      .pullERC20(
-        await reserve.allowance(trust.address, token.address)
-      );
+      .pullERC20(await reserve.allowance(trust.address, token.address));
 
     await token
       .connect(signer1)

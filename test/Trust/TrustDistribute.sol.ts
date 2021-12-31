@@ -226,9 +226,7 @@ describe("TrustDistribute", async function () {
     // seeder1 pulls erc20 into SeedERC20 contract
     await seederContract
       .connect(seeder1)
-      .pullERC20(
-        await reserve.allowance(trust.address, seeder)
-      );
+      .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
     await seederContract.connect(seeder1).redeem(seeder1Units);
@@ -247,9 +245,7 @@ describe("TrustDistribute", async function () {
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token
       .connect(signer1)
-      .pullERC20(
-        await reserve.allowance(trust.address, token.address)
-      );
+      .pullERC20(await reserve.allowance(trust.address, token.address));
 
     const signer1ReserveBefore = await reserve.balanceOf(signer1.address);
     const signer1TokensBefore = await token.balanceOf(signer1.address);

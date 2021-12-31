@@ -299,7 +299,12 @@ describe("BPoolFeeEscrow", async function () {
     // ClaimFees event
     await expect(claimFeesPromise)
       .to.emit(bPoolFeeEscrow, "ClaimFees")
-      .withArgs(recipient.address, recipient.address, getAddress(trust.address), claimableFee);
+      .withArgs(
+        recipient.address,
+        recipient.address,
+        getAddress(trust.address),
+        claimableFee
+      );
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
 
@@ -365,17 +370,16 @@ describe("BPoolFeeEscrow", async function () {
     );
 
     // refund should work because raise failed.
-    await bPoolFeeEscrow.connect(recipient).refundFees(trust.address)
+    await bPoolFeeEscrow.connect(recipient).refundFees(trust.address);
 
-    const reserveBalanceToken = await reserve.balanceOf(await trust.token())
+    const reserveBalanceToken = await reserve.balanceOf(await trust.token());
 
     assert(
       reserveBalanceToken.eq(fee),
       `wrong token balance after refund
       expected ${fee}
       got      ${reserveBalanceToken}`
-    )
-
+    );
   });
 
   it("should check that trust address is child of trust factory when buying tokens", async function () {

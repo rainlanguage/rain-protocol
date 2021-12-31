@@ -37,16 +37,11 @@ library MathOps {
     pure
     {
         require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
-        uint accumulator_;
         uint cursor_;
-        unchecked {
-            state_.stackIndex -= operand_;
-        }
+        unchecked { state_.stackIndex -= operand_; }
         uint baseIndex_ = state_.stackIndex;
-        unchecked {
-            cursor_ = baseIndex_ + operand_ - 1;
-            accumulator_ = state_.stack[cursor_];
-        }
+        unchecked { cursor_ = baseIndex_ + operand_ - 1; }
+        uint accumulator_ = state_.stack[cursor_];
 
         // Addition.
         if (opcode_ == ADD) {
@@ -63,6 +58,8 @@ library MathOps {
             }
         }
         // Multiplication.
+        // Slither false positive here complaining about dividing before
+        // multiplying but both are mututally exclusive according to `opcode_`.
         else if (opcode_ == MUL) {
             while (cursor_ > baseIndex_) {
                 unchecked { cursor_--; }

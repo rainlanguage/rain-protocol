@@ -878,7 +878,9 @@ describe("TrustConstruction", async function () {
     );
 
     assert(
-      distributionProgressTrading.distributionStartBlock.eq(distributionStartBlock),
+      distributionProgressTrading.distributionStartBlock.eq(
+        distributionStartBlock
+      ),
       `did not get correct value for DistributionProgress.distributionStartBlock on starting raise
     expected  ${distributionStartBlock}
     got       ${distributionProgressTrading.distributionStartBlock}
@@ -948,7 +950,9 @@ describe("TrustConstruction", async function () {
     );
 
     assert(
-      distributionProgressSwap.distributionStartBlock.eq(distributionStartBlock),
+      distributionProgressSwap.distributionStartBlock.eq(
+        distributionStartBlock
+      ),
       `did not get correct value for DistributionProgress.distributionStartBlock after a swap
     expected  ${distributionStartBlock}
     got       ${distributionProgressSwap.distributionStartBlock}

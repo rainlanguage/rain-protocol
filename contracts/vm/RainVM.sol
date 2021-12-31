@@ -66,15 +66,11 @@ struct State {
 /// opcodes and handle the results in a wrapping contract.
 ///
 /// RainVM natively has no concept of branching logic such as `if` or loops.
-/// These can be implemented in an opcode pack but would not provide benefits
-/// such as lazy evaluation. For example, an `if` statement would run both
-/// the true/false branches and the conditional check before then discarding
-/// one of the results from the stack. In this way `if` is selecting from the
-/// _output_ of execution rather than controlling the execution itself. Instead
-/// some more specialised selection tools such as `min` and `max` in the
-/// `MathOps` opcode pack are provided. Future versions of `RainVM` MAY
-/// generalise the skip opcode into something that could allow more complex
-/// execution flow, as lazy execution could be a valuable gas optimization.
+/// An opcode pack could implement these similar to the core zipmap by lazily
+/// evaluating a source from `sources` based on some condition, etc. Instead
+/// some simpler, eagerly evaluated selection tools such as `min` and `max` in
+/// the `MathOps` opcode pack are provided. Future versions of `RainVM` MAY
+/// implement lazy `if` and other similar patterns.
 ///
 /// The `eval` function is `view` because rain scripts are expected to compute
 /// results only without modifying any state. The contract wrapping the VM is

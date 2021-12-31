@@ -22,20 +22,27 @@ import { ERC20Config } from "../erc20/ERC20Config.sol";
 
 /// Everything required to construct a `TrustFactory`.
 struct TrustFactoryConfig {
-    // The RedeemableERC20Factory on the current network.
-    // This is an address published by Beehive Trust or deployed locally
-    // during testing.
+    /// The RedeemableERC20Factory on the current network.
+    /// This is an address published by Beehive Trust or deployed locally
+    /// during testing.
     RedeemableERC20Factory redeemableERC20Factory;
-    // The SeedERC20Factory on the current network.
-    // This is an address published by Beehive Trust or deployed locally
-    // during testing.
+    /// The SeedERC20Factory on the current network.
+    /// This is an address published by Beehive Trust or deployed locally
+    /// during testing.
     SeedERC20Factory seedERC20Factory;
+    /// Every `Trust` built by this factory will use this Balancer CRP factory.
     address crpFactory;
+    /// Every `Trust` built by this factory will use this Balancer factory.
     address balancerFactory;
+    /// Every `Trust` built by this factory will use this funds release
+    /// timeout.
     uint creatorFundsReleaseTimeout;
+    /// Every `Trust` built by this factory will have its raise duration
+    /// limited by this max duration.
     uint maxRaiseDuration;
 }
 
+/// Partial config for `TrustConfig`.
 struct TrustFactoryTrustConfig {
     IERC20 reserve;
     uint reserveInit;
@@ -48,14 +55,11 @@ struct TrustFactoryTrustConfig {
     uint redeemInit;
 }
 
+/// Partial config for `TrustRedeemableERC20Config`.
 struct TrustFactoryTrustRedeemableERC20Config {
-    // ERC20Config forwarded to redeemableERC20 constructor.
     ERC20Config erc20Config;
-    // Tier contract to compare statuses against on transfer.
     ITier tier;
-    // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
     uint minimumTier;
-    // Number of redeemable tokens to mint.
     uint totalSupply;
 }
 

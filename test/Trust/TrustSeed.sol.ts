@@ -789,9 +789,7 @@ describe("TrustSeed", async function () {
       const allowance = await reserve.allowance(trust.address, seeder);
 
       // seeder1 pulls erc20
-      await seederContract
-        .connect(seeder1)
-        .pullERC20(allowance);
+      await seederContract.connect(seeder1).pullERC20(allowance);
 
       const poolDust = await reserve.balanceOf(bPool.address);
 
@@ -858,7 +856,6 @@ describe("TrustSeed", async function () {
       actual    ${return2}
       `
       );
-
     });
 
     it("failed raise", async function () {
@@ -1050,9 +1047,7 @@ describe("TrustSeed", async function () {
       const allowance = await reserve.allowance(trust.address, seeder);
 
       // seeder1 pulls erc20
-      await seederContract
-        .connect(seeder1)
-        .pullERC20(allowance);
+      await seederContract.connect(seeder1).pullERC20(allowance);
 
       // seederContract should now hold reserve equal to final balance
       assert(

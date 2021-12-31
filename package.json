@@ -54,7 +54,7 @@
     "typechain": "^6.0.2"
   },
   "dependencies": {
-    "@0xsequence/sstore2": "git+https://github.com/0xsequence/sstore2.git#cbbe3bf8e0c39e05d70b66975f71e08c2d92dd1f",
+    "@0xsequence/sstore2": "git+https://github.com/0xsequence/sstore2.git#b9233bcf1bbbbed37f9029e0355ac3026cd3563b",
     "@beehiveinnovation/balancer-core": "0.0.7",
     "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@openzeppelin/contracts": "^4.3.3"

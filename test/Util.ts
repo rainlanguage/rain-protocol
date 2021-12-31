@@ -510,7 +510,6 @@ export const getEventArgs = async (
     (x) => x.event == event && x.address == contractAddress
   ).args;
 
-
 export function selectLte(logic: number, mode: number, length: number): number {
   let lte = logic;
   lte <<= 2;

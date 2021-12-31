@@ -10,16 +10,16 @@ library TierwiseCombine {
     using SaturatingMath for uint256;
 
     /// Every lte check in `selectLte` must pass.
-    uint constant internal LOGIC_EVERY = 0;
+    uint constant public LOGIC_EVERY = 0;
     /// Only one lte check in `selectLte` must pass.
-    uint constant internal LOGIC_ANY = 1;
+    uint constant public LOGIC_ANY = 1;
 
     /// Select the minimum block number from passing blocks in `selectLte`.
-    uint constant internal MODE_MIN = 0;
+    uint constant public MODE_MIN = 0;
     /// Select the maximum block number from passing blocks in `selectLte`.
-    uint constant internal MODE_MAX = 1;
+    uint constant public MODE_MAX = 1;
     /// Select the first block number that passes in `selectLte`.
-    uint constant internal MODE_FIRST = 2;
+    uint constant public MODE_FIRST = 2;
 
     /// Performs a tierwise saturating subtraction of two reports.
     /// Intepret as "# of blocks older report was held before newer report".
@@ -72,11 +72,11 @@ library TierwiseCombine {
     ) internal pure returns (uint) {
         unchecked {
             uint ret_;
-            uint accumulator_;
             uint block_;
             bool anyLte_;
             uint length_ = reports_.length;
             for (uint tier_ = 1; tier_ <= 8; tier_++) {
+                uint accumulator_;
                 // Nothing lte the reference block for this tier yet.
                 anyLte_ = false;
 
@@ -84,10 +84,7 @@ library TierwiseCombine {
                 if (mode_ == MODE_MIN) {
                     accumulator_ = TierReport.NEVER;
                 }
-                else if (mode_ == MODE_MAX) {
-                    accumulator_ = 0;
-                }
-                else if (mode_ == MODE_FIRST) {
+                else {
                     accumulator_ = 0;
                 }
 
