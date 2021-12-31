@@ -42,7 +42,7 @@ let claim: RedeemableERC20ClaimEscrow & Contract,
   tier: ReadWriteTier,
   claimableReserveToken: ReserveToken & Contract;
 
-describe.only("RedeemableERC20ClaimEscrow", async function () {
+describe("RedeemableERC20ClaimEscrow", async function () {
   before(async () => {
     ({ claim, trustFactory, seedERC20Factory, tier } = await deployGlobals());
   });
@@ -584,19 +584,20 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount);
 
-    const deposit = await claim.deposit(
+    await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount
     );
-    const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
+
+    const preSupply = await claimableReserveToken.totalSupply()
 
     // prevent withdraw until status Success
     await Util.assertError(
       async () =>
         await claim
           .connect(signer1)
-          .withdraw(trust.address, claimableReserveToken.address, supply),
+          .withdraw(trust.address, claimableReserveToken.address, preSupply),
       "NOT_SUCCESS",
       "wrongly withrew during Trading"
     );
@@ -618,12 +619,15 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
       async () =>
         await claim
           .connect(signer1)
-          .withdraw(trust.address, claimableReserveToken.address, supply),
+          .withdraw(trust.address, claimableReserveToken.address, preSupply),
       "NOT_SUCCESS",
       "wrongly withdrew during TradingCanEnd"
     );
 
     await trust.endDutchAuction();
+
+    const deposit = await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+    const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
 
     // Distribution Status is Success
     assert(
@@ -821,7 +825,7 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
     // );
   });
 
-  it("should prevent depositing redeemable tokens on failed raise", async function () {
+  it("should allow depositing redeemable tokens on failed raise", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -878,23 +882,10 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount0);
 
-    await claim.deposit(
+    await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount0
-    );
-
-    // read registered value
-    const deposited0 = await claim.deposits(
-      trust.address,
-      claimableReserveToken.address,
-      creator.address,
-      await redeemableERC20.totalSupply()
-    );
-
-    assert(
-      deposited0.eq(depositAmount0),
-      "actual tokens deposited and registered amount do not match"
     );
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
@@ -905,6 +896,23 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
     await Util.createEmptyBlock(emptyBlocks);
 
     await trust.endDutchAuction();
+
+    await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
+
+    const supply = await redeemableERC20.totalSupply()
+
+    // read registered value
+    const deposited0 = await claim.deposits(
+      trust.address,
+      claimableReserveToken.address,
+      creator.address,
+      supply
+    );
+
+    assert(
+      deposited0.eq(depositAmount0),
+      "actual tokens deposited and registered amount do not match"
+    );
 
     // Distribution Status is Fail
     assert(
@@ -918,16 +926,19 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount1);
 
-    await Util.assertError(
-      async () =>
-        await claim.deposit(
-          trust.address,
-          claimableReserveToken.address,
-          depositAmount1
-        ),
-      "FAIL_DEPOSIT",
-      "wrongly deposited when distribution status was Fail"
-    );
+    // can deposit and undeposit when fail
+    await claim.deposit(
+      trust.address,
+      claimableReserveToken.address,
+      depositAmount1
+    )
+
+    await claim.undeposit(
+      trust.address,
+      claimableReserveToken.address,
+      supply,
+      depositAmount1
+    )
   });
 
   it("should allow depositing redeemable tokens when not failed raise (during trading or successfully closed)", async function () {
@@ -988,18 +999,17 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount0);
 
-    await claim.deposit(
+    await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount0
     );
 
     // read registered value
-    const deposited0 = await claim.deposits(
+    const deposited0 = await claim.pendingDeposits(
       trust.address,
       claimableReserveToken.address,
-      creator.address,
-      await redeemableERC20.totalSupply()
+      creator.address
     );
 
     assert(
@@ -1034,18 +1044,17 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
     // creator deposits some tokens for claiming
     await claimableReserveToken.approve(claim.address, depositAmount1);
 
-    await claim.deposit(
+    await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount1
     );
 
     // read registered value
-    const deposited1 = await claim.deposits(
+    const deposited1 = await claim.pendingDeposits(
       trust.address,
       claimableReserveToken.address,
-      creator.address,
-      await redeemableERC20.totalSupply()
+      creator.address
     );
 
     assert(
@@ -1071,6 +1080,8 @@ describe.only("RedeemableERC20ClaimEscrow", async function () {
     );
 
     await claimableReserveToken.approve(claim.address, depositAmount2);
+
+    await claim.sweepPending(trust.address, claimableReserveToken.address, signers[0].address)
 
     await claim.deposit(
       trust.address,
