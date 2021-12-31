@@ -15,9 +15,9 @@ contract ReserveToken is ERC20, ERC20Burnable {
     mapping(address => bool) public freezables;
 
     // Stables such as USDT and USDC commonly have 6 decimals.
-    uint8 public constant DECIMALS = 6;
+    uint public constant DECIMALS = 6;
     // One _billion_ dollars 👷😈.
-    uint256 public constant TOTAL_SUPPLY = 10 ** (uint256(DECIMALS) + 9);
+    uint public constant TOTAL_SUPPLY = 10 ** (DECIMALS + 9);
 
     /// Define and mint the erc20 token.
     constructor() ERC20("USD Classic", "USDCC") {
@@ -25,7 +25,7 @@ contract ReserveToken is ERC20, ERC20Burnable {
     }
 
     function decimals() public pure override returns (uint8) {
-        return DECIMALS;
+        return uint8(DECIMALS);
     }
 
     /// Add an account to the freezables list.
@@ -39,7 +39,7 @@ contract ReserveToken is ERC20, ERC20Burnable {
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
-        uint256 amount_
+        uint amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         require(!freezables[receiver_], "FROZEN");

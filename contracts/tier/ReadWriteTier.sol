@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
-import { Tier, ITier } from "./ITier.sol";
+import { ITier } from "./ITier.sol";
 import { TierReport } from "./libraries/TierReport.sol";
 
 /// @title ReadWriteTier
@@ -21,7 +20,7 @@ import { TierReport } from "./libraries/TierReport.sol";
 /// addresses move down the tiers.
 contract ReadWriteTier is ITier {
     /// account => reports
-    mapping(address => uint256) public reports;
+    mapping(address => uint) public reports;
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITier
@@ -30,12 +29,10 @@ contract ReadWriteTier is ITier {
         virtual
         override
         view
-        returns (uint256)
+        returns (uint)
     {
         // Inequality here to silence slither warnings.
-        return reports[account_] > 0
-            ? reports[account_]
-            : TierReport.NEVER;
+        return reports[account_] > 0 ? reports[account_] : TierReport.NEVER;
     }
 
     /// Errors if the user attempts to return to the ZERO tier.
@@ -46,19 +43,19 @@ contract ReadWriteTier is ITier {
     /// @inheritdoc ITier
     function setTier(
         address account_,
-        Tier endTier_,
+        uint endTier_,
         bytes memory data_
     )
         external virtual override
     {
-        // The user must move to at least `Tier.ONE`.
-        // The `Tier.ZERO` status is reserved for users that have never
+        // The user must move to at least tier 1.
+        // The tier 0 status is reserved for users that have never
         // interacted with the contract.
-        require(endTier_ != Tier.ZERO, "SET_ZERO_TIER");
+        require(endTier_ > 0, "SET_ZERO_TIER");
 
-        uint256 report_ = report(account_);
+        uint report_ = report(account_);
 
-        Tier startTier_ = TierReport.tierAtBlockFromReport(
+        uint startTier_ = TierReport.tierAtBlockFromReport(
             report_,
             block.number
         );
@@ -90,13 +87,10 @@ contract ReadWriteTier is ITier {
     /// @param startTier_ The tier the account had before this update.
     /// @param endTier_ The tier the account will have after this update.
     /// @param data_ Additional arbitrary data to inform update requirements.
-    // Slither false positive. This is intended to overridden.
-    // https://github.com/crytic/slither/issues/929
-    // slither-disable-next-line dead-code
     function _afterSetTier(
         address account_,
-        Tier startTier_,
-        Tier endTier_,
+        uint startTier_,
+        uint endTier_,
         bytes memory data_
     )
         internal virtual

@@ -14,9 +14,13 @@ contract RedeemableERC20Reentrant is ReserveToken {
     RedeemableERC20 private redeemableERC20Contract;
 
     /// Configures the contract to attempt to reenter.
-    constructor(RedeemableERC20 redeemableERC20Contract_)
-        ReserveToken()
-    {
+    constructor() ReserveToken() {} // solhint-disable-line no-empty-blocks
+
+    /// Set the contract to attempt to reenter.
+    /// @param redeemableERC20Contract_ RedeemableERC20 contract to reeenter.
+    function addReentrantTarget(
+        RedeemableERC20 redeemableERC20Contract_
+    ) external {
         redeemableERC20Contract = redeemableERC20Contract_;
     }
 
@@ -24,7 +28,7 @@ contract RedeemableERC20Reentrant is ReserveToken {
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
-        uint256 amount_
+        uint amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         if (

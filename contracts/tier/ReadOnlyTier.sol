@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
-import { Tier, ITier } from "./ITier.sol";
+import { ITier } from "./ITier.sol";
 import { TierReport } from "./libraries/TierReport.sol";
 
 /// @title ReadOnlyTier
@@ -22,7 +21,7 @@ abstract contract ReadOnlyTier is ITier {
     /// @inheritdoc ITier
     function setTier(
         address,
-        Tier,
+        uint,
         bytes memory
     )
         external pure override

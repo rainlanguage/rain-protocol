@@ -1,26 +1,23 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-
-import { FactoryTruster } from "../factory/FactoryTruster.sol";
-import { IFactory } from "../factory/IFactory.sol";
-import { Trust, TrustContracts, DistributionStatus } from "../trust/Trust.sol";
+// solhint-disable-next-line max-line-length
+import { RedeemableERC20, Trust } from "../trust/Trust.sol";
 import { IBPool } from "../pool/IBPool.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
+import "./TrustEscrow.sol";
 
 /// Represents fees as they are claimed by a recipient on a per-trust basis.
-/// Used to work around a limitation in the EVM re: how return values can be
-/// structured in a dynamic length array when bulk-claiming.
+/// Used to work around a limitation in the EVM i.e. return values must be
+/// structured this way in a dynamic length array when bulk-claiming.
 struct ClaimedFees {
     // The trust that fees were claimed for.
     address trust;
     // The amount of fees that were claimed.
-    // This is denominated in the reserve currency/token of the trust.
-    uint256 claimedFees;
+    // This is denominated in the token claimed.
+    uint claimedFees;
 }
 
 /// Escrow contract for fees IN ADDITION TO BPool fees.
@@ -51,205 +48,167 @@ struct ClaimedFees {
 /// that can execute the trade sans fees on the buyers's behalf.
 ///
 /// Some important things to note about fee handling:
-/// - Fees are NOT forwarded if the raise fails according to the trust. Instead
+/// - Fees are NOT forwarded if the raise fails according to the Trust. Instead
 ///   they are forwarded to the redeemable token so buyers can redeem a refund.
 /// - Fees are ONLY collected when tokens are purchased, thus contributing to
 ///   the success of a raise. When tokens are sold there are no additional fees
 ///   set aside by this escrow. Repeatedly buying/selling does NOT allow for
 ///   wash trading to claim additional fees as the user must pay the fee in
 ///   full in addition to the token spot price for every round-trip.
-/// - Recipients MUST OPT IN to every reserve type they want to accept by first
-///   setting a min fee. The escrow will not set aside garbage shitcoins for
-///   recipients unless they explicitly ask for it. The escrow cannot prevent
-///   garbage shitcoins from being sent to the recipient outside the escrow but
-///   it can refuse to facilitate the process with its own precious storage.
 /// - ANYONE can process a claim for a recipient and/or a refund for a trust.
-///   Recipients SHOULD ONLY accept reserve currencies that they'd be willing
-///   have processed unconditionally at any time by anyone.
-/// - The security of the escrow is only as good as the implementation of the
-///   `TrustFactory` it is deployed for. A malicious trust can "double spend"
-///   funds from the escrow by lying about its pass/fail status to BOTH process
-///   a "refund" to the "token" that can be any address it wants AND to forward
-///   fees to the nominated recipient. An attacker could roll out many bad
-///   trusts to drain the escrow. For this reason non-zero fees will only ever
-///   be set aside by `buyToken` for trusts that are a child of the known trust
-///   factory, and zero-fee claims are always noops, so malicious trusts can
-///   only ever "double spend" 0 tokens.
+/// - The information about which trusts to claim/refund is available offchain
+///   via the `Fee` event.
 ///
 /// We cannot prevent FEs implementing their own smart contracts to take fees
 /// outside the scope of the escrow, but we aren't encouraging or implementing
 /// it for them either.
-///
-/// A set of functions for recipients to manage their own incoming fees are
-/// provided on the escrow contract:
-/// - Set/unset min fees per-reserve
-/// - Abandon fees set aside for them on a per-trust basis
-///
-/// There are no admin roles for the escrow, every recipient must manage their
-/// incoming reserves, trusts and claims themselves.
-contract BPoolFeeEscrow is FactoryTruster {
+contract BPoolFeeEscrow is TrustEscrow {
     using SafeERC20 for IERC20;
-    using Math for uint256;
-    using EnumerableSet for EnumerableSet.AddressSet;
-
-    uint256 public constant INFINITY
-        = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     /// A claim has been processed for a recipient.
-    /// ONLY emitted if the trust has success/fail distribution status.
+    /// ONLY emitted if non-zero fees were claimed.
     event ClaimFees(
-        address indexed recipient,
-        address indexed trust,
-        uint256 claimedFees
+        /// Anon who processed the claim.
+        address sender,
+        /// Recipient of the fees.
+        address recipient,
+        /// Trust the fees were collected for.
+        address trust,
+        /// Amount of fees claimed.
+        uint claimedFees
     );
-    /// A refund has been processed for a trust.
+    /// A refund has been processed for a `Trust`.
     /// ONLY emitted if non-zero fees were refunded.
     event RefundFees(
-        address indexed trust,
-        uint256 refundedFees
+        /// Anon who processed the refund.
+        address sender,
+        /// `Trust` the fees were refunded to.
+        /// Fees go to the redeemable token, not the `Trust` itself.
+        address trust,
+        /// Amount of fees refunded.
+        uint refundedFees
     );
     /// A fee has been set aside for a recipient.
     event Fee(
-        address indexed recipient,
-        address indexed trust,
-        uint256 fee
+        /// Anon who sent fees.
+        address sender,
+        /// Recipient of the fee.
+        address recipient,
+        /// `Trust` the fee was set aside for.
+        address trust,
+        /// Amount of fee denominated in the reserve asset of the `trust`.
+        uint fee
     );
 
+    /// Fees set aside under a trust for a specific recipient.
+    /// Denominated in the reserve asset of the trust.
+    /// There can be many recipients for a single trust.
+    /// Fees are forwarded to each recipient when they claim. The recipient
+    /// receives all the fees collected under a trust in a single claim.
+    /// Fee claims are mutually exclusive with refund claims.
     /// trust => recipient => amount
-    mapping(address => mapping(address => uint256)) public fees;
+    mapping(address => mapping(address => uint)) public fees;
 
+    /// Refunds for a trust are the same as the sum of all its fees.
+    /// Denominated in the reserve asset of the trust.
+    /// Refunds are forwarded to the raise token created by the trust.
+    /// Refunds are mutually exclusive with any fee claims.
+    /// All fees are forwarded to the same token address which is singular per
+    /// trust.
     /// trust => amount
-    mapping(address => uint256) public aggregateFees;
+    mapping(address => uint) public totalFees;
 
-    /// @param trustFactory_ `TrustFactory` that every `Trust` MUST be a child
-    /// of. The security model of the escrow REQUIRES that the `TrustFactory`
-    /// implements `IFactory` correctly and that the `Trust` contracts that it
-    /// deploys are not buggy or malicious re: tracking distribution status.
-    constructor(IFactory trustFactory_)
-        FactoryTruster(trustFactory_)
+    /// @param trustFactory_ forwarded to `TrustEscrow` only.
+    constructor(address trustFactory_)
+        TrustEscrow(trustFactory_)
         {} //solhint-disable-line no-empty-blocks
 
-    /// Batch wrapper that loops over `anonClaimFees` for all passed trusts.
-    /// @param feeRecipient_ Recipient to claim fees for.
-    /// @param trusts_ Trusts to claim fees for.
-    /// @return All the claimed fees from the inner loop.
-    function anonClaimFeesMulti(address feeRecipient_, Trust[] memory trusts_)
-        external
-        returns (ClaimedFees[] memory)
-    {
-        ClaimedFees[] memory claimedFees_ = new ClaimedFees[](trusts_.length);
-        for (uint256 i_ = 0; i_ < trusts_.length; i_++) {
-            claimedFees_[i_] = ClaimedFees(address(trusts_[i_]), anonClaimFees(
-                feeRecipient_,
-                trusts_[i_]
-            ));
-        }
-        return claimedFees_;
-    }
-
-    /// Anyone can pay the gas to send all claimable fees to any recipient.
-    /// Security of delegated claims assumes the recipient only opts in to
-    /// reserves that aren't going to try and do something "weird" like
-    /// non-linear transfers, external mint/burn or rebasing/elastic balances.
+    /// Anon can pay the gas to send all claimable fees to any recipient.
+    /// Caller is expected to infer profitable trusts for the recipient by
+    /// parsing the event log for `Fee` events. Caller pays gas and there is no
+    /// benefit to not claiming fees, so anon can claim for any recipient.
     /// Claims are processed on a per-trust basis.
     /// Processing a claim before the trust distribution has reached either a
-    /// success/fail state is a no-op.
+    /// success/fail state is an error.
     /// Processing a claim for a failed distribution simply deletes the record
-    /// of claimable fees for the recipient.
+    /// of claimable fees for the recipient without sending tokens.
     /// Processing a claim for a successful distribution transfers the accrued
-    /// fees to the recipient.
-    /// Processing a claim in the success/fail state removes it from the
-    /// pending state.
-    /// @param feeRecipient_ The recipient of the fees.
-    /// @param trust_ The trust to process claims for.
+    /// fees to the recipient (and deletes the record for gas refund).
+    /// Partial claims are NOT supported, to avoid anon griefing claims by e.g.
+    /// claiming 95% of a recipient's value, leaving dust behind that isn't
+    /// worth the gas to claim, but meaningfully haircut's the recipients fees.
+    /// A 0 value claim is a noop rather than error, to make it possible to
+    /// write a batch claim wrapper that cannot be griefed. E.g. anon claims N
+    /// trusts and then another anon claims 1 of these trusts with higher gas,
+    /// causing the batch transaction to revert.
+    /// @param recipient_ The recipient of the fees.
+    /// @param trust_ The trust to process claims for. MUST be a child of the
+    /// trusted `TrustFactory`.
     /// @return The fees claimed.
-    function anonClaimFees(address feeRecipient_, Trust trust_)
+    function claimFees(address recipient_, Trust trust_)
         public
-        returns (uint256)
+        returns (uint)
     {
-        DistributionStatus distributionStatus_
-            = Trust(trust_).getDistributionStatus();
-        uint256 claimableFee_ = 0;
+        EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
+        require(escrowStatus_ == EscrowStatus.Success, "NOT_SUCCESS");
 
-        // If the distribution status has not reached a clear success/fail then
-        // don't touch any escrow contract state. No-op.
-        // If there IS a clear success/fail we process the claim either way,
-        // clearing out the escrow contract state for the claim.
-        // Tokens are only sent to the recipient on success.
-        if (
-            distributionStatus_ == DistributionStatus.Success ||
-            distributionStatus_ == DistributionStatus.Fail
-        ) {
-            // Greater than zero rather than the current min fee as a recipient
-            // may have recently changed their min fee to a number greater than
-            // is waiting for them to claim. Recipient is free to abandon a
-            // trust to completely opt out of a claim.
-            claimableFee_ = fees[address(trust_)][feeRecipient_];
-            emit ClaimFees(feeRecipient_, address(trust_), claimableFee_);
-            if (claimableFee_ > 0) {
-                delete fees[address(trust_)][feeRecipient_];
-                if (distributionStatus_ == DistributionStatus.Success) {
-                    TrustContracts memory trustContracts_ = trust_
-                        .getContracts();
-                    IERC20(trustContracts_.reserveERC20).safeTransfer(
-                        feeRecipient_,
-                        claimableFee_
-                    );
-                }
-                else {
-                    // If the distribution status is a fail then in real the
-                    // claimable fee is 0. We've just deleted the recorded fee
-                    // to earn the gas refund and NOT transferred anything at
-                    // this point.
-                    claimableFee_ = 0;
-                }
-            }
+        uint amount_ = fees[address(trust_)][recipient_];
+        // Guard against outputs exceeding inputs.
+        // Last `receipient_` gets gas refund.
+        totalFees[(address(trust_))] -= amount_;
+
+        // Zero `amount_` is noop not error.
+        // Allows batch wrappers to be written that cannot be front run
+        // and reverted.
+        if (amount_ > 0) {
+            // Gas refund.
+            delete fees[address(trust_)][recipient_];
+
+            emit ClaimFees(msg.sender, recipient_, address(trust_), amount_);
+            trust_.reserve().safeTransfer(
+                recipient_,
+                amount_
+            );
         }
-        return claimableFee_;
+        return amount_;
     }
 
-    /// Anyone can pay the gas to refund fees for a `Trust`.
-    ///
+    /// Anon can pay the gas to refund fees for a `Trust`.
     /// Refunding forwards the fees as `Trust` reserve to its redeemable token.
     /// Refunding does NOT directly return fees to the sender nor directly to
     /// the `Trust`.
+    /// The refund will forward all fees collected if and only if the raise
+    /// failed, according to the `Trust`.
+    /// This can be called many times but a failed raise will only have fees to
+    /// refund once. Subsequent calls will be a noop if there is `0` refundable
+    /// value remaining.
     ///
-    /// The refund will forward BOTH:
-    /// - Any abandoned fees at any time
-    /// - All other fees collected if the raise fails
-    ///
-    /// This can be called many times to continue to forward abandoned fees.
-    /// A failed raise will only refund fees once.
-    ///
-    /// It is critical that a `Trust` never oscillates between Fail/Success.
-    /// If this invariant is violated the escrow funds can be drained by first
-    /// claiming a fail, then ALSO claiming fees for a success.
-    ///
-    /// @param trust_ The `Trust` to refund for.
+    /// @param trust_ The `Trust` to refund for. This MUST be a child of the
+    /// trusted `TrustFactory`.
     /// @return The total refund.
-    function anonRefundFees(Trust trust_) external returns (uint256) {
-        uint256 refund_ = aggregateFees[address(trust_)];
+    function refundFees(Trust trust_)
+        external
+        returns (uint)
+    {
+        EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
+        require(escrowStatus_ == EscrowStatus.Fail, "NOT_FAIL");
 
-        if (refund_ > 0) {
-            DistributionStatus distributionStatus_
-                = trust_.getDistributionStatus();
-            if (distributionStatus_ == DistributionStatus.Fail ||
-                distributionStatus_ == DistributionStatus.Success) {
-                // Clear out the failure refund even if the raise succeeded.
-                delete aggregateFees[address(trust_)];
+        uint amount_ = totalFees[address(trust_)];
 
-                if (distributionStatus_ == DistributionStatus.Fail) {
-                    emit RefundFees(address(trust_), refund_);
-                    TrustContracts memory trustContracts_ = trust_
-                        .getContracts();
-                    IERC20(trustContracts_.reserveERC20).safeTransfer(
-                        trustContracts_.redeemableERC20,
-                        refund_
-                    );
-                }
-            }
+        // Zero `amount_` is noop not error.
+        // Allows batch wrappers to be written that cannot be front run
+        // and reverted.
+        if (amount_ > 0) {
+            // Gas refund.
+            delete totalFees[address(trust_)];
+
+            emit RefundFees(msg.sender, address(trust_), amount_);
+            trust_.reserve().safeTransfer(
+                address(trust_.token()),
+                amount_
+            );
         }
-        return refund_;
+        return amount_;
     }
 
     /// Unidirectional wrapper around `swapExactAmountIn` for 'buying tokens'.
@@ -278,15 +237,13 @@ contract BPoolFeeEscrow is FactoryTruster {
     /// - Poking the weights on the underlying pool to ensure the best price
     /// - Performing the trade and forwading the token back to the caller
     ///
-    /// Sadly this is gas intensive, it works out to a bit under double what it
-    /// would cost to directly poke weights and do a swap as two actions. Doing
-    /// the weights poke atomically with the trade has some nebulous benefit as
-    /// it reduces the chance that someone else 'uses' the benefit of the poke
-    /// but overall it has to be said the gas situation is something to be
-    /// mindful of. It certainly makes little sense to be doing this on L1.
+    /// Despite the additional "hop" with the escrow sitting between the user
+    /// and the pool this function is similar or even cheaper gas than the
+    /// user poking, trading and setting aside a fee as separate actions.
     ///
     /// @param feeRecipient_ The recipient of the fee as `Trust` reserve.
-    /// @param trust_ The `Trust` to buy tokens from.
+    /// @param trust_ The `Trust` to buy tokens from. This `Trust` MUST be
+    /// known as a child of the trusted `TrustFactory`.
     /// @param fee_ The amount of the fee.
     /// @param reserveAmountIn_ As per balancer.
     /// @param minTokenAmountOut_ As per balancer.
@@ -294,73 +251,71 @@ contract BPoolFeeEscrow is FactoryTruster {
     function buyToken(
         address feeRecipient_,
         Trust trust_,
-        uint256 fee_,
-        uint256 reserveAmountIn_,
-        uint256 minTokenAmountOut_,
-        uint256 maxPrice_
+        uint fee_,
+        uint reserveAmountIn_,
+        uint minTokenAmountOut_,
+        uint maxPrice_
     )
         external
-        /// Requiring the trust is a child of the known factory means we know
-        /// exactly how it operates internally, not only the interface.
-        /// Without this check we'd need to guard against the `Trust`:
-        /// - lying about distribution status to allow double spending fees
-        /// - lying about reserve and redeemable tokens
-        /// - with some kind of reentrancy or hard to reason about state change
-        onlyTrustedFactoryChild(address(trust_))
-        returns (uint256 tokenAmountOut, uint256 spotPriceAfter)
+        returns (uint tokenAmountOut, uint spotPriceAfter)
     {
-        fees[address(trust_)][feeRecipient_]
-            = fee_ + fees[address(trust_)][feeRecipient_];
-        aggregateFees[address(trust_)]
-            = fee_ + aggregateFees[address(trust_)];
+        // Zero fee makes no sense, simply call `swapExactAmountIn` directly
+        // rather than using the escrow.
+        require(fee_ > 0, "ZERO_FEE");
+        require(getEscrowStatus(trust_) == EscrowStatus.Pending, "ENDED");
+        fees[address(trust_)][feeRecipient_] += fee_;
+        totalFees[address(trust_)] += fee_;
 
-        TrustContracts memory trustContracts_ = trust_.getContracts();
-        emit Fee(feeRecipient_, address(trust_), fee_);
+        emit Fee(msg.sender, feeRecipient_, address(trust_), fee_);
 
-        IERC20(trustContracts_.reserveERC20).safeTransferFrom(
+        // Everything except reserve is built by a trusted `Trust`
+        // (getEscrowStatus enforces this) but it shouldn't matter to the
+        // integrity of the escrow.
+        // A bad reserve could set itself up to be drained from the escrow, but
+        // cannot interfere with other reserve balances.
+        // e.g. rebasing reserves are NOT supported.
+        // A bad token could fail to send itself to `msg.sender` which doesn't
+        // hurt the escrow.
+        // A bad crp or pool is not approved to touch escrow fees, only the
+        // `msg.sender` funds.
+        IERC20 reserve_ = trust_.reserve();
+        RedeemableERC20 token_ = trust_.token();
+        IConfigurableRightsPool crp_ = trust_.crp();
+        address pool_ = crp_.bPool();
+
+        crp_.pokeWeights();
+
+        // These two calls are to the reserve, which we do NOT know or have any
+        // control over. Even a well known `Trust` can set a badly behaved
+        // reserve.
+        IERC20(reserve_).safeTransferFrom(
             msg.sender,
             address(this),
             fee_ + reserveAmountIn_
         );
+        // The pool is never approved for anything other than this swap so we
+        // can set the allowance directly rather than increment it.
+        IERC20(reserve_).safeApprove(
+            pool_,
+            reserveAmountIn_
+        );
 
-        IConfigurableRightsPool(trustContracts_.crp).pokeWeights();
-
-        if (
-            IERC20(trustContracts_.reserveERC20).allowance(
-                address(this),
-                trustContracts_.pool
-            ) < reserveAmountIn_
-        ) {
-            // Approving here rather than using safeApprove because we want
-            // "infinite approval" for the pool.
-            // This is safe ONLY if the trust factory MAKES IT SAFE.
-            // That means the trust factory builds trusts that ONLY build pools
-            // from the canonical Balancer bytecode.
-            // If there is ANY WAY the pool address in `trustContracts` can do
-            // reserve transfers outside of standard Balancer swaps then this
-            // is an attack vector to DRAIN THE ESCROW via. this approval.
-            // This is easy to confirm if you're using the factory contracts
-            // in this repository as the balancer factories are `immutable`
-            // on `RedeemableERC20PoolFactory`.
-            require(IERC20(trustContracts_.reserveERC20).approve(
-                trustContracts_.pool,
-                INFINITY
-            ), "APPROVE_FAIL");
-        }
-
-        (uint256 tokenAmountOut_, uint256 spotPriceAfter_) =
-            IBPool(trustContracts_.pool)
+        // Perform the swap sans fee.
+        (uint tokenAmountOut_, uint spotPriceAfter_) =
+            IBPool(pool_)
                 .swapExactAmountIn(
-                    trustContracts_.reserveERC20,
+                    address(reserve_),
                     reserveAmountIn_,
-                    trustContracts_.redeemableERC20,
+                    address(token_),
                     minTokenAmountOut_,
                     maxPrice_
                 );
-        IERC20(trustContracts_.redeemableERC20).safeTransfer(
+        // Return the result of the swap to `msg.sender`.
+        IERC20(token_).safeTransfer(
             msg.sender,
             tokenAmountOut_
         );
+        // Mimic return signature of `swapExactAmountIn`.
         return ((tokenAmountOut_, spotPriceAfter_));
     }
 }

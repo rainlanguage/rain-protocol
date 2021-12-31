@@ -264,7 +264,7 @@ describe("Phased", async function () {
         );
       } else {
         assert(
-          blockNumber === 0,
+          blockNumber.eq(0),
           `should always return zero block number for zero phase
           expected ${0} got ${blockNumber}`
         );

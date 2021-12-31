@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract ReserveTokenTest is ERC20 {
     /// How many tokens to mint initially.
     // One _billion_ dollars 👷😈
-    uint256 public constant INITIAL_MINT = 10 ** 9;
+    uint public constant INITIAL_MINT = 10 ** 9;
 
     /// Test against frozen assets, for example USDC can do this.
     mapping(address => bool) public freezables;
@@ -39,7 +39,7 @@ contract ReserveTokenTest is ERC20 {
     function _beforeTokenTransfer(
         address,
         address receiver_,
-        uint256
+        uint
     ) internal view override {
         require(
             receiver_ == address(0) || !(freezables[receiver_]),

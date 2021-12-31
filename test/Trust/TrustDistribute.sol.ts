@@ -71,7 +71,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -121,7 +121,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -226,10 +226,7 @@ describe("TrustDistribute", async function () {
     // seeder1 pulls erc20 into SeedERC20 contract
     await seederContract
       .connect(seeder1)
-      .pullERC20(
-        reserve.address,
-        await reserve.allowance(trust.address, seeder)
-      );
+      .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
     await seederContract.connect(seeder1).redeem(seeder1Units);
@@ -248,10 +245,7 @@ describe("TrustDistribute", async function () {
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token
       .connect(signer1)
-      .pullERC20(
-        reserve.address,
-        await reserve.allowance(trust.address, token.address)
-      );
+      .pullERC20(await reserve.allowance(trust.address, token.address));
 
     const signer1ReserveBefore = await reserve.balanceOf(signer1.address);
     const signer1TokensBefore = await token.balanceOf(signer1.address);
@@ -297,10 +291,12 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory, redeemableERC20Pool } =
-        await factoriesDeploy(crpFactory, bFactory);
+      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+        crpFactory,
+        bFactory
+      );
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -346,7 +342,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -370,7 +366,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 0"
       );
 
@@ -395,7 +391,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 0"
       );
 
@@ -416,7 +412,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 1"
       );
 
@@ -459,7 +455,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 1"
       );
 
@@ -501,7 +497,7 @@ describe("TrustDistribute", async function () {
               reserve.address,
               await reserve.balanceOf(trust.address)
             ),
-        "NON_RELEASE_PHASE",
+        "BAD_PHASE",
         "wrongly released creator funds before release phase"
       );
 
@@ -640,10 +636,12 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory, redeemableERC20Pool } =
-        await factoriesDeploy(crpFactory, bFactory);
+      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+        crpFactory,
+        bFactory
+      );
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -689,7 +687,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -713,7 +711,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 0"
       );
 
@@ -738,7 +736,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 0"
       );
 
@@ -759,7 +757,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 1"
       );
 
@@ -802,7 +800,7 @@ describe("TrustDistribute", async function () {
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
-        "UNSUPPORTED_FUNDS_RELEASE",
+        "MIN_PHASE",
         "anon wrongly set creator funds for release in phase 1"
       );
 
@@ -853,7 +851,7 @@ describe("TrustDistribute", async function () {
               reserve.address,
               await reserve.balanceOf(trust.address)
             ),
-        "NON_RELEASE_PHASE",
+        "BAD_PHASE",
         "wrongly released creator funds before release phase"
       );
 
@@ -987,7 +985,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1036,7 +1034,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -1151,7 +1149,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1200,7 +1198,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -1294,7 +1292,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1343,7 +1341,7 @@ describe("TrustDistribute", async function () {
           {
             erc20Config,
             tier: tier.address,
-            minimumStatus,
+            minimumTier,
             totalSupply: totalTokenSupply,
           },
           {
@@ -1379,7 +1377,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1428,7 +1426,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -1524,7 +1522,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -1575,7 +1573,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -1701,7 +1699,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -1750,7 +1748,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -1846,7 +1844,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -1895,7 +1893,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -2001,7 +1999,7 @@ describe("TrustDistribute", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -2048,7 +2046,7 @@ describe("TrustDistribute", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -2136,7 +2134,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -2187,7 +2185,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -2311,7 +2309,7 @@ describe("TrustDistribute", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -2362,7 +2360,7 @@ describe("TrustDistribute", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {

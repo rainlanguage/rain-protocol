@@ -11,7 +11,7 @@ contract PhasedTest is Phased {
 
     /// Exposes `scheduleNextPhase` for testing.
     /// @param nextPhaseBlock_ As per `scheduleNextPhase`.
-    function testScheduleNextPhase(uint32 nextPhaseBlock_) external {
+    function testScheduleNextPhase(uint nextPhaseBlock_) external {
         scheduleNextPhase(nextPhaseBlock_);
     }
 
@@ -44,7 +44,7 @@ contract PhasedTest is Phased {
     function toggleHookCondition() external { hookCondition = !hookCondition; }
 
     /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
         internal
         virtual
         override

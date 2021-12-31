@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "../tier/ERC20BalanceTier.sol";
 import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 /// @title ClaimERC1155Test
 /// Contract that implements claiming an erc1155 contingent on tiers for
@@ -16,9 +15,9 @@ import { Tier, ITier } from "../tier/ITier.sol";
 /// - The balance tier compares the current holdings of an erc20 against preset
 ///   values.
 /// - The tier by construction ensures the claim is restricted to anyone
-///   `Tier.THREE` and above.
+///   tier 3 and above.
 /// - The tier by construction also exposes `isTier` to provide further goodies
-///   to `Tier.FIVE` and above.
+///   to tier 5 and above.
 /// - The erc1155 enables and tracks minted NFTs.
 contract ClaimERC1155Test is
     ERC20BalanceTier,
@@ -30,8 +29,7 @@ contract ClaimERC1155Test is
 
     constructor(IERC20 redeemableToken_, uint256[8] memory tierValues_)
         ERC1155("https://example.com/{id}.json")
-        TierByConstructionClaim(this, Tier.THREE)
-        // solhint-disable-next-line no-empty-blocks
+        TierByConstructionClaim(this, 3)
         ERC20BalanceTier(ERC20BalanceTierConfig(
             redeemableToken_,
             tierValues_
@@ -39,14 +37,14 @@ contract ClaimERC1155Test is
 
     function _afterClaim(
         address account_,
-        uint256,
+        uint,
         bytes memory
     ) internal override {
-        // Anyone above `Tier.FIVE` gets more art and some good art.
-        bool isFive_ = isTier(account_, Tier.FIVE);
+        // Anyone above tier 5 gets more art and some good art.
+        bool isFive_ = isTier(account_, 5);
 
-        uint256[] memory ids_ = new uint256[](2);
-        uint256[] memory amounts_ = new uint256[](2);
+        uint256[] memory ids_ = new uint[](2);
+        uint256[] memory amounts_ = new uint[](2);
 
         ids_[0] = (ART);
         ids_[1] = (GOOD_ART);

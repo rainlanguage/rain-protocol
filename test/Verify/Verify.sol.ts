@@ -647,10 +647,12 @@ describe("Verify", async function () {
 
     const state0 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state0,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Nil,
+      (
+        await verify.statusAtBlock(
+          state0,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Nil),
       "status should be Nil"
     );
 
@@ -694,10 +696,12 @@ describe("Verify", async function () {
 
     const state1 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state1,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Added,
+      (
+        await verify.statusAtBlock(
+          state1,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Added),
       "status should be Added"
     );
 
@@ -708,10 +712,12 @@ describe("Verify", async function () {
 
     const state2 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state2,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Approved,
+      (
+        await verify.statusAtBlock(
+          state2,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Approved),
       "status should be Approved"
     );
 
@@ -722,24 +728,26 @@ describe("Verify", async function () {
 
     const state3 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state3,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Banned,
+      (
+        await verify.statusAtBlock(
+          state3,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Banned),
       "status should be Banned"
     );
 
     // interrogate history using latest state, before being cleared with `.remove()`
     assert(
-      (await verify.statusAtBlock(state3, blockBeforeAdd)) === Status.Nil,
+      (await verify.statusAtBlock(state3, blockBeforeAdd)).eq(Status.Nil),
       "status should be Nil before add"
     );
     assert(
-      (await verify.statusAtBlock(state3, blockBeforeApprove)) === Status.Added,
+      (await verify.statusAtBlock(state3, blockBeforeApprove)).eq(Status.Added),
       "status should be Added before approve"
     );
     assert(
-      (await verify.statusAtBlock(state3, blockBeforeBan)) === Status.Approved,
+      (await verify.statusAtBlock(state3, blockBeforeBan)).eq(Status.Approved),
       "status should be Approved before ban"
     );
 
@@ -748,10 +756,12 @@ describe("Verify", async function () {
 
     const state4 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state4,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Nil,
+      (
+        await verify.statusAtBlock(
+          state4,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Nil),
       "status should be cleared"
     );
   });
@@ -914,10 +924,12 @@ describe("Verify", async function () {
 
     const state0 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state0,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Nil,
+      (
+        await verify.statusAtBlock(
+          state0,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Nil),
       "status should be Nil"
     );
     assert(state0.addedSince === 0, `addedSince should be 0, got ${state0}`);
@@ -948,10 +960,12 @@ describe("Verify", async function () {
     const block1 = await ethers.provider.getBlockNumber();
     const state1 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state1,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Added,
+      (
+        await verify.statusAtBlock(
+          state1,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Added),
       "status should be Added"
     );
     assert(
@@ -973,10 +987,12 @@ describe("Verify", async function () {
     const block2 = await ethers.provider.getBlockNumber();
     const state2 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state2,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Approved,
+      (
+        await verify.statusAtBlock(
+          state2,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Approved),
       "status should be Approved"
     );
     assert(
@@ -998,10 +1014,12 @@ describe("Verify", async function () {
     const block3 = await ethers.provider.getBlockNumber();
     const state3 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state3,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Banned,
+      (
+        await verify.statusAtBlock(
+          state3,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Banned),
       "status should be Banned"
     );
     assert(
@@ -1022,10 +1040,12 @@ describe("Verify", async function () {
 
     const state4 = await verify.state(signer1.address);
     assert(
-      (await verify.statusAtBlock(
-        state4,
-        await ethers.provider.getBlockNumber()
-      )) === Status.Nil,
+      (
+        await verify.statusAtBlock(
+          state4,
+          await ethers.provider.getBlockNumber()
+        )
+      ).eq(Status.Nil),
       "status should be cleared"
     );
     assert(state4.addedSince === 0, "addedSince should be cleared");

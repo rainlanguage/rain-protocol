@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IFactory } from "../factory/IFactory.sol";
 import { FactoryTruster } from "../factory/FactoryTruster.sol";
 import { Trust, DistributionStatus, TrustContracts } from "../trust/Trust.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./TrustEscrow.sol";
 
 /// Escrow contract for ERC20 tokens to be deposited and withdrawn against
 /// redeemableERC20 tokens from a specific `Trust`.
@@ -20,8 +20,43 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /// distribution there are no issues with holders manipulating withdrawals by
 /// transferring tokens to claim multiple times.
 ///
+/// As redeemable tokens can be burned it is possible for the total supply to
+/// decrease over time, which naively would result in claims being larger
+/// retroactively (prorata increases beyond what can be paid).
+///
+/// For example:
+/// - Alice and Bob hold 50 rTKN each, 100 total supply
+/// - 100 TKN is deposited
+/// - Alice withdraws 50% of 100 TKN => alice holds 50 TKN escrow holds 50 TKN
+/// - Alice burns her 50 rTKN
+/// - Bob attempts to withdraw his 50 rTKN which is now 100% of supply
+/// - Escrow tries to pay 100% of 100 TKN deposited and fails as the escrow
+///   only holds 50 TKN (alice + bob = 150%).
+///
+/// To avoid the escrow allowing more withdrawals than deposits we include the
+/// total rTKN supply in the key of each deposit mapping, and include it in the
+/// emmitted event. Alice and Bob must read the events offchain and make a
+/// withdrawal relative to the rTKN supply as it was at deposit time. Many
+/// deposits can be made under a single rTKN supply and will all combine to a
+/// single withdrawal but deposits made across different supplies will require
+/// multiple withdrawals.
+///
+/// Alice or Bob could burn their tokens before withdrawing and would simply
+/// withdraw zero or only some of the deposited TKN. This hurts them
+/// individually, so they SHOULD check their indexer for claimable assets in
+/// the escrow before considering a burn. But neither of them can cause the
+/// other to be able to withdraw more or less relative to the supply as it was
+/// at the time of TKN being deposited, or to trick the escrow into overpaying
+/// more TKN than was deposited under a given `Trust`.
+///
+/// A griefer could attempt to flood the escrow with many dust deposits under
+/// many different supplies in an attempt to confuse alice/bob. They are free
+/// to filter out events in their indexer that come from an unknown depositor
+/// or fall below some dust value threshold.
+///
 /// Tokens may also exit the escrow as an `undeposit` call where the depositor
-/// receives back the tokens they deposited.
+/// receives back the tokens they deposited. As above the depositor must
+/// provide the rTKN supply from `deposit` time in order to `undeposit`.
 ///
 /// As `withdraw` and `undeposit` both represent claims on the same tokens they
 /// are mutually exclusive outcomes, hence the need for an escrow. The escrow
@@ -32,26 +67,30 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /// necessary in part because it is only safe to calculate entitlements once
 /// the redeemable tokens are fully distributed and frozen.
 ///
+/// Because much of the redeemable token supply will never be sold, and then
+/// burned, `depositPending` MUST be called rather than `deposit` while the
+/// raise is active. When the raise completes anon can call `sweepPending`
+/// which will calculate and emit a `Deposit` event for a useful `supply`.
+///
 /// Any supported ERC20 token can be deposited at any time BUT ONLY under a
 /// `Trust` contract that is the child of the `TrustFactory` that the escrow
-/// is deployed for. This prevents deposits for some token under a malicious
-/// `Trust` that lies about its current distribution status to drain the escrow
-/// of funds by "double spending" deposits as both `undeposit` and `withdraw`
-/// calls. Both `withdraw` and `undeposit` against an unknown/unfunded `Trust`
-/// are noops so there is no additional check against the `TrustFactory` at
-/// this point.
+/// is deployed for. `TrustEscrow` is used to prevent a `Trust` from changing
+/// the pass/fail outcome once it is known due to a bug/attempt to double
+/// spend escrow funds.
 ///
 /// This mechanism is very similar to the native burn mechanism on
 /// `redeemableERC20` itself under `redeem` but without requiring any tokens to
-/// be burned in the process.
+/// be burned in the process. Users can claim the same token many times safely,
+/// simply receiving 0 tokens if there is nothing left to claim.
 ///
 /// This does NOT support rebase/elastic token _balance_ mechanisms on the
 /// escrowed token as the escrow has no way to track deposits/withdrawals other
 /// than 1:1 conservation of input/output. For example, if 100 tokens are
-/// deposited and then that token rebases all balances to half, there will be
-/// 50 tokens in the escrow, but users will still be able to claim their share
-/// of 100 tokens - i.e. they will get paid out twice as much as the escrow
-/// actually holds.
+/// deposited under two different trusts and then that token rebases all
+/// balances to half, there will be 50 tokens in the escrow but the escrow will
+/// attempt transfers up to 100 tokens between the two trusts. Essentially the
+/// first 50 tokens will send and the next 50 tokens will fail because the
+/// trust literally doesn't have 100 tokens at that point.
 ///
 /// Elastic _supply_ tokens are supported as every token to be withdrawn must
 /// be first deposited, with the caveat that if some mechanism can
@@ -61,51 +100,199 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /// Using a real-world example, stETH from LIDO would be NOT be supported as
 /// the balance changes every day to reflect incoming ETH from validators, but
 /// wstETH IS supported as balances remain static while the underlying assets
-/// per unit of wstETH increase each day.
+/// per unit of wstETH increase each day. This is of course exactly why wstETH
+/// was created in the first place.
 ///
 /// Every escrowed token has a separate space in the deposited/withdrawn
 /// mappings so that some broken/malicious/hacked token that leads to incorrect
 /// token movement in/out of the escrow cannot impact other tokens, even for
 /// the same trust and redeemable.
-contract RedeemableERC20ClaimEscrow is FactoryTruster {
+contract RedeemableERC20ClaimEscrow is TrustEscrow {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
+    /// Emitted for every successful pending deposit.
+    event PendingDeposit(
+        /// Anon `msg.sender` depositing the token.
+        address sender,
+        /// `Trust` contract deposit is under.
+        address trust,
+        /// `IERC20` token being deposited.
+        address token,
+        /// Amount of token deposited.
+        uint amount
+    );
+
+    /// Emitted for every successful deposit.
     event Deposit(
-        address indexed trust,
-        address indexed token,
-        address indexed depositor,
-        uint256 amount
+        /// Anon `msg.sender` who originally deposited the token.
+        /// May NOT be the current `msg.sender` in the case of a pending sweep.
+        address depositor,
+        /// `Trust` contract deposit is under.
+        address trust,
+        /// `IERC20` token being deposited.
+        address token,
+        /// rTKN supply at moment of deposit.
+        uint supply,
+        /// Amount of token deposited.
+        uint amount
     );
 
+    /// Emitted for every successful undeposit.
     event Undeposit(
-        address indexed trust,
-        address indexed token,
-        address indexed undepositor,
-        uint256 amount
+        /// Anon `msg.sender` undepositing the token.
+        address sender,
+        /// `Trust` contract undeposit is from.
+        address trust,
+        /// `IERC20` token being undeposited.
+        address token,
+        /// rTKN supply at moment of deposit.
+        uint supply,
+        /// Amount of token undeposited.
+        uint amount
     );
 
+    /// Emitted for every successful withdrawal.
     event Withdraw(
-        address indexed trust,
-        address indexed token,
-        address indexed withdrawer,
-        uint256 amount
+        /// Anon `msg.sender` withdrawing the token.
+        address withdrawer,
+        /// `Trust` contract withdrawal is from.
+        address trust,
+        /// `IERC20` token being withdrawn.
+        address token,
+        /// rTKN supply at moment of deposit.
+        uint supply,
+        /// Amount of token withdrawn.
+        uint amount
     );
 
-    /// trust => withdrawn token => withdrawer => amount
-    mapping(address => mapping(address => mapping(address => uint256)))
+    /// Every time an address calls `withdraw` their withdrawals increases to
+    /// match the current `totalDeposits` for that trust/token combination.
+    /// The token amount they actually receive is only their prorata share of
+    /// that deposited balance. The prorata scaling calculation happens inline
+    /// within the `withdraw` function.
+    /// trust => withdrawn token => withdrawer => rTKN supply => amount
+    mapping(address =>
+        mapping(address =>
+            mapping(address =>
+                mapping(uint => uint))))
         public withdrawals;
 
-    /// trust => deposited token => depositor => amount
-    mapping(address => mapping(address => mapping(address => uint256)))
-        public deposits;
-    /// trust => deposited token => amount
-    mapping(address => mapping(address => uint256)) public totalDeposits;
+    /// Deposits during an active raise are desirable to trustlessly prove to
+    /// raise participants that they will in fact be able to access the TKN
+    /// after the raise succeeds. Deposits during the pending stage are set
+    /// aside with no rTKN supply mapping, to be swept into a real deposit by
+    /// anon once the raise completes.
+    mapping(address => mapping(address => mapping(address => uint)))
+        public pendingDeposits;
 
-    /// @param trustFactory_ forwarded to `FactoryTruster`.
-    constructor(IFactory trustFactory_)
-        FactoryTruster(trustFactory_)
-        { } //solhint-disable-line no-empty-blocks
+    /// Every time an address calls `deposit` their deposited trust/token
+    /// combination is increased. If they call `undeposit` when the raise has
+    /// failed they will receive the full amount they deposited back. Every
+    /// depositor must call `undeposit` for themselves.
+    /// trust => deposited token => depositor => rTKN supply => amount
+    mapping(address =>
+        mapping(address =>
+            mapping(address =>
+                mapping(uint => uint))))
+        public deposits;
+
+    /// Every time an address calls `deposit` the amount is added to that
+    /// trust/token/supply combination. This increase becomes the
+    /// "high water mark" that withdrawals move up to with each `withdraw`
+    /// call.
+    /// trust => deposited token => rTKN supply => amount
+    mapping(address => mapping(address => mapping(uint => uint)))
+        public totalDeposits;
+
+    /// @param trustFactory_ forwarded to `TrustEscrow` only.
+    constructor(address trustFactory_)
+        TrustEscrow(trustFactory_)
+        { } // solhint-disable-line no-empty-blocks
+
+    /// Depositor can set aside tokens during pending raise status to be swept
+    /// into a real deposit later.
+    /// The problem with doing a normal deposit while the raise is still active
+    /// is that the `Trust` will burn all unsold tokens when the raise ends. If
+    /// we captured the token supply mid-raise then many deposited TKN would
+    /// be allocated to unsold rTKN. Instead we set aside TKN so that raise
+    /// participants can be sure that they will be claimable upon raise success
+    /// but they remain unbound to any rTKN supply until `sweepPending` is
+    /// called.
+    /// `depositPending` is a one-way function, there is no way to `undeposit`
+    /// until after the raise fails. Strongly recommended that depositors do
+    /// NOT call `depositPending` until raise starts, so they know it will also
+    /// end.
+    /// @param trust_ The `Trust` to assign this deposit to.
+    /// @param token_ The `IERC20` token to deposit to the escrow.
+    /// @param amount_ The amount of token to despoit. Requires depositor has
+    /// approved at least this amount to succeed.
+    function depositPending(Trust trust_, IERC20 token_, uint amount_)
+        external
+        onlyTrustedFactoryChild(address(trust_))
+    {
+        require(amount_ > 0, "ZERO_DEPOSIT");
+        require(
+            getEscrowStatus(trust_) == EscrowStatus.Pending,
+            "NOT_PENDING"
+        );
+        pendingDeposits[address(trust_)][address(token_)][msg.sender]
+            += amount_;
+
+        emit PendingDeposit(
+            msg.sender,
+            address(trust_),
+            address(token_),
+            amount_
+        );
+
+        token_.safeTransferFrom(msg.sender, address(this), amount_);
+    }
+
+    /// Internal accounting for a deposit.
+    /// Identical for both a direct deposit and sweeping a pending deposit.
+    function registerDeposit (
+        Trust trust_,
+        address token_,
+        address depositor_,
+        uint amount_
+    )
+        private
+    {
+        require(getEscrowStatus(trust_) > EscrowStatus.Pending, "PENDING");
+        require(amount_ > 0, "ZERO_DEPOSIT");
+
+        uint supply_ = trust_.token().totalSupply();
+
+        deposits[address(trust_)][token_][depositor_][supply_] += amount_;
+        totalDeposits[address(trust_)][token_][supply_] += amount_;
+
+        emit Deposit(
+            depositor_,
+            address(trust_),
+            address(token_),
+            supply_,
+            amount_
+        );
+    }
+
+    /// Anon can convert any existing pending deposit to a deposit with known
+    /// rTKN supply once the escrow has moved out of pending status.
+    /// As `sweepPending` is anon callable, raise participants know that the
+    /// depositor cannot later prevent a sweep, and depositor knows that raise
+    /// participants cannot prevent a sweep. As per normal deposits, the output
+    /// of swept tokens depends on success/fail state allowing `undeposit` or
+    /// `withdraw` to be called subsequently.
+    /// Partial sweeps are NOT supported, to avoid griefers splitting a deposit
+    /// across many different `supply_` values.
+    function sweepPending(Trust trust_, address token_, address depositor_)
+        external
+        onlyTrustedFactoryChild(address(trust_))
+    {
+        uint amount_ = pendingDeposits[address(trust_)][token_][depositor_];
+        delete pendingDeposits[address(trust_)][token_][depositor_];
+        registerDeposit(trust_, token_, depositor_, amount_);
+    }
 
     /// Any address can deposit any amount of its own `IERC20` under a `Trust`.
     /// The `Trust` MUST be a child of the trusted factory.
@@ -115,32 +302,26 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// The depositor is responsible for approving the token for this contract.
     /// `deposit` is disabled when the distribution fails; only `undeposit` is
     /// allowed in case of a fail. Multiple `deposit` calls before and after a
-    /// success result are supported.
+    /// success result are supported. If a depositor deposits when a raise has
+    /// failed they will need to undeposit it again manually.
     /// Delegated `deposit` is not supported. Every depositor is directly
     /// responsible for every `deposit`.
+    /// WARNING: As `undeposit` can only be called when the `Trust` reports
+    /// failure, `deposit` should only be called when the caller is sure the
+    /// `Trust` will reach a clear success/fail status. For example, when a
+    /// `Trust` has not yet been seeded it may never even start the raise so
+    /// depositing at this point is dangerous. If the `Trust` never starts the
+    /// raise it will never fail the raise either.
     /// @param trust_ The `Trust` to assign this deposit to.
     /// @param token_ The `IERC20` token to deposit to the escrow.
-    /// @param amount_ The amount of token to deposit. Assumes depositor has
+    /// @param amount_ The amount of token to deposit. Requires depositor has
     /// approved at least this amount to succeed.
-    function deposit(Trust trust_, IERC20 token_, uint256 amount_)
+    function deposit(Trust trust_, IERC20 token_, uint amount_)
         external
         onlyTrustedFactoryChild(address(trust_))
     {
-        deposits[address(trust_)][address(token_)][msg.sender]
-            = amount_ + deposits[address(trust_)][address(token_)][msg.sender];
-        totalDeposits[address(trust_)][address(token_)]
-            = amount_ + totalDeposits[address(trust_)][address(token_)];
-
-        // Technically a reentrant `require` even though we explicitly trust
-        // the `trust_` this helps automated auditing tools.
-        require(
-            trust_.getDistributionStatus() != DistributionStatus.Fail,
-            "FAIL_DEPOSIT"
-        );
-        emit Deposit(address(trust_), address(token_), msg.sender, amount_);
-
+        registerDeposit(trust_, address(token_), msg.sender, amount_);
         token_.safeTransferFrom(msg.sender, address(this), amount_);
-
     }
 
     /// The inverse of `deposit`.
@@ -149,11 +330,9 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// Ideally the distribution is a success and this does not need to be
     /// called but it is important that we can walk back deposits and try again
     /// for some future raise if needed.
-    /// Partial `undeposit` is not supported. Several `deposits` under a single
-    /// depositor will all be processed as a single `undeposit`.
     /// Delegated `undeposit` is not supported, only the depositor can wind
     /// back their original deposit.
-    /// 0 amount `undeposit` is a noop.
+    /// `amount_` must be non-zero.
     /// If several tokens have been deposited against a given trust for the
     /// depositor then each token must be individually undeposited. There is
     /// no onchain tracking or bulk processing for the depositor, they are
@@ -161,27 +340,28 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// process an `undeposit`.
     /// @param trust_ The `Trust` to undeposit from.
     /// @param token_ The token to undeposit.
-    function undeposit(Trust trust_, IERC20 token_) external {
-        uint256 amount_
-            = deposits[address(trust_)][address(token_)][msg.sender];
-        if (amount_ > 0) {
-            delete deposits[address(trust_)][address(token_)][msg.sender];
-            totalDeposits[address(trust_)][address(token_)]
-                = amount_ - totalDeposits[address(trust_)][address(token_)];
+    function undeposit(Trust trust_, IERC20 token_, uint supply_, uint amount_)
+        external
+    {
+        // Can only undeposit when the `Trust` reports failure.
+        require(getEscrowStatus(trust_) == EscrowStatus.Fail, "NOT_FAIL");
+        require(amount_ > 0, "ZERO_AMOUNT");
 
-            require(
-                trust_.getDistributionStatus() == DistributionStatus.Fail,
-                "ONLY_FAIL"
-            );
-            emit Undeposit(
-                address(trust_),
-                address(token_),
-                msg.sender,
-                amount_
-            );
+        deposits[address(trust_)][address(token_)][msg.sender][supply_]
+            -= amount_;
+        // Guard against outputs exceeding inputs.
+        // Last undeposit gets a gas refund.
+        totalDeposits[address(trust_)][address(token_)][supply_] -= amount_;
 
-            token_.safeTransfer(msg.sender, amount_);
-        }
+        emit Undeposit(
+            msg.sender,
+            address(trust_),
+            address(token_),
+            supply_,
+            amount_
+        );
+
+        token_.safeTransfer(msg.sender, amount_);
     }
 
     /// The successful handover of a `deposit` to a recipient.
@@ -199,56 +379,59 @@ contract RedeemableERC20ClaimEscrow is FactoryTruster {
     /// that they will be withdrawing. This information is NOT tracked onchain
     /// or exposed for bulk processing.
     /// Partial `withdraw` is not supported, all tokens allocated to the caller
-    /// are withdrawn`. 0 amount withdrawal is a noop.
+    /// are withdrawn`. 0 amount withdrawal is an error, if the prorata share
+    /// of the token being claimed is small enough to round down to 0 then the
+    /// withdraw will revert.
     /// Multiple withdrawals across multiple deposits is supported and is
     /// equivalent to a single withdraw after all relevant deposits.
     /// @param trust_ The trust to `withdraw` against.
     /// @param token_ The token to `withdraw`.
-    function withdraw(Trust trust_, IERC20 token_) external {
-        uint256 totalDeposited_
-            = totalDeposits[address(trust_)][address(token_)];
-        uint256 withdrawn_
-            = withdrawals[address(trust_)][address(token_)][msg.sender];
+    function withdraw(Trust trust_, IERC20 token_, uint supply_) external {
+        // Can only withdraw when the `Trust` reports success.
+        require(
+            getEscrowStatus(trust_) == EscrowStatus.Success,
+            "NOT_SUCCESS"
+        );
 
-        if (totalDeposited_ > withdrawn_) {
-            withdrawals[address(trust_)][address(token_)][msg.sender]
-                = totalDeposited_;
+        uint totalDeposited_
+            = totalDeposits[address(trust_)][address(token_)][supply_];
+        uint withdrawn_ = withdrawals
+            [address(trust_)]
+            [address(token_)]
+            [msg.sender]
+            [supply_];
 
-            // Technically reentrant call to our trusted trust.
-            // Called after state changes to help automated audit tools.
-            require(
-                trust_.getDistributionStatus() == DistributionStatus.Success,
-                "ONLY_SUCCESS"
-            );
-            TrustContracts memory trustContracts_ = trust_.getContracts();
-            // Guard against rounding errors blocking the last withdraw.
-            // The issue would be if rounding errors in the withdrawal
-            // trigger an attempt to withdraw more redeemable than is owned
-            // by the escrow. This is probably snake oil because integer
-            // division results in flooring rather than rounding up/down.
-            // IMPORTANT: Rounding errors in the inverse direction, i.e.
-            // that leave dust trapped in the escrow after all accounts
-            // have fully withdrawn are NOT guarded against.
-            // For example, if 100 tokens are split between 3 accounts then
-            // each account will receive 33 tokens, effectively burning 1
-            // token as it cannot be withdrawn from the escrow contract.
-            uint256 amount_ = token_.balanceOf(address(this)).min(
+        RedeemableERC20 redeemable_ = trust_.token();
+
+        withdrawals[address(trust_)][address(token_)][msg.sender][supply_]
+            = totalDeposited_;
+
+        uint amount_ =
+            (
+                // Underflow MUST error here (should not be possible).
                 ( totalDeposited_ - withdrawn_ )
-                * RedeemableERC20(trustContracts_.redeemableERC20)
-                    .balanceOf(msg.sender)
-                / RedeemableERC20(trustContracts_.redeemableERC20)
-                    .totalSupply()
-            );
-            emit Withdraw(
-                address(trust_),
-                address(token_),
-                msg.sender,
-                amount_
-            );
-            token_.safeTransfer(
-                msg.sender,
-                amount_
-            );
-        }
+                // prorata share of `msg.sender`'s current balance vs. supply
+                // as at the time deposit was made. If nobody burns they will
+                // all get a share rounded down by integer division. 100 split
+                // 3 ways will be 33 tokens each, leaving 1 TKN as escrow dust,
+                // for example. If someone burns before withdrawing they will
+                // receive less, so 0/33/33 from 100 with 34 TKN as escrow
+                // dust, for example.
+                * redeemable_.balanceOf(msg.sender)
+            )
+            / supply_;
+
+        require(amount_ > 0, "ZERO_WITHDRAW");
+        emit Withdraw(
+            msg.sender,
+            address(trust_),
+            address(token_),
+            supply_,
+            amount_
+        );
+        token_.safeTransfer(
+            msg.sender,
+            amount_
+        );
     }
 }

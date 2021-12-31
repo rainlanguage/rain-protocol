@@ -32,7 +32,7 @@ The token minting, distribution, burning is all trustless as the deployed `Trust
 
 As each `Trust` is dedicated to a specific project or event there are no admin or upgrade functions. Future versions of `Trust` will simply be picked up by new projects and events as they arise.
 
-The `Trust` has native integration with the `Tier` membership system included as a git submodule. Any account that does not have a minimum membership status cannot receive the distributed token and so cannot participate. This allows additional requirements to be placed on the participants by the deployer of the trust.
+The `Trust` has native integration with the `ITier` membership system included as a git submodule. Any account that does not have a minimum membership status cannot receive the distributed token and so cannot participate. This allows additional requirements to be placed on the participants by the deployer of the trust.
 
 ## A note on regulatory compliance
 
@@ -47,7 +47,7 @@ The stakeholders are:
 
 Without offering legal advice, one hypothetical way this could look (something like KickStarter):
 
-- The creator and deployer of the `Trust` creates a `Tier` contract that allows only close friends and family to hold a membership status
+- The creator and deployer of the `Trust` creates a `ITier` contract that allows only close friends and family to hold a membership status
 - The creator, who is a crypto-enthusiast and musician, decides to hold an intimate "fans only" event, using signatures from the accounts holding a frozen token balance as tickets to her event
 
 As the creator knows all her fans, and the token balances are frozen (cannot be traded on a secondary market), and the reward for holding the tokens is a one-time in person event, it's unlikely to be considered a public sale of an investment contract (for example) or cause KYC issues.

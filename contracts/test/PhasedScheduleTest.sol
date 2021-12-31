@@ -8,7 +8,7 @@ import { Phase, Phased } from "../phased/Phased.sol";
 contract PhasedScheduleTest is Phased {
     /// Exposes `scheduleNextPhase` for testing.
     /// @param nextPhaseBlock_ As per `scheduleNestPhase`.
-    function testScheduleNextPhase(uint32 nextPhaseBlock_) external {
+    function testScheduleNextPhase(uint nextPhaseBlock_) external {
         scheduleNextPhase(nextPhaseBlock_);
     }
 
@@ -16,7 +16,7 @@ contract PhasedScheduleTest is Phased {
     { } // solhint-disable-line no-empty-blocks
 
     /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
         internal
         virtual
         override

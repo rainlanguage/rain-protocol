@@ -11,7 +11,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { Phase, Phased } from "../phased/Phased.sol";
 import { Cooldown } from "../cooldown/Cooldown.sol";
 
-import { ERC20Pull } from "../erc20/ERC20Pull.sol";
+import { ERC20Pull, ERC20PullConfig } from "../erc20/ERC20Pull.sol";
 
 /// Everything required to construct a `SeedERC20` contract.
 struct SeedERC20Config {
@@ -20,20 +20,20 @@ struct SeedERC20Config {
     // Recipient address for all reserve funds raised when seeding is complete.
     address recipient;
     // Price per seed unit denominated in reserve token.
-    uint256 seedPrice;
+    uint seedPrice;
     // Total seed units to be mint and sold.
     // 100% of all seed units must be sold for seeding to complete.
     // Recommended to keep seed units to a small value (single-triple digits).
     // The ability for users to buy/sell or not buy/sell dust seed quantities
     // is likely NOT desired.
-    uint16 seedUnits;
+    uint seedUnits;
     // Cooldown duration in blocks for seed/unseed cycles.
     // Seeding requires locking funds for at least the cooldown period.
     // Ideally `unseed` is never called and `seed` leaves funds in the contract
     // until all seed tokens are sold out.
     // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
     // but it should be called rarely.
-    uint16 cooldownDuration;
+    uint cooldownDuration;
     // ERC20 config.
     ERC20Config erc20Config;
 }
@@ -46,13 +46,13 @@ struct SeedERC20Config {
 ///
 /// The `SeedERC20` has two phases:
 ///
-/// - `Phase.ZERO`: Can swap seed tokens for reserve assets with
-/// `seed` and `unseed`
+/// - `Phase.ZERO`: Can swap seed tokens for reserve assets with `seed` and
+///   `unseed`
 /// - `Phase.ONE`: Can redeem seed tokens pro-rata for reserve assets
 ///
-/// When the last seed token is distributed the `SeedERC20`
-/// immediately moves to `Phase.ONE` atomically within that
-/// transaction and forwards all reserve to the configured recipient.
+/// When the last seed token is distributed the `SeedERC20` immediately moves
+/// to `Phase.ONE` atomically within that transaction and forwards all reserve
+/// to the configured recipient.
 ///
 /// For our use-case the recipient is a `Trust` contract but `SeedERC20`
 /// could be used as a mini-fundraise contract for many purposes. In the case
@@ -63,7 +63,7 @@ struct SeedERC20Config {
 /// contract.
 /// The funds to raise and the recipient is fixed at construction.
 /// The total is calculated as `( seedPrice * seedUnits )` and so is a fixed
-/// amount. It is recommended to keep seedUnits relatively small so that each
+/// amount. It is recommended to keep `seedUnits` relatively small so that each
 /// unit represents a meaningful contribution to keep dust out of the system.
 ///
 /// The contract lifecycle is split into two phases:
@@ -96,29 +96,31 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     using SafeERC20 for IERC20;
 
     /// Seed token burn for reserve.
-    /// @param redeemer Account burning and receiving.
-    /// @param redeemAmounts Number of seed tokens burned.
     /// Number of reserve redeemed for burned seed tokens.
     /// `[seedAmount, reserveAmount]`
     event Redeem(
-        address indexed redeemer,
-        uint256[2] redeemAmounts
+        /// Anon `msg.sender`. burning and receiving reserve for self.
+        address sender,
+        /// Number of seed tokens burned.
+        uint[2] redeemAmounts
     );
 
-    /// @param seeder Account seeding.
-    /// @param seedAmounts Number of tokens seeded.
-    /// Number of reserve sent for seed tokens.
+    /// Reserve was paid in exchange for seed tokens.
     event Seed(
-        address indexed seeder,
-        uint256[2] seedAmounts
+        /// Anon `msg.sender` seeding.
+        address sender,
+        /// Seed amounts.
+        /// `[ Amount of tokens seeded, Amount of reserve sent ]`
+        uint[2] seedAmounts
     );
 
-    /// @param unseeder Account unseeding.
-    /// @param unseedAmounts Number of tokens unseeded.
-    /// Number of reserve tokens returned for unseeded tokens.
+    /// Reserve was refunded for seed tokens.
     event Unseed(
-        address indexed unseeder,
-        uint256[2] unseedAmounts
+        /// Anon `msg.sender` unseeding.
+        address sender,
+        /// Unseed amounts.
+        /// `[ Amount of tokens unseeded, Amount of reserve tokens returned ]`
+        uint[2] unseedAmounts
     );
 
     /// Reserve erc20 token contract used to purchase seed tokens.
@@ -127,7 +129,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// complete.
     address public immutable recipient;
     /// Price in reserve for a unit of seed token.
-    uint256 public immutable seedPrice;
+    uint public immutable seedPrice;
 
     /// Sanity checks on configuration.
     /// Store relevant config as contract state.
@@ -136,7 +138,10 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     constructor (SeedERC20Config memory config_)
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
         Cooldown(config_.cooldownDuration)
-        ERC20Pull(config_.recipient)
+        ERC20Pull(ERC20PullConfig(
+            config_.recipient,
+            address(config_.reserve)
+        ))
     {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
@@ -148,9 +153,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     }
 
     /// @inheritdoc ERC20
-    function decimals() public pure override returns(uint8) {
-        return 0;
-    }
+    function decimals() public pure override returns(uint8) { return 0; }
 
     /// Take reserve from seeder as `units * seedPrice`.
     ///
@@ -172,23 +175,22 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// @param minimumUnits_ The minimum units the caller will accept for a
     /// successful `seed` call.
     /// @param desiredUnits_ The maximum units the caller is willing to fund.
-    function seed(uint256 minimumUnits_, uint256 desiredUnits_)
+    function seed(uint minimumUnits_, uint desiredUnits_)
         external
         onlyPhase(Phase.ZERO)
         onlyAfterCooldown
     {
         require(desiredUnits_ > 0, "DESIRED_0");
         require(minimumUnits_ <= desiredUnits_, "MINIMUM_OVER_DESIRED");
-        uint256 remainingStock_ = balanceOf(address(this));
+        uint remainingStock_ = balanceOf(address(this));
         require(minimumUnits_ <= remainingStock_, "INSUFFICIENT_STOCK");
 
-        uint256 units_ = desiredUnits_.min(remainingStock_);
-        uint256 reserveAmount_ = seedPrice * units_;
+        uint units_ = desiredUnits_.min(remainingStock_);
+        uint reserveAmount_ = seedPrice * units_;
 
-        // If `remainingStock_` is less than units then the transfer below will
-        // fail and rollback.
+        // Sold out. Move to the next phase.
         if (remainingStock_ == units_) {
-            scheduleNextPhase(uint32(block.number));
+            scheduleNextPhase(block.number);
         }
         _transfer(address(this), msg.sender, units_);
 
@@ -227,12 +229,12 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// - Call redeem and burn the seed tokens
     ///
     /// @param units_ Units to unseed.
-    function unseed(uint256 units_)
+    function unseed(uint units_)
         external
         onlyPhase(Phase.ZERO)
         onlyAfterCooldown
     {
-        uint256 reserveAmount_ = seedPrice * units_;
+        uint reserveAmount_ = seedPrice * units_;
         _transfer(msg.sender, address(this), units_);
 
         emit Unseed(
@@ -240,7 +242,6 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
             [units_, reserveAmount_]
         );
 
-        // Reentrant reserve transfer.
         reserve.safeTransfer(msg.sender, reserveAmount_);
     }
 
@@ -263,21 +264,17 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// (in this repo) it will receive a refund or refund + fee.
     /// @param units_ Amount of seed units to burn and redeem for reserve
     /// assets.
-    function redeem(uint256 units_) external onlyPhase(Phase.ONE) {
-        uint256 supplyBeforeBurn_ = totalSupply();
-        _burn(msg.sender, units_);
-
-        uint256 currentReserveBalance_ = reserve.balanceOf(address(this));
+    function redeem(uint units_) external onlyPhase(Phase.ONE) {
+        uint currentReserveBalance_ = reserve.balanceOf(address(this));
         // Guard against someone accidentally calling redeem before any reserve
         // has been returned.
         require(currentReserveBalance_ > 0, "RESERVE_BALANCE");
-        uint256 reserveAmount_
+        uint reserveAmount_
             = ( units_ * currentReserveBalance_ )
-            / supplyBeforeBurn_;
-        emit Redeem(
-            msg.sender,
-            [units_, reserveAmount_]
-        );
+            / totalSupply();
+
+        _burn(msg.sender, units_);
+        emit Redeem(msg.sender, [units_, reserveAmount_]);
         reserve.safeTransfer(
             msg.sender,
             reserveAmount_
@@ -286,7 +283,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
 
     /// Sanity check the last phase is `Phase.ONE`.
     /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
         internal
         override
         virtual

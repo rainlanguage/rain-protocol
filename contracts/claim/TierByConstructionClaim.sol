@@ -1,21 +1,26 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 import { IClaim } from "./IClaim.sol";
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
 
 /// @title TierByConstructionClaim
+///
+/// @notice DEPRECATED:
+/// This contract was written before rainVM. In the future everything this
+/// contract does should be handled better and more generally in the future by
+/// `EmissionsERC20` style contracts with appropriate opcodes.
+///
 /// @notice `TierByConstructionClaim` is a base contract for other contracts to
 /// inherit from.
 ///
-/// It builds on `TierByConstruction` with a `claim` function and `_afterClaim`
-/// hook.
+/// It builds on `TierByConstruction` by implementing `IClaim` and an
+/// `_afterClaim` hook.
 ///
-/// The `claim` function checks `onlyTier` and exposes `isTier` for
-/// `_afterClaim` hooks so that accounts can self-mint rewards such as erc20,
-/// erc1155, erc721, etc. if they meet the tier requirements.
+/// The `claim` function checks `onlyTier` and `TierByConstruction` exposes
+/// `isTier` for `_afterClaim` hooks so that accounts can self-mint rewards
+/// such as erc20, erc1155, erc721, etc. if they meet the `ITier` requirements.
 ///
 /// The `claim` function can only be called once per account.
 ///
@@ -53,7 +58,7 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
     /// The minimum tier required for an address to claim anything at all.
     /// This tier must have been held continuously since before this
     /// contract was constructed.
-    Tier public immutable minimumTier;
+    uint public immutable minimumTier;
 
     /// Tracks every address that has already claimed to prevent duplicate
     /// claims.
@@ -65,14 +70,14 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
     /// The minimum tier is set for `claim` logic.
     /// @param tierContract_ The tier contract to reference for each claim.
     /// @param minimumTier_ Minimum tier required for any claim to be valid.
-    constructor(ITier tierContract_, Tier minimumTier_)
+    constructor(ITier tierContract_, uint minimumTier_)
         TierByConstruction(tierContract_)
     {
         minimumTier = minimumTier_;
     }
 
     /// The `onlyTier` modifier checks the claimant against `minimumTier`.
-    /// The ITier contract decides for itself whether the claimant is
+    /// The `ITier` contract decides for itself whether the claimant is
     /// `minimumTier` __as at the block this contract was constructed__.
     /// This may be ambiguous for `ReadOnlyTier` contracts that may not have
     /// accurate block times and fallback to `0` when the block is unknown.
@@ -94,34 +99,31 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
     /// - `data_` may be set arbitrarily by `msg.sender` so could be
     /// consumed frivilously at the expense of `account_`.
     ///
-    /// @param account_ The account that receives the benefits of the claim.
+    /// @param claimant_ The account that receives the benefits of the claim.
     /// @param data_ Additional data that may inform the claim process.
-    function claim(address account_, bytes memory data_)
+    function claim(address claimant_, bytes memory data_)
         external
-        onlyTier(account_, minimumTier)
+        onlyTier(claimant_, minimumTier)
     {
         // Prevent duplicate claims for a given account.
-        require(!claims[account_], "DUPLICATE_CLAIM");
+        require(!claims[claimant_], "DUPLICATE_CLAIM");
 
         // Record that a claim has been made for this account.
-        claims[account_] = true;
+        claims[claimant_] = true;
 
         // Log the claim.
-        emit Claim(account_, data_);
+        emit Claim(claimant_, data_);
 
         // Process the claim.
         // Inheriting contracts will need to override this to make
         // the claim useful.
-        _afterClaim(account_, tierContract.report(account_), data_);
+        _afterClaim(claimant_, tierContract.report(claimant_), data_);
     }
 
     /// Implementing contracts need to define what is claimed.
-    // Slither false positive. This is intended to overridden.
-    // https://github.com/crytic/slither/issues/929
-    // slither-disable-next-line dead-code
     function _afterClaim(
-        address account_,
-        uint256 report_,
+        address claimant_,
+        uint report_,
         bytes memory data_
     )
         internal virtual

@@ -3,46 +3,45 @@
 pragma solidity ^0.8.10;
 
 import { TierReport } from "./libraries/TierReport.sol";
-import { Tier, ITier } from "./ITier.sol";
+import { ITier } from "./ITier.sol";
 
 /// @title TierByConstruction
-/// @notice `TierByConstruction` is a base contract for other
-/// contracts to inherit from.
+/// @notice `TierByConstruction` is a base contract for other contracts to
+/// inherit from.
 ///
 /// It exposes `isTier` and the corresponding modifier `onlyTier`.
 ///
-/// This ensures that the address has held at least the given tier
-/// since the contract was constructed.
+/// This ensures that the address has held at least the given tier since the
+/// contract was constructed.
 ///
-/// We check against the construction time of the contract rather
-/// than the current block to avoid various exploits.
+/// We check against the construction time of the contract rather than the
+/// current block to avoid various exploits.
 ///
-/// Users should not be able to gain a tier for a single block, claim
-/// benefits then remove the tier within the same block.
+/// Users should not be able to gain a tier for a single block, claim benefits
+/// then remove the tier within the same block.
 ///
-/// The construction block provides a simple and generic reference
-/// point that is difficult to manipulate/predict.
+/// The construction block provides a simple and generic reference point that
+/// is difficult to manipulate/predict.
 ///
-/// Note that `ReadOnlyTier` contracts must carefully consider use
-/// with `TierByConstruction` as they tend to return `0x00000000` for
-/// any/all tiers held. There needs to be additional safeguards to
-/// mitigate "flash tier" attacks.
+/// Note that `ReadOnlyTier` contracts must carefully consider use with
+/// `TierByConstruction` as they tend to return `0x00000000` for any/all tiers
+/// held. There needs to be additional safeguards to mitigate "flash tier"
+/// attacks.
 ///
-/// Note that an account COULD be `TierByConstruction` then lower/
-/// remove a tier, then no longer be eligible when they regain the
-/// tier. Only _continuously held_ tiers are valid against the
-/// construction block check as this is native behaviour of the
-/// `report` function in `ITier`.
+/// Note that an account COULD be `TierByConstruction` then lower/remove a
+/// tier, then no longer be eligible when they regain the tier. Only
+/// _continuously held_ tiers are valid against the construction block check as
+/// this is native behaviour of the `report` function in `ITier`.
 ///
-/// Technically the `ITier` could re-enter the `TierByConstruction`
-/// so the `onlyTier` modifier runs AFTER the modified function.
+/// Technically the `ITier` could re-enter the `TierByConstruction` so the
+/// `onlyTier` modifier runs AFTER the modified function.
 ///
 /// @dev Enforces tiers held by contract contruction block.
 /// The construction block is compared against the blocks returned by `report`.
 /// The `ITier` contract is paramaterised and set during construction.
 contract TierByConstruction {
     ITier public tierContract;
-    uint256 public constructionBlock;
+    uint public constructionBlock;
 
     constructor(ITier tierContract_) {
         tierContract = tierContract_;
@@ -60,7 +59,7 @@ contract TierByConstruction {
     /// @param account_ Account to check status of.
     /// @param minimumTier_ Minimum tier for the account.
     /// @return True if the status is currently held.
-    function isTier(address account_, Tier minimumTier_)
+    function isTier(address account_, uint minimumTier_)
         public
         view
         returns (bool)
@@ -79,7 +78,7 @@ contract TierByConstruction {
     /// `ITier` code.
     /// Also `report` from `ITier` is `view` so the compiler will error on
     /// attempted state modification.
-    // solhint-disable-next-line max-line-length
+    //  solhint-disable-next-line max-line-length
     /// https://consensys.github.io/smart-contract-best-practices/recommendations/#use-modifiers-only-for-checks
     ///
     /// Do NOT use this to guard setting the tier on an `ITier` contract.
@@ -88,7 +87,7 @@ contract TierByConstruction {
     ///
     /// @param account_ Account to enforce tier of.
     /// @param minimumTier_ Minimum tier for the account.
-    modifier onlyTier(address account_, Tier minimumTier_) {
+    modifier onlyTier(address account_, uint minimumTier_) {
         _;
         require(
             isTier(account_, minimumTier_),

@@ -14,8 +14,7 @@ contract ERC20BalanceTierFactory is Factory {
     ) internal virtual override returns(address) {
         (ERC20BalanceTierConfig memory config_)
             = abi.decode(data_, (ERC20BalanceTierConfig));
-        ERC20BalanceTier erc20BalanceTier_ = new ERC20BalanceTier(config_);
-        return address(erc20BalanceTier_);
+        return address(new ERC20BalanceTier(config_));
     }
 
     /// Typed wrapper for `createChild` with `ERC20BalanceTierConfig`.

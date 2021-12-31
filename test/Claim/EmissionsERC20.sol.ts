@@ -30,21 +30,15 @@ const enum Opcode {
   mul,
   div,
   mod,
-  pow,
+  exp,
   min,
   max,
-  average,
   report,
   never,
   always,
   diff,
   updateBlocksForTierRange,
-  everyLteMin,
-  everyLteMax,
-  everyLteFirst,
-  anyLteMin,
-  anyLteMax,
-  anyLteFirst,
+  selectLte,
   account,
   constructionBlockNumber,
 }
@@ -212,7 +206,7 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.diff),
           CURRENT_BLOCK_AS_REPORT(),
-          op(Opcode.anyLteMax, 2),
+          op(Opcode.selectLte, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
             LAST_CLAIM_REPORT(),
             TIER_REPORT(),
             op(Opcode.blockNumber),
@@ -494,7 +488,7 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.diff),
           CURRENT_BLOCK_AS_REPORT(),
-          op(Opcode.anyLteMax, 2),
+          op(Opcode.selectLte, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
             LAST_CLAIM_REPORT(),
             TIER_REPORT(),
           op(Opcode.blockNumber),
@@ -728,7 +722,7 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.diff),
           CURRENT_BLOCK_AS_REPORT(),
-          op(Opcode.anyLteMax, 2),
+          op(Opcode.selectLte, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
             LAST_CLAIM_REPORT(),
             TIER_REPORT(),
           op(Opcode.blockNumber),
@@ -1074,9 +1068,6 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const constructionBlockNumber =
-      (await ethers.provider.getBlockNumber()) + 1;
-
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
       emissionsERC20Factory,
@@ -1096,11 +1087,5 @@ describe("EmissionsERC20", async function () {
     );
 
     assert(await emissionsERC20.allowDelegatedClaims());
-    assert(
-      (await emissionsERC20.constructionBlockNumber()).eq(constructionBlockNumber),
-      `wrong construction block number
-      expected  ${constructionBlockNumber}
-      got       ${await emissionsERC20.constructionBlockNumber()}`
-    );
   });
 });

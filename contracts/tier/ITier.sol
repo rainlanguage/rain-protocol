@@ -1,30 +1,11 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
-
-/// 9 Possible tiers.
-/// Fits nicely as uint32 in uint256 which is helpful for internal storage
-/// concerns.
-/// 8 tiers can be achieved, ZERO is the tier when no tier has been
-/// achieved.
-enum Tier {
-    ZERO,
-    ONE,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    EIGHT
-}
 
 /// @title ITier
 /// @notice `ITier` is a simple interface that contracts can
 /// implement to provide membership lists for other contracts.
 ///
-/// There are many use-cases for a time-preserving,
-/// conditional membership list.
+/// There are many use-cases for a time-preserving conditional membership list.
 ///
 /// Some examples include:
 ///
@@ -43,14 +24,13 @@ enum Tier {
 /// - Etc.
 ///
 /// The high level requirements for a contract implementing `ITier`:
-/// - MUST represent held tiers with the `Tier` enum.
+/// - MUST represent held tiers as a `uint`.
 /// - MUST implement `report`.
 ///   - The report is a `uint256` that SHOULD represent the block each tier has
 ///     been continuously held since encoded as `uint32`.
-///   - The encoded tiers start at ONE; ZERO is implied if no tier has ever
+///   - The encoded tiers start at `1`; Tier `0` is implied if no tier has ever
 ///     been held.
-///   - `Tier.ZERO` is NOT encoded in the report, it is simply the fallback
-///     value.
+///   - Tier `0` is NOT encoded in the report, it is simply the fallback value.
 ///   - If a tier is lost the block data is erased for that tier and will be
 ///     set if/when the tier is regained to the new block.
 ///   - If the historical block information is not available the report MAY
@@ -62,12 +42,12 @@ enum Tier {
 ///     For example a contract that can only derive a membership tier by
 ///     reading the state of an external contract cannot set tiers.
 ///   - Contracts implementing `setTier` SHOULD error with `SET_ZERO_TIER`
-///     if `Tier.ZERO` is being set.
+///     if tier 0 is being set.
 /// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
 ///   - Contracts that cannot meaningfully set a tier are exempt.
 interface ITier {
 
-    /// Every time a Tier changes we log start and end Tier against the
+    /// Every time a tier changes we log start and end tier against the
     /// account.
     /// This MAY NOT be emitted if reports are being read from the state of an
     /// external contract.
@@ -75,9 +55,9 @@ interface ITier {
     /// @param startTier The previous tier the account held.
     /// @param endTier the newly acquired tier the account now holds.
     event TierChange(
-        address indexed account,
-        Tier indexed startTier,
-        Tier indexed endTier
+        address account,
+        uint startTier,
+        uint endTier
     );
 
     /// @notice Users can set their own tier by calling `setTier`.
@@ -93,14 +73,14 @@ interface ITier {
     ///
     /// When the tier is changed a `TierChange` event will be emmited as:
     /// ```
-    /// event TierChange(address account, Tier startTier, Tier endTier);
+    /// event TierChange(address account, uint startTier, uint endTier);
     /// ```
     ///
     /// The `setTier` function includes arbitrary data as the third
     /// parameter. This can be used to disambiguate in the case that
     /// there may be many possible options for a user to achieve some tier.
     ///
-    /// For example, consider the case where `Tier.THREE` can be achieved
+    /// For example, consider the case where tier 3 can be achieved
     /// by EITHER locking 1x rare NFT or 3x uncommon NFTs. A user with both
     /// could use `data` to explicitly state their intent.
     ///
@@ -115,9 +95,9 @@ interface ITier {
     /// approved by the user is relevant to a tier change.
     ///
     /// The `setTier` function SHOULD prevent users from reassigning
-    /// `Tier.ZERO` to themselves.
+    /// tier 0 to themselves.
     ///
-    /// The `Tier.ZERO` status represents never having any status.
+    /// The tier 0 status represents never having any status.
     /// @dev Updates the tier of an account.
     ///
     /// The implementing contract is responsible for all checks and state
@@ -134,21 +114,21 @@ interface ITier {
     /// (e.g. NFTs to lock).
     function setTier(
         address account,
-        Tier endTier,
+        uint endTier,
         bytes memory data
     )
         external;
 
     /// @notice A tier report is a `uint256` that contains each of the block
     /// numbers each tier has been held continously since as a `uint32`.
-    /// There are 9 possible tier, starting with `Tier.ZERO` for `0` offset or
+    /// There are 9 possible tier, starting with tier 0 for `0` offset or
     /// "never held any tier" then working up through 8x 4 byte offsets to the
     /// full 256 bits.
     ///
     /// Low bits = Lower tier.
     ///
-    /// In hexadecimal every 8 characters = one tier, starting at `Tier.EIGHT`
-    /// from high bits and working down to `Tier.ONE`.
+    /// In hexadecimal every 8 characters = one tier, starting at tier 8
+    /// from high bits and working down to tier 1.
     ///
     /// `uint32` should be plenty for any blockchain that measures block times
     /// in seconds, but reconsider if deploying to an environment with
@@ -181,10 +161,10 @@ interface ITier {
     /// concatenated uint32.
     /// I.e. Each 4 bytes of the uint256 represents a u32 tier start time.
     /// The low bits represent low tiers and high bits the high tiers.
-    /// Implementing contracts should return 0xFFFFFFFF for lost &
+    /// Implementing contracts should return 0xFFFFFFFF for lost and
     /// never-held tiers.
     ///
     /// @param account Account to get the report for.
     /// @return The report blocks encoded as a uint256.
-    function report(address account) external view returns (uint256);
+    function report(address account) external view returns (uint);
 }

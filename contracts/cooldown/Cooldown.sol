@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 /// @title Cooldown
 /// @notice `Cooldown` is an abstract contract that rate limits functions on
-/// the contract per `msg.sender`.
+/// the implementing contract per `msg.sender`.
 ///
 /// Each time a function with the `onlyAfterCooldown` modifier is called the
 /// `msg.sender` must wait N blocks before calling any modified function.
@@ -22,7 +22,7 @@ pragma solidity ^0.8.10;
 /// sybils can be created, each as a new `msg.sender`.
 ///
 /// @dev Base for anything that enforces a cooldown delay on functions.
-/// Cooldown requires a minimum time in blocks to elapse between actions that
+/// `Cooldown` requires a minimum time in blocks to elapse between actions that
 /// cooldown. The modifier `onlyAfterCooldown` both enforces and triggers the
 /// cooldown. There is a single cooldown across all functions per-contract
 /// so any function call that requires a cooldown will also trigger it for
@@ -34,21 +34,23 @@ pragma solidity ^0.8.10;
 /// Cooldown is useful to stop a single account rapidly cycling contract
 /// state in a way that can be disruptive to peers. Cooldown works best when
 /// coupled with economic stake associated with each state change so that
-/// peers must lock capital during the cooldown. Cooldown tracks the first
+/// peers must lock capital during the cooldown. `Cooldown` tracks the first
 /// `msg.sender` it sees for a call stack so cooldowns are enforced across
-/// reentrant code.
+/// reentrant code. Any function that enforces a cooldown also has reentrancy
+/// protection.
 abstract contract Cooldown {
     /// Time in blocks to restrict access to modified functions.
-    uint16 public immutable cooldownDuration;
+    uint public immutable cooldownDuration;
 
-    /// Every address has its own cooldown state.
-    mapping (address => uint256) public cooldowns;
+    /// Every caller has its own cooldown, the minimum block that the caller
+    /// call another function sharing the same cooldown state.
+    mapping (address => uint) public cooldowns;
     address private caller;
 
     /// The cooldown duration is global to the contract.
     /// Cooldown duration must be greater than 0.
     /// @param cooldownDuration_ The global cooldown duration.
-    constructor(uint16 cooldownDuration_) {
+    constructor(uint cooldownDuration_) {
         require(cooldownDuration_ > 0, "COOLDOWN_0");
         cooldownDuration = cooldownDuration_;
     }
@@ -62,6 +64,7 @@ abstract contract Cooldown {
         // Every action that requires a cooldown also triggers a cooldown.
         cooldowns[caller_] = block.number + cooldownDuration;
         _;
+        // Refund as much gas as we can.
         delete caller;
     }
 }

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type * as Util from "../Util";
+import * as Util from "../Util";
 import { artifacts, ethers } from "hardhat";
 import type { Contract } from "ethers";
 import type {
@@ -9,6 +9,7 @@ import type {
 } from "../../typechain/EmissionsERC20Factory";
 import type { EmissionsERC20 } from "../../typechain/EmissionsERC20";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { getEventArgs } from "../Util";
 
 export interface ClaimFactories {
   emissionsERC20Factory: EmissionsERC20Factory & Contract;
@@ -34,19 +35,13 @@ export const emissionsDeploy = async (
   emissionsERC20ConfigStruct: EmissionsERC20ConfigStruct
 ): Promise<EmissionsERC20 & Contract> => {
   const tx = await emissionsERC20Factory[
-    "createChild((bool,(string,string),(bytes[],uint256[],uint8,uint8)))"
+    "createChild((bool,(string,string),(bytes[],uint256[],uint256,uint256)))"
   ](emissionsERC20ConfigStruct);
-
-  const receipt = await tx.wait();
 
   const emissionsERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        receipt.events?.filter(
-          (x) =>
-            x.event == "NewContract" &&
-            x.address == emissionsERC20Factory.address
-        )[0].topics[1]
+        (await getEventArgs(tx, "NewChild", emissionsERC20Factory.address))[1]
       ),
       20 // address bytes length
     ),

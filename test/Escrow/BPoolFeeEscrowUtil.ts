@@ -9,6 +9,8 @@ import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { BigNumber, Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
+import { getAddress } from "ethers/lib/utils";
+import { expect } from "chai";
 
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 const escrowJson = require("../../artifacts/contracts/escrow/BPoolFeeEscrow.sol/BPoolFeeEscrow.json");
@@ -55,7 +57,7 @@ export const basicSetup = async (
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
     Contract;
 
-  const minimumStatus = Tier.GOLD;
+  const minimumTier = Tier.GOLD;
   const erc20Config = { name: "Token", symbol: "TKN" };
   const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
 
@@ -103,7 +105,7 @@ export const basicSetup = async (
     {
       erc20Config,
       tier: tier.address,
-      minimumStatus,
+      minimumTier,
       totalSupply: totalTokenSupply,
     },
     {
@@ -195,7 +197,7 @@ export const successfulRaise = async (
       .connect(signer)
       .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-    await bPoolFeeEscrow
+    const buyTokenPromise = bPoolFeeEscrow
       .connect(signer)
       .buyToken(
         recipient.address,
@@ -204,6 +206,16 @@ export const successfulRaise = async (
         spend,
         ethers.BigNumber.from("1"),
         ethers.BigNumber.from("1000000" + Util.eighteenZeros)
+      );
+
+    // Fee event
+    await expect(buyTokenPromise)
+      .to.emit(bPoolFeeEscrow, "Fee")
+      .withArgs(
+        signer.address,
+        recipient.address,
+        getAddress(trust.address),
+        fee
       );
   };
 
@@ -282,7 +294,7 @@ export const failedRaise = async (
       .connect(signer)
       .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-    await bPoolFeeEscrow
+    const buyTokenPromise = bPoolFeeEscrow
       .connect(signer)
       .buyToken(
         recipient.address,
@@ -292,15 +304,20 @@ export const failedRaise = async (
         ethers.BigNumber.from("1"),
         ethers.BigNumber.from("1000000" + Util.eighteenZeros)
       );
+
+    // Fee event
+    await expect(buyTokenPromise)
+      .to.emit(bPoolFeeEscrow, "Fee")
+      .withArgs(
+        signer1.address,
+        recipient.address,
+        getAddress(trust.address),
+        fee
+      );
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
   const fee = ethers.BigNumber.from("10" + Util.sixZeros);
-
-  // set min fee for the reserve that signer1 will be using
-  await bPoolFeeEscrow
-    .connect(recipient)
-    .recipientSetMinFees(reserve.address, fee);
 
   // raise all necessary funds
   await buyTokensViaEscrow(signer1, spend, fee);

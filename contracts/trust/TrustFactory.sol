@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 import { Factory } from "../factory/Factory.sol";
 import { Trust, TrustConfig } from "../trust/Trust.sol";
@@ -22,49 +22,53 @@ import { ERC20Config } from "../erc20/ERC20Config.sol";
 
 /// Everything required to construct a `TrustFactory`.
 struct TrustFactoryConfig {
-    // The RedeemableERC20Factory on the current network.
-    // This is an address published by Beehive Trust or deployed locally
-    // during testing.
+    /// The RedeemableERC20Factory on the current network.
+    /// This is an address published by Beehive Trust or deployed locally
+    /// during testing.
     RedeemableERC20Factory redeemableERC20Factory;
-    // The SeedERC20Factory on the current network.
-    // This is an address published by Beehive Trust or deployed locally
-    // during testing.
+    /// The SeedERC20Factory on the current network.
+    /// This is an address published by Beehive Trust or deployed locally
+    /// during testing.
     SeedERC20Factory seedERC20Factory;
+    /// Every `Trust` built by this factory will use this Balancer CRP factory.
     address crpFactory;
+    /// Every `Trust` built by this factory will use this Balancer factory.
     address balancerFactory;
-    uint32 creatorFundsReleaseTimeout;
-    uint32 maxRaiseDuration;
+    /// Every `Trust` built by this factory will use this funds release
+    /// timeout.
+    uint creatorFundsReleaseTimeout;
+    /// Every `Trust` built by this factory will have its raise duration
+    /// limited by this max duration.
+    uint maxRaiseDuration;
 }
 
+/// Partial config for `TrustConfig`.
 struct TrustFactoryTrustConfig {
     IERC20 reserve;
-    uint256 reserveInit;
-    uint256 initialValuation;
-    uint256 finalValuation;
-    uint256 minimumTradingDuration;
+    uint reserveInit;
+    uint initialValuation;
+    uint finalValuation;
+    uint minimumTradingDuration;
     address creator;
-    uint256 minimumCreatorRaise;
-    uint256 seederFee;
-    uint256 redeemInit;
+    uint minimumCreatorRaise;
+    uint seederFee;
+    uint redeemInit;
 }
 
+/// Partial config for `TrustRedeemableERC20Config`.
 struct TrustFactoryTrustRedeemableERC20Config {
-    // ERC20Config forwarded to redeemableERC20 constructor.
     ERC20Config erc20Config;
-    // Tier contract to compare statuses against on transfer.
     ITier tier;
-    // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    Tier minimumStatus;
-    // Number of redeemable tokens to mint.
-    uint256 totalSupply;
+    uint minimumTier;
+    uint totalSupply;
 }
 
 /// Partial config for `TrustRedeemableERC20PoolConfig`.
 struct TrustFactoryTrustSeedERC20Config {
     address seedERC20Factory;
     address seeder;
-    uint16 seederUnits;
-    uint16 seederCooldownDuration;
+    uint seederUnits;
+    uint seederCooldownDuration;
     ERC20Config seedERC20Config;
 }
 
@@ -82,8 +86,8 @@ contract TrustFactory is Factory {
     SeedERC20Factory public immutable seedERC20Factory;
     address public immutable crpFactory;
     address public immutable balancerFactory;
-    uint32 public immutable creatorFundsReleaseTimeout;
-    uint32 public immutable maxRaiseDuration;
+    uint public immutable creatorFundsReleaseTimeout;
+    uint public immutable maxRaiseDuration;
     BPoolFeeEscrow public immutable bPoolFeeEscrow;
 
     /// @param config_ All configuration for the `TrustFactory`.
@@ -94,7 +98,7 @@ contract TrustFactory is Factory {
         balancerFactory = config_.balancerFactory;
         creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
         maxRaiseDuration = config_.maxRaiseDuration;
-        bPoolFeeEscrow = new BPoolFeeEscrow(this);
+        bPoolFeeEscrow = new BPoolFeeEscrow(address(this));
     }
 
     /// Allows calling `createChild` with TrustConfig,
@@ -156,7 +160,7 @@ contract TrustFactory is Factory {
             "MAX_RAISE_DURATION"
         );
 
-        address trust_ = address(new Trust(
+        return address(new Trust(
             TrustConfig(
                 bPoolFeeEscrow,
                 crpFactory,
@@ -176,7 +180,7 @@ contract TrustFactory is Factory {
                 redeemableERC20Factory,
                 trustFactoryTrustRedeemableERC20Config_.erc20Config,
                 trustFactoryTrustRedeemableERC20Config_.tier,
-                trustFactoryTrustRedeemableERC20Config_.minimumStatus,
+                trustFactoryTrustRedeemableERC20Config_.minimumTier,
                 trustFactoryTrustRedeemableERC20Config_.totalSupply
             ),
             TrustSeedERC20Config(
@@ -187,7 +191,5 @@ contract TrustFactory is Factory {
                 trustFactoryTrustSeedERC20Config_.seedERC20Config
             )
         ));
-
-        return trust_;
     }
 }

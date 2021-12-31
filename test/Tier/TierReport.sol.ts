@@ -71,8 +71,8 @@ describe("TierReport", async function () {
       initialBlock + 15
     );
 
-    assert(tierBlockReport1 === Tier.ONE);
-    assert(tierBlockReport2 === Tier.TWO);
+    assert(tierBlockReport1.eq(Tier.ONE));
+    assert(tierBlockReport2.eq(Tier.TWO));
   });
 
   it("should return the block for a specified status according to a given report", async () => {

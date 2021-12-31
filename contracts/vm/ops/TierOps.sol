@@ -1,35 +1,44 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { State, Op } from "../RainVM.sol";
+import { State } from "../RainVM.sol";
 import "../../tier/libraries/TierReport.sol";
 import "../../tier/libraries/TierwiseCombine.sol";
 
+/// @title TierOps
+/// @notice RainVM opcode pack to operate on tier reports.
 library TierOps {
 
-    uint constant internal REPORT = 0;
-    uint constant internal NEVER = 1;
-    uint constant internal ALWAYS = 2;
-    uint constant internal DIFF = 3;
-    uint constant internal UPDATE_BLOCKS_FOR_TIER_RANGE = 4;
-    uint constant internal EVERY_LTE_MIN = 5;
-    uint constant internal EVERY_LTE_MAX = 6;
-    uint constant internal EVERY_LTE_FIRST = 7;
-    uint constant internal ANY_LTE_MIN = 8;
-    uint constant internal ANY_LTE_MAX = 9;
-    uint constant internal ANY_LTE_FIRST = 10;
-    uint constant internal OPS_LENGTH = 11;
+    /// Opcode to call `report` on an `ITier` contract.
+    uint constant public REPORT = 0;
+    /// Opcode to stack a report that has never been held for all tiers.
+    uint constant public NEVER = 1;
+    /// Opcode to stack a report that has always been held for all tiers.
+    uint constant public ALWAYS = 2;
+    /// Opcode to calculate the tierwise diff of two reports.
+    uint constant public SATURATING_DIFF = 3;
+    /// Opcode to update the blocks over a range of tiers for a report.
+    uint constant public UPDATE_BLOCKS_FOR_TIER_RANGE = 4;
+    /// Opcode to tierwise select the best block lte a reference block.
+    uint constant public SELECT_LTE = 5;
+    /// Number of provided opcodes for `TierOps`.
+    uint constant public OPS_LENGTH = 6;
 
     function applyOp(
         bytes memory,
         State memory state_,
-        Op memory op_
+        uint opcode_,
+        uint operand_
     )
     internal
     view {
         unchecked {
+            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             uint baseIndex_;
-            if (op_.code == REPORT) {
+            // Stack the report returned by an `ITier` contract.
+            // Top two stack vals are used as the address and `ITier` contract
+            // to check against.
+            if (opcode_ == REPORT) {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
                 state_.stack[baseIndex_] =
@@ -37,32 +46,44 @@ library TierOps {
                         .report(address(uint160(state_.stack[baseIndex_])));
                 state_.stackIndex++;
             }
-            else if (op_.code == NEVER) {
+            // Stack a report that has never been held at any tier.
+            else if (opcode_ == NEVER) {
                 state_.stack[state_.stackIndex] = TierReport.NEVER;
                 state_.stackIndex++;
             }
-            else if (op_.code == ALWAYS) {
+            // Stack a report that has always been held at every tier.
+            else if (opcode_ == ALWAYS) {
                 state_.stack[state_.stackIndex] = TierReport.ALWAYS;
                 state_.stackIndex++;
             }
-            else if (op_.code == DIFF) {
+            // Stack the tierwise saturating subtraction of two reports.
+            // If the older report is newer than newer report the result will
+            // be `0`, else a tierwise diff in blocks will be obtained.
+            // The older and newer report are taken from the stack.
+            else if (opcode_ == SATURATING_DIFF) {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
-                uint256 olderReport_ = state_.stack[baseIndex_];
-                uint256 newerReport_ = state_.stack[baseIndex_ + 1];
-                state_.stack[state_.stackIndex] = TierwiseCombine.diff(
-                    olderReport_,
-                    newerReport_
-                );
+                uint olderReport_ = state_.stack[baseIndex_];
+                uint newerReport_ = state_.stack[baseIndex_ + 1];
+                state_.stack[state_.stackIndex]
+                    = TierwiseCombine.saturatingSub(
+                        olderReport_,
+                        newerReport_
+                    );
                 state_.stackIndex++;
             }
-            else if (op_.code == UPDATE_BLOCKS_FOR_TIER_RANGE) {
-                Tier startTier_ = Tier(op_.val & 0x0f);
-                Tier endTier_ = Tier((op_.val >> 4) & 0x0f);
+            // Stacks a report with updated blocks over tier range.
+            // The start and end tier are taken from the low and high bits of
+            // the `operand_` respectively.
+            // The block number to update to and the report to update over are
+            // both taken from the stack.
+            else if (opcode_ == UPDATE_BLOCKS_FOR_TIER_RANGE) {
+                uint startTier_ = operand_ & 0x0f; // & 00001111
+                uint endTier_ = (operand_ >> 4) & 0x0f; // & 00001111
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
-                uint256 blockNumber_ = state_.stack[baseIndex_];
-                uint256 report_ = state_.stack[baseIndex_ + 1];
+                uint blockNumber_ = state_.stack[baseIndex_];
+                uint report_ = state_.stack[baseIndex_ + 1];
                 state_.stack[baseIndex_]
                     = TierReport.updateBlocksForTierRange(
                         report_,
@@ -72,61 +93,34 @@ library TierOps {
                     );
                 state_.stackIndex++;
             }
-            // All the combinators share the same stack and argument handling.
+            // Stacks the result of a `selectLte` combinator.
+            // All `selectLte` share the same stack and argument handling.
+            // In the future these may be combined into a single opcode, taking
+            // the `logic_` and `mode_` from the `operand_` high bits.
             else {
-                uint opval_ = op_.val;
-                state_.stackIndex -= opval_ + 1;
-                baseIndex_ = state_.stackIndex;
-                uint256[] memory args_ = new uint256[](opval_);
-                for (uint256 a_ = 0; a_ < opval_; a_++) {
-                    args_[a_] = state_.stack[baseIndex_ + a_ + 1];
+                uint logic_ = operand_ >> 7;
+                uint mode_ = (operand_ >> 5) & 0x3; // & 00000011
+                uint reportsLength_ = operand_ & 0x1F; // & 00011111
+
+                // Need one more than reports length to include block number.
+                state_.stackIndex -= reportsLength_ + 1;
+                uint cursor_ = state_.stackIndex;
+
+                uint blockNumber_ = state_.stack[cursor_];
+                cursor_++;
+
+                uint[] memory reports_ = new uint[](reportsLength_);
+                for (uint a_ = 0; a_ < reportsLength_; a_++) {
+                    reports_[a_] = state_.stack[cursor_];
+                    cursor_++;
                 }
 
-                uint256 blockNumber_ = state_.stack[baseIndex_];
-
-                if (op_.code == EVERY_LTE_MIN) {
-                    state_.stack[baseIndex_]
-                         = TierwiseCombine.everyLteMin(
-                            args_,
-                            blockNumber_
-                        );
-                }
-                else if (op_.code == EVERY_LTE_MAX) {
-                    state_.stack[baseIndex_]
-                        = TierwiseCombine.everyLteMax(
-                            args_,
-                            blockNumber_
-                        );
-                }
-                else if (op_.code == EVERY_LTE_FIRST) {
-                    state_.stack[baseIndex_]
-                        = TierwiseCombine.everyLteFirst(
-                            args_,
-                            blockNumber_
-                        );
-                }
-                else if (op_.code == ANY_LTE_MIN) {
-                    state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLteMin(
-                            args_,
-                            blockNumber_
-                        );
-                }
-                else if (op_.code == ANY_LTE_MAX) {
-                    state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLteMax(
-                            args_,
-                            blockNumber_
-                        );
-                }
-                else if (op_.code == ANY_LTE_FIRST) {
-                    state_.stack[baseIndex_]
-                        = TierwiseCombine.anyLteFirst(
-                            args_,
-                            blockNumber_
-                        );
-                }
-
+                state_.stack[state_.stackIndex] = TierwiseCombine.selectLte(
+                    reports_,
+                    blockNumber_,
+                    logic_,
+                    mode_
+                );
                 state_.stackIndex++;
             }
         }

@@ -1,235 +1,128 @@
 // SPDX-License-Identifier: CAL
-
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./TierReport.sol";
+import "../../math/SaturatingMath.sol";
 
 library TierwiseCombine {
     using Math for uint256;
+    using SaturatingMath for uint256;
 
-    /// Performs a tierwise diff of two reports.
+    /// Every lte check in `selectLte` must pass.
+    uint constant public LOGIC_EVERY = 0;
+    /// Only one lte check in `selectLte` must pass.
+    uint constant public LOGIC_ANY = 1;
+
+    /// Select the minimum block number from passing blocks in `selectLte`.
+    uint constant public MODE_MIN = 0;
+    /// Select the maximum block number from passing blocks in `selectLte`.
+    uint constant public MODE_MAX = 1;
+    /// Select the first block number that passes in `selectLte`.
+    uint constant public MODE_FIRST = 2;
+
+    /// Performs a tierwise saturating subtraction of two reports.
     /// Intepret as "# of blocks older report was held before newer report".
     /// If older report is in fact newer then `0` will be returned.
     /// i.e. the diff cannot be negative, older report as simply spent 0 blocks
     /// existing before newer report, if it is in truth the newer report.
-    function diff(
-        uint256 olderReport_,
-        uint256 newerReport_
-    ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
-            uint256 olderBlock_ = uint256(
-                uint256(olderReport_ << 256 - step_ - 32) >> 256 - 32
-            );
-            uint256 newerBlock_ = uint256(
-                uint256(newerReport_ << 256 - step_ - 32) >> 256 - 32
-            );
-            uint256 diff_ = newerBlock_ > olderBlock_
-                ? newerBlock_ - olderBlock_ : 0;
-            ret_ |= uint256(uint256(uint32(diff_)) << step_);
+    function saturatingSub(
+        uint olderReport_,
+        uint newerReport_
+    ) internal pure returns (uint) {
+        unchecked {
+            uint ret_;
+            for (uint tier_ = 1; tier_ <= 8; tier_++) {
+                uint olderBlock_ = TierReport.tierBlock(
+                    olderReport_,
+                    tier_
+                );
+                uint newerBlock_ = TierReport.tierBlock(
+                    newerReport_,
+                    tier_
+                );
+                uint diff_ = newerBlock_.saturatingSub(olderBlock_);
+                ret_ = TierReport
+                    .updateBlockAtTier(
+                        ret_,
+                        tier_ - 1,
+                        diff_
+                    );
+            }
+            return ret_;
         }
-        return ret_;
     }
 
-    /// IF __every__ block number is lte `blockNumber_`
-    /// preserve the __minimum__ block number
-    /// on a per-tier basis.
-    function everyLteMin(
-        uint256[] memory reports_,
-        uint256 blockNumber_
-    ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
-            uint256[] memory vals_ = new uint256[](reports_.length);
-            for (uint256 a_ = 0; a_ < vals_.length; a_++) {
-                vals_[a_] = uint256(
-                    uint256(reports_[a_] << 256 - step_ - 32)
-                    >> 256 - 32
-                );
-            }
-            uint256 accumulator_ = TierReport.NEVER;
-            bool allTrue_ = true;
-            for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                if (allTrue_ && vals_[i_] <= blockNumber_) {
-                    accumulator_ = vals_[i_].min(accumulator_);
+    /// Given a list of reports, selects the best tier in a tierwise fashion.
+    /// The "best" criteria can be configured by `logic_` and `mode_`.
+    /// Logic can be "every" or "any", which means that the reports for a given
+    /// tier must either all or any be less than or equal to the reference
+    /// `blockNumber_`.
+    /// Mode can be "min", "max", "first" which selects between all the block
+    /// numbers for a given tier that meet the lte criteria.
+    /// @param reports_ The list of reports to select over.
+    /// @param blockNumber_ The block number that tier blocks must be lte.
+    /// @param logic_ `LOGIC_EVERY` or `LOGIC_ANY`.
+    /// @param mode_ `MODE_MIN`, `MODE_MAX` or `MODE_FIRST`.
+    function selectLte(
+        uint[] memory reports_,
+        uint blockNumber_,
+        uint logic_,
+        uint mode_
+    ) internal pure returns (uint) {
+        unchecked {
+            uint ret_;
+            uint block_;
+            bool anyLte_;
+            uint length_ = reports_.length;
+            for (uint tier_ = 1; tier_ <= 8; tier_++) {
+                uint accumulator_;
+                // Nothing lte the reference block for this tier yet.
+                anyLte_ = false;
+
+                // Initialize the accumulator for this tier.
+                if (mode_ == MODE_MIN) {
+                    accumulator_ = TierReport.NEVER;
                 }
                 else {
-                    allTrue_ = false;
-                    break;
+                    accumulator_ = 0;
                 }
-            }
-            if (!allTrue_) {
-                accumulator_ = TierReport.NEVER;
-            }
-            ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
-        }
-        return ret_;
-    }
 
-    // IF __every__ block number is lte `blockNumber_`
-    // preserve the __maximum__ block number
-    // on a per-tier basis.
-    function everyLteMax(
-        uint256[] memory reports_,
-        uint256 blockNumber_
-    ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
-            uint256[] memory vals_ = new uint256[](reports_.length);
-            for (uint256 a_ = 0; a_ < vals_.length; a_++) {
-                vals_[a_] = uint256(
-                    uint256(reports_[a_] << 256 - step_ - 32)
-                    >> 256 - 32
+                // Filter all the blocks at the current tier from all the
+                // reports against the reference tier and each other.
+                for (uint i_ = 0; i_ < length_; i_++) {
+                    block_ = TierReport.tierBlock(reports_[i_], tier_);
+
+                    if (block_ <= blockNumber_) {
+                        // Min and max need to compare current value against
+                        // the accumulator.
+                        if (mode_ == MODE_MIN) {
+                            accumulator_ = block_.min(accumulator_);
+                        }
+                        else if (mode_ == MODE_MAX) {
+                            accumulator_ = block_.max(accumulator_);
+                        }
+                        else if (mode_ == MODE_FIRST && !anyLte_) {
+                            accumulator_ = block_;
+                        }
+                        anyLte_ = true;
+                    }
+                    else if (logic_ == LOGIC_EVERY) {
+                        // Can short circuit for an "every" check.
+                        accumulator_ = TierReport.NEVER;
+                        break;
+                    }
+                }
+                if (!anyLte_) {
+                    accumulator_ = TierReport.NEVER;
+                }
+                ret_ = TierReport.updateBlockAtTier(
+                    ret_,
+                    tier_ - 1,
+                    accumulator_
                 );
             }
-            uint256 accumulator_ = 0;
-            bool allTrue_ = true;
-            for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                if (allTrue_ && vals_[i_] <= blockNumber_) {
-                    accumulator_ = vals_[i_].max(accumulator_);
-                }
-                else {
-                    allTrue_ = false;
-                    break;
-                }
-            }
-            if (!allTrue_) {
-                accumulator_ = TierReport.NEVER;
-            }
-            ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
+            return ret_;
         }
-        return ret_;
-    }
-
-    // IF __every__ block number is lte `blockNumber_`
-    // preserve the __first__ block number in `reports_` order
-    // on a per-tier basis.
-    function everyLteFirst(
-        uint256[] memory reports_,
-        uint256 blockNumber_
-    ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
-            uint256[] memory vals_ = new uint256[](reports_.length);
-            for (uint256 a_ = 0; a_ < vals_.length; a_++) {
-                vals_[a_] = uint256(
-                    uint256(reports_[a_] << 256 - step_ - 32)
-                    >> 256 - 32
-                );
-            }
-            uint256 accumulator_ = vals_[0];
-            bool allTrue_ = true;
-            for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                if (vals_[i_] > blockNumber_) {
-                    allTrue_ = false;
-                    break;
-                }
-            }
-            if (!allTrue_) {
-                accumulator_ = TierReport.NEVER;
-            }
-            ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
-        }
-        return ret_;
-    }
-
-    // IF __any__ block number is lte `blockNumber_`
-    // preserve the __minimum__ block number
-    // on a per-tier basis.
-    function anyLteMin(
-        uint256[] memory reports_,
-        uint256 blockNumber_
-    ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
-            uint256[] memory vals_ = new uint256[](reports_.length);
-            for (uint256 a_ = 0; a_ < vals_.length; a_++) {
-                vals_[a_] = uint256(
-                    uint256(reports_[a_] << 256 - step_ - 32)
-                    >> 256 - 32
-                );
-            }
-            uint256 accumulator_ = 0;
-            bool anyTrue_ = false;
-            for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                if (vals_[i_] <= blockNumber_) {
-                    accumulator_ = anyTrue_
-                        ? vals_[i_].min(accumulator_) : vals_[i_];
-                    anyTrue_ = true;
-                }
-            }
-            if (!anyTrue_) {
-                accumulator_ = TierReport.NEVER;
-            }
-            ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
-        }
-        return ret_;
-
-    }
-
-    // IF __any__ block number is lte `blockNumber_`
-    // preserve the __maximum__ block number
-    // on a per-tier basis.
-    function anyLteMax(
-        uint256[] memory reports_,
-        uint256 blockNumber_
-    ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
-            uint256[] memory vals_ = new uint256[](reports_.length);
-            for (uint256 a_ = 0; a_ < vals_.length; a_++) {
-                vals_[a_] = uint256(
-                    uint256(reports_[a_] << 256 - step_ - 32)
-                    >> 256 - 32
-                );
-            }
-            uint256 accumulator_ = 0;
-            bool anyTrue_ = false;
-            for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                if (vals_[i_] <= blockNumber_) {
-                    accumulator_ = anyTrue_
-                        ? vals_[i_].max(accumulator_) : vals_[i_];
-                    anyTrue_ = true;
-                }
-            }
-            if (!anyTrue_) {
-                accumulator_ = TierReport.NEVER;
-            }
-            ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
-        }
-        return ret_;
-    }
-
-    // IF __any__ block number is lte `blockNumber_`
-    // preserve the __first__ block number in `reports_` order
-    // on a per-tier basis.
-    function anyLteFirst(
-        uint256[] memory reports_,
-        uint256 blockNumber_
-    ) internal pure returns (uint256) {
-        uint256 ret_;
-        for (uint256 step_ = 0; step_ < 256; step_ += 32) {
-            uint256[] memory vals_ = new uint256[](reports_.length);
-            for (uint256 a_ = 0; a_ < vals_.length; a_++) {
-                vals_[a_] = uint256(
-                    uint256(reports_[a_] << 256 - step_ - 32)
-                    >> 256 - 32
-                );
-            }
-            uint256 accumulator_ = 0;
-            bool anyTrue_ = false;
-            for (uint256 i_ = 0; i_ < vals_.length; i_++) {
-                if (vals_[i_] <= blockNumber_ && !anyTrue_) {
-                    accumulator_ = vals_[i_];
-                    anyTrue_ = true;
-                }
-            }
-            if (!anyTrue_) {
-                accumulator_ = TierReport.NEVER;
-            }
-            ret_ |= uint256(uint256(uint32(accumulator_)) << step_);
-        }
-        return ret_;
     }
 }

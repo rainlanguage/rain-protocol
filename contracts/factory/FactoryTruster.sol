@@ -37,8 +37,8 @@ import { IFactory } from "./IFactory.sol";
 abstract contract FactoryTruster {
     IFactory public immutable trustedFactory;
 
-    constructor(IFactory trustedFactory_) {
-        trustedFactory = trustedFactory_;
+    constructor(address trustedFactory_) {
+        trustedFactory = IFactory(trustedFactory_);
     }
 
     modifier onlyTrustedFactoryChild(address maybeChild_) {

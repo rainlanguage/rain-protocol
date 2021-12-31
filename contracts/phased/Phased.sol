@@ -63,13 +63,15 @@ abstract contract Phased {
     uint32 public constant UNINITIALIZED = 0xFFFFFFFF;
 
     /// `PhaseShiftScheduled` is emitted when the next phase is scheduled.
-    event PhaseShiftScheduled(uint32 indexed newPhaseBlock_);
+    event PhaseShiftScheduled(uint newPhaseBlock_);
 
     /// 8 phases each as 32 bits to fit a single 32 byte word.
     uint32[8] public phaseBlocks;
 
+    /// All phase blocks are initialized to `UNINITIALIZED` in the constructor.
+    /// i.e. not fallback solidity value of `0`.
     constructor() {
-        for (uint256 i_ = 0; i_ < 8; i_++) {
+        for (uint i_ = 0; i_ < 8; i_++) {
             phaseBlocks[i_] = UNINITIALIZED;
         }
     }
@@ -89,13 +91,13 @@ abstract contract Phased {
     /// blocks list.
     function phaseAtBlockNumber(
         uint32[8] memory phaseBlocks_,
-        uint32 blockNumber_
+        uint blockNumber_
     )
         public
         pure
         returns(Phase)
     {
-        for(uint i_ = 0; i_<8; i_++) {
+        for(uint i_ = 0; i_ < 8; i_++) {
             if (blockNumber_ < phaseBlocks_[i_]) {
                 return Phase(i_);
             }
@@ -109,12 +111,11 @@ abstract contract Phased {
     /// Every other phase will map to a block number in `phaseBlocks_`.
     /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
     /// @param phase_ Determine the relevant block number for this phase.
-    /// @return The block number for the phase according to the phase blocks
-    ///         list, as uint32.
+    /// @return The block number for the phase according to `phaseBlocks_`.
     function blockNumberForPhase(uint32[8] memory phaseBlocks_, Phase phase_)
         public
         pure
-        returns(uint32)
+        returns(uint)
     {
         return phase_ > Phase.ZERO ? phaseBlocks_[uint(phase_) - 1] : 0;
     }
@@ -124,7 +125,7 @@ abstract contract Phased {
     /// Simply wraps `phaseAtBlockNumber` for current values of `phaseBlocks`
     /// and `block.number`.
     function currentPhase() public view returns (Phase) {
-        return phaseAtBlockNumber(phaseBlocks, uint32(block.number));
+        return phaseAtBlockNumber(phaseBlocks, block.number);
     }
 
     /// Modifies functions to only be callable in a specific phase.
@@ -149,8 +150,8 @@ abstract contract Phased {
     /// to.
     /// Emits `PhaseShiftScheduled` with the next phase block.
     /// @param nextPhaseBlock_ The block for the next phase.
-    function scheduleNextPhase(uint32 nextPhaseBlock_) internal {
-        require(uint32(block.number) <= nextPhaseBlock_, "NEXT_BLOCK_PAST");
+    function scheduleNextPhase(uint nextPhaseBlock_) internal {
+        require(block.number <= nextPhaseBlock_, "NEXT_BLOCK_PAST");
         require(nextPhaseBlock_ < UNINITIALIZED, "NEXT_BLOCK_UNINITIALIZED");
 
         // The next index is the current phase because `Phase.ZERO` doesn't
@@ -159,7 +160,7 @@ abstract contract Phased {
         require(UNINITIALIZED == phaseBlocks[nextIndex_], "NEXT_BLOCK_SET");
 
         _beforeScheduleNextPhase(nextPhaseBlock_);
-        phaseBlocks[nextIndex_] = nextPhaseBlock_;
+        phaseBlocks[nextIndex_] = uint32(nextPhaseBlock_);
 
         emit PhaseShiftScheduled(nextPhaseBlock_);
     }
@@ -173,7 +174,7 @@ abstract contract Phased {
     /// is behind a phase gate is still available at the moment of applying the
     /// hook for scheduling the next phase.
     /// @param nextPhaseBlock_ The block for the next phase.
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
         internal
         virtual
     { } //solhint-disable-line no-empty-blocks

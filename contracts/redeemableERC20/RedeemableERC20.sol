@@ -12,25 +12,28 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 
 import { Phase, Phased } from "../phased/Phased.sol";
 
-import { ERC20Pull } from "../erc20/ERC20Pull.sol";
+import { ERC20Pull, ERC20PullConfig } from "../erc20/ERC20Pull.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
     // Account that will be the admin for the `RedeemableERC20` contract.
     // Useful for factory contracts etc.
     address admin;
+    // Reserve token that the associated `Trust` or equivalent raise contract
+    // will be forwarding to the `RedeemableERC20` contract.
+    address reserve;
     // ERC20 config forwarded to the ERC20 constructor.
     ERC20Config erc20Config;
     // Tier contract to compare statuses against on transfer.
     ITier tier;
-    // Minimum status required for transfers in `Phase.ZERO`. Can be `0`.
-    Tier minimumStatus;
+    // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
+    uint minimumTier;
     // Number of redeemable tokens to mint.
-    uint256 totalSupply;
+    uint totalSupply;
 }
 
 /// @title RedeemableERC20
@@ -50,8 +53,8 @@ struct RedeemableERC20Config {
 /// events as a proof of participation in the original distribution by token
 /// holders.
 ///
-/// The token can optionally be restricted by the `Tier` contract to only allow
-/// receipients with a specified membership status.
+/// The token can optionally be restricted by the `ITier` contract to only
+/// allow receipients with a specified membership status.
 ///
 /// @dev `RedeemableERC20` is an ERC20 with 2 phases.
 ///
@@ -85,6 +88,7 @@ struct RedeemableERC20Config {
 ///   during `Phase.ONE`
 /// - Owner can end `Phase.ONE` during `Phase.ZERO` by specifying the address
 ///   of a distributor, which will have any undistributed tokens burned.
+/// The owner should be a `Trust` not an EOA.
 ///
 /// The redeem functions MUST be used to redeem and burn RedeemableERC20s
 /// (NOT regular transfers).
@@ -103,36 +107,40 @@ contract RedeemableERC20 is
 
     using SafeERC20 for IERC20;
 
+    /// Bits for a receiver.
     uint private constant RECEIVER = 0x1;
+    /// Bits for a sender. Sender is also receiver.
     uint private constant SENDER = 0x3;
 
     /// To be clear, this admin is NOT intended to be an EOA.
     /// This contract is designed assuming the admin is a `Trust` or equivalent
     /// contract that itself does NOT have an admin key.
     address public immutable admin;
+    /// Tracks addresses that can always send/receive regardless of phase.
+    /// sender/receiver => access bits
     mapping (address => uint) private access;
 
     /// Treasury Asset notification.
-    /// @param emitter The `msg.sender` notifying about this asset.
+    /// @param sender The `msg.sender` notifying about this asset.
     /// @param asset The asset added to the treasury for this contract.
-    event TreasuryAsset(address indexed emitter, address indexed asset);
+    event TreasuryAsset(address sender, address asset);
 
     /// Redeemable token burn for reserve.
-    /// @param redeemer Account burning and receiving.
+    /// @param sender `msg.sender` burning and receiving.
     /// @param treasuryAsset The treasury asset being sent to the burner.
     /// @param redeemAmounts The amounts of the redeemable and treasury asset
     /// as `[redeemAmount, assetAmount]`.
     event Redeem(
-        address indexed redeemer,
-        address indexed treasuryAsset,
-        uint256[2] redeemAmounts
+        address sender,
+        address treasuryAsset,
+        uint[2] redeemAmounts
     );
 
     /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
     /// The minimum supply enforced by the constructor is "one" token which is
     /// `10 ** 18`.
     /// The minimum supply does not prevent subsequent redemption/burning.
-    uint256 public constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
+    uint public constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
 
     /// The minimum status that a user must hold to receive transfers during
     /// `Phase.ZERO`.
@@ -140,7 +148,7 @@ contract RedeemableERC20 is
     /// the status is held during `_beforeTokenTransfer`.
     /// Not immutable because it is read during the constructor by the `_mint`
     /// call.
-    Tier public minimumTier;
+    uint public minimumTier;
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions.
@@ -150,13 +158,16 @@ contract RedeemableERC20 is
     )
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
         TierByConstruction(config_.tier)
-        ERC20Pull(config_.admin)
+        ERC20Pull(ERC20PullConfig(
+            config_.admin,
+            config_.reserve
+        ))
     {
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
             "MINIMUM_INITIAL_SUPPLY"
         );
-        minimumTier = config_.minimumStatus;
+        minimumTier = config_.minimumTier;
 
         // Minting and burning must never fail.
         access[address(0)] = SENDER;
@@ -166,6 +177,9 @@ contract RedeemableERC20 is
         _mint(config_.admin, config_.totalSupply);
 
         admin = config_.admin;
+
+        // The reserve must always be one of the treasury assets.
+        emit TreasuryAsset(config_.admin, config_.reserve);
 
         // Smoke test on whatever is on the other side of `config_.tier`.
         // It is a common mistake to pass in a contract without the `ITier`
@@ -178,27 +192,39 @@ contract RedeemableERC20 is
         ITier(config_.tier).report(msg.sender);
     }
 
+    /// Require a function is only admin callable.
     modifier onlyAdmin() {
         require(msg.sender == admin, "ONLY_ADMIN");
         _;
     }
 
+    /// Check that an address is a receiver.
+    /// A sender is also a receiver.
+    /// @param maybeReceiver_ account to check.
+    /// @return True if account is a receiver.
     function isReceiver(address maybeReceiver_) public view returns(bool) {
         return access[maybeReceiver_] > 0;
     }
 
+    /// Admin can grant an address receiver rights.
+    /// @param newReceiver_ The account to grand receiver.
     function grantReceiver(address newReceiver_) external onlyAdmin {
         // Using `|` preserves sender if previously granted.
-        access[newReceiver_] = access[newReceiver_] | 0x1;
+        access[newReceiver_] = access[newReceiver_] | RECEIVER;
     }
 
+    /// Check that an address is a sender.
+    /// @param maybeSender_ account to check.
+    /// @return True if account is a sender.
     function isSender(address maybeSender_) public view returns(bool) {
         return access[maybeSender_] > 1;
     }
 
+    /// Admin can grant an addres sender rights.
+    /// @param newSender_ The account to grant sender.
     function grantSender(address newSender_) external onlyAdmin {
         // Sender is also a receiver.
-        access[newSender_] = 0x3;
+        access[newSender_] = SENDER;
     }
 
     /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
@@ -222,10 +248,11 @@ contract RedeemableERC20 is
         }
     }
 
-    /// Anyone can emit a `TreasuryAsset` event to notify token holders that
+    /// Anon can emit a `TreasuryAsset` event to notify token holders that
     /// an asset could be redeemed by burning `RedeemableERC20` tokens.
     /// As this is callable by anon the events should be filtered by the
     /// indexer to those from trusted entities only.
+    /// @param newTreasuryAsset_ The asset to log.
     function newTreasuryAsset(address newTreasuryAsset_) external {
         emit TreasuryAsset(msg.sender, newTreasuryAsset_);
     }
@@ -246,21 +273,25 @@ contract RedeemableERC20 is
     ///
     /// I.e. whatever % of redeemable tokens the sender burns is the % of the
     /// current treasury assets they receive.
+    ///
+    /// Delegated redemption is NOT supported as users must only burn their own
+    /// tokens.
     function redeem(
         IERC20[] calldata treasuryAssets_,
-        uint256 redeemAmount_
+        uint redeemAmount_
     )
         external
         onlyPhase(Phase.ONE)
         nonReentrant
     {
+        uint assetsLength_ = treasuryAssets_.length;
         // Guard against redemptions for no treasury assets.
-        require(treasuryAssets_.length > 0, "EMPTY_ASSETS");
+        require(assetsLength_ > 0, "EMPTY_ASSETS");
 
         // The fraction of the assets we release is the fraction of the
         // outstanding total supply of the redeemable burned.
         // Every treasury asset is released in the same proportion.
-        uint256 supplyBeforeBurn_ = totalSupply();
+        uint supplyBeforeBurn_ = totalSupply();
 
         // Redeem __burns__ tokens which reduces the total supply and requires
         // no approval.
@@ -268,11 +299,14 @@ contract RedeemableERC20 is
         // This function is `nonReentrant` but we burn before redeeming anyway.
         _burn(msg.sender, redeemAmount_);
 
-        for(uint256 i_ = 0; i_ < treasuryAssets_.length; i_++) {
+        for(uint i_ = 0; i_ < assetsLength_; i_++) {
             IERC20 ithRedeemable_ = treasuryAssets_[i_];
-            uint256 assetAmount_
+            uint assetAmount_
                 = ( ithRedeemable_.balanceOf(address(this)) * redeemAmount_ )
                 / supplyBeforeBurn_;
+            /// Guard against zero value redemptions.
+            /// Redeemers should simply elide any assets they have 0 claim over
+            /// in the `treasuryAssets_` list.
             require(assetAmount_ > 0, "ZERO_TRANSFER");
             emit Redeem(
                 msg.sender,
@@ -288,10 +322,7 @@ contract RedeemableERC20 is
 
     /// Sanity check to ensure `Phase.ONE` is the final phase.
     /// @inheritdoc Phased
-    // Slither false positive. This is overriding an Open Zeppelin hook.
-    // https://github.com/crytic/slither/issues/929
-    // slither-disable-next-line dead-code
-    function _beforeScheduleNextPhase(uint32 nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
         internal
         override
         virtual
@@ -306,13 +337,10 @@ contract RedeemableERC20 is
     /// If a transfer involves either a sender or receiver with the SENDER
     /// or RECEIVER role, respectively, it will bypass these restrictions.
     /// @inheritdoc ERC20
-    // Slither false positive. This is overriding an Open Zeppelin hook.
-    // https://github.com/crytic/slither/issues/929
-    // slither-disable-next-line dead-code
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
-        uint256 amount_
+        uint amount_
     )
         internal
         override

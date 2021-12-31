@@ -61,7 +61,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -108,7 +108,7 @@ describe("TrustSeed", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -348,7 +348,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -395,7 +395,7 @@ describe("TrustSeed", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -473,7 +473,7 @@ describe("TrustSeed", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumStatus = Tier.GOLD;
+    const minimumTier = Tier.GOLD;
 
     const { trustFactory, seedERC20Factory } = await factoriesDeploy(
       crpFactory,
@@ -520,7 +520,7 @@ describe("TrustSeed", async function () {
       {
         erc20Config,
         tier: tier.address,
-        minimumStatus,
+        minimumTier,
         totalSupply: totalTokenSupply,
       },
       {
@@ -591,7 +591,7 @@ describe("TrustSeed", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -643,7 +643,7 @@ describe("TrustSeed", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -789,9 +789,7 @@ describe("TrustSeed", async function () {
       const allowance = await reserve.allowance(trust.address, seeder);
 
       // seeder1 pulls erc20
-      await seederContract
-        .connect(seeder1)
-        .pullERC20(reserve.address, allowance);
+      await seederContract.connect(seeder1).pullERC20(allowance);
 
       const poolDust = await reserve.balanceOf(bPool.address);
 
@@ -828,6 +826,13 @@ describe("TrustSeed", async function () {
       `
       );
 
+      // fails if they don't have seed units
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "ERC20: burn amount exceeds balance",
+        "seeder1 redeemed when they had no seed units to redeem"
+      );
+
       await seederContract2.redeem(seeder2Units);
 
       // correct amount of units should have been redeemed
@@ -851,13 +856,6 @@ describe("TrustSeed", async function () {
       actual    ${return2}
       `
       );
-
-      // fails if they don't have seed units
-      await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
-        "ERC20: burn amount exceeds balance",
-        "seeder1 redeemed when they had no seed units to redeem"
-      );
     });
 
     it("failed raise", async function () {
@@ -879,7 +877,7 @@ describe("TrustSeed", async function () {
 
       const tierFactory = await ethers.getContractFactory("ReadWriteTier");
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-      const minimumStatus = Tier.GOLD;
+      const minimumTier = Tier.GOLD;
 
       const { trustFactory, seedERC20Factory } = await factoriesDeploy(
         crpFactory,
@@ -928,7 +926,7 @@ describe("TrustSeed", async function () {
         {
           erc20Config,
           tier: tier.address,
-          minimumStatus,
+          minimumTier,
           totalSupply: totalTokenSupply,
         },
         {
@@ -1049,9 +1047,7 @@ describe("TrustSeed", async function () {
       const allowance = await reserve.allowance(trust.address, seeder);
 
       // seeder1 pulls erc20
-      await seederContract
-        .connect(seeder1)
-        .pullERC20(reserve.address, allowance);
+      await seederContract.connect(seeder1).pullERC20(allowance);
 
       // seederContract should now hold reserve equal to final balance
       assert(
@@ -1083,6 +1079,13 @@ describe("TrustSeed", async function () {
       `
       );
 
+      // fails if they don't have seed units
+      await Util.assertError(
+        async () => await seederContract1.redeem(seeder1Units),
+        "ERC20: burn amount exceeds balance",
+        "seeder1 redeemed when they had no seed units to redeem"
+      );
+
       await seederContract2.redeem(seeder2Units);
 
       // correct amount of units should have been redeemed
@@ -1102,13 +1105,6 @@ describe("TrustSeed", async function () {
       expected  ${expectedReturn2}
       actual    ${await reserve.balanceOf(seeder2.address)}
       `
-      );
-
-      // fails if they don't have seed units
-      await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
-        "ERC20: burn amount exceeds balance",
-        "seeder1 redeemed when they had no seed units to redeem"
       );
     });
   });

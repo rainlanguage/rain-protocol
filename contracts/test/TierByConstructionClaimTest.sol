@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { Tier, ITier } from "../tier/ITier.sol";
+import { ITier } from "../tier/ITier.sol";
 import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
 
 /// @title TierByConstructionClaimTest
@@ -12,13 +11,13 @@ import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
 ///
 /// In this example users can mint 100 tokens for themselves if:
 ///
-/// - They held `Tier.FOUR` at the time the claim contract is constructed
-/// - They continue to hold `Tier.FOUR` until they claim
+/// - They held tier 4 at the time the claim contract is constructed
+/// - They continue to hold tier 4 until they claim
 ///
 /// The user can increase their tier at any point but must never drop below
-/// `Tier.FOUR` between the relevant blocks.
+/// tier 4 between the relevant blocks.
 ///
-/// If a user holds `Tier.FOUR` at construction but forgets to claim before
+/// If a user holds tier 4 at construction but forgets to claim before
 /// they downgrade they can NOT claim.
 ///
 /// This is just an example, the same basic principle can be applied to any
@@ -37,11 +36,11 @@ contract TierByConstructionClaimTest is ERC20, TierByConstructionClaim {
     /// constructor.
     /// @param tier_ The tier contract to mediate the validity of claims.
     constructor(ITier tier_)
-        TierByConstructionClaim(tier_, Tier.FOUR)
+        TierByConstructionClaim(tier_, 4)
         ERC20("goldTkn", "GTKN")
     { } // solhint-disable-line no-empty-blocks
 
-    function _afterClaim(address account_, uint256, bytes memory)
+    function _afterClaim(address account_, uint, bytes memory)
         internal
         override
     {

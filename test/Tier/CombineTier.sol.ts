@@ -36,12 +36,7 @@ const enum Opcode {
   ALWAYS,
   DIFF,
   UPDATE_BLOCKS_FOR_TIER_RANGE,
-  AND_OLD,
-  AND_NEW,
-  AND_LEFT,
-  OR_OLD,
-  OR_NEW,
-  OR_LEFT,
+  SELECT_LTE,
   ACCOUNT,
 }
 
@@ -77,7 +72,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_LEFT, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -136,7 +134,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_NEW, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -195,7 +196,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_OLD, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -254,7 +258,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_LEFT, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -313,7 +320,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_OLD, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -372,7 +382,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_NEW, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -525,7 +538,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_OLD, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -658,7 +674,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_NEW, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -793,7 +812,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.AND_LEFT, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -915,7 +937,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_OLD, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -1049,7 +1074,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_NEW, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
@@ -1183,7 +1211,10 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.OR_LEFT, 2),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
+      ),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
