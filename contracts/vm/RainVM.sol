@@ -33,18 +33,112 @@ struct State {
 /// the opcode can use contextually to inform how to run. Typically opcodes
 /// will read/write to the stack to produce some meaningful final state after
 /// all opcodes have been dispatched.
+///
+/// The only thing required to run a rain script is a `State` struct to pass
+/// to `eval`, and the index of the source to run. Additional context can
+/// optionally be provided to be used by opcodes. For example, an `ITier`
+/// contract can take the input of `report`, abi encode it as context, then
+/// expose a local opcode that copies this account to the stack. The state will
+/// be mutated by reference rather than returned by `eval`, this is to make it
+/// very clear to implementers that the inline mutation is occurring.
+///
+/// Rain scripts run "bottom to top", i.e. "right to left"!
+/// See the tests for examples on how to construct rain script in JavaScript
+/// then pass to `ImmutableSource` contracts deployed by a factory that then
+/// run `eval` to produce a final value.
+///
+/// There are only 3 "core" opcodes for `RainVM`:
+/// - `0`: Skip self and optionally additional opcodes, `0 0` is a noop
+/// - `1`: Copy value from either `constants` or `arguments` at index `operand`
+///   to the top of the stack. High bit of `operand` is `0` for `constants` and
+///   `1` for `arguments`.
+/// - `2`: Zipmap takes N values from the stack, interprets each as an array of
+///   configurable length, then zips them into `arguments` and maps a source
+///   from `sources` over these. See `zipmap` for more details.
+///
+/// To do anything useful the contract that inherits `RainVM` needs to provide
+/// opcodes to build up an internal DSL. This may sound complex but it only
+/// requires mapping opcode integers to functions to call, and reading/writing
+/// values to the stack as input/output for these functions. Further, opcode
+/// packs are provided in rain that any inheriting contract can use as a normal
+/// solidity library. See `MathOps.sol` opcode pack and the
+/// `CalculatorTest.sol` test contract for an example of how to dispatch
+/// opcodes and handle the results in a wrapping contract.
+///
+/// RainVM natively has no concept of branching logic such as `if` or loops.
+/// These can be implemented in an opcode pack but would not provide benefits
+/// such as lazy evaluation. For example, an `if` statement would run both
+/// the true/false branches and the conditional check before then discarding
+/// one of the results from the stack. In this way `if` is selecting from the
+/// _output_ of execution rather than controlling the execution itself. Instead
+/// some more specialised selection tools such as `min` and `max` in the
+/// `MathOps` opcode pack are provided. Future versions of `RainVM` MAY
+/// generalise the skip opcode into something that could allow more complex
+/// execution flow, as lazy execution could be a valuable gas optimization.
+///
+/// The `eval` function is `view` because rain scripts are expected to compute
+/// results only without modifying any state. The contract wrapping the VM is
+/// free to mutate as usual. This model encourages exposing only read-only
+/// functionality to end-user deployers who provide scripts to a VM factory.
+/// Removing all writes remotes a lot of potential foot-guns for rain script
+/// authors and allows VM contract authors to reason more clearly about the
+/// input/output of the wrapping solidity code.
+///
+/// Internally `RainVM` makes heavy use of unchecked math and assembly logic
+/// as the opcode dispatch logic runs on a tight loop and so gas costs can ramp
+/// up very quickly. Implementing contracts and opcode packs SHOULD require
+/// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
 
+    /// `0` is a skip as this is the fallback value for unset solidity bytes.
+    /// Any additional "whitespace" in rain scripts will be noops as `0 0` is
+    /// "skip self". The val can be used to skip additional opcodes but take
+    /// care to not underflow the source itself.
     uint constant internal OP_SKIP = 0;
+    /// `1` copies a value either off `constants` or `arguments` to the top of
+    /// the stack. The high bit of the operand specifies which, `0` for
+    /// `constants` and `1` for `arguments`.
     uint constant internal OP_VAL = 1;
+    /// `2` takes N values off the stack, interprets them as an array then zips
+    /// and maps a source from `sources` over them. The source has access to
+    /// the original constants using `1 0` and to zipped arguments as `1 1`.
     uint constant internal OP_ZIPMAP = 2;
+    /// Number of provided opcodes for `RainVM`.
     uint constant internal OPS_LENGTH = 3;
 
-    /// Separate function to avoid blowing solidity compile time stack.
+    /// Zipmap is rain script's native looping construct.
+    /// N values are taken from the stack as `uint256` then split into `uintX`
+    /// values where X is configurable by `operand_`. Each 1 increment in the
+    /// operand size config doubles the number of items in the implied arrays.
+    /// For example, size 0 is 1 `uint256` value, size 1 is
+    /// `2x `uint128` values, size 2 is 4x `uint64` values and so on.
+    ///
+    /// The implied arrays are zipped and then copied into `arguments` and
+    /// mapped over with a source from `sources`. Each iteration of the mapping
+    /// copies values into `arguments` from index `0` but there is no attempt
+    /// to zero out any values that may already be in the `arguments` array.
+    /// It is the callers responsibility to ensure that the `arguments` array
+    /// is correctly sized and populated for the mapped source.
+    ///
+    /// The `operand_` for the zipmap opcode is split into 3 components:
+    /// - 2 low bits: The index of the source to use from `sources`.
+    /// - 3 middle bits: The size of the loop, where 0 is 1 iteration
+    /// - 3 high bits: The number of vals to be zipped from the stack where 0
+    ///   is 1 value to be zipped.
+    ///
+    /// This is a separate function to avoid blowing solidity compile stack.
+    /// In the future it may be moved inline to `eval` for gas efficiency.
+    ///
+    /// See https://en.wikipedia.org/wiki/Zipping_(computer_science)
+    /// See https://en.wikipedia.org/wiki/Map_(higher-order_function)
+    /// @param context_ Domain specific context the wrapping contract can
+    /// provide to passthrough back to its own opcodes.
+    /// @param state_ The execution state of the VM.
+    /// @param operand_ The operand_ associated with this dispatch to zipmap.
     function zipmap(
         bytes memory context_,
         State memory state_,
-        uint config_
+        uint operand_
     ) internal view {
         unchecked {
             uint sourceIndex_;
@@ -55,7 +149,7 @@ abstract contract RainVM {
             assembly {
                 // rightmost 2 bits are the index of the source to use from
                 // sources in `state_`.
-                sourceIndex_ := and(config_, 0x03)
+                sourceIndex_ := and(operand_, 0x03)
                 // bits 2-5 indicate size of the loop. Each 1 increment of the
                 // size halves the bits of the arguments to the zipmap.
                 // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
@@ -66,7 +160,7 @@ abstract contract RainVM {
                 //
                 // Slither false positive here for the shift of constant `256`.
                 // slither-disable-next-line incorrect-shift
-                stepSize_ := shr(and(shr(2, config_), 0x07), 256)
+                stepSize_ := shr(and(shr(2, operand_), 0x07), 256)
                 // `offset_` is used by the actual bit shifting operations and
                 // is precalculated here to save some gas as this is a hot
                 // performance path.
@@ -74,7 +168,7 @@ abstract contract RainVM {
                 // bits 5+ determine the number of vals to be zipped. At least
                 // one value must be provided so a `valLength_` of `0` is one
                 // value to loop over.
-                valLength_ := add(shr(5, config_), 1)
+                valLength_ := add(shr(5, operand_), 1)
             }
             state_.stackIndex -= valLength_;
 
@@ -97,6 +191,18 @@ abstract contract RainVM {
         }
     }
 
+    /// Evaluates a rain script.
+    /// The main workhorse of the rain VM, `eval` runs any core opcodes and
+    /// dispatches anything it is unaware of to the implementing contract.
+    /// For a script to be useful the implementing contract must override
+    /// `applyOp` and dispatch non-core opcodes to domain specific logic. This
+    /// could be mathematical operations for a calculator, tier reports for
+    /// a membership combinator, entitlements for a minting curve, etc.
+    ///
+    /// Everything required to coordinate the execution of a rain script to
+    /// completion is contained in the `State`. The context and source index
+    /// are provided so the caller can provide additional data and kickoff the
+    /// opcode dispatch from the correct source in `sources`.
     function eval(
         bytes memory context_,
         State memory state_,
@@ -108,7 +214,7 @@ abstract contract RainVM {
             bytes memory source_ = state_.sources[sourceIndex_];
             uint i_;
             uint opcode_;
-            uint opval_;
+            uint operand_;
             uint valIndex_;
             bool fromArguments_;
             i_ = source_.length;
@@ -117,25 +223,35 @@ abstract contract RainVM {
             // with a value larger than the remaining source.
             while (i_ > 0) {
                 assembly {
-                    // mload taking 32 bytes and source_ starts with 32 byte
+                    // mload taking 32 bytes and `source_` starts with 32 byte
                     // length, so i_ offset moves the end of the loaded bytes
                     // to the op we want.
                     let op_ := mload(add(source_, i_))
+                    // rightmost byte is the opcode.
                     opcode_ := and(op_, 0xFF)
-                    opval_ := and(shr(8, op_), 0xFF)
+                    // second rightmost byte is the operand.
+                    operand_ := and(shr(8, op_), 0xFF)
+                    // decrease i_ for next iteration.
                     i_ := sub(i_, 0x2)
                 }
 
+                // Handle core opcodes.
                 if (opcode_ < OPS_LENGTH) {
                     if (opcode_ == OP_SKIP) {
-                        assembly { i_ := sub(i_, mul(opval_, 2)) }
+                        // Skipping opcodes is simply decreasing i_.
+                        assembly { i_ := sub(i_, mul(operand_, 2)) }
                         continue;
                     }
                     else if (opcode_ == OP_VAL) {
                         assembly {
-                            valIndex_ := and(opval_, 0x7F)
-                            fromArguments_ := gt(shr(7, opval_), 0)
+                            // All low bits are the index at which to copy a
+                            // value from to the stack.
+                            valIndex_ := and(operand_, 0x7F)
+                            // High bit of VAL switches between copying from
+                            // the constants or arguments in state.
+                            fromArguments_ := gt(shr(7, operand_), 0)
                         }
+                        // Stack a value either from constants or arguments.
                         state_.stack[state_.stackIndex] = fromArguments_
                             ? state_.arguments[valIndex_]
                             : state_.constants[valIndex_];
@@ -143,34 +259,39 @@ abstract contract RainVM {
                     }
                     else if (opcode_ == OP_ZIPMAP) {
                         // state_ modified by reference.
-                        zipmap(
-                            context_,
-                            state_,
-                            opval_
-                        );
+                        zipmap(context_, state_, operand_);
                     }
                 }
+                // Handover to the implementing contract to dispatch non-core
+                // opcodes.
                 else {
                     // state_ modified by reference.
-                    applyOp(
-                        context_,
-                        state_,
-                        opcode_,
-                        opval_
-                    );
+                    applyOp(context_, state_, opcode_, operand_);
                 }
             }
         }
     }
 
+    /// Every contract that implements `RainVM` should override `applyOp` so
+    /// that useful opcodes are available to script writers.
+    /// For an example of a simple and efficient `applyOp` implementation that
+    /// dispatches over several opcode packs see `CalculatorTest.sol`.
+    /// Implementing contracts are encouraged to handle the dispatch with
+    /// unchecked math as the dispatch is a critical performance path and
+    /// default solidity checked math can significantly increase gas cost for
+    /// each opcode dispatched. Consider that a single zipmap could loop over
+    /// dozens of opcode dispatches internally.
     /// Stack is modified by reference NOT returned.
-    /// Ops is ALSO modified by reference to calculate offsets, and discarded
-    /// by eval for each dispatch.
+    /// @param context_ Bytes that the implementing contract can passthrough
+    /// to be ready internally by its own opcodes. RainVM ignores the context.
+    /// @param state_ The RainVM state that tracks the execution progress.
+    /// @param opcode_ The current opcode to dispatch.
+    /// @param operand_ Additional information to inform the opcode dispatch.
     function applyOp(
         bytes memory context_,
         State memory state_,
         uint opcode_,
-        uint opval_
+        uint operand_
     )
     internal
     virtual

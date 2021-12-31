@@ -31,7 +31,7 @@ library MathOps {
         bytes memory,
         State memory state_,
         uint opcode_,
-        uint opval_
+        uint operand_
     )
     internal
     pure
@@ -40,11 +40,11 @@ library MathOps {
         uint accumulator_;
         uint cursor_;
         unchecked {
-            state_.stackIndex -= opval_;
+            state_.stackIndex -= operand_;
         }
         uint baseIndex_ = state_.stackIndex;
         unchecked {
-            cursor_ = baseIndex_ + opval_ - 1;
+            cursor_ = baseIndex_ + operand_ - 1;
             accumulator_ = state_.stack[cursor_];
         }
 

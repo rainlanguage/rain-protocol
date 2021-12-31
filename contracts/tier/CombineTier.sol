@@ -47,7 +47,7 @@ contract CombineTier is
         bytes memory context_,
         State memory state_,
         uint opcode_,
-        uint opval_
+        uint operand_
     )
         internal
         override
@@ -59,7 +59,7 @@ contract CombineTier is
                     context_,
                     state_,
                     opcode_ - blockOpsStart,
-                    opval_
+                    operand_
                 );
             }
             else if (opcode_ < localOpsStart) {
@@ -67,7 +67,7 @@ contract CombineTier is
                     context_,
                     state_,
                     opcode_ - tierOpsStart,
-                    opval_
+                    operand_
                 );
             }
             else {

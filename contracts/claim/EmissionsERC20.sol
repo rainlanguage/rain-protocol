@@ -44,10 +44,12 @@ contract EmissionsERC20 is
     RainVM,
     ImmutableSource
 {
-    /// @dev local opcode to put claimant account on the stack.
-    uint internal constant CLAIMANT_ACCOUNT = 0;
-    /// @dev local opcode to put this contract's deploy block on the stack.
-    uint internal constant CONSTRUCTION_BLOCK_NUMBER = 1;
+    /// local opcode to put claimant account on the stack.
+    uint public constant CLAIMANT_ACCOUNT = 0;
+    /// local opcode to put this contract's deploy block on the stack.
+    uint public constant CONSTRUCTION_BLOCK_NUMBER = 1;
+    /// local opcodes length.
+    uint public constant LOCAL_OPS_LENGTH = 2;
 
     /// @dev local offset for block ops.
     uint internal immutable blockOpsStart;
@@ -108,7 +110,7 @@ contract EmissionsERC20 is
         bytes memory context_,
         State memory state_,
         uint opcode_,
-        uint opval_
+        uint operand_
     )
         internal
         override
@@ -120,7 +122,7 @@ contract EmissionsERC20 is
                     context_,
                     state_,
                     opcode_ - blockOpsStart,
-                    opval_
+                    operand_
                 );
             }
             else if (opcode_ < mathOpsStart) {
@@ -128,7 +130,7 @@ contract EmissionsERC20 is
                     context_,
                     state_,
                     opcode_ - thisOpsStart,
-                    opval_
+                    operand_
                 );
             }
             else if (opcode_ < tierOpsStart) {
@@ -136,7 +138,7 @@ contract EmissionsERC20 is
                     context_,
                     state_,
                     opcode_ - mathOpsStart,
-                    opval_
+                    operand_
                 );
             }
             else if (opcode_ < localOpsStart) {
@@ -144,11 +146,12 @@ contract EmissionsERC20 is
                     context_,
                     state_,
                     opcode_ - tierOpsStart,
-                    opval_
+                    operand_
                 );
             }
             else {
                 opcode_ -= localOpsStart;
+                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 if (opcode_ == CLAIMANT_ACCOUNT) {
                     (address account_) = abi.decode(context_, (address));
                     state_.stack[state_.stackIndex]

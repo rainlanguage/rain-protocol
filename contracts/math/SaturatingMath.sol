@@ -12,8 +12,6 @@ pragma solidity ^0.8.10;
 /// may be safer pragmatically to saturate arithmatic at the numeric bounds.
 /// Note that saturating div is not supported because 0/0 is undefined.
 library SaturatingMath {
-    /// Lower bound of uint.
-    uint private constant MIN = 0;
     /// Upper bound of uint.
     uint private constant MAX
         = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
@@ -43,7 +41,7 @@ library SaturatingMath {
         returns (uint)
     {
         unchecked {
-            return a_ > b_ ? a_ - b_ : MIN;
+            return a_ > b_ ? a_ - b_ : 0;
         }
     }
 

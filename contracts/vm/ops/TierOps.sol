@@ -5,8 +5,6 @@ import { State } from "../RainVM.sol";
 import "../../tier/libraries/TierReport.sol";
 import "../../tier/libraries/TierwiseCombine.sol";
 
-import "hardhat/console.sol";
-
 /// @title TierOps
 /// @notice RainVM opcode pack to operate on tier reports.
 library TierOps {
@@ -30,7 +28,7 @@ library TierOps {
         bytes memory,
         State memory state_,
         uint opcode_,
-        uint opval_
+        uint operand_
     )
     internal
     view {
@@ -76,12 +74,12 @@ library TierOps {
             }
             // Stacks a report with updated blocks over tier range.
             // The start and end tier are taken from the low and high bits of
-            // the `opval_` respectively.
+            // the `operand_` respectively.
             // The block number to update to and the report to update over are
             // both taken from the stack.
             else if (opcode_ == UPDATE_BLOCKS_FOR_TIER_RANGE) {
-                uint startTier_ = opval_ & 0x0f; // & 00001111
-                uint endTier_ = (opval_ >> 4) & 0x0f; // & 00001111
+                uint startTier_ = operand_ & 0x0f; // & 00001111
+                uint endTier_ = (operand_ >> 4) & 0x0f; // & 00001111
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
                 uint blockNumber_ = state_.stack[baseIndex_];
@@ -98,11 +96,11 @@ library TierOps {
             // Stacks the result of a `selectLte` combinator.
             // All `selectLte` share the same stack and argument handling.
             // In the future these may be combined into a single opcode, taking
-            // the `logic_` and `mode_` from the `opval_` high bits.
+            // the `logic_` and `mode_` from the `operand_` high bits.
             else {
-                uint logic_ = opval_ >> 7;
-                uint mode_ = (opval_ >> 5) & 0x3; // & 00000011
-                uint reportsLength_ = opval_ & 0x1F; // & 00011111
+                uint logic_ = operand_ >> 7;
+                uint mode_ = (operand_ >> 5) & 0x3; // & 00000011
+                uint reportsLength_ = operand_ & 0x1F; // & 00011111
 
                 // Need one more than reports length to include block number.
                 state_.stackIndex -= reportsLength_ + 1;

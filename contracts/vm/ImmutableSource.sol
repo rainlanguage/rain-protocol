@@ -4,10 +4,15 @@ pragma solidity ^0.8.10;
 import { State } from "./RainVM.sol";
 import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 
+/// Constructor config for `ImmutableSource`.
 struct ImmutableSourceConfig {
+    /// Sources to be deployed as evm bytecode to build new `State` from.
     bytes[] sources;
+    /// Constants to be deployed as evm bytecode to build new `State` from.
     uint[] constants;
+    /// The length of the arguments array to build new `State` from.
     uint argumentsLength;
+    /// The length of the stack array to build new `State` from.
     uint stackLength;
 }
 

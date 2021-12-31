@@ -16,6 +16,11 @@ contract CalculatorTest is RainVM, ImmutableSource {
     constructor(ImmutableSourceConfig memory config_)
         ImmutableSource(config_)
     {
+        /// These local opcode offsets are calculated as immutable but are
+        /// really just compile time constants. They only depend on the
+        /// imported libraries and contracts. These are calculated at
+        /// construction to future-proof against underlying ops being
+        /// added/removed and potentially breaking the offsets here.
         blockOpsStart = RainVM.OPS_LENGTH;
         mathOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
     }
@@ -25,7 +30,7 @@ contract CalculatorTest is RainVM, ImmutableSource {
         bytes memory context_,
         State memory state_,
         uint opcode_,
-        uint opval_
+        uint operand_
     )
         internal
         override
@@ -37,7 +42,7 @@ contract CalculatorTest is RainVM, ImmutableSource {
                     context_,
                     state_,
                     opcode_ - blockOpsStart,
-                    opval_
+                    operand_
                 );
             }
             else {
@@ -45,7 +50,7 @@ contract CalculatorTest is RainVM, ImmutableSource {
                     context_,
                     state_,
                     opcode_ - mathOpsStart,
-                    opval_
+                    operand_
                 );
             }
         }
