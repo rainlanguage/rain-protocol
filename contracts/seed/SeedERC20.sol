@@ -99,16 +99,16 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     /// Number of reserve redeemed for burned seed tokens.
     /// `[seedAmount, reserveAmount]`
     event Redeem(
-        /// Account burning and receiving.
-        address redeemer,
+        /// Anon `msg.sender`. burning and receiving reserve for self.
+        address sender,
         /// Number of seed tokens burned.
         uint[2] redeemAmounts
     );
 
     /// Reserve was paid in exchange for seed tokens.
     event Seed(
-        /// Account seeding.
-        address seeder,
+        /// Anon `msg.sender` seeding.
+        address sender,
         /// Seed amounts.
         /// `[ Amount of tokens seeded, Amount of reserve sent ]`
         uint[2] seedAmounts
@@ -116,8 +116,8 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
 
     /// Reserve was refunded for seed tokens.
     event Unseed(
-        /// Account unseeding.
-        address unseeder,
+        /// Anon `msg.sender` unseeding.
+        address sender,
         /// Unseed amounts.
         /// `[ Amount of tokens unseeded, Amount of reserve tokens returned ]`
         uint[2] unseedAmounts
