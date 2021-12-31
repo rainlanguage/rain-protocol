@@ -323,7 +323,7 @@ describe("BPoolFeeEscrow", async function () {
     );
   });
 
-  it("should allow front end user to buy tokens, and escrow takes a fee", async function () {
+  it.only("should allow front end user to buy tokens, and escrow takes a fee", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -354,13 +354,6 @@ describe("BPoolFeeEscrow", async function () {
       "NOT_SUCCESS",
       "wrongly claimed fees while raise was ongoing"
     );
-    // should revert if raise ongoing
-    await Util.assertError(
-      async () =>
-        await bPoolFeeEscrow.connect(recipient).refundFees(trust.address),
-      "NOT_FAIL",
-      "wrongly refunded fees while raise was ongoing"
-    );
 
     const reserveBalanceRecipient1 = await reserve.balanceOf(recipient.address);
 
@@ -370,6 +363,19 @@ describe("BPoolFeeEscrow", async function () {
       expected  0 (no fee claimed)
       got       ${reserveBalanceRecipient1}`
     );
+
+    // refund should work because raise failed.
+    await bPoolFeeEscrow.connect(recipient).refundFees(trust.address)
+
+    const reserveBalanceToken = await reserve.balanceOf(await trust.token())
+
+    assert(
+      reserveBalanceToken.eq(fee),
+      `wrong token balance after refund
+      expected ${fee}
+      got      ${reserveBalanceToken}`
+    )
+
   });
 
   it("should check that trust address is child of trust factory when buying tokens", async function () {

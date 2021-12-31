@@ -21,6 +21,8 @@ contract CombineTier is
 {
     /// @dev local opcode to put tier report account on the stack.
     uint internal constant ACCOUNT = 0;
+    /// local opcodes length.
+    uint public constant LOCAL_OPS_LENGTH = 1;
 
     /// @dev local offset for block ops.
     uint internal immutable blockOpsStart;
@@ -72,6 +74,7 @@ contract CombineTier is
             }
             else {
                 opcode_ -= localOpsStart;
+                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 if (opcode_ == ACCOUNT) {
                     (address account_) = abi.decode(context_, (address));
                     state_.stack[state_.stackIndex]

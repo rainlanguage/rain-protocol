@@ -54,7 +54,7 @@ enum Phase {
 const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/SeedERC20.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
-describe.only("Trust", async function () {
+describe("Trust", async function () {
   it("should work on the happy path", async function () {
     this.timeout(0);
 
