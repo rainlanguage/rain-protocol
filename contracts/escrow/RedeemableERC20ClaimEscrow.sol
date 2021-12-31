@@ -113,24 +113,25 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
 
     /// Emitted for every successful pending deposit.
     event PendingDeposit(
+        /// Anon `msg.sender` depositing the token.
+        address sender,
         /// `Trust` contract deposit is under.
         address trust,
         /// `IERC20` token being deposited.
         address token,
-        /// Address depositing the token.
-        address depositor,
         /// Amount of token deposited.
         uint amount
     );
 
     /// Emitted for every successful deposit.
     event Deposit(
+        /// Anon `msg.sender` who originally deposited the token.
+        /// May NOT be the current `msg.sender` in the case of a pending sweep.
+        address depositor,
         /// `Trust` contract deposit is under.
         address trust,
         /// `IERC20` token being deposited.
         address token,
-        /// Address depositing the token.
-        address depositor,
         /// rTKN supply at moment of deposit.
         uint supply,
         /// Amount of token deposited.
@@ -139,12 +140,12 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
 
     /// Emitted for every successful undeposit.
     event Undeposit(
+        /// Anon `msg.sender` undepositing the token.
+        address sender,
         /// `Trust` contract undeposit is from.
         address trust,
         /// `IERC20` token being undeposited.
         address token,
-        /// Address undepositing the token.
-        address undepositor,
         /// rTKN supply at moment of deposit.
         uint supply,
         /// Amount of token undeposited.
@@ -153,12 +154,12 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
 
     /// Emitted for every successful withdrawal.
     event Withdraw(
+        /// Anon `msg.sender` withdrawing the token.
+        address withdrawer,
         /// `Trust` contract withdrawal is from.
         address trust,
         /// `IERC20` token being withdrawn.
         address token,
-        /// Address withdrawing the token.
-        address withdrawer,
         /// rTKN supply at moment of deposit.
         uint supply,
         /// Amount of token withdrawn.
@@ -239,9 +240,9 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
             += amount_;
 
         emit PendingDeposit(
+            msg.sender,
             address(trust_),
             address(token_),
-            msg.sender,
             amount_
         );
 
@@ -267,9 +268,9 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         totalDeposits[address(trust_)][token_][supply_] += amount_;
 
         emit Deposit(
+            depositor_,
             address(trust_),
             address(token_),
-            depositor_,
             supply_,
             amount_
         );
@@ -353,9 +354,9 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         totalDeposits[address(trust_)][address(token_)][supply_] -= amount_;
 
         emit Undeposit(
+            msg.sender,
             address(trust_),
             address(token_),
-            msg.sender,
             supply_,
             amount_
         );
@@ -422,9 +423,9 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
 
         require(amount_ > 0, "ZERO_WITHDRAW");
         emit Withdraw(
+            msg.sender,
             address(trust_),
             address(token_),
-            msg.sender,
             supply_,
             amount_
         );
