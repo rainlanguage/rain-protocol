@@ -38,14 +38,20 @@ const enum Opcode {
   always,
   diff,
   updateBlocksForTierRange,
-  everyLteMin,
-  everyLteMax,
-  everyLteFirst,
-  anyLteMin,
-  anyLteMax,
-  anyLteFirst,
+  selectLte,
   account,
   constructionBlockNumber,
+}
+
+enum selectLteLogic {
+  every,
+  any,
+}
+
+enum selectLteMode {
+  min,
+  max,
+  first,
 }
 
 enum Tier {
@@ -60,7 +66,7 @@ enum Tier {
   EIGHT,
 }
 
-describe("EmissionsERC20", async function () {
+describe.only("EmissionsERC20", async function () {
   it("should calculate correct emissions amount (if division is performed on final result)", async function () {
     this.timeout(0);
 
@@ -211,7 +217,7 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.diff),
           CURRENT_BLOCK_AS_REPORT(),
-          op(Opcode.anyLteMax, 2),
+          op(Opcode.selectLte, claimUtil.selectLte(selectLteLogic.any, selectLteMode.max, 2)),
             LAST_CLAIM_REPORT(),
             TIER_REPORT(),
             op(Opcode.blockNumber),
@@ -493,7 +499,7 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.diff),
           CURRENT_BLOCK_AS_REPORT(),
-          op(Opcode.anyLteMax, 2),
+          op(Opcode.selectLte, claimUtil.selectLte(selectLteLogic.any, selectLteMode.max, 2)),
             LAST_CLAIM_REPORT(),
             TIER_REPORT(),
           op(Opcode.blockNumber),
@@ -727,7 +733,7 @@ describe("EmissionsERC20", async function () {
       concat([
         op(Opcode.diff),
           CURRENT_BLOCK_AS_REPORT(),
-          op(Opcode.anyLteMax, 2),
+          op(Opcode.selectLte, claimUtil.selectLte(selectLteLogic.any, selectLteMode.max, 2)),
             LAST_CLAIM_REPORT(),
             TIER_REPORT(),
           op(Opcode.blockNumber),

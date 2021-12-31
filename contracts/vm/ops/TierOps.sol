@@ -5,6 +5,8 @@ import { State } from "../RainVM.sol";
 import "../../tier/libraries/TierReport.sol";
 import "../../tier/libraries/TierwiseCombine.sol";
 
+import "hardhat/console.sol";
+
 /// @title TierOps
 /// @notice RainVM opcode pack to operate on tier reports.
 library TierOps {
@@ -19,20 +21,10 @@ library TierOps {
     uint constant public SATURATING_DIFF = 3;
     /// Opcode to update the blocks over a range of tiers for a report.
     uint constant public UPDATE_BLOCKS_FOR_TIER_RANGE = 4;
-    /// Opcode to tierwise select the min block if every block is lte a val.
-    uint constant public EVERY_LTE_MIN = 5;
-    /// Opcode to tierwise select the max block if every block is lte a val.
-    uint constant public EVERY_LTE_MAX = 6;
-    /// Opcode to tierwise select the first block if every block is lte a val.
-    uint constant public EVERY_LTE_FIRST = 7;
-    /// Opcode to tierwise select the min block if any block is lte a val.
-    uint constant public ANY_LTE_MIN = 8;
-    /// Opcode to tierwise select the max block if any block is lte a val.
-    uint constant public ANY_LTE_MAX = 9;
-    /// Opcode to tierwise select the first block if any block is lte a val.
-    uint constant public ANY_LTE_FIRST = 10;
+    /// Opcode to tierwise select the best block lte a reference block.
+    uint constant public SELECT_LTE = 5;
     /// Number of provided opcodes for `TierOps`.
-    uint constant public OPS_LENGTH = 11;
+    uint constant public OPS_LENGTH = 6;
 
     function applyOp(
         bytes memory,
@@ -108,45 +100,27 @@ library TierOps {
             // In the future these may be combined into a single opcode, taking
             // the `logic_` and `mode_` from the `opval_` high bits.
             else {
-                state_.stackIndex -= opval_ + 1;
+                uint logic_ = opval_ >> 7;
+                uint mode_ = (opval_ >> 5) & 0x3; // 00000011
+                uint reportsLength_ = opval_ & 0x1F; // 00011111
+
+                console.log("logic: %s", logic_);
+                console.log("mode: %s", mode_);
+                console.log("opval_: %s", opval_);
+                console.log("len: %s", reportsLength_);
+
+                state_.stackIndex -= reportsLength_ + 1;
                 baseIndex_ = state_.stackIndex;
-                uint[] memory args_ = new uint[](opval_);
-                for (uint a_ = 0; a_ < opval_; a_++) {
-                    args_[a_] = state_.stack[baseIndex_ + a_ + 1];
-                }
 
                 uint blockNumber_ = state_.stack[baseIndex_];
 
-                uint logic_;
-                uint mode_;
-
-                if (opcode_ == EVERY_LTE_MIN) {
-                    logic_ = TierwiseCombine.LOGIC_EVERY;
-                    mode_ = TierwiseCombine.MODE_MIN;
-                }
-                else if (opcode_ == EVERY_LTE_MAX) {
-                    logic_ = TierwiseCombine.LOGIC_EVERY;
-                    mode_ = TierwiseCombine.MODE_MAX;
-                }
-                else if (opcode_ == EVERY_LTE_FIRST) {
-                    logic_ = TierwiseCombine.LOGIC_EVERY;
-                    mode_ = TierwiseCombine.MODE_FIRST;
-                }
-                else if (opcode_ == ANY_LTE_MIN) {
-                    logic_ = TierwiseCombine.LOGIC_ANY;
-                    mode_ = TierwiseCombine.MODE_MIN;
-                }
-                else if (opcode_ == ANY_LTE_MAX) {
-                    logic_ = TierwiseCombine.LOGIC_ANY;
-                    mode_ = TierwiseCombine.MODE_MAX;
-                }
-                else if (opcode_ == ANY_LTE_FIRST) {
-                    logic_ = TierwiseCombine.LOGIC_ANY;
-                    mode_ = TierwiseCombine.MODE_FIRST;
+                uint[] memory reports_ = new uint[](reportsLength_);
+                for (uint a_ = 0; a_ < reportsLength_; a_++) {
+                    reports_[a_] = state_.stack[baseIndex_ + a_ + 1];
                 }
 
                 state_.stack[baseIndex_] = TierwiseCombine.selectLte(
-                    args_,
+                    reports_,
                     blockNumber_,
                     logic_,
                     mode_
