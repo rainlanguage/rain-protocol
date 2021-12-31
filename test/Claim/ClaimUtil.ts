@@ -41,9 +41,7 @@ export const emissionsDeploy = async (
   const emissionsERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (
-          await getEventArgs(tx, "NewContract", emissionsERC20Factory.address)
-        )[0]
+        (await getEventArgs(tx, "NewChild", emissionsERC20Factory.address))[1]
       ),
       20 // address bytes length
     ),

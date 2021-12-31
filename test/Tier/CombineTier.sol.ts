@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, op, paddedUInt32, paddedUInt256, selectLte } from "../Util";
+import { bytify, op, paddedUInt32, paddedUInt256 } from "../Util";
 import type { Contract, ContractFactory } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";

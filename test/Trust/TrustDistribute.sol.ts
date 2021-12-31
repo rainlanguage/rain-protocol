@@ -293,7 +293,7 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory, redeemableERC20Pool } =
+      const { trustFactory, seedERC20Factory } =
         await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
@@ -636,7 +636,7 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory, redeemableERC20Pool } =
+      const { trustFactory, seedERC20Factory } =
         await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };

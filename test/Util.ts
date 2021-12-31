@@ -269,7 +269,7 @@ export const trustDeploy = async (
   const trust = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewContract", trustFactory.address))[0]
+        (await getEventArgs(tx, "NewChild", trustFactory.address))[1]
       ),
       20 // address bytes length
     ),

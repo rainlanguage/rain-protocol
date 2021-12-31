@@ -35,7 +35,7 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     ///
     /// Calls the `_createChild` hook that inheriting contracts must override.
     /// Registers child contract address such that `isChild` is `true`.
-    /// Emits `NewContract` event.
+    /// Emits `NewChild` event.
     ///
     /// @param data_ Encoded data to pass down to child contract constructor.
     /// @return New child contract address.
@@ -49,8 +49,8 @@ abstract contract Factory is IFactory, ReentrancyGuard {
         address child_ = _createChild(data_);
         // Register child contract address to `contracts` mapping.
         contracts[child_] = true;
-        // Emit `NewContract` event with child contract address.
-        emit IFactory.NewContract(child_);
+        // Emit `NewChild` event with child contract address.
+        emit IFactory.NewChild(msg.sender, child_);
         return child_;
     }
 

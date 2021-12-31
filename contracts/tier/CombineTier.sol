@@ -19,8 +19,8 @@ contract CombineTier is
     RainVM,
     ImmutableSource
 {
-    /// @dev local opcode to put tier report account on the stack.
-    uint internal constant ACCOUNT = 0;
+    /// local opcode to put tier report account on the stack.
+    uint public constant ACCOUNT = 0;
     /// local opcodes length.
     uint public constant LOCAL_OPS_LENGTH = 1;
 

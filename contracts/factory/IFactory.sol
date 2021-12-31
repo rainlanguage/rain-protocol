@@ -2,9 +2,9 @@
 pragma solidity ^0.8.10;
 
 interface IFactory {
-    /// Whenever a new child contract is deployed, a `NewContract` event
+    /// Whenever a new child contract is deployed, a `NewChild` event
     /// containing the new child contract address MUST be emitted.
-    event NewContract(address child);
+    event NewChild(address sender, address child);
 
     /// Creates a new child contract.
     ///

@@ -349,8 +349,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       got             ${actualSigner1Withdrawal0}`
     );
 
-    const signer1TokensBefore2ndWithdraw =
-      await claimableReserveToken.balanceOf(signer1.address);
     // signer1 2nd withdraw
     // instantly withdrawing again is an error.
     await Util.assertError(
@@ -792,10 +790,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
       "Distribution Status was not FAIL"
-    );
-
-    const creatorTokensBeforeUndeposit = await claimableReserveToken.balanceOf(
-      creator.address
     );
 
     // undeposit claimable tokens
