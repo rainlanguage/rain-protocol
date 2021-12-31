@@ -26,7 +26,7 @@ enum EscrowStatus {
 /// pass/fail status to flip, this will not result in the escrow double
 /// spending or otherwise changing the direction that it sends funds.
 abstract contract TrustEscrow is FactoryTruster {
-    EscrowStatus private escrowStatus = EscrowStatus.Pending;
+    mapping(Trust => EscrowStatus) private escrowStatuses;
 
     /// @param trustFactory_ `TrustFactory` that every `Trust` MUST be a child
     /// of. The security model of the escrow REQUIRES that the `TrustFactory`
@@ -46,9 +46,9 @@ abstract contract TrustEscrow is FactoryTruster {
         onlyTrustedFactoryChild(address(trust_))
         returns(EscrowStatus)
     {
-        EscrowStatus escrowStatus_ = escrowStatus;
+        EscrowStatus escrowStatus_ = escrowStatuses[trust_];
         // Short circuit and ignore the `Trust` if we previously saved a value.
-        if (escrowStatus > EscrowStatus.Pending) {
+        if (escrowStatus_ > EscrowStatus.Pending) {
             return escrowStatus_;
         }
         // We have never seen a success/fail outcome so need to ask the `Trust`
@@ -58,12 +58,12 @@ abstract contract TrustEscrow is FactoryTruster {
                 = trust_.getDistributionStatus();
             // Success maps to success.
             if (distributionStatus_ == DistributionStatus.Success) {
-                escrowStatus = EscrowStatus.Success;
+                escrowStatuses[trust_] = EscrowStatus.Success;
                 return EscrowStatus.Success;
             }
             // Fail maps to fail.
             else if (distributionStatus_ == DistributionStatus.Fail) {
-                escrowStatus = EscrowStatus.Fail;
+                escrowStatuses[trust_] = EscrowStatus.Fail;
                 return EscrowStatus.Fail;
             }
             // Everything else is still pending.

@@ -342,9 +342,9 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     function undeposit(Trust trust_, IERC20 token_, uint supply_, uint amount_)
         external
     {
-        require(amount_ > 0, "ZERO_AMOUNT");
         // Can only undeposit when the `Trust` reports failure.
         require(getEscrowStatus(trust_) == EscrowStatus.Fail, "NOT_FAIL");
+        require(amount_ > 0, "ZERO_AMOUNT");
 
         deposits[address(trust_)][address(token_)][msg.sender][supply_]
             -= amount_;

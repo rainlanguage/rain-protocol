@@ -323,7 +323,7 @@ describe("BPoolFeeEscrow", async function () {
     );
   });
 
-  it.only("should allow front end user to buy tokens, and escrow takes a fee", async function () {
+  it("should allow front end user to buy tokens, and escrow takes a fee", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -345,7 +345,7 @@ describe("BPoolFeeEscrow", async function () {
       got       ${reserveBalanceEscrow1}`
     );
 
-    // should revert if raise ongoing
+    // should revert a claim if raise failed
     await Util.assertError(
       async () =>
         await bPoolFeeEscrow
