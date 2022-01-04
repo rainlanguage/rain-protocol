@@ -70,7 +70,7 @@ abstract contract Phased {
 
     /// All phase blocks are initialized to `UNINITIALIZED` in the constructor.
     /// i.e. not fallback solidity value of `0`.
-    constructor() {
+    function initializePhaseBlocks() internal {
         for (uint i_ = 0; i_ < 8; i_++) {
             phaseBlocks[i_] = UNINITIALIZED;
         }

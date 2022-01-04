@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 import { ERC20Config } from "../erc20/ERC20Config.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -97,6 +99,7 @@ struct RedeemableERC20Config {
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
 contract RedeemableERC20 is
+    Initializable,
     Phased,
     TierByConstruction,
     ERC20,
@@ -107,6 +110,9 @@ contract RedeemableERC20 is
 
     using SafeERC20 for IERC20;
 
+    string private _name;
+    string private _symbol;
+
     /// Bits for a receiver.
     uint private constant RECEIVER = 0x1;
     /// Bits for a sender. Sender is also receiver.
@@ -115,7 +121,7 @@ contract RedeemableERC20 is
     /// To be clear, this admin is NOT intended to be an EOA.
     /// This contract is designed assuming the admin is a `Trust` or equivalent
     /// contract that itself does NOT have an admin key.
-    address public immutable admin;
+    address public admin;
     /// Tracks addresses that can always send/receive regardless of phase.
     /// sender/receiver => access bits
     mapping (address => uint) private access;
@@ -150,19 +156,20 @@ contract RedeemableERC20 is
     /// call.
     uint public minimumTier;
 
-    /// Mint the full ERC20 token supply and configure basic transfer
-    /// restrictions.
-    /// @param config_ Constructor configuration.
-    constructor (
-        RedeemableERC20Config memory config_
-    )
-        ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
-        TierByConstruction(config_.tier)
-        ERC20Pull(ERC20PullConfig(
+    function initialize(RedeemableERC20Config memory config_)
+        external
+        initializer
+    {
+        initialize(config_.tier);
+        initialize(ERC20PullConfig(
             config_.admin,
             config_.reserve
-        ))
-    {
+        ));
+        initializePhaseBlocks();
+
+        _name = config_.erc20Config.name;
+        _symbol = config_.erc20Config.symbol;
+
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
             "MINIMUM_INITIAL_SUPPLY"
@@ -191,6 +198,17 @@ contract RedeemableERC20 is
         // slither-disable-next-line unused-return
         ITier(config_.tier).report(msg.sender);
     }
+
+    function name() public view override returns (string memory) {
+        return _name;
+    }
+
+    function symbol() public view override returns (string memory) {
+        return _symbol;
+    }
+
+    // solhint-disable-next-line no-empty-blocks
+    constructor () ERC20("", "") { }
 
     /// Require a function is only admin callable.
     modifier onlyAdmin() {

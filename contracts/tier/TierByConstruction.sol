@@ -5,6 +5,8 @@ pragma solidity ^0.8.10;
 import { TierReport } from "./libraries/TierReport.sol";
 import { ITier } from "./ITier.sol";
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 /// @title TierByConstruction
 /// @notice `TierByConstruction` is a base contract for other contracts to
 /// inherit from.
@@ -39,11 +41,11 @@ import { ITier } from "./ITier.sol";
 /// @dev Enforces tiers held by contract contruction block.
 /// The construction block is compared against the blocks returned by `report`.
 /// The `ITier` contract is paramaterised and set during construction.
-contract TierByConstruction {
+abstract contract TierByConstruction is Initializable {
     ITier public tierContract;
     uint public constructionBlock;
 
-    constructor(ITier tierContract_) {
+    function initialize(ITier tierContract_) internal {
         tierContract = tierContract_;
         constructionBlock = block.number;
     }

@@ -4,10 +4,17 @@ pragma solidity ^0.8.10;
 import { Factory } from "../factory/Factory.sol";
 import { RedeemableERC20, RedeemableERC20Config } from "./RedeemableERC20.sol";
 import { ITier } from "../tier/ITier.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title RedeemableERC20Factory
 /// @notice Factory for deploying and registering `RedeemableERC20` contracts.
 contract RedeemableERC20Factory is Factory {
+
+    address public immutable implementation;
+
+    constructor() {
+        implementation = address(new RedeemableERC20());
+    }
 
     /// @inheritdoc Factory
     function _createChild(
@@ -17,7 +24,9 @@ contract RedeemableERC20Factory is Factory {
             data_,
             (RedeemableERC20Config)
         );
-        return address(new RedeemableERC20(config_));
+        address clone_ = Clones.clone(implementation);
+        RedeemableERC20(clone_).initialize(config_);
+        return clone_;
     }
 
     /// Allows calling `createChild` with `RedeemableERC20Config` struct.

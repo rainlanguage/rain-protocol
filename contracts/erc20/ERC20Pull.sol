@@ -5,6 +5,8 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 /// Constructor config for `ERC20Pull`.
 struct ERC20PullConfig {
     /// Token sender to bind to `pullERC20`.
@@ -29,18 +31,17 @@ struct ERC20PullConfig {
 /// The token is singular and bound at construction to avoid the situation
 /// where anons can force the implementing contract to call an arbitrary
 /// external contract.
-contract ERC20Pull {
+abstract contract ERC20Pull is Initializable {
 
     using SafeERC20 for IERC20;
 
     /// The `sender` that this contract will attempt to pull tokens from.
-    address public immutable sender;
+    address public sender;
     /// The ERC20 token that this contract will attempt to pull to itself from
     /// `sender`.
-    address public immutable token;
+    address public token;
 
-    /// Constructor only copies config to immutables.
-    constructor(ERC20PullConfig memory config_) {
+    function initialize(ERC20PullConfig memory config_) internal {
         sender = config_.sender;
         token = config_.token;
     }

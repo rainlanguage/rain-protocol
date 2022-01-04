@@ -138,10 +138,6 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     constructor (SeedERC20Config memory config_)
         ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
         Cooldown(config_.cooldownDuration)
-        ERC20Pull(ERC20PullConfig(
-            config_.recipient,
-            address(config_.reserve)
-        ))
     {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
@@ -150,6 +146,11 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
         reserve = config_.reserve;
         recipient = config_.recipient;
         _mint(address(this), config_.seedUnits);
+        initialize(ERC20PullConfig(
+            config_.recipient,
+            address(config_.reserve)
+        ));
+        initializePhaseBlocks();
     }
 
     /// @inheritdoc ERC20

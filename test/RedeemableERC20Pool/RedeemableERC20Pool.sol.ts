@@ -183,6 +183,12 @@ describe("RedeemableERC20Pool", async function () {
 
       await reserveSigner.approve(bPool.address, spend);
       await crpSigner.pokeWeights();
+      console.log('a', bPool.address, reserve.address, token.address)
+      console.log('r', await reserve.balanceOf(bPool.address))
+      console.log('t', await token.balanceOf(bPool.address))
+
+      await bPoolSigner.gulp(reserve.address)
+      await bPoolSigner.gulp(token.address)
       await bPoolSigner.swapExactAmountIn(
         reserve.address,
         spend,
