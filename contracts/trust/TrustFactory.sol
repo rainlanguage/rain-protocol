@@ -5,8 +5,10 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ITier } from "../tier/ITier.sol";
 
+import "@openzeppelin/contracts/proxy/Clones.sol";
+
 import { Factory } from "../factory/Factory.sol";
-import { Trust, TrustConfig } from "../trust/Trust.sol";
+import { Trust, TrustConstructionConfig, TrustConfig } from "../trust/Trust.sol";
 // solhint-disable-next-line max-line-length
 import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factory.sol";
 // solhint-disable-next-line max-line-length
@@ -82,23 +84,25 @@ struct TrustFactoryTrustSeedERC20Config {
 contract TrustFactory is Factory {
     using SafeERC20 for RedeemableERC20;
 
+    address public immutable implementation;
+
     RedeemableERC20Factory public immutable redeemableERC20Factory;
-    SeedERC20Factory public immutable seedERC20Factory;
     address public immutable crpFactory;
     address public immutable balancerFactory;
-    uint public immutable creatorFundsReleaseTimeout;
     uint public immutable maxRaiseDuration;
-    BPoolFeeEscrow public immutable bPoolFeeEscrow;
 
     /// @param config_ All configuration for the `TrustFactory`.
     constructor(TrustFactoryConfig memory config_) {
         redeemableERC20Factory = config_.redeemableERC20Factory;
-        seedERC20Factory = config_.seedERC20Factory;
         crpFactory = config_.crpFactory;
         balancerFactory = config_.balancerFactory;
-        creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
         maxRaiseDuration = config_.maxRaiseDuration;
-        bPoolFeeEscrow = new BPoolFeeEscrow(address(this));
+
+        implementation = address(new Trust(TrustConstructionConfig(
+            config_.seedERC20Factory,
+            config_.creatorFundsReleaseTimeout,
+            new BPoolFeeEscrow(address(this))
+        )));
     }
 
     /// Allows calling `createChild` with TrustConfig,
@@ -160,9 +164,10 @@ contract TrustFactory is Factory {
             "MAX_RAISE_DURATION"
         );
 
-        return address(new Trust(
+        address clone_ = Clones.clone(implementation);
+
+        Trust(clone_).initialize(
             TrustConfig(
-                bPoolFeeEscrow,
                 crpFactory,
                 balancerFactory,
                 trustFactoryTrustConfig_.reserve,
@@ -171,7 +176,6 @@ contract TrustFactory is Factory {
                 trustFactoryTrustConfig_.finalValuation,
                 trustFactoryTrustConfig_.minimumTradingDuration,
                 trustFactoryTrustConfig_.creator,
-                creatorFundsReleaseTimeout,
                 trustFactoryTrustConfig_.minimumCreatorRaise,
                 trustFactoryTrustConfig_.seederFee,
                 trustFactoryTrustConfig_.redeemInit
@@ -184,12 +188,13 @@ contract TrustFactory is Factory {
                 trustFactoryTrustRedeemableERC20Config_.totalSupply
             ),
             TrustSeedERC20Config(
-                seedERC20Factory,
                 trustFactoryTrustSeedERC20Config_.seeder,
                 trustFactoryTrustSeedERC20Config_.seederUnits,
                 trustFactoryTrustSeedERC20Config_.seederCooldownDuration,
                 trustFactoryTrustSeedERC20Config_.seedERC20Config
             )
-        ));
+        );
+
+        return clone_;
     }
 }

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -94,11 +96,21 @@ struct DistributionProgress {
     uint redeemInit;
 }
 
+struct TrustConstructionConfig {
+    // The `SeedERC20Factory` on the current network.
+    SeedERC20Factory seedERC20Factory;
+    /// Number of blocks after which emergency mode can be activated in phase
+    /// two or three. Ideally this never happens and instead anon ends the
+    /// auction successfully and all funds are cleared. If this does happen
+    /// then creator can access any trust related tokens owned by the trust.
+    uint creatorFundsReleaseTimeout;
+    /// Fee escrow for the balancer pool that wraps swaps in `buyToken`.
+    BPoolFeeEscrow bPoolFeeEscrow;
+}
+
 /// Configuration specific to constructing the `Trust`.
 /// `Trust` contracts also take inner config for the pool and token.
 struct TrustConfig {
-    /// Fee escrow for the balancer pool that wraps swaps in `buyToken`.
-    BPoolFeeEscrow bPoolFeeEscrow;
     /// Balancer `ConfigurableRightsPool` factory.
     address crpFactory;
     /// Balancer factory.
@@ -118,11 +130,6 @@ struct TrustConfig {
     /// Address of the creator who will receive reserve assets on successful
     /// distribution.
     address creator;
-    /// Number of blocks after which emergency mode can be activated in phase
-    /// two or three. Ideally this never happens and instead anon ends the
-    /// auction successfully and all funds are cleared. If this does happen
-    /// then creator can access any trust related tokens owned by the trust.
-    uint creatorFundsReleaseTimeout;
     /// Minimum amount to raise for the creator from the distribution period.
     /// A successful distribution raises at least this AND also the seed fee
     /// and `redeemInit`;
@@ -141,8 +148,6 @@ struct TrustConfig {
 }
 
 struct TrustSeedERC20Config {
-    // The `SeedERC20Factory` on the current network.
-    SeedERC20Factory seedERC20Factory;
     // Either an EOA (externally owned address) or `address(0)`.
     // If an EOA the seeder account must transfer seed funds to the newly
     // constructed `Trust` before distribution can start.
@@ -268,7 +273,23 @@ struct TrustRedeemableERC20Config {
 /// creates. The `Trust` never transfers ownership so it directly controls all
 /// internal workflows. No stakeholder, even the deployer or creator, can act
 /// as owner of the internals.
-contract Trust is Phased {
+contract Trust is Phased, Initializable {
+
+    /// Summary of every contract built or referenced internally by `Trust`.
+    event TrustContracts(
+        /// Reserve erc20 token used to provide value to the created Balancer
+        /// pool.
+        address reserveERC20,
+        /// Redeemable erc20 token that is minted and distributed.
+        address redeemableERC20,
+        /// Address that provides the initial reserve token seed.
+        address seeder,
+        /// Address that defines and controls tier levels for users.
+        address tier,
+        /// The Balancer `ConfigurableRightsPool` deployed for this
+        /// distribution.
+        address crp
+    );
 
     using Math for uint256;
 
@@ -291,13 +312,14 @@ contract Trust is Phased {
     /// @param data Opaque binary data for the GUI/tooling/indexer to read.
     event Notice(address sender, bytes data);
 
-    /// Seeder units from the initial config.
-    uint public immutable seederUnits;
-    /// Seeder cooldown duration from the initial config.
-    uint public immutable seederCooldownDuration;
+    // /// Seeder units from the initial config.
+    // uint public immutable seederUnits;
+    // /// Seeder cooldown duration from the initial config.
+    // uint public immutable seederCooldownDuration;
+
     /// SeedERC20Factory from the initial config.
     /// Seeder from the initial config.
-    address public immutable seeder;
+    address public seeder;
     SeedERC20Factory public immutable seedERC20Factory;
     /// Balance of the reserve asset in the Balance pool at the moment
     /// `anonEndDistribution` is called. This must be greater than or equal to
@@ -313,35 +335,41 @@ contract Trust is Phased {
     /// Pool reserveInit + seederFee + redeemInit + minimumCreatorRaise.
     /// Could be calculated as a view function but that would require external
     /// calls to the pool contract.
-    uint public immutable successBalance;
+    uint public successBalance;
 
     /// The redeemable token minted in the constructor.
-    RedeemableERC20 public immutable token;
+    RedeemableERC20 public token;
 
     /// Reserve token.
-    IERC20 public immutable reserve;
+    IERC20 public reserve;
     /// Initial reserve balance of the pool.
-    uint public immutable reserveInit;
+    uint public reserveInit;
 
     /// The `ConfigurableRightsPool` built during construction.
-    IConfigurableRightsPool public immutable crp;
+    IConfigurableRightsPool public crp;
 
-    uint public immutable minimumCreatorRaise;
+    uint public minimumCreatorRaise;
 
-    address public immutable creator;
+    address public creator;
     uint public immutable creatorFundsReleaseTimeout;
 
-    uint public immutable seederFee;
-    uint public immutable redeemInit;
+    uint public seederFee;
+    uint public redeemInit;
 
     /// Minimum trading duration from the initial config.
-    uint public immutable minimumTradingDuration;
+    uint public minimumTradingDuration;
 
     /// The final weight on the last block of the raise.
     /// Note the spot price is unknown until the end because we don't know
     /// either of the final token balances.
-    uint public immutable finalWeight;
-    uint public immutable finalValuation;
+    uint public finalWeight;
+    uint public finalValuation;
+
+    constructor(TrustConstructionConfig memory config_) {
+        seedERC20Factory = config_.seedERC20Factory;
+        creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
+        bPoolFeeEscrow = config_.bPoolFeeEscrow;
+    }
 
     /// Sanity checks configuration.
     /// Creates the `RedeemableERC20` contract and mints the redeemable ERC20
@@ -364,11 +392,11 @@ contract Trust is Phased {
     // Slither false positive. Constructors cannot be reentrant.
     // https://github.com/crytic/slither/issues/887
     // slither-disable-next-line reentrancy-benign
-    constructor (
+    function initialize (
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
         TrustSeedERC20Config memory trustSeedERC20Config_
-    ) {
+    ) external initializer {
         // There are additional minimum reserve init and token supply
         // restrictions enforced by `RedeemableERC20` and
         // `RedeemableERC20Pool`. This ensures that the weightings and
@@ -382,18 +410,12 @@ contract Trust is Phased {
 
         initializePhased();
 
-        seederUnits = trustSeedERC20Config_.seederUnits;
-        seederCooldownDuration = trustSeedERC20Config_.seederCooldownDuration;
-        seedERC20Factory = trustSeedERC20Config_.seedERC20Factory;
-
         creator = config_.creator;
-        creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
         reserve = config_.reserve;
         reserveInit = config_.reserveInit;
         minimumCreatorRaise = config_.minimumCreatorRaise;
         seederFee = config_.seederFee;
         redeemInit = config_.redeemInit;
-        bPoolFeeEscrow = config_.bPoolFeeEscrow;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             trustRedeemableERC20Config_.redeemableERC20Factory
@@ -415,8 +437,7 @@ contract Trust is Phased {
                     % trustSeedERC20Config_.seederUnits,
                 "SEED_PRICE_MULTIPLIER"
             );
-            trustSeedERC20Config_.seeder = address(trustSeedERC20Config_
-                .seedERC20Factory
+            trustSeedERC20Config_.seeder = address(seedERC20Factory
                 .createChild(abi.encode(SeedERC20Config(
                     config_.reserve,
                     address(this),
@@ -472,19 +493,13 @@ contract Trust is Phased {
         );
 
         crp = crp_;
-    }
 
-    /// Accessor for the `TrustContracts` of this `Trust`.
-    /// DEPRECATED: This will be lifted offchain in the future.
-    function getContracts() external view returns(TrustContracts memory) {
-        return TrustContracts(
-            address(reserve),
-            address(token),
-            address(this),
-            address(seeder),
-            address(token.tierContract()),
-            address(crp),
-            address(crp.bPool())
+        emit TrustContracts(
+            address(config_.reserve),
+            address(redeemableERC20_),
+            address(trustSeedERC20Config_.seeder),
+            address(trustRedeemableERC20Config_.tier),
+            address(crp_)
         );
     }
 
