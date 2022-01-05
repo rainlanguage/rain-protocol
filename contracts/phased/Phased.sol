@@ -60,7 +60,7 @@ enum Phase {
 contract Phased {
     /// Every phase block starts uninitialized.
     /// Only uninitialized blocks can be set by the phase scheduler.
-    uint32 public constant UNINITIALIZED = 0xFFFFFFFF;
+    uint32 private constant UNINITIALIZED = 0xFFFFFFFF;
 
     /// `PhaseShiftScheduled` is emitted when the next phase is scheduled.
     event PhaseShiftScheduled(uint newPhaseBlock_);
@@ -68,9 +68,15 @@ contract Phased {
     /// 8 phases each as 32 bits to fit a single 32 byte word.
     uint32[8] public phaseBlocks;
 
-    /// All phase blocks are initialized to `UNINITIALIZED` in the constructor.
+    /// Initialize the blocks at "never".
+    /// Intended for use with `Initializable` contracts.
+    /// All phase blocks are initialized to `UNINITIALIZED`.
     /// i.e. not fallback solidity value of `0`.
     function initializePhased() internal {
+        // Reinitialization is a bug.
+        // Only need to check the first block as all blocks are about to be set
+        // to `UNINITIALIZED`.
+        assert(phaseBlocks[0] == 0);
         for (uint i_ = 0; i_ < 8; i_++) {
             phaseBlocks[i_] = UNINITIALIZED;
         }
