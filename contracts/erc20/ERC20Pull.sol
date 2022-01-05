@@ -49,7 +49,7 @@ contract ERC20Pull {
         // disable pull functionality.
         require(config_.sender != address(0), "ZERO_SENDER");
         require(config_.token != address(0), "ZERO_TOKEN");
-        // Reinitializing is a bug.
+        // Reinitialization is a bug.
         assert(sender == address(0));
         assert(token == address(0));
         sender = config_.sender;

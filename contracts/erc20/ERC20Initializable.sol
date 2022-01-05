@@ -27,9 +27,7 @@ contract ERC20Initializable is ERC20 {
     function initializeERC20(ERC20Config memory config_)
         internal
     {
-        // Byte length checks are a guard only against an incorrect
-        // implementation. This function should only be called ONCE by an
-        // `Initializable` contract.
+        // Reinitialization is a bug.
         assert(bytes(initializedName).length < 1);
         assert(bytes(initializedSymbol).length < 1);
         initializedName = config_.name;

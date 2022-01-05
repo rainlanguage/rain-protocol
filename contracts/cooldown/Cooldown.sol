@@ -53,7 +53,8 @@ contract Cooldown {
     /// @param cooldownDuration_ The global cooldown duration.
     function initializeCooldown(uint cooldownDuration_) internal {
         require(cooldownDuration_ > 0, "COOLDOWN_0");
-        require(cooldownDuration < 1, "COOLDOWN_SET");
+        // Reinitialization is a bug.
+        assert(cooldownDuration == 0);
         cooldownDuration = cooldownDuration_;
     }
 
