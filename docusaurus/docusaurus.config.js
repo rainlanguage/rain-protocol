@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
@@ -7,7 +8,7 @@ module.exports = {
   tagline: "Make It Rain",
   url: "https://beehive-innovation.github.io",
   baseUrl: "/rain-protocol/",
-  onBrokenLinks: "throw",
+  onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",
   // favicon: "img/favicon.ico",
   organizationName: "beehive-innovation", // Usually your GitHub org/user name.
@@ -59,10 +60,8 @@ module.exports = {
         docs: {
           path: "../docs",
           routeBasePath: "/",
-          exclude: [
-            "**/*/test/**/*.md",
-            "**/*/configurable-rights-pool/**/*.md",
-          ],
+          includeCurrentVersion: false,
+          exclude: ["**/*/test/**/*.md"],
           sidebarPath: require.resolve("./sidebars.js"),
         },
         theme: {
@@ -71,12 +70,5 @@ module.exports = {
       },
     ],
   ],
-  plugins: [
-    [
-      require.resolve("@cmfcmf/docusaurus-search-local"),
-      {
-        docsRouteBasePath: "/",
-      },
-    ],
-  ],
+  plugins: [require.resolve("@cmfcmf/docusaurus-search-local")],
 };
