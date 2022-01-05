@@ -133,7 +133,6 @@ export interface Factories {
   redeemableERC20Factory: RedeemableERC20Factory & Contract;
   seedERC20Factory: SeedERC20Factory & Contract;
   trustFactory: TrustFactory & Contract;
-  redeemableERC20Pool: RedeemableERC20Pool & Contract;
 }
 
 export const factoriesDeploy = async (
@@ -157,17 +156,7 @@ export const factoriesDeploy = async (
     (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
   await seedERC20Factory.deployed();
 
-  // library
-  const redeemableERC20Pool = (await basicDeploy(
-    "RedeemableERC20Pool",
-    {}
-  )) as RedeemableERC20Pool & Contract;
-
-  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory", {
-    libraries: {
-      RedeemableERC20Pool: redeemableERC20Pool.address,
-    },
-  });
+  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
   const trustFactory = (await trustFactoryFactory.deploy({
     redeemableERC20Factory: redeemableERC20Factory.address,
     seedERC20Factory: seedERC20Factory.address,
@@ -182,7 +171,6 @@ export const factoriesDeploy = async (
     redeemableERC20Factory,
     seedERC20Factory,
     trustFactory,
-    redeemableERC20Pool,
   };
 };
 
@@ -307,9 +295,7 @@ export const trustDeploy = async (
   trustFactoryTrustSeedERC20Config: TrustFactoryTrustSeedERC20ConfigStruct,
   ...args
 ): Promise<Trust & Contract> => {
-  const tx = await trustFactory[
-    "createChild((address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint256),((string,string),address,uint256,uint256),(address,address,uint256,uint256,(string,string)))"
-  ](
+  const tx = await trustFactory.createChildTyped(
     trustFactoryTrustConfig,
     trustFactoryTrustRedeemableERC20Config,
     trustFactoryTrustSeedERC20Config,

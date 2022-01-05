@@ -8,6 +8,7 @@ import { ITier } from "../tier/ITier.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import { Factory } from "../factory/Factory.sol";
+// solhint-disable-next-line max-line-length
 import { Trust, TrustConstructionConfig, TrustConfig } from "../trust/Trust.sol";
 // solhint-disable-next-line max-line-length
 import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factory.sol";
@@ -117,7 +118,7 @@ contract TrustFactory is Factory {
     /// @param trustFactoryTrustSeedERC20Config_ SeedERC20
     /// constructor configuration.
     /// @return New Trust child contract address.
-    function createChild(
+    function createChildTyped(
         TrustFactoryTrustConfig
         calldata
         trustFactoryTrustConfig_,
@@ -127,12 +128,12 @@ contract TrustFactory is Factory {
         TrustFactoryTrustSeedERC20Config
         calldata
         trustFactoryTrustSeedERC20Config_
-    ) external returns(address) {
-        return this.createChild(abi.encode(
+    ) external returns(Trust) {
+        return Trust(this.createChild(abi.encode(
             trustFactoryTrustConfig_,
             trustFactoryTrustRedeemableERC20Config_,
             trustFactoryTrustSeedERC20Config_
-        ));
+        )));
     }
 
     /// @inheritdoc Factory
