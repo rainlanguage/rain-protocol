@@ -8,7 +8,7 @@ module.exports = {
   tagline: "Make It Rain",
   url: "https://beehive-innovation.github.io",
   baseUrl: "/rain-protocol/",
-  onBrokenLinks: "warn",
+  onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   // favicon: "img/favicon.ico",
   organizationName: "beehive-innovation", // Usually your GitHub org/user name.
@@ -24,12 +24,6 @@ module.exports = {
         {
           to: "/glossary",
           label: "Glossary",
-          position: "left",
-        },
-        {
-          to: "/api/trust/Trust",
-          // activeBasePath: "/API",
-          label: "API",
           position: "left",
         },
         {

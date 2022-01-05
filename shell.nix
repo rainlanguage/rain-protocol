@@ -48,6 +48,7 @@ let
     rm -rf docusaurus/.docusaurus
     rm -rf docusaurus/build
     rm -rf docusaurus/node_modules
+    rm -rf docs/api
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
