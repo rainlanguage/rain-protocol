@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 /// @notice Factory for deploying and registering `RedeemableERC20` contracts.
 contract RedeemableERC20Factory is Factory {
 
-    /// Reference implementation of `RedeemableERC20` to clone.
+    /// Template contract to clone.
     /// Deployed by the constructor.
     address public immutable implementation;
 

@@ -10,8 +10,11 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 /// @notice Factory for creating and deploying `SeedERC20` contracts.
 contract SeedERC20Factory is Factory {
 
+    /// Template contract to clone.
+    /// Deployed by the constructor.
     address public immutable implementation;
 
+    /// Build the reference implementation to clone for each child.
     constructor() {
         implementation = address(new SeedERC20());
     }
@@ -34,7 +37,7 @@ contract SeedERC20Factory is Factory {
     /// parameters are already encoded.
     ///
     /// @param config_ `SeedERC20` constructor configuration.
-    /// @return New `SeedERC20` child contract address.
+    /// @return New `SeedERC20` child contract.
     function createChildTyped(SeedERC20Config calldata config_)
         external
         returns(SeedERC20)
