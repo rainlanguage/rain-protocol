@@ -47,6 +47,7 @@ contract Cooldown {
     mapping (address => uint) public cooldowns;
     address private caller;
 
+    /// Initialize the cooldown duration.
     /// The cooldown duration is global to the contract.
     /// Cooldown duration must be greater than 0.
     /// Cooldown duration can only be set once.

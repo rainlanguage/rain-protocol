@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import { ReserveToken } from "./ReserveToken.sol";
-import { SeedERC20 } from "../seed/SeedERC20.sol";
+import { SeedERC20, ERC20 } from "../seed/SeedERC20.sol";
 
 /// @title SeedERC20Reentrant
 /// Test contract that attempts to call reentrant code on `SeedERC20`.
@@ -31,6 +31,7 @@ contract SeedERC20Reentrant is ReserveToken {
         methodTarget = methodTarget_;
     }
 
+    /// @inheritdoc ERC20
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,

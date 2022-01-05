@@ -69,7 +69,6 @@ contract Phased {
     uint32[8] public phaseBlocks;
 
     /// Initialize the blocks at "never".
-    /// Intended for use with `Initializable` contracts.
     /// All phase blocks are initialized to `UNINITIALIZED`.
     /// i.e. not fallback solidity value of `0`.
     function initializePhased() internal {
