@@ -10,7 +10,7 @@ import type { Contract } from "ethers";
 chai.use(solidity);
 const { expect, assert } = chai;
 
-describe("SeedERC20", async function () {
+describe.only("SeedERC20", async function () {
   it("should behave correctly if people grief contract with reserve transfers", async function () {
     this.timeout(0);
 
