@@ -131,7 +131,7 @@ contract TrustFactory is Factory {
         ));
     }
 
-    /// @inheritdoc Factory
+    // FIXME: @inheritdoc Factory
     function _createChild(
         bytes calldata data_
     ) internal virtual override returns(address) {

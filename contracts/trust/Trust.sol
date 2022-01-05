@@ -606,7 +606,7 @@ contract Trust is Phased {
     }
 
     /// Enforce `Phase.FOUR` as the last phase.
-    /// @inheritdoc Phased
+    // FIXME: @inheritdoc Phased
     function _beforeScheduleNextPhase(uint nextPhaseBlock_)
         internal
         override
