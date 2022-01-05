@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Phase, Phased } from "../phased/Phased.sol";
+import { Phase, Phased } from "../../phased/Phased.sol";
 
 /// @title PhasedTest
 /// Empty contract for tests enumerating behaviour of the `Phased` modifiers.
 contract PhasedTest is Phased {
     /// Custom variable for testing the `_beforeScheduleNextPhase` hook
     bool public hookCondition = true;
+
+    constructor() {
+        initializePhased();
+    }
 
     /// Exposes `scheduleNextPhase` for testing.
     /// @param nextPhaseBlock_ As per `scheduleNextPhase`.

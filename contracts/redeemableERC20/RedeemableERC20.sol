@@ -165,7 +165,7 @@ contract RedeemableERC20 is
             config_.admin,
             config_.reserve
         ));
-        initializePhaseBlocks();
+        initializePhased();
 
         _name = config_.erc20Config.name;
         _symbol = config_.erc20Config.symbol;

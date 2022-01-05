@@ -57,7 +57,7 @@ enum Phase {
 /// ensure that functionality is limited to the current phase.
 /// The full history of each phase shift block is recorded as a fixed size
 /// array of `uint32`.
-abstract contract Phased {
+contract Phased {
     /// Every phase block starts uninitialized.
     /// Only uninitialized blocks can be set by the phase scheduler.
     uint32 public constant UNINITIALIZED = 0xFFFFFFFF;
@@ -70,7 +70,7 @@ abstract contract Phased {
 
     /// All phase blocks are initialized to `UNINITIALIZED` in the constructor.
     /// i.e. not fallback solidity value of `0`.
-    function initializePhaseBlocks() internal {
+    function initializePhased() internal {
         for (uint i_ = 0; i_ < 8; i_++) {
             phaseBlocks[i_] = UNINITIALIZED;
         }

@@ -380,7 +380,7 @@ contract Trust is Phased {
             "MIN_TOKEN_SUPPLY"
         );
 
-        initializePhaseBlocks();
+        initializePhased();
 
         seederUnits = trustSeedERC20Config_.seederUnits;
         seederCooldownDuration = trustSeedERC20Config_.seederCooldownDuration;

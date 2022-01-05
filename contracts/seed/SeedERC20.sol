@@ -150,7 +150,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
             config_.recipient,
             address(config_.reserve)
         ));
-        initializePhaseBlocks();
+        initializePhased();
     }
 
     /// @inheritdoc ERC20
