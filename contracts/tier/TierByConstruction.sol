@@ -39,7 +39,7 @@ import { ITier } from "./ITier.sol";
 /// @dev Enforces tiers held by contract contruction block.
 /// The construction block is compared against the blocks returned by `report`.
 /// The `ITier` contract is paramaterised and set during construction.
-abstract contract TierByConstruction {
+contract TierByConstruction {
     ITier public tierContract;
     uint public constructionBlock;
 
