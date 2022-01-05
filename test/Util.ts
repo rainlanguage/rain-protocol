@@ -2,12 +2,7 @@ import { ethers, artifacts } from "hardhat";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
-import type {
-  TrustFactory,
-  TrustFactoryTrustConfigStruct,
-  TrustFactoryTrustRedeemableERC20ConfigStruct,
-  TrustFactoryTrustSeedERC20ConfigStruct,
-} from "../typechain/TrustFactory";
+import type { TrustFactory } from "../typechain/TrustFactory";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20"
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { SeedERC20 } from "../typechain/SeedERC20"
@@ -21,7 +16,7 @@ import type {
   BigNumberish,
   ContractTransaction,
 } from "ethers";
-import type { Trust } from "../typechain/Trust";
+import type { Trust, TrustConfigStruct, TrustRedeemableERC20ConfigStruct, TrustSeedERC20ConfigStruct } from "../typechain/Trust";
 import type { RedeemableERC20Pool } from "../typechain/RedeemableERC20Pool";
 import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
@@ -290,15 +285,15 @@ export const seedERC20Deploy = async (deployer, config) => {
 export const trustDeploy = async (
   trustFactory: TrustFactory & Contract,
   creator: SignerWithAddress,
-  trustFactoryTrustConfig: TrustFactoryTrustConfigStruct,
-  trustFactoryTrustRedeemableERC20Config: TrustFactoryTrustRedeemableERC20ConfigStruct,
-  trustFactoryTrustSeedERC20Config: TrustFactoryTrustSeedERC20ConfigStruct,
+  trustConfig: TrustConfigStruct,
+  trustRedeemableERC20Config: TrustRedeemableERC20ConfigStruct,
+  trustSeedERC20Config: TrustSeedERC20ConfigStruct,
   ...args
 ): Promise<Trust & Contract> => {
   const tx = await trustFactory.createChildTyped(
-    trustFactoryTrustConfig,
-    trustFactoryTrustRedeemableERC20Config,
-    trustFactoryTrustSeedERC20Config,
+    trustConfig,
+    trustRedeemableERC20Config,
+    trustSeedERC20Config,
     ...args
   );
 

@@ -57,14 +57,6 @@ enum DistributionStatus {
 
 /// Everything required to setup a `ConfigurableRightsPool` for a `Trust`.
 struct CRPConfig {
-    /// The CRPFactory on the current network.
-    /// This is an address published by Balancer or deployed locally during
-    /// testing.
-    address crpFactory;
-    /// The BFactory on the current network.
-    /// This is an address published by Balancer or deployed locally during
-    /// testing.
-    address balancerFactory;
     /// Reserve side of the pool pair.
     IERC20 reserve;
     /// Redeemable ERC20 side of the pool pair.
@@ -84,7 +76,13 @@ struct CRPConfig {
     uint initialValuation;
 }
 
+/// Configuration specific to constructing the `Trust`.
 struct TrustConstructionConfig {
+    /// Balancer `ConfigurableRightsPool` factory.
+    address crpFactory;
+    /// Balancer factory.
+    address balancerFactory;
+    RedeemableERC20Factory redeemableERC20Factory;
     // The `SeedERC20Factory` on the current network.
     SeedERC20Factory seedERC20Factory;
     /// Number of blocks after which emergency mode can be activated in phase
@@ -92,17 +90,14 @@ struct TrustConstructionConfig {
     /// auction successfully and all funds are cleared. If this does happen
     /// then creator can access any trust related tokens owned by the trust.
     uint creatorFundsReleaseTimeout;
-    /// Fee escrow for the balancer pool that wraps swaps in `buyToken`.
-    BPoolFeeEscrow bPoolFeeEscrow;
+    /// Every `Trust` built by this factory will have its raise duration
+    /// limited by this max duration.
+    uint maxRaiseDuration;
 }
 
-/// Configuration specific to constructing the `Trust`.
+/// Configuration specific to initializing a `Trust` clone.
 /// `Trust` contracts also take inner config for the pool and token.
 struct TrustConfig {
-    /// Balancer `ConfigurableRightsPool` factory.
-    address crpFactory;
-    /// Balancer factory.
-    address balancerFactory;
     /// Reserve token address, e.g. USDC.
     IERC20 reserve;
     /// Initital reserve amount to start the LBP with.
@@ -161,7 +156,6 @@ struct TrustSeedERC20Config {
 
 /// Forwarded config for `RedeemableERC20Config`.
 struct TrustRedeemableERC20Config {
-    RedeemableERC20Factory redeemableERC20Factory;
     ERC20Config erc20Config;
     ITier tier;
     uint minimumTier;
@@ -317,6 +311,7 @@ contract Trust is Phased, Initializable {
     event CreatorFundsRelease(address token, uint amount);
 
     BPoolFeeEscrow public immutable bPoolFeeEscrow;
+    uint public immutable maxRaiseDuration;
 
     /// Anyone can emit a `Notice`.
     /// This is open ended content related to the `Trust`.
@@ -339,6 +334,10 @@ contract Trust is Phased, Initializable {
     /// Seeder from the initial config.
     address public seeder;
     SeedERC20Factory public immutable seedERC20Factory;
+    RedeemableERC20Factory public immutable redeemableERC20Factory;
+    address public immutable crpFactory;
+    address public immutable balancerFactory;
+
     /// Balance of the reserve asset in the Balance pool at the moment
     /// `anonEndDistribution` is called. This must be greater than or equal to
     /// `successBalance` for the distribution to succeed.
@@ -386,7 +385,15 @@ contract Trust is Phased, Initializable {
     constructor(TrustConstructionConfig memory config_) {
         seedERC20Factory = config_.seedERC20Factory;
         creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
-        bPoolFeeEscrow = config_.bPoolFeeEscrow;
+        // Assumption here that the `msg.sender` is a `TrustFactory` that the
+        // `BPoolFeeEscrow` can trust. If it isn't then an insecure escrow will
+        // be deployed for this `Trust` AND this `Trust` itself won't have a
+        // secure parent `TrustFactory` so nobody should trust it.
+        bPoolFeeEscrow = new BPoolFeeEscrow(msg.sender);
+        maxRaiseDuration = config_.maxRaiseDuration;
+        crpFactory = config_.crpFactory;
+        balancerFactory = config_.balancerFactory;
+        redeemableERC20Factory = config_.redeemableERC20Factory;
     }
 
     /// Sanity checks configuration.
@@ -426,6 +433,12 @@ contract Trust is Phased, Initializable {
             "MIN_TOKEN_SUPPLY"
         );
 
+        require(
+            config_.minimumTradingDuration
+                <= maxRaiseDuration,
+            "MAX_RAISE_DURATION"
+        );
+
         initializePhased();
 
         creator = config_.creator;
@@ -436,7 +449,7 @@ contract Trust is Phased, Initializable {
         redeemInit = config_.redeemInit;
 
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
-            trustRedeemableERC20Config_.redeemableERC20Factory
+            redeemableERC20Factory
                 .createChild(abi.encode(
                     RedeemableERC20Config(
                         address(this),
@@ -497,8 +510,6 @@ contract Trust is Phased, Initializable {
 
         IConfigurableRightsPool crp_ = setupCRP(
             CRPConfig(
-                config_.crpFactory,
-                config_.balancerFactory,
                 config_.reserve,
                 redeemableERC20_,
                 config_.reserveInit,
@@ -552,8 +563,8 @@ contract Trust is Phased, Initializable {
             config_.initialValuation
         );
 
-        address crp_ = ICRPFactory(config_.crpFactory).newCrp(
-            config_.balancerFactory,
+        address crp_ = ICRPFactory(crpFactory).newCrp(
+            balancerFactory,
             PoolParams(
                 "R20P",
                 "RedeemableERC20Pool",
