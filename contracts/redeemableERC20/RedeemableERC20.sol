@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import { ERC20Config } from "../erc20/ERC20Config.sol";
-import { ERC20Initializable } from "../erc20/ERC20Initializable.sol";
+import { ERC20, ERC20Initializable } from "../erc20/ERC20Initializable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -152,6 +152,9 @@ contract RedeemableERC20 is
     /// call.
     uint public minimumTier;
 
+    /// Mint the full ERC20 token supply and configure basic transfer
+    /// restrictions. Initializes all base contracts.
+    /// @param config_ Initialized configuration.
     function initialize(RedeemableERC20Config memory config_)
         external
         initializer
@@ -340,6 +343,7 @@ contract RedeemableERC20 is
     /// During `Phase.ONE` all transfers except burns are prevented.
     /// If a transfer involves either a sender or receiver with the SENDER
     /// or RECEIVER role, respectively, it will bypass these restrictions.
+    /// @inheritdoc ERC20
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
