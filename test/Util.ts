@@ -8,6 +8,7 @@ import type {
   TrustFactoryTrustRedeemableERC20ConfigStruct,
   TrustFactoryTrustSeedERC20ConfigStruct,
 } from "../typechain/TrustFactory";
+import type { RedeemableERC20 } from "../typechain/RedeemableERC20"
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
@@ -248,6 +249,30 @@ export const poolContracts = async (
   ) as BPool & Contract;
   return [crp, bPool];
 };
+
+export const redeemableERC20Deploy = async (deployer, config) => {
+  const redeemableERC20FactoryFactory = await ethers.getContractFactory(
+    "RedeemableERC20Factory"
+  )
+  const redeemableERC20Factory = (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory
+  await redeemableERC20Factory.deployed()
+
+  const tx = await redeemableERC20Factory.createChildTyped(config)
+  const redeemableERC20 = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(tx, "NewChild", redeemableERC20Factory.address))[1]
+      ),
+      20
+    ),
+    (await artifacts.readArtifact("RedeemableERC20")).abi,
+      deployer
+  ) as RedeemableERC20 & Contract
+
+  await redeemableERC20.deployed()
+
+  return redeemableERC20
+}
 
 export const trustDeploy = async (
   trustFactory: TrustFactory & Contract,

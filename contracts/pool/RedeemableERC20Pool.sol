@@ -416,13 +416,13 @@ library RedeemableERC20Pool {
             new uint[](2)
         );
 
-        // Burn all unsold redeemable token inventory.
-        self_.token().burn(self_.token().balanceOf(address(this)));
-
         // Burning the distributor moves the rTKN to its `Phase.ONE` and
         // unlocks redemptions.
-        // The distributor is the `bPool` itself.
-        self_.token().burnDistributor(address(pool_));
+        // The distributor is the `bPool` itself and all unsold inventory.
+        address[] memory distributors_ = new address[](2);
+        distributors_[0] = address(this);
+        distributors_[1] = address(pool_);
+        self_.token().burnDistributors(distributors_);
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
         uint poolDust_ = self_.reserve().balanceOf(address(pool_));

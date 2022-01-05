@@ -176,10 +176,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       got             ${actualSigner1Withdrawal0}`
     );
 
-    // signer2 burns their RedeemableERC20 token balance
+    // signer2 burns their RedeemableERC20 token balance for some reserve
+    reserve.transfer(redeemableERC20.address, '1' + Util.sixZeros)
     await redeemableERC20
       .connect(signer2)
-      .burn(await redeemableERC20.balanceOf(signer2.address));
+      .redeem(
+        [reserve.address],
+        await redeemableERC20.balanceOf(signer2.address)
+      );
 
     // more claimable tokens are deposited by creator
     await claimableReserveToken.approve(claim.address, depositAmount);

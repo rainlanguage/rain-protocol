@@ -40,7 +40,7 @@ pragma solidity ^0.8.10;
 /// protection.
 abstract contract Cooldown {
     /// Time in blocks to restrict access to modified functions.
-    uint public immutable cooldownDuration;
+    uint public cooldownDuration;
 
     /// Every caller has its own cooldown, the minimum block that the caller
     /// call another function sharing the same cooldown state.
@@ -50,7 +50,7 @@ abstract contract Cooldown {
     /// The cooldown duration is global to the contract.
     /// Cooldown duration must be greater than 0.
     /// @param cooldownDuration_ The global cooldown duration.
-    constructor(uint cooldownDuration_) {
+    function initializeCooldown(uint cooldownDuration_) internal {
         require(cooldownDuration_ > 0, "COOLDOWN_0");
         cooldownDuration = cooldownDuration_;
     }

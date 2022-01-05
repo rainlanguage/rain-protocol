@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import { ERC20Config } from "../erc20/ERC20Config.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20Initializable } from "../erc20/ERC20Initializable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -102,16 +102,12 @@ contract RedeemableERC20 is
     Initializable,
     Phased,
     TierByConstruction,
-    ERC20,
+    ERC20Initializable,
     ReentrancyGuard,
-    ERC20Burnable,
     ERC20Pull
     {
 
     using SafeERC20 for IERC20;
-
-    string private _name;
-    string private _symbol;
 
     /// Bits for a receiver.
     uint private constant RECEIVER = 0x1;
@@ -157,7 +153,7 @@ contract RedeemableERC20 is
     uint public minimumTier;
 
     function initialize(RedeemableERC20Config memory config_)
-        public
+        external
         initializer
     {
         initializeTierByConstruction(config_.tier);
@@ -166,9 +162,7 @@ contract RedeemableERC20 is
             config_.reserve
         ));
         initializePhased();
-
-        _name = config_.erc20Config.name;
-        _symbol = config_.erc20Config.symbol;
+        initializeERC20(config_.erc20Config);
 
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
@@ -198,17 +192,6 @@ contract RedeemableERC20 is
         // slither-disable-next-line unused-return
         ITier(config_.tier).report(msg.sender);
     }
-
-    function name() public view override returns (string memory) {
-        return _name;
-    }
-
-    function symbol() public view override returns (string memory) {
-        return _symbol;
-    }
-
-    // solhint-disable-next-line no-empty-blocks
-    constructor () ERC20("", "") { }
 
     /// Require a function is only admin callable.
     modifier onlyAdmin() {
@@ -253,16 +236,19 @@ contract RedeemableERC20 is
     /// The distributor is NOT set during the constructor because it likely
     /// doesn't exist at that point. For example, Balancer needs the paired
     /// erc20 tokens to exist before the trading pool can be built.
-    /// @param distributorAccount_ The distributor according to the admin.
-    function burnDistributor(address distributorAccount_)
+    /// @param distributors_ The distributor according to the admin.
+    function burnDistributors(address[] memory distributors_)
         external
         onlyPhase(Phase.ZERO)
         onlyAdmin
     {
         scheduleNextPhase(uint32(block.number));
-        uint distributorBalance_ = balanceOf(distributorAccount_);
-        if (distributorBalance_ > 0) {
-            _burn(distributorAccount_, balanceOf(distributorAccount_));
+        for (uint i_ = 0; i_ < distributors_.length; i_++) {
+            address distributor_ = distributors_[i_];
+            uint distributorBalance_ = balanceOf(distributor_);
+            if (distributorBalance_ > 0) {
+                _burn(distributor_, balanceOf(distributor_));
+            }
         }
     }
 
@@ -354,7 +340,6 @@ contract RedeemableERC20 is
     /// During `Phase.ONE` all transfers except burns are prevented.
     /// If a transfer involves either a sender or receiver with the SENDER
     /// or RECEIVER role, respectively, it will bypass these restrictions.
-    /// @inheritdoc ERC20
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,

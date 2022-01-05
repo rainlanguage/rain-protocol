@@ -35,10 +35,10 @@ contract RedeemableERC20Factory is Factory {
     ///
     /// @param config_ `RedeemableERC20` constructor configuration.
     /// @return New `RedeemableERC20` child contract address.
-    function createChild(RedeemableERC20Config calldata config_)
+    function createChildTyped(RedeemableERC20Config calldata config_)
         external
-        returns(address)
+        returns(RedeemableERC20)
     {
-        return this.createChild(abi.encode(config_));
+        return RedeemableERC20(this.createChild(abi.encode(config_)));
     }
 }
