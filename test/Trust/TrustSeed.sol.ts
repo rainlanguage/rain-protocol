@@ -234,7 +234,7 @@ describe("TrustSeed", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     assert(
       (await seederContract.totalSupply()).eq(seedUnits),

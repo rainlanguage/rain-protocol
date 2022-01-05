@@ -581,5 +581,4 @@ describe("TrustRewards", async function () {
       await token1.balanceOf(signer1.address)
     );
   });
-
 });

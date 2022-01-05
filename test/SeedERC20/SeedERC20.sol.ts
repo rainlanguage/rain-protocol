@@ -48,7 +48,7 @@ describe("SeedERC20", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -167,7 +167,7 @@ describe("SeedERC20", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -261,7 +261,7 @@ describe("SeedERC20", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -318,7 +318,7 @@ describe("SeedERC20", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     // SeedERC20 has 0 decimals
     const decimals = await seedERC20.decimals();
@@ -353,7 +353,7 @@ describe("SeedERC20", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -458,7 +458,7 @@ describe("SeedERC20", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -525,7 +525,7 @@ describe("SeedERC20", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);

@@ -177,7 +177,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     // signer2 burns their RedeemableERC20 token balance for some reserve
-    reserve.transfer(redeemableERC20.address, '1' + Util.sixZeros)
+    reserve.transfer(redeemableERC20.address, "1" + Util.sixZeros);
     await redeemableERC20
       .connect(signer2)
       .redeem(

@@ -59,13 +59,13 @@ describe("RedeemableERC20", async function () {
     await tier.setTier(alice.address, Tier.GOLD, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-        admin: signers[0].address,
-        reserve: reserve.address,
-        erc20Config,
-        tier: tier.address,
-        minimumTier,
-        totalSupply: totalSupply,
-      })
+      admin: signers[0].address,
+      reserve: reserve.address,
+      erc20Config,
+      tier: tier.address,
+      minimumTier,
+      totalSupply: totalSupply,
+    });
 
     // Redemption not allowed yet.
     await Util.assertError(
@@ -130,7 +130,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     await expect(redeemableERC20.newTreasuryAsset(reserve1.address))
       .to.emit(redeemableERC20, "TreasuryAsset")
@@ -164,15 +164,13 @@ describe("RedeemableERC20", async function () {
       {}
     )) as ReserveToken & Contract;
 
-    const token = await Util.redeemableERC20Deploy(
-      signers[0],
-      {
-        admin: signers[0].address,
-        reserve: reserve.address,
-        erc20Config,
-        tier: tier.address,
-        minimumTier,
-        totalSupply: totalSupply,
+    const token = await Util.redeemableERC20Deploy(signers[0], {
+      admin: signers[0].address,
+      reserve: reserve.address,
+      erc20Config,
+      tier: tier.address,
+      minimumTier,
+      totalSupply: totalSupply,
     });
 
     // token has 18 decimals
@@ -208,7 +206,7 @@ describe("RedeemableERC20", async function () {
 
     await Util.assertError(
       async () =>
-      await Util.redeemableERC20Deploy(signers[0], {
+        await Util.redeemableERC20Deploy(signers[0], {
           admin: signers[0].address,
           reserve: reserve.address,
           erc20Config,
@@ -222,7 +220,7 @@ describe("RedeemableERC20", async function () {
 
     await Util.assertError(
       async () =>
-      await Util.redeemableERC20Deploy(signers[0], {
+        await Util.redeemableERC20Deploy(signers[0], {
           admin: signers[0].address,
           reserve: reserve.address,
           erc20Config,
@@ -242,7 +240,6 @@ describe("RedeemableERC20", async function () {
       minimumTier,
       totalSupply: totalTokenSupplyMinimum,
     });
-
   });
 
   it("should allow admin to grant sender/receiver roles, and burn undistributed tokens, bypassing BlockBlockable restrictions", async function () {
@@ -273,14 +270,14 @@ describe("RedeemableERC20", async function () {
       {}
     )) as ReserveToken & Contract;
 
-    const token = await Util.redeemableERC20Deploy(owner, {
+    const token = (await Util.redeemableERC20Deploy(owner, {
       admin: owner.address,
       reserve: reserve.address,
       erc20Config,
       tier: tier.address,
       minimumTier,
       totalSupply: totalSupply,
-    }) as RedeemableERC20 & Contract;
+    })) as RedeemableERC20 & Contract;
 
     // try sending/receiving, both with insufficient tier
     await Util.assertError(
@@ -348,7 +345,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     // user attempts to wrongly 'redeem' by sending all of their redeemable tokens directly to contract address
     await Util.assertError(
@@ -391,7 +388,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     await redeemableERC20.deployed();
 
@@ -632,7 +629,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     assert(
       (await redeemableERC20.currentPhase()) === Phase.ZERO,
@@ -681,7 +678,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     assert(
       await redeemableERC20.isReceiver(signers[0].address),
@@ -719,7 +716,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     // admin is made receiver during construction, so required token transfers can go ahead
     assert(
@@ -764,7 +761,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     await redeemableERC20.deployed();
 
@@ -845,7 +842,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     // There are no reserve tokens in the redeemer on construction
     assert(
@@ -1042,7 +1039,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     await reserve2.transfer(
       redeemableERC20.address,
@@ -1137,7 +1134,7 @@ describe("RedeemableERC20", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     await Util.assertError(
       async () =>

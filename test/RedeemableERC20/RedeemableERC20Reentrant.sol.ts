@@ -57,7 +57,7 @@ describe("RedeemableERC20Reentrant", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })
+    });
 
     await maliciousReserve.addReentrantTarget(redeemableERC20.address);
 
