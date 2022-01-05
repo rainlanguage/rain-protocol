@@ -31,7 +31,7 @@ struct ERC20PullConfig {
 /// The token is singular and bound at construction to avoid the situation
 /// where anons can force the implementing contract to call an arbitrary
 /// external contract.
-abstract contract ERC20Pull is Initializable {
+contract ERC20Pull is Initializable {
 
     using SafeERC20 for IERC20;
 
@@ -41,7 +41,7 @@ abstract contract ERC20Pull is Initializable {
     /// `sender`.
     address public token;
 
-    function initialize(ERC20PullConfig memory config_) internal {
+    function initializeERC20Pull(ERC20PullConfig memory config_) internal {
         sender = config_.sender;
         token = config_.token;
     }

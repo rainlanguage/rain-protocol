@@ -146,7 +146,7 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
         reserve = config_.reserve;
         recipient = config_.recipient;
         _mint(address(this), config_.seedUnits);
-        initialize(ERC20PullConfig(
+        initializeERC20Pull(ERC20PullConfig(
             config_.recipient,
             address(config_.reserve)
         ));

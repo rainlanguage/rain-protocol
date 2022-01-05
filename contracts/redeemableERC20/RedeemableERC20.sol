@@ -157,11 +157,11 @@ contract RedeemableERC20 is
     uint public minimumTier;
 
     function initialize(RedeemableERC20Config memory config_)
-        external
+        public
         initializer
     {
         initialize(config_.tier);
-        initialize(ERC20PullConfig(
+        initializeERC20Pull(ERC20PullConfig(
             config_.admin,
             config_.reserve
         ));
