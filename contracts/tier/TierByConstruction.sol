@@ -50,7 +50,7 @@ contract TierByConstruction {
         // for `report` to disable tier checks.
         require(address(tierContract_) != address(0), "ZERO_TIER_ADDRESS");
         // Reinitialization is a bug.
-        assert(address(tierContract) != address(0));
+        assert(address(tierContract) == address(0));
         tierContract = tierContract_;
         constructionBlock = block.number;
     }

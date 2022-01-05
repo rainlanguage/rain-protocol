@@ -79,6 +79,8 @@ contract Phased {
         for (uint i_ = 0; i_ < 8; i_++) {
             phaseBlocks[i_] = UNINITIALIZED;
         }
+        // 0 is always the block for implied phase 0.
+        emit PhaseShiftScheduled(0);
     }
 
     /// Pure function to reduce an array of phase blocks and block number to a

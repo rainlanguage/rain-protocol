@@ -143,7 +143,7 @@ contract SeedERC20 is
     /// Store relevant config as contract state.
     /// Mint all seed tokens.
     /// @param config_ All config required to initialize the contract.
-    function initialize (SeedERC20Config memory config_) initializer external {
+    function initialize (SeedERC20Config memory config_) external initializer {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
         require(config_.recipient != address(0), "RECIPIENT_0");

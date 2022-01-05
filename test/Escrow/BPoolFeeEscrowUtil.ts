@@ -113,7 +113,6 @@ export const basicSetup = async (
       seederUnits,
       seederCooldownDuration,
       seedERC20Config,
-      seedERC20Factory: seedERC20Factory.address,
     },
     { gasLimit: 100000000 }
   );

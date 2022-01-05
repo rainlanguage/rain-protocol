@@ -37,7 +37,7 @@ describe("SeedERC20Reentrant", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     const bobSeed = seedERC20.connect(bob);
 
@@ -92,7 +92,7 @@ describe("SeedERC20Reentrant", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     // setup reserve to reentrantly call `seed` method in `_beforeTokenTransfer` hook
     await maliciousReserve.addReentrantTarget(seedERC20.address);
@@ -136,7 +136,7 @@ describe("SeedERC20Reentrant", async function () {
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })
+    });
 
     const bobSeed = seedERC20.connect(bob);
 

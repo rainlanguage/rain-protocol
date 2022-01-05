@@ -136,7 +136,6 @@ describe("TrustRewards", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -452,7 +451,6 @@ describe("TrustRewards", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -583,5 +581,4 @@ describe("TrustRewards", async function () {
       await token1.balanceOf(signer1.address)
     );
   });
-
 });
