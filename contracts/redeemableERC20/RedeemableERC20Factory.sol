@@ -10,8 +10,11 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 /// @notice Factory for deploying and registering `RedeemableERC20` contracts.
 contract RedeemableERC20Factory is Factory {
 
+    /// Reference implementation of `RedeemableERC20` to clone.
+    /// Deployed by the constructor.
     address public immutable implementation;
 
+    /// Build the reference implementation to clone for each child.
     constructor() {
         implementation = address(new RedeemableERC20());
     }
@@ -34,7 +37,7 @@ contract RedeemableERC20Factory is Factory {
     /// parameters are already encoded.
     ///
     /// @param config_ `RedeemableERC20` constructor configuration.
-    /// @return New `RedeemableERC20` child contract address.
+    /// @return New `RedeemableERC20` child contract.
     function createChildTyped(RedeemableERC20Config calldata config_)
         external
         returns(RedeemableERC20)

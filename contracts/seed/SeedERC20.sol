@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import { ERC20Config } from "../erc20/ERC20Config.sol";
-import { ERC20Initializable } from "../erc20/ERC20Initializable.sol";
+import { ERC20, ERC20Initializable } from "../erc20/ERC20Initializable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -142,7 +142,7 @@ contract SeedERC20 is
     /// Sanity checks on configuration.
     /// Store relevant config as contract state.
     /// Mint all seed tokens.
-    /// @param config_ All config required to construct the contract.
+    /// @param config_ All config required to initialize the contract.
     function initialize (SeedERC20Config memory config_) initializer external {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
@@ -160,6 +160,7 @@ contract SeedERC20 is
         _mint(address(this), config_.seedUnits);
     }
 
+    /// @inheritdoc ERC20
     function decimals() public pure override returns(uint8) { return 0; }
 
     /// Take reserve from seeder as `units * seedPrice`.
