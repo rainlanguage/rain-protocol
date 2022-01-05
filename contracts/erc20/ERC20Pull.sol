@@ -39,7 +39,19 @@ contract ERC20Pull {
     /// `sender`.
     address public token;
 
+    /// Initialize the sender and token.
+    /// Intended to be called by an `Initializable` contract so cannot be
+    /// called multiple times.
+    /// @param config_ `ERC20PullConfig` to initialize.
     function initializeERC20Pull(ERC20PullConfig memory config_) internal {
+        // Sender and token MUST be set in the config. MAY point at a known
+        // address that cannot approve the specified token to effectively
+        // disable pull functionality.
+        require(config_.sender != address(0), "ZERO_SENDER");
+        require(config_.token != address(0), "ZERO_TOKEN");
+        // Reinitializing is a bug.
+        assert(sender == address(0));
+        assert(token == address(0));
         sender = config_.sender;
         token = config_.token;
     }
