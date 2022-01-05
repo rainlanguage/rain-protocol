@@ -291,19 +291,19 @@ describe("TrustRewards", async function () {
         got       ${balanceD}`
     );
 
-    // for simplicity, burn signer1 reserve tokens
+    // send signer1 reserve tokens away
     await reserveA
       .connect(signer1)
-      .burn(await reserveA.balanceOf(signer1.address));
+      .transfer(signers[9].address, await reserveA.balanceOf(signer1.address));
     await reserveB
       .connect(signer1)
-      .burn(await reserveB.balanceOf(signer1.address));
+      .transfer(signers[9].address, await reserveB.balanceOf(signer1.address));
     await reserveC
       .connect(signer1)
-      .burn(await reserveC.balanceOf(signer1.address));
+      .transfer(signers[9].address, await reserveC.balanceOf(signer1.address));
     await reserveD
       .connect(signer1)
-      .burn(await reserveD.balanceOf(signer1.address));
+      .transfer(signers[9].address, await reserveD.balanceOf(signer1.address));
 
     // Now again, 10% of new total supply
 
@@ -584,153 +584,4 @@ describe("TrustRewards", async function () {
     );
   });
 
-  it("should allow token owner to burn only their own tokens", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const creator = signers[0];
-    const seeder = signers[1]; // seeder is not creator
-    const deployer = signers[2]; // deployer is not creator
-    const signer1 = signers[3];
-    const signer2 = signers[4];
-
-    const [crpFactory, bFactory] = await Util.balancerDeploy();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
-
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
-
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
-
-    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
-
-    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
-    const seederCooldownDuration = 0;
-
-    const successLevel = redeemInit
-      .add(minimumCreatorRaise)
-      .add(seederFee)
-      .add(reserveInit);
-
-    const minimumTradingDuration = 50;
-
-    const trustFactoryDeployer = trustFactory.connect(deployer);
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-    await tier.setTier(signer2.address, Tier.GOLD, []);
-
-    const trust = await Util.trustDeploy(
-      trustFactoryDeployer,
-      creator,
-      {
-        creator: creator.address,
-        minimumCreatorRaise,
-        seederFee,
-        redeemInit,
-        reserve: reserve.address,
-        reserveInit,
-        initialValuation,
-        finalValuation: successLevel,
-        minimumTradingDuration,
-      },
-      {
-        erc20Config,
-        tier: tier.address,
-        minimumTier,
-        totalSupply: totalTokenSupply,
-      },
-      {
-        seeder: seeder.address,
-        seederUnits,
-        seederCooldownDuration,
-        seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
-      },
-      { gasLimit: 100000000 }
-    );
-
-    await trust.deployed();
-
-    // seeder needs some cash, give enough to seeder
-    await reserve.transfer(seeder.address, reserveInit);
-
-    const reserveSeeder = new ethers.Contract(
-      reserve.address,
-      reserve.interface,
-      seeder
-    ) as ReserveToken & Contract;
-
-    // seeder must transfer seed funds before pool init
-    await reserveSeeder.transfer(trust.address, reserveInit);
-
-    const token = new ethers.Contract(
-      await trust.token(),
-      redeemableTokenJson.abi,
-      creator
-    ) as RedeemableERC20 & Contract;
-
-    await trust.startDutchAuction({ gasLimit: 100000000 });
-
-    const [crp, bPool] = await Util.poolContracts(signers, trust);
-
-    const reserveSpend = ethers.BigNumber.from("10" + Util.sixZeros);
-
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
-
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await reserveSigner.approve(bPool.address, spend);
-      await crpSigner.pokeWeights();
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        token.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
-    };
-
-    await swapReserveForTokens(signer1, reserveSpend);
-    await swapReserveForTokens(signer2, reserveSpend);
-
-    const token1 = token.connect(signer1);
-
-    await token1.burn(await token1.balanceOf(signer1.address));
-
-    assert(
-      (await token.balanceOf(signer1.address)).isZero(),
-      "signer1 failed to burn all of their own tokens"
-    );
-
-    await Util.assertError(
-      async () =>
-        await token1._burn(
-          signer2.address,
-          await token1.balanceOf(signer2.address)
-        ),
-      "TypeError: token1._burn is not a function", // internal
-      "signer1 burned signer2's tokens"
-    );
-  });
 });

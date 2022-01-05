@@ -35,10 +35,10 @@ contract SeedERC20Factory is Factory {
     ///
     /// @param config_ `SeedERC20` constructor configuration.
     /// @return New `SeedERC20` child contract address.
-    function createChild(SeedERC20Config calldata config_)
+    function createChildTyped(SeedERC20Config calldata config_)
         external
-        returns(address)
+        returns(SeedERC20)
     {
-        return this.createChild(abi.encode(config_));
+        return SeedERC20(this.createChild(abi.encode(config_)));
     }
 }
