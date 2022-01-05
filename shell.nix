@@ -45,6 +45,9 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
+    rm -rf docusaurus/.docusaurus
+    rm -rf docusaurus/build
+    rm -rf docusaurus/node_modules
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''

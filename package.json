@@ -24,7 +24,7 @@
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
-    "docgen": "solidity-docgen -o ./docs/api/ --solc-module solc-0.8 --exclude ./contracts/test/,./contracts/tv-prestige/ -t ./.templates/",
+    "docgen": "solidity-docgen -o ./docs/api/ --solc-module solc-0.8 --exclude ./contracts/test/ -t ./.templates/",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix"
   },
@@ -45,7 +45,7 @@
     "hardhat-gas-reporter": "^1.0.4",
     "prettier": "^2.3.2",
     "pretty-quick": "^3.1.1",
-    "solc-0.8": "npm:solc@=0.8.10",
+    "solc-0.8": "npm:solc@^0.8.10",
     "solhint": "^3.3.4",
     "solidity-docgen": "^0.5.13",
     "ts-generator": "^0.1.1",
