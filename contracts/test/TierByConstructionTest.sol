@@ -11,7 +11,7 @@ contract TierByConstructionTest is TierByConstruction {
 
     /// @param tier_ The tier contract for `TierByConstruction`.
     constructor(ITier tier_) {
-        initialize(tier_);
+        initializeTierByConstruction(tier_);
     }
 
     /// External function with no modifier to use as a control for testing.

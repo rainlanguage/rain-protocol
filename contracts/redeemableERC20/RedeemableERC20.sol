@@ -160,7 +160,7 @@ contract RedeemableERC20 is
         public
         initializer
     {
-        initialize(config_.tier);
+        initializeTierByConstruction(config_.tier);
         initializeERC20Pull(ERC20PullConfig(
             config_.admin,
             config_.reserve
