@@ -7,6 +7,10 @@ import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { CombineTier } from "../typechain/CombineTier";
 import type { CombineTierFactory } from "../typechain/CombineTierFactory";
+import type { Verify } from "../typechain/Verify";
+import type { VerifyFactory } from "../typechain/VerifyFactory";
+import type { VerifyTier } from "../typechain/VerifyTier";
+import type { VerifyTierFactory } from "../typechain/VerifyTierFactory";
 import type { SeedERC20 } from "../typechain/SeedERC20";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
@@ -239,6 +243,44 @@ export const poolContracts = async (
   ) as BPool & Contract;
   return [crp, bPool];
 };
+
+export const verifyDeploy = async (deployer,config) => {
+  const factoryFactory = await ethers.getContractFactory("VerifyFactory")
+  const factory = await factoryFactory.deploy() as VerifyFactory
+  await factory.deployed()
+  const tx = await factory.createChildTyped(config)
+  const contract = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(tx, "NewChild", factory.address))[1]
+      ),
+      20
+    ),
+    (await artifacts.readArtifact("Verify")).abi,
+    deployer
+  ) as Verify & Contract
+  await contract.deployed()
+  return contract
+}
+
+export const verifyTierDeploy = async (deployer,config) => {
+  const factoryFactory = await ethers.getContractFactory("VerifyTierFactory")
+  const factory = await factoryFactory.deploy() as VerifyTierFactory
+  await factory.deployed()
+  const tx = await factory.createChildTyped(config)
+  const contract = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(tx, "NewChild", factory.address))[1]
+      ),
+      20
+    ),
+    (await artifacts.readArtifact("VerifyTier")).abi,
+    deployer
+  ) as VerifyTier & Contract
+  await contract.deployed()
+  return contract
+}
 
 export const combineTierDeploy = async (deployer,config) => {
   const factoryFactory = await ethers.getContractFactory("CombineTierFactory")
