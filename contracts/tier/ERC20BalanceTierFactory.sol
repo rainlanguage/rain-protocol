@@ -1,20 +1,33 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
-import { Factory } from "../factory/Factory.sol";
+import {Factory} from "../factory/Factory.sol";
 import "./ERC20BalanceTier.sol";
 
 /// @title ERC20BalanceTierFactory
 /// @notice Factory for creating and deploying `ERC20BalanceTier` contracts.
 contract ERC20BalanceTierFactory is Factory {
+    address private implementation;
+
+    constructor() {
+        implementation = address(new ERC20BalanceTier());
+    }
 
     /// @inheritdoc Factory
-    function _createChild(
-        bytes calldata data_
-    ) internal virtual override returns(address) {
-        (ERC20BalanceTierConfig memory config_)
-            = abi.decode(data_, (ERC20BalanceTierConfig));
-        return address(new ERC20BalanceTier(config_));
+    function _createChild(bytes calldata data_)
+        internal
+        virtual
+        override
+        returns (address)
+    {
+        ERC20BalanceTierConfig memory config_ = abi.decode(
+            data_,
+            (ERC20BalanceTierConfig)
+        );
+        address clone_ = Clones.clone(implementation);
+        ERC20BalanceTier(clone_).initialize(config_);
+        return clone_;
     }
 
     /// Typed wrapper for `createChild` with `ERC20BalanceTierConfig`.
@@ -23,10 +36,10 @@ contract ERC20BalanceTierFactory is Factory {
     ///
     /// @param config_ Constructor config for `ERC20BalanceTier`.
     /// @return New `ERC20BalanceTier` child contract address.
-    function createChild(ERC20BalanceTierConfig memory config_)
+    function createChildTyped(ERC20BalanceTierConfig memory config_)
         external
-        returns(address)
+        returns (ERC20BalanceTier)
     {
-        return this.createChild(abi.encode(config_));
+        return ERC20BalanceTier(this.createChild(abi.encode(config_)));
     }
 }

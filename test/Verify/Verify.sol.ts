@@ -55,7 +55,7 @@ describe("Verify", async function () {
     const signer1 = signers[7];
     const signer2 = signers[8];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -142,7 +142,7 @@ describe("Verify", async function () {
     const signer1 = signers[7];
     const signer2 = signers[8];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -230,7 +230,7 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -303,7 +303,7 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -376,7 +376,7 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -445,7 +445,7 @@ describe("Verify", async function () {
     const rmvAdmin1 = signers[5];
     const banAdmin1 = signers[6];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
@@ -492,7 +492,7 @@ describe("Verify", async function () {
     const rmvAdmin1 = signers[5];
     const banAdmin1 = signers[6];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
@@ -585,7 +585,7 @@ describe("Verify", async function () {
     const remover = signers[5];
     const banner = signers[6];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -638,7 +638,7 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -782,7 +782,7 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -873,9 +873,10 @@ describe("Verify", async function () {
 
   it("should require non-zero admin address", async function () {
     this.timeout(0);
+    const signers = await ethers.getSigners();
 
     await Util.assertError(
-      async () => await verifyFactory.deploy(Util.zeroAddress),
+      async () => await Util.verifyDeploy(signers[0], Util.zeroAddress),
       "0_ACCOUNT",
       "wrongly constructed Verify with admin as zero address"
     );
@@ -897,7 +898,7 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -1059,7 +1060,7 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const defaultAdmin = signers[0];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     assert(
       (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
@@ -1088,7 +1089,7 @@ describe("Verify", async function () {
     const signer1 = signers[1];
     const signer2 = signers[2];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
 
@@ -1131,7 +1132,7 @@ describe("Verify", async function () {
     const approver = signers[3];
     const nonApprover = signers[4];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -1208,7 +1209,7 @@ describe("Verify", async function () {
     const remover = signers[3];
     const nonRemover = signers[4];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
@@ -1282,7 +1283,7 @@ describe("Verify", async function () {
     const banner = signers[3];
     const nonBanner = signers[4];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], defaultAdmin.address)) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);

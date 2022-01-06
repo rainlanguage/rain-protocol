@@ -12,7 +12,7 @@ contract RedeemableERC20Factory is Factory {
 
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address public immutable implementation;
+    address private immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     constructor() {

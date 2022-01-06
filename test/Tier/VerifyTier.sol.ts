@@ -27,12 +27,10 @@ describe("VerifyTier", async function () {
     const signer1 = signers[2];
     const newAdmin = signers[3];
 
-    const tierFactory = await ethers.getContractFactory("VerifyTier");
-
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify &
+    const verify = (await Util.verifyDeploy(signers[0], admin.address)) as Verify &
       Contract;
 
-    const verifyTier = (await tierFactory.deploy(
+    const verifyTier = (await Util.verifyTierDeploy(signers[0],
       verify.address
     )) as VerifyTier & Contract;
 
