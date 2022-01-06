@@ -10,8 +10,9 @@ import { TierByConstruction } from "../tier/TierByConstruction.sol";
 contract TierByConstructionTest is TierByConstruction {
 
     /// @param tier_ The tier contract for `TierByConstruction`.
-    constructor(ITier tier_)
-        TierByConstruction(tier_) { } // solhint-disable-line no-empty-blocks
+    constructor(ITier tier_) {
+        initializeTierByConstruction(tier_);
+    }
 
     /// External function with no modifier to use as a control for testing.
     function unlimited()

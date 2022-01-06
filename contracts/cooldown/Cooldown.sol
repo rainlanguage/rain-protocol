@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 /// @title Cooldown
-/// @notice `Cooldown` is an abstract contract that rate limits functions on
+/// @notice `Cooldown` is a base contract that rate limits functions on
 /// the implementing contract per `msg.sender`.
 ///
 /// Each time a function with the `onlyAfterCooldown` modifier is called the
@@ -38,20 +38,24 @@ pragma solidity ^0.8.10;
 /// `msg.sender` it sees for a call stack so cooldowns are enforced across
 /// reentrant code. Any function that enforces a cooldown also has reentrancy
 /// protection.
-abstract contract Cooldown {
+contract Cooldown {
     /// Time in blocks to restrict access to modified functions.
-    uint public immutable cooldownDuration;
+    uint public cooldownDuration;
 
     /// Every caller has its own cooldown, the minimum block that the caller
     /// call another function sharing the same cooldown state.
     mapping (address => uint) public cooldowns;
     address private caller;
 
+    /// Initialize the cooldown duration.
     /// The cooldown duration is global to the contract.
     /// Cooldown duration must be greater than 0.
+    /// Cooldown duration can only be set once.
     /// @param cooldownDuration_ The global cooldown duration.
-    constructor(uint cooldownDuration_) {
+    function initializeCooldown(uint cooldownDuration_) internal {
         require(cooldownDuration_ > 0, "COOLDOWN_0");
+        // Reinitialization is a bug.
+        assert(cooldownDuration == 0);
         cooldownDuration = cooldownDuration_;
     }
 

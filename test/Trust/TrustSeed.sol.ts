@@ -116,7 +116,6 @@ describe("TrustSeed", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -228,16 +227,14 @@ describe("TrustSeed", async function () {
       seeder1
     );
 
-    const seederContract = (await seederFactory.deploy({
+    const seederContract = await Util.seedERC20Deploy(signers[0], {
       reserve: reserve.address,
       recipient: signers[0].address,
       seedPrice,
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
-
-    await seederContract.deployed();
+    });
 
     assert(
       (await seederContract.totalSupply()).eq(seedUnits),
@@ -275,14 +272,14 @@ describe("TrustSeed", async function () {
 
       await Util.assertError(
         async () =>
-          (await seederFactory.deploy({
+          await Util.seedERC20Deploy(signers[0], {
             reserve: reserve.address,
             recipient: signers[0].address,
             seedPrice,
             seedUnits,
             cooldownDuration,
             erc20Config: { name: "SeedToken", symbol: "SDT" },
-          })) as SeedERC20 & Contract,
+          }),
         "UNITS_0",
         "seeder contract was wrongly constructed with seedUnits set to 0"
       );
@@ -315,14 +312,14 @@ describe("TrustSeed", async function () {
 
       await Util.assertError(
         async () =>
-          (await seederFactory.deploy({
+          await Util.seedERC20Deploy(signers[0], {
             reserve: reserve.address,
             recipient: signers[0].address,
             seedPrice,
             seedUnits,
             cooldownDuration,
             erc20Config: { name: "SeedToken", symbol: "SDT" },
-          })) as SeedERC20 & Contract,
+          }),
         "PRICE_0",
         "seeder contract was wrongly constructed with seedPrice set to 0"
       );
@@ -403,7 +400,6 @@ describe("TrustSeed", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -528,7 +524,6 @@ describe("TrustSeed", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -651,7 +646,6 @@ describe("TrustSeed", async function () {
           seederUnits,
           seederCooldownDuration,
           seedERC20Config,
-          seedERC20Factory: seedERC20Factory.address,
         },
         { gasLimit: 100000000 }
       );
@@ -934,7 +928,6 @@ describe("TrustSeed", async function () {
           seederUnits,
           seederCooldownDuration,
           seedERC20Config,
-          seedERC20Factory: seedERC20Factory.address,
         },
         { gasLimit: 100000000 }
       );

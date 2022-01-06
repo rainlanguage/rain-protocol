@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import { FactoryTruster } from "../factory/FactoryTruster.sol";
-import { Trust, DistributionStatus, TrustContracts } from "../trust/Trust.sol";
+import { Trust, DistributionStatus } from "../trust/Trust.sol";
 import { RedeemableERC20 } from "../redeemableERC20/RedeemableERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";

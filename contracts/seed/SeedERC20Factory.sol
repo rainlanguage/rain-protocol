@@ -4,9 +4,20 @@ pragma solidity ^0.8.10;
 import { Factory } from "../factory/Factory.sol";
 import { SeedERC20, SeedERC20Config } from "./SeedERC20.sol";
 
+import "@openzeppelin/contracts/proxy/Clones.sol";
+
 /// @title SeedERC20Factory
 /// @notice Factory for creating and deploying `SeedERC20` contracts.
 contract SeedERC20Factory is Factory {
+
+    /// Template contract to clone.
+    /// Deployed by the constructor.
+    address public immutable implementation;
+
+    /// Build the reference implementation to clone for each child.
+    constructor() {
+        implementation = address(new SeedERC20());
+    }
 
     /// @inheritdoc Factory
     function _createChild(
@@ -16,7 +27,9 @@ contract SeedERC20Factory is Factory {
             data_,
             (SeedERC20Config)
         );
-        return address(new SeedERC20(config_));
+        address clone_ = Clones.clone(implementation);
+        SeedERC20(clone_).initialize(config_);
+        return clone_;
     }
 
     /// Allows calling `createChild` with `SeedERC20Config` struct.
@@ -24,11 +37,11 @@ contract SeedERC20Factory is Factory {
     /// parameters are already encoded.
     ///
     /// @param config_ `SeedERC20` constructor configuration.
-    /// @return New `SeedERC20` child contract address.
-    function createChild(SeedERC20Config calldata config_)
+    /// @return New `SeedERC20` child contract.
+    function createChildTyped(SeedERC20Config calldata config_)
         external
-        returns(address)
+        returns(SeedERC20)
     {
-        return this.createChild(abi.encode(config_));
+        return SeedERC20(this.createChild(abi.encode(config_)));
     }
 }

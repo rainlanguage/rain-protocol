@@ -112,7 +112,6 @@ describe("TrustTrade", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -307,7 +306,6 @@ describe("TrustTrade", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -430,7 +428,6 @@ describe("TrustTrade", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -689,7 +686,6 @@ describe("TrustTrade", async function () {
         seederUnits,
         seederCooldownDuration,
         seedERC20Config,
-        seedERC20Factory: seedERC20Factory.address,
       },
       { gasLimit: 100000000 }
     );
@@ -888,7 +884,6 @@ describe("TrustTrade", async function () {
             totalSupply: totalTokenSupply1,
           },
           {
-            seedERC20Factory: seedERC20Factory.address,
             seeder: seeder.address,
             seederUnits,
             seedERC20Config,
@@ -937,7 +932,6 @@ describe("TrustTrade", async function () {
         totalSupply: totalTokenSupply1,
       },
       {
-        seedERC20Factory: seedERC20Factory.address,
         seeder: seeder.address,
         seederUnits,
         seedERC20Config,

@@ -218,11 +218,6 @@ describe("Phased", async function () {
 
     // check constants
 
-    assert(
-      max_uint32.eq(await phased.UNINITIALIZED()),
-      "did not return max uint32"
-    );
-
     const phaseBlocks0: PhaseBlocks = [0, 0, 0, 0, 0, 0, 0, 0];
 
     for (let i = 0; i < 8; i++) {

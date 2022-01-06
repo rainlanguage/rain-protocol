@@ -34,13 +34,22 @@ contract ERC20Pull {
     using SafeERC20 for IERC20;
 
     /// The `sender` that this contract will attempt to pull tokens from.
-    address public immutable sender;
+    address public sender;
     /// The ERC20 token that this contract will attempt to pull to itself from
     /// `sender`.
-    address public immutable token;
+    address public token;
 
-    /// Constructor only copies config to immutables.
-    constructor(ERC20PullConfig memory config_) {
+    /// Initialize the sender and token.
+    /// @param config_ `ERC20PullConfig` to initialize.
+    function initializeERC20Pull(ERC20PullConfig memory config_) internal {
+        // Sender and token MUST be set in the config. MAY point at a known
+        // address that cannot approve the specified token to effectively
+        // disable pull functionality.
+        require(config_.sender != address(0), "ZERO_SENDER");
+        require(config_.token != address(0), "ZERO_TOKEN");
+        // Reinitialization is a bug.
+        assert(sender == address(0));
+        assert(token == address(0));
         sender = config_.sender;
         token = config_.token;
     }

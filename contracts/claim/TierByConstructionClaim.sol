@@ -68,11 +68,10 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
     /// Simply forwards the desired ITier contract to the `TierByConstruction`
     /// constructor.
     /// The minimum tier is set for `claim` logic.
-    /// @param tierContract_ The tier contract to reference for each claim.
+    /// @param tier_ The tier contract to reference for each claim.
     /// @param minimumTier_ Minimum tier required for any claim to be valid.
-    constructor(ITier tierContract_, uint minimumTier_)
-        TierByConstruction(tierContract_)
-    {
+    constructor(ITier tier_, uint minimumTier_) {
+        initializeTierByConstruction(tier_);
         minimumTier = minimumTier_;
     }
 

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 import { ERC20Config } from "../erc20/ERC20Config.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20, ERC20Initializable } from "../erc20/ERC20Initializable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -97,11 +99,11 @@ struct RedeemableERC20Config {
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
 contract RedeemableERC20 is
+    Initializable,
     Phased,
     TierByConstruction,
-    ERC20,
+    ERC20Initializable,
     ReentrancyGuard,
-    ERC20Burnable,
     ERC20Pull
     {
 
@@ -115,7 +117,7 @@ contract RedeemableERC20 is
     /// To be clear, this admin is NOT intended to be an EOA.
     /// This contract is designed assuming the admin is a `Trust` or equivalent
     /// contract that itself does NOT have an admin key.
-    address public immutable admin;
+    address public admin;
     /// Tracks addresses that can always send/receive regardless of phase.
     /// sender/receiver => access bits
     mapping (address => uint) private access;
@@ -151,18 +153,20 @@ contract RedeemableERC20 is
     uint public minimumTier;
 
     /// Mint the full ERC20 token supply and configure basic transfer
-    /// restrictions.
-    /// @param config_ Constructor configuration.
-    constructor (
-        RedeemableERC20Config memory config_
-    )
-        ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
-        TierByConstruction(config_.tier)
-        ERC20Pull(ERC20PullConfig(
+    /// restrictions. Initializes all base contracts.
+    /// @param config_ Initialized configuration.
+    function initialize(RedeemableERC20Config memory config_)
+        external
+        initializer
+    {
+        initializeTierByConstruction(config_.tier);
+        initializeERC20Pull(ERC20PullConfig(
             config_.admin,
             config_.reserve
-        ))
-    {
+        ));
+        initializePhased();
+        initializeERC20(config_.erc20Config);
+
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
             "MINIMUM_INITIAL_SUPPLY"
@@ -235,16 +239,19 @@ contract RedeemableERC20 is
     /// The distributor is NOT set during the constructor because it likely
     /// doesn't exist at that point. For example, Balancer needs the paired
     /// erc20 tokens to exist before the trading pool can be built.
-    /// @param distributorAccount_ The distributor according to the admin.
-    function burnDistributor(address distributorAccount_)
+    /// @param distributors_ The distributor according to the admin.
+    function burnDistributors(address[] memory distributors_)
         external
         onlyPhase(Phase.ZERO)
         onlyAdmin
     {
         scheduleNextPhase(uint32(block.number));
-        uint distributorBalance_ = balanceOf(distributorAccount_);
-        if (distributorBalance_ > 0) {
-            _burn(distributorAccount_, balanceOf(distributorAccount_));
+        for (uint i_ = 0; i_ < distributors_.length; i_++) {
+            address distributor_ = distributors_[i_];
+            uint distributorBalance_ = balanceOf(distributor_);
+            if (distributorBalance_ > 0) {
+                _burn(distributor_, balanceOf(distributor_));
+            }
         }
     }
 

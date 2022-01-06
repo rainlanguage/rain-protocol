@@ -4,10 +4,17 @@ pragma solidity ^0.8.10;
 import { Factory } from "../factory/Factory.sol";
 import { EmissionsERC20, EmissionsERC20Config } from "./EmissionsERC20.sol";
 import { ITier } from "../tier/ITier.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title EmissionsERC20Factory
 /// @notice Factory for deploying and registering `EmissionsERC20` contracts.
 contract EmissionsERC20Factory is Factory {
+
+    address public immutable implementation;
+
+    constructor() {
+        implementation = address(new EmissionsERC20());
+    }
 
     /// @inheritdoc Factory
     function _createChild(
@@ -17,7 +24,9 @@ contract EmissionsERC20Factory is Factory {
             data_,
             (EmissionsERC20Config)
         );
-        return address(new EmissionsERC20(config_));
+        address clone_ = Clones.clone(implementation);
+        EmissionsERC20(clone_).initialize(config_);
+        return clone_;
     }
 
     /// Allows calling `createChild` with `EmissionsERC20Config` struct.
@@ -26,10 +35,10 @@ contract EmissionsERC20Factory is Factory {
     ///
     /// @param config_ `EmissionsERC20` constructor configuration.
     /// @return New `EmissionsERC20` child contract address.
-    function createChild(EmissionsERC20Config calldata config_)
+    function createChildTyped(EmissionsERC20Config calldata config_)
         external
-        returns(address)
+        returns(EmissionsERC20)
     {
-        return this.createChild(abi.encode(config_));
+        return EmissionsERC20(this.createChild(abi.encode(config_)));
     }
 }

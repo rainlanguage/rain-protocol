@@ -90,15 +90,15 @@ abstract contract RainVM {
     /// Any additional "whitespace" in rain scripts will be noops as `0 0` is
     /// "skip self". The val can be used to skip additional opcodes but take
     /// care to not underflow the source itself.
-    uint constant internal OP_SKIP = 0;
+    uint constant private OP_SKIP = 0;
     /// `1` copies a value either off `constants` or `arguments` to the top of
     /// the stack. The high bit of the operand specifies which, `0` for
     /// `constants` and `1` for `arguments`.
-    uint constant internal OP_VAL = 1;
+    uint constant private OP_VAL = 1;
     /// `2` takes N values off the stack, interprets them as an array then zips
     /// and maps a source from `sources` over them. The source has access to
     /// the original constants using `1 0` and to zipped arguments as `1 1`.
-    uint constant internal OP_ZIPMAP = 2;
+    uint constant private OP_ZIPMAP = 2;
     /// Number of provided opcodes for `RainVM`.
     uint constant internal OPS_LENGTH = 3;
 

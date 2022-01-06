@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 import { ERC20Config } from "../erc20/ERC20Config.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20, ERC20Initializable } from "../erc20/ERC20Initializable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -90,7 +92,13 @@ struct SeedERC20Config {
 /// at a later date.
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
-contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
+contract SeedERC20 is
+    ERC20Initializable,
+    Phased,
+    Cooldown,
+    ERC20Pull,
+    Initializable
+{
 
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -124,28 +132,28 @@ contract SeedERC20 is ERC20, Phased, Cooldown, ERC20Pull {
     );
 
     /// Reserve erc20 token contract used to purchase seed tokens.
-    IERC20 public immutable reserve;
+    IERC20 public reserve;
     /// Recipient address for all reserve funds raised when seeding is
     /// complete.
-    address public immutable recipient;
+    address public recipient;
     /// Price in reserve for a unit of seed token.
-    uint public immutable seedPrice;
+    uint public seedPrice;
 
     /// Sanity checks on configuration.
     /// Store relevant config as contract state.
     /// Mint all seed tokens.
-    /// @param config_ All config required to construct the contract.
-    constructor (SeedERC20Config memory config_)
-        ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
-        Cooldown(config_.cooldownDuration)
-        ERC20Pull(ERC20PullConfig(
-            config_.recipient,
-            address(config_.reserve)
-        ))
-    {
+    /// @param config_ All config required to initialize the contract.
+    function initialize (SeedERC20Config memory config_) external initializer {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
         require(config_.recipient != address(0), "RECIPIENT_0");
+        initializeERC20Pull(ERC20PullConfig(
+            config_.recipient,
+            address(config_.reserve)
+        ));
+        initializePhased();
+        initializeCooldown(config_.cooldownDuration);
+        initializeERC20(config_.erc20Config);
         seedPrice = config_.seedPrice;
         reserve = config_.reserve;
         recipient = config_.recipient;

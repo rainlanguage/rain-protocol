@@ -39,9 +39,6 @@ describe("RedeemableERC20Reentrant", async function () {
 
     const minimumTier = Tier.NIL;
 
-    const redeemableERC20Factory = await ethers.getContractFactory(
-      "RedeemableERC20"
-    );
     const maliciousReserveFactory = await ethers.getContractFactory(
       "RedeemableERC20Reentrant"
     );
@@ -53,23 +50,21 @@ describe("RedeemableERC20Reentrant", async function () {
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 
-    const redeemableERC20 = (await redeemableERC20Factory.deploy({
+    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       admin: signers[0].address,
       reserve: maliciousReserve.address,
       erc20Config,
       tier: tier.address,
       minimumTier: minimumTier,
       totalSupply: totalSupply,
-    })) as RedeemableERC20 & Contract;
-
-    await redeemableERC20.deployed();
+    });
 
     await maliciousReserve.addReentrantTarget(redeemableERC20.address);
 
     // send redeemable tokens to signer 1
     await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
 
-    await redeemableERC20.burnDistributor(Util.oneAddress);
+    await redeemableERC20.burnDistributors([Util.oneAddress]);
 
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);

@@ -41,15 +41,14 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const seedERC20 = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -161,15 +160,14 @@ describe("SeedERC20", async function () {
     const bobUnits = ethers.BigNumber.from(6);
     const carolUnits = ethers.BigNumber.from(4);
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const seedERC20 = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -256,15 +254,14 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const seedERC20 = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -314,15 +311,14 @@ describe("SeedERC20", async function () {
     const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const seedERC20 = await Util.seedERC20Deploy(signers[9], {
       reserve: reserve.address,
       recipient: signers[9].address,
       seedPrice,
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+    });
 
     // SeedERC20 has 0 decimals
     const decimals = await seedERC20.decimals();
@@ -350,15 +346,14 @@ describe("SeedERC20", async function () {
     const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const seedERC20 = await Util.seedERC20Deploy(signers[9], {
       reserve: reserve.address,
       recipient: signers[9].address,
       seedPrice,
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -456,15 +451,14 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const seedERC20 = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
@@ -524,15 +518,14 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const seedERC20 = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
       seedUnits,
       cooldownDuration,
       erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+    });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);

@@ -43,7 +43,14 @@ contract TierByConstruction {
     ITier public tierContract;
     uint public constructionBlock;
 
-    constructor(ITier tierContract_) {
+    /// Initialize the tier contract and block number.
+    /// @param tierContract_ The tier contract to check against construction.
+    function initializeTierByConstruction(ITier tierContract_) internal {
+        // Tier contract must be configured. Set to a contract that returns `0`
+        // for `report` to disable tier checks.
+        require(address(tierContract_) != address(0), "ZERO_TIER_ADDRESS");
+        // Reinitialization is a bug.
+        assert(address(tierContract) == address(0));
         tierContract = tierContract_;
         constructionBlock = block.number;
     }

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 import { RainVM, State } from "../vm/RainVM.sol";
-import "../vm/ImmutableSource.sol";
+import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import { BlockOps } from "../vm/ops/BlockOps.sol";
 import { TierOps } from "../vm/ops/TierOps.sol";
 import { TierwiseCombine } from "./libraries/TierwiseCombine.sol";
@@ -17,22 +19,23 @@ import { ReadOnlyTier, ITier } from "./ReadOnlyTier.sol";
 contract CombineTier is
     ReadOnlyTier,
     RainVM,
-    ImmutableSource
+    Initializable
 {
-    /// local opcode to put tier report account on the stack.
-    uint public constant ACCOUNT = 0;
-    /// local opcodes length.
-    uint public constant LOCAL_OPS_LENGTH = 1;
+    /// @dev local opcode to put tier report account on the stack.
+    uint private constant ACCOUNT = 0;
+    /// @dev local opcodes length.
+    uint internal constant LOCAL_OPS_LENGTH = 1;
 
     /// @dev local offset for block ops.
-    uint internal immutable blockOpsStart;
+    uint private immutable blockOpsStart;
     /// @dev local offset for tier ops.
-    uint internal immutable tierOpsStart;
+    uint private immutable tierOpsStart;
     /// @dev local offset for combine tier ops.
-    uint internal immutable localOpsStart;
+    uint private immutable localOpsStart;
 
-    constructor(ImmutableSourceConfig memory config_)
-        ImmutableSource(config_)
+    address private vmStatePointer;
+
+    constructor()
     {
         /// These local opcode offsets are calculated as immutable but are
         /// really just compile time constants. They only depend on the
@@ -42,6 +45,10 @@ contract CombineTier is
         blockOpsStart = RainVM.OPS_LENGTH;
         tierOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
         localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+    }
+
+    function initialize(StateConfig memory config_) external initializer {
+        vmStatePointer = VMState.snapshot(VMState.newState(config_));
     }
 
     /// @inheritdoc RainVM
@@ -93,7 +100,7 @@ contract CombineTier is
         virtual
         returns (uint)
     {
-        State memory state_ = newState();
+        State memory state_ = VMState.restore(vmStatePointer);
         eval(
             abi.encode(account_),
             state_,
