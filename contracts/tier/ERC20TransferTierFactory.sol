@@ -36,10 +36,10 @@ contract ERC20TransferTierFactory is Factory {
     ///
     /// @param config_ Constructor config for `ERC20TransferTier`.
     /// @return New `ERC20TransferTier` child contract address.
-    function createChild(ERC20TransferTierConfig memory config_)
+    function createChildTyped(ERC20TransferTierConfig memory config_)
         external
-        returns (address)
+        returns (ERC20TransferTier)
     {
-        return this.createChild(abi.encode(config_));
+        return ERC20TransferTier(this.createChild(abi.encode(config_)));
     }
 }
