@@ -247,7 +247,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [SOURCE(), FN()],
           constants,
           argumentsLength: 2,
@@ -526,7 +526,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [SOURCE(), FN()],
           constants,
           argumentsLength: 2,
@@ -646,7 +646,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [
             concat([
               // lastClaimReport
@@ -737,7 +737,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [TIERWISE_DIFF()],
           constants: [readWriteTier.address],
           argumentsLength: 0,
@@ -800,7 +800,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [
             concat([
               op(Opcode.diff),
@@ -865,7 +865,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
           constants: [claimAmount],
           argumentsLength: 0,
@@ -920,7 +920,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
           constants: [claimAmount],
           argumentsLength: 0,
@@ -958,7 +958,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
           constants: [claimAmount],
           argumentsLength: 0,
@@ -1002,7 +1002,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
           constants: [claimAmount],
           argumentsLength: 0,
@@ -1039,7 +1039,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
           constants: [claimAmount],
           argumentsLength: 0,
@@ -1077,7 +1077,7 @@ describe("EmissionsERC20", async function () {
           name: "Emissions",
           symbol: "EMS",
         },
-        immutableSourceConfig: {
+        vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
           constants: [],
           argumentsLength: 0,

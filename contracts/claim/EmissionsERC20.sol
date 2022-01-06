@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { ERC20Config } from "../erc20/ERC20Config.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import { RainVM, State } from "../vm/RainVM.sol";
-import "../vm/ImmutableSource.sol";
-import { BlockOps } from "../vm/ops/BlockOps.sol";
-import { ThisOps } from "../vm/ops/ThisOps.sol";
-import { MathOps } from "../vm/ops/MathOps.sol";
-import { TierOps } from "../vm/ops/TierOps.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {RainVM, State} from "../vm/RainVM.sol";
+import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {BlockOps} from "../vm/ops/BlockOps.sol";
+import {ThisOps} from "../vm/ops/ThisOps.sol";
+import {MathOps} from "../vm/ops/MathOps.sol";
+import {TierOps} from "../vm/ops/TierOps.sol";
+import {ERC20Initializable} from "../erc20/ERC20Initializable.sol";
 
 /// Constructor config.
 struct EmissionsERC20Config {
@@ -21,7 +22,7 @@ struct EmissionsERC20Config {
     ERC20Config erc20Config;
     /// Constructor config for the `ImmutableSource` that defines the emissions
     /// schedule for claiming.
-    ImmutableSourceConfig immutableSourceConfig;
+    StateConfig vmStateConfig;
 }
 
 /// @title EmissionsERC20
@@ -38,35 +39,38 @@ struct EmissionsERC20Config {
 /// See `test/Claim/EmissionsERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract EmissionsERC20 is
-    ERC20,
+    Initializable,
+    ERC20Initializable,
     IClaim,
     ReadOnlyTier,
-    RainVM,
-    ImmutableSource
+    RainVM
 {
-    /// local opcode to put claimant account on the stack.
-    uint public constant CLAIMANT_ACCOUNT = 0;
-    /// local opcode to put this contract's deploy block on the stack.
-    uint public constant CONSTRUCTION_BLOCK_NUMBER = 1;
-    /// local opcodes length.
-    uint public constant LOCAL_OPS_LENGTH = 2;
+    /// @dev local opcode to put claimant account on the stack.
+    uint256 private constant CLAIMANT_ACCOUNT = 0;
+    /// @dev local opcode to put this contract's deploy block on the stack.
+    uint256 private constant CONSTRUCTION_BLOCK_NUMBER = 1;
+    /// @dev local opcodes length.
+    uint256 internal constant LOCAL_OPS_LENGTH = 2;
 
     /// @dev local offset for block ops.
-    uint internal immutable blockOpsStart;
+    uint256 private immutable blockOpsStart;
     /// @dev local offest for this ops.
-    uint internal immutable thisOpsStart;
+    uint256 private immutable thisOpsStart;
     /// @dev local offset for math ops.
-    uint internal immutable mathOpsStart;
+    uint256 private immutable mathOpsStart;
     /// @dev local offset for tier ops.
-    uint internal immutable tierOpsStart;
+    uint256 private immutable tierOpsStart;
     /// @dev local offset for local ops.
-    uint internal immutable localOpsStart;
+    uint256 private immutable localOpsStart;
+
     /// @dev Block this contract was constructed.
     /// Can be used to calculate claim entitlements relative to the deployment
     /// of the emissions contract itself.
     /// This is internal to `EmissionsERC20` but is available via a local
     /// opcode, and so can be used in rainVM scripts.
-    uint internal immutable constructionBlockNumber;
+    uint256 private constructionBlockNumber;
+
+    address private vmStatePointer;
 
     /// Whether the claimant must be the caller of `claim`. If `false` then
     /// accounts other than claimant can claim. This may or may not be
@@ -77,18 +81,14 @@ contract EmissionsERC20 is
     /// non-linear case delegated claims would be inappropriate as third
     /// party accounts could grief claimants by claiming "early", thus forcing
     /// opportunity cost on claimants who would have preferred to wait.
-    bool public immutable allowDelegatedClaims;
+    bool public allowDelegatedClaims;
 
     /// Each claim is modelled as a report so that the claim report can be
     /// diffed against the upstream report from a tier based emission scheme.
-    mapping(address => uint) public reports;
+    mapping(address => uint256) public reports;
 
     /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
-    /// @param config_ source and token config. Also controls delegated claims.
-    constructor(EmissionsERC20Config memory config_)
-        ImmutableSource(config_.immutableSourceConfig)
-        ERC20(config_.erc20Config.name, config_.erc20Config.symbol)
-    {
+    constructor() {
         /// These local opcode offsets are calculated as immutable but are
         /// really just compile time constants. They only depend on the
         /// imported libraries and contracts. These are calculated at
@@ -99,23 +99,30 @@ contract EmissionsERC20 is
         mathOpsStart = thisOpsStart + ThisOps.OPS_LENGTH;
         tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
         localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+    }
 
+    /// @param config_ source and token config. Also controls delegated claims.
+    function initialize(EmissionsERC20Config memory config_)
+        external
+        initializer
+    {
+        initializeERC20(config_.erc20Config);
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
         constructionBlockNumber = block.number;
+
+        vmStatePointer = VMState.snapshot(
+            VMState.newState(config_.vmStateConfig)
+        );
     }
 
     /// @inheritdoc RainVM
     function applyOp(
         bytes memory context_,
         State memory state_,
-        uint opcode_,
-        uint operand_
-    )
-        internal
-        override
-        view
-    {
+        uint256 opcode_,
+        uint256 operand_
+    ) internal view override {
         unchecked {
             if (opcode_ < thisOpsStart) {
                 BlockOps.applyOp(
@@ -124,41 +131,37 @@ contract EmissionsERC20 is
                     opcode_ - blockOpsStart,
                     operand_
                 );
-            }
-            else if (opcode_ < mathOpsStart) {
+            } else if (opcode_ < mathOpsStart) {
                 ThisOps.applyOp(
                     context_,
                     state_,
                     opcode_ - thisOpsStart,
                     operand_
                 );
-            }
-            else if (opcode_ < tierOpsStart) {
+            } else if (opcode_ < tierOpsStart) {
                 MathOps.applyOp(
                     context_,
                     state_,
                     opcode_ - mathOpsStart,
                     operand_
                 );
-            }
-            else if (opcode_ < localOpsStart) {
+            } else if (opcode_ < localOpsStart) {
                 TierOps.applyOp(
                     context_,
                     state_,
                     opcode_ - tierOpsStart,
                     operand_
                 );
-            }
-            else {
+            } else {
                 opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 if (opcode_ == CLAIMANT_ACCOUNT) {
-                    (address account_) = abi.decode(context_, (address));
-                    state_.stack[state_.stackIndex]
-                    = uint256(uint160(account_));
+                    address account_ = abi.decode(context_, (address));
+                    state_.stack[state_.stackIndex] = uint256(
+                        uint160(account_)
+                    );
                     state_.stackIndex++;
-                }
-                else if (opcode_ == CONSTRUCTION_BLOCK_NUMBER) {
+                } else if (opcode_ == CONSTRUCTION_BLOCK_NUMBER) {
                     state_.stack[state_.stackIndex] = constructionBlockNumber;
                     state_.stackIndex++;
                 }
@@ -169,10 +172,10 @@ contract EmissionsERC20 is
     /// @inheritdoc ITier
     function report(address account_)
         public
+        view
         virtual
         override
-        view
-        returns (uint)
+        returns (uint256)
     {
         return reports[account_] > 0 ? reports[account_] : TierReport.NEVER;
     }
@@ -186,17 +189,9 @@ contract EmissionsERC20 is
     /// to process the claim with `claim` if `msg.sender` is not the
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
-    function calculateClaim(address claimant_)
-        public
-        view
-        returns (uint)
-    {
-        State memory state_ = newState();
-        eval(
-            abi.encode(claimant_),
-            state_,
-            0
-        );
+    function calculateClaim(address claimant_) public view returns (uint256) {
+        State memory state_ = VMState.restore(vmStatePointer);
+        eval(abi.encode(claimant_), state_, 0);
         return state_.stack[state_.stackIndex - 1];
     }
 
@@ -218,7 +213,7 @@ contract EmissionsERC20 is
         }
 
         // Mint the claim.
-        uint amount_ = calculateClaim(claimant_);
+        uint256 amount_ = calculateClaim(claimant_);
         _mint(claimant_, amount_);
 
         // Record the current block as the latest claim.
@@ -234,5 +229,4 @@ contract EmissionsERC20 is
         // Notify the world of the claim.
         emit Claim(claimant_, data_);
     }
-
 }

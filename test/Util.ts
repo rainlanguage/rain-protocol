@@ -5,6 +5,8 @@ import chai from "chai";
 import type { TrustFactory } from "../typechain/TrustFactory";
 import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
+import type { CombineTier } from "../typechain/CombineTier";
+import type { CombineTierFactory } from "../typechain/CombineTierFactory";
 import type { SeedERC20 } from "../typechain/SeedERC20";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
@@ -237,6 +239,25 @@ export const poolContracts = async (
   ) as BPool & Contract;
   return [crp, bPool];
 };
+
+export const combineTierDeploy = async (deployer,config) => {
+  const factoryFactory = await ethers.getContractFactory("CombineTierFactory")
+  const factory = await factoryFactory.deploy() as CombineTierFactory
+  await factory.deployed()
+  const tx = await factory.createChildTyped(config)
+  const contract = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(tx, "NewChild", factory.address))[1]
+      ),
+      20
+    ),
+    (await artifacts.readArtifact("CombineTier")).abi,
+    deployer
+  ) as CombineTier & Contract
+  await contract.deployed()
+  return contract
+}
 
 export const redeemableERC20Deploy = async (deployer, config) => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
