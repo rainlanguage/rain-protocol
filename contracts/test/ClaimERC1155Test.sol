@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "../tier/ERC20BalanceTier.sol";
-import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
-import { ITier } from "../tier/ITier.sol";
+import {TierByConstructionClaim} from "../claim/TierByConstructionClaim.sol";
+import {ITier} from "../tier/ITier.sol";
 
 /// @title ClaimERC1155Test
 /// Contract that implements claiming an erc1155 contingent on tiers for
@@ -30,21 +30,21 @@ contract ClaimERC1155Test is
     constructor(IERC20 redeemableToken_, uint256[8] memory tierValues_)
         ERC1155("https://example.com/{id}.json")
         TierByConstructionClaim(this, 3)
-        ERC20BalanceTier(ERC20BalanceTierConfig(
-            redeemableToken_,
-            tierValues_
-        )) { } // solhint-disable-line no-empty-blocks
+    {
+        initializeValueTier(tierValues_);
+        erc20 = redeemableToken_;
+    }
 
     function _afterClaim(
         address account_,
-        uint,
+        uint256,
         bytes memory
     ) internal override {
         // Anyone above tier 5 gets more art and some good art.
         bool isFive_ = isTier(account_, 5);
 
-        uint256[] memory ids_ = new uint[](2);
-        uint256[] memory amounts_ = new uint[](2);
+        uint256[] memory ids_ = new uint256[](2);
+        uint256[] memory amounts_ = new uint256[](2);
 
         ids_[0] = (ART);
         ids_[1] = (GOOD_ART);

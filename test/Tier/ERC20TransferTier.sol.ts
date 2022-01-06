@@ -42,12 +42,13 @@ describe("ERC20TransferTier", async function () {
       "ERC20TransferTier"
     );
 
-    erc20TransferTier = (await erc20TransferTierFactory.deploy({
+    erc20TransferTier = (await erc20TransferTierFactory.deploy()) as ERC20TransferTier & Contract
+    await erc20TransferTier.deployed();
+    (await erc20TransferTier.initialize({
       erc20: reserve.address,
       tierValues: LEVELS,
-    })) as ERC20TransferTier & Contract;
+    }))
 
-    await erc20TransferTier.deployed();
   });
 
   it("should have no hysteresis on balance when repeatedly shifting tiers", async () => {

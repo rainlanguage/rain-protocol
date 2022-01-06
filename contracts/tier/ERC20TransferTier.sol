@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 //solhint-disable-next-line max-line-length
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../math/SaturatingMath.sol";
-import { TierReport } from "./libraries/TierReport.sol";
-import { ValueTier } from "./ValueTier.sol";
+import {TierReport} from "./libraries/TierReport.sol";
+import {ValueTier} from "./ValueTier.sol";
 import "./ReadWriteTier.sol";
 
 struct ERC20TransferTierConfig {
@@ -15,7 +17,7 @@ struct ERC20TransferTierConfig {
     IERC20 erc20;
     /// @param tierValues_ 8 values corresponding to minimum erc20
     /// balances for tiers ONE through EIGHT.
-    uint[8] tierValues;
+    uint256[8] tierValues;
 }
 
 /// @title ERC20TransferTier
@@ -57,16 +59,18 @@ struct ERC20TransferTierConfig {
 ///   cannot simply "flash claim"
 /// - Token demand and lockup where liquidity (trading) is a secondary goal
 /// - erc20 tokens without additonal restrictions on transfer
-contract ERC20TransferTier is ReadWriteTier, ValueTier {
+contract ERC20TransferTier is ReadWriteTier, ValueTier, Initializable {
     using SafeERC20 for IERC20;
     using SaturatingMath for uint256;
 
-    IERC20 public immutable erc20;
+    IERC20 public erc20;
 
     /// @param config_ Constructor config.
-    constructor(ERC20TransferTierConfig memory config_)
-        ValueTier(config_.tierValues)
+    function initialize(ERC20TransferTierConfig memory config_)
+        external
+        initializer
     {
+        initializeValueTier(config_.tierValues);
         erc20 = config_.erc20;
     }
 
@@ -81,13 +85,10 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
     /// @inheritdoc ReadWriteTier
     function _afterSetTier(
         address account_,
-        uint startTier_,
-        uint endTier_,
+        uint256 startTier_,
+        uint256 endTier_,
         bytes memory
-    )
-        internal
-        override
-    {
+    ) internal override {
         // As _anyone_ can call `setTier` we require that `msg.sender` and
         // `account_` are the same if the end tier is not an improvement.
         // Anyone can increase anyone else's tier as the `msg.sender` is
@@ -96,11 +97,13 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
             require(msg.sender == account_, "DELEGATED_TIER_LOSS");
         }
 
+        uint256[8] memory tierValues_ = tierValues();
+
         // Handle the erc20 transfer.
         // Convert the start tier to an erc20 amount.
-        uint startValue_ = tierToValue(startTier_);
+        uint256 startValue_ = tierToValue(tierValues_, startTier_);
         // Convert the end tier to an erc20 amount.
-        uint endValue_ = tierToValue(endTier_);
+        uint256 endValue_ = tierToValue(tierValues_, endTier_);
 
         // Short circuit if the values are the same for both tiers.
         if (endValue_ == startValue_) {
@@ -115,10 +118,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier {
             );
         } else {
             // Going down, process a refund for the tiered account.
-            erc20.safeTransfer(
-                account_,
-                startValue_.saturatingSub(endValue_)
-            );
+            erc20.safeTransfer(account_, startValue_.saturatingSub(endValue_));
         }
     }
 }
