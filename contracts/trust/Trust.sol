@@ -285,19 +285,26 @@ contract Trust is Phased, Initializable {
     /// enforce a minimum starting reserve balance 100x the minimum.
     uint256 private constant MIN_RESERVE_INIT = 10**8;
 
+    event Construction(
+        address balancerFactory,
+        address crpFactory,
+        address redeemableERC20Factory,
+        address seedERC20Factory,
+        address bPoolFeeEscrow,
+        uint creatorFundsReleaseTimeout,
+        uint maxRaiseDuration
+    );
+
     /// Summary of every contract built or referenced internally by `Trust`.
     event Initialize(
         TrustConfig config,
-        /// Redeemable erc20 token that is minted and distributed.
-        address redeemableERC20,
-        /// Address that provides the initial reserve token seed.
-        address seeder,
-        /// Address that defines and controls tier levels for users.
-        address tier,
         /// The Balancer `ConfigurableRightsPool` deployed for this
         /// distribution.
         address crp,
-        address bPoolFeeEscrow
+        /// Address that provides the initial reserve token seed.
+        address seeder,
+        /// Redeemable erc20 token that is minted and distributed.
+        address redeemableERC20
     );
 
     event StartDutchAuction(
@@ -364,43 +371,53 @@ contract Trust is Phased, Initializable {
 
     /// The redeemable token minted in the constructor.
     RedeemableERC20 public token;
-
     /// Reserve token.
     IERC20 public reserve;
-    /// Initial reserve balance of the pool.
-    uint256 public reserveInit;
-
     /// The `ConfigurableRightsPool` built during construction.
     IConfigurableRightsPool public crp;
 
-    uint256 public minimumCreatorRaise;
+    /// Initial reserve balance of the pool.
+    uint256 private reserveInit;
 
-    address public creator;
-    uint256 public immutable creatorFundsReleaseTimeout;
+    uint256 private minimumCreatorRaise;
 
-    uint256 public seederFee;
-    uint256 public redeemInit;
+    address private creator;
+    uint256 private immutable creatorFundsReleaseTimeout;
+
+    uint256 private seederFee;
+    uint256 private redeemInit;
 
     /// Minimum trading duration from the initial config.
-    uint256 public minimumTradingDuration;
+    uint256 private minimumTradingDuration;
 
     /// The final weight on the last block of the raise.
     /// Note the spot price is unknown until the end because we don't know
     /// either of the final token balances.
-    uint256 public finalWeight;
+    uint256 private finalWeight;
 
     constructor(TrustConstructionConfig memory config_) {
+        balancerFactory = config_.balancerFactory;
+        crpFactory = config_.crpFactory;
+        redeemableERC20Factory = config_.redeemableERC20Factory;
         seedERC20Factory = config_.seedERC20Factory;
+        BPoolFeeEscrow bPoolFeeEscrow_ = new BPoolFeeEscrow(msg.sender);
+        bPoolFeeEscrow = bPoolFeeEscrow_;
         creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
         // Assumption here that the `msg.sender` is a `TrustFactory` that the
         // `BPoolFeeEscrow` can trust. If it isn't then an insecure escrow will
         // be deployed for this `Trust` AND this `Trust` itself won't have a
         // secure parent `TrustFactory` so nobody should trust it.
-        bPoolFeeEscrow = new BPoolFeeEscrow(msg.sender);
         maxRaiseDuration = config_.maxRaiseDuration;
-        crpFactory = config_.crpFactory;
-        balancerFactory = config_.balancerFactory;
-        redeemableERC20Factory = config_.redeemableERC20Factory;
+
+        emit Construction(
+            config_.balancerFactory,
+            config_.crpFactory,
+            address(config_.redeemableERC20Factory),
+            address(config_.seedERC20Factory),
+            address(bPoolFeeEscrow_),
+            config_.creatorFundsReleaseTimeout,
+            config_.maxRaiseDuration
+        );
     }
 
     /// Sanity checks configuration.
@@ -470,12 +487,13 @@ contract Trust is Phased, Initializable {
 
         token = redeemableERC20_;
 
-        if (trustSeedERC20Config_.seeder == address(0)) {
+        address seeder_ = trustSeedERC20Config_.seeder;
+        if (seeder_ == address(0)) {
             require(
                 0 == config_.reserveInit % trustSeedERC20Config_.seederUnits,
                 "SEED_PRICE_MULTIPLIER"
             );
-            trustSeedERC20Config_.seeder = address(
+            seeder_ = address(
                 seedERC20Factory.createChild(
                     abi.encode(
                         SeedERC20Config(
@@ -492,7 +510,7 @@ contract Trust is Phased, Initializable {
                 )
             );
         }
-        seeder = trustSeedERC20Config_.seeder;
+        seeder = seeder_;
 
         require(
             config_.initialValuation >= config_.finalValuation,
@@ -533,11 +551,9 @@ contract Trust is Phased, Initializable {
 
         emit Initialize(
             config_,
-            address(redeemableERC20_),
-            address(trustSeedERC20Config_.seeder),
-            address(trustRedeemableERC20Config_.tier),
             address(crp_),
-            address(bPoolFeeEscrow)
+            address(seeder_),
+            address(redeemableERC20_)
         );
     }
 
