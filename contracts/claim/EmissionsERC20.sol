@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
@@ -45,6 +46,9 @@ contract EmissionsERC20 is
     ReadOnlyTier,
     RainVM
 {
+    /// Contract has initialized.
+    event Initialize(EmissionsERC20Config config);
+
     /// @dev local opcode to put claimant account on the stack.
     uint256 private constant CLAIMANT_ACCOUNT = 0;
     /// @dev local opcode to put this contract's deploy block on the stack.
@@ -85,7 +89,7 @@ contract EmissionsERC20 is
 
     /// Each claim is modelled as a report so that the claim report can be
     /// diffed against the upstream report from a tier based emission scheme.
-    mapping(address => uint256) public reports;
+    mapping(address => uint256) private reports;
 
     /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
     constructor() {
@@ -114,6 +118,8 @@ contract EmissionsERC20 is
         vmStatePointer = VMState.snapshot(
             VMState.newState(config_.vmStateConfig)
         );
+
+        emit Initialize(config_);
     }
 
     /// @inheritdoc RainVM
@@ -221,12 +227,16 @@ contract EmissionsERC20 is
         // calculations.
         reports[claimant_] = TierReport.updateBlocksForTierRange(
             TierReport.NEVER,
-            0,
-            8,
+            TierConstants.TIER_ZERO,
+            TierConstants.TIER_EIGHT,
             block.number
         );
-
-        // Notify the world of the claim.
-        emit Claim(claimant_, data_);
+        emit TierChange(
+            msg.sender,
+            claimant_,
+            TierConstants.TIER_ZERO,
+            TierConstants.TIER_EIGHT
+        );
+        emit Claim(msg.sender, claimant_, data_);
     }
 }

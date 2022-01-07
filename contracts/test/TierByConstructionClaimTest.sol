@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { ITier } from "../tier/ITier.sol";
-import { TierByConstructionClaim } from "../claim/TierByConstructionClaim.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ITier} from "../tier/ITier.sol";
+import "../tier/libraries/TierConstants.sol";
+//solhint-disable-next-line max-line-length
+import {TierByConstructionClaim, TierByConstructionClaimConfig} from "../claim/TierByConstructionClaim.sol";
 
 /// @title TierByConstructionClaimTest
 /// A simple example showing how TierByConstruction can be used to gate a claim
@@ -36,14 +38,15 @@ contract TierByConstructionClaimTest is ERC20, TierByConstructionClaim {
     /// constructor.
     /// @param tier_ The tier contract to mediate the validity of claims.
     constructor(ITier tier_)
-        TierByConstructionClaim(tier_, 4)
+        TierByConstructionClaim(TierByConstructionClaimConfig(tier_, TierConstants.TIER_FOUR))
         ERC20("goldTkn", "GTKN")
-    { } // solhint-disable-line no-empty-blocks
+    {} // solhint-disable-line no-empty-blocks
 
-    function _afterClaim(address account_, uint, bytes memory)
-        internal
-        override
-    {
+    function _afterClaim(
+        address account_,
+        uint256,
+        bytes memory
+    ) internal override {
         _mint(account_, 100);
     }
 }

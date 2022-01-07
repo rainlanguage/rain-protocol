@@ -10,10 +10,12 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 /// @notice Factory for deploying and registering `EmissionsERC20` contracts.
 contract EmissionsERC20Factory is Factory {
 
-    address public immutable implementation;
+    address private immutable implementation;
 
     constructor() {
-        implementation = address(new EmissionsERC20());
+        address implementation_ = address(new EmissionsERC20());
+        implementation = implementation_;
+        emit Implementation(msg.sender, implementation_);
     }
 
     /// @inheritdoc Factory

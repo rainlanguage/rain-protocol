@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { ITier } from "../tier/ITier.sol";
-import { IClaim } from "./IClaim.sol";
-import { TierByConstruction } from "../tier/TierByConstruction.sol";
+import {ITier} from "../tier/ITier.sol";
+import {IClaim} from "./IClaim.sol";
+import {TierByConstruction} from "../tier/TierByConstruction.sol";
+
+struct TierByConstructionClaimConfig {
+    ITier tierContract;
+    uint256 minimumTier;
+}
 
 /// @title TierByConstructionClaim
 ///
@@ -55,24 +60,26 @@ import { TierByConstruction } from "../tier/TierByConstruction.sol";
 /// In general it is INSECURE to inherit `TierByConstructionClaim` without
 /// implementing `_afterClaim` with appropriate access checks.
 contract TierByConstructionClaim is IClaim, TierByConstruction {
+    event Initialize(TierByConstructionClaimConfig);
+
     /// The minimum tier required for an address to claim anything at all.
     /// This tier must have been held continuously since before this
     /// contract was constructed.
-    uint public immutable minimumTier;
+    uint256 internal immutable minimumTier;
 
     /// Tracks every address that has already claimed to prevent duplicate
     /// claims.
-    mapping(address => bool) public claims;
+    mapping(address => bool) internal claims;
 
     /// Nothing special needs to happen in the constructor.
     /// Simply forwards the desired ITier contract to the `TierByConstruction`
     /// constructor.
     /// The minimum tier is set for `claim` logic.
-    /// @param tier_ The tier contract to reference for each claim.
-    /// @param minimumTier_ Minimum tier required for any claim to be valid.
-    constructor(ITier tier_, uint minimumTier_) {
-        initializeTierByConstruction(tier_);
-        minimumTier = minimumTier_;
+    /// @param config_ Config for internal initialization.
+    constructor(TierByConstructionClaimConfig memory config_) {
+        initializeTierByConstruction(config_.tierContract);
+        minimumTier = config_.minimumTier;
+        emit Initialize(config_);
     }
 
     /// The `onlyTier` modifier checks the claimant against `minimumTier`.
@@ -111,7 +118,7 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
         claims[claimant_] = true;
 
         // Log the claim.
-        emit Claim(claimant_, data_);
+        emit Claim(msg.sender, claimant_, data_);
 
         // Process the claim.
         // Inheriting contracts will need to override this to make
@@ -122,9 +129,7 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
     /// Implementing contracts need to define what is claimed.
     function _afterClaim(
         address claimant_,
-        uint report_,
+        uint256 report_,
         bytes memory data_
-    )
-        internal virtual
-    { } // solhint-disable-line no-empty-blocks
+    ) internal virtual {} // solhint-disable-line no-empty-blocks
 }

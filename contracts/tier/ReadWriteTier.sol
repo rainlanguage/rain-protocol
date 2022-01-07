@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { ITier } from "./ITier.sol";
-import { TierReport } from "./libraries/TierReport.sol";
+import {ITier} from "./ITier.sol";
+import {TierReport} from "./libraries/TierReport.sol";
 
 /// @title ReadWriteTier
 /// @notice `ReadWriteTier` is a base contract that other contracts are
@@ -20,16 +20,16 @@ import { TierReport } from "./libraries/TierReport.sol";
 /// addresses move down the tiers.
 contract ReadWriteTier is ITier {
     /// account => reports
-    mapping(address => uint) public reports;
+    mapping(address => uint256) public reports;
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITier
     function report(address account_)
         public
+        view
         virtual
         override
-        view
-        returns (uint)
+        returns (uint256)
     {
         // Inequality here to silence slither warnings.
         return reports[account_] > 0 ? reports[account_] : TierReport.NEVER;
@@ -43,19 +43,17 @@ contract ReadWriteTier is ITier {
     /// @inheritdoc ITier
     function setTier(
         address account_,
-        uint endTier_,
+        uint256 endTier_,
         bytes memory data_
-    )
-        external virtual override
-    {
+    ) external virtual override {
         // The user must move to at least tier 1.
         // The tier 0 status is reserved for users that have never
         // interacted with the contract.
         require(endTier_ > 0, "SET_ZERO_TIER");
 
-        uint report_ = report(account_);
+        uint256 report_ = report(account_);
 
-        uint startTier_ = TierReport.tierAtBlockFromReport(
+        uint256 startTier_ = TierReport.tierAtBlockFromReport(
             report_,
             block.number
         );
@@ -68,7 +66,7 @@ contract ReadWriteTier is ITier {
         );
 
         // Emit this event for ITier.
-        emit TierChange(account_, startTier_, endTier_);
+        emit TierChange(msg.sender, account_, startTier_, endTier_);
 
         // Call the `_afterSetTier` hook to allow inheriting contracts
         // to enforce requirements.
@@ -89,10 +87,8 @@ contract ReadWriteTier is ITier {
     /// @param data_ Additional arbitrary data to inform update requirements.
     function _afterSetTier(
         address account_,
-        uint startTier_,
-        uint endTier_,
+        uint256 startTier_,
+        uint256 endTier_,
         bytes memory data_
-    )
-        internal virtual
-    { } // solhint-disable-line no-empty-blocks
+    ) internal virtual {} // solhint-disable-line no-empty-blocks
 }
