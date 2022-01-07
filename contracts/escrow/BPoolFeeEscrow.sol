@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-// solhint-disable-next-line max-line-length
 import {RedeemableERC20, Trust} from "../trust/Trust.sol";
 import {IBPool} from "../pool/IBPool.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";

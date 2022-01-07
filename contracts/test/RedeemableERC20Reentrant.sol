@@ -4,7 +4,6 @@ pragma solidity ^0.8.10;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {ReserveToken} from "./ReserveToken.sol";
-// solhint-disable-next-line max-line-length
 import {ERC20, RedeemableERC20} from "../redeemableERC20/RedeemableERC20.sol";
 
 /// @title RedeemableERC20Reentrant

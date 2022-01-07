@@ -15,7 +15,6 @@ contract ValueTierTest is ValueTier {
     }
 
     /// Wraps `tierToValue`.
-    //solhint-disable-next-line max-line-length
     function wrappedTierToValue(uint256 tier_) external view returns (uint256) {
         return ValueTier.tierToValue(tierValues(), tier_);
     }

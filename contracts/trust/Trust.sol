@@ -22,7 +22,6 @@ import {ITier} from "../tier/ITier.sol";
 import {Phase} from "../phased/Phased.sol";
 // solhint-disable-next-line max-line-length
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
-// solhint-disable-next-line max-line-length
 import {SeedERC20, SeedERC20Config} from "../seed/SeedERC20.sol";
 // solhint-disable-next-line max-line-length
 import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
@@ -58,11 +57,13 @@ enum DistributionStatus {
 /// Everything required to setup a `ConfigurableRightsPool` for a `Trust`.
 struct CRPConfig {
     /// Reserve side of the pool pair.
-    IERC20 reserve;
+    address reserve;
     /// Redeemable ERC20 side of the pool pair.
-    RedeemableERC20 token;
+    address token;
     /// Initial reserve value in the pool.
     uint256 reserveInit;
+    /// Total token supply.
+    uint256 tokenSupply;
     // Initial marketcap of the token according to the balancer pool
     // denominated in reserve token.
     // The spot price of the token is ( market cap / token supply ) where
@@ -291,8 +292,8 @@ contract Trust is Phased, Initializable {
         address redeemableERC20Factory,
         address seedERC20Factory,
         address bPoolFeeEscrow,
-        uint creatorFundsReleaseTimeout,
-        uint maxRaiseDuration
+        uint256 creatorFundsReleaseTimeout,
+        uint256 maxRaiseDuration
     );
 
     /// Summary of every contract built or referenced internally by `Trust`.
@@ -446,6 +447,77 @@ contract Trust is Phased, Initializable {
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
         TrustSeedERC20Config memory trustSeedERC20Config_
     ) external initializer {
+        initializePhased();
+
+        require(config_.creator != address(0), "CREATOR_0");
+        require(address(config_.reserve) != address(0), "RESERVE_0");
+        require(
+            config_.reserveInit >= MIN_RESERVE_INIT,
+            "RESERVE_INIT_MINIMUM"
+        );
+        require(
+            config_.initialValuation >= config_.finalValuation,
+            "MIN_INITIAL_VALUTION"
+        );
+
+        creator = config_.creator;
+        reserve = config_.reserve;
+        reserveInit = config_.reserveInit;
+
+        minimumCreatorRaise = config_.minimumCreatorRaise;
+        seederFee = config_.seederFee;
+        redeemInit = config_.redeemInit;
+
+        finalWeight = valuationWeight(
+            config_.reserveInit,
+            config_.finalValuation
+        );
+
+        uint256 successBalance_ = config_.reserveInit +
+            config_.seederFee +
+            config_.redeemInit +
+            config_.minimumCreatorRaise;
+
+        require(
+            config_.finalValuation >= successBalance_,
+            "MIN_FINAL_VALUATION"
+        );
+        successBalance = successBalance_;
+
+        require(
+            config_.minimumTradingDuration <= maxRaiseDuration,
+            "MAX_RAISE_DURATION"
+        );
+        require(config_.minimumTradingDuration > 0, "0_TRADING_DURATION");
+        minimumTradingDuration = config_.minimumTradingDuration;
+
+        address redeemableERC20_ = setupRedeemableERC20(
+            config_,
+            trustRedeemableERC20Config_
+        );
+        token = RedeemableERC20(redeemableERC20_);
+
+        address seeder_ = setupSeeder(config_, trustSeedERC20Config_);
+        seeder = seeder_;
+
+        address crp_ = setupCRP(
+            CRPConfig(
+                address(config_.reserve),
+                redeemableERC20_,
+                config_.reserveInit,
+                trustRedeemableERC20Config_.totalSupply,
+                config_.initialValuation
+            )
+        );
+        crp = IConfigurableRightsPool(crp_);
+
+        emit Initialize(config_, crp_, seeder_, address(redeemableERC20_));
+    }
+
+    function setupRedeemableERC20(
+        TrustConfig memory config_,
+        TrustRedeemableERC20Config memory trustRedeemableERC20Config_
+    ) private returns (address) {
         // There are additional minimum reserve init and token supply
         // restrictions enforced by `RedeemableERC20` and
         // `RedeemableERC20Pool`. This ensures that the weightings and
@@ -455,21 +527,6 @@ contract Trust is Phased, Initializable {
             trustRedeemableERC20Config_.totalSupply >= config_.reserveInit,
             "MIN_TOKEN_SUPPLY"
         );
-
-        require(
-            config_.minimumTradingDuration <= maxRaiseDuration,
-            "MAX_RAISE_DURATION"
-        );
-
-        initializePhased();
-
-        creator = config_.creator;
-        reserve = config_.reserve;
-        reserveInit = config_.reserveInit;
-        minimumCreatorRaise = config_.minimumCreatorRaise;
-        seederFee = config_.seederFee;
-        redeemInit = config_.redeemInit;
-
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             redeemableERC20Factory.createChild(
                 abi.encode(
@@ -484,9 +541,14 @@ contract Trust is Phased, Initializable {
                 )
             )
         );
+        redeemableERC20_.grantReceiver(address(bPoolFeeEscrow));
+        return address(redeemableERC20_);
+    }
 
-        token = redeemableERC20_;
-
+    function setupSeeder(
+        TrustConfig memory config_,
+        TrustSeedERC20Config memory trustSeedERC20Config_
+    ) private returns (address) {
         address seeder_ = trustSeedERC20Config_.seeder;
         if (seeder_ == address(0)) {
             require(
@@ -510,60 +572,13 @@ contract Trust is Phased, Initializable {
                 )
             );
         }
-        seeder = seeder_;
-
-        require(
-            config_.initialValuation >= config_.finalValuation,
-            "MIN_INITIAL_VALUTION"
-        );
-        require(config_.creator != address(0), "CREATOR_0");
-
-        uint256 successBalance_ = config_.reserveInit +
-            config_.seederFee +
-            config_.redeemInit +
-            config_.minimumCreatorRaise;
-
-        finalWeight = valuationWeight(
-            config_.reserveInit,
-            config_.finalValuation
-        );
-
-        require(
-            config_.finalValuation >= successBalance_,
-            "MIN_FINAL_VALUATION"
-        );
-        successBalance = successBalance_;
-
-        require(config_.minimumTradingDuration > 0, "0_TRADING_DURATION");
-        minimumTradingDuration = config_.minimumTradingDuration;
-
-        IConfigurableRightsPool crp_ = setupCRP(
-            CRPConfig(
-                config_.reserve,
-                redeemableERC20_,
-                config_.reserveInit,
-                config_.initialValuation
-            )
-        );
-        redeemableERC20_.grantReceiver(address(bPoolFeeEscrow));
-
-        crp = crp_;
-
-        emit Initialize(
-            config_,
-            address(crp_),
-            address(seeder_),
-            address(redeemableERC20_)
-        );
+        return seeder_;
     }
 
     /// Configures and deploys the `ConfigurableRightsPool`.
     /// Call this during initialization.
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
-    function setupCRP(CRPConfig memory config_)
-        private
-        returns (IConfigurableRightsPool)
-    {
+    function setupCRP(CRPConfig memory config_) private returns (address) {
         // The addresses in the `RedeemableERC20Pool`, as `[reserve, token]`.
         address[] memory poolAddresses_ = new address[](2);
         poolAddresses_[0] = address(config_.reserve);
@@ -572,9 +587,7 @@ contract Trust is Phased, Initializable {
         // Initial amounts as configured reserve init and total token supply.
         uint256[] memory poolAmounts_ = new uint256[](2);
         poolAmounts_[0] = config_.reserveInit;
-        poolAmounts_[1] = config_.token.totalSupply();
-        require(poolAmounts_[0] >= MIN_RESERVE_INIT, "RESERVE_INIT_MINIMUM");
-        require(poolAmounts_[1] > 0, "TOKEN_INIT_0");
+        poolAmounts_[1] = config_.tokenSupply;
 
         // Initital weights follow initial valuation reserve denominated.
         uint256[] memory initialWeights_ = new uint256[](2);
@@ -614,23 +627,17 @@ contract Trust is Phased, Initializable {
 
         // Need to grant transfers for a few balancer addresses to facilitate
         // setup and exits.
-        config_.token.grantReceiver(
+        RedeemableERC20(config_.token).grantReceiver(
             address(IConfigurableRightsPool(crp_).bFactory())
         );
-        config_.token.grantReceiver(address(this));
-        config_.token.grantSender(crp_);
+        RedeemableERC20(config_.token).grantReceiver(address(this));
+        RedeemableERC20(config_.token).grantSender(crp_);
 
         // Preapprove all tokens and reserve for the CRP.
-        require(
-            config_.reserve.approve(address(crp_), config_.reserveInit),
-            "RESERVE_APPROVE"
-        );
-        require(
-            config_.token.approve(address(crp_), config_.token.totalSupply()),
-            "TOKEN_APPROVE"
-        );
+        IERC20(config_.reserve).safeApprove(address(crp_), config_.reserveInit);
+        IERC20(config_.token).safeApprove(address(crp_), config_.tokenSupply);
 
-        return IConfigurableRightsPool(crp_);
+        return crp_;
     }
 
     /// https://balancer.finance/whitepaper/
@@ -792,7 +799,6 @@ contract Trust is Phased, Initializable {
         // - The global minimum
         // - The LP token supply implied by the reserve
         // - The LP token supply implied by the token
-        // solhint-disable-next-line max-line-length
         uint256 minReservePoolTokens_ = MIN_BALANCER_POOL_BALANCE.saturatingMul(
                 totalPoolTokens_
             ) /
@@ -932,7 +938,6 @@ contract Trust is Phased, Initializable {
         address creator_ = creator;
         address seeder_ = seeder;
 
-        //solhint-disable-next-line max-line-length
         uint256 creatorAllowance_ = reserve_.allowance(address(this), creator_);
         uint256 seederAllowance_ = reserve_.allowance(address(this), seeder_);
         uint256 tokenAllowance_ = reserve_.allowance(

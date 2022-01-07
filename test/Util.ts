@@ -244,11 +244,11 @@ export const poolContracts = async (
   return [crp, bPool];
 };
 
-export const verifyDeploy = async (deployer,config) => {
-  const factoryFactory = await ethers.getContractFactory("VerifyFactory")
-  const factory = await factoryFactory.deploy() as VerifyFactory
-  await factory.deployed()
-  const tx = await factory.createChildTyped(config)
+export const verifyDeploy = async (deployer, config) => {
+  const factoryFactory = await ethers.getContractFactory("VerifyFactory");
+  const factory = (await factoryFactory.deploy()) as VerifyFactory;
+  await factory.deployed();
+  const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
@@ -258,16 +258,16 @@ export const verifyDeploy = async (deployer,config) => {
     ),
     (await artifacts.readArtifact("Verify")).abi,
     deployer
-  ) as Verify & Contract
-  await contract.deployed()
-  return contract
-}
+  ) as Verify & Contract;
+  await contract.deployed();
+  return contract;
+};
 
-export const verifyTierDeploy = async (deployer,config) => {
-  const factoryFactory = await ethers.getContractFactory("VerifyTierFactory")
-  const factory = await factoryFactory.deploy() as VerifyTierFactory
-  await factory.deployed()
-  const tx = await factory.createChildTyped(config)
+export const verifyTierDeploy = async (deployer, config) => {
+  const factoryFactory = await ethers.getContractFactory("VerifyTierFactory");
+  const factory = (await factoryFactory.deploy()) as VerifyTierFactory;
+  await factory.deployed();
+  const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
@@ -277,16 +277,16 @@ export const verifyTierDeploy = async (deployer,config) => {
     ),
     (await artifacts.readArtifact("VerifyTier")).abi,
     deployer
-  ) as VerifyTier & Contract
-  await contract.deployed()
-  return contract
-}
+  ) as VerifyTier & Contract;
+  await contract.deployed();
+  return contract;
+};
 
-export const combineTierDeploy = async (deployer,config) => {
-  const factoryFactory = await ethers.getContractFactory("CombineTierFactory")
-  const factory = await factoryFactory.deploy() as CombineTierFactory
-  await factory.deployed()
-  const tx = await factory.createChildTyped(config)
+export const combineTierDeploy = async (deployer, config) => {
+  const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
+  const factory = (await factoryFactory.deploy()) as CombineTierFactory;
+  await factory.deployed();
+  const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
@@ -296,10 +296,10 @@ export const combineTierDeploy = async (deployer,config) => {
     ),
     (await artifacts.readArtifact("CombineTier")).abi,
     deployer
-  ) as CombineTier & Contract
-  await contract.deployed()
-  return contract
-}
+  ) as CombineTier & Contract;
+  await contract.deployed();
+  return contract;
+};
 
 export const redeemableERC20Deploy = async (deployer, config) => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(

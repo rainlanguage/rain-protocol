@@ -3,7 +3,6 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { SeedERC20 } from "../../typechain/SeedERC20";
 import type { SeedERC20ForceSendEther } from "../../typechain/SeedERC20ForceSendEther";
 import type { Contract } from "ethers";
 

@@ -34,7 +34,9 @@ export const emissionsDeploy = async (
   emissionsERC20Factory: EmissionsERC20Factory & Contract,
   emissionsERC20ConfigStruct: EmissionsERC20ConfigStruct
 ): Promise<EmissionsERC20 & Contract> => {
-  const tx = await emissionsERC20Factory.createChildTyped(emissionsERC20ConfigStruct);
+  const tx = await emissionsERC20Factory.createChildTyped(
+    emissionsERC20ConfigStruct
+  );
 
   const emissionsERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(

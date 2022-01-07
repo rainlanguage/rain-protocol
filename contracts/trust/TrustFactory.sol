@@ -8,17 +8,14 @@ import {ITier} from "../tier/ITier.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import {Factory} from "../factory/Factory.sol";
-// solhint-disable-next-line max-line-length
 import {Trust, TrustConstructionConfig, TrustConfig} from "../trust/Trust.sol";
 // solhint-disable-next-line max-line-length
 import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
 // solhint-disable-next-line max-line-length
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
-// solhint-disable-next-line max-line-length
 import {SeedERC20Factory} from "../seed/SeedERC20Factory.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-// solhint-disable-next-line max-line-length
 import {TrustRedeemableERC20Config, TrustSeedERC20Config} from "./Trust.sol";
 import {BPoolFeeEscrow} from "../escrow/BPoolFeeEscrow.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";

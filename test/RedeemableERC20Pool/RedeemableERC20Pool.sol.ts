@@ -58,7 +58,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );
@@ -239,7 +239,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );
@@ -321,7 +321,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );
@@ -486,7 +486,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );
@@ -574,7 +574,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );
@@ -833,7 +833,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );
@@ -1045,7 +1045,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await tier.setTier(griefer.address, Tier.GOLD, []);
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );
@@ -1310,7 +1310,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );
@@ -1505,7 +1505,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
+    const { trustFactory } = await factoriesDeploy(
       crpFactory,
       bFactory
     );

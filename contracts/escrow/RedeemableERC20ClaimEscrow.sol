@@ -232,7 +232,6 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         uint256 amount_
     ) external onlyTrustedFactoryChild(address(trust_)) {
         require(amount_ > 0, "ZERO_DEPOSIT");
-        // solhint-disable-next-line max-line-length
         require(getEscrowStatus(trust_) == EscrowStatus.Pending, "NOT_PENDING");
         pendingDeposits[address(trust_)][address(token_)][
             msg.sender
@@ -395,7 +394,6 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         uint256 supply_
     ) external {
         // Can only withdraw when the `Trust` reports success.
-        //solhint-disable-next-line max-line-length
         require(getEscrowStatus(trust_) == EscrowStatus.Success, "NOT_SUCCESS");
 
         uint256 totalDeposited_ = totalDeposits[address(trust_)][
