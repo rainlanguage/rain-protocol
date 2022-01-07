@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 //solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {TierReport} from "./libraries/TierReport.sol";
+import {TierConstants} from "./libraries/TierConstants.sol";
 import {ValueTier} from "./ValueTier.sol";
 import {ITier} from "./ITier.sol";
 import "./ReadOnlyTier.sol";
@@ -48,7 +48,9 @@ struct ERC20BalanceTierConfig {
 /// - Lightweight, realtime checks that encumber the tiered address
 ///   as little as possible.
 contract ERC20BalanceTier is ReadOnlyTier, ValueTier, Initializable {
-    IERC20 public erc20;
+    event Initialize(address sender, address erc20);
+
+    IERC20 internal erc20;
 
     /// @param config_ Initialize config.
     function initialize(ERC20BalanceTierConfig memory config_)
@@ -57,6 +59,7 @@ contract ERC20BalanceTier is ReadOnlyTier, ValueTier, Initializable {
     {
         initializeValueTier(config_.tierValues);
         erc20 = config_.erc20;
+        emit Initialize(msg.sender, address(config_.erc20));
     }
 
     /// Report simply truncates all tiers above the highest value held.
@@ -64,7 +67,7 @@ contract ERC20BalanceTier is ReadOnlyTier, ValueTier, Initializable {
     function report(address account_) public view override returns (uint256) {
         return
             TierReport.truncateTiersAbove(
-                TierReport.ALWAYS,
+                TierConstants.ALWAYS,
                 valueToTier(tierValues(), erc20.balanceOf(account_))
             );
     }

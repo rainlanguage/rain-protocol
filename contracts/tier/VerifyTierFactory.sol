@@ -13,7 +13,9 @@ contract VerifyTierFactory is Factory {
     address private immutable implementation;
 
     constructor() {
-        implementation = address(new VerifyTier());
+        address implementation_ = address(new VerifyTier());
+        emit Implementation(msg.sender, implementation_);
+        implementation = implementation_;
     }
 
     /// @inheritdoc Factory

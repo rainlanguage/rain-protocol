@@ -38,7 +38,9 @@ contract TierByConstructionClaimTest is ERC20, TierByConstructionClaim {
     /// constructor.
     /// @param tier_ The tier contract to mediate the validity of claims.
     constructor(ITier tier_)
-        TierByConstructionClaim(TierByConstructionClaimConfig(tier_, TierConstants.TIER_FOUR))
+        TierByConstructionClaim(
+            TierByConstructionClaimConfig(tier_, TierConstants.TIER_FOUR)
+        )
         ERC20("goldTkn", "GTKN")
     {} // solhint-disable-line no-empty-blocks
 

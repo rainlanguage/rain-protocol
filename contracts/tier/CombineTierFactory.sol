@@ -12,7 +12,9 @@ contract CombineTierFactory is Factory {
     address private implementation;
 
     constructor() {
-        implementation = address(new CombineTier());
+        address implementation_ = address(new CombineTier());
+        emit Implementation(msg.sender, implementation_);
+        implementation = implementation_;
     }
 
     /// @inheritdoc Factory

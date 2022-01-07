@@ -63,7 +63,9 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier, Initializable {
     using SafeERC20 for IERC20;
     using SaturatingMath for uint256;
 
-    IERC20 public erc20;
+    event Initialize(address sender, address erc20);
+
+    IERC20 internal erc20;
 
     /// @param config_ Constructor config.
     function initialize(ERC20TransferTierConfig memory config_)
@@ -72,6 +74,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier, Initializable {
     {
         initializeValueTier(config_.tierValues);
         erc20 = config_.erc20;
+        emit Initialize(msg.sender, address(config_.erc20));
     }
 
     /// Transfers balances of erc20 from/to the tiered account according to the

@@ -13,6 +13,8 @@ import "./ERC20Config.sol";
 /// `symbol` functions.
 contract ERC20Initializable is ERC20 {
 
+    event ERC20Initialize(address sender, string name, string symbol);
+
     /// ERC20 Name as set during `initializeERC20`.
     string private initializedName;
     /// ERC20 Symbol as set during `initializeERC20`.
@@ -32,6 +34,7 @@ contract ERC20Initializable is ERC20 {
         assert(bytes(initializedSymbol).length < 1);
         initializedName = config_.name;
         initializedSymbol = config_.symbol;
+        emit ERC20Initialize(msg.sender, config_.name, config_.symbol);
     }
 
     /// @inheritdoc ERC20

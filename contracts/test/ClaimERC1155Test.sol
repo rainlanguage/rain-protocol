@@ -45,7 +45,7 @@ contract ClaimERC1155Test is
         bytes memory
     ) internal override {
         // Anyone above tier 5 gets more art and some good art.
-        bool isFive_ = isTier(account_, 5);
+        bool isFive_ = isTier(account_, TierConstants.TIER_FIVE);
 
         uint256[] memory ids_ = new uint256[](2);
         uint256[] memory amounts_ = new uint256[](2);

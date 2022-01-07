@@ -46,7 +46,6 @@ pragma solidity ^0.8.10;
 /// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
 ///   - Contracts that cannot meaningfully set a tier are exempt.
 interface ITier {
-
     /// Every time a tier changes we log start and end tier against the
     /// account.
     /// This MAY NOT be emitted if reports are being read from the state of an
@@ -60,8 +59,8 @@ interface ITier {
     event TierChange(
         address sender,
         address account,
-        uint startTier,
-        uint endTier
+        uint256 startTier,
+        uint256 endTier
     );
 
     /// @notice Users can set their own tier by calling `setTier`.
@@ -118,10 +117,9 @@ interface ITier {
     /// (e.g. NFTs to lock).
     function setTier(
         address account,
-        uint endTier,
+        uint256 endTier,
         bytes memory data
-    )
-        external;
+    ) external;
 
     /// @notice A tier report is a `uint256` that contains each of the block
     /// numbers each tier has been held continously since as a `uint32`.
@@ -170,5 +168,5 @@ interface ITier {
     ///
     /// @param account Account to get the report for.
     /// @return The report blocks encoded as a uint256.
-    function report(address account) external view returns (uint);
+    function report(address account) external view returns (uint256);
 }

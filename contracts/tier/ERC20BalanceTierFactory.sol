@@ -11,7 +11,9 @@ contract ERC20BalanceTierFactory is Factory {
     address private implementation;
 
     constructor() {
-        implementation = address(new ERC20BalanceTier());
+        address implementation_ = address(new ERC20BalanceTier());
+        emit Implementation(msg.sender, implementation_);
+        implementation = implementation_;
     }
 
     /// @inheritdoc Factory

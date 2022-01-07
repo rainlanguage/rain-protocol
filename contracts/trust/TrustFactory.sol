@@ -1,27 +1,27 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ITier } from "../tier/ITier.sol";
+import {ITier} from "../tier/ITier.sol";
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
-import { Factory } from "../factory/Factory.sol";
+import {Factory} from "../factory/Factory.sol";
 // solhint-disable-next-line max-line-length
-import { Trust, TrustConstructionConfig, TrustConfig } from "../trust/Trust.sol";
+import {Trust, TrustConstructionConfig, TrustConfig} from "../trust/Trust.sol";
 // solhint-disable-next-line max-line-length
-import { RedeemableERC20Factory } from "../redeemableERC20/RedeemableERC20Factory.sol";
+import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
 // solhint-disable-next-line max-line-length
-import { RedeemableERC20, RedeemableERC20Config } from "../redeemableERC20/RedeemableERC20.sol";
+import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
 // solhint-disable-next-line max-line-length
-import { SeedERC20Factory } from "../seed/SeedERC20Factory.sol";
+import {SeedERC20Factory} from "../seed/SeedERC20Factory.sol";
 // solhint-disable-next-line max-line-length
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
-import { TrustRedeemableERC20Config, TrustSeedERC20Config } from "./Trust.sol";
-import { BPoolFeeEscrow } from "../escrow/BPoolFeeEscrow.sol";
-import { ERC20Config } from "../erc20/ERC20Config.sol";
+import {TrustRedeemableERC20Config, TrustSeedERC20Config} from "./Trust.sol";
+import {BPoolFeeEscrow} from "../escrow/BPoolFeeEscrow.sol";
+import {ERC20Config} from "../erc20/ERC20Config.sol";
 
 /// @title TrustFactory
 /// @notice The `TrustFactory` contract is the only contract that the
@@ -33,11 +33,13 @@ import { ERC20Config } from "../erc20/ERC20Config.sol";
 contract TrustFactory is Factory {
     using SafeERC20 for RedeemableERC20;
 
-    address public immutable implementation;
+    address private immutable implementation;
 
     /// @param config_ All configuration for the `TrustFactory`.
     constructor(TrustConstructionConfig memory config_) {
-        implementation = address(new Trust(config_));
+        address implementation_ = address(new Trust(config_));
+        emit Implementation(msg.sender, implementation_);
+        implementation = implementation_;
     }
 
     /// Allows calling `createChild` with TrustConfig,
@@ -53,45 +55,37 @@ contract TrustFactory is Factory {
     /// constructor configuration.
     /// @return New Trust child contract address.
     function createChildTyped(
-        TrustConfig
-        calldata
-        trustConfig_,
-        TrustRedeemableERC20Config
-        calldata
-        trustRedeemableERC20Config_,
-        TrustSeedERC20Config
-        calldata
-        trustSeedERC20Config_
-    ) external returns(Trust) {
-        return Trust(this.createChild(abi.encode(
-            trustConfig_,
-            trustRedeemableERC20Config_,
-            trustSeedERC20Config_
-        )));
+        TrustConfig calldata trustConfig_,
+        TrustRedeemableERC20Config calldata trustRedeemableERC20Config_,
+        TrustSeedERC20Config calldata trustSeedERC20Config_
+    ) external returns (Trust) {
+        return
+            Trust(
+                this.createChild(
+                    abi.encode(
+                        trustConfig_,
+                        trustRedeemableERC20Config_,
+                        trustSeedERC20Config_
+                    )
+                )
+            );
     }
 
     /// @inheritdoc Factory
-    function _createChild(
-        bytes calldata data_
-    ) internal virtual override returns(address) {
+    function _createChild(bytes calldata data_)
+        internal
+        virtual
+        override
+        returns (address)
+    {
         (
-            TrustConfig
-            memory
-            trustConfig_,
-            TrustRedeemableERC20Config
-            memory
-            trustRedeemableERC20Config_,
-            TrustSeedERC20Config
-            memory
-            trustSeedERC20Config_
+            TrustConfig memory trustConfig_,
+            TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
+            TrustSeedERC20Config memory trustSeedERC20Config_
         ) = abi.decode(
-            data_,
-            (
-                TrustConfig,
-                TrustRedeemableERC20Config,
-                TrustSeedERC20Config
-            )
-        );
+                data_,
+                (TrustConfig, TrustRedeemableERC20Config, TrustSeedERC20Config)
+            );
 
         address clone_ = Clones.clone(implementation);
 

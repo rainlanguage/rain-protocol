@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.10;
 
-import { TierReport } from "./libraries/TierReport.sol";
-import { ITier } from "./ITier.sol";
+import {TierReport} from "./libraries/TierReport.sol";
+import {ITier} from "./ITier.sol";
 
 /// @title TierByConstruction
 /// @notice `TierByConstruction` is a base contract for other contracts to
@@ -40,8 +40,13 @@ import { ITier } from "./ITier.sol";
 /// The construction block is compared against the blocks returned by `report`.
 /// The `ITier` contract is paramaterised and set during construction.
 contract TierByConstruction {
-    ITier public tierContract;
-    uint public constructionBlock;
+    event TierByConstructionInitialize(
+        address sender,
+        address tierContract,
+        uint256 constructionBlockNumber
+    );
+    ITier internal tierContract;
+    uint256 internal constructionBlockNumber;
 
     /// Initialize the tier contract and block number.
     /// @param tierContract_ The tier contract to check against construction.
@@ -52,7 +57,12 @@ contract TierByConstruction {
         // Reinitialization is a bug.
         assert(address(tierContract) == address(0));
         tierContract = tierContract_;
-        constructionBlock = block.number;
+        constructionBlockNumber = block.number;
+        emit TierByConstructionInitialize(
+            msg.sender,
+            address(tierContract_),
+            block.number
+        );
     }
 
     /// Check if an account has held AT LEAST the given tier according to
@@ -66,15 +76,14 @@ contract TierByConstruction {
     /// @param account_ Account to check status of.
     /// @param minimumTier_ Minimum tier for the account.
     /// @return True if the status is currently held.
-    function isTier(address account_, uint minimumTier_)
+    function isTier(address account_, uint256 minimumTier_)
         public
         view
         returns (bool)
     {
-        return constructionBlock >= TierReport.tierBlock(
-            tierContract.report(account_),
-            minimumTier_
-        );
+        return
+            constructionBlockNumber >=
+            TierReport.tierBlock(tierContract.report(account_), minimumTier_);
     }
 
     /// Modifier that restricts access to functions depending on the tier
@@ -94,11 +103,8 @@ contract TierByConstruction {
     ///
     /// @param account_ Account to enforce tier of.
     /// @param minimumTier_ Minimum tier for the account.
-    modifier onlyTier(address account_, uint minimumTier_) {
+    modifier onlyTier(address account_, uint256 minimumTier_) {
         _;
-        require(
-            isTier(account_, minimumTier_),
-            "MINIMUM_TIER"
-        );
+        require(isTier(account_, minimumTier_), "MINIMUM_TIER");
     }
 }

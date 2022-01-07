@@ -2,7 +2,8 @@
 pragma solidity ^0.8.10;
 
 import {ITier} from "./ITier.sol";
-import {TierReport} from "./libraries/TierReport.sol";
+import "./libraries/TierConstants.sol";
+import "./libraries/TierReport.sol";
 
 /// @title ReadWriteTier
 /// @notice `ReadWriteTier` is a base contract that other contracts are
@@ -20,7 +21,7 @@ import {TierReport} from "./libraries/TierReport.sol";
 /// addresses move down the tiers.
 contract ReadWriteTier is ITier {
     /// account => reports
-    mapping(address => uint256) public reports;
+    mapping(address => uint256) private reports;
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITier
@@ -32,7 +33,10 @@ contract ReadWriteTier is ITier {
         returns (uint256)
     {
         // Inequality here to silence slither warnings.
-        return reports[account_] > 0 ? reports[account_] : TierReport.NEVER;
+        return
+            reports[account_] > 0
+                ? reports[account_]
+                : TierConstants.NEVER_REPORT;
     }
 
     /// Errors if the user attempts to return to the ZERO tier.

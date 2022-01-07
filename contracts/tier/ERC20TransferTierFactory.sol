@@ -11,7 +11,9 @@ contract ERC20TransferTierFactory is Factory {
     address private implementation;
 
     constructor() {
-        implementation = address(new ERC20TransferTier());
+        address implementation_ = address(new ERC20TransferTier());
+        emit Implementation(msg.sender, implementation);
+        implementation = implementation_;
     }
 
     /// @inheritdoc Factory

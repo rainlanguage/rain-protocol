@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IFactory } from "./IFactory.sol";
+import {IFactory} from "./IFactory.sol";
 
 /// @title FactoryTruster
-/// @notice `FactoryTruster` is an abstract contract that allows an
+/// @notice `FactoryTruster` is a base contract that allows an
 /// implementing contract to make explicit and enforce that it TRUSTS any and
 /// every contract deployed as a child of the relevant `IFactory` contract.
 /// This is important and useful because a `FactoryTruster` can rely on far
@@ -34,8 +34,8 @@ import { IFactory } from "./IFactory.sol";
 /// but instead only supports an implementation. If it is safe and efficient to
 /// do so, it is always better to target interface support for a contract, but
 /// there are times that it is better to lean on a well known implementation.
-abstract contract FactoryTruster {
-    IFactory public immutable trustedFactory;
+contract FactoryTruster {
+    IFactory internal immutable trustedFactory;
 
     constructor(address trustedFactory_) {
         trustedFactory = IFactory(trustedFactory_);

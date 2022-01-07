@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // solhint-disable-next-line max-line-length
-import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 /// @title ReserveToken
 /// A test token that can be used as a reserve asset.
@@ -15,9 +15,9 @@ contract ReserveToken is ERC20, ERC20Burnable {
     mapping(address => bool) public freezables;
 
     // Stables such as USDT and USDC commonly have 6 decimals.
-    uint public constant DECIMALS = 6;
+    uint256 public constant DECIMALS = 6;
     // One _billion_ dollars 👷😈.
-    uint public constant TOTAL_SUPPLY = 10 ** (DECIMALS + 9);
+    uint256 public constant TOTAL_SUPPLY = 10**(DECIMALS + 9);
 
     /// Define and mint the erc20 token.
     constructor() ERC20("USD Classic", "USDCC") {
@@ -39,7 +39,7 @@ contract ReserveToken is ERC20, ERC20Burnable {
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
-        uint amount_
+        uint256 amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         require(!freezables[receiver_], "FROZEN");

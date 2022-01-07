@@ -14,13 +14,15 @@ import "./libraries/TierReport.sol";
 /// the account was approved by the underlying `Verify` contract. The approval
 /// block numbers defer to `State.since` returned from `Verify.state`.
 contract VerifyTier is ReadOnlyTier, Initializable {
+    event Initialize(address sender, address verify);
     /// The contract to check to produce reports.
-    Verify public verify;
+    Verify private verify;
 
     /// Sets the `verify` contract.
     /// @param verify_ The contract to check to produce reports.
     function initialize(Verify verify_) external initializer {
         verify = verify_;
+        emit Initialize(msg.sender, address(verify_));
     }
 
     /// Every tier will be the `State.since` block if `account_` is approved
@@ -36,13 +38,13 @@ contract VerifyTier is ReadOnlyTier, Initializable {
         ) {
             return
                 TierReport.updateBlocksForTierRange(
-                    TierReport.NEVER,
-                    0,
-                    8,
+                    TierConstants.NEVER_REPORT,
+                    TierConstants.TIER_ZERO,
+                    TierConstants.TIER_EIGHT,
                     state_.approvedSince
                 );
         } else {
-            return TierReport.NEVER;
+            return TierConstants.NEVER_REPORT;
         }
     }
 }

@@ -12,11 +12,13 @@ contract SeedERC20Factory is Factory {
 
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address public immutable implementation;
+    address private immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     constructor() {
-        implementation = address(new SeedERC20());
+        address implementation_ = address(new SeedERC20());
+        emit Implementation(msg.sender, implementation_);
+        implementation = implementation_;
     }
 
     /// @inheritdoc Factory

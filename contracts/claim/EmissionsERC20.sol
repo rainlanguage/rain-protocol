@@ -47,7 +47,11 @@ contract EmissionsERC20 is
     RainVM
 {
     /// Contract has initialized.
-    event Initialize(EmissionsERC20Config config);
+    event Initialize(
+        address sender,
+        bool allowDelegatedClaims,
+        uint256 constructionBlockNumber
+    );
 
     /// @dev local opcode to put claimant account on the stack.
     uint256 private constant CLAIMANT_ACCOUNT = 0;
@@ -111,15 +115,20 @@ contract EmissionsERC20 is
         initializer
     {
         initializeERC20(config_.erc20Config);
-        /// Log some deploy state for use by claim/opcodes.
-        allowDelegatedClaims = config_.allowDelegatedClaims;
-        constructionBlockNumber = block.number;
 
         vmStatePointer = VMState.snapshot(
             VMState.newState(config_.vmStateConfig)
         );
 
-        emit Initialize(config_);
+        /// Log some deploy state for use by claim/opcodes.
+        allowDelegatedClaims = config_.allowDelegatedClaims;
+        constructionBlockNumber = block.number;
+
+        emit Initialize(
+            msg.sender,
+            allowDelegatedClaims,
+            constructionBlockNumber
+        );
     }
 
     /// @inheritdoc RainVM
@@ -183,7 +192,10 @@ contract EmissionsERC20 is
         override
         returns (uint256)
     {
-        return reports[account_] > 0 ? reports[account_] : TierReport.NEVER;
+        return
+            reports[account_] > 0
+                ? reports[account_]
+                : TierConstants.NEVER_REPORT;
     }
 
     /// Calculates the claim without processing it.
@@ -226,7 +238,7 @@ contract EmissionsERC20 is
         // This can be diffed/combined with external reports in future claim
         // calculations.
         reports[claimant_] = TierReport.updateBlocksForTierRange(
-            TierReport.NEVER,
+            TierConstants.NEVER_REPORT,
             TierConstants.TIER_ZERO,
             TierConstants.TIER_EIGHT,
             block.number

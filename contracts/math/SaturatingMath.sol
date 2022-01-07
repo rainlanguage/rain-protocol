@@ -12,22 +12,18 @@ pragma solidity ^0.8.10;
 /// may be safer pragmatically to saturate arithmatic at the numeric bounds.
 /// Note that saturating div is not supported because 0/0 is undefined.
 library SaturatingMath {
-    /// Upper bound of uint.
-    uint private constant MAX
-        = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-
     /// Saturating addition.
     /// @param a_ First term.
     /// @param b_ Second term.
-    /// @return Minimum of a_ + b_ and `MAX`.
-    function saturatingAdd(uint a_, uint b_)
+    /// @return Minimum of a_ + b_ and max uint256.
+    function saturatingAdd(uint256 a_, uint256 b_)
         internal
         pure
-        returns (uint)
+        returns (uint256)
     {
         unchecked {
-            uint c_ = a_ + b_;
-            return c_ < a_ ? MAX : c_;
+            uint256 c_ = a_ + b_;
+            return c_ < a_ ? type(uint256).max : c_;
         }
     }
 
@@ -35,10 +31,10 @@ library SaturatingMath {
     /// @param a_ Minuend.
     /// @param b_ Subtrahend.
     /// @return a_ - b_ if a_ greater than b_, else 0.
-    function saturatingSub(uint a_, uint b_)
+    function saturatingSub(uint256 a_, uint256 b_)
         internal
         pure
-        returns (uint)
+        returns (uint256)
     {
         unchecked {
             return a_ > b_ ? a_ - b_ : 0;
@@ -48,19 +44,19 @@ library SaturatingMath {
     /// Saturating multiplication.
     /// @param a_ First term.
     /// @param b_ Second term.
-    /// @return Minimum of a_ * b_ and `MAX`.
-    function saturatingMul(uint a_, uint b_)
+    /// @return Minimum of a_ * b_ and max uint256.
+    function saturatingMul(uint256 a_, uint256 b_)
         internal
         pure
-        returns (uint)
+        returns (uint256)
     {
         unchecked {
             // Gas optimization: this is cheaper than requiring 'a' not being
             // zero, but the benefit is lost if 'b' is also tested.
             // https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
-            if ( a_ == 0 ) return 0;
-            uint c_ = a_ * b_;
-            return c_ / a_ != b_ ? MAX : c_;
+            if (a_ == 0) return 0;
+            uint256 c_ = a_ * b_;
+            return c_ / a_ != b_ ? type(uint256).max : c_;
         }
     }
 }

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {RainVM, State} from "../vm/RainVM.sol";
-import {VMState,StateConfig} from "../vm/libraries/VMState.sol";
+import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {BlockOps} from "../vm/ops/BlockOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
 

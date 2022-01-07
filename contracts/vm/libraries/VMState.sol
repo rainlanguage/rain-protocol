@@ -20,26 +20,28 @@ struct StateConfig {
 /// all the source into storage.
 /// See https://github.com/0xsequence/sstore2
 library VMState {
-    event Snapshot(State state_);
+    event Snapshot(address sender, address pointer, State state_);
 
     function newState(StateConfig memory config_)
         internal
         pure
         returns (State memory)
     {
-        return State(
-            config_.sources,
-            config_.constants,
-            new uint256[](config_.argumentsLength),
-            new uint256[](config_.stackLength),
-            0
-        );
+        return
+            State(
+                config_.sources,
+                config_.constants,
+                new uint256[](config_.argumentsLength),
+                new uint256[](config_.stackLength),
+                0
+            );
     }
 
     /// Snapshot a rainVM state as an immutable onchain contract.
     function snapshot(State memory state_) internal returns (address) {
-        emit Snapshot(state_);
-        return SSTORE2.write(abi.encode(state_));
+        address pointer_ = SSTORE2.write(abi.encode(state_));
+        emit Snapshot(msg.sender, pointer_, state_);
+        return pointer_;
     }
 
     /// Builds a fresh state for rainVM execution from all construction data.

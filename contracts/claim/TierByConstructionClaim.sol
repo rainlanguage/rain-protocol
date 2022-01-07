@@ -60,7 +60,7 @@ struct TierByConstructionClaimConfig {
 /// In general it is INSECURE to inherit `TierByConstructionClaim` without
 /// implementing `_afterClaim` with appropriate access checks.
 contract TierByConstructionClaim is IClaim, TierByConstruction {
-    event Initialize(TierByConstructionClaimConfig);
+    event Initialize(address sender, uint minimumTier);
 
     /// The minimum tier required for an address to claim anything at all.
     /// This tier must have been held continuously since before this
@@ -79,7 +79,7 @@ contract TierByConstructionClaim is IClaim, TierByConstruction {
     constructor(TierByConstructionClaimConfig memory config_) {
         initializeTierByConstruction(config_.tierContract);
         minimumTier = config_.minimumTier;
-        emit Initialize(config_);
+        emit Initialize(msg.sender, config_.minimumTier);
     }
 
     /// The `onlyTier` modifier checks the claimant against `minimumTier`.
