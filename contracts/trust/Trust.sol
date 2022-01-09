@@ -771,17 +771,7 @@ contract Trust is Phased, Initializable {
         );
     }
 
-    /// Allow the owner to end the Balancer style dutch auction.
-    /// Moves from `Phase.TWO` to `Phase.THREE` to indicate the auction has
-    /// ended.
-    /// `Phase.TWO` is scheduled by `startDutchAuction`.
-    /// Removes all LP tokens from the Balancer pool.
-    /// Burns all unsold redeemable tokens.
-    /// Forwards the reserve balance to the owner.
-    function endDutchAuction() public onlyPhase(Phase.TWO) {
-        // Move to `Phase.THREE` immediately.
-        // Prevents reentrancy.
-        scheduleNextPhase(block.number);
+    function exitPool() private {
         IBPool pool_ = IBPool(crp.bPool());
 
         // Ensure the bPool is aware of the real internal token balances.
@@ -847,25 +837,44 @@ contract Trust is Phased, Initializable {
             ),
             new uint256[](2)
         );
+    }
+
+    /// Allow the owner to end the Balancer style dutch auction.
+    /// Moves from `Phase.TWO` to `Phase.THREE` to indicate the auction has
+    /// ended.
+    /// `Phase.TWO` is scheduled by `startDutchAuction`.
+    /// Removes all LP tokens from the Balancer pool.
+    /// Burns all unsold redeemable tokens.
+    /// Forwards the reserve balance to the owner.
+    // `SaturatingMath` is used in case there is somehow an edge case not
+    // considered that causes overflow/underflow, we still want to approve
+    // the final state so as not to trap funds with an underflow error.
+    function endDutchAuction() public onlyPhase(Phase.TWO) {
+        // Move to `Phase.THREE` immediately.
+        // Prevents reentrancy.
+        scheduleNextPhase(block.number);
+
+        exitPool();
+
+        address pool_ = crp.bPool();
 
         // Burning the distributor moves the rTKN to its `Phase.ONE` and
         // unlocks redemptions.
         // The distributor is the `bPool` itself and all unsold inventory.
         address[] memory distributors_ = new address[](2);
         distributors_[0] = address(this);
-        distributors_[1] = address(pool_);
+        distributors_[1] = pool_;
         token.burnDistributors(distributors_);
 
-        // The dust is included in the final balance for UX reasons.
-        // We don't want to fail the raise due to dust, even if technically it
-        // was a failure.
-        // To ensure a good UX for creators and token holders we subtract the
-        // dust from the seeder.
+        // The dust is NOT included in the final balance.
         // The `availableBalance_` is the reserve the `Trust` owns and so can
         // safely transfer, despite dust etc.
         uint256 finalBalance_ = reserve.balanceOf(address(this));
+        finalBalance = finalBalance_;
+
         // `Trust` must ensure that success balance covers seeder and token pay
-        // in addition to creator minimum raise.
+        // in addition to creator minimum raise. Otherwise someone won't get
+        // paid in full.
         bool success_ = successBalance <= finalBalance_;
 
         // We do our best to pay each party in full in priority order:
@@ -874,36 +883,34 @@ contract Trust is Phased, Initializable {
         // - Creator
         // There is some pool dust that makes it a bit unpredictable exactly
         // who will be paid slightly less than they are expecting at the edge
-        // cases. The easiest to reason about approach seems to be to simply
-        // keep a running tally of how much balance has not been allocated. If
-        // there is anything left after all entitlements are covered, the
-        // remainder is forwarded to the creator/TKN as per the success/fail of
-        // the raise. This is not the most gas efficient factoring of these
-        // calculations but it is easier to understand/verify.
-        uint remaining_ = finalBalance_;
-
+        // cases.
         uint256 seederPay_ = reserveInit;
+        // The seeder gets an additional fee on success.
         if (success_) {
-            // The seeder gets an additional fee on success.
             seederPay_ = seederPay_.saturatingAdd(seederFee);
         }
-        // The finalBalance_ can be lower than the seeder entitlement due to
+        // The `finalBalance_` can be lower than the seeder entitlement due to
         // unavoidable pool dust trapped in Balancer.
-        seederPay_ = remaining_.min(seederPay_);
-        remaining_ = remaining_.saturatingSub(seederPay_);
+        seederPay_ = seederPay_.min(finalBalance_);
 
-        // On success TKN is entitled to `redeemInit`.
-        uint tokenPay_ = success_ ? redeemInit.min(remaining_) : 0;
-        remaining_ = remaining_.saturatingSub(tokenPay_);
-
-        // On success creator gets everything remaining, else it is refunded to
-        // TKN for prorata redemption.
-        uint creatorPay_ = 0;
+        // Once the seeder is covered the remaining capital is allocated
+        // according to success/fail of the raise.
+        uint256 tokenPay_ = 0;
+        uint256 creatorPay_ = 0;
+        uint remaining_ = finalBalance_.saturatingSub(seederPay_);
         if (success_) {
-            creatorPay_ = creatorPay_.saturatingAdd(remaining_);
+            // This `.min` is guarding against pool dust edge cases.
+            // Any raise the exceeds the success balance by more than the dust
+            // will cover the seeder and token in full, in which case the
+            // creator covers the dust from their excess.
+            tokenPay_ = redeemInit.min(remaining_);
+            creatorPay_ = remaining_.saturatingSub(tokenPay_);
         }
         else {
-            tokenPay_ = tokenPay_.saturatingAdd(remaining_);
+            // Creator gets nothing on a failed raise. Send what is left to the
+            // rTKN. Pool dust is taken from here to make the seeder whole if
+            // possible.
+            tokenPay_ = remaining_;
         }
 
         emit EndDutchAuction(
@@ -913,7 +920,7 @@ contract Trust is Phased, Initializable {
             creatorPay_,
             tokenPay_,
             // Read dust balance from the pool.
-            reserve.balanceOf(address(pool_))
+            reserve.balanceOf(pool_)
         );
 
         if (seederPay_ > 0) {
