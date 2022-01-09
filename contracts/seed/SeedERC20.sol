@@ -256,6 +256,7 @@ contract SeedERC20 is
         reserve.safeTransfer(msg.sender, reserveAmount_);
     }
 
+    /// @inheritdoc IERC20Burnable
     function burn(uint amount_) public {
         _burn(msg.sender, amount_);
     }

@@ -245,6 +245,7 @@ contract RedeemableERC20 is
         }
     }
 
+    /// @inheritdoc IERC20Burnable
     function burn(uint amount_) public {
         _burn(msg.sender, amount_);
     }
