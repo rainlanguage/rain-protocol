@@ -13,7 +13,7 @@ import "./ERC20Config.sol";
 /// `symbol` functions.
 contract ERC20Initializable is ERC20 {
 
-    event ERC20Initialize(address sender, string name, string symbol);
+    event ERC20Initialize(address sender, ERC20Config config);
 
     /// ERC20 Name as set during `initializeERC20`.
     string private initializedName;
@@ -34,7 +34,11 @@ contract ERC20Initializable is ERC20 {
         assert(bytes(initializedSymbol).length < 1);
         initializedName = config_.name;
         initializedSymbol = config_.symbol;
-        emit ERC20Initialize(msg.sender, config_.name, config_.symbol);
+        // Premint for the distributor according to the `ERC20Config`.
+        if (config_.distributor != address(0) && config_.initialSupply > 0) {
+            _mint(config_.distributor, config_.initialSupply);
+        }
+        emit ERC20Initialize(msg.sender, config_);
     }
 
     /// @inheritdoc ERC20

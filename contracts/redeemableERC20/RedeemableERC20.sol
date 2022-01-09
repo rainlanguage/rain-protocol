@@ -18,9 +18,6 @@ import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
-    // Account that will be the admin for the `RedeemableERC20` contract.
-    // Useful for factory contracts etc.
-    address admin;
     // Reserve token that the associated `Trust` or equivalent raise contract
     // will be forwarding to the `RedeemableERC20` contract.
     address reserve;
@@ -30,8 +27,6 @@ struct RedeemableERC20Config {
     ITier tier;
     // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
     uint256 minimumTier;
-    // Number of redeemable tokens to mint.
-    uint256 totalSupply;
 }
 
 /// @title RedeemableERC20
@@ -147,11 +142,13 @@ contract RedeemableERC20 is
         initializePhased();
 
         initializeTierByConstruction(config_.tier);
-        initializeERC20Pull(ERC20PullConfig(config_.admin, config_.reserve));
         initializeERC20(config_.erc20Config);
+        initializeERC20Pull(
+            ERC20PullConfig(config_.erc20Config.distributor, config_.reserve)
+        );
 
         require(
-            config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
+            config_.erc20Config.initialSupply >= MINIMUM_INITIAL_SUPPLY,
             "MINIMUM_INITIAL_SUPPLY"
         );
         minimumTier = config_.minimumTier;
@@ -160,15 +157,18 @@ contract RedeemableERC20 is
         access[address(0)] = SENDER;
 
         // Admin receives full supply.
-        access[config_.admin] = RECEIVER;
-        _mint(config_.admin, config_.totalSupply);
+        access[config_.erc20Config.distributor] = RECEIVER;
 
-        admin = config_.admin;
+        admin = config_.erc20Config.distributor;
 
         // The reserve must always be one of the treasury assets.
         newTreasuryAsset(config_.reserve);
 
-        emit Initialize(msg.sender, config_.admin, config_.minimumTier);
+        emit Initialize(
+            msg.sender,
+            config_.erc20Config.distributor,
+            config_.minimumTier
+        );
 
         // Smoke test on whatever is on the other side of `config_.tier`.
         // It is a common mistake to pass in a contract without the `ITier`
