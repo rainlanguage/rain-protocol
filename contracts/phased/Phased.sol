@@ -155,7 +155,8 @@ contract Phased {
         require(block.number <= phaseBlock_, "NEXT_BLOCK_PAST");
         require(phaseBlock_ < UNINITIALIZED, "NEXT_BLOCK_UNINITIALIZED");
         // Don't need to check for underflow as the index will be used as a
-        // fixed array index below.
+        // fixed array index below. Implies that scheduling phase `0` is NOT
+        // supported.
         uint index_;
         unchecked {
             index_ = phase_ - 1;

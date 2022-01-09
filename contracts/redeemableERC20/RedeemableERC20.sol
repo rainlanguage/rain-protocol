@@ -131,14 +131,13 @@ contract RedeemableERC20 is
     /// The minimum supply enforced by the constructor is "one" token which is
     /// `10 ** 18`.
     /// The minimum supply does not prevent subsequent redemption/burning.
-    uint256 public constant MINIMUM_INITIAL_SUPPLY = 10**18;
+    uint256 private constant MINIMUM_INITIAL_SUPPLY = 10**18;
 
     /// The minimum status that a user must hold to receive transfers during
     /// `Phase.ZERO`.
     /// The tier contract passed to `TierByConstruction` determines if
     /// the status is held during `_beforeTokenTransfer`.
-    /// Not immutable because it is read during the constructor by the `_mint`
-    /// call.
+    /// Public so external contracts can interface with the required tier.
     uint256 public minimumTier;
 
     /// Mint the full ERC20 token supply and configure basic transfer

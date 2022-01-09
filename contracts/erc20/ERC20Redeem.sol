@@ -3,7 +3,6 @@ pragma solidity ^0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IERC20Burnable.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -34,32 +33,31 @@ contract ERC20Redeem {
         uint256 assetsLength_ = treasuryAssets_.length;
 
         // Calculate everything before any balances change.
-        uint256[] memory amounts_ = new uint256[](treasuryAssets_.length);
+        uint256[] memory amounts_ = new uint256[](assetsLength_);
 
         // The fraction of the assets we release is the fraction of the
         // outstanding total supply of the redeemable being burned.
         // Every treasury asset is released in the same proportion.
-        uint256 totalSupply_ = IERC20(address(this)).totalSupply();
-        for (uint256 i_ = 0; i_ < amounts_.length; i_++) {
-            amounts_[i_] =
-                (treasuryAssets_[i_].balanceOf(address(this)) *
-                    redeemAmount_) /
-                totalSupply_;
-        }
-
-        // Guard against no asset redemptions and log all events.
+        // Guard against no asset redemptions and log all events before we
+        // change any contract state or call external contracts.
         require(assetsLength_ > 0, "EMPTY_ASSETS");
-        for (uint i_ = 0; i_ < assetsLength_; i_++) {
-            require(amounts_[i_] > 0, "ZERO_AMOUNT");
+        uint256 totalSupply_ = IERC20(address(this)).totalSupply();
+        uint256 amount_ = 0;
+        for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
+            amount_ =
+                (treasuryAssets_[i_].balanceOf(address(this)) * redeemAmount_) /
+                totalSupply_;
+            require(amount_ > 0, "ZERO_AMOUNT");
             emit Redeem(
                 msg.sender,
                 address(treasuryAssets_[i_]),
                 redeemAmount_,
-                amounts_[i_]
+                amount_
             );
+            amounts_[i_] = amount_;
         }
 
-        // Burn FIRST (reentrancy).
+        // Burn FIRST (reentrancy safety).
         // This assumes implementing contract has implemented the interface.
         IERC20Burnable(address(this)).burn(redeemAmount_);
 
