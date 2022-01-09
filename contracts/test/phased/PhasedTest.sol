@@ -1,29 +1,29 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import {Phase, Phased} from "../../phased/Phased.sol";
+import {Phased} from "../../phased/Phased.sol";
 
 /// @title PhasedTest
 /// Empty contract for tests enumerating behaviour of the `Phased` modifiers.
 contract PhasedTest is Phased {
-    /// Custom variable for testing the `_beforeScheduleNextPhase` hook
-    bool public hookCondition = true;
+    bool public condition = true;
 
     constructor() {
         initializePhased();
     }
 
-    /// Exposes `scheduleNextPhase` for testing.
-    /// @param nextPhaseBlock_ As per `scheduleNextPhase`.
-    function testScheduleNextPhase(uint256 nextPhaseBlock_) external {
-        scheduleNextPhase(nextPhaseBlock_);
+    /// Exposes `schedulePhase` for testing.
+    /// @param phaseBlock_ As per `schedulePhase`.
+    function testScheduleNextPhase(uint256 phaseBlock_) external {
+        require(condition, "CONDITION");
+        schedulePhase(currentPhase() + 1, phaseBlock_);
     }
 
     /// This function wraps `onlyPhase` modifier, passing phase directly into
     /// modifier argument.
     /// @param phase_ Modifier MUST error if current phase is not `phase_`.
     /// @return Always true if not error.
-    function runsOnlyPhase(Phase phase_)
+    function runsOnlyPhase(uint256 phase_)
         external
         view
         onlyPhase(phase_)
@@ -37,7 +37,7 @@ contract PhasedTest is Phased {
     /// @param phase_ Modifier MUST error if current phase is not AT LEAST
     /// `phase_`.
     /// @return Always true if not error.
-    function runsOnlyAtLeastPhase(Phase phase_)
+    function runsOnlyAtLeastPhase(uint256 phase_)
         external
         view
         onlyAtLeastPhase(phase_)
@@ -46,18 +46,8 @@ contract PhasedTest is Phased {
         return true;
     }
 
-    /// Toggles `hookCondition` for testing phase scheduling hook.
-    function toggleHookCondition() external {
-        hookCondition = !hookCondition;
-    }
-
-    /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint256 nextPhaseBlock_)
-        internal
-        virtual
-        override
-    {
-        require(hookCondition, "HOOK_CONDITION");
-        super._beforeScheduleNextPhase(nextPhaseBlock_);
+    /// Toggles `condition` for testing phase scheduling hook.
+    function toggleCondition() external {
+        condition = !condition;
     }
 }

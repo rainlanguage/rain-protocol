@@ -1,20 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-/// Defines all possible phases.
-/// `Phased` begins in `Phase.ZERO` and moves through each phase sequentially.
-enum Phase {
-    ZERO,
-    ONE,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    EIGHT
-}
-
 /// @title Phased
 /// @notice `Phased` is an abstract contract that defines up to `9` phases that
 /// an implementing contract moves through.
@@ -33,9 +19,6 @@ enum Phase {
 /// is scheduled for the current block.
 ///
 /// Several utility functions and modifiers are provided.
-///
-/// A single hook `_beforeScheduleNextPhase` is provided so contracts can
-/// implement additional phase shift checks.
 ///
 /// One event `PhaseShiftScheduled` is emitted each time a phase shift is
 /// scheduled (not when the scheduled phase is reached).
@@ -61,6 +44,7 @@ contract Phased {
     /// Every phase block starts uninitialized.
     /// Only uninitialized blocks can be set by the phase scheduler.
     uint32 private constant UNINITIALIZED = type(uint32).max;
+    uint private constant MAX_PHASE = 8;
 
     /// `PhaseScheduled` is emitted when the next phase is scheduled.
     event PhaseScheduled(
@@ -80,9 +64,17 @@ contract Phased {
         // Only need to check the first block as all blocks are about to be set
         // to `UNINITIALIZED`.
         assert(phaseBlocks[0] < 1);
-        for (uint256 i_ = 0; i_ < 8; i_++) {
-            phaseBlocks[i_] = UNINITIALIZED;
-        }
+        uint32[8] memory phaseBlocks_ = [
+            UNINITIALIZED,
+            UNINITIALIZED,
+            UNINITIALIZED,
+            UNINITIALIZED,
+            UNINITIALIZED,
+            UNINITIALIZED,
+            UNINITIALIZED,
+            UNINITIALIZED
+        ];
+        phaseBlocks = phaseBlocks_;
         // 0 is always the block for implied phase 0.
         emit PhaseScheduled(msg.sender, 0, 0);
     }
@@ -103,13 +95,13 @@ contract Phased {
     function phaseAtBlockNumber(
         uint32[8] memory phaseBlocks_,
         uint256 blockNumber_
-    ) public pure returns (Phase) {
-        for (uint256 i_ = 0; i_ < 8; i_++) {
+    ) public pure returns (uint) {
+        for (uint256 i_ = 0; i_ < MAX_PHASE; i_++) {
             if (blockNumber_ < phaseBlocks_[i_]) {
-                return Phase(i_);
+                return i_;
             }
         }
-        return Phase(8);
+        return MAX_PHASE;
     }
 
     /// Pure function to reduce an array of phase blocks and phase to a
@@ -119,25 +111,25 @@ contract Phased {
     /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
     /// @param phase_ Determine the relevant block number for this phase.
     /// @return The block number for the phase according to `phaseBlocks_`.
-    function blockNumberForPhase(uint32[8] memory phaseBlocks_, Phase phase_)
+    function blockNumberForPhase(uint32[8] memory phaseBlocks_, uint phase_)
         public
         pure
         returns (uint256)
     {
-        return phase_ > Phase.ZERO ? phaseBlocks_[uint256(phase_) - 1] : 0;
+        return phase_ > 0 ? phaseBlocks_[uint256(phase_) - 1] : 0;
     }
 
     /// Impure read-only function to return the "current" phase from internal
     /// contract state.
     /// Simply wraps `phaseAtBlockNumber` for current values of `phaseBlocks`
     /// and `block.number`.
-    function currentPhase() public view returns (Phase) {
+    function currentPhase() public view returns (uint) {
         return phaseAtBlockNumber(phaseBlocks, block.number);
     }
 
     /// Modifies functions to only be callable in a specific phase.
     /// @param phase_ Modified functions can only be called during this phase.
-    modifier onlyPhase(Phase phase_) {
+    modifier onlyPhase(uint phase_) {
         require(currentPhase() == phase_, "BAD_PHASE");
         _;
     }
@@ -146,7 +138,7 @@ contract Phased {
     /// specified phase has passed.
     /// @param phase_ Modified function only callable during or after this
     /// phase.
-    modifier onlyAtLeastPhase(Phase phase_) {
+    modifier onlyAtLeastPhase(uint phase_) {
         require(currentPhase() >= phase_, "MIN_PHASE");
         _;
     }
@@ -154,35 +146,28 @@ contract Phased {
     /// Writes the block for the next phase.
     /// Only uninitialized blocks can be written to.
     /// Only the immediate next phase relative to `currentPhase` can be written
-    /// to.
-    /// Emits `PhaseShiftScheduled` with the next phase block.
-    /// @param nextPhaseBlock_ The block for the next phase.
-    function scheduleNextPhase(uint256 nextPhaseBlock_) internal {
-        require(block.number <= nextPhaseBlock_, "NEXT_BLOCK_PAST");
-        require(nextPhaseBlock_ < UNINITIALIZED, "NEXT_BLOCK_UNINITIALIZED");
+    /// to. It is still required to specify the `phase_` so that it is explicit
+    /// and clear in the calling code which phase is being moved to.
+    /// Emits `PhaseShiftScheduled` with the phase block.
+    /// @param phase_ The phase being scheduled.
+    /// @param phaseBlock_ The block for the phase.
+    function schedulePhase(uint phase_, uint256 phaseBlock_) internal {
+        require(block.number <= phaseBlock_, "NEXT_BLOCK_PAST");
+        require(phaseBlock_ < UNINITIALIZED, "NEXT_BLOCK_UNINITIALIZED");
+        // Don't need to check for underflow as the index will be used as a
+        // fixed array index below.
+        uint index_;
+        unchecked {
+            index_ = phase_ - 1;
+        }
+        // Bit of a hack to check the current phase against the index to
+        // save calculating the subtraction twice.
+        require(currentPhase() == index_, "NEXT_PHASE");
 
-        // The next index is the current phase because `Phase.ZERO` doesn't
-        // exist as an index.
-        uint256 nextIndex_ = uint256(currentPhase());
-        require(UNINITIALIZED == phaseBlocks[nextIndex_], "NEXT_BLOCK_SET");
+        require(UNINITIALIZED == phaseBlocks[index_], "NEXT_BLOCK_SET");
 
-        _beforeScheduleNextPhase(nextPhaseBlock_);
-        phaseBlocks[nextIndex_] = uint32(nextPhaseBlock_);
+        phaseBlocks[index_] = uint32(phaseBlock_);
 
-        emit PhaseScheduled(msg.sender, nextIndex_ + 1, nextPhaseBlock_);
+        emit PhaseScheduled(msg.sender, phase_, phaseBlock_);
     }
-
-    /// Hook called before scheduling the next phase.
-    /// Useful to apply additional constraints or state changes on a phase
-    /// change.
-    /// Note this is called when scheduling the phase change, not on the block
-    /// the phase change occurs.
-    /// This is called before the phase change so that all functionality that
-    /// is behind a phase gate is still available at the moment of applying the
-    /// hook for scheduling the next phase.
-    /// @param nextPhaseBlock_ The block for the next phase.
-    function _beforeScheduleNextPhase(uint256 nextPhaseBlock_)
-        internal
-        virtual
-    {} //solhint-disable-line no-empty-blocks
 }

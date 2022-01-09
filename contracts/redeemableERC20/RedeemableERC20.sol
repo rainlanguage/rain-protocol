@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
 import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
@@ -14,7 +12,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {TierByConstruction} from "../tier/TierByConstruction.sol";
 import {ITier} from "../tier/ITier.sol";
 
-import {Phase, Phased} from "../phased/Phased.sol";
+import {Phased} from "../phased/Phased.sol";
 
 import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
 
@@ -97,7 +95,6 @@ struct RedeemableERC20Config {
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
 contract RedeemableERC20 is
-    Initializable,
     Phased,
     TierByConstruction,
     ERC20Pull,
@@ -106,6 +103,11 @@ contract RedeemableERC20 is
     IERC20Burnable
 {
     using SafeERC20 for IERC20;
+
+    /// Phase constants.
+    uint256 private constant PHASE_UNINITIALIZED = 0;
+    uint256 private constant PHASE_DISTRIBUTING = 1;
+    uint256 private constant PHASE_FROZEN = 2;
 
     /// Bits for a receiver.
     uint256 private constant RECEIVER = 0x1;
@@ -142,13 +144,11 @@ contract RedeemableERC20 is
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @param config_ Initialized configuration.
-    function initialize(RedeemableERC20Config memory config_)
-        external
-        initializer
-    {
+    function initialize(RedeemableERC20Config memory config_) external {
+        initializePhased();
+
         initializeTierByConstruction(config_.tier);
         initializeERC20Pull(ERC20PullConfig(config_.admin, config_.reserve));
-        initializePhased();
         initializeERC20(config_.erc20Config);
 
         require(
@@ -180,6 +180,8 @@ contract RedeemableERC20 is
         // blatantly errors out.
         // slither-disable-next-line unused-return
         ITier(config_.tier).report(msg.sender);
+
+        schedulePhase(PHASE_DISTRIBUTING, block.number);
     }
 
     /// Require a function is only admin callable.
@@ -230,10 +232,10 @@ contract RedeemableERC20 is
     /// @param distributors_ The distributor according to the admin.
     function burnDistributors(address[] memory distributors_)
         external
-        onlyPhase(Phase.ZERO)
+        onlyPhase(PHASE_DISTRIBUTING)
         onlyAdmin
     {
-        scheduleNextPhase(uint32(block.number));
+        schedulePhase(PHASE_FROZEN, block.number);
         for (uint256 i_ = 0; i_ < distributors_.length; i_++) {
             address distributor_ = distributors_[i_];
             uint256 distributorBalance_ = balanceOf(distributor_);
@@ -244,26 +246,15 @@ contract RedeemableERC20 is
     }
 
     /// @inheritdoc IERC20Burnable
-    function burn(uint amount_) public {
+    function burn(uint256 amount_) public {
         _burn(msg.sender, amount_);
     }
 
     function redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
         external
-        onlyPhase(Phase.ONE)
+        onlyPhase(PHASE_FROZEN)
     {
         _redeem(treasuryAssets_, redeemAmount_);
-    }
-
-    /// Sanity check to ensure `Phase.ONE` is the final phase.
-    /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint256 nextPhaseBlock_)
-        internal
-        virtual
-        override
-    {
-        super._beforeScheduleNextPhase(nextPhaseBlock_);
-        assert(currentPhase() < Phase.TWO);
     }
 
     /// Apply phase sensitive transfer restrictions.
@@ -294,12 +285,12 @@ contract RedeemableERC20 is
         ) {
             // During `Phase.ZERO` transfers are only restricted by the
             // tier of the recipient.
-            Phase currentPhase_ = currentPhase();
-            if (currentPhase_ == Phase.ZERO) {
+            uint256 currentPhase_ = currentPhase();
+            if (currentPhase_ == PHASE_DISTRIBUTING) {
                 require(isTier(receiver_, minimumTier), "MIN_TIER");
             }
             // During `Phase.ONE` only token burns are allowed.
-            else if (currentPhase_ == Phase.ONE) {
+            else if (currentPhase_ == PHASE_FROZEN) {
                 require(receiver_ == address(0), "FROZEN");
             }
             // There are no other phases.

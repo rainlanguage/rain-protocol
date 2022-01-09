@@ -3,8 +3,6 @@ pragma solidity ^0.8.10;
 
 import {SaturatingMath} from "../math/SaturatingMath.sol";
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
 import {IBalancerConstants} from "../pool/IBalancerConstants.sol";
 import {IBPool} from "../pool/IBPool.sol";
 import {ICRPFactory} from "../pool/ICRPFactory.sol";
@@ -19,7 +17,6 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {ITier} from "../tier/ITier.sol";
 
-import {Phase} from "../phased/Phased.sol";
 // solhint-disable-next-line max-line-length
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
 import {SeedERC20, SeedERC20Config} from "../seed/SeedERC20.sol";
@@ -28,7 +25,7 @@ import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.
 import {SeedERC20Factory} from "../seed/SeedERC20Factory.sol";
 import {BPoolFeeEscrow} from "../escrow/BPoolFeeEscrow.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import {Phase, Phased} from "../phased/Phased.sol";
+import {Phased} from "../phased/Phased.sol";
 
 // solhint-disable-next-line max-line-length
 import {PoolParams, IConfigurableRightsPool} from "../pool/IConfigurableRightsPool.sol";
@@ -276,7 +273,7 @@ struct TrustRedeemableERC20Config {
 /// creates. The `Trust` never transfers ownership so it directly controls all
 /// internal workflows. No stakeholder, even the deployer or creator, can act
 /// as owner of the internals.
-contract Trust is Phased, Initializable {
+contract Trust is Phased {
     /// Balancer requires a minimum balance of `10 ** 6` for all tokens at all
     /// times. ConfigurableRightsPool repo misreports this as 10 ** 12 but the
     /// Balancer Core repo has it set as `10 ** 6`. We add one here to protect
@@ -285,6 +282,13 @@ contract Trust is Phased, Initializable {
     /// To ensure that the dust at the end of the raise is dust-like, we
     /// enforce a minimum starting reserve balance 100x the minimum.
     uint256 private constant MIN_RESERVE_INIT = 10**8;
+
+    uint256 private constant PHASE_UNINITIALIZED = 0;
+    uint256 private constant PHASE_PENDING = 1;
+    uint256 private constant PHASE_TRADING = 2;
+    uint256 private constant PHASE_CAN_END = 3;
+    uint256 private constant PHASE_ENDED = 4;
+    uint256 private constant PHASE_EMERGENCY = 5;
 
     event Construction(
         address balancerFactory,
@@ -439,14 +443,14 @@ contract Trust is Phased, Initializable {
     /// https://github.com/crytic/slither/issues/887
     ///
     /// @param config_ Config for the Trust.
-    // Slither false positive. Constructors cannot be reentrant.
+    // Slither false positive. `initializePhased` cannot be reentrant.
     // https://github.com/crytic/slither/issues/887
     // slither-disable-next-line reentrancy-benign
     function initialize(
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
         TrustSeedERC20Config memory trustSeedERC20Config_
-    ) external initializer {
+    ) external {
         initializePhased();
 
         require(config_.creator != address(0), "CREATOR_0");
@@ -491,16 +495,16 @@ contract Trust is Phased, Initializable {
         require(config_.minimumTradingDuration > 0, "0_TRADING_DURATION");
         minimumTradingDuration = config_.minimumTradingDuration;
 
-        address redeemableERC20_ = setupRedeemableERC20(
+        address redeemableERC20_ = initializeRedeemableERC20(
             config_,
             trustRedeemableERC20Config_
         );
         token = RedeemableERC20(redeemableERC20_);
 
-        address seeder_ = setupSeeder(config_, trustSeedERC20Config_);
+        address seeder_ = initializeSeeder(config_, trustSeedERC20Config_);
         seeder = seeder_;
 
-        address crp_ = setupCRP(
+        address crp_ = initializeCRP(
             CRPConfig(
                 address(config_.reserve),
                 redeemableERC20_,
@@ -512,9 +516,11 @@ contract Trust is Phased, Initializable {
         crp = IConfigurableRightsPool(crp_);
 
         emit Initialize(config_, crp_, seeder_, address(redeemableERC20_));
+
+        schedulePhase(PHASE_PENDING, block.number);
     }
 
-    function setupRedeemableERC20(
+    function initializeRedeemableERC20(
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_
     ) private returns (address) {
@@ -545,7 +551,7 @@ contract Trust is Phased, Initializable {
         return address(redeemableERC20_);
     }
 
-    function setupSeeder(
+    function initializeSeeder(
         TrustConfig memory config_,
         TrustSeedERC20Config memory trustSeedERC20Config_
     ) private returns (address) {
@@ -578,7 +584,7 @@ contract Trust is Phased, Initializable {
     /// Configures and deploys the `ConfigurableRightsPool`.
     /// Call this during initialization.
     /// @param config_ All configuration for the `RedeemableERC20Pool`.
-    function setupCRP(CRPConfig memory config_) private returns (address) {
+    function initializeCRP(CRPConfig memory config_) private returns (address) {
         // The addresses in the `RedeemableERC20Pool`, as `[reserve, token]`.
         address[] memory poolAddresses_ = new address[](2);
         poolAddresses_[0] = address(config_.reserve);
@@ -693,23 +699,26 @@ contract Trust is Phased, Initializable {
         view
         returns (DistributionStatus)
     {
-        Phase poolPhase_ = currentPhase();
-        if (poolPhase_ == Phase.ZERO) {
+        uint256 poolPhase_ = currentPhase();
+        if (poolPhase_ == PHASE_UNINITIALIZED) {
+            return DistributionStatus.Pending;
+        }
+        if (poolPhase_ == PHASE_PENDING) {
             if (reserve.balanceOf(address(this)) >= reserveInit) {
                 return DistributionStatus.Seeded;
             } else {
                 return DistributionStatus.Pending;
             }
-        } else if (poolPhase_ == Phase.ONE) {
+        } else if (poolPhase_ == PHASE_TRADING) {
             return DistributionStatus.Trading;
-        } else if (poolPhase_ == Phase.TWO) {
+        } else if (poolPhase_ == PHASE_CAN_END) {
             return DistributionStatus.TradingCanEnd;
         }
         /// Phase.FOUR is emergency funds release mode, which ideally will
         /// never happen. If it does we still use the final/success balance to
         /// calculate success/failure so that the escrows can action their own
         /// fund releases.
-        else if (poolPhase_ == Phase.THREE || poolPhase_ == Phase.FOUR) {
+        else if (poolPhase_ == PHASE_ENDED || poolPhase_ == PHASE_EMERGENCY) {
             if (finalBalance >= successBalance) {
                 return DistributionStatus.Success;
             } else {
@@ -737,13 +746,13 @@ contract Trust is Phased, Initializable {
     /// `Phase.THREE` indicates the auction has ended.
     /// Creates the pool via. the CRP contract and configures the weight change
     /// curve.
-    function startDutchAuction() external onlyPhase(Phase.ZERO) {
+    function startDutchAuction() external onlyPhase(PHASE_PENDING) {
         uint256 finalAuctionBlock_ = minimumTradingDuration + block.number;
         // Move to `Phase.ONE` immediately.
-        scheduleNextPhase(block.number);
+        schedulePhase(PHASE_TRADING, block.number);
         // Schedule `Phase.TWO` for `1` block after auctions weights have
         // stopped changing.
-        scheduleNextPhase(finalAuctionBlock_ + 1);
+        schedulePhase(PHASE_CAN_END, finalAuctionBlock_ + 1);
         // Define the weight curve.
         uint256[] memory finalWeights_ = new uint256[](2);
         finalWeights_[0] = IBalancerConstants.MIN_WEIGHT;
@@ -849,10 +858,10 @@ contract Trust is Phased, Initializable {
     // `SaturatingMath` is used in case there is somehow an edge case not
     // considered that causes overflow/underflow, we still want to approve
     // the final state so as not to trap funds with an underflow error.
-    function endDutchAuction() public onlyPhase(Phase.TWO) {
-        // Move to `Phase.THREE` immediately.
+    function endDutchAuction() public onlyPhase(PHASE_CAN_END) {
+        // Move to `PHASE_ENDED` immediately.
         // Prevents reentrancy.
-        scheduleNextPhase(block.number);
+        schedulePhase(PHASE_ENDED, block.number);
 
         exitPool();
 
@@ -897,7 +906,7 @@ contract Trust is Phased, Initializable {
         // according to success/fail of the raise.
         uint256 tokenPay_ = 0;
         uint256 creatorPay_ = 0;
-        uint remaining_ = finalBalance_.saturatingSub(seederPay_);
+        uint256 remaining_ = finalBalance_.saturatingSub(seederPay_);
         if (success_) {
             // This `.min` is guarding against pool dust edge cases.
             // Any raise the exceeds the success balance by more than the dust
@@ -905,8 +914,7 @@ contract Trust is Phased, Initializable {
             // creator covers the dust from their excess.
             tokenPay_ = redeemInit.min(remaining_);
             creatorPay_ = remaining_.saturatingSub(tokenPay_);
-        }
-        else {
+        } else {
             // Creator gets nothing on a failed raise. Send what is left to the
             // rTKN. Pool dust is taken from here to make the seeder whole if
             // possible.
@@ -948,7 +956,7 @@ contract Trust is Phased, Initializable {
     /// of the creator, seeder and redeemable token can individually consume
     /// their approvals fully or partially. By default this should be called
     /// atomically after `endDutchAuction`.
-    function transferAuctionTokens() public onlyAtLeastPhase(Phase.THREE) {
+    function transferAuctionTokens() public onlyAtLeastPhase(PHASE_ENDED) {
         IERC20 reserve_ = reserve;
         IERC20 token_ = token;
         address creator_ = creator;
@@ -985,30 +993,28 @@ contract Trust is Phased, Initializable {
     }
 
     /// `endDutchAuction` is apparently critically failing.
-    /// Move to Phase.FOUR immediately.
+    /// Move to PHASE_EMERGENCY immediately.
     /// This can ONLY be done when the contract has been in the current phase
     /// for at least `creatorFundsReleaseTimeout` blocks.
     /// Either it did not run at all, or somehow it failed to grant access
     /// to funds.
-    /// Phase.ZERO unsupported:
-    /// How to back out of the pre-seed stage??
-    /// Someone sent reserve but not enough to start the auction, and auction
-    /// will never start?
-    /// Phase.ONE unsupported:
-    /// We're mid-distribution, creator will need to wait.
-    function enableCreatorFundsRelease() external onlyAtLeastPhase(Phase.TWO) {
-        Phase startPhase_ = currentPhase();
+    /// This cannot be done until after the raise can end.
+    function enableCreatorFundsRelease()
+        external
+        onlyAtLeastPhase(PHASE_CAN_END)
+    {
+        uint startPhase_ = currentPhase();
         require(
             blockNumberForPhase(phaseBlocks, startPhase_) +
                 creatorFundsReleaseTimeout <=
                 block.number,
             "EARLY_RELEASE"
         );
-        // Move to `Phase.FOUR` immediately.
-        scheduleNextPhase(block.number);
-        if (startPhase_ == Phase.TWO) {
-            scheduleNextPhase(block.number);
+        // Move to `PHASE_EMERGENCY` immediately.
+        if (startPhase_ == PHASE_CAN_END) {
+            schedulePhase(PHASE_ENDED, block.number);
         }
+        schedulePhase(PHASE_EMERGENCY, block.number);
     }
 
     /// Anon can approve any amount of reserve, redeemable or CRP LP token for
@@ -1026,7 +1032,7 @@ contract Trust is Phased, Initializable {
     /// @param amount_ Forwarded to `RedeemableERC20Pool.creatorFundsRelease`.
     function creatorFundsRelease(address token_, uint256 amount_)
         external
-        onlyPhase(Phase.FOUR)
+        onlyPhase(PHASE_EMERGENCY)
     {
         require(
             token_ == address(reserve) ||
@@ -1038,14 +1044,4 @@ contract Trust is Phased, Initializable {
         IERC20(token_).safeIncreaseAllowance(creator, amount_);
     }
 
-    /// Enforce `Phase.FOUR` as the last phase.
-    /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint256 nextPhaseBlock_)
-        internal
-        virtual
-        override
-    {
-        super._beforeScheduleNextPhase(nextPhaseBlock_);
-        assert(currentPhase() < Phase.FOUR);
-    }
 }

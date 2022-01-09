@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
 import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
@@ -12,7 +10,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-import {Phase, Phased} from "../phased/Phased.sol";
+import {Phased} from "../phased/Phased.sol";
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
@@ -99,12 +97,15 @@ contract SeedERC20 is
     Phased,
     Cooldown,
     ERC20Pull,
-    Initializable,
     IERC20Burnable,
     ERC20Redeem
 {
     using Math for uint256;
     using SafeERC20 for IERC20;
+
+    uint private constant PHASE_UNINITIALIZED = 0;
+    uint private constant PHASE_SEEDING = 1;
+    uint private constant PHASE_REDEEMING = 2;
 
     event Initialize(
         address sender,
@@ -145,14 +146,16 @@ contract SeedERC20 is
     /// Store relevant config as contract state.
     /// Mint all seed tokens.
     /// @param config_ All config required to initialize the contract.
-    function initialize(SeedERC20Config memory config_) external initializer {
+    function initialize(SeedERC20Config memory config_) external {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
         require(config_.recipient != address(0), "RECIPIENT_0");
+
+        initializePhased();
+
         initializeERC20Pull(
             ERC20PullConfig(config_.recipient, address(config_.reserve))
         );
-        initializePhased();
         initializeCooldown(config_.cooldownDuration);
         initializeERC20(config_.erc20Config);
         recipient = config_.recipient;
@@ -169,6 +172,8 @@ contract SeedERC20 is
             config_.seedPrice,
             config_.seedUnits
         );
+
+        schedulePhase(PHASE_SEEDING, block.number);
     }
 
     /// @inheritdoc ERC20
@@ -198,7 +203,7 @@ contract SeedERC20 is
     /// @param desiredUnits_ The maximum units the caller is willing to fund.
     function seed(uint256 minimumUnits_, uint256 desiredUnits_)
         external
-        onlyPhase(Phase.ZERO)
+        onlyPhase(PHASE_SEEDING)
         onlyAfterCooldown
     {
         require(desiredUnits_ > 0, "DESIRED_0");
@@ -211,7 +216,7 @@ contract SeedERC20 is
 
         // Sold out. Move to the next phase.
         if (remainingStock_ == units_) {
-            scheduleNextPhase(block.number);
+            schedulePhase(PHASE_REDEEMING, block.number);
         }
         _transfer(address(this), msg.sender, units_);
 
@@ -226,7 +231,7 @@ contract SeedERC20 is
         // It also introduces a failure case where the reserve errors on
         // transfer. If this fails then everyone can call `unseed` after their
         // individual cooldowns to exit.
-        if (currentPhase() == Phase.ONE) {
+        if (currentPhase() == PHASE_REDEEMING) {
             reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
         }
     }
@@ -245,7 +250,7 @@ contract SeedERC20 is
     /// @param units_ Units to unseed.
     function unseed(uint256 units_)
         external
-        onlyPhase(Phase.ZERO)
+        onlyPhase(PHASE_SEEDING)
         onlyAfterCooldown
     {
         uint256 reserveAmount_ = seedPrice * units_;
@@ -284,7 +289,7 @@ contract SeedERC20 is
     /// redeemer is willing to writeoff - e.g. pool dust for a failed raise.
     function redeem(uint256 units_, uint256 safetyRelease_)
         external
-        onlyPhase(Phase.ONE)
+        onlyPhase(PHASE_REDEEMING)
     {
         uint256 currentReserveBalance_ = reserve.balanceOf(address(this));
 
@@ -308,17 +313,5 @@ contract SeedERC20 is
         IERC20[] memory assets_ = new IERC20[](1);
         assets_[0] = reserve;
         _redeem(assets_, units_);
-    }
-
-    /// Sanity check the last phase is `Phase.ONE`.
-    /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint256 nextPhaseBlock_)
-        internal
-        virtual
-        override
-    {
-        super._beforeScheduleNextPhase(nextPhaseBlock_);
-        // Phase.ONE is the last phase.
-        assert(currentPhase() < Phase.ONE);
     }
 }
