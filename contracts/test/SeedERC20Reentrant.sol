@@ -55,7 +55,7 @@ contract SeedERC20Reentrant is ReserveToken {
             sender_ == address(seedERC20Contract)
         ) {
             // This call MUST fail.
-            seedERC20Contract.redeem(1);
+            seedERC20Contract.redeem(1, 0);
         }
     }
 }

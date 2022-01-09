@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
+import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
+import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -97,7 +99,9 @@ contract SeedERC20 is
     Phased,
     Cooldown,
     ERC20Pull,
-    Initializable
+    Initializable,
+    IERC20Burnable,
+    ERC20Redeem
 {
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -108,17 +112,6 @@ contract SeedERC20 is
         address reserve,
         uint256 seedPrice,
         uint256 seedUnits
-    );
-
-    /// Seed token burn for reserve.
-    /// Number of reserve redeemed for burned seed tokens.
-    /// `[seedAmount, reserveAmount]`
-    event Redeem(
-        /// Anon `msg.sender`. burning and receiving reserve for self.
-        address sender,
-        /// Number of seed tokens burned.
-        uint256 tokensRedeemed,
-        uint256 reserveSent
     );
 
     /// Reserve was paid in exchange for seed tokens.
@@ -138,12 +131,15 @@ contract SeedERC20 is
     );
 
     /// Reserve erc20 token contract used to purchase seed tokens.
-    IERC20 public reserve;
+    IERC20 private reserve;
     /// Recipient address for all reserve funds raised when seeding is
     /// complete.
-    address public recipient;
+    address private recipient;
     /// Price in reserve for a unit of seed token.
-    uint256 public seedPrice;
+    uint256 private seedPrice;
+
+    uint256 private safeExit;
+    uint256 public highwater;
 
     /// Sanity checks on configuration.
     /// Store relevant config as contract state.
@@ -163,6 +159,9 @@ contract SeedERC20 is
         reserve = config_.reserve;
         seedPrice = config_.seedPrice;
         _mint(address(this), config_.seedUnits);
+        safeExit = config_.seedPrice * config_.seedUnits;
+        // The reserve must always be one of the treasury assets.
+        newTreasuryAsset(address(config_.reserve));
         emit Initialize(
             msg.sender,
             config_.recipient,
@@ -257,6 +256,10 @@ contract SeedERC20 is
         reserve.safeTransfer(msg.sender, reserveAmount_);
     }
 
+    function burn(uint amount_) public {
+        _burn(msg.sender, amount_);
+    }
+
     /// Burn seed tokens for pro-rata reserve assets.
     ///
     /// ```
@@ -276,17 +279,34 @@ contract SeedERC20 is
     /// (in this repo) it will receive a refund or refund + fee.
     /// @param units_ Amount of seed units to burn and redeem for reserve
     /// assets.
-    function redeem(uint256 units_) external onlyPhase(Phase.ONE) {
+    /// @param safetyRelease_ Amount of reserve above the high water mark the
+    /// redeemer is willing to writeoff - e.g. pool dust for a failed raise.
+    function redeem(uint256 units_, uint256 safetyRelease_)
+        external
+        onlyPhase(Phase.ONE)
+    {
         uint256 currentReserveBalance_ = reserve.balanceOf(address(this));
-        // Guard against someone accidentally calling redeem before any reserve
-        // has been returned.
-        require(currentReserveBalance_ > 0, "RESERVE_BALANCE");
-        uint256 reserveAmount_ = (units_ * currentReserveBalance_) /
-            totalSupply();
 
-        _burn(msg.sender, units_);
-        emit Redeem(msg.sender, units_, reserveAmount_);
-        reserve.safeTransfer(msg.sender, reserveAmount_);
+        // Guard against someone accidentally calling redeem before the reserve
+        // has been returned. It's possible for the highwater to never hit the
+        // `safeExit`, notably and most easily in the case of a failed raise
+        // there will be pool dust trapped in the LBP, so the user can specify
+        // some `safetyRelease` as reserve they are willing to write off. A
+        // less likely scenario is that reserve is sent to the seed contract
+        // across several transactions, interleaved with other seeders
+        // redeeming, thus producing a very low highwater. In this case the
+        // process is identical but manual review and a larger safety release
+        // will be required.
+        uint256 highwater_ = highwater;
+        if (highwater_ < currentReserveBalance_) {
+            highwater_ = currentReserveBalance_;
+            highwater = highwater_;
+        }
+        require(highwater_ + safetyRelease_ >= safeExit, "RESERVE_BALANCE");
+
+        IERC20[] memory assets_ = new IERC20[](1);
+        assets_[0] = reserve;
+        _redeem(assets_, units_);
     }
 
     /// Sanity check the last phase is `Phase.ONE`.

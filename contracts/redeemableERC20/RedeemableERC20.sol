@@ -5,13 +5,13 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
+import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
+import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-// solhint-disable-next-line max-line-length
-import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 import {TierByConstruction} from "../tier/TierByConstruction.sol";
 import {ITier} from "../tier/ITier.sol";
@@ -102,9 +102,10 @@ contract RedeemableERC20 is
     Initializable,
     Phased,
     TierByConstruction,
+    ERC20Pull,
     ERC20Initializable,
-    ReentrancyGuard,
-    ERC20Pull
+    ERC20Redeem,
+    IERC20Burnable
 {
     using SafeERC20 for IERC20;
 
@@ -125,22 +126,6 @@ contract RedeemableERC20 is
 
     event Sender(address sender, address grantedSender);
     event Receiver(address sender, address grantedReceiver);
-
-    /// Treasury Asset notification.
-    /// @param sender The `msg.sender` notifying about this asset.
-    /// @param asset The asset added to the treasury for this contract.
-    event TreasuryAsset(address sender, address asset);
-
-    /// Redeemable token burn for reserve.
-    /// @param sender `msg.sender` burning and receiving.
-    /// @param treasuryAsset The treasury asset being sent to the burner.
-    /// @param redeemAmounts The amounts of the redeemable and treasury asset
-    /// as `[redeemAmount, assetAmount]`.
-    event Redeem(
-        address sender,
-        address treasuryAsset,
-        uint256[2] redeemAmounts
-    );
 
     /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
     /// The minimum supply enforced by the constructor is "one" token which is
@@ -184,7 +169,7 @@ contract RedeemableERC20 is
         admin = config_.admin;
 
         // The reserve must always be one of the treasury assets.
-        emit TreasuryAsset(config_.admin, config_.reserve);
+        newTreasuryAsset(config_.reserve);
 
         emit Initialize(msg.sender, config_.admin, config_.minimumTier);
 
@@ -260,69 +245,15 @@ contract RedeemableERC20 is
         }
     }
 
-    /// Anon can emit a `TreasuryAsset` event to notify token holders that
-    /// an asset could be redeemed by burning `RedeemableERC20` tokens.
-    /// As this is callable by anon the events should be filtered by the
-    /// indexer to those from trusted entities only.
-    /// @param newTreasuryAsset_ The asset to log.
-    function newTreasuryAsset(address newTreasuryAsset_) external {
-        emit TreasuryAsset(msg.sender, newTreasuryAsset_);
+    function burn(uint amount_) public {
+        _burn(msg.sender, amount_);
     }
 
-    /// Redeem (burn) tokens for treasury assets.
-    /// Tokens can be redeemed but NOT transferred during `Phase.ONE`.
-    ///
-    /// Calculate the redeem value of tokens as:
-    ///
-    /// ```
-    /// ( redeemAmount / redeemableErc20Token.totalSupply() )
-    /// * token.balanceOf(address(this))
-    /// ```
-    ///
-    /// This means that the users get their redeemed pro-rata share of the
-    /// outstanding token supply burned in return for a pro-rata share of the
-    /// current balance of each treasury asset.
-    ///
-    /// I.e. whatever % of redeemable tokens the sender burns is the % of the
-    /// current treasury assets they receive.
-    ///
-    /// Delegated redemption is NOT supported as users must only burn their own
-    /// tokens.
-    function redeem(IERC20[] calldata treasuryAssets_, uint256 redeemAmount_)
+    function redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
         external
         onlyPhase(Phase.ONE)
-        nonReentrant
     {
-        uint256 assetsLength_ = treasuryAssets_.length;
-        // Guard against redemptions for no treasury assets.
-        require(assetsLength_ > 0, "EMPTY_ASSETS");
-
-        // The fraction of the assets we release is the fraction of the
-        // outstanding total supply of the redeemable burned.
-        // Every treasury asset is released in the same proportion.
-        uint256 supplyBeforeBurn_ = totalSupply();
-
-        // Redeem __burns__ tokens which reduces the total supply and requires
-        // no approval.
-        // `_burn` reverts internally if needed (e.g. if burn exceeds balance).
-        // This function is `nonReentrant` but we burn before redeeming anyway.
-        _burn(msg.sender, redeemAmount_);
-
-        for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
-            IERC20 ithRedeemable_ = treasuryAssets_[i_];
-            uint256 assetAmount_ = (ithRedeemable_.balanceOf(address(this)) *
-                redeemAmount_) / supplyBeforeBurn_;
-            /// Guard against zero value redemptions.
-            /// Redeemers should simply elide any assets they have 0 claim over
-            /// in the `treasuryAssets_` list.
-            require(assetAmount_ > 0, "ZERO_TRANSFER");
-            emit Redeem(
-                msg.sender,
-                address(ithRedeemable_),
-                [redeemAmount_, assetAmount_]
-            );
-            ithRedeemable_.safeTransfer(msg.sender, assetAmount_);
-        }
+        _redeem(treasuryAssets_, redeemAmount_);
     }
 
     /// Sanity check to ensure `Phase.ONE` is the final phase.
