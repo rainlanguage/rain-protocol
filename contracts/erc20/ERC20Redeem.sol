@@ -47,18 +47,10 @@ contract ERC20Redeem {
                 totalSupply_;
         }
 
-        // Guard against no asset redemptions.
+        // Guard against no asset redemptions and log all events.
         require(assetsLength_ > 0, "EMPTY_ASSETS");
         for (uint i_ = 0; i_ < assetsLength_; i_++) {
             require(amounts_[i_] > 0, "ZERO_AMOUNT");
-        }
-
-        // Burn FIRST.
-        // This assumes implementing contract has implemented the interface.
-        IERC20Burnable(address(this)).burn(redeemAmount_);
-
-        // Then emit all events.
-        for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
             emit Redeem(
                 msg.sender,
                 address(treasuryAssets_[i_]),
@@ -67,7 +59,11 @@ contract ERC20Redeem {
             );
         }
 
-        // Then send all assets.
+        // Burn FIRST (reentrancy).
+        // This assumes implementing contract has implemented the interface.
+        IERC20Burnable(address(this)).burn(redeemAmount_);
+
+        // THEN send all assets.
         for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
             treasuryAssets_[i_].safeTransfer(msg.sender, amounts_[i_]);
         }

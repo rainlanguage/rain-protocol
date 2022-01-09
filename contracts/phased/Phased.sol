@@ -79,7 +79,7 @@ contract Phased {
         // Reinitialization is a bug.
         // Only need to check the first block as all blocks are about to be set
         // to `UNINITIALIZED`.
-        assert(phaseBlocks[0] == 0);
+        assert(phaseBlocks[0] < 1);
         for (uint256 i_ = 0; i_ < 8; i_++) {
             phaseBlocks[i_] = UNINITIALIZED;
         }
