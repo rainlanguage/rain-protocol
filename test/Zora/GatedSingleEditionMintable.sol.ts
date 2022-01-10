@@ -88,6 +88,8 @@ describe("GatedSingleEditionMintable", async function () {
 
     await wrapperContract.mintEdition(signers[1].address);
 
-    await expect(wrapperContract.mintEdition(signers[2].address)).to.be.revertedWith('MIN_TIER');
+    await expect(
+      wrapperContract.mintEdition(signers[2].address)
+    ).to.be.revertedWith("MIN_TIER");
   });
 });

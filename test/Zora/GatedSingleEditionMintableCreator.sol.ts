@@ -81,8 +81,7 @@ describe("GatedSingleEditionMintableCreator", async function () {
     expect(createdGatedEditionEvent.args.editionId).to.eq(0);
     expect(createdGatedEditionEvent.args.creator).to.eq(signers[0].address);
     expect(createdGatedEditionEvent.args.editionSize).to.eq(100);
-    expect(createdGatedEditionEvent.args.wrapperContractAddress).to.not.be
-      .null;
+    expect(createdGatedEditionEvent.args.wrapperContractAddress).to.not.be.null;
     expect(createdGatedEditionEvent.args.underlyingContractAddress).to.eq(
       await singleEditionMintableCreator.getEditionAtId(0)
     );
