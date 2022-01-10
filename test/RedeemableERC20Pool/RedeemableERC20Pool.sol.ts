@@ -58,10 +58,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -95,7 +92,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -239,10 +236,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -321,10 +315,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -358,7 +349,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -486,10 +477,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -517,7 +505,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -574,10 +562,7 @@ describe("RedeemableERC20Pool", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.NIL;
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -611,7 +596,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -833,10 +818,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -862,7 +844,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1045,10 +1027,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await tier.setTier(griefer.address, Tier.GOLD, []);
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1074,7 +1053,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1310,10 +1289,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1339,7 +1315,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1505,10 +1481,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const { trustFactory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1535,7 +1508,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => {
-        const trust = await Util.trustDeploy(
+        const [trust] = await Util.trustDeploy(
           trustFactoryDeployer,
           creator,
           {

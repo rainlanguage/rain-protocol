@@ -111,7 +111,7 @@ describe("TrustRewards", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -426,7 +426,7 @@ describe("TrustRewards", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {

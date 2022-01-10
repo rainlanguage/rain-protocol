@@ -108,7 +108,7 @@ describe("TrustConstruction", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust1 = await Util.trustDeploy(
+    const [trust1] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -137,7 +137,7 @@ describe("TrustConstruction", async function () {
       { gasLimit: 100000000 }
     );
 
-    const trust2 = await Util.trustDeploy(
+    const [trust2] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -227,7 +227,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -551,7 +551,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -637,7 +637,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -725,7 +725,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -815,7 +815,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -934,7 +934,7 @@ describe("TrustConstruction", async function () {
     );
 
     await Util.assertError(
-      async () => (await trustPromise) as Trust,
+      async () => (await trustPromise)[0] as Trust,
       "Error: invalid address or ENS name",
       "initialized without seeder"
     );

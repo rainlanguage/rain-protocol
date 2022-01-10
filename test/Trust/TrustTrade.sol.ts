@@ -87,7 +87,7 @@ describe("TrustTrade", async function () {
     await tier.setTier(signerGold.address, Tier.GOLD, []);
     await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -281,7 +281,7 @@ describe("TrustTrade", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -403,7 +403,7 @@ describe("TrustTrade", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -661,7 +661,7 @@ describe("TrustTrade", async function () {
     await tier.setTier(signerGold.address, Tier.GOLD, []);
     await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -911,7 +911,7 @@ describe("TrustTrade", async function () {
       actual ratio    ${actualRatio}`
     );
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactory2,
       creator,
       {

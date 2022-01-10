@@ -88,7 +88,7 @@ export const basicSetup = async (
 
   await tier.setTier(signer1.address, Tier.GOLD, []);
 
-  const trust = await Util.trustDeploy(
+  const [trust] = await Util.trustDeploy(
     trustFactory1,
     creator,
     {

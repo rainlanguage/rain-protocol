@@ -92,7 +92,7 @@ export const basicSetup = async (
 
   const trustFactory1 = trustFactory.connect(deployer);
 
-  const trust = await Util.trustDeploy(
+  const [trust] = await Util.trustDeploy(
     trustFactory1,
     creator,
     {
