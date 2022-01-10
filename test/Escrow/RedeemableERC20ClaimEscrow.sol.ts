@@ -8,7 +8,6 @@ import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { Contract } from "ethers";
-import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
 import { getEventArgs } from "../Util";
 
 chai.use(solidity);
@@ -38,13 +37,12 @@ enum DistributionStatus {
 
 let claim: RedeemableERC20ClaimEscrow & Contract,
   trustFactory: TrustFactory,
-  seedERC20Factory: SeedERC20Factory,
   tier: ReadWriteTier,
   claimableReserveToken: ReserveToken & Contract;
 
 describe("RedeemableERC20ClaimEscrow", async function () {
   before(async () => {
-    ({ claim, trustFactory, seedERC20Factory, tier } = await deployGlobals());
+    ({ claim, trustFactory, tier } = await deployGlobals());
   });
 
   beforeEach(async () => {
@@ -73,7 +71,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -251,7 +249,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -422,7 +420,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -553,7 +551,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -685,7 +683,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       creator,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -851,7 +849,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       creator,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -972,7 +970,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       successLevel,
       minimumTradingDuration,
       creator,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
