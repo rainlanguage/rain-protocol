@@ -63,10 +63,7 @@ describe("TrustSeed", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -91,7 +88,7 @@ describe("TrustSeed", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -122,7 +119,8 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -210,22 +208,11 @@ describe("TrustSeed", async function () {
       {}
     )) as ReserveToken & Contract;
 
-    const seedFactory = await ethers.getContractFactory("SeedERC20");
-
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-
-    const seeder1 = signers[2];
 
     const seedUnits = 10;
     const cooldownDuration = 1;
     const seedPrice = reserveInit.div(10);
-
-    // seeder1 creates seeder contract
-    const seederFactory = new ethers.ContractFactory(
-      seedFactory.interface,
-      seedFactory.bytecode,
-      seeder1
-    );
 
     const seederContract = await Util.seedERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -253,22 +240,11 @@ describe("TrustSeed", async function () {
         {}
       )) as ReserveToken & Contract;
 
-      const seedFactory = await ethers.getContractFactory("SeedERC20");
-
       const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-
-      const seeder1 = signers[2];
 
       const seedUnits = 0;
       const cooldownDuration = 1;
       const seedPrice = reserveInit.div(10);
-
-      // seeder1 creates seeder contract
-      const seederFactory = new ethers.ContractFactory(
-        seedFactory.interface,
-        seedFactory.bytecode,
-        seeder1
-      );
 
       await Util.assertError(
         async () =>
@@ -295,20 +271,9 @@ describe("TrustSeed", async function () {
         {}
       )) as ReserveToken & Contract;
 
-      const seedFactory = await ethers.getContractFactory("SeedERC20");
-
-      const seeder1 = signers[2];
-
       const seedUnits = 10;
       const cooldownDuration = 1;
       const seedPrice = 0;
-
-      // seeder1 creates seeder contract
-      const seederFactory = new ethers.ContractFactory(
-        seedFactory.interface,
-        seedFactory.bytecode,
-        seeder1
-      );
 
       await Util.assertError(
         async () =>
@@ -347,10 +312,7 @@ describe("TrustSeed", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -375,7 +337,7 @@ describe("TrustSeed", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -406,7 +368,7 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -471,10 +433,7 @@ describe("TrustSeed", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -499,7 +458,7 @@ describe("TrustSeed", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -530,8 +489,9 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
     const seederContract = new ethers.Contract(
-      await trust.seeder(),
+      seeder,
       seedERC20Json.abi,
       signers[0]
     ) as SeedERC20 & Contract;
@@ -588,10 +548,7 @@ describe("TrustSeed", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -621,7 +578,7 @@ describe("TrustSeed", async function () {
 
       await tier.setTier(signer1.address, Tier.GOLD, []);
 
-      const trust = await Util.trustDeploy(
+      const [trust, txDeploy] = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -652,7 +609,7 @@ describe("TrustSeed", async function () {
 
       await trust.deployed();
 
-      const seeder = await trust.seeder();
+      const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,
@@ -873,10 +830,7 @@ describe("TrustSeed", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -903,7 +857,7 @@ describe("TrustSeed", async function () {
 
       const trustFactoryDeployer = trustFactory.connect(deployer);
 
-      const trust = await Util.trustDeploy(
+      const [trust, txDeploy] = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -934,7 +888,9 @@ describe("TrustSeed", async function () {
 
       await trust.deployed();
 
-      const seeder = await trust.seeder();
+      console.log({ tx: (await txDeploy.wait()).events });
+
+      const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,

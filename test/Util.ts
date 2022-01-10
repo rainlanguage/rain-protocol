@@ -252,7 +252,7 @@ export const verifyDeploy = async (deployer, config) => {
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address))[1]
+        (await getEventArgs(tx, "NewChild", factory.address)).child
       ),
       20
     ),
@@ -271,7 +271,7 @@ export const verifyTierDeploy = async (deployer, config) => {
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address))[1]
+        (await getEventArgs(tx, "NewChild", factory.address)).child
       ),
       20
     ),
@@ -290,7 +290,7 @@ export const combineTierDeploy = async (deployer, config) => {
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address))[1]
+        (await getEventArgs(tx, "NewChild", factory.address)).child
       ),
       20
     ),
@@ -313,7 +313,8 @@ export const redeemableERC20Deploy = async (deployer, config) => {
   const redeemableERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", redeemableERC20Factory.address))[1]
+        (await getEventArgs(tx, "NewChild", redeemableERC20Factory.address))
+          .child
       ),
       20
     ),
@@ -338,7 +339,7 @@ export const seedERC20Deploy = async (deployer, config) => {
   const seedERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", seedERC20Factory.address))[1]
+        (await getEventArgs(tx, "NewChild", seedERC20Factory.address)).child
       ),
       20
     ),
@@ -358,8 +359,8 @@ export const trustDeploy = async (
   trustRedeemableERC20Config: TrustRedeemableERC20ConfigStruct,
   trustSeedERC20Config: TrustSeedERC20ConfigStruct,
   ...args
-): Promise<Trust & Contract> => {
-  const tx = await trustFactory.createChildTyped(
+): Promise<[Trust & Contract, ContractTransaction]> => {
+  const txDeploy = await trustFactory.createChildTyped(
     trustConfig,
     trustRedeemableERC20Config,
     trustSeedERC20Config,
@@ -369,7 +370,7 @@ export const trustDeploy = async (
   const trust = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", trustFactory.address))[1]
+        (await getEventArgs(txDeploy, "NewChild", trustFactory.address)).child
       ),
       20 // address bytes length
     ),
@@ -385,7 +386,7 @@ export const trustDeploy = async (
 
   await trust.deployed();
 
-  return trust;
+  return [trust, txDeploy];
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
@@ -604,11 +605,20 @@ export type Constants = [
 export const getEventArgs = async (
   tx: ContractTransaction,
   event: string,
-  contractAddress: string
-): Promise<Result> =>
-  (await tx.wait()).events.find(
-    (x) => x.event == event && x.address == contractAddress
-  ).args;
+  emittingContractAddress: string = null
+): Promise<Result> => {
+  const eventObj = (await tx.wait()).events.find(
+    (x) =>
+      x.event == event &&
+      (emittingContractAddress === null || x.address == emittingContractAddress)
+  );
+
+  if (!eventObj) {
+    throw new Error(`Could not find event with name ${event}`);
+  }
+
+  return eventObj.args;
+};
 
 export function selectLte(logic: number, mode: number, length: number): number {
   let lte = logic;
