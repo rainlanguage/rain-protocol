@@ -42,7 +42,7 @@ const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/Seed
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 describe("TrustSeed", async function () {
-  it("should allow unseeding only after unseed delay period", async function () {
+  it.only("should allow unseeding only after unseed delay period", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -119,7 +119,7 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust)).seeder;
 
     const seederContract = new ethers.Contract(
       seeder,
@@ -368,7 +368,7 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust)).seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -489,7 +489,7 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust)).seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -609,7 +609,7 @@ describe("TrustSeed", async function () {
 
       await trust.deployed();
 
-      const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+      const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust)).seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,
@@ -890,7 +890,7 @@ describe("TrustSeed", async function () {
 
       console.log({ tx: (await txDeploy.wait()).events });
 
-      const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+      const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust)).seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,

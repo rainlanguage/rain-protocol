@@ -252,7 +252,7 @@ export const verifyDeploy = async (deployer, config) => {
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address)).child
+        (await getEventArgs(tx, "NewChild", factory)).child
       ),
       20
     ),
@@ -271,7 +271,7 @@ export const verifyTierDeploy = async (deployer, config) => {
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address)).child
+        (await getEventArgs(tx, "NewChild", factory)).child
       ),
       20
     ),
@@ -290,7 +290,7 @@ export const combineTierDeploy = async (deployer, config) => {
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address)).child
+        (await getEventArgs(tx, "NewChild", factory)).child
       ),
       20
     ),
@@ -313,7 +313,7 @@ export const redeemableERC20Deploy = async (deployer, config) => {
   const redeemableERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", redeemableERC20Factory.address))
+        (await getEventArgs(tx, "NewChild", redeemableERC20Factory))
           .child
       ),
       20
@@ -339,7 +339,7 @@ export const seedERC20Deploy = async (deployer, config) => {
   const seedERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", seedERC20Factory.address)).child
+        (await getEventArgs(tx, "NewChild", seedERC20Factory)).child
       ),
       20
     ),
@@ -370,7 +370,7 @@ export const trustDeploy = async (
   const trust = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", trustFactory.address)).child
+        (await getEventArgs(txDeploy, "NewChild", trustFactory)).child
       ),
       20 // address bytes length
     ),
@@ -605,19 +605,19 @@ export type Constants = [
 export const getEventArgs = async (
   tx: ContractTransaction,
   event: string,
-  emittingContractAddress: string = null
+  emittingContract: Contract
 ): Promise<Result> => {
   const eventObj = (await tx.wait()).events.find(
     (x) =>
-      x.event == event &&
-      (emittingContractAddress === null || x.address == emittingContractAddress)
+      x.topics[0] == emittingContract.filters[event]().topics[0] &&
+      (x.address == emittingContract.address)
   );
 
   if (!eventObj) {
     throw new Error(`Could not find event with name ${event}`);
   }
 
-  return eventObj.args;
+  return emittingContract.interface.decodeEventLog(event, eventObj.data);
 };
 
 export function selectLte(logic: number, mode: number, length: number): number {
