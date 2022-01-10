@@ -2,11 +2,11 @@ import chai from "chai";
 import { ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
 import type { Contract } from "ethers";
-import type { ApprovingSingleEditionMintable } from "../../typechain/ApprovingSingleEditionMintable";
+import type { GatedSingleEditionMintable } from "../../typechain/GatedSingleEditionMintable";
 import type {
-  ApprovingSingleEditionMintableCreator,
-  CreatedApprovingEditionEvent,
-} from "../../typechain/ApprovingSingleEditionMintableCreator";
+  GatedSingleEditionMintableCreator,
+  CreatedGatedEditionEvent,
+} from "../../typechain/GatedSingleEditionMintableCreator";
 import type { SingleEditionMintable } from "../../typechain/SingleEditionMintable";
 import type { SingleEditionMintableCreator } from "../../typechain/SingleEditionMintableCreator";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -16,8 +16,8 @@ chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
-describe("ApprovingSingleEditionMintable", async function () {
-  let approvingSingleEditionMintableCreator: ApprovingSingleEditionMintableCreator &
+describe("GatedSingleEditionMintable", async function () {
+  let gatedSingleEditionMintableCreator: GatedSingleEditionMintableCreator &
     Contract;
   let signers: SignerWithAddress[];
   let tier: ReadWriteTier & Contract;
@@ -45,12 +45,12 @@ describe("ApprovingSingleEditionMintable", async function () {
         singleEditionMintable.address
       )) as SingleEditionMintableCreator & Contract;
 
-    const approvingSingleEditionMintableCreatorFactory =
-      await ethers.getContractFactory("ApprovingSingleEditionMintableCreator");
-    approvingSingleEditionMintableCreator =
-      (await approvingSingleEditionMintableCreatorFactory.deploy(
+    const gatedSingleEditionMintableCreatorFactory =
+      await ethers.getContractFactory("GatedSingleEditionMintableCreator");
+    gatedSingleEditionMintableCreator =
+      (await gatedSingleEditionMintableCreatorFactory.deploy(
         singleEditionMintableCreator.address
-      )) as ApprovingSingleEditionMintableCreator & Contract;
+      )) as GatedSingleEditionMintableCreator & Contract;
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
@@ -61,7 +61,7 @@ describe("ApprovingSingleEditionMintable", async function () {
     await tier.setTier(signers[2].address, 1, []);
 
     const createEditionTx =
-      await approvingSingleEditionMintableCreator.createEdition(
+      await gatedSingleEditionMintableCreator.createEdition(
         "Test",
         "TEST",
         "Testing",
@@ -77,14 +77,14 @@ describe("ApprovingSingleEditionMintable", async function () {
 
     const createEditionReceipt = await createEditionTx.wait();
 
-    const createdApprovingEditionEvent = createEditionReceipt.events.find(
-      (event) => event.event === "CreatedApprovingEdition"
-    ) as CreatedApprovingEditionEvent | null;
+    const createdGatedEditionEvent = createEditionReceipt.events.find(
+      (event) => event.event === "CreatedGatedEdition"
+    ) as CreatedGatedEditionEvent | null;
 
     const wrapperContract = (await ethers.getContractAt(
-      "ApprovingSingleEditionMintable",
-      createdApprovingEditionEvent.args.wrapperContractAddress
-    )) as ApprovingSingleEditionMintable & Contract;
+      "GatedSingleEditionMintable",
+      createdGatedEditionEvent.args.wrapperContractAddress
+    )) as GatedSingleEditionMintable & Contract;
 
     await wrapperContract.mintEdition(signers[1].address);
 

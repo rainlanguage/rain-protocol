@@ -2,14 +2,14 @@
 pragma solidity ^0.8.10;
 
 import "hardhat/console.sol";
-import "./ApprovingSingleEditionMintable.sol";
+import "./GatedSingleEditionMintable.sol";
 import "./ISingleEditionMintableCreator.sol";
 import { ITier } from "../tier/ITier.sol";
 
-contract ApprovingSingleEditionMintableCreator {
+contract GatedSingleEditionMintableCreator {
     address private factory;
 
-    event CreatedApprovingEdition(
+    event CreatedGatedEdition(
         uint256 indexed editionId,
         address indexed creator,
         uint256 editionSize,
@@ -25,7 +25,7 @@ contract ApprovingSingleEditionMintableCreator {
 
     /// Calls the underlying `createEdition` method on
     /// `SingleEditionMintableFactory` to create a `SingleEditionMintable` and
-    /// then clones an `ApprovingSingleEditionMintable` wrapper contract.
+    /// then clones an `GatedSingleEditionMintable` wrapper contract.
     function createEdition(
         string memory _name,
         string memory _symbol,
@@ -54,8 +54,8 @@ contract ApprovingSingleEditionMintableCreator {
         ISingleEditionMintable underlyingContract =
             ISingleEditionMintableCreator(factory).getEditionAtId(id);
 
-        ApprovingSingleEditionMintable wrapperContract =
-            new ApprovingSingleEditionMintable(
+        GatedSingleEditionMintable wrapperContract =
+            new GatedSingleEditionMintable(
                 address(underlyingContract),
                 _tier,
                 _minimumStatus
@@ -65,7 +65,7 @@ contract ApprovingSingleEditionMintableCreator {
         underlyingContract.setApprovedMinter(address(this), false);
         underlyingContract.transferOwnership(address(wrapperContract));
 
-        emit CreatedApprovingEdition(
+        emit CreatedGatedEdition(
             id,
             msg.sender,
             _editionSize,

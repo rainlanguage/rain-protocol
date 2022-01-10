@@ -6,7 +6,7 @@ import "./ISingleEditionMintable.sol";
 import { TierByConstruction } from "../tier/TierByConstruction.sol";
 import { ITier } from "../tier/ITier.sol";
 
-contract ApprovingSingleEditionMintable is TierByConstruction {
+contract GatedSingleEditionMintable is TierByConstruction {
     address private underlyingContract;
     ITier.Tier public minimumStatus;
 

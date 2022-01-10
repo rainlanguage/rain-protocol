@@ -3,9 +3,9 @@ import { ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
 import type { Contract } from "ethers";
 import type {
-  CreatedApprovingEditionEvent,
-  ApprovingSingleEditionMintableCreator,
-} from "../../typechain/ApprovingSingleEditionMintableCreator";
+  CreatedGatedEditionEvent,
+  GatedSingleEditionMintableCreator,
+} from "../../typechain/GatedSingleEditionMintableCreator";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { TypedEvent } from "../../typechain/common";
 import type { SingleEditionMintableCreator } from "../../typechain/SingleEditionMintableCreator";
@@ -16,7 +16,7 @@ chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
-describe("ApprovingSingleEditionMintableCreator", async function () {
+describe("GatedSingleEditionMintableCreator", async function () {
   let singleEditionMintableCreator: SingleEditionMintableCreator & Contract;
   let signers: SignerWithAddress[];
   let tier: ReadWriteTier & Contract;
@@ -49,15 +49,15 @@ describe("ApprovingSingleEditionMintableCreator", async function () {
   });
 
   it("creates a new edition", async () => {
-    const approvingSingleEditionMintableCreatorFactory =
-      await ethers.getContractFactory("ApprovingSingleEditionMintableCreator");
-    const approvingSingleEditionMintableCreator =
-      (await approvingSingleEditionMintableCreatorFactory.deploy(
+    const gatedSingleEditionMintableCreatorFactory =
+      await ethers.getContractFactory("GatedSingleEditionMintableCreator");
+    const gatedSingleEditionMintableCreator =
+      (await gatedSingleEditionMintableCreatorFactory.deploy(
         singleEditionMintableCreator.address
-      )) as ApprovingSingleEditionMintableCreator & Contract;
+      )) as GatedSingleEditionMintableCreator & Contract;
 
     const createEditionTx =
-      await approvingSingleEditionMintableCreator.createEdition(
+      await gatedSingleEditionMintableCreator.createEdition(
         "Test",
         "TEST",
         "Testing",
@@ -73,17 +73,17 @@ describe("ApprovingSingleEditionMintableCreator", async function () {
 
     const createEditionReceipt = await createEditionTx.wait();
 
-    const createdApprovingEditionEvent = createEditionReceipt.events.find(
-      (event: TypedEvent) => event.event === "CreatedApprovingEdition"
-    ) as CreatedApprovingEditionEvent | null;
+    const createdGatedEditionEvent = createEditionReceipt.events.find(
+      (event: TypedEvent) => event.event === "CreatedGatedEdition"
+    ) as CreatedGatedEditionEvent | null;
 
-    expect(createdApprovingEditionEvent).to.not.be.null;
-    expect(createdApprovingEditionEvent.args.editionId).to.eq(0);
-    expect(createdApprovingEditionEvent.args.creator).to.eq(signers[0].address);
-    expect(createdApprovingEditionEvent.args.editionSize).to.eq(100);
-    expect(createdApprovingEditionEvent.args.wrapperContractAddress).to.not.be
+    expect(createdGatedEditionEvent).to.not.be.null;
+    expect(createdGatedEditionEvent.args.editionId).to.eq(0);
+    expect(createdGatedEditionEvent.args.creator).to.eq(signers[0].address);
+    expect(createdGatedEditionEvent.args.editionSize).to.eq(100);
+    expect(createdGatedEditionEvent.args.wrapperContractAddress).to.not.be
       .null;
-    expect(createdApprovingEditionEvent.args.underlyingContractAddress).to.eq(
+    expect(createdGatedEditionEvent.args.underlyingContractAddress).to.eq(
       await singleEditionMintableCreator.getEditionAtId(0)
     );
   });
