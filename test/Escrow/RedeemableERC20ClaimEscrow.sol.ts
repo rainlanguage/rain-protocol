@@ -133,7 +133,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       signers[0].address
     );
 
-    const supply0 = (await getEventArgs(sweep0, "Deposit", claim.address))[3];
+    const supply0 = (await getEventArgs(sweep0, "Deposit", claim)).supply;
 
     // Distribution Status is Success
     assert(
@@ -193,7 +193,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       depositAmount
     );
 
-    const supply1 = (await getEventArgs(deposit1, "Deposit", claim.address))[3];
+    const supply1 = (await getEventArgs(deposit1, "Deposit", claim)).supply;
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
@@ -310,7 +310,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       signers[0].address
     );
-    const supply0 = (await getEventArgs(deposit0, "Deposit", claim.address))[3];
+    const supply0 = (await getEventArgs(deposit0, "Deposit", claim)).supply;
 
     // Distribution Status is Success
     assert(
@@ -371,7 +371,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       depositAmount
     );
-    const supply1 = (await getEventArgs(deposit1, "Deposit", claim.address))[3];
+    const supply1 = (await getEventArgs(deposit1, "Deposit", claim)).supply;
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
@@ -482,7 +482,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       signers[0].address
     );
-    const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
+    const supply = (await getEventArgs(deposit, "Deposit", claim)).supply;
 
     // Distribution Status is Success
     assert(
@@ -641,7 +641,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       signers[0].address
     );
-    const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
+    const supply = (await getEventArgs(deposit, "Deposit", claim)).supply;
 
     // Distribution Status is Success
     assert(
@@ -775,7 +775,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       signers[0].address
     );
-    const supply0 = (await getEventArgs(deposit0, "Deposit", claim.address))[3];
+    const supply0 = (await getEventArgs(deposit0, "Deposit", claim)).supply;
 
     // read registered value
     const deposited0 = await claim.deposits(

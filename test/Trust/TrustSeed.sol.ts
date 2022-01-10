@@ -119,8 +119,8 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
-
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
+      .seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -368,7 +368,8 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
+      .seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -489,7 +490,8 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
+      .seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -609,7 +611,8 @@ describe("TrustSeed", async function () {
 
       await trust.deployed();
 
-      const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+      const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
+        .seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,
@@ -888,9 +891,8 @@ describe("TrustSeed", async function () {
 
       await trust.deployed();
 
-      console.log({ tx: (await txDeploy.wait()).events });
-
-      const seeder = (await Util.getEventArgs(txDeploy, "Initialize")).seeder;
+      const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
+        .seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,

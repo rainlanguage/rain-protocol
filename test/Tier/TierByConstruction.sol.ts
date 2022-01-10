@@ -41,7 +41,7 @@ describe("TierByConstruction", async function () {
     tierByConstructionInitializeArgs = await getEventArgs(
       tierByConstruction.deployTransaction,
       "TierByConstructionInitialize",
-      tierByConstruction.address
+      tierByConstruction
     );
   });
 
