@@ -10,8 +10,8 @@ contract GatedSingleEditionMintableCreator {
     address private factory;
 
     event CreatedGatedEdition(
-        uint256 indexed editionId,
-        address indexed creator,
+        uint256 editionId,
+        address creator,
         uint256 editionSize,
         address wrapperContractAddress,
         address underlyingContractAddress
