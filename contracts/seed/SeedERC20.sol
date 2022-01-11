@@ -2,9 +2,8 @@
 pragma solidity ^0.8.10;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
-import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
+
+import "../erc20/ERC20Redeem.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -93,11 +92,9 @@ struct SeedERC20Config {
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
 contract SeedERC20 is
-    ERC20Upgradeable,
     Phased,
     Cooldown,
     ERC20Pull,
-    IERC20Burnable,
     ERC20Redeem
 {
     using Math for uint256;
@@ -259,11 +256,6 @@ contract SeedERC20 is
         emit Unseed(msg.sender, units_, reserveAmount_);
 
         reserve.safeTransfer(msg.sender, reserveAmount_);
-    }
-
-    /// @inheritdoc IERC20Burnable
-    function burn(uint amount_) public {
-        _burn(msg.sender, amount_);
     }
 
     /// Burn seed tokens for pro-rata reserve assets.

@@ -2,11 +2,12 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./IERC20Burnable.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+// solhint-disable-next-line max-line-length
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 
-contract ERC20Redeem {
+contract ERC20Redeem is ERC20BurnableUpgradeable {
     using SafeERC20 for IERC20;
 
     event Redeem(
@@ -59,7 +60,7 @@ contract ERC20Redeem {
 
         // Burn FIRST (reentrancy safety).
         // This assumes implementing contract has implemented the interface.
-        IERC20Burnable(address(this)).burn(redeemAmount_);
+        _burn(msg.sender, redeemAmount_);
 
         // THEN send all assets.
         for (uint256 i_ = 0; i_ < assetsLength_; i_++) {

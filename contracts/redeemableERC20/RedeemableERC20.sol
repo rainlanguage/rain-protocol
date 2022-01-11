@@ -3,7 +3,6 @@ pragma solidity ^0.8.10;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
-import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
@@ -99,8 +98,7 @@ contract RedeemableERC20 is
     TierByConstruction,
     ERC20Pull,
     ERC20Upgradeable,
-    ERC20Redeem,
-    IERC20Burnable
+    ERC20Redeem
 {
     using SafeERC20 for IERC20;
 
@@ -242,11 +240,6 @@ contract RedeemableERC20 is
                 _burn(distributor_, balanceOf(distributor_));
             }
         }
-    }
-
-    /// @inheritdoc IERC20Burnable
-    function burn(uint256 amount_) public {
-        _burn(msg.sender, amount_);
     }
 
     function redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
