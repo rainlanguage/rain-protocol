@@ -240,7 +240,7 @@ describe("ERC20TransferTier", async function () {
 
     await expect(setTier1Promise)
       .to.emit(erc20TransferTier, "TierChange")
-      .withArgs(alice.address, Tier.ZERO, Tier.ONE);
+      .withArgs(alice.address, alice.address, Tier.ZERO, Tier.ONE);
 
     await setTier1Promise;
 
@@ -282,7 +282,7 @@ describe("ERC20TransferTier", async function () {
 
     await expect(setTier2Promise)
       .to.emit(erc20TransferTier, "TierChange")
-      .withArgs(alice.address, Tier.ONE, Tier.TWO);
+      .withArgs(alice.address, alice.address, Tier.ONE, Tier.TWO);
 
     await setTier2Promise;
 

@@ -309,7 +309,9 @@ contract Trust is Phased {
         /// Address that provides the initial reserve token seed.
         address seeder,
         /// Redeemable erc20 token that is minted and distributed.
-        address redeemableERC20
+        address redeemableERC20,
+        /// Success balance calculated from the config.
+        uint256 successBalance
     );
 
     event StartDutchAuction(
@@ -515,8 +517,13 @@ contract Trust is Phased {
         );
         crp = IConfigurableRightsPool(crp_);
 
-        emit Initialize(config_, crp_, seeder_, address(redeemableERC20_));
-
+        emit Initialize(
+            config_,
+            crp_,
+            seeder_,
+            address(redeemableERC20_),
+            successBalance_
+        );
         schedulePhase(PHASE_PENDING, block.number);
     }
 
@@ -958,7 +965,7 @@ contract Trust is Phased {
     /// atomically after `endDutchAuction`.
     function transferAuctionTokens() public onlyAtLeastPhase(PHASE_ENDED) {
         IERC20 reserve_ = reserve;
-        IERC20 token_ = token;
+        RedeemableERC20 token_ = token;
         address creator_ = creator;
         address seeder_ = seeder;
 
@@ -1003,7 +1010,7 @@ contract Trust is Phased {
         external
         onlyAtLeastPhase(PHASE_CAN_END)
     {
-        uint startPhase_ = currentPhase();
+        uint256 startPhase_ = currentPhase();
         require(
             blockNumberForPhase(phaseBlocks, startPhase_) +
                 creatorFundsReleaseTimeout <=
@@ -1043,5 +1050,4 @@ contract Trust is Phased {
         emit CreatorFundsRelease(msg.sender, token_, amount_);
         IERC20(token_).safeIncreaseAllowance(creator, amount_);
     }
-
 }

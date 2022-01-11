@@ -2,9 +2,9 @@
 pragma solidity ^0.8.10;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
 import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
 import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -98,7 +98,7 @@ contract RedeemableERC20 is
     Phased,
     TierByConstruction,
     ERC20Pull,
-    ERC20Initializable,
+    ERC20Upgradeable,
     ERC20Redeem,
     IERC20Burnable
 {
@@ -148,7 +148,7 @@ contract RedeemableERC20 is
 
         initializeTierByConstruction(config_.tier);
         initializeERC20Pull(ERC20PullConfig(config_.admin, config_.reserve));
-        initializeERC20(config_.erc20Config);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
 
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
@@ -261,7 +261,7 @@ contract RedeemableERC20 is
     /// During `Phase.ONE` all transfers except burns are prevented.
     /// If a transfer involves either a sender or receiver with the SENDER
     /// or RECEIVER role, respectively, it will bypass these restrictions.
-    /// @inheritdoc ERC20
+    /// @inheritdoc ERC20Upgradeable
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,

@@ -30,10 +30,7 @@ export const deployGlobals = async () => {
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-  const { trustFactory, seedERC20Factory } = await Util.factoriesDeploy(
-    crpFactory,
-    bFactory
-  );
+  const { trustFactory } = await Util.factoriesDeploy(crpFactory, bFactory);
 
   // Deploy global Claim contract
   const claimFactory = await ethers.getContractFactory(
@@ -49,7 +46,6 @@ export const deployGlobals = async () => {
     tierFactory,
     tier,
     trustFactory,
-    seedERC20Factory,
     claimFactory,
     claim,
   };
@@ -58,7 +54,6 @@ export const deployGlobals = async () => {
 export const basicSetup = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
-  seedERC20Factory: SeedERC20Factory & Contract,
   tier: ReadWriteTier & Contract
 ) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
@@ -92,7 +87,7 @@ export const basicSetup = async (
 
   const trustFactory1 = trustFactory.connect(deployer);
 
-  const trust = await Util.trustDeploy(
+  const [trust] = await Util.trustDeploy(
     trustFactory1,
     creator,
     {

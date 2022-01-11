@@ -54,10 +54,7 @@ describe("TrustTrade", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -87,7 +84,7 @@ describe("TrustTrade", async function () {
     await tier.setTier(signerGold.address, Tier.GOLD, []);
     await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -254,10 +251,7 @@ describe("TrustTrade", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -281,7 +275,7 @@ describe("TrustTrade", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -376,10 +370,7 @@ describe("TrustTrade", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -403,7 +394,7 @@ describe("TrustTrade", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -629,10 +620,7 @@ describe("TrustTrade", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -661,7 +649,7 @@ describe("TrustTrade", async function () {
     await tier.setTier(signerGold.address, Tier.GOLD, []);
     await tier.setTier(signerPlatinum.address, Tier.PLATINUM, []);
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -809,10 +797,7 @@ describe("TrustTrade", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -911,7 +896,7 @@ describe("TrustTrade", async function () {
       actual ratio    ${actualRatio}`
     );
 
-    const trust = await Util.trustDeploy(
+    const [trust] = await Util.trustDeploy(
       trustFactory2,
       creator,
       {

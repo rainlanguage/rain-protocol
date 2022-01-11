@@ -57,7 +57,8 @@
     "@0xsequence/sstore2": "git+https://github.com/0xsequence/sstore2.git#b9233bcf1bbbbed37f9029e0355ac3026cd3563b",
     "@beehiveinnovation/balancer-core": "0.0.7",
     "@beehiveinnovation/configurable-rights-pool": "0.0.1",
-    "@openzeppelin/contracts": "^4.3.3"
+    "@openzeppelin/contracts": "^4.3.3",
+    "@openzeppelin/contracts-upgradeable": "^4.4.1"
   },
   "overrides": {
     "ethers": "5.5.2"

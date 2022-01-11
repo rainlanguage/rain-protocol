@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
 import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -93,7 +93,7 @@ struct SeedERC20Config {
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
 contract SeedERC20 is
-    ERC20Initializable,
+    ERC20Upgradeable,
     Phased,
     Cooldown,
     ERC20Pull,
@@ -157,7 +157,7 @@ contract SeedERC20 is
             ERC20PullConfig(config_.recipient, address(config_.reserve))
         );
         initializeCooldown(config_.cooldownDuration);
-        initializeERC20(config_.erc20Config);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
         recipient = config_.recipient;
         reserve = config_.reserve;
         seedPrice = config_.seedPrice;
@@ -176,7 +176,7 @@ contract SeedERC20 is
         schedulePhase(PHASE_SEEDING, block.number);
     }
 
-    /// @inheritdoc ERC20
+    /// @inheritdoc ERC20Upgradeable
     function decimals() public pure override returns (uint8) {
         return 0;
     }

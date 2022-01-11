@@ -11,13 +11,7 @@ chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { expect, assert } = chai;
 
-let verifyFactory;
-
 describe("VerifyTier", async function () {
-  before(async () => {
-    verifyFactory = await ethers.getContractFactory("Verify");
-  });
-
   it("should correctly verify tier", async function () {
     this.timeout(0);
 

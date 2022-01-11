@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionTest } from "../../typechain/TierByConstructionTest";
 import type { TierByConstructionClaimTest } from "../../typechain/TierByConstructionClaimTest";
-import { assertError } from "../Util";
+import { assertError, getEventArgs } from "../Util";
 import type { Contract, ContractFactory } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -18,6 +18,7 @@ describe("TierByConstruction", async function () {
   let tierByConstructionFactory: ContractFactory;
   let readWriteTier: ReadWriteTier & Contract;
   let tierByConstruction: TierByConstructionTest;
+  let tierByConstructionInitializeArgs;
 
   beforeEach(async () => {
     [owner, alice] = await ethers.getSigners();
@@ -31,10 +32,17 @@ describe("TierByConstruction", async function () {
     tierByConstructionFactory = await ethers.getContractFactory(
       "TierByConstructionTest"
     );
+
     tierByConstruction = (await tierByConstructionFactory.deploy(
       readWriteTier.address
     )) as TierByConstructionTest & Contract;
     await tierByConstruction.deployed();
+
+    tierByConstructionInitializeArgs = await getEventArgs(
+      tierByConstruction.deployTransaction,
+      "TierByConstructionInitialize",
+      tierByConstruction
+    );
   });
 
   it("should enforce the account has held the tier according to isTier, as a modifier", async () => {
@@ -53,11 +61,15 @@ describe("TierByConstruction", async function () {
 
   it("should return the parameters entered in the constructor", async function () {
     const now = await ethers.provider.getBlockNumber();
-    const constructionBlock = await tierByConstruction.constructionBlock();
+    const constructionBlock =
+      tierByConstructionInitializeArgs.constructionBlockNumber;
 
     assert(constructionBlock.eq(now));
 
-    assert(readWriteTier.address === (await tierByConstruction.tierContract()));
+    assert(
+      readWriteTier.address ===
+        (await tierByConstructionInitializeArgs.tierContract)
+    );
   });
 
   it("should return false if isTier is queried with a wrong tier than the current tier", async function () {
