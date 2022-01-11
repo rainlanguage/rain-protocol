@@ -305,7 +305,9 @@ contract Trust is Phased, Initializable {
         /// Address that provides the initial reserve token seed.
         address seeder,
         /// Redeemable erc20 token that is minted and distributed.
-        address redeemableERC20
+        address redeemableERC20,
+        /// Success balance calculated from the config.
+        uint256 successBalance
     );
 
     event StartDutchAuction(
@@ -511,7 +513,13 @@ contract Trust is Phased, Initializable {
         );
         crp = IConfigurableRightsPool(crp_);
 
-        emit Initialize(config_, crp_, seeder_, address(redeemableERC20_));
+        emit Initialize(
+            config_,
+            crp_,
+            seeder_,
+            address(redeemableERC20_),
+            successBalance_
+        );
     }
 
     function setupRedeemableERC20(
