@@ -59,7 +59,6 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
         }
 
         // Burn FIRST (reentrancy safety).
-        // This assumes implementing contract has implemented the interface.
         _burn(msg.sender, redeemAmount_);
 
         // THEN send all assets.
