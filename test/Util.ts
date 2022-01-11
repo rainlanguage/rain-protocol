@@ -603,20 +603,20 @@ export type Constants = [
 
 export const getEventArgs = async (
   tx: ContractTransaction,
-  event: string,
+  eventName: string,
   emittingContract: Contract
 ): Promise<Result> => {
   const eventObj = (await tx.wait()).events.find(
     (x) =>
-      x.topics[0] == emittingContract.filters[event]().topics[0] &&
+      x.topics[0] == emittingContract.filters[eventName]().topics[0] &&
       x.address == emittingContract.address
   );
 
   if (!eventObj) {
-    throw new Error(`Could not find event with name ${event}`);
+    throw new Error(`Could not find event with name ${eventName}`);
   }
 
-  return emittingContract.interface.decodeEventLog(event, eventObj.data);
+  return emittingContract.interface.decodeEventLog(eventName, eventObj.data);
 };
 
 export function selectLte(logic: number, mode: number, length: number): number {
