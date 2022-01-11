@@ -105,7 +105,7 @@ describe("Trust", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -136,7 +136,8 @@ describe("Trust", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -1289,7 +1290,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -1320,8 +1321,14 @@ describe("Trust", async function () {
 
     await trust.deployed();
 
+    const { config: configEvent } = await Util.getEventArgs(
+      txDeploy,
+      "Initialize",
+      trust
+    );
+
     assert(
-      !(await trust.reserveInit()).isZero(),
+      !configEvent.reserveInit.isZero(),
       "reserveInit variable was zero on trust construction"
     );
 

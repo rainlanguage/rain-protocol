@@ -412,7 +412,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "Division or modulo division by zero",
+      "RESERVE_INIT_MINIMUM",
       "setting reserveInit to zero did not error"
     );
   });
@@ -533,7 +533,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -564,7 +564,17 @@ describe("TrustConstruction", async function () {
 
     await trust.deployed();
 
-    const successBalance = await trust.successBalance();
+    const { config: configEvent } = await Util.getEventArgs(
+      txDeploy,
+      "Initialize",
+      trust
+    );
+
+    // TODO: Should remain as calculation from config?
+    const successBalance = configEvent.reserveInit
+      .add(configEvent.seederFee)
+      .add(configEvent.redeemInit)
+      .add(configEvent.minimumCreatorRaise);
 
     assert(
       successLevel.eq(successBalance),
@@ -616,7 +626,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -647,14 +657,17 @@ describe("TrustConstruction", async function () {
 
     await trust.deployed();
 
-    assert((await trust.creator()) === creator.address, "wrong creator");
-    assert((await trust.seeder()) === seeder.address, "wrong seeder");
+    const { seeder: seederEvent, config: configEvent } =
+      await Util.getEventArgs(txDeploy, "Initialize", trust);
+
+    assert(configEvent.creator === creator.address, "wrong creator");
+    assert(seederEvent === seeder.address, "wrong seeder");
     assert(
-      (await trust.minimumCreatorRaise()).eq(minimumCreatorRaise),
+      configEvent.minimumCreatorRaise.eq(minimumCreatorRaise),
       "wrong minimum raise amount"
     );
-    assert((await trust.seederFee()).eq(seederFee), "wrong seeder fee");
-    assert((await trust.redeemInit()).eq(redeemInit), "wrong redeem init");
+    assert(configEvent.seederFee.eq(seederFee), "wrong seeder fee");
+    assert(configEvent.redeemInit.eq(redeemInit), "wrong redeem init");
   });
 
   it("should configure tier correctly", async function () {
@@ -1059,8 +1072,8 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "MIN_TOKEN_SUPPLY",
-      "did not enforce restriction that minted tokens be greater than liquidity"
+      "MIN_WEIGHT_VALUATION",
+      "did not enforce restriction that valuation weight be greater than minimum weight"
     );
   });
 

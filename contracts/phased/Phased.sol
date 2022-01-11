@@ -37,7 +37,7 @@ enum Phase {
 /// A single hook `_beforeScheduleNextPhase` is provided so contracts can
 /// implement additional phase shift checks.
 ///
-/// One event `PhaseShiftScheduled` is emitted each time a phase shift is
+/// One event `PhaseScheduled` is emitted each time a phase shift is
 /// scheduled (not when the scheduled phase is reached).
 ///
 /// @dev `Phased` contracts have a defined timeline with available
@@ -155,7 +155,7 @@ contract Phased {
     /// Only uninitialized blocks can be written to.
     /// Only the immediate next phase relative to `currentPhase` can be written
     /// to.
-    /// Emits `PhaseShiftScheduled` with the next phase block.
+    /// Emits `PhaseScheduled` with the next phase block.
     /// @param nextPhaseBlock_ The block for the next phase.
     function scheduleNextPhase(uint256 nextPhaseBlock_) internal {
         require(block.number <= nextPhaseBlock_, "NEXT_BLOCK_PAST");

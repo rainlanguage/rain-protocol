@@ -92,7 +92,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -123,7 +123,8 @@ describe("RedeemableERC20Pool", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -349,7 +350,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -380,7 +381,8 @@ describe("RedeemableERC20Pool", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -505,7 +507,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -536,7 +538,16 @@ describe("RedeemableERC20Pool", async function () {
 
     await trust.deployed();
 
-    const finalWeight = await trust.finalWeight();
+    const { config: configEvent } = await Util.getEventArgs(
+      txDeploy,
+      "Initialize",
+      trust
+    );
+
+    // TODO: Should remain as calculation from config?
+    const finalWeight = ethers.BigNumber.from(
+      configEvent.finalValuation + Util.eighteenZeros
+    ).div(configEvent.reserveInit);
 
     assert(
       finalWeight.eq(finalValuation.mul(Util.ONE).div(reserveInit)),
@@ -596,7 +607,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -627,7 +638,8 @@ describe("RedeemableERC20Pool", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -844,7 +856,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -881,7 +893,8 @@ describe("RedeemableERC20Pool", async function () {
       "owner was wrongly able to exit raise before trading was started"
     );
 
-    const seeder = await trust.seeder();
+    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -1053,7 +1066,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1084,7 +1097,8 @@ describe("RedeemableERC20Pool", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -1315,7 +1329,7 @@ describe("RedeemableERC20Pool", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const [trust, txDeploy] = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1346,7 +1360,8 @@ describe("RedeemableERC20Pool", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
