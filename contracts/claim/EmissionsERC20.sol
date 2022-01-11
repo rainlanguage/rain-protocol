@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
@@ -12,7 +11,7 @@ import {BlockOps} from "../vm/ops/BlockOps.sol";
 import {ThisOps} from "../vm/ops/ThisOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
-import {ERC20Initializable} from "../erc20/ERC20Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /// Constructor config.
 struct EmissionsERC20Config {
@@ -41,10 +40,10 @@ struct EmissionsERC20Config {
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract EmissionsERC20 is
     Initializable,
-    ERC20Initializable,
+    RainVM,
+    ERC20Upgradeable,
     IClaim,
-    ReadOnlyTier,
-    RainVM
+    ReadOnlyTier
 {
     /// Contract has initialized.
     event Initialize(
@@ -114,7 +113,11 @@ contract EmissionsERC20 is
         external
         initializer
     {
-        initializeERC20(config_.erc20Config);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
+        _mint(
+            config_.erc20Config.distributor,
+            config_.erc20Config.initialSupply
+        );
 
         vmStatePointer = VMState.snapshot(
             VMState.newState(config_.vmStateConfig)

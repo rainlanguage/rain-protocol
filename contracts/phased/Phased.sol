@@ -44,7 +44,7 @@ contract Phased {
     /// Every phase block starts uninitialized.
     /// Only uninitialized blocks can be set by the phase scheduler.
     uint32 private constant UNINITIALIZED = type(uint32).max;
-    uint private constant MAX_PHASE = 8;
+    uint256 private constant MAX_PHASE = 8;
 
     /// `PhaseScheduled` is emitted when the next phase is scheduled.
     event PhaseScheduled(
@@ -95,7 +95,7 @@ contract Phased {
     function phaseAtBlockNumber(
         uint32[8] memory phaseBlocks_,
         uint256 blockNumber_
-    ) public pure returns (uint) {
+    ) public pure returns (uint256) {
         for (uint256 i_ = 0; i_ < MAX_PHASE; i_++) {
             if (blockNumber_ < phaseBlocks_[i_]) {
                 return i_;
@@ -111,7 +111,7 @@ contract Phased {
     /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
     /// @param phase_ Determine the relevant block number for this phase.
     /// @return The block number for the phase according to `phaseBlocks_`.
-    function blockNumberForPhase(uint32[8] memory phaseBlocks_, uint phase_)
+    function blockNumberForPhase(uint32[8] memory phaseBlocks_, uint256 phase_)
         public
         pure
         returns (uint256)
@@ -123,13 +123,13 @@ contract Phased {
     /// contract state.
     /// Simply wraps `phaseAtBlockNumber` for current values of `phaseBlocks`
     /// and `block.number`.
-    function currentPhase() public view returns (uint) {
+    function currentPhase() public view returns (uint256) {
         return phaseAtBlockNumber(phaseBlocks, block.number);
     }
 
     /// Modifies functions to only be callable in a specific phase.
     /// @param phase_ Modified functions can only be called during this phase.
-    modifier onlyPhase(uint phase_) {
+    modifier onlyPhase(uint256 phase_) {
         require(currentPhase() == phase_, "BAD_PHASE");
         _;
     }
@@ -138,7 +138,7 @@ contract Phased {
     /// specified phase has passed.
     /// @param phase_ Modified function only callable during or after this
     /// phase.
-    modifier onlyAtLeastPhase(uint phase_) {
+    modifier onlyAtLeastPhase(uint256 phase_) {
         require(currentPhase() >= phase_, "MIN_PHASE");
         _;
     }
@@ -151,13 +151,13 @@ contract Phased {
     /// Emits `PhaseShiftScheduled` with the phase block.
     /// @param phase_ The phase being scheduled.
     /// @param phaseBlock_ The block for the phase.
-    function schedulePhase(uint phase_, uint256 phaseBlock_) internal {
+    function schedulePhase(uint256 phase_, uint256 phaseBlock_) internal {
         require(block.number <= phaseBlock_, "NEXT_BLOCK_PAST");
         require(phaseBlock_ < UNINITIALIZED, "NEXT_BLOCK_UNINITIALIZED");
         // Don't need to check for underflow as the index will be used as a
         // fixed array index below. Implies that scheduling phase `0` is NOT
         // supported.
-        uint index_;
+        uint256 index_;
         unchecked {
             index_ = phase_ - 1;
         }

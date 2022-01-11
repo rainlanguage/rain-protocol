@@ -298,7 +298,7 @@ contract BPoolFeeEscrow is TrustEscrow {
                 maxPrice_
             );
         // Return the result of the swap to `msg.sender`.
-        IERC20(token_).safeTransfer(msg.sender, tokenAmountOut_);
+        IERC20(address(token_)).safeTransfer(msg.sender, tokenAmountOut_);
         // Mimic return signature of `swapExactAmountIn`.
         return ((tokenAmountOut_, spotPriceAfter_));
     }

@@ -2,9 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
-import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
-import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
+import "../erc20/ERC20Redeem.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -89,14 +87,7 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is
-    Phased,
-    TierByConstruction,
-    ERC20Pull,
-    ERC20Initializable,
-    ERC20Redeem,
-    IERC20Burnable
-{
+contract RedeemableERC20 is Phased, TierByConstruction, ERC20Redeem, ERC20Pull {
     using SafeERC20 for IERC20;
 
     /// Phase constants.
@@ -142,7 +133,11 @@ contract RedeemableERC20 is
         initializePhased();
 
         initializeTierByConstruction(config_.tier);
-        initializeERC20(config_.erc20Config);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
+        _mint(
+            config_.erc20Config.distributor,
+            config_.erc20Config.initialSupply
+        );
         initializeERC20Pull(
             ERC20PullConfig(config_.erc20Config.distributor, config_.reserve)
         );
@@ -244,11 +239,6 @@ contract RedeemableERC20 is
         }
     }
 
-    /// @inheritdoc IERC20Burnable
-    function burn(uint256 amount_) public {
-        _burn(msg.sender, amount_);
-    }
-
     function redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
         external
         onlyPhase(PHASE_FROZEN)
@@ -261,7 +251,7 @@ contract RedeemableERC20 is
     /// During `Phase.ONE` all transfers except burns are prevented.
     /// If a transfer involves either a sender or receiver with the SENDER
     /// or RECEIVER role, respectively, it will bypass these restrictions.
-    /// @inheritdoc ERC20
+    /// @inheritdoc ERC20Upgradeable
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,

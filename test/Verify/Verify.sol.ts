@@ -31,13 +31,7 @@ const BANNER_ADMIN = ethers.utils.keccak256(
 );
 const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
-let verifyFactory;
-
 describe("Verify", async function () {
-  before(async () => {
-    verifyFactory = await ethers.getContractFactory("Verify");
-  });
-
   it("should allow anyone to submit data to support a request to ban an account", async function () {
     this.timeout(0);
 

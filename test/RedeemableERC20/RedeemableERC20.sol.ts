@@ -439,8 +439,8 @@ describe("RedeemableERC20", async function () {
     const now = await ethers.provider.getBlockNumber();
 
     await expect(redeemableERC20.burnDistributors([Util.oneAddress]))
-      .to.emit(redeemableERC20, "PhaseShiftScheduled")
-      .withArgs(now + 1);
+      .to.emit(redeemableERC20, "PhaseScheduled")
+      .withArgs(signers[0].address, Phase.ONE, now + 1);
 
     // Funds need to be frozen once redemption phase begins.
     await Util.assertError(

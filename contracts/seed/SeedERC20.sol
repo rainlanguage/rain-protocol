@@ -2,9 +2,8 @@
 pragma solidity ^0.8.10;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
-import {IERC20Burnable} from "../erc20/IERC20Burnable.sol";
-import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
+
+import "../erc20/ERC20Redeem.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -91,14 +90,7 @@ struct SeedERC20Config {
 /// at a later date.
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
-contract SeedERC20 is
-    ERC20Initializable,
-    Phased,
-    Cooldown,
-    ERC20Pull,
-    IERC20Burnable,
-    ERC20Redeem
-{
+contract SeedERC20 is Phased, Cooldown, ERC20Redeem, ERC20Pull {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -154,11 +146,14 @@ contract SeedERC20 is
 
         // Force initial supply to mint to this contract as distributor.
         config_.erc20Config.distributor = address(this);
-        initializeERC20(config_.erc20Config);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
+        _mint(
+            config_.erc20Config.distributor,
+            config_.erc20Config.initialSupply
+        );
         initializeERC20Pull(
             ERC20PullConfig(config_.recipient, address(config_.reserve))
         );
-
         recipient = config_.recipient;
         reserve = config_.reserve;
         seedPrice = config_.seedPrice;
@@ -175,7 +170,7 @@ contract SeedERC20 is
         schedulePhase(PHASE_SEEDING, block.number);
     }
 
-    /// @inheritdoc ERC20
+    /// @inheritdoc ERC20Upgradeable
     function decimals() public pure override returns (uint8) {
         return 0;
     }
@@ -258,11 +253,6 @@ contract SeedERC20 is
         emit Unseed(msg.sender, units_, reserveAmount_);
 
         reserve.safeTransfer(msg.sender, reserveAmount_);
-    }
-
-    /// @inheritdoc IERC20Burnable
-    function burn(uint256 amount_) public {
-        _burn(msg.sender, amount_);
     }
 
     /// Burn seed tokens for pro-rata reserve assets.

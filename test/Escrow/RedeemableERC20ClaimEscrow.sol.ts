@@ -8,7 +8,6 @@ import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { Contract } from "ethers";
-import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
 import { getEventArgs } from "../Util";
 
 chai.use(solidity);
@@ -38,13 +37,12 @@ enum DistributionStatus {
 
 let claim: RedeemableERC20ClaimEscrow & Contract,
   trustFactory: TrustFactory,
-  seedERC20Factory: SeedERC20Factory,
   tier: ReadWriteTier,
   claimableReserveToken: ReserveToken & Contract;
 
 describe("RedeemableERC20ClaimEscrow", async function () {
   before(async () => {
-    ({ claim, trustFactory, seedERC20Factory, tier } = await deployGlobals());
+    ({ claim, trustFactory, tier } = await deployGlobals());
   });
 
   beforeEach(async () => {
@@ -73,7 +71,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -133,7 +131,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       signers[0].address
     );
 
-    const supply0 = (await getEventArgs(sweep0, "Deposit", claim.address))[3];
+    const supply0 = (await getEventArgs(sweep0, "Deposit", claim)).supply;
 
     // Distribution Status is Success
     assert(
@@ -145,12 +143,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
-
-    const claimableTokensInEscrowDeposit0 = await claim.totalDeposits(
-      trust.address,
-      claimableReserveToken.address,
-      await redeemableERC20.totalSupply()
-    );
 
     // signer1 should withdraw roughly 50% of claimable tokens in escrow
     await claim
@@ -171,7 +163,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
-      totalDeposits   ${claimableTokensInEscrowDeposit0}
       expected        ${expectedSigner1Withdrawal0}
       got             ${actualSigner1Withdrawal0}`
     );
@@ -193,7 +184,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       depositAmount
     );
 
-    const supply1 = (await getEventArgs(deposit1, "Deposit", claim.address))[3];
+    const supply1 = (await getEventArgs(deposit1, "Deposit", claim)).supply;
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
@@ -251,7 +242,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -310,7 +301,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       signers[0].address
     );
-    const supply0 = (await getEventArgs(deposit0, "Deposit", claim.address))[3];
+    const supply0 = (await getEventArgs(deposit0, "Deposit", claim)).supply;
 
     // Distribution Status is Success
     assert(
@@ -322,12 +313,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
-
-    const claimableTokensInEscrowDeposit0 = await claim.totalDeposits(
-      trust.address,
-      claimableReserveToken.address,
-      await redeemableERC20.totalSupply()
-    );
 
     // signer1 should withdraw roughly 25% of claimable tokens in escrow
     await claim
@@ -348,7 +333,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
-      totalDeposits   ${claimableTokensInEscrowDeposit0}
       expected        ${expectedSigner1Withdrawal0}
       got             ${actualSigner1Withdrawal0}`
     );
@@ -371,7 +355,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       depositAmount
     );
-    const supply1 = (await getEventArgs(deposit1, "Deposit", claim.address))[3];
+    const supply1 = (await getEventArgs(deposit1, "Deposit", claim)).supply;
 
     const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
       trust.address,
@@ -422,7 +406,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -482,7 +466,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       signers[0].address
     );
-    const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
+    const supply = (await getEventArgs(deposit, "Deposit", claim)).supply;
 
     // Distribution Status is Success
     assert(
@@ -493,12 +477,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
-
-    const claimableTokensInEscrow = await claim.totalDeposits(
-      trust.address,
-      claimableReserveToken.address,
-      await redeemableERC20.totalSupply()
-    );
 
     const expectedWithdrawal = depositAmount.mul(signer1Prop).div(Util.ONE);
 
@@ -517,7 +495,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
-      totalDeposits   ${claimableTokensInEscrow}
       expected        ${expectedWithdrawal}
       got             ${actualWithdrawal}`
     );
@@ -553,7 +530,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       minimumTradingDuration,
       successLevel,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -641,7 +618,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       signers[0].address
     );
-    const supply = (await getEventArgs(deposit, "Deposit", claim.address))[3];
+    const { supply } = await getEventArgs(deposit, "Deposit", claim);
 
     // Distribution Status is Success
     assert(
@@ -649,16 +626,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not SUCCESS"
     );
 
-    await claim
+    const txWithdraw0 = await claim
       .connect(signer1)
       .withdraw(trust.address, claimableReserveToken.address, supply);
 
-    const registeredWithdrawnAmountSigner1 = await claim.withdrawals(
-      trust.address,
-      claimableReserveToken.address,
-      signer1.address,
-      await redeemableERC20.totalSupply()
-    );
+    const { amount: registeredWithdrawnAmountSigner1 } =
+      await Util.getEventArgs(txWithdraw0, "Withdraw", claim);
 
     // total amount withdrawn and registered value should match
     assert(
@@ -684,8 +657,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       crp,
       bPool,
       minimumTradingDuration,
-      creator,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -726,7 +698,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount0);
 
-    await claim.depositPending(
+    const txDepositPending0 = await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount0
@@ -775,14 +747,13 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       claimableReserveToken.address,
       signers[0].address
     );
-    const supply0 = (await getEventArgs(deposit0, "Deposit", claim.address))[3];
 
-    // read registered value
-    const deposited0 = await claim.deposits(
-      trust.address,
-      claimableReserveToken.address,
-      creator.address,
-      await redeemableERC20.totalSupply()
+    const { supply: supply0 } = await getEventArgs(deposit0, "Deposit", claim);
+
+    const { amount: deposited0 } = await Util.getEventArgs(
+      txDepositPending0,
+      "PendingDeposit",
+      claim
     );
 
     assert(
@@ -850,8 +821,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       crp,
       bPool,
       minimumTradingDuration,
-      creator,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -892,7 +862,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount0);
 
-    await claim.depositPending(
+    const txDepositPending0 = await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount0
@@ -915,12 +885,10 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const supply = await redeemableERC20.totalSupply();
 
-    // read registered value
-    const deposited0 = await claim.deposits(
-      trust.address,
-      claimableReserveToken.address,
-      creator.address,
-      supply
+    const { amount: deposited0 } = await Util.getEventArgs(
+      txDepositPending0,
+      "PendingDeposit",
+      claim
     );
 
     assert(
@@ -971,8 +939,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       bPool,
       successLevel,
       minimumTradingDuration,
-      creator,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -1013,17 +980,16 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount0);
 
-    await claim.depositPending(
+    const txDepositPending0 = await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount0
     );
 
-    // read registered value
-    const deposited0 = await claim.pendingDeposits(
-      trust.address,
-      claimableReserveToken.address,
-      creator.address
+    const { amount: deposited0 } = await Util.getEventArgs(
+      txDepositPending0,
+      "PendingDeposit",
+      claim
     );
 
     assert(
@@ -1058,17 +1024,16 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // creator deposits some tokens for claiming
     await claimableReserveToken.approve(claim.address, depositAmount1);
 
-    await claim.depositPending(
+    const txDepositPending1 = await claim.depositPending(
       trust.address,
       claimableReserveToken.address,
       depositAmount1
     );
 
-    // read registered value
-    const deposited1 = await claim.pendingDeposits(
-      trust.address,
-      claimableReserveToken.address,
-      creator.address
+    const { amount: deposited1 } = await Util.getEventArgs(
+      txDepositPending1,
+      "PendingDeposit",
+      claim
     );
 
     assert(
@@ -1101,18 +1066,16 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       signers[0].address
     );
 
-    await claim.deposit(
+    const txDeposit0 = await claim.deposit(
       trust.address,
       claimableReserveToken.address,
       depositAmount2
     );
 
-    // read registered value
-    const deposited2 = await claim.deposits(
-      trust.address,
-      claimableReserveToken.address,
-      creator.address,
-      await redeemableERC20.totalSupply()
+    const { amount: deposited2 } = await Util.getEventArgs(
+      txDeposit0,
+      "Deposit",
+      claim
     );
 
     assert(
@@ -1124,6 +1087,8 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       got       ${deposited2}`
     );
 
+    // TODO: Do we need to retest this now we have moved to events?
+    /*
     const totalDeposits = await claim.totalDeposits(
       trust.address,
       claimableReserveToken.address,
@@ -1134,6 +1099,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       totalDeposits.eq(depositAmount2.add(depositAmount1.add(depositAmount0))),
       "actual total tokens deposited and registered total amount do not match (3)"
     );
+    */
   });
 
   it("should check that trust address is child of trust factory when depositing", async function () {
