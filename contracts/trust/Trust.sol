@@ -942,7 +942,7 @@ contract Trust is Phased, Initializable {
     /// atomically after `endDutchAuction`.
     function transferAuctionTokens() public onlyAtLeastPhase(Phase.THREE) {
         IERC20 reserve_ = reserve;
-        IERC20 token_ = token;
+        RedeemableERC20 token_ = token;
         address creator_ = creator;
         address seeder_ = seeder;
 

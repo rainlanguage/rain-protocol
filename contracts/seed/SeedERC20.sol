@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import {ERC20, ERC20Initializable} from "../erc20/ERC20Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -93,11 +91,10 @@ struct SeedERC20Config {
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
 contract SeedERC20 is
-    ERC20Initializable,
+    ERC20Upgradeable,
     Phased,
     Cooldown,
-    ERC20Pull,
-    Initializable
+    ERC20Pull
 {
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -158,7 +155,7 @@ contract SeedERC20 is
         );
         initializePhased();
         initializeCooldown(config_.cooldownDuration);
-        initializeERC20(config_.erc20Config);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
         recipient = config_.recipient;
         reserve = config_.reserve;
         seedPrice = config_.seedPrice;
@@ -172,7 +169,7 @@ contract SeedERC20 is
         );
     }
 
-    /// @inheritdoc ERC20
+    /// @inheritdoc ERC20Upgradeable
     function decimals() public pure override returns (uint8) {
         return 0;
     }
