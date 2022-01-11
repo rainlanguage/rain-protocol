@@ -440,7 +440,7 @@ describe("RedeemableERC20", async function () {
 
     await expect(redeemableERC20.burnDistributors([Util.oneAddress]))
       .to.emit(redeemableERC20, "PhaseScheduled")
-      .withArgs(now + 1);
+      .withArgs(signers[0].address, Phase.ONE, now + 1);
 
     // Funds need to be frozen once redemption phase begins.
     await Util.assertError(
