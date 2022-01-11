@@ -2,8 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import {ERC20Redeem} from "../erc20/ERC20Redeem.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "../erc20/ERC20Redeem.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -96,9 +95,8 @@ struct RedeemableERC20Config {
 contract RedeemableERC20 is
     Phased,
     TierByConstruction,
-    ERC20Pull,
-    ERC20Upgradeable,
-    ERC20Redeem
+    ERC20Redeem,
+    ERC20Pull
 {
     using SafeERC20 for IERC20;
 

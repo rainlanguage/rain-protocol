@@ -94,8 +94,8 @@ struct SeedERC20Config {
 contract SeedERC20 is
     Phased,
     Cooldown,
-    ERC20Pull,
-    ERC20Redeem
+    ERC20Redeem,
+    ERC20Pull
 {
     using Math for uint256;
     using SafeERC20 for IERC20;
