@@ -615,11 +615,11 @@ export const getEventArgs = async (
   contract: Contract,
   contractAddressOverride: string = null
 ): Promise<Result> => {
-  const eventObj = (await tx.wait()).events.find((x) =>
-    x.topics[0] == contract.filters[eventName]().topics[0] &&
-    x.address == contractAddressOverride
-      ? contractAddressOverride
-      : contract.address
+  const eventObj = (await tx.wait()).events.find(
+    (x) =>
+      x.topics[0] == contract.filters[eventName]().topics[0] &&
+      x.address ==
+        (contractAddressOverride ? contractAddressOverride : contract.address)
   );
 
   if (!eventObj) {

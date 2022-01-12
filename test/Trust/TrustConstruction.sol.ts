@@ -105,7 +105,7 @@ describe("TrustConstruction", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust1] = await Util.trustDeploy(
+    const trust1 = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -134,7 +134,7 @@ describe("TrustConstruction", async function () {
       { gasLimit: 100000000 }
     );
 
-    const [trust2] = await Util.trustDeploy(
+    const trust2 = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
