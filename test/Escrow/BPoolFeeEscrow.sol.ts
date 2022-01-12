@@ -389,13 +389,6 @@ describe("BPoolFeeEscrow", async function () {
     const { reserve, trust, recipient, signer1, bPoolFeeEscrow } =
       await basicSetup(signers, trustFactory, tier);
 
-    const registeredTrustFactory = await bPoolFeeEscrow.trustedFactory();
-
-    assert(
-      registeredTrustFactory === getAddress(trustFactory.address),
-      "trust factory was not correctly registered on construction"
-    );
-
     const buyTokensViaEscrow = async (signer, spend, fee) => {
       // give signer some reserve
       await reserve.transfer(signer.address, spend.add(fee));
