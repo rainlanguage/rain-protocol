@@ -106,7 +106,7 @@ contract BPoolFeeEscrow is TrustEscrow {
     /// receives all the fees collected under a trust in a single claim.
     /// Fee claims are mutually exclusive with refund claims.
     /// trust => recipient => amount
-    mapping(address => mapping(address => uint256)) private fees;
+    mapping(address => mapping(address => uint256)) internal fees;
 
     /// Refunds for a trust are the same as the sum of all its fees.
     /// Denominated in the reserve asset of the trust.
@@ -115,7 +115,7 @@ contract BPoolFeeEscrow is TrustEscrow {
     /// All fees are forwarded to the same token address which is singular per
     /// trust.
     /// trust => amount
-    mapping(address => uint256) private totalFees;
+    mapping(address => uint256) internal totalFees;
 
     /// @param trustFactory_ forwarded to `TrustEscrow` only.
     constructor(address trustFactory_)
