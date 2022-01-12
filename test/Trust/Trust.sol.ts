@@ -299,7 +299,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -470,7 +470,7 @@ describe("Trust", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -556,7 +556,7 @@ describe("Trust", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -715,7 +715,7 @@ describe("Trust", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -859,7 +859,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -1003,7 +1003,7 @@ describe("Trust", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -1167,7 +1167,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -1412,7 +1412,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -1585,7 +1585,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -1693,7 +1693,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -1806,7 +1806,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -1930,7 +1930,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -2046,7 +2046,7 @@ describe("Trust", async function () {
     await tier.setTier(signer1.address, Tier.GOLD, []);
     await tier.setTier(signer2.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -2408,7 +2408,7 @@ describe("Trust", async function () {
     await tier.setTier(signer1.address, Tier.GOLD, []);
     await tier.setTier(signer2.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -2745,7 +2745,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -2856,7 +2856,7 @@ describe("Trust", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -2985,7 +2985,7 @@ describe("Trust", async function () {
     await tier.setTier(signer1.address, Tier.GOLD, []);
     await tier.setTier(signer2.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -3177,7 +3177,7 @@ describe("Trust", async function () {
     await tier.setTier(signer1.address, Tier.GOLD, []);
     await tier.setTier(signer2.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {
@@ -3352,7 +3352,7 @@ describe("Trust", async function () {
 
     const trustFactory1 = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory1,
       creator,
       {

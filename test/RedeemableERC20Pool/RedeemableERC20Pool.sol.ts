@@ -1546,7 +1546,7 @@ describe("RedeemableERC20Pool", async function () {
 
     await Util.assertError(
       async () => {
-        const [trust] = await Util.trustDeploy(
+        const trust = await Util.trustDeploy(
           trustFactoryDeployer,
           creator,
           {

@@ -221,7 +221,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -708,7 +708,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -795,7 +795,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
