@@ -186,12 +186,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const supply1 = (await getEventArgs(deposit1, "Deposit", claim)).supply;
 
-    const claimableTokensInEscrowDeposit1 = await claim.totalDeposits(
-      trust.address,
-      claimableReserveToken.address,
-      await redeemableERC20.totalSupply()
-    );
-
     // recalculate real RedeemableERC20 proportions
     const signer1PropAfterBurn = (
       await redeemableERC20.balanceOf(signer1.address)
@@ -218,7 +212,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       signer1Prop     ${signer1Prop.toString().slice(0, 2)}.${signer1Prop
         .toString()
         .slice(3)}%
-      totalDeposits   ${claimableTokensInEscrowDeposit1}
       expected        ${expectedSigner1Withdrawal1}
       got             ${actualSigner1Withdrawal1}`
     );
@@ -1086,20 +1079,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       )} = ${depositAmount2} + ${depositAmount1} + ${depositAmount0}
       got       ${deposited2}`
     );
-
-    // TODO: Do we need to retest this now we have moved to events?
-    /*
-    const totalDeposits = await claim.totalDeposits(
-      trust.address,
-      claimableReserveToken.address,
-      await redeemableERC20.totalSupply()
-    );
-
-    assert(
-      totalDeposits.eq(depositAmount2.add(depositAmount1.add(depositAmount0))),
-      "actual total tokens deposited and registered total amount do not match (3)"
-    );
-    */
   });
 
   it("should check that trust address is child of trust factory when depositing", async function () {

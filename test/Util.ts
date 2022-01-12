@@ -358,7 +358,7 @@ export const trustDeploy = async (
   trustRedeemableERC20Config: TrustRedeemableERC20ConfigStruct,
   trustSeedERC20Config: TrustSeedERC20ConfigStruct,
   ...args
-): Promise<[Trust & Contract, ContractTransaction]> => {
+): Promise<Trust & Contract> => {
   const txDeploy = await trustFactory.createChildTyped(
     trustConfig,
     trustRedeemableERC20Config,
@@ -385,7 +385,7 @@ export const trustDeploy = async (
 
   await trust.deployed();
 
-  return [trust, txDeploy];
+  return trust;
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
@@ -601,22 +601,32 @@ export type Constants = [
   BigNumberish
 ];
 
+/**
+ *
+ * @param tx - transaction where event occurs
+ * @param eventName - name of event
+ * @param contract - contract object holding the address, filters, interface
+ * @param contractAddressOverride - (optional) override the contract address which emits this event
+ * @returns Event arguments, can be deconstructed by array index or by object key
+ */
 export const getEventArgs = async (
   tx: ContractTransaction,
   eventName: string,
-  emittingContract: Contract
+  contract: Contract,
+  contractAddressOverride: string = null
 ): Promise<Result> => {
-  const eventObj = (await tx.wait()).events.find(
-    (x) =>
-      x.topics[0] == emittingContract.filters[eventName]().topics[0] &&
-      x.address == emittingContract.address
+  const eventObj = (await tx.wait()).events.find((x) =>
+    x.topics[0] == contract.filters[eventName]().topics[0] &&
+    x.address == contractAddressOverride
+      ? contractAddressOverride
+      : contract.address
   );
 
   if (!eventObj) {
     throw new Error(`Could not find event with name ${eventName}`);
   }
 
-  return emittingContract.interface.decodeEventLog(eventName, eventObj.data);
+  return contract.interface.decodeEventLog(eventName, eventObj.data);
 };
 
 export function selectLte(logic: number, mode: number, length: number): number {

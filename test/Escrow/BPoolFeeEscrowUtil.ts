@@ -82,7 +82,7 @@ export const basicSetup = async (
 
   await tier.setTier(signer1.address, Tier.GOLD, []);
 
-  const [trust, txDeploy] = await Util.trustDeploy(
+  const trust = await Util.trustDeploy(
     trustFactory1,
     creator,
     {
@@ -130,10 +130,17 @@ export const basicSetup = async (
     creator
   ) as RedeemableERC20 & Contract;
 
+  const { implementation } = await Util.getEventArgs(
+    trustFactory.deployTransaction,
+    "Implementation",
+    trustFactory
+  );
+
   const { bPoolFeeEscrow: bPoolFeeEscrowAddress } = await Util.getEventArgs(
-    txDeploy,
+    trustFactory.deployTransaction,
     "Construction",
-    trust
+    trust,
+    implementation
   );
 
   const bPoolFeeEscrow = new ethers.Contract(

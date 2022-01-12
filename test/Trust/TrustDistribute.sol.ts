@@ -101,7 +101,7 @@ describe("TrustDistribute", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust, txDeploy] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -132,7 +132,11 @@ describe("TrustDistribute", async function () {
 
     await trust.deployed();
 
-    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+    const { seeder } = await Util.getEventArgs(
+      trust.deployTransaction,
+      "Initialize",
+      trust
+    );
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
