@@ -385,6 +385,10 @@ export const trustDeploy = async (
 
   await trust.deployed();
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  trust.deployTransaction = txDeploy;
+
   return trust;
 };
 
