@@ -43,11 +43,12 @@ describe("ERC20BalanceTier", async function () {
     const erc20BalanceTierFactory = await ethers.getContractFactory(
       "ERC20BalanceTier"
     );
-    erc20BalanceTier = (await erc20BalanceTierFactory.deploy()) as ERC20BalanceTier & Contract;
+    erc20BalanceTier =
+      (await erc20BalanceTierFactory.deploy()) as ERC20BalanceTier & Contract;
     await erc20BalanceTier.initialize({
       erc20: reserve.address,
       tierValues: LEVELS,
-    })
+    });
 
     await erc20BalanceTier.deployed();
   });

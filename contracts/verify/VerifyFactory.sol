@@ -12,7 +12,9 @@ contract VerifyFactory is Factory {
     address private immutable implementation;
 
     constructor() {
-        implementation = address(new Verify());
+        address implementation_ = address(new Verify());
+        emit Implementation(msg.sender, implementation_);
+        implementation = implementation_;
     }
 
     /// @inheritdoc Factory

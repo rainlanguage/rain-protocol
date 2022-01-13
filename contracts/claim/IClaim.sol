@@ -10,9 +10,11 @@ interface IClaim {
     /// not even requiring an "amount" or similar. Instead there is a generic
     /// `data` field where contextual information can be logged for offchain
     /// processing.
+    /// @param sender `msg.sender` authorizing the claim.
     /// @param claimant The claimant receiving the `Claim`.
     /// @param data Associated data for the claim call.
     event Claim(
+        address sender,
         address claimant,
         bytes data
     );

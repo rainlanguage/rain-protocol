@@ -11,9 +11,9 @@ struct PoolParams {
     string poolTokenSymbol;
     string poolTokenName;
     address[] constituentTokens;
-    uint[] tokenBalances;
-    uint[] tokenWeights;
-    uint swapFee;
+    uint256[] tokenBalances;
+    uint256[] tokenWeights;
+    uint256 swapFee;
 }
 
 /// Mirrors the Balancer `ConfigurableRightsPool` functions relevant to Rain.
@@ -33,22 +33,22 @@ interface IConfigurableRightsPool {
     // solhint-disable-next-line max-line-length
     // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L318
     function createPool(
-        uint initialSupply,
-        uint minimumWeightChangeBlockPeriodParam,
-        uint addTokenTimeLockInBlocksParam
+        uint256 initialSupply,
+        uint256 minimumWeightChangeBlockPeriodParam,
+        uint256 addTokenTimeLockInBlocksParam
     ) external;
 
     // solhint-disable-next-line max-line-length
     // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L393
     function updateWeightsGradually(
-        uint[] calldata newWeights,
-        uint startBlock,
-        uint endBlock
+        uint256[] calldata newWeights,
+        uint256 startBlock,
+        uint256 endBlock
     ) external;
 
     // solhint-disable-next-line max-line-length
     // https://github.com/balancer-labs/configurable-rights-pool/blob/5bd63657ac71a9e5f8484ea561de572193b3317b/contracts/ConfigurableRightsPool.sol#L581
-    function exitPool(uint poolAmountIn, uint[] calldata minAmountsOut)
+    function exitPool(uint256 poolAmountIn, uint256[] calldata minAmountsOut)
         external;
 
     // solhint-disable-next-line max-line-length

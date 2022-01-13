@@ -11,18 +11,18 @@ struct State {
     /// Notably `ZIPMAP` can also select a source to execute by index.
     bytes[] sources;
     /// Constants that can be copied to the stack by index by `VAL`.
-    uint[] constants;
+    uint256[] constants;
     /// `ZIPMAP` populates arguments which can be copied to the stack by `VAL`.
-    uint[] arguments;
+    uint256[] arguments;
     /// Stack is the general purpose runtime state that opcodes can read from
     /// and write to according to their functionality.
-    uint[] stack;
+    uint256[] stack;
     /// Opcodes write to the stack at the stack index and can consume from the
     /// stack by decrementing the index and reading between the old and new
     /// stack index.
     /// IMPORANT: The stack is never zeroed out so the index must be used to
     /// find the "top" of the stack as the result of an `eval`.
-    uint stackIndex;
+    uint256 stackIndex;
 }
 
 /// @title RainVM
@@ -85,22 +85,21 @@ struct State {
 /// up very quickly. Implementing contracts and opcode packs SHOULD require
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
-
     /// `0` is a skip as this is the fallback value for unset solidity bytes.
     /// Any additional "whitespace" in rain scripts will be noops as `0 0` is
     /// "skip self". The val can be used to skip additional opcodes but take
     /// care to not underflow the source itself.
-    uint constant private OP_SKIP = 0;
+    uint256 private constant OP_SKIP = 0;
     /// `1` copies a value either off `constants` or `arguments` to the top of
     /// the stack. The high bit of the operand specifies which, `0` for
     /// `constants` and `1` for `arguments`.
-    uint constant private OP_VAL = 1;
+    uint256 private constant OP_VAL = 1;
     /// `2` takes N values off the stack, interprets them as an array then zips
     /// and maps a source from `sources` over them. The source has access to
     /// the original constants using `1 0` and to zipped arguments as `1 1`.
-    uint constant private OP_ZIPMAP = 2;
+    uint256 private constant OP_ZIPMAP = 2;
     /// Number of provided opcodes for `RainVM`.
-    uint constant internal OPS_LENGTH = 3;
+    uint256 internal constant OPS_LENGTH = 3;
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -134,13 +133,13 @@ abstract contract RainVM {
     function zipmap(
         bytes memory context_,
         State memory state_,
-        uint operand_
+        uint256 operand_
     ) internal view {
         unchecked {
-            uint sourceIndex_;
-            uint stepSize_;
-            uint offset_;
-            uint valLength_;
+            uint256 sourceIndex_;
+            uint256 stepSize_;
+            uint256 offset_;
+            uint256 valLength_;
             // assembly here to shave some gas.
             assembly {
                 // rightmost 2 bits are the index of the source to use from
@@ -168,21 +167,18 @@ abstract contract RainVM {
             }
             state_.stackIndex -= valLength_;
 
-            uint[] memory baseVals_ = new uint[](valLength_);
-            for (uint a_ = 0; a_ < valLength_; a_++) {
+            uint256[] memory baseVals_ = new uint256[](valLength_);
+            for (uint256 a_ = 0; a_ < valLength_; a_++) {
                 baseVals_[a_] = state_.stack[state_.stackIndex + a_];
             }
 
-            for (uint step_ = 0; step_ < 256; step_ += stepSize_) {
-                for (uint a_ = 0; a_ < valLength_; a_++) {
-                    state_.arguments[a_]
-                        = (baseVals_[a_] << offset_ - step_) >> offset_;
+            for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
+                for (uint256 a_ = 0; a_ < valLength_; a_++) {
+                    state_.arguments[a_] =
+                        (baseVals_[a_] << (offset_ - step_)) >>
+                        offset_;
                 }
-                eval(
-                    context_,
-                    state_,
-                    sourceIndex_
-                );
+                eval(context_, state_, sourceIndex_);
             }
         }
     }
@@ -202,16 +198,16 @@ abstract contract RainVM {
     function eval(
         bytes memory context_,
         State memory state_,
-        uint sourceIndex_
+        uint256 sourceIndex_
     ) internal view {
         unchecked {
             // Op memory op_;
             // less gas to read this once.
             bytes memory source_ = state_.sources[sourceIndex_];
-            uint i_;
-            uint opcode_;
-            uint operand_;
-            uint valIndex_;
+            uint256 i_;
+            uint256 opcode_;
+            uint256 operand_;
+            uint256 valIndex_;
             bool fromArguments_;
             i_ = source_.length;
             // Loop until 0.
@@ -235,10 +231,11 @@ abstract contract RainVM {
                 if (opcode_ < OPS_LENGTH) {
                     if (opcode_ == OP_SKIP) {
                         // Skipping opcodes is simply decreasing i_.
-                        assembly { i_ := sub(i_, mul(operand_, 2)) }
+                        assembly {
+                            i_ := sub(i_, mul(operand_, 2))
+                        }
                         continue;
-                    }
-                    else if (opcode_ == OP_VAL) {
+                    } else if (opcode_ == OP_VAL) {
                         assembly {
                             // All low bits are the index at which to copy a
                             // value from to the stack.
@@ -252,8 +249,7 @@ abstract contract RainVM {
                             ? state_.arguments[valIndex_]
                             : state_.constants[valIndex_];
                         state_.stackIndex++;
-                    }
-                    else if (opcode_ == OP_ZIPMAP) {
+                    } else if (opcode_ == OP_ZIPMAP) {
                         // state_ modified by reference.
                         zipmap(context_, state_, operand_);
                     }
@@ -286,11 +282,7 @@ abstract contract RainVM {
     function applyOp(
         bytes memory context_,
         State memory state_,
-        uint opcode_,
-        uint operand_
-    )
-    internal
-    virtual
-    view
-    { } //solhint-disable-line no-empty-blocks
+        uint256 opcode_,
+        uint256 operand_
+    ) internal view virtual {} //solhint-disable-line no-empty-blocks
 }

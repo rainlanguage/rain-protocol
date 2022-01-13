@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// Constructor config for `ERC20Pull`.
 struct ERC20PullConfig {
@@ -30,14 +30,19 @@ struct ERC20PullConfig {
 /// where anons can force the implementing contract to call an arbitrary
 /// external contract.
 contract ERC20Pull {
-
     using SafeERC20 for IERC20;
 
+    event ERC20PullInitialize(
+        address sender,
+        address tokenSender,
+        address token
+    );
+
     /// The `sender` that this contract will attempt to pull tokens from.
-    address public sender;
+    address private sender;
     /// The ERC20 token that this contract will attempt to pull to itself from
     /// `sender`.
-    address public token;
+    address private token;
 
     /// Initialize the sender and token.
     /// @param config_ `ERC20PullConfig` to initialize.
@@ -52,6 +57,7 @@ contract ERC20Pull {
         assert(token == address(0));
         sender = config_.sender;
         token = config_.token;
+        emit ERC20PullInitialize(msg.sender, config_.sender, config_.token);
     }
 
     /// Attempts to transfer `amount_` of `token` to this contract.
@@ -60,11 +66,7 @@ contract ERC20Pull {
     /// Also relies on `token` not being malicious.
     /// @param amount_ The amount to attempt to pull to the implementing
     /// contract.
-    function pullERC20(uint amount_) external {
-        IERC20(token).safeTransferFrom(
-            sender,
-            address(this),
-            amount_
-        );
+    function pullERC20(uint256 amount_) external {
+        IERC20(token).safeTransferFrom(sender, address(this), amount_);
     }
 }

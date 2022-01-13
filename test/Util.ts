@@ -244,62 +244,62 @@ export const poolContracts = async (
   return [crp, bPool];
 };
 
-export const verifyDeploy = async (deployer,config) => {
-  const factoryFactory = await ethers.getContractFactory("VerifyFactory")
-  const factory = await factoryFactory.deploy() as VerifyFactory
-  await factory.deployed()
-  const tx = await factory.createChildTyped(config)
+export const verifyDeploy = async (deployer, config) => {
+  const factoryFactory = await ethers.getContractFactory("VerifyFactory");
+  const factory = (await factoryFactory.deploy()) as VerifyFactory;
+  await factory.deployed();
+  const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address))[1]
+        (await getEventArgs(tx, "NewChild", factory)).child
       ),
       20
     ),
     (await artifacts.readArtifact("Verify")).abi,
     deployer
-  ) as Verify & Contract
-  await contract.deployed()
-  return contract
-}
+  ) as Verify & Contract;
+  await contract.deployed();
+  return contract;
+};
 
-export const verifyTierDeploy = async (deployer,config) => {
-  const factoryFactory = await ethers.getContractFactory("VerifyTierFactory")
-  const factory = await factoryFactory.deploy() as VerifyTierFactory
-  await factory.deployed()
-  const tx = await factory.createChildTyped(config)
+export const verifyTierDeploy = async (deployer, config) => {
+  const factoryFactory = await ethers.getContractFactory("VerifyTierFactory");
+  const factory = (await factoryFactory.deploy()) as VerifyTierFactory;
+  await factory.deployed();
+  const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address))[1]
+        (await getEventArgs(tx, "NewChild", factory)).child
       ),
       20
     ),
     (await artifacts.readArtifact("VerifyTier")).abi,
     deployer
-  ) as VerifyTier & Contract
-  await contract.deployed()
-  return contract
-}
+  ) as VerifyTier & Contract;
+  await contract.deployed();
+  return contract;
+};
 
-export const combineTierDeploy = async (deployer,config) => {
-  const factoryFactory = await ethers.getContractFactory("CombineTierFactory")
-  const factory = await factoryFactory.deploy() as CombineTierFactory
-  await factory.deployed()
-  const tx = await factory.createChildTyped(config)
+export const combineTierDeploy = async (deployer, config) => {
+  const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
+  const factory = (await factoryFactory.deploy()) as CombineTierFactory;
+  await factory.deployed();
+  const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory.address))[1]
+        (await getEventArgs(tx, "NewChild", factory)).child
       ),
       20
     ),
     (await artifacts.readArtifact("CombineTier")).abi,
     deployer
-  ) as CombineTier & Contract
-  await contract.deployed()
-  return contract
-}
+  ) as CombineTier & Contract;
+  await contract.deployed();
+  return contract;
+};
 
 export const redeemableERC20Deploy = async (deployer, config) => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
@@ -313,7 +313,7 @@ export const redeemableERC20Deploy = async (deployer, config) => {
   const redeemableERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", redeemableERC20Factory.address))[1]
+        (await getEventArgs(tx, "NewChild", redeemableERC20Factory)).child
       ),
       20
     ),
@@ -338,7 +338,7 @@ export const seedERC20Deploy = async (deployer, config) => {
   const seedERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", seedERC20Factory.address))[1]
+        (await getEventArgs(tx, "NewChild", seedERC20Factory)).child
       ),
       20
     ),
@@ -359,7 +359,7 @@ export const trustDeploy = async (
   trustSeedERC20Config: TrustSeedERC20ConfigStruct,
   ...args
 ): Promise<Trust & Contract> => {
-  const tx = await trustFactory.createChildTyped(
+  const txDeploy = await trustFactory.createChildTyped(
     trustConfig,
     trustRedeemableERC20Config,
     trustSeedERC20Config,
@@ -369,7 +369,7 @@ export const trustDeploy = async (
   const trust = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", trustFactory.address))[1]
+        (await getEventArgs(txDeploy, "NewChild", trustFactory)).child
       ),
       20 // address bytes length
     ),
@@ -384,6 +384,10 @@ export const trustDeploy = async (
   }
 
   await trust.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  trust.deployTransaction = txDeploy;
 
   return trust;
 };
@@ -601,14 +605,33 @@ export type Constants = [
   BigNumberish
 ];
 
+/**
+ *
+ * @param tx - transaction where event occurs
+ * @param eventName - name of event
+ * @param contract - contract object holding the address, filters, interface
+ * @param contractAddressOverride - (optional) override the contract address which emits this event
+ * @returns Event arguments, can be deconstructed by array index or by object key
+ */
 export const getEventArgs = async (
   tx: ContractTransaction,
-  event: string,
-  contractAddress: string
-): Promise<Result> =>
-  (await tx.wait()).events.find(
-    (x) => x.event == event && x.address == contractAddress
-  ).args;
+  eventName: string,
+  contract: Contract,
+  contractAddressOverride: string = null
+): Promise<Result> => {
+  const eventObj = (await tx.wait()).events.find(
+    (x) =>
+      x.topics[0] == contract.filters[eventName]().topics[0] &&
+      x.address ==
+        (contractAddressOverride ? contractAddressOverride : contract.address)
+  );
+
+  if (!eventObj) {
+    throw new Error(`Could not find event with name ${eventName}`);
+  }
+
+  return contract.interface.decodeEventLog(eventName, eventObj.data);
+};
 
 export function selectLte(logic: number, mode: number, length: number): number {
   let lte = logic;

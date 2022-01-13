@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
@@ -11,7 +11,7 @@ import {BlockOps} from "../vm/ops/BlockOps.sol";
 import {ThisOps} from "../vm/ops/ThisOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
-import {ERC20Initializable} from "../erc20/ERC20Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /// Constructor config.
 struct EmissionsERC20Config {
@@ -40,11 +40,18 @@ struct EmissionsERC20Config {
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract EmissionsERC20 is
     Initializable,
-    ERC20Initializable,
+    ERC20Upgradeable,
     IClaim,
     ReadOnlyTier,
     RainVM
 {
+    /// Contract has initialized.
+    event Initialize(
+        address sender,
+        bool allowDelegatedClaims,
+        uint256 constructionBlockNumber
+    );
+
     /// @dev local opcode to put claimant account on the stack.
     uint256 private constant CLAIMANT_ACCOUNT = 0;
     /// @dev local opcode to put this contract's deploy block on the stack.
@@ -85,7 +92,7 @@ contract EmissionsERC20 is
 
     /// Each claim is modelled as a report so that the claim report can be
     /// diffed against the upstream report from a tier based emission scheme.
-    mapping(address => uint256) public reports;
+    mapping(address => uint256) private reports;
 
     /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
     constructor() {
@@ -106,13 +113,20 @@ contract EmissionsERC20 is
         external
         initializer
     {
-        initializeERC20(config_.erc20Config);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
+
+        vmStatePointer = VMState.snapshot(
+            VMState.newState(config_.vmStateConfig)
+        );
+
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
         constructionBlockNumber = block.number;
 
-        vmStatePointer = VMState.snapshot(
-            VMState.newState(config_.vmStateConfig)
+        emit Initialize(
+            msg.sender,
+            allowDelegatedClaims,
+            constructionBlockNumber
         );
     }
 
@@ -177,7 +191,10 @@ contract EmissionsERC20 is
         override
         returns (uint256)
     {
-        return reports[account_] > 0 ? reports[account_] : TierReport.NEVER;
+        return
+            reports[account_] > 0
+                ? reports[account_]
+                : TierConstants.NEVER_REPORT;
     }
 
     /// Calculates the claim without processing it.
@@ -220,13 +237,17 @@ contract EmissionsERC20 is
         // This can be diffed/combined with external reports in future claim
         // calculations.
         reports[claimant_] = TierReport.updateBlocksForTierRange(
-            TierReport.NEVER,
-            0,
-            8,
+            TierConstants.NEVER_REPORT,
+            TierConstants.TIER_ZERO,
+            TierConstants.TIER_EIGHT,
             block.number
         );
-
-        // Notify the world of the claim.
-        emit Claim(claimant_, data_);
+        emit TierChange(
+            msg.sender,
+            claimant_,
+            TierConstants.TIER_ZERO,
+            TierConstants.TIER_EIGHT
+        );
+        emit Claim(msg.sender, claimant_, data_);
     }
 }

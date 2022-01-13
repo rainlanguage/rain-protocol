@@ -143,7 +143,7 @@ contract Verify is AccessControl, Initializable {
     /// `addedSince` block on a `State` before trusting an equality check on
     /// any other block number.
     /// (i.e. removed or never added)
-    uint32 public constant UNINITIALIZED = 0xFFFFFFFF;
+    uint32 public constant UNINITIALIZED = type(uint32).max;
 
     /// Emitted when evidence is first submitted to approve an account.
     /// The requestor is always the `msg.sender` of the user calling `add`.

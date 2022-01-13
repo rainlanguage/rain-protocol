@@ -39,12 +39,14 @@ pragma solidity ^0.8.10;
 /// reentrant code. Any function that enforces a cooldown also has reentrancy
 /// protection.
 contract Cooldown {
+    event CooldownInitialize(address sender, uint256 cooldownDuration);
+    event CooldownTriggered(address caller, uint256 cooldown);
     /// Time in blocks to restrict access to modified functions.
-    uint public cooldownDuration;
+    uint256 internal cooldownDuration;
 
     /// Every caller has its own cooldown, the minimum block that the caller
     /// call another function sharing the same cooldown state.
-    mapping (address => uint) public cooldowns;
+    mapping(address => uint256) private cooldowns;
     address private caller;
 
     /// Initialize the cooldown duration.
@@ -52,11 +54,12 @@ contract Cooldown {
     /// Cooldown duration must be greater than 0.
     /// Cooldown duration can only be set once.
     /// @param cooldownDuration_ The global cooldown duration.
-    function initializeCooldown(uint cooldownDuration_) internal {
+    function initializeCooldown(uint256 cooldownDuration_) internal {
         require(cooldownDuration_ > 0, "COOLDOWN_0");
         // Reinitialization is a bug.
         assert(cooldownDuration == 0);
         cooldownDuration = cooldownDuration_;
+        emit CooldownInitialize(msg.sender, cooldownDuration_);
     }
 
     /// Modifies a function to enforce the cooldown for `msg.sender`.
@@ -66,7 +69,9 @@ contract Cooldown {
         address caller_ = caller == address(0) ? caller = msg.sender : caller;
         require(cooldowns[caller_] <= block.number, "COOLDOWN");
         // Every action that requires a cooldown also triggers a cooldown.
-        cooldowns[caller_] = block.number + cooldownDuration;
+        uint256 cooldown_ = block.number + cooldownDuration;
+        cooldowns[caller_] = cooldown_;
+        emit CooldownTriggered(caller_, cooldown_);
         _;
         // Refund as much gas as we can.
         delete caller;

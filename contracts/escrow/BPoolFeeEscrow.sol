@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-// solhint-disable-next-line max-line-length
-import { RedeemableERC20, Trust } from "../trust/Trust.sol";
-import { IBPool } from "../pool/IBPool.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {RedeemableERC20, Trust} from "../trust/Trust.sol";
+import {IBPool} from "../pool/IBPool.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { IConfigurableRightsPool } from "../pool/IConfigurableRightsPool.sol";
+import {IConfigurableRightsPool} from "../pool/IConfigurableRightsPool.sol";
 import "./TrustEscrow.sol";
 
 /// Represents fees as they are claimed by a recipient on a per-trust basis.
@@ -17,7 +16,7 @@ struct ClaimedFees {
     address trust;
     // The amount of fees that were claimed.
     // This is denominated in the token claimed.
-    uint claimedFees;
+    uint256 claimedFees;
 }
 
 /// Escrow contract for fees IN ADDITION TO BPool fees.
@@ -75,7 +74,7 @@ contract BPoolFeeEscrow is TrustEscrow {
         /// Trust the fees were collected for.
         address trust,
         /// Amount of fees claimed.
-        uint claimedFees
+        uint256 claimedFees
     );
     /// A refund has been processed for a `Trust`.
     /// ONLY emitted if non-zero fees were refunded.
@@ -86,7 +85,7 @@ contract BPoolFeeEscrow is TrustEscrow {
         /// Fees go to the redeemable token, not the `Trust` itself.
         address trust,
         /// Amount of fees refunded.
-        uint refundedFees
+        uint256 refundedFees
     );
     /// A fee has been set aside for a recipient.
     event Fee(
@@ -97,7 +96,7 @@ contract BPoolFeeEscrow is TrustEscrow {
         /// `Trust` the fee was set aside for.
         address trust,
         /// Amount of fee denominated in the reserve asset of the `trust`.
-        uint fee
+        uint256 fee
     );
 
     /// Fees set aside under a trust for a specific recipient.
@@ -107,7 +106,7 @@ contract BPoolFeeEscrow is TrustEscrow {
     /// receives all the fees collected under a trust in a single claim.
     /// Fee claims are mutually exclusive with refund claims.
     /// trust => recipient => amount
-    mapping(address => mapping(address => uint)) public fees;
+    mapping(address => mapping(address => uint256)) internal fees;
 
     /// Refunds for a trust are the same as the sum of all its fees.
     /// Denominated in the reserve asset of the trust.
@@ -116,12 +115,15 @@ contract BPoolFeeEscrow is TrustEscrow {
     /// All fees are forwarded to the same token address which is singular per
     /// trust.
     /// trust => amount
-    mapping(address => uint) public totalFees;
+    mapping(address => uint256) internal totalFees;
 
     /// @param trustFactory_ forwarded to `TrustEscrow` only.
     constructor(address trustFactory_)
         TrustEscrow(trustFactory_)
-        {} //solhint-disable-line no-empty-blocks
+    //solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 
     /// Anon can pay the gas to send all claimable fees to any recipient.
     /// Caller is expected to infer profitable trusts for the recipient by
@@ -147,28 +149,26 @@ contract BPoolFeeEscrow is TrustEscrow {
     /// @return The fees claimed.
     function claimFees(address recipient_, Trust trust_)
         public
-        returns (uint)
+        returns (uint256)
     {
         EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
         require(escrowStatus_ == EscrowStatus.Success, "NOT_SUCCESS");
 
-        uint amount_ = fees[address(trust_)][recipient_];
-        // Guard against outputs exceeding inputs.
-        // Last `receipient_` gets gas refund.
-        totalFees[(address(trust_))] -= amount_;
+        uint256 amount_ = fees[address(trust_)][recipient_];
 
         // Zero `amount_` is noop not error.
         // Allows batch wrappers to be written that cannot be front run
         // and reverted.
         if (amount_ > 0) {
+            // Guard against outputs exceeding inputs.
+            // Last `receipient_` gets gas refund.
+            totalFees[(address(trust_))] -= amount_;
+
             // Gas refund.
             delete fees[address(trust_)][recipient_];
 
             emit ClaimFees(msg.sender, recipient_, address(trust_), amount_);
-            trust_.reserve().safeTransfer(
-                recipient_,
-                amount_
-            );
+            trust_.reserve().safeTransfer(recipient_, amount_);
         }
         return amount_;
     }
@@ -186,14 +186,11 @@ contract BPoolFeeEscrow is TrustEscrow {
     /// @param trust_ The `Trust` to refund for. This MUST be a child of the
     /// trusted `TrustFactory`.
     /// @return The total refund.
-    function refundFees(Trust trust_)
-        external
-        returns (uint)
-    {
+    function refundFees(Trust trust_) external returns (uint256) {
         EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
         require(escrowStatus_ == EscrowStatus.Fail, "NOT_FAIL");
 
-        uint amount_ = totalFees[address(trust_)];
+        uint256 amount_ = totalFees[address(trust_)];
 
         // Zero `amount_` is noop not error.
         // Allows batch wrappers to be written that cannot be front run
@@ -203,10 +200,7 @@ contract BPoolFeeEscrow is TrustEscrow {
             delete totalFees[address(trust_)];
 
             emit RefundFees(msg.sender, address(trust_), amount_);
-            trust_.reserve().safeTransfer(
-                address(trust_.token()),
-                amount_
-            );
+            trust_.reserve().safeTransfer(address(trust_.token()), amount_);
         }
         return amount_;
     }
@@ -251,14 +245,11 @@ contract BPoolFeeEscrow is TrustEscrow {
     function buyToken(
         address feeRecipient_,
         Trust trust_,
-        uint fee_,
-        uint reserveAmountIn_,
-        uint minTokenAmountOut_,
-        uint maxPrice_
-    )
-        external
-        returns (uint tokenAmountOut, uint spotPriceAfter)
-    {
+        uint256 fee_,
+        uint256 reserveAmountIn_,
+        uint256 minTokenAmountOut_,
+        uint256 maxPrice_
+    ) external returns (uint256 tokenAmountOut, uint256 spotPriceAfter) {
         // Zero fee makes no sense, simply call `swapExactAmountIn` directly
         // rather than using the escrow.
         require(fee_ > 0, "ZERO_FEE");
@@ -295,26 +286,19 @@ contract BPoolFeeEscrow is TrustEscrow {
         );
         // The pool is never approved for anything other than this swap so we
         // can set the allowance directly rather than increment it.
-        IERC20(reserve_).safeApprove(
-            pool_,
-            reserveAmountIn_
-        );
+        IERC20(reserve_).safeApprove(pool_, reserveAmountIn_);
 
         // Perform the swap sans fee.
-        (uint tokenAmountOut_, uint spotPriceAfter_) =
-            IBPool(pool_)
-                .swapExactAmountIn(
-                    address(reserve_),
-                    reserveAmountIn_,
-                    address(token_),
-                    minTokenAmountOut_,
-                    maxPrice_
-                );
+        (uint256 tokenAmountOut_, uint256 spotPriceAfter_) = IBPool(pool_)
+            .swapExactAmountIn(
+                address(reserve_),
+                reserveAmountIn_,
+                address(token_),
+                minTokenAmountOut_,
+                maxPrice_
+            );
         // Return the result of the swap to `msg.sender`.
-        IERC20(token_).safeTransfer(
-            msg.sender,
-            tokenAmountOut_
-        );
+        IERC20(address(token_)).safeTransfer(msg.sender, tokenAmountOut_);
         // Mimic return signature of `swapExactAmountIn`.
         return ((tokenAmountOut_, spotPriceAfter_));
     }

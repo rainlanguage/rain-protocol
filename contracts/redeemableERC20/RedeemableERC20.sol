@@ -1,24 +1,22 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
-import { ERC20Config } from "../erc20/ERC20Config.sol";
-import { ERC20, ERC20Initializable } from "../erc20/ERC20Initializable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20Config} from "../erc20/ERC20Config.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 // solhint-disable-next-line max-line-length
-import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
-import { TierByConstruction } from "../tier/TierByConstruction.sol";
-import { ITier } from "../tier/ITier.sol";
+import {TierByConstruction} from "../tier/TierByConstruction.sol";
+import {ITier} from "../tier/ITier.sol";
 
-import { Phase, Phased } from "../phased/Phased.sol";
+import {Phase, Phased} from "../phased/Phased.sol";
 
-import { ERC20Pull, ERC20PullConfig } from "../erc20/ERC20Pull.sol";
+import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 struct RedeemableERC20Config {
@@ -33,9 +31,9 @@ struct RedeemableERC20Config {
     // Tier contract to compare statuses against on transfer.
     ITier tier;
     // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
-    uint minimumTier;
+    uint256 minimumTier;
     // Number of redeemable tokens to mint.
-    uint totalSupply;
+    uint256 totalSupply;
 }
 
 /// @title RedeemableERC20
@@ -102,25 +100,29 @@ contract RedeemableERC20 is
     Initializable,
     Phased,
     TierByConstruction,
-    ERC20Initializable,
+    ERC20Upgradeable,
     ReentrancyGuard,
     ERC20Pull
-    {
-
+{
     using SafeERC20 for IERC20;
 
     /// Bits for a receiver.
-    uint private constant RECEIVER = 0x1;
+    uint256 private constant RECEIVER = 0x1;
     /// Bits for a sender. Sender is also receiver.
-    uint private constant SENDER = 0x3;
+    uint256 private constant SENDER = 0x3;
 
     /// To be clear, this admin is NOT intended to be an EOA.
     /// This contract is designed assuming the admin is a `Trust` or equivalent
     /// contract that itself does NOT have an admin key.
-    address public admin;
+    address private admin;
     /// Tracks addresses that can always send/receive regardless of phase.
     /// sender/receiver => access bits
-    mapping (address => uint) private access;
+    mapping(address => uint256) private access;
+
+    event Initialize(address sender, address admin, uint256 minimumTier);
+
+    event Sender(address sender, address grantedSender);
+    event Receiver(address sender, address grantedReceiver);
 
     /// Treasury Asset notification.
     /// @param sender The `msg.sender` notifying about this asset.
@@ -135,14 +137,14 @@ contract RedeemableERC20 is
     event Redeem(
         address sender,
         address treasuryAsset,
-        uint[2] redeemAmounts
+        uint256[2] redeemAmounts
     );
 
     /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
     /// The minimum supply enforced by the constructor is "one" token which is
     /// `10 ** 18`.
     /// The minimum supply does not prevent subsequent redemption/burning.
-    uint public constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
+    uint256 public constant MINIMUM_INITIAL_SUPPLY = 10**18;
 
     /// The minimum status that a user must hold to receive transfers during
     /// `Phase.ZERO`.
@@ -150,7 +152,7 @@ contract RedeemableERC20 is
     /// the status is held during `_beforeTokenTransfer`.
     /// Not immutable because it is read during the constructor by the `_mint`
     /// call.
-    uint public minimumTier;
+    uint256 public minimumTier;
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
@@ -160,12 +162,9 @@ contract RedeemableERC20 is
         initializer
     {
         initializeTierByConstruction(config_.tier);
-        initializeERC20Pull(ERC20PullConfig(
-            config_.admin,
-            config_.reserve
-        ));
+        initializeERC20Pull(ERC20PullConfig(config_.admin, config_.reserve));
         initializePhased();
-        initializeERC20(config_.erc20Config);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
 
         require(
             config_.totalSupply >= MINIMUM_INITIAL_SUPPLY,
@@ -184,6 +183,8 @@ contract RedeemableERC20 is
 
         // The reserve must always be one of the treasury assets.
         emit TreasuryAsset(config_.admin, config_.reserve);
+
+        emit Initialize(msg.sender, config_.admin, config_.minimumTier);
 
         // Smoke test on whatever is on the other side of `config_.tier`.
         // It is a common mistake to pass in a contract without the `ITier`
@@ -206,7 +207,7 @@ contract RedeemableERC20 is
     /// A sender is also a receiver.
     /// @param maybeReceiver_ account to check.
     /// @return True if account is a receiver.
-    function isReceiver(address maybeReceiver_) public view returns(bool) {
+    function isReceiver(address maybeReceiver_) public view returns (bool) {
         return access[maybeReceiver_] > 0;
     }
 
@@ -215,12 +216,13 @@ contract RedeemableERC20 is
     function grantReceiver(address newReceiver_) external onlyAdmin {
         // Using `|` preserves sender if previously granted.
         access[newReceiver_] = access[newReceiver_] | RECEIVER;
+        emit Receiver(msg.sender, newReceiver_);
     }
 
     /// Check that an address is a sender.
     /// @param maybeSender_ account to check.
     /// @return True if account is a sender.
-    function isSender(address maybeSender_) public view returns(bool) {
+    function isSender(address maybeSender_) public view returns (bool) {
         return access[maybeSender_] > 1;
     }
 
@@ -229,6 +231,7 @@ contract RedeemableERC20 is
     function grantSender(address newSender_) external onlyAdmin {
         // Sender is also a receiver.
         access[newSender_] = SENDER;
+        emit Sender(msg.sender, newSender_);
     }
 
     /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
@@ -246,9 +249,9 @@ contract RedeemableERC20 is
         onlyAdmin
     {
         scheduleNextPhase(uint32(block.number));
-        for (uint i_ = 0; i_ < distributors_.length; i_++) {
+        for (uint256 i_ = 0; i_ < distributors_.length; i_++) {
             address distributor_ = distributors_[i_];
-            uint distributorBalance_ = balanceOf(distributor_);
+            uint256 distributorBalance_ = balanceOf(distributor_);
             if (distributorBalance_ > 0) {
                 _burn(distributor_, balanceOf(distributor_));
             }
@@ -283,22 +286,19 @@ contract RedeemableERC20 is
     ///
     /// Delegated redemption is NOT supported as users must only burn their own
     /// tokens.
-    function redeem(
-        IERC20[] calldata treasuryAssets_,
-        uint redeemAmount_
-    )
+    function redeem(IERC20[] calldata treasuryAssets_, uint256 redeemAmount_)
         external
         onlyPhase(Phase.ONE)
         nonReentrant
     {
-        uint assetsLength_ = treasuryAssets_.length;
+        uint256 assetsLength_ = treasuryAssets_.length;
         // Guard against redemptions for no treasury assets.
         require(assetsLength_ > 0, "EMPTY_ASSETS");
 
         // The fraction of the assets we release is the fraction of the
         // outstanding total supply of the redeemable burned.
         // Every treasury asset is released in the same proportion.
-        uint supplyBeforeBurn_ = totalSupply();
+        uint256 supplyBeforeBurn_ = totalSupply();
 
         // Redeem __burns__ tokens which reduces the total supply and requires
         // no approval.
@@ -306,11 +306,10 @@ contract RedeemableERC20 is
         // This function is `nonReentrant` but we burn before redeeming anyway.
         _burn(msg.sender, redeemAmount_);
 
-        for(uint i_ = 0; i_ < assetsLength_; i_++) {
+        for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
             IERC20 ithRedeemable_ = treasuryAssets_[i_];
-            uint assetAmount_
-                = ( ithRedeemable_.balanceOf(address(this)) * redeemAmount_ )
-                / supplyBeforeBurn_;
+            uint256 assetAmount_ = (ithRedeemable_.balanceOf(address(this)) *
+                redeemAmount_) / supplyBeforeBurn_;
             /// Guard against zero value redemptions.
             /// Redeemers should simply elide any assets they have 0 claim over
             /// in the `treasuryAssets_` list.
@@ -320,19 +319,16 @@ contract RedeemableERC20 is
                 address(ithRedeemable_),
                 [redeemAmount_, assetAmount_]
             );
-            ithRedeemable_.safeTransfer(
-                msg.sender,
-                assetAmount_
-            );
+            ithRedeemable_.safeTransfer(msg.sender, assetAmount_);
         }
     }
 
     /// Sanity check to ensure `Phase.ONE` is the final phase.
     /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint256 nextPhaseBlock_)
         internal
-        override
         virtual
+        override
     {
         super._beforeScheduleNextPhase(nextPhaseBlock_);
         assert(currentPhase() < Phase.TWO);
@@ -343,16 +339,12 @@ contract RedeemableERC20 is
     /// During `Phase.ONE` all transfers except burns are prevented.
     /// If a transfer involves either a sender or receiver with the SENDER
     /// or RECEIVER role, respectively, it will bypass these restrictions.
-    /// @inheritdoc ERC20
+    /// @inheritdoc ERC20Upgradeable
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
-        uint amount_
-    )
-        internal
-        override
-        virtual
-    {
+        uint256 amount_
+    ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
 
         // Sending tokens to this contract (e.g. instead of redeeming) is
@@ -363,24 +355,25 @@ contract RedeemableERC20 is
         // transfer.
         // We don't want to accidentally cause external errors due to zero
         // value transfers.
-        if (amount_ > 0
+        if (
+            amount_ > 0 &&
             // The sender and receiver lists bypass all access restrictions.
-            && !(isSender(sender_) || isReceiver(receiver_))) {
+            !(isSender(sender_) || isReceiver(receiver_))
+        ) {
             // During `Phase.ZERO` transfers are only restricted by the
             // tier of the recipient.
             Phase currentPhase_ = currentPhase();
             if (currentPhase_ == Phase.ZERO) {
-                require(
-                    isTier(receiver_, minimumTier),
-                    "MIN_TIER"
-                );
+                require(isTier(receiver_, minimumTier), "MIN_TIER");
             }
             // During `Phase.ONE` only token burns are allowed.
             else if (currentPhase_ == Phase.ONE) {
                 require(receiver_ == address(0), "FROZEN");
             }
             // There are no other phases.
-            else { assert(false); }
+            else {
+                assert(false);
+            }
         }
     }
 }

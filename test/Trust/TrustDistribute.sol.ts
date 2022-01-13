@@ -73,10 +73,7 @@ describe("TrustDistribute", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -135,7 +132,11 @@ describe("TrustDistribute", async function () {
 
     await trust.deployed();
 
-    const seeder = await trust.seeder();
+    const { seeder } = await Util.getEventArgs(
+      trust.deployTransaction,
+      "Initialize",
+      trust
+    );
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -292,10 +293,7 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -539,7 +537,7 @@ describe("TrustDistribute", async function () {
           .creatorFundsRelease(reserve.address, reserveTrustBefore)
       )
         .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(reserve.address, reserveTrustBefore);
+        .withArgs(creator.address, reserve.address, reserveTrustBefore);
 
       await expect(
         trust
@@ -547,13 +545,13 @@ describe("TrustDistribute", async function () {
           .creatorFundsRelease(token.address, tokenTrustBefore)
       )
         .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(token.address, tokenTrustBefore);
+        .withArgs(creator.address, token.address, tokenTrustBefore);
 
       await expect(
         trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
       )
         .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(crp.address, crpTrustBefore);
+        .withArgs(creator.address, crp.address, crpTrustBefore);
 
       // perform transfers
       await reserve
@@ -636,10 +634,7 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -886,7 +881,7 @@ describe("TrustDistribute", async function () {
           .creatorFundsRelease(reserve.address, reserveTrustBefore)
       )
         .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(reserve.address, reserveTrustBefore);
+        .withArgs(creator.address, reserve.address, reserveTrustBefore);
 
       await expect(
         trust
@@ -894,13 +889,13 @@ describe("TrustDistribute", async function () {
           .creatorFundsRelease(token.address, tokenTrustBefore)
       )
         .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(token.address, tokenTrustBefore);
+        .withArgs(creator.address, token.address, tokenTrustBefore);
 
       await expect(
         trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
       )
         .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(crp.address, crpTrustBefore);
+        .withArgs(creator.address, crp.address, crpTrustBefore);
 
       // perform transfers
       await reserve
@@ -984,10 +979,7 @@ describe("TrustDistribute", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1147,10 +1139,7 @@ describe("TrustDistribute", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1289,10 +1278,7 @@ describe("TrustDistribute", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1373,10 +1359,7 @@ describe("TrustDistribute", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1517,10 +1500,7 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1660,15 +1640,21 @@ describe("TrustDistribute", async function () {
 
       const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
 
-      await trust.endDutchAuction();
+      const txEnd = await trust.endDutchAuction();
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.SUCCESS,
         "distribution status not successful distribution"
       );
 
+      const { finalBalance } = await Util.getEventArgs(
+        txEnd,
+        "EndDutchAuction",
+        trust
+      );
+
       assert(
-        (await trust.finalBalance()).eq(expectedTrustFinalBalance),
+        finalBalance.eq(expectedTrustFinalBalance),
         "finalBalance was not exposed after trading ended (successful distribution)"
       );
     });
@@ -1693,10 +1679,7 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1802,15 +1785,21 @@ describe("TrustDistribute", async function () {
 
       const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
 
-      await trust.endDutchAuction();
+      const txEnd = await trust.endDutchAuction();
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.FAIL,
         "distribution status was failed"
       );
 
+      const { finalBalance } = await Util.getEventArgs(
+        txEnd,
+        "EndDutchAuction",
+        trust
+      );
+
       assert(
-        (await trust.finalBalance()).eq(expectedTrustFinalBalance),
+        finalBalance.eq(expectedTrustFinalBalance),
         "finalBalance was not exposed after trading ended (failed distribution)"
       );
     });
@@ -1837,10 +1826,7 @@ describe("TrustDistribute", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -1991,10 +1977,7 @@ describe("TrustDistribute", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-      crpFactory,
-      bFactory
-    );
+    const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
     const erc20Config = { name: "Token", symbol: "TKN" };
     const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -2125,10 +2108,7 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
@@ -2299,10 +2279,7 @@ describe("TrustDistribute", async function () {
       const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
       const minimumTier = Tier.GOLD;
 
-      const { trustFactory, seedERC20Factory } = await factoriesDeploy(
-        crpFactory,
-        bFactory
-      );
+      const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
       const erc20Config = { name: "Token", symbol: "TKN" };
       const seedERC20Config = { name: "SeedToken", symbol: "SDT" };

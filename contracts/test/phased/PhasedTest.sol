@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Phase, Phased } from "../../phased/Phased.sol";
+import {Phase, Phased} from "../../phased/Phased.sol";
 
 /// @title PhasedTest
 /// Empty contract for tests enumerating behaviour of the `Phased` modifiers.
@@ -15,7 +15,7 @@ contract PhasedTest is Phased {
 
     /// Exposes `scheduleNextPhase` for testing.
     /// @param nextPhaseBlock_ As per `scheduleNextPhase`.
-    function testScheduleNextPhase(uint nextPhaseBlock_) external {
+    function testScheduleNextPhase(uint256 nextPhaseBlock_) external {
         scheduleNextPhase(nextPhaseBlock_);
     }
 
@@ -26,7 +26,8 @@ contract PhasedTest is Phased {
     function runsOnlyPhase(Phase phase_)
         external
         view
-        onlyPhase(phase_) returns(bool)
+        onlyPhase(phase_)
+        returns (bool)
     {
         return true;
     }
@@ -39,16 +40,19 @@ contract PhasedTest is Phased {
     function runsOnlyAtLeastPhase(Phase phase_)
         external
         view
-        onlyAtLeastPhase(phase_) returns(bool)
+        onlyAtLeastPhase(phase_)
+        returns (bool)
     {
         return true;
     }
 
     /// Toggles `hookCondition` for testing phase scheduling hook.
-    function toggleHookCondition() external { hookCondition = !hookCondition; }
+    function toggleHookCondition() external {
+        hookCondition = !hookCondition;
+    }
 
     /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint nextPhaseBlock_)
+    function _beforeScheduleNextPhase(uint256 nextPhaseBlock_)
         internal
         virtual
         override

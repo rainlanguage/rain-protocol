@@ -3,6 +3,7 @@
 pragma solidity ^0.8.10;
 
 import {ITier} from "./ITier.sol";
+import "./libraries/TierConstants.sol";
 
 import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 
@@ -17,13 +18,18 @@ import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 /// `ValueTier` does include state however, to track the `tierValues` so is not
 /// a library.
 contract ValueTier {
+    /// TODO: Typescript errors on uint256[8] so can't include tierValues here.
+    event InitializeValueTier(address sender, address pointer);
 
     address private tierValuesPointer;
 
     /// Set the `tierValues` on construction to be referenced immutably.
     function initializeValueTier(uint256[8] memory tierValues_) internal {
-        require(tierValuesPointer == address(0), "REINITIALIZE");
-        tierValuesPointer = SSTORE2.write(abi.encode(tierValues_));
+        // Reinitialization is a bug.
+        assert(tierValuesPointer == address(0));
+        address tierValuesPointer_ = SSTORE2.write(abi.encode(tierValues_));
+        emit InitializeValueTier(msg.sender, tierValuesPointer_);
+        tierValuesPointer = tierValuesPointer_;
     }
 
     /// Complements the default solidity accessor for `tierValues`.
@@ -42,7 +48,7 @@ contract ValueTier {
         pure
         returns (uint256)
     {
-        return tier_ > 0 ? tierValues_[tier_ - 1] : 0;
+        return tier_ > TierConstants.TIER_ZERO ? tierValues_[tier_ - 1] : 0;
     }
 
     /// Converts a value to the maximum Tier it qualifies for.
@@ -52,11 +58,11 @@ contract ValueTier {
         pure
         returns (uint256)
     {
-        for (uint256 i_ = 0; i_ < 8; i_++) {
+        for (uint256 i_ = 0; i_ < TierConstants.MAX_TIER; i_++) {
             if (value_ < tierValues_[i_]) {
                 return i_;
             }
         }
-        return 8;
+        return TierConstants.MAX_TIER;
     }
 }

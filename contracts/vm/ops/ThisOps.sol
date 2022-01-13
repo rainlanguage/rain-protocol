@@ -1,35 +1,31 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { State } from "../RainVM.sol";
+import {State} from "../RainVM.sol";
 
 /// @title ThisOps
 /// @notice RainVM opcode pack to access the current contract address.
 library ThisOps {
-
     /// Opcode for this contract address.
-    uint constant public THIS_ADDRESS = 0;
+    uint256 private constant THIS_ADDRESS = 0;
     /// Number of provided opcodes for `ThisOps`.
-    uint constant public OPS_LENGTH = 1;
+    uint256 internal constant OPS_LENGTH = 1;
 
     function applyOp(
         bytes memory,
         State memory state_,
-        uint opcode_,
-        uint
-    )
-    internal
-    view
-    {
+        uint256 opcode_,
+        uint256
+    ) internal view {
         unchecked {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             // Put the current contract address on the stack.
             if (opcode_ == THIS_ADDRESS) {
-                state_.stack[state_.stackIndex]
-                    = uint256(uint160(address(this)));
+                state_.stack[state_.stackIndex] = uint256(
+                    uint160(address(this))
+                );
                 state_.stackIndex++;
             }
         }
     }
-
 }

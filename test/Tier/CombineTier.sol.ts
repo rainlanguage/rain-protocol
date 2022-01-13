@@ -49,18 +49,18 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+    const alwaysTier = await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
       stackLength: 8,
       argumentsLength: 0,
-    }))
-    const neverTier = (await Util.combineTierDeploy(signers[0], {
+    });
+    const neverTier = await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
       stackLength: 8,
       argumentsLength: 0,
-    }))
+    });
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address), // right report
@@ -106,10 +106,6 @@ describe("CombineTier", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
@@ -169,10 +165,6 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
@@ -230,10 +222,6 @@ describe("CombineTier", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
@@ -293,10 +281,6 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
@@ -355,10 +339,6 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
@@ -416,10 +396,6 @@ describe("CombineTier", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
@@ -495,9 +471,6 @@ describe("CombineTier", async function () {
 
     const source = concat([bytify(0), bytify(Opcode.ACCOUNT)]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants: [],
@@ -547,9 +520,6 @@ describe("CombineTier", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
@@ -683,9 +653,6 @@ describe("CombineTier", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
@@ -821,9 +788,6 @@ describe("CombineTier", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
@@ -946,9 +910,6 @@ describe("CombineTier", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
@@ -1083,9 +1044,6 @@ describe("CombineTier", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
@@ -1220,9 +1178,6 @@ describe("CombineTier", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,

@@ -25,7 +25,7 @@ enum EscrowStatus {
 /// a pass/fail result is one-way. Even if some bug in the `Trust` causes the
 /// pass/fail status to flip, this will not result in the escrow double
 /// spending or otherwise changing the direction that it sends funds.
-abstract contract TrustEscrow is FactoryTruster {
+contract TrustEscrow is FactoryTruster {
     mapping(Trust => EscrowStatus) private escrowStatuses;
 
     /// @param trustFactory_ `TrustFactory` that every `Trust` MUST be a child

@@ -3,7 +3,6 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { SeedERC20 } from "../../typechain/SeedERC20";
 import type { SeedERC20ForceSendEther } from "../../typechain/SeedERC20ForceSendEther";
 import type { Contract } from "ethers";
 
@@ -181,12 +180,12 @@ describe("SeedERC20", async function () {
     const bobSeedPromise = bobSeed.seed(0, bobUnits);
     expect(bobSeedPromise)
       .to.emit(seedERC20, "Seed")
-      .withArgs(bob.address, [bobUnits, bobUnits.mul(seedPrice)]);
+      .withArgs(bob.address, bobUnits, bobUnits.mul(seedPrice));
     await bobSeedPromise;
     const bobUnseedPromise = bobSeed.unseed(2);
     expect(bobUnseedPromise)
       .to.emit(seedERC20, "Unseed")
-      .withArgs(bob.address, [2, ethers.BigNumber.from(2).mul(seedPrice)]);
+      .withArgs(bob.address, 2, ethers.BigNumber.from(2).mul(seedPrice));
     await bobUnseedPromise;
 
     await bobReserve.approve(seedERC20.address, seedPrice.mul(2));
@@ -213,20 +212,22 @@ describe("SeedERC20", async function () {
 
     await expect(bobSeed.redeem(bobUnits))
       .to.emit(seedERC20, "Redeem")
-      .withArgs(bob.address, [
+      .withArgs(
+        bob.address,
         bobUnits,
-        bobUnits.mul(reserve0).div(totalSupply0),
-      ]);
+        bobUnits.mul(reserve0).div(totalSupply0)
+      );
 
     const reserve1 = await reserve.balanceOf(seedERC20.address);
     const totalSupply1 = await seedERC20.totalSupply();
 
     await expect(carolSeed.redeem(carolUnits))
       .to.emit(seedERC20, "Redeem")
-      .withArgs(carol.address, [
+      .withArgs(
+        carol.address,
         carolUnits,
-        carolUnits.mul(reserve1).div(totalSupply1),
-      ]);
+        carolUnits.mul(reserve1).div(totalSupply1)
+      );
   });
 
   it("shouldn't be affected by attacker forcibly sending ether to contract", async function () {
@@ -426,7 +427,7 @@ describe("SeedERC20", async function () {
     );
   });
 
-  it("should emit PhaseShiftScheduled event when fully seeded", async function () {
+  it("should emit PhaseScheduled event when fully seeded", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -478,8 +479,8 @@ describe("SeedERC20", async function () {
     await carolReserve.approve(seedERC20.address, carolUnits * seedPrice);
 
     await expect(carolSeed.seed(0, carolUnits))
-      .to.emit(carolSeed, "PhaseShiftScheduled")
-      .withArgs((await ethers.provider.getBlockNumber()) + 1);
+      .to.emit(carolSeed, "PhaseScheduled")
+      .withArgs(carol.address, 1, (await ethers.provider.getBlockNumber()) + 1);
 
     // seed contract automatically transfers to recipient on successful seed
     assert(

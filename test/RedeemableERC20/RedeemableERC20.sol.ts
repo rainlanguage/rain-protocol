@@ -1,11 +1,10 @@
 import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import { ethers, artifacts } from "hardhat";
+import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import type { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
@@ -232,7 +231,7 @@ describe("RedeemableERC20", async function () {
       `failed to error when constructed with 0 total supply`
     );
 
-    const redeemable = await Util.redeemableERC20Deploy(signers[0], {
+    await Util.redeemableERC20Deploy(signers[0], {
       admin: signers[0].address,
       reserve: reserve.address,
       erc20Config,
@@ -440,8 +439,8 @@ describe("RedeemableERC20", async function () {
     const now = await ethers.provider.getBlockNumber();
 
     await expect(redeemableERC20.burnDistributors([Util.oneAddress]))
-      .to.emit(redeemableERC20, "PhaseShiftScheduled")
-      .withArgs(now + 1);
+      .to.emit(redeemableERC20, "PhaseScheduled")
+      .withArgs(signers[0].address, Phase.ONE, now + 1);
 
     // Funds need to be frozen once redemption phase begins.
     await Util.assertError(
@@ -660,9 +659,6 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const redeemableERC20Factory = await ethers.getContractFactory(
-      "RedeemableERC20"
-    );
     const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
 

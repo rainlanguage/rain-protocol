@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { SeedERC20 } from "../seed/SeedERC20.sol";
+import {SeedERC20} from "../seed/SeedERC20.sol";
 
 /// @title SeedERC20ForceSendEther
 /// Test contract that can selfdestruct and forcibly send ether to the target
@@ -17,7 +17,7 @@ contract SeedERC20ForceSendEther {
         selfdestruct(victimAddress);
     }
 
-    fallback () external payable { } //solhint-disable-line no-empty-blocks
+    fallback() external payable {} //solhint-disable-line no-empty-blocks
 
-    receive () external payable { } //solhint-disable-line no-empty-blocks
+    receive() external payable {} //solhint-disable-line no-empty-blocks
 }

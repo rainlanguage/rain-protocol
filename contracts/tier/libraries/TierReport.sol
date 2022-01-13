@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { ITier } from "../ITier.sol";
+import {ITier} from "../ITier.sol";
+import "./TierConstants.sol";
 
 /// @title TierReport
 /// @notice `TierReport` implements several pure functions that can be
@@ -18,19 +19,9 @@ import { ITier } from "../ITier.sol";
 /// The low-level bit shifting can be difficult to get right so this
 /// factors that out.
 library TierReport {
-
-    /// NEVER is 0xFF.. as it is infinitely in the future.
-    uint public constant NEVER
-        = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-
-    /// Always is 0 as it is the genesis block. Tiers can't predate the chain.
-    uint public constant ALWAYS = 0;
-
-    uint public constant MAX_TIER = 8;
-
     /// Enforce upper limit on tiers so we can do unchecked math.
-    modifier maxTier(uint tier_) {
-        require(tier_ <= MAX_TIER, "MAX_TIER");
+    modifier maxTier(uint256 tier_) {
+        require(tier_ <= TierConstants.MAX_TIER, "MAX_TIER");
         _;
     }
 
@@ -49,21 +40,18 @@ library TierReport {
     /// @param report_ A report as per `ITier`.
     /// @param blockNumber_ The block number to check the tiers against.
     /// @return The highest tier held since `blockNumber` as per `report`.
-    function tierAtBlockFromReport(
-        uint report_,
-        uint blockNumber_
-    )
-        internal pure returns (uint)
+    function tierAtBlockFromReport(uint256 report_, uint256 blockNumber_)
+        internal
+        pure
+        returns (uint256)
     {
         unchecked {
             for (uint256 i_ = 0; i_ < 8; i_++) {
-                if (uint32(uint256(report_ >> (i_*32)))
-                    > uint32(blockNumber_)
-                ) {
+                if (uint32(uint256(report_ >> (i_ * 32))) > blockNumber_) {
                     return i_;
                 }
             }
-            return MAX_TIER;
+            return TierConstants.MAX_TIER;
         }
     }
 
@@ -75,23 +63,21 @@ library TierReport {
     /// @param report_ The report to read a block number from.
     /// @param tier_ The Tier to read the block number for.
     /// @return The block number this has been held since.
-    function tierBlock(uint report_, uint tier_)
+    function tierBlock(uint256 report_, uint256 tier_)
         internal
         pure
         maxTier(tier_)
-        returns (uint)
+        returns (uint256)
     {
         unchecked {
             // ZERO is a special case. Everyone has always been at least ZERO,
             // since block 0.
-            if (tier_ == 0) { return 0; }
+            if (tier_ == 0) {
+                return 0;
+            }
 
-            uint offset_ = (tier_ - 1) * 32;
-            return uint256(uint32(
-                uint256(
-                    report_ >> offset_
-                )
-            ));
+            uint256 offset_ = (tier_ - 1) * 32;
+            return uint256(uint32(uint256(report_ >> offset_)));
         }
     }
 
@@ -100,15 +86,15 @@ library TierReport {
     /// @param report_ Report to truncate with high bit 1s.
     /// @param tier_ Tier to truncate above (exclusive).
     /// @return Truncated report.
-    function truncateTiersAbove(uint report_, uint tier_)
+    function truncateTiersAbove(uint256 report_, uint256 tier_)
         internal
         pure
         maxTier(tier_)
-        returns (uint)
+        returns (uint256)
     {
         unchecked {
-            uint offset_ = tier_ * 32;
-            uint mask_ = (NEVER >> offset_) << offset_;
+            uint256 offset_ = tier_ * 32;
+            uint256 mask_ = (TierConstants.NEVER_REPORT >> offset_) << offset_;
             return report_ | mask_;
         }
     }
@@ -118,16 +104,17 @@ library TierReport {
     /// tier is being modified.
     /// The tier at/above the given tier is updated. E.g. tier `0` will update
     /// the block for tier `1`.
-    function updateBlockAtTier(uint report_, uint tier_, uint blockNumber_)
-        internal
-        pure
-        maxTier(tier_)
-        returns (uint)
-    {
+    function updateBlockAtTier(
+        uint256 report_,
+        uint256 tier_,
+        uint256 blockNumber_
+    ) internal pure maxTier(tier_) returns (uint256) {
         unchecked {
-            uint offset_ = tier_ * 32;
-            return (report_ & ~uint256(uint256(uint32(NEVER)) << offset_))
-                | uint256(blockNumber_ << offset_);
+            uint256 offset_ = tier_ * 32;
+            return
+                (report_ &
+                    ~uint256(uint256(TierConstants.NEVER_TIER) << offset_)) |
+                uint256(blockNumber_ << offset_);
         }
     }
 
@@ -141,24 +128,21 @@ library TierReport {
     /// range.
     /// @return The updated report.
     function updateBlocksForTierRange(
-        uint report_,
-        uint startTier_,
-        uint endTier_,
-        uint blockNumber_
-    )
-        internal
-        pure
-        maxTier(startTier_)
-        maxTier(endTier_)
-        returns (uint)
-    {
+        uint256 report_,
+        uint256 startTier_,
+        uint256 endTier_,
+        uint256 blockNumber_
+    ) internal pure maxTier(startTier_) maxTier(endTier_) returns (uint256) {
         unchecked {
-            uint offset_;
-            for (uint i_ = startTier_; i_ < endTier_; i_++) {
+            uint256 offset_;
+            for (uint256 i_ = startTier_; i_ < endTier_; i_++) {
                 offset_ = i_ * 32;
                 report_ =
-                    (report_ & ~uint256(uint256(uint32(NEVER)) << offset_))
-                    | uint256(blockNumber_ << offset_);
+                    (report_ &
+                        ~uint256(
+                            uint256(TierConstants.NEVER_TIER) << offset_
+                        )) |
+                    uint256(blockNumber_ << offset_);
             }
             return report_;
         }
@@ -183,21 +167,19 @@ library TierReport {
     /// intermediate tiers from `startTier_`.
     /// @return The updated report.
     function updateReportWithTierAtBlock(
-        uint report_,
-        uint startTier_,
-        uint endTier_,
-        uint blockNumber_
-    )
-        internal pure returns (uint)
-    {
-        return endTier_ < startTier_
-            ? truncateTiersAbove(report_, endTier_)
-            : updateBlocksForTierRange(
-                report_,
-                startTier_,
-                endTier_,
-                blockNumber_
-            );
+        uint256 report_,
+        uint256 startTier_,
+        uint256 endTier_,
+        uint256 blockNumber_
+    ) internal pure returns (uint256) {
+        return
+            endTier_ < startTier_
+                ? truncateTiersAbove(report_, endTier_)
+                : updateBlocksForTierRange(
+                    report_,
+                    startTier_,
+                    endTier_,
+                    blockNumber_
+                );
     }
-
 }
