@@ -173,7 +173,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// within the `withdraw` function.
     /// trust => withdrawn token =>  rTKN supply => withdrawer => amount
     // solhint-disable-next-line max-line-length
-    mapping(address => mapping(address => mapping(address => mapping(uint256 => uint256))))
+    mapping(address => mapping(address => mapping(uint256 => mapping(address => uint256))))
         internal withdrawals;
 
     /// Deposits during an active raise are desirable to trustlessly prove to
@@ -411,13 +411,13 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
             address(token_)
         ][supply_];
         uint256 withdrawn_ = withdrawals[address(trust_)][address(token_)][
-            msg.sender
-        ][supply_];
+            supply_
+        ][msg.sender];
 
         RedeemableERC20 redeemable_ = trust_.token();
 
-        withdrawals[address(trust_)][address(token_)][msg.sender][
-            supply_
+        withdrawals[address(trust_)][address(token_)][supply_][
+            msg.sender
         ] = totalDeposited_;
 
         //solhint-disable-next-line max-line-length
