@@ -193,18 +193,12 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     mapping(address => mapping(address => mapping(address => mapping(uint256 => uint256))))
         internal deposits;
 
-    /// Every time an address calls `deposit` the amount is added to that
-    /// trust/token/supply combination. This increase becomes the
-    /// "high water mark" that withdrawals move up to with each `withdraw`
-    /// call.
-    /// trust => deposited token => rTKN supply => amount
-    mapping(address => mapping(address => mapping(uint256 => uint256)))
-        
     /// Redundant tracking of deposits withdrawn.
     /// Counts aggregate deposits down as users withdraw, while their own
     /// individual withdrawal counters count up.
     /// NOT strictly required but provides a guard against more token being
     /// withdrawn under a given trust/supply than was ever deposited.
+    /// trust => deposited token => rTKN supply => amount
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         internal remainingDeposits;
 
