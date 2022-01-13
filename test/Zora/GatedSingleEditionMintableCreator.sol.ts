@@ -58,15 +58,20 @@ describe("GatedSingleEditionMintableCreator", async function () {
 
     const createEditionTx =
       await gatedSingleEditionMintableCreator.createEdition(
-        "Test",
-        "TEST",
-        "Testing",
-        "https://ipfs.io/ipfsbafybeify52a63pgcshhbtkff4nxxxp2zp5yjn2xw43jcy4knwful7ymmgy",
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "",
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        100,
-        10,
+        {
+          name: "Test",
+          symbol: "TEST",
+          description: "Testing",
+          animationUrl:
+            "https://ipfs.io/ipfsbafybeify52a63pgcshhbtkff4nxxxp2zp5yjn2xw43jcy4knwful7ymmgy",
+          imageUrl: "",
+          animationHash:
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+          imageHash:
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+          editionSize: 100,
+          royaltyBPS: 10,
+        },
         tier.address,
         0
       );
@@ -80,10 +85,24 @@ describe("GatedSingleEditionMintableCreator", async function () {
     expect(createdGatedEditionEvent).to.not.be.null;
     expect(createdGatedEditionEvent.args.editionId).to.eq(0);
     expect(createdGatedEditionEvent.args.creator).to.eq(signers[0].address);
-    expect(createdGatedEditionEvent.args.editionSize).to.eq(100);
     expect(createdGatedEditionEvent.args.wrapperContractAddress).to.not.be.null;
     expect(createdGatedEditionEvent.args.underlyingContractAddress).to.eq(
       await singleEditionMintableCreator.getEditionAtId(0)
     );
+    expect(createdGatedEditionEvent.args.edition.name).to.eq("Test");
+    expect(createdGatedEditionEvent.args.edition.symbol).to.eq("TEST");
+    expect(createdGatedEditionEvent.args.edition.description).to.eq("Testing");
+    expect(createdGatedEditionEvent.args.edition.animationUrl).to.eq(
+      "https://ipfs.io/ipfsbafybeify52a63pgcshhbtkff4nxxxp2zp5yjn2xw43jcy4knwful7ymmgy"
+    );
+    expect(createdGatedEditionEvent.args.edition.imageUrl).to.eq("");
+    expect(createdGatedEditionEvent.args.edition.animationHash).to.eq(
+      "0x0000000000000000000000000000000000000000000000000000000000000000"
+    );
+    expect(createdGatedEditionEvent.args.edition.imageHash).to.eq(
+      "0x0000000000000000000000000000000000000000000000000000000000000000"
+    );
+    expect(createdGatedEditionEvent.args.edition.editionSize).to.eq(100);
+    expect(createdGatedEditionEvent.args.edition.royaltyBPS).to.eq(10);
   });
 });

@@ -9,12 +9,24 @@ import { ITier } from "../tier/ITier.sol";
 contract GatedSingleEditionMintableCreator {
     address private factory;
 
+    struct Edition {
+        string name;
+        string symbol;
+        string description;
+        string animationUrl;
+        string imageUrl;
+        bytes32 animationHash;
+        bytes32 imageHash;
+        uint256 editionSize;
+        uint256 royaltyBPS;
+    }
+
     event CreatedGatedEdition(
         uint256 editionId,
         address creator,
-        uint256 editionSize,
         address wrapperContractAddress,
-        address underlyingContractAddress
+        address underlyingContractAddress,
+        Edition edition
     );
 
     /// @param factory_ The address of the underlying
@@ -27,28 +39,20 @@ contract GatedSingleEditionMintableCreator {
     /// `SingleEditionMintableFactory` to create a `SingleEditionMintable` and
     /// then clones an `GatedSingleEditionMintable` wrapper contract.
     function createEdition(
-        string memory _name,
-        string memory _symbol,
-        string memory _description,
-        string memory _animationUrl,
-        bytes32 _animationHash,
-        string memory _imageUrl,
-        bytes32 _imageHash,
-        uint256 _editionSize,
-        uint256 _royaltyBPS,
+        Edition memory edition,
         ITier _tier,
         ITier.Tier _minimumStatus
     ) external returns (uint256) {
         uint256 id = ISingleEditionMintableCreator(factory).createEdition(
-            _name,
-            _symbol,
-            _description,
-            _animationUrl,
-            _animationHash,
-            _imageUrl,
-            _imageHash,
-            _editionSize,
-            _royaltyBPS
+            edition.name,
+            edition.symbol,
+            edition.description,
+            edition.animationUrl,
+            edition.animationHash,
+            edition.imageUrl,
+            edition.imageHash,
+            edition.editionSize,
+            edition.royaltyBPS
         );
 
         ISingleEditionMintable underlyingContract =
@@ -68,9 +72,9 @@ contract GatedSingleEditionMintableCreator {
         emit CreatedGatedEdition(
             id,
             msg.sender,
-            _editionSize,
             address(wrapperContract),
-            address(underlyingContract)
+            address(underlyingContract),
+            edition
         );
 
         return id;

@@ -62,15 +62,20 @@ describe("GatedSingleEditionMintable", async function () {
 
     const createEditionTx =
       await gatedSingleEditionMintableCreator.createEdition(
-        "Test",
-        "TEST",
-        "Testing",
-        "https://ipfs.io/ipfsbafybeify52a63pgcshhbtkff4nxxxp2zp5yjn2xw43jcy4knwful7ymmgy",
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "",
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        100,
-        10,
+        {
+          name: "Test",
+          symbol: "TEST",
+          description: "Testing",
+          animationUrl:
+            "https://ipfs.io/ipfsbafybeify52a63pgcshhbtkff4nxxxp2zp5yjn2xw43jcy4knwful7ymmgy",
+          imageUrl: "",
+          animationHash:
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+          imageHash:
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+          editionSize: 100,
+          royaltyBPS: 10,
+        },
         tier.address,
         2 // TODO: Make this an enum value (E.g. GOLD)
       );
