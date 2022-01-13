@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import {ValueTier} from "../tier/ValueTier.sol";
-import {ITier} from "../tier/ITier.sol";
+import {ValueTier} from "../../tier/ValueTier.sol";
+import {ITier} from "../../tier/ITier.sol";
 
 /// @title ValueTierTest
 ///
