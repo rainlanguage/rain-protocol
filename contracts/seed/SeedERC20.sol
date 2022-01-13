@@ -91,18 +91,13 @@ struct SeedERC20Config {
 /// at a later date.
 /// Seed token holders can call `redeem` in `Phase.ONE` to burn their tokens in
 /// exchange for pro-rata reserve assets.
-contract SeedERC20 is
-    Phased,
-    Cooldown,
-    ERC20Redeem,
-    ERC20Pull
-{
+contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
-    uint private constant PHASE_UNINITIALIZED = 0;
-    uint private constant PHASE_SEEDING = 1;
-    uint private constant PHASE_REDEEMING = 2;
+    uint256 private constant PHASE_UNINITIALIZED = 0;
+    uint256 private constant PHASE_SEEDING = 1;
+    uint256 private constant PHASE_REDEEMING = 2;
 
     event Initialize(
         address sender,
@@ -143,7 +138,7 @@ contract SeedERC20 is
     /// Store relevant config as contract state.
     /// Mint all seed tokens.
     /// @param config_ All config required to initialize the contract.
-    function initialize(SeedERC20Config memory config_) external {
+    function initialize(SeedERC20Config memory config_) external initializer {
         require(config_.seedPrice > 0, "PRICE_0");
         require(config_.seedUnits > 0, "UNITS_0");
         require(config_.recipient != address(0), "RECIPIENT_0");

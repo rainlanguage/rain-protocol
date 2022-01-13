@@ -93,6 +93,7 @@ struct RedeemableERC20Config {
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
 contract RedeemableERC20 is
+    Initializable,
     Phased,
     TierByConstruction,
     ERC20Redeem,
@@ -139,7 +140,10 @@ contract RedeemableERC20 is
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @param config_ Initialized configuration.
-    function initialize(RedeemableERC20Config memory config_) external {
+    function initialize(RedeemableERC20Config memory config_)
+        external
+        initializer
+    {
         initializePhased();
 
         initializeTierByConstruction(config_.tier);
