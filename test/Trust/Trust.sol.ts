@@ -234,8 +234,8 @@ describe("Trust", async function () {
       .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
-    await seederContract1.redeem(seeder1Units);
-    await seederContract2.redeem(seeder2Units);
+    await seederContract1.redeem(seeder1Units, 0);
+    await seederContract2.redeem(seeder2Units, 0);
 
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token
@@ -1205,7 +1205,7 @@ describe("Trust", async function () {
     ) as RedeemableERC20 & Contract;
 
     assert(
-      (await token.currentPhase()) === Phase.ZERO,
+      (await token.currentPhase()).eq(Phase.ZERO),
       `expected phase ${Phase.ZERO} but got ${await token.currentPhase()}`
     );
 
@@ -1226,7 +1226,7 @@ describe("Trust", async function () {
     const startBlock = await ethers.provider.getBlockNumber();
 
     assert(
-      (await token.currentPhase()) === Phase.ZERO,
+      (await token.currentPhase()).eq(Phase.ZERO),
       `expected phase ${Phase.ZERO} but got ${await token.currentPhase()}`
     );
 
@@ -1238,14 +1238,14 @@ describe("Trust", async function () {
     }
 
     assert(
-      (await token.currentPhase()) === Phase.ZERO,
+      (await token.currentPhase()).eq(Phase.ZERO),
       `expected phase ${Phase.ZERO} but got ${await token.currentPhase()}`
     );
 
     await trust.endDutchAuction();
 
     assert(
-      (await token.currentPhase()) === Phase.ONE,
+      (await token.currentPhase()).eq(Phase.ONE),
       `expected phase ${Phase.ONE} but got ${await token.currentPhase()}`
     );
   });
@@ -1471,7 +1471,7 @@ describe("Trust", async function () {
 
     // current pool phase should be ZERO
     assert(
-      (await trust.currentPhase()) === Phase.ZERO,
+      (await trust.currentPhase()).eq(Phase.ZERO),
       `expected phase ${Phase.ZERO} but got ${await trust.currentPhase()}`
     );
 
@@ -1499,7 +1499,7 @@ describe("Trust", async function () {
 
     // current pool phase should be ONE, as trading is in progress
     assert(
-      (await trust.currentPhase()) === Phase.ONE,
+      (await trust.currentPhase()).eq(Phase.ONE),
       `expected phase ${Phase.ONE} but got ${await trust.currentPhase()}`
     );
 
@@ -1513,14 +1513,14 @@ describe("Trust", async function () {
 
     // current pool phase should be TWO, as it is 1 block after trading ended
     assert(
-      (await trust.currentPhase()) === Phase.TWO,
+      (await trust.currentPhase()).eq(Phase.TWO),
       `expected phase ${Phase.TWO} but got ${await trust.currentPhase()}`
     );
 
     // token phase should still be ZERO
     // if it is, a user may accidentally redeem before raise ended, hence redeeming will return zero reserve to the user
     assert(
-      (await token.currentPhase()) === Phase.ZERO,
+      (await token.currentPhase()).eq(Phase.ZERO),
       `expected phase ${Phase.ZERO} but got ${await token.currentPhase()}`
     );
 
@@ -1528,13 +1528,13 @@ describe("Trust", async function () {
 
     // token should be in phase ONE
     assert(
-      (await token.currentPhase()) === Phase.ONE,
+      (await token.currentPhase()).eq(Phase.ONE),
       `expected phase ${Phase.ONE} but got ${await token.currentPhase()}`
     );
 
     // current pool phase should be THREE, as raise has ended
     assert(
-      (await trust.currentPhase()) === Phase.THREE,
+      (await trust.currentPhase()).eq(Phase.THREE),
       `expected phase ${Phase.THREE} but got ${await trust.currentPhase()}`
     );
   });

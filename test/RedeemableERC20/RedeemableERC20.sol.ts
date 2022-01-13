@@ -405,7 +405,7 @@ describe("RedeemableERC20", async function () {
 
     // The phase is not set (i.e. contract is blocked)
     assert(
-      (await redeemableERC20.currentPhase()) === Phase.ZERO,
+      (await redeemableERC20.currentPhase()).eq(Phase.ZERO),
       `phase was not ${Phase.ZERO} in construction`
     );
 
@@ -450,7 +450,7 @@ describe("RedeemableERC20", async function () {
     );
 
     assert(
-      (await redeemableERC20.currentPhase()) === Phase.ONE,
+      (await redeemableERC20.currentPhase()).eq(Phase.ONE),
       `wrong phase, expected ${
         Phase.ONE
       } got ${await redeemableERC20.currentPhase()}`
@@ -631,7 +631,7 @@ describe("RedeemableERC20", async function () {
     });
 
     assert(
-      (await redeemableERC20.currentPhase()) === Phase.ZERO,
+      (await redeemableERC20.currentPhase()).eq(Phase.ZERO),
       "default phase was not zero"
     );
 

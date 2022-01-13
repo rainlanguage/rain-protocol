@@ -218,7 +218,7 @@ describe("TrustDistribute", async function () {
 
     // Guard against someone accidentally calling redeem before any reserve has been returned.
     await Util.assertError(
-      async () => await seederContract.connect(seeder1).redeem(seeder1Units),
+      async () => await seederContract.connect(seeder1).redeem(seeder1Units, 0),
       "RESERVE_BALANCE",
       "did not prevent redemption before approved seederPay was pulled"
     );
@@ -229,8 +229,8 @@ describe("TrustDistribute", async function () {
       .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
-    await seederContract.connect(seeder1).redeem(seeder1Units);
-    await seederContract.connect(seeder2).redeem(seeder2Units);
+    await seederContract.connect(seeder1).redeem(seeder1Units, 0);
+    await seederContract.connect(seeder2).redeem(seeder2Units, 0);
 
     // before reserve funds pulled into RedeemableERC20
     await Util.assertError(
@@ -354,7 +354,7 @@ describe("TrustDistribute", async function () {
       await trust.deployed();
 
       assert(
-        (await trust.currentPhase()) === Phase.ZERO,
+        (await trust.currentPhase()).eq(Phase.ZERO),
         `wrong phase (assert no. 0)
         expected  ${Phase.ZERO}
         got       ${await trust.currentPhase()}`
@@ -379,7 +379,7 @@ describe("TrustDistribute", async function () {
       await reserveSeeder.transfer(trust.address, reserveInit);
 
       assert(
-        (await trust.currentPhase()) === Phase.ZERO,
+        (await trust.currentPhase()).eq(Phase.ZERO),
         `wrong phase (assert no. 1)
         expected  ${Phase.ZERO}
         got       ${await trust.currentPhase()}`
@@ -400,7 +400,7 @@ describe("TrustDistribute", async function () {
       await trust.startDutchAuction({ gasLimit: 100000000 });
 
       assert(
-        (await trust.currentPhase()) === Phase.ONE,
+        (await trust.currentPhase()).eq(Phase.ONE),
         `wrong phase (assert no. 2)
         expected  ${Phase.ONE}
         got       ${await trust.currentPhase()}`
@@ -443,7 +443,7 @@ describe("TrustDistribute", async function () {
       }
 
       assert(
-        (await trust.currentPhase()) === Phase.ONE,
+        (await trust.currentPhase()).eq(Phase.ONE),
         `wrong phase (assert no. 3)
         expected  ${Phase.ONE}
         got       ${await trust.currentPhase()}`
@@ -464,7 +464,7 @@ describe("TrustDistribute", async function () {
       }
 
       assert(
-        (await trust.currentPhase()) === Phase.TWO,
+        (await trust.currentPhase()).eq(Phase.TWO),
         `wrong phase (assert no. 4)
         expected  ${Phase.TWO}
         got       ${await trust.currentPhase()}`
@@ -479,7 +479,7 @@ describe("TrustDistribute", async function () {
       await Util.createEmptyBlock(Util.CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING);
 
       assert(
-        (await trust.currentPhase()) === Phase.TWO,
+        (await trust.currentPhase()).eq(Phase.TWO),
         `wrong phase (assert no. 5)
         expected  ${Phase.TWO}
         got       ${await trust.currentPhase()}`
@@ -501,7 +501,7 @@ describe("TrustDistribute", async function () {
       await trust.connect(signer1).enableCreatorFundsRelease();
 
       assert(
-        (await trust.currentPhase()) === Phase.FOUR,
+        (await trust.currentPhase()).eq(Phase.FOUR),
         `wrong phase (assert no. 6)
         expected  ${Phase.FOUR}
         got       ${await trust.currentPhase()}`
@@ -695,7 +695,7 @@ describe("TrustDistribute", async function () {
       await trust.deployed();
 
       assert(
-        (await trust.currentPhase()) === Phase.ZERO,
+        (await trust.currentPhase()).eq(Phase.ZERO),
         `wrong phase (assert no. 0)
         expected  ${Phase.ZERO}
         got       ${await trust.currentPhase()}`
@@ -720,7 +720,7 @@ describe("TrustDistribute", async function () {
       await reserveSeeder.transfer(trust.address, reserveInit);
 
       assert(
-        (await trust.currentPhase()) === Phase.ZERO,
+        (await trust.currentPhase()).eq(Phase.ZERO),
         `wrong phase (assert no. 1)
         expected  ${Phase.ZERO}
         got       ${await trust.currentPhase()}`
@@ -741,7 +741,7 @@ describe("TrustDistribute", async function () {
       await trust.startDutchAuction({ gasLimit: 100000000 });
 
       assert(
-        (await trust.currentPhase()) === Phase.ONE,
+        (await trust.currentPhase()).eq(Phase.ONE),
         `wrong phase (assert no. 2)
         expected  ${Phase.ONE}
         got       ${await trust.currentPhase()}`
@@ -784,7 +784,7 @@ describe("TrustDistribute", async function () {
       }
 
       assert(
-        (await trust.currentPhase()) === Phase.ONE,
+        (await trust.currentPhase()).eq(Phase.ONE),
         `wrong phase (assert no. 3)
         expected  ${Phase.ONE}
         got       ${await trust.currentPhase()}`
@@ -805,7 +805,7 @@ describe("TrustDistribute", async function () {
       }
 
       assert(
-        (await trust.currentPhase()) === Phase.TWO,
+        (await trust.currentPhase()).eq(Phase.TWO),
         `wrong phase (assert no. 4)
         expected  ${Phase.TWO}
         got       ${await trust.currentPhase()}`
@@ -818,7 +818,7 @@ describe("TrustDistribute", async function () {
       );
 
       assert(
-        (await trust.currentPhase()) === Phase.TWO,
+        (await trust.currentPhase()).eq(Phase.TWO),
         `wrong phase (assert no. 5)
         expected  ${Phase.TWO}
         got       ${await trust.currentPhase()}`
@@ -829,7 +829,7 @@ describe("TrustDistribute", async function () {
       await Util.createEmptyBlock(Util.CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING);
 
       assert(
-        (await trust.currentPhase()) === Phase.THREE,
+        (await trust.currentPhase()).eq(Phase.THREE),
         `wrong phase (assert no. 6)
         expected  ${Phase.THREE}
         got       ${await trust.currentPhase()}`
@@ -851,7 +851,7 @@ describe("TrustDistribute", async function () {
       await trust.connect(signer1).enableCreatorFundsRelease();
 
       assert(
-        (await trust.currentPhase()) === Phase.FOUR,
+        (await trust.currentPhase()).eq(Phase.FOUR),
         `wrong phase (assert no. 7)
         expected  ${Phase.FOUR}
         got       ${await trust.currentPhase()}`

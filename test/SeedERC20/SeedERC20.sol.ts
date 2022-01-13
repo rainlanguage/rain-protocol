@@ -116,8 +116,8 @@ describe("SeedERC20", async function () {
     );
 
     // Bob and carol can redeem their seed tokens.
-    await bobSeed.redeem(bobUnits);
-    await carolSeed.redeem(carolUnits);
+    await bobSeed.redeem(bobUnits, 0);
+    await carolSeed.redeem(carolUnits, 0);
 
     const bobFinalBalance = await bobReserve.balanceOf(bob.address);
     const carolFinalBalance = await carolReserve.balanceOf(carol.address);
@@ -210,7 +210,7 @@ describe("SeedERC20", async function () {
     const reserve0 = await reserve.balanceOf(seedERC20.address);
     const totalSupply0 = await seedERC20.totalSupply();
 
-    await expect(bobSeed.redeem(bobUnits))
+    await expect(bobSeed.redeem(bobUnits, 0))
       .to.emit(seedERC20, "Redeem")
       .withArgs(
         bob.address,
@@ -221,7 +221,7 @@ describe("SeedERC20", async function () {
     const reserve1 = await reserve.balanceOf(seedERC20.address);
     const totalSupply1 = await seedERC20.totalSupply();
 
-    await expect(carolSeed.redeem(carolUnits))
+    await expect(carolSeed.redeem(carolUnits, 0))
       .to.emit(seedERC20, "Redeem")
       .withArgs(
         carol.address,
@@ -591,8 +591,8 @@ describe("SeedERC20", async function () {
     );
 
     // Bob and carol can redeem their seed tokens.
-    await bobSeed.redeem(bobUnits);
-    await carolSeed.redeem(carolUnits);
+    await bobSeed.redeem(bobUnits, 0);
+    await carolSeed.redeem(carolUnits, 0);
 
     const bobFinalBalance = await bobReserve.balanceOf(bob.address);
     const carolFinalBalance = await carolReserve.balanceOf(carol.address);

@@ -60,7 +60,7 @@ describe("SeedERC20Reentrant", async function () {
     await maliciousReserve.setMethodTarget(3);
 
     await Util.assertError(
-      async () => await bobSeed.redeem(1),
+      async () => await bobSeed.redeem(1, 0),
       "ERC20: burn amount exceeds balance",
       "did not guard against redeem reentrancy via immediate burning"
     );

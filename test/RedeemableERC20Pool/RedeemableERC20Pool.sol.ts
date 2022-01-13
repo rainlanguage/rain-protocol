@@ -212,8 +212,8 @@ describe("RedeemableERC20Pool", async function () {
     await seederContract.connect(seeder1).pullERC20(allowance);
 
     // seeders redeem funds
-    await seederContract1.redeem(seeder1Units);
-    await seederContract2.redeem(seeder2Units);
+    await seederContract1.redeem(seeder1Units, 0);
+    await seederContract2.redeem(seeder2Units, 0);
 
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token
@@ -734,7 +734,7 @@ describe("RedeemableERC20Pool", async function () {
 
     // moves to phase THREE immediately when ending raise
     assert(
-      (await trust.currentPhase()) === Phase.THREE,
+      (await trust.currentPhase()).eq(Phase.THREE),
       `expected phase ${Phase.THREE} but got ${await trust.currentPhase()}`
     );
 
@@ -1018,8 +1018,8 @@ describe("RedeemableERC20Pool", async function () {
     await seederContract.connect(seeder1).pullERC20(allowance);
 
     // seeders redeem funds
-    await seederContract1.redeem(seeder1Units);
-    await seederContract2.redeem(seeder2Units);
+    await seederContract1.redeem(seeder1Units, 0);
+    await seederContract2.redeem(seeder2Units, 0);
 
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token
@@ -1253,8 +1253,8 @@ describe("RedeemableERC20Pool", async function () {
       .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
-    await seederContract1.redeem(seeder1Units);
-    await seederContract2.redeem(seeder2Units);
+    await seederContract1.redeem(seeder1Units, 0);
+    await seederContract2.redeem(seeder2Units, 0);
 
     // griefer pulls erc20 into RedeemableERC20 contract
     await token
@@ -1484,8 +1484,8 @@ describe("RedeemableERC20Pool", async function () {
       .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
-    await seederContract1.redeem(seeder1Units);
-    await seederContract2.redeem(seeder2Units);
+    await seederContract1.redeem(seeder1Units, 0);
+    await seederContract2.redeem(seeder2Units, 0);
 
     // signer1 pulls erc20 into RedeemableERC20 contract
     await token

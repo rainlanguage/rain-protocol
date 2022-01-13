@@ -397,7 +397,7 @@ describe("TrustSeed", async function () {
     await seederContract1.seed(0, seeder1Units);
 
     assert(
-      (await seederContract.currentPhase()) === Phase.ZERO,
+      (await seederContract.currentPhase()).eq(Phase.ZERO),
       `should be phase ZERO before fully seeded, got ${await seederContract.currentPhase()}`
     );
 
@@ -410,7 +410,7 @@ describe("TrustSeed", async function () {
     );
 
     assert(
-      (await seederContract.currentPhase()) === Phase.ONE,
+      (await seederContract.currentPhase()).eq(Phase.ONE),
       `should be phase ONE when fully seeded, got ${await seederContract.currentPhase()}`
     );
   });
@@ -736,7 +736,7 @@ describe("TrustSeed", async function () {
 
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       );
@@ -763,7 +763,7 @@ describe("TrustSeed", async function () {
       );
 
       // seeders redeem funds
-      await seederContract1.redeem(seeder1Units);
+      await seederContract1.redeem(seeder1Units, 0);
 
       // correct amount of units should have been redeemed
       assert(
@@ -786,12 +786,12 @@ describe("TrustSeed", async function () {
 
       // fails if they don't have seed units
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "ERC20: burn amount exceeds balance",
         "seeder1 redeemed when they had no seed units to redeem"
       );
 
-      await seederContract2.redeem(seeder2Units);
+      await seederContract2.redeem(seeder2Units, 0);
 
       // correct amount of units should have been redeemed
       assert(
@@ -936,7 +936,7 @@ describe("TrustSeed", async function () {
 
       // redeem fails before seeding is complete
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "BAD_PHASE",
         "redeemed before seeding is complete"
       );
@@ -992,7 +992,7 @@ describe("TrustSeed", async function () {
 
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       );
@@ -1014,7 +1014,7 @@ describe("TrustSeed", async function () {
       );
 
       // seeders redeem funds
-      await seederContract1.redeem(seeder1Units);
+      await seederContract1.redeem(seeder1Units, 0);
 
       // correct amount of units should have been redeemed
       assert(
@@ -1037,12 +1037,12 @@ describe("TrustSeed", async function () {
 
       // fails if they don't have seed units
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "ERC20: burn amount exceeds balance",
         "seeder1 redeemed when they had no seed units to redeem"
       );
 
-      await seederContract2.redeem(seeder2Units);
+      await seederContract2.redeem(seeder2Units, 0);
 
       // correct amount of units should have been redeemed
       assert(

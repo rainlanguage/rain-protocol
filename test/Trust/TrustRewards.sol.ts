@@ -480,7 +480,7 @@ describe("TrustRewards", async function () {
     const [crp, bPool] = await Util.poolContracts(signers, trust);
 
     assert(
-      (await token.currentPhase()) === Phase.ZERO,
+      (await token.currentPhase()).eq(Phase.ZERO),
       "token current phase was not ZERO"
     );
 
@@ -535,7 +535,7 @@ describe("TrustRewards", async function () {
     }
 
     assert(
-      (await token.currentPhase()) === Phase.ZERO,
+      (await token.currentPhase()).eq(Phase.ZERO),
       "token current phase was still not ZERO"
     );
 
