@@ -105,7 +105,7 @@ describe("TrustConstruction", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust1] = await Util.trustDeploy(
+    const trust1 = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -134,7 +134,7 @@ describe("TrustConstruction", async function () {
       { gasLimit: 100000000 }
     );
 
-    const [trust2] = await Util.trustDeploy(
+    const trust2 = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -221,7 +221,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -533,7 +533,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const [trust, txDeploy] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -564,17 +564,11 @@ describe("TrustConstruction", async function () {
 
     await trust.deployed();
 
-    const { config: configEvent } = await Util.getEventArgs(
-      txDeploy,
+    const { successBalance } = await Util.getEventArgs(
+      trust.deployTransaction,
       "Initialize",
       trust
     );
-
-    // TODO: Should remain as calculation from config?
-    const successBalance = configEvent.reserveInit
-      .add(configEvent.seederFee)
-      .add(configEvent.redeemInit)
-      .add(configEvent.minimumCreatorRaise);
 
     assert(
       successLevel.eq(successBalance),
@@ -626,7 +620,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 50;
 
-    const [trust, txDeploy] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -658,7 +652,7 @@ describe("TrustConstruction", async function () {
     await trust.deployed();
 
     const { seeder: seederEvent, config: configEvent } =
-      await Util.getEventArgs(txDeploy, "Initialize", trust);
+      await Util.getEventArgs(trust.deployTransaction, "Initialize", trust);
 
     assert(configEvent.creator === creator.address, "wrong creator");
     assert(seederEvent === seeder.address, "wrong seeder");
@@ -714,7 +708,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {
@@ -801,7 +795,7 @@ describe("TrustConstruction", async function () {
 
     const minimumTradingDuration = 10;
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactory.connect(deployer),
       creator,
       {

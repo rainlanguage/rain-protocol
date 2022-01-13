@@ -888,7 +888,7 @@ describe("EmissionsERC20", async function () {
     );
 
     const actualReport = paddedUInt256(
-      await emissionsERC20.reports(claimer.address)
+      await emissionsERC20.report(claimer.address)
     );
 
     assert(

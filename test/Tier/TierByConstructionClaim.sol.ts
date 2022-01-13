@@ -6,7 +6,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionClaim } from "../../typechain/TierByConstructionClaim";
 import type { TierByConstructionClaimTest } from "../../typechain/TierByConstructionClaimTest";
-import { assertError } from "../Util";
+import { assertError, getEventArgs } from "../Util";
 
 chai.use(solidity);
 const { expect, assert } = chai;
@@ -44,22 +44,28 @@ describe("TierByConstructionClaim", async function () {
 
   it("should set tierContract and minimumTier on construction", async () => {
     const tierByConstructionClaim =
-      (await tierByConstructionClaimFactory.deploy(
-        readWriteTier.address,
-        Tier.FOUR
-      )) as TierByConstructionClaim & Contract;
+      (await tierByConstructionClaimFactory.deploy({
+        tierContract: readWriteTier.address,
+        minimumTier: Tier.FOUR,
+      })) as TierByConstructionClaim & Contract;
 
     await tierByConstructionClaim.deployed();
 
     const initialBlock = await ethers.provider.getBlockNumber();
 
+    const { tierContract, constructionBlockNumber } = await getEventArgs(
+      tierByConstructionClaim.deployTransaction,
+      "TierByConstructionInitialize",
+      tierByConstructionClaim
+    );
+
     assert(
-      (await tierByConstructionClaim.tierContract()) === readWriteTier.address,
+      tierContract === readWriteTier.address,
       "wrong tierContract address set on construction"
     );
 
     assert(
-      (await tierByConstructionClaim.constructionBlock()).eq(initialBlock),
+      constructionBlockNumber.eq(initialBlock),
       "wrong constructionBlock set on construction"
     );
   });
@@ -68,10 +74,10 @@ describe("TierByConstructionClaim", async function () {
     describe("should require minimum tier as per TierByConstruction logic (tier held continuously since contract construction) - failure case", async () => {
       it("min tier after construction", async () => {
         const tierByConstructionClaim =
-          (await tierByConstructionClaimFactory.deploy(
-            readWriteTier.address,
-            Tier.FOUR
-          )) as TierByConstructionClaim & Contract;
+          (await tierByConstructionClaimFactory.deploy({
+            tierContract: readWriteTier.address,
+            minimumTier: Tier.FOUR,
+          })) as TierByConstructionClaim & Contract;
 
         await tierByConstructionClaim.deployed();
 
@@ -92,10 +98,10 @@ describe("TierByConstructionClaim", async function () {
           .setTier(alice.address, Tier.FOUR, []); // before construction
 
         const tierByConstructionClaim =
-          (await tierByConstructionClaimFactory.deploy(
-            readWriteTier.address,
-            Tier.FOUR
-          )) as TierByConstructionClaim & Contract;
+          (await tierByConstructionClaimFactory.deploy({
+            tierContract: readWriteTier.address,
+            minimumTier: Tier.FOUR,
+          })) as TierByConstructionClaim & Contract;
 
         await tierByConstructionClaim.deployed();
 
@@ -108,10 +114,10 @@ describe("TierByConstructionClaim", async function () {
           .setTier(alice.address, Tier.FIVE, []); // before construction
 
         const tierByConstructionClaim =
-          (await tierByConstructionClaimFactory.deploy(
-            readWriteTier.address,
-            Tier.FOUR
-          )) as TierByConstructionClaim & Contract;
+          (await tierByConstructionClaimFactory.deploy({
+            tierContract: readWriteTier.address,
+            minimumTier: Tier.FOUR,
+          })) as TierByConstructionClaim & Contract;
 
         await tierByConstructionClaim.deployed();
 
@@ -124,10 +130,10 @@ describe("TierByConstructionClaim", async function () {
           .setTier(alice.address, Tier.THREE, []); // before construction
 
         const tierByConstructionClaim =
-          (await tierByConstructionClaimFactory.deploy(
-            readWriteTier.address,
-            Tier.FOUR
-          )) as TierByConstructionClaim & Contract;
+          (await tierByConstructionClaimFactory.deploy({
+            tierContract: readWriteTier.address,
+            minimumTier: Tier.FOUR,
+          })) as TierByConstructionClaim & Contract;
 
         await tierByConstructionClaim.deployed();
 
@@ -143,10 +149,10 @@ describe("TierByConstructionClaim", async function () {
       await readWriteTier.connect(alice).setTier(alice.address, Tier.FOUR, []); // before construction
 
       const tierByConstructionClaim =
-        (await tierByConstructionClaimFactory.deploy(
-          readWriteTier.address,
-          Tier.FOUR
-        )) as TierByConstructionClaim & Contract;
+        (await tierByConstructionClaimFactory.deploy({
+          tierContract: readWriteTier.address,
+          minimumTier: Tier.FOUR,
+        })) as TierByConstructionClaim & Contract;
 
       await tierByConstructionClaim.deployed();
 
@@ -189,18 +195,20 @@ describe("TierByConstructionClaim", async function () {
       await readWriteTier.connect(alice).setTier(alice.address, Tier.FOUR, []); // before construction
 
       const tierByConstructionClaim =
-        (await tierByConstructionClaimFactory.deploy(
-          readWriteTier.address,
-          Tier.FOUR
-        )) as TierByConstructionClaim & Contract;
+        (await tierByConstructionClaimFactory.deploy({
+          tierContract: readWriteTier.address,
+          minimumTier: Tier.FOUR,
+        })) as TierByConstructionClaim & Contract;
 
       await tierByConstructionClaim.deployed();
 
-      const claimPromise = tierByConstructionClaim.claim(alice.address, "0xff");
+      const claimPromise = tierByConstructionClaim
+        .connect(alice)
+        .claim(alice.address, "0xff");
 
       await expect(claimPromise)
         .to.emit(tierByConstructionClaim, "Claim")
-        .withArgs(alice.address, "0xff");
+        .withArgs(alice.address, alice.address, "0xff");
     });
   });
 });
