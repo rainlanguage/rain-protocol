@@ -33,13 +33,13 @@ library MathOps {
         uint256 operand_
     ) internal pure {
         require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
-        uint top_;
+        uint256 top_;
         unchecked {
             top_ = state_.stackIndex - 1;
             state_.stackIndex -= operand_;
         }
         uint256 baseIndex_ = state_.stackIndex;
-        uint cursor_ = baseIndex_;
+        uint256 cursor_ = baseIndex_;
         uint256 accumulator_ = state_.stack[cursor_];
 
         // Addition.
