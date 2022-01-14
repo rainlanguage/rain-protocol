@@ -414,6 +414,13 @@ describe.only("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 1];
+    const v3 = op(Opcode.VAL, 0)
+    const v2 = op(Opcode.VAL, 1)
+    const v1 = op(Opcode.VAL, 2)
+
+    const a3 = op(Opcode.VAL, arg(0))
+    const a2 = op(Opcode.VAL, arg(1))
+    const a1 = op(Opcode.VAL, arg(2))
 
     // zero-based counting
     const fnSize = 1;
@@ -422,33 +429,33 @@ describe.only("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.VAL, 2), // val0
-        op(Opcode.VAL, 1), // val1
-        op(Opcode.VAL, 0), // val2
+        v3,
+        v2,
+        v1,
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
         // MUL
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
+        a3,
+        a2,
+        a1,
         op(Opcode.MUL, 3),
         // ADD
         // 2 1, 3 2 1, 3 2 1, 3 2 1, 3 2 1 => 27
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
+        a2,
+        a1,
+        a3,
+        a2,
+        a1,
+        a3,
+        a2,
+        a1,
+        a3,
+        a2,
+        a1,
+        a3,
+        a2,
+        a1,
         op(Opcode.ADD, 14),
       ]),
     ];
@@ -491,10 +498,17 @@ describe.only("RainVM", async function () {
     );
   });
 
-  it("should handle a call op which runs multiple functions (within single fn val)", async () => {
+  it.only("should handle a call op which runs multiple functions (within single fn val)", async () => {
     this.timeout(0);
 
     const constants = [3, 4, 5];
+    const v3 = op(Opcode.VAL, 0)
+    const v4 = op(Opcode.VAL, 1)
+    const v5 = op(Opcode.VAL, 2)
+
+    const a3 = op(Opcode.VAL, arg(0))
+    const a4 = op(Opcode.VAL, arg(1))
+    const a5 = op(Opcode.VAL, arg(2))
 
     // zero-based counting
     const fnSize = 1;
@@ -503,19 +517,19 @@ describe.only("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
+        v3,
+        v4,
+        v5,
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
+        a3,
+        a4,
+        a5,
         op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
+        a3,
+        a4,
+        a5,
         op(Opcode.ADD, 3),
       ]),
     ];
@@ -566,21 +580,25 @@ describe.only("RainVM", async function () {
     const v2 = op(Opcode.VAL, 1)
     const v3 = op(Opcode.VAL, 2)
 
+    const a1 = op(Opcode.VAL, arg(0))
+    const a2 = op(Opcode.VAL, arg(1))
+    const a3 = op(Opcode.VAL, arg(2))
+
     const fnSize = 1; // 1
     const loopSize = 0; // 1
     const valSize = 2; // 3
 
     const sources = [
       concat([
-        v3,
-        v2,
         v1,
+        v2,
+        v3,
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
+        a1,
+        a2,
+        a3,
         op(Opcode.ADD, 3),
       ]),
     ];
