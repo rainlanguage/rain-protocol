@@ -418,34 +418,34 @@ describe.only("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // val2
-        op(Opcode.VAL, 1), // val1
         op(Opcode.VAL, 2), // val0
+        op(Opcode.VAL, 1), // val1
+        op(Opcode.VAL, 0), // val2
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
+        // MUL
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.MUL, 3),
         // ADD
         // 2 1, 3 2 1, 3 2 1, 3 2 1, 3 2 1 => 27
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
         op(Opcode.ADD, 14),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        // MUL
-        op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
       ]),
     ];
 
@@ -499,20 +499,20 @@ describe.only("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.ADD, 3),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
         op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.ADD, 3),
       ]),
     ];
 
@@ -565,16 +565,16 @@ describe.only("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.ADD, 3),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.ADD, 3),
       ]),
     ];
 
@@ -604,17 +604,17 @@ describe.only("RainVM", async function () {
     const sources = [
       concat([
         // (* (+ 3 4 (- 2 1)) (/ 6 3) B)
-        op(Opcode.MUL, 3),
-        op(Opcode.ADD, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 3),
-        op(Opcode.SUB, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
-        op(Opcode.DIV, 2),
-        op(Opcode.VAL, 4),
-        op(Opcode.VAL, 2),
         op(Opcode.BLOCK_NUMBER),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 4),
+        op(Opcode.DIV, 2),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.SUB, 2),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 2),
+        op(Opcode.ADD, 3),
+        op(Opcode.MUL, 3),
       ]),
     ];
 
@@ -668,15 +668,15 @@ describe.only("RainVM", async function () {
     const sources = [
       concat([
         // (/ (* (+ 2 2 2) 3) 2 3)
-        op(Opcode.DIV, 3),
-        op(Opcode.MUL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 0),
         op(Opcode.ADD, 3),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
+        op(Opcode.MUL, 2),
+        op(Opcode.DIV, 3),
       ]),
     ];
 
@@ -706,10 +706,10 @@ describe.only("RainVM", async function () {
     const sources = [
       concat([
         // (% 13 2 3)
-        op(Opcode.MOD, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.MOD, 3),
       ]),
     ];
 
@@ -739,10 +739,10 @@ describe.only("RainVM", async function () {
     const sources = [
       concat([
         // (/ 12 2 3)
-        op(Opcode.DIV, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.DIV, 3),
       ]),
     ];
 
@@ -772,10 +772,10 @@ describe.only("RainVM", async function () {
     const sources = [
       concat([
         // (* 3 4 5)
-        op(Opcode.MUL, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.MUL, 3),
       ]),
     ];
 
@@ -805,10 +805,10 @@ describe.only("RainVM", async function () {
     const sources = [
       concat([
         // (- 10 2 3)
-        op(Opcode.SUB, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.SUB, 3),
       ]),
     ];
 
@@ -838,10 +838,10 @@ describe.only("RainVM", async function () {
     const sources = [
       concat([
         // (+ 1 2 3)
-        op(Opcode.ADD, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
         op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.ADD, 3),
       ]),
     ];
 
