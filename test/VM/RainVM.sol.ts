@@ -27,7 +27,7 @@ const enum Opcode {
   MAX,
 }
 
-describe.only("RainVM", async function () {
+describe("RainVM", async function () {
   it("should return the maximum of a sequence of numbers", async () => {
     this.timeout(0);
 
@@ -40,8 +40,6 @@ describe.only("RainVM", async function () {
       op(Opcode.VAL, 2),
       op(Opcode.MAX, 3),
     ]);
-
-    console.log(source)
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
