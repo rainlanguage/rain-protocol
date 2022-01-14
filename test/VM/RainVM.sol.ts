@@ -498,7 +498,7 @@ describe.only("RainVM", async function () {
     );
   });
 
-  it.only("should handle a call op which runs multiple functions (within single fn val)", async () => {
+  it("should handle a call op which runs multiple functions (within single fn val)", async () => {
     this.timeout(0);
 
     const constants = [3, 4, 5];
