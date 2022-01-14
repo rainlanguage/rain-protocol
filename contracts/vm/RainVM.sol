@@ -209,7 +209,7 @@ abstract contract RainVM {
             uint256 operand_;
             uint256 valIndex_;
             bool fromArguments_;
-            uint len_ = source_.length;
+            uint256 len_ = source_.length;
             // Loop until 0.
             // It is up to the rain script to not underflow by calling `skip`
             // with a value larger than the remaining source.
@@ -230,7 +230,7 @@ abstract contract RainVM {
                 // Handle core opcodes.
                 if (opcode_ < OPS_LENGTH) {
                     if (opcode_ == OP_SKIP) {
-                        // Skipping opcodes is simply decreasing i_.
+                        // Skipping opcodes is simply increasing i_.
                         assembly {
                             i_ := add(i_, mul(operand_, 2))
                         }

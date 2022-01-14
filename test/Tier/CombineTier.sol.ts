@@ -68,13 +68,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
@@ -126,13 +126,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
@@ -184,13 +184,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
@@ -242,13 +242,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
@@ -300,13 +300,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
@@ -358,13 +358,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
@@ -416,14 +416,14 @@ describe("CombineTier", async function () {
     ];
 
     const sourceAlwaysReport = concat([
-      op(Opcode.ACCOUNT, 0),
-      op(Opcode.VAL, 0),
+        op(Opcode.VAL, 0),
+        op(Opcode.ACCOUNT, 0),
       op(Opcode.REPORT, 0),
     ]);
 
     const sourceNeverReport = concat([
-      op(Opcode.ACCOUNT, 0),
-      op(Opcode.VAL, 1),
+        op(Opcode.VAL, 1),
+        op(Opcode.ACCOUNT, 0),
       op(Opcode.REPORT, 0),
     ]);
 
@@ -510,13 +510,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
@@ -643,13 +643,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
@@ -778,13 +778,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
@@ -900,13 +900,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
@@ -1034,13 +1034,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
@@ -1168,13 +1168,13 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 1),
-      op(Opcode.REPORT),
-      op(Opcode.ACCOUNT),
-      op(Opcode.VAL, 0),
-      op(Opcode.REPORT),
+          op(Opcode.VAL, 1),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+          op(Opcode.VAL, 0),
+          op(Opcode.ACCOUNT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
