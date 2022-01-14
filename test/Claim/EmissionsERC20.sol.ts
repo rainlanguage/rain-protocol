@@ -141,8 +141,8 @@ describe.only("EmissionsERC20", async function () {
     // prettier-ignore
     const REWARD = () =>
       concat([
-          valDuration,
           valBaseReward,
+          valDuration,
         op(Opcode.mul, 2),
       ]);
 
@@ -150,10 +150,10 @@ describe.only("EmissionsERC20", async function () {
     const PROGRESS = () =>
       concat([
           valBNOne,
-            valBlocksPerYear,
-              valDuration,
               valBNOne,
+              valDuration,
             op(Opcode.mul, 2),
+            valBlocksPerYear,
           op(Opcode.div, 2),
         op(Opcode.min, 2),
       ]);
@@ -215,11 +215,11 @@ describe.only("EmissionsERC20", async function () {
     // prettier-ignore
     const SOURCE = () =>
       concat([
-              valBNOneReward, // scale FINAL result down by reward per block scaler
               TIERWISE_DIFF(),
               valBaseRewardPerTier,
             op(Opcode.zipmap, Util.callSize(1, 3, 1)),
           op(Opcode.add, 8),
+          valBNOneReward, // scale FINAL result down by reward per block scaler
         op(Opcode.div, 2),
       ]);
 
@@ -430,10 +430,10 @@ describe.only("EmissionsERC20", async function () {
     const PROGRESS = () =>
       concat([
           valBNOne,
-            valBlocksPerYear,
               valDuration,
               valBNOne,
             op(Opcode.mul, 2),
+            valBlocksPerYear,
           op(Opcode.div, 2),
         op(Opcode.min, 2),
       ]);
@@ -449,10 +449,10 @@ describe.only("EmissionsERC20", async function () {
     // prettier-ignore
     const FN = () =>
       concat([
-          valBNOneReward, // scale EACH tier result down by reward per block scaler
             REWARD(),
             MULTIPLIER(),
           op(Opcode.mul, 2),
+          valBNOneReward, // scale EACH tier result down by reward per block scaler
         op(Opcode.div, 2),
       ]);
 

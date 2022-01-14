@@ -27,7 +27,7 @@ const enum Opcode {
   MAX,
 }
 
-describe.only("RainVM", async function () {
+describe("RainVM", async function () {
   it("should return the maximum of a sequence of numbers", async () => {
     this.timeout(0);
 
