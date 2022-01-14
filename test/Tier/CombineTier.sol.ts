@@ -68,17 +68,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -126,17 +126,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -184,17 +184,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -242,17 +242,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -300,17 +300,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -358,17 +358,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -416,15 +416,15 @@ describe("CombineTier", async function () {
     ];
 
     const sourceAlwaysReport = concat([
-      op(Opcode.REPORT, 0),
-      op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT, 0),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT, 0),
     ]);
 
     const sourceNeverReport = concat([
-      op(Opcode.REPORT, 0),
-      op(Opcode.VAL, 1),
       op(Opcode.ACCOUNT, 0),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT, 0),
     ]);
 
     const combineTierAlways = (await Util.combineTierDeploy(signers[0], {
@@ -469,7 +469,10 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const source = concat([bytify(0), bytify(Opcode.ACCOUNT)]);
+    const source = concat([
+      bytify(0),
+      bytify(Opcode.ACCOUNT),
+    ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
@@ -507,17 +510,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -640,17 +643,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -775,17 +778,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -897,17 +900,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -1031,17 +1034,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -1165,17 +1168,17 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 1),
+      op(Opcode.REPORT),
+      op(Opcode.ACCOUNT),
+      op(Opcode.VAL, 0),
+      op(Opcode.REPORT),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
       ),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
-      op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
-      op(Opcode.BLOCK_NUMBER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
