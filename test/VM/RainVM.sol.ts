@@ -27,7 +27,7 @@ const enum Opcode {
   MAX,
 }
 
-describe("RainVM", async function () {
+describe.only("RainVM", async function () {
   it("should return the maximum of a sequence of numbers", async () => {
     this.timeout(0);
 
@@ -35,11 +35,13 @@ describe("RainVM", async function () {
 
     const source = concat([
       // (max 22 11 33)
-      op(Opcode.MAX, 3),
-      op(Opcode.VAL, 2),
-      op(Opcode.VAL, 1),
       op(Opcode.VAL, 0),
+      op(Opcode.VAL, 1),
+      op(Opcode.VAL, 2),
+      op(Opcode.MAX, 3),
     ]);
+
+    console.log(source)
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
     const calculator = (await calculatorFactory.deploy({
@@ -61,10 +63,10 @@ describe("RainVM", async function () {
 
     const source = concat([
       // (min 22 11 33)
-      op(Opcode.MIN, 3),
-      op(Opcode.VAL, 2),
-      op(Opcode.VAL, 1),
       op(Opcode.VAL, 0),
+      op(Opcode.VAL, 1),
+      op(Opcode.VAL, 2),
+      op(Opcode.MIN, 3),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -135,17 +137,17 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // val1
         op(Opcode.VAL, 1), // val0
+        op(Opcode.VAL, 0), // val1
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.ADD, 2),
-        op(Opcode.VAL, arg(0)),
         op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
         op(Opcode.MUL, 2),
-        op(Opcode.VAL, arg(0)),
         op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.ADD, 2),
       ]),
     ];
 
@@ -212,20 +214,20 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // val2
-        op(Opcode.VAL, 1), // val1
         op(Opcode.VAL, 2), // val0
+        op(Opcode.VAL, 1), // val1
+        op(Opcode.VAL, 0), // val2
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.ADD, 3),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
         op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.ADD, 3),
       ]),
     ];
 
