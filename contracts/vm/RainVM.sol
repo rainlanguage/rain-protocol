@@ -224,29 +224,11 @@ abstract contract RainVM {
             // It is up to the rain script to not underflow by calling `skip`
             // with a value larger than the remaining source.
             while (i_ < len_) {
-                // assembly {
-                //     // increase i_ for 2x bytes worth of data.
-                //     if iszero(offset_) {
-                //         j_ := add(j_, 0x20)
-                //         source_ := mload(add(sourceLocation_, j_))
-                //     }
-                //     // mload taking 32 bytes and `source_` starts with 32 byte
-                //     // length, so i_ offset moves the end of the loaded bytes
-                //     // to the op we want.
-                //     // let op_ := mload(add(sourceLocation_, i_))
-                //     // rightmost byte is the opcode.
-                //     opcode_ := and(shr(sub(248, offset_), source_), 0xFF)
-                //     // second rightmost byte is the operand.
-                //     operand_ := and(shr(sub(240, offset_), source_), 0xFF)
-
-                //     offset_ := mod(add(offset_, 16), 256)
-                //     i_ := add(i_, 2)
-                // }
                 assembly {
                     i_ := add(i_, 2)
                     let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := and(shr(8, op_), 0xFF)
-                    operand_ := and(op_, 0xFF)
+                    opcode_ := byte(30, op_)
+                    operand_ := byte(31, op_)
                 }
 
                 // console.log("op: %s %s %s", i_, opcode_, operand_);
