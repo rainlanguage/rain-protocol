@@ -200,81 +200,76 @@ abstract contract RainVM {
         State memory state_,
         uint256 sourceIndex_
     ) internal view {
-        unchecked {
-            uint256 i_ = 0;
-            uint256 opcode_;
-            uint256 operand_;
-            uint256 len_;
-            uint256 sourceLocation_;
-            uint256 constantsLocation_;
-            uint256 argumentsLocation_;
-            uint256 stackLocation_;
-            assembly {
-                stackLocation_ := mload(add(state_, 0x20))
-                sourceLocation_ := mload(
-                    add(
-                        mload(add(state_, 0x40)),
-                        add(0x20, mul(sourceIndex_, 0x20))
-                    )
+        uint256 i_ = 0;
+        uint256 opcode_;
+        uint256 operand_;
+        uint256 len_;
+        uint256 sourceLocation_;
+        uint256 constantsLocation_;
+        uint256 argumentsLocation_;
+        uint256 stackLocation_;
+        assembly {
+            stackLocation_ := mload(add(state_, 0x20))
+            sourceLocation_ := mload(
+                add(
+                    mload(add(state_, 0x40)),
+                    add(0x20, mul(sourceIndex_, 0x20))
                 )
-                constantsLocation_ := mload(add(state_, 0x60))
-                argumentsLocation_ := mload(add(state_, 0x80))
-                len_ := mload(sourceLocation_)
+            )
+            constantsLocation_ := mload(add(state_, 0x60))
+            argumentsLocation_ := mload(add(state_, 0x80))
+            len_ := mload(sourceLocation_)
+        }
+
+        // Loop until complete.
+        // It is up to the rain script to not underflow by calling `skip`
+        // with a value larger than the remaining source.
+        while (i_ < len_) {
+            assembly {
+                i_ := add(i_, 2)
+                let op_ := mload(add(sourceLocation_, i_))
+                opcode_ := byte(30, op_)
+                operand_ := byte(31, op_)
             }
+            if (opcode_ < OPS_LENGTH) {
+                if (opcode_ == OP_VAL) {
+                    assembly {
+                        let location_ := argumentsLocation_
+                        if iszero(shr(7, operand_)) {
+                            location_ := constantsLocation_
+                        }
 
-            // Loop until complete.
-            // It is up to the rain script to not underflow by calling `skip`
-            // with a value larger than the remaining source.
-            while (i_ < len_) {
-                assembly {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
-                    operand_ := byte(31, op_)
-                }
-                if (opcode_ < OPS_LENGTH) {
-                    if (opcode_ == OP_VAL) {
-                        assembly {
-                            let location_
-                            switch shr(7, operand_)
-                            case 0 {
-                                location_ := constantsLocation_
-                            }
-                            default {
-                                location_ := argumentsLocation_
-                            }
-
-                            let stackIndex_ := mload(state_)
-                            mstore(
+                        let stackIndex_ := mload(state_)
+                        // Copy value to stack.
+                        mstore(
+                            add(
+                                stackLocation_,
+                                add(0x20, mul(stackIndex_, 0x20))
+                            ),
+                            mload(
                                 add(
-                                    stackLocation_,
-                                    add(0x20, mul(stackIndex_, 0x20))
-                                ),
-                                mload(
+                                    location_,
                                     add(
-                                        location_,
-                                        add(
-                                            0x20,
-                                            mul(and(operand_, 0x7F), 0x20)
-                                        )
+                                        0x20,
+                                        mul(and(operand_, 0x7F), 0x20)
                                     )
                                 )
                             )
-                            mstore(state_, add(stackIndex_, 1))
-                        }
+                        )
+                        mstore(state_, add(stackIndex_, 1))
                     }
-                    else if (opcode_ == OP_ZIPMAP) {
-                        zipmap(context_, state_, operand_);
-                    }
-                    else {
-                        assembly {
-                            i_ := add(i_, mul(operand_, 2))
-                        }
-                    }
+                }
+                else if (opcode_ == OP_ZIPMAP) {
+                    zipmap(context_, state_, operand_);
                 }
                 else {
-                    applyOp(context_, state_, opcode_, operand_);
+                    assembly {
+                        i_ := add(i_, mul(operand_, 2))
+                    }
                 }
+            }
+            else {
+                applyOp(context_, state_, opcode_, operand_);
             }
         }
     }
