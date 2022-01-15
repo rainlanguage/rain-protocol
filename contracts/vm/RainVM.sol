@@ -206,17 +206,12 @@ abstract contract RainVM {
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
-            // uint256 valIndex_;
-            // bool fromConstants_;
             uint256 len_;
             uint256 sourceLocation_;
             uint256 constantsLocation_;
             uint256 argumentsLocation_;
             uint256 stackLocation_;
-            // uint256 stackIndex_;
-            // uint256 val_;
             assembly {
-                // stackIndex_ := mload(state_)
                 stackLocation_ := mload(add(state_, 0x20))
                 sourceLocation_ := mload(
                     add(
@@ -274,45 +269,11 @@ abstract contract RainVM {
                             mstore(state_, add(stackIndex_, 1))
                         }
                     }
-                } else if (opcode_ == OP_ZIPMAP) {
-                    zipmap(context_, state_, operand_);
-                } else {
+                } else if (opcode_ >= OPS_LENGTH) {
                     applyOp(context_, state_, opcode_, operand_);
+                } else {
+                    zipmap(context_, state_, operand_);
                 }
-
-                // // Handle core opcodes.
-                // if (opcode_ < OPS_LENGTH) {
-                //     if (opcode_ == OP_VAL) {
-                //         // assembly {
-                //         //     // All low bits are the index at which to copy a
-                //         //     // value from to the stack.
-                //         //     // let valIndex_ := and(operand_, 0x7F)
-                //         //     // High bit of VAL switches between copying from
-                //         //     // the constants or arguments in state.
-                //         //     // argument_ := mload(
-                //         //     //     add(
-                //         //     //         argumentsLocation_,
-                //         //     //         add(0x20, mul(valIndex_, 0x20))
-                //         //     //     )
-                //         //     // )
-                //         // }
-                //         // Stack a value either from constants or arguments.
-                //         // console.log("val: %s", val_);
-                //         // state_.stack[state_.stackIndex] = val_;
-                //         // ? constant_
-                //         // : argument_;
-                //         // state_.stackIndex++;
-                //     } else if (opcode_ == OP_ZIPMAP) {
-                //         // state_ modified by reference.
-                //         zipmap(context_, state_, operand_);
-                //     }
-                // }
-                // // Handover to the implementing contract to dispatch non-core
-                // // opcodes.
-                // else {
-                //     // state_ modified by reference.
-                //     applyOp(context_, state_, opcode_, operand_);
-                // }
             }
         }
     }
