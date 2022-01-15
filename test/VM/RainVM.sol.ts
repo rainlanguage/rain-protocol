@@ -27,7 +27,7 @@ const enum Opcode {
   MAX,
 }
 
-describe("RainVM", async function () {
+describe.only("RainVM", async function () {
   it("should return the maximum of a sequence of numbers", async () => {
     this.timeout(0);
 
@@ -49,7 +49,7 @@ describe("RainVM", async function () {
       sources: [source],
       constants,
       argumentsLength: 0,
-      stackLength: 8,
+      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();

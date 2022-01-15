@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "hardhat/console.sol";
+
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -201,16 +203,20 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view {
         unchecked {
-            // Op memory op_;
-            // less gas to read this once.
-            bytes memory source_ = state_.sources[sourceIndex_];
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
             uint256 valIndex_;
             bool fromArguments_;
-            uint256 len_ = source_.length;
-            // Loop until 0.
+            uint256 len_;
+            uint256 sourceLocation_;
+            assembly {
+                sourceLocation_ := mload(
+                    add(mload(state_), add(0x20, mul(sourceIndex_, 0x20)))
+                )
+                len_ := mload(sourceLocation_)
+            }
+            // Loop until complete.
             // It is up to the rain script to not underflow by calling `skip`
             // with a value larger than the remaining source.
             while (i_ < len_) {
@@ -220,7 +226,7 @@ abstract contract RainVM {
                     // mload taking 32 bytes and `source_` starts with 32 byte
                     // length, so i_ offset moves the end of the loaded bytes
                     // to the op we want.
-                    let op_ := mload(add(source_, i_))
+                    let op_ := mload(add(sourceLocation_, i_))
                     // rightmost byte is the opcode.
                     opcode_ := and(op_, 0xFF)
                     // second rightmost byte is the operand.
