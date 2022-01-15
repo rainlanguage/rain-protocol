@@ -225,6 +225,11 @@ abstract contract RainVM {
                     let op_ := mload(add(sourceLocation_, i_))
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
+
+                    switch opcode_
+                    case OP_SKIP {
+                        i_ := add(i_, mul(operand_, 2))
+                    }
                 }
 
                 // Handle core opcodes.
