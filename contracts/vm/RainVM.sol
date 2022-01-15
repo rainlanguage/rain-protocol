@@ -214,7 +214,7 @@ abstract contract RainVM {
             uint256 argumentsLocation_;
             uint256 stackLocation_;
             // uint256 stackIndex_;
-            uint256 val_;
+            // uint256 val_;
             assembly {
                 // stackIndex_ := mload(state_)
                 stackLocation_ := mload(add(state_, 0x20))
@@ -254,28 +254,29 @@ abstract contract RainVM {
                             default {
                                 location_ := argumentsLocation_
                             }
-                            val_ := mload(
-                                add(
-                                    location_,
-                                    add(0x20, mul(and(operand_, 0x7F), 0x20))
-                                )
-                            )
+
                             let stackIndex_ := mload(state_)
                             mstore(
                                 add(
                                     stackLocation_,
                                     add(0x20, mul(stackIndex_, 0x20))
                                 ),
-                                val_
+                                mload(
+                                    add(
+                                        location_,
+                                        add(
+                                            0x20,
+                                            mul(and(operand_, 0x7F), 0x20)
+                                        )
+                                    )
+                                )
                             )
                             mstore(state_, add(stackIndex_, 1))
                         }
                     }
-                }
-                else if (opcode_ == OP_ZIPMAP) {
+                } else if (opcode_ == OP_ZIPMAP) {
                     zipmap(context_, state_, operand_);
-                }
-                else {
+                } else {
                     applyOp(context_, state_, opcode_, operand_);
                 }
 
