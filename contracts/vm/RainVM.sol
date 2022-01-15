@@ -9,6 +9,15 @@ import "hardhat/console.sol";
 /// efficiency; the stack, arguments and stackIndex will likely be mutated by
 /// the running script.
 struct State {
+    /// Opcodes write to the stack at the stack index and can consume from the
+    /// stack by decrementing the index and reading between the old and new
+    /// stack index.
+    /// IMPORANT: The stack is never zeroed out so the index must be used to
+    /// find the "top" of the stack as the result of an `eval`.
+    uint256 stackIndex;
+    /// Stack is the general purpose runtime state that opcodes can read from
+    /// and write to according to their functionality.
+    uint256[] stack;
     /// Sources available to be executed by `eval`.
     /// Notably `ZIPMAP` can also select a source to execute by index.
     bytes[] sources;
@@ -16,15 +25,6 @@ struct State {
     uint256[] constants;
     /// `ZIPMAP` populates arguments which can be copied to the stack by `VAL`.
     uint256[] arguments;
-    /// Stack is the general purpose runtime state that opcodes can read from
-    /// and write to according to their functionality.
-    uint256[] stack;
-    /// Opcodes write to the stack at the stack index and can consume from the
-    /// stack by decrementing the index and reading between the old and new
-    /// stack index.
-    /// IMPORANT: The stack is never zeroed out so the index must be used to
-    /// find the "top" of the stack as the result of an `eval`.
-    uint256 stackIndex;
 }
 
 /// @title RainVM
@@ -206,16 +206,29 @@ abstract contract RainVM {
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
-            uint256 valIndex_;
-            bool fromArguments_;
+            // uint256 valIndex_;
+            // bool fromConstants_;
             uint256 len_;
             uint256 sourceLocation_;
+            uint256 constantsLocation_;
+            uint256 argumentsLocation_;
+            uint256 stackLocation_;
+            // uint256 stackIndex_;
+            uint256 val_;
             assembly {
+                // stackIndex_ := mload(state_)
+                stackLocation_ := mload(add(state_, 0x20))
                 sourceLocation_ := mload(
-                    add(mload(state_), add(0x20, mul(sourceIndex_, 0x20)))
+                    add(
+                        mload(add(state_, 0x40)),
+                        add(0x20, mul(sourceIndex_, 0x20))
+                    )
                 )
+                constantsLocation_ := mload(add(state_, 0x60))
+                argumentsLocation_ := mload(add(state_, 0x80))
                 len_ := mload(sourceLocation_)
             }
+
             // Loop until complete.
             // It is up to the rain script to not underflow by calling `skip`
             // with a value larger than the remaining source.
@@ -225,46 +238,80 @@ abstract contract RainVM {
                     let op_ := mload(add(sourceLocation_, i_))
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
-
-                    switch opcode_
-                    case OP_SKIP {
-                        i_ := add(i_, mul(operand_, 2))
-                    }
                 }
-
-                // Handle core opcodes.
-                if (opcode_ < OPS_LENGTH) {
-                    if (opcode_ == OP_SKIP) {
-                        // Skipping opcodes is simply increasing i_.
-                        assembly {
+                if (opcode_ < OP_ZIPMAP) {
+                    assembly {
+                        switch opcode_
+                        case 0 {
                             i_ := add(i_, mul(operand_, 2))
                         }
-                        continue;
-                    } else if (opcode_ == OP_VAL) {
-                        assembly {
-                            // All low bits are the index at which to copy a
-                            // value from to the stack.
-                            valIndex_ := and(operand_, 0x7F)
-                            // High bit of VAL switches between copying from
-                            // the constants or arguments in state.
-                            fromArguments_ := gt(shr(7, operand_), 0)
+                        case 1 {
+                            let location_
+                            switch shr(7, operand_)
+                            case 0 {
+                                location_ := constantsLocation_
+                            }
+                            default {
+                                location_ := argumentsLocation_
+                            }
+                            val_ := mload(
+                                add(
+                                    location_,
+                                    add(0x20, mul(and(operand_, 0x7F), 0x20))
+                                )
+                            )
+                            let stackIndex_ := mload(state_)
+                            mstore(
+                                add(
+                                    stackLocation_,
+                                    add(0x20, mul(stackIndex_, 0x20))
+                                ),
+                                val_
+                            )
+                            mstore(state_, add(stackIndex_, 1))
                         }
-                        // Stack a value either from constants or arguments.
-                        state_.stack[state_.stackIndex] = fromArguments_
-                            ? state_.arguments[valIndex_]
-                            : state_.constants[valIndex_];
-                        state_.stackIndex++;
-                    } else if (opcode_ == OP_ZIPMAP) {
-                        // state_ modified by reference.
-                        zipmap(context_, state_, operand_);
                     }
                 }
-                // Handover to the implementing contract to dispatch non-core
-                // opcodes.
+                else if (opcode_ == OP_ZIPMAP) {
+                    zipmap(context_, state_, operand_);
+                }
                 else {
-                    // state_ modified by reference.
                     applyOp(context_, state_, opcode_, operand_);
                 }
+
+                // // Handle core opcodes.
+                // if (opcode_ < OPS_LENGTH) {
+                //     if (opcode_ == OP_VAL) {
+                //         // assembly {
+                //         //     // All low bits are the index at which to copy a
+                //         //     // value from to the stack.
+                //         //     // let valIndex_ := and(operand_, 0x7F)
+                //         //     // High bit of VAL switches between copying from
+                //         //     // the constants or arguments in state.
+                //         //     // argument_ := mload(
+                //         //     //     add(
+                //         //     //         argumentsLocation_,
+                //         //     //         add(0x20, mul(valIndex_, 0x20))
+                //         //     //     )
+                //         //     // )
+                //         // }
+                //         // Stack a value either from constants or arguments.
+                //         // console.log("val: %s", val_);
+                //         // state_.stack[state_.stackIndex] = val_;
+                //         // ? constant_
+                //         // : argument_;
+                //         // state_.stackIndex++;
+                //     } else if (opcode_ == OP_ZIPMAP) {
+                //         // state_ modified by reference.
+                //         zipmap(context_, state_, operand_);
+                //     }
+                // }
+                // // Handover to the implementing contract to dispatch non-core
+                // // opcodes.
+                // else {
+                //     // state_ modified by reference.
+                //     applyOp(context_, state_, opcode_, operand_);
+                // }
             }
         }
     }
