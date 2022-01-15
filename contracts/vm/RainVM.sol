@@ -234,13 +234,9 @@ abstract contract RainVM {
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
                 }
-                if (opcode_ < OP_ZIPMAP) {
-                    assembly {
-                        switch opcode_
-                        case 0 {
-                            i_ := add(i_, mul(operand_, 2))
-                        }
-                        case 1 {
+                if (opcode_ < OPS_LENGTH) {
+                    if (opcode_ == OP_VAL) {
+                        assembly {
                             let location_
                             switch shr(7, operand_)
                             case 0 {
@@ -269,10 +265,17 @@ abstract contract RainVM {
                             mstore(state_, add(stackIndex_, 1))
                         }
                     }
-                } else if (opcode_ >= OPS_LENGTH) {
+                    else if (opcode_ == OP_ZIPMAP) {
+                        zipmap(context_, state_, operand_);
+                    }
+                    else {
+                        assembly {
+                            i_ := add(i_, mul(operand_, 2))
+                        }
+                    }
+                }
+                else {
                     applyOp(context_, state_, opcode_, operand_);
-                } else {
-                    zipmap(context_, state_, operand_);
                 }
             }
         }
