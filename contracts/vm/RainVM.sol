@@ -210,11 +210,13 @@ abstract contract RainVM {
             bool fromArguments_;
             uint256 len_;
             uint256 sourceLocation_;
+            uint source_;
             assembly {
                 sourceLocation_ := mload(
                     add(mload(state_), add(0x20, mul(sourceIndex_, 0x20)))
                 )
                 len_ := mload(sourceLocation_)
+                source_ := mload(add(sourceLocation_, 0x20))
             }
             // Loop until complete.
             // It is up to the rain script to not underflow by calling `skip`
@@ -226,11 +228,11 @@ abstract contract RainVM {
                     // mload taking 32 bytes and `source_` starts with 32 byte
                     // length, so i_ offset moves the end of the loaded bytes
                     // to the op we want.
-                    let op_ := mload(add(sourceLocation_, i_))
+                    // let op_ := mload(add(sourceLocation_, i_))
                     // rightmost byte is the opcode.
-                    opcode_ := and(op_, 0xFF)
+                    opcode_ := and(shr(sub(248, i_), source_), 0xFF)
                     // second rightmost byte is the operand.
-                    operand_ := and(shr(8, op_), 0xFF)
+                    operand_ := and(shr(sub(240, i_), source_), 0xFF)
                 }
 
                 // Handle core opcodes.
