@@ -212,23 +212,25 @@ abstract contract RainVM {
             bool fromArguments_;
             uint256 len_;
             uint256 sourceLocation_;
-            // uint source_;
+            uint source_;
             assembly {
                 sourceLocation_ := mload(
                     add(mload(state_), add(0x20, mul(sourceIndex_, 0x20)))
                 )
                 len_ := mload(sourceLocation_)
-                // source_ := mload(add(sourceLocation_, 0x20))
+                source_ := mload(add(sourceLocation_, 0x20))
             }
             // Loop until complete.
             // It is up to the rain script to not underflow by calling `skip`
             // with a value larger than the remaining source.
             while (i_ < len_) {
                 assembly {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
-                    operand_ := byte(31, op_)
+                    // i_ := add(i_, 2)
+                    // let op_ := mload(add(sourceLocation_, i_))
+                    opcode_ := byte(i_, source_)
+                    i_ := add(i_, 1)
+                    operand_ := byte(i_, source_)
+                    i_ := add(i_, 1)
                 }
 
                 // console.log("op: %s %s %s", i_, opcode_, operand_);
