@@ -19,11 +19,10 @@ library BlockOps {
     ) internal view {
         unchecked {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
+            // There's only one opcode.
             // Stack the current `block.number`.
-            if (opcode_ == BLOCK_NUMBER) {
-                state_.stack[state_.stackIndex] = block.number;
-                state_.stackIndex++;
-            }
+            state_.stack[state_.stackIndex] = block.number;
+            state_.stackIndex++;
         }
     }
 }
