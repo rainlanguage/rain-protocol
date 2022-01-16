@@ -222,8 +222,6 @@ abstract contract RainVM {
         }
 
         // Loop until complete.
-        // It is up to the rain script to not underflow by calling `skip`
-        // with a value larger than the remaining source.
         while (i_ < len_) {
             assembly {
                 i_ := add(i_, 2)
@@ -235,7 +233,7 @@ abstract contract RainVM {
                 if (opcode_ == OP_VAL) {
                     assembly {
                         let location_ := argumentsLocation_
-                        if iszero(shr(7, operand_)) {
+                        if iszero(and(operand_, 0x80)) {
                             location_ := constantsLocation_
                         }
 
@@ -249,26 +247,52 @@ abstract contract RainVM {
                             mload(
                                 add(
                                     location_,
-                                    add(
-                                        0x20,
-                                        mul(and(operand_, 0x7F), 0x20)
-                                    )
+                                    add(0x20, mul(and(operand_, 0x7F), 0x20))
                                 )
                             )
                         )
                         mstore(state_, add(stackIndex_, 1))
                     }
-                }
-                else if (opcode_ == OP_ZIPMAP) {
+                } else if (opcode_ == OP_ZIPMAP) {
                     zipmap(context_, state_, operand_);
-                }
-                else {
+                } else {
+                    // if the high bit of the operand is nonzero then take the
+                    // top of the stack and if it is zero we do NOT skip.
+                    // analogous to `JUMPI` in evm opcodes.
+                    // If high bit of the operand is zero then we always skip.
+                    // analogous to `JUMP` in evm opcodes.
+                    // the operand is interpreted as a signed integer so that
+                    // we can skip forwards or backwards. Notable difference
+                    // between skip and jump from evm is that skip moves a
+                    // relative distance from the current position and is known
+                    // at compile time, while jump moves to an absolute
+                    // position read from the stack at runtime. The relative
+                    // simplicity of skip means we can check for out of bounds
+                    // behaviour at compile time and each source can never goto
+                    // a position in a different source.
                     assembly {
-                        i_ := add(i_, mul(operand_, 2))
+                        // manually sign extend 1 bit.
+                        // normal signextend works on bytes not bits.
+                        let shift_ := and(operand_, or(shl(1, operand_), 0x7F))
+                        if iszero(iszero(and(operand_, 0x80))) {
+                            // decrement the stack index
+                            let stackIndex_ := sub(mload(state_), 1)
+                            mstore(state_, stackIndex_)
+                            if iszero(
+                                mload(
+                                    add(
+                                        stackLocation_,
+                                        add(0x20, mul(stackIndex_, 0x20))
+                                    )
+                                )
+                            ) {
+                                shift_ := 0
+                            }
+                        }
+                        i_ := add(i_, mul(shift_, 2))
                     }
                 }
-            }
-            else {
+            } else {
                 applyOp(context_, state_, opcode_, operand_);
             }
         }

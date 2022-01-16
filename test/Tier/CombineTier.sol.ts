@@ -470,7 +470,6 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const source = concat([
-      bytify(0),
       bytify(Opcode.ACCOUNT),
     ]);
 

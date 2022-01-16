@@ -13,7 +13,7 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 const enum Opcode {
-  END,
+  SKIP,
   VAL,
   ZIPMAP,
   BLOCK_NUMBER,
@@ -27,7 +27,7 @@ const enum Opcode {
   MAX,
 }
 
-describe.only("RainVM", async function () {
+describe("RainVM", async function () {
   it("should return the maximum of a sequence of numbers", async () => {
     this.timeout(0);
 
