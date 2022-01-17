@@ -480,22 +480,22 @@ export function callSize(
   valSize: number
 ): number {
   // CallSize(
-  //   op_.val & 0x03, //     00000011
-  //   op_.val & 0x1C, //     00011100
-  //   op_.val & 0xE0  //     11100000
+  //   op_.val & 0x07,      // 00000111
+  //   op_.val >> 3 & 0x03, // 00011000
+  //   op_.val >> 5 & 0x07  // 11100000
   // )
 
-  if (sourceIndex < 0 || sourceIndex > 3) {
+  if (sourceIndex < 0 || sourceIndex > 7) {
     throw new Error("Invalid fnSize");
-  } else if (loopSize < 0 || loopSize > 7) {
+  } else if (loopSize < 0 || loopSize > 3) {
     throw new Error("Invalid loopSize");
   } else if (valSize < 0 || valSize > 7) {
     throw new Error("Invalid valSize");
   }
   let callSize = valSize;
-  callSize <<= 3;
-  callSize += loopSize;
   callSize <<= 2;
+  callSize += loopSize;
+  callSize <<= 3;
   callSize += sourceIndex;
   return callSize;
 }

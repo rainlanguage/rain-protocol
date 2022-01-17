@@ -142,11 +142,11 @@ abstract contract RainVM {
             uint256 valLength_;
             // assembly here to shave some gas.
             assembly {
-                // rightmost 2 bits are the index of the source to use from
+                // rightmost 3 bits are the index of the source to use from
                 // sources in `state_`.
-                sourceIndex_ := and(operand_, 0x03)
-                // bits 2-5 indicate size of the loop. Each 1 increment of the
-                // size halves the bits of the arguments to the zipmap.
+                sourceIndex_ := and(operand_, 0x07)
+                // bits 4 and 5 indicate size of the loop. Each 1 increment of
+                // the size halves the bits of the arguments to the zipmap.
                 // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
                 // into args for the inner `eval`. A loop size of `1` would
                 // shift `stepSize_` by 1 (halving it) and meaning the uint256
@@ -155,7 +155,7 @@ abstract contract RainVM {
                 //
                 // Slither false positive here for the shift of constant `256`.
                 // slither-disable-next-line incorrect-shift
-                stepSize_ := shr(and(shr(2, operand_), 0x07), 256)
+                stepSize_ := shr(and(shr(3, operand_), 0x03), 256)
                 // `offset_` is used by the actual bit shifting operations and
                 // is precalculated here to save some gas as this is a hot
                 // performance path.
