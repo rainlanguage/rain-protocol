@@ -270,26 +270,24 @@ abstract contract RainVM {
                     // simplicity of skip means we can check for out of bounds
                     // behaviour at compile time and each source can never goto
                     // a position in a different source.
-                    assembly {
-                        // manually sign extend 1 bit.
-                        // normal signextend works on bytes not bits.
-                        let shift_ := and(operand_, or(shl(1, operand_), 0x7F))
-                        if iszero(iszero(and(operand_, 0x80))) {
-                            // decrement the stack index
-                            let stackIndex_ := sub(mload(state_), 1)
-                            mstore(state_, stackIndex_)
-                            if iszero(
-                                mload(
-                                    add(
-                                        stackLocation_,
-                                        add(0x20, mul(stackIndex_, 0x20))
-                                    )
-                                )
-                            ) {
-                                shift_ := 0
-                            }
+
+                    // manually sign extend 1 bit.
+                    // normal signextend works on bytes not bits.
+                    int8 shift_ = int8(
+                        uint8(operand_) & ((uint8(operand_) << 1) | 0x7F)
+                    );
+                    if (operand_ & 0x80 > 0) {
+                        state_.stackIndex--;
+                        if (state_.stack[state_.stackIndex] == 0) {
+                            shift_ = 0;
                         }
-                        i_ := add(i_, mul(shift_, 2))
+                    }
+                    if (shift_ != 0) {
+                        if (shift_ < 0) {
+                            i_ -= uint8(shift_ * -2);
+                        } else {
+                            i_ += uint8(shift_ * 2);
+                        }
                     }
                 }
             } else {
