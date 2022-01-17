@@ -204,17 +204,19 @@ abstract contract RainVM {
             // Op memory op_;
             // less gas to read this once.
             bytes memory source_ = state_.sources[sourceIndex_];
-            uint256 i_;
+            uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
             uint256 valIndex_;
             bool fromArguments_;
-            i_ = source_.length;
+            uint256 len_ = source_.length;
             // Loop until 0.
             // It is up to the rain script to not underflow by calling `skip`
             // with a value larger than the remaining source.
-            while (i_ > 0) {
+            while (i_ < len_) {
                 assembly {
+                    // increase i_ for 2x bytes worth of data.
+                    i_ := add(i_, 0x2)
                     // mload taking 32 bytes and `source_` starts with 32 byte
                     // length, so i_ offset moves the end of the loaded bytes
                     // to the op we want.
@@ -223,16 +225,14 @@ abstract contract RainVM {
                     opcode_ := and(op_, 0xFF)
                     // second rightmost byte is the operand.
                     operand_ := and(shr(8, op_), 0xFF)
-                    // decrease i_ for next iteration.
-                    i_ := sub(i_, 0x2)
                 }
 
                 // Handle core opcodes.
                 if (opcode_ < OPS_LENGTH) {
                     if (opcode_ == OP_SKIP) {
-                        // Skipping opcodes is simply decreasing i_.
+                        // Skipping opcodes is simply increasing i_.
                         assembly {
-                            i_ := sub(i_, mul(operand_, 2))
+                            i_ := add(i_, mul(operand_, 2))
                         }
                         continue;
                     } else if (opcode_ == OP_VAL) {
