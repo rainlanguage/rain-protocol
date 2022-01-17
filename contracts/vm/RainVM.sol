@@ -7,6 +7,15 @@ pragma solidity ^0.8.10;
 /// efficiency; the stack, arguments and stackIndex will likely be mutated by
 /// the running script.
 struct State {
+    /// Opcodes write to the stack at the stack index and can consume from the
+    /// stack by decrementing the index and reading between the old and new
+    /// stack index.
+    /// IMPORANT: The stack is never zeroed out so the index must be used to
+    /// find the "top" of the stack as the result of an `eval`.
+    uint256 stackIndex;
+    /// Stack is the general purpose runtime state that opcodes can read from
+    /// and write to according to their functionality.
+    uint256[] stack;
     /// Sources available to be executed by `eval`.
     /// Notably `ZIPMAP` can also select a source to execute by index.
     bytes[] sources;
@@ -14,15 +23,6 @@ struct State {
     uint256[] constants;
     /// `ZIPMAP` populates arguments which can be copied to the stack by `VAL`.
     uint256[] arguments;
-    /// Stack is the general purpose runtime state that opcodes can read from
-    /// and write to according to their functionality.
-    uint256[] stack;
-    /// Opcodes write to the stack at the stack index and can consume from the
-    /// stack by decrementing the index and reading between the old and new
-    /// stack index.
-    /// IMPORANT: The stack is never zeroed out so the index must be used to
-    /// find the "top" of the stack as the result of an `eval`.
-    uint256 stackIndex;
 }
 
 /// @title RainVM
@@ -200,66 +200,100 @@ abstract contract RainVM {
         State memory state_,
         uint256 sourceIndex_
     ) internal view {
-        unchecked {
-            // Op memory op_;
-            // less gas to read this once.
-            bytes memory source_ = state_.sources[sourceIndex_];
-            uint256 i_ = 0;
-            uint256 opcode_;
-            uint256 operand_;
-            uint256 valIndex_;
-            bool fromArguments_;
-            uint256 len_ = source_.length;
-            // Loop until 0.
-            // It is up to the rain script to not underflow by calling `skip`
-            // with a value larger than the remaining source.
-            while (i_ < len_) {
-                assembly {
-                    // increase i_ for 2x bytes worth of data.
-                    i_ := add(i_, 0x2)
-                    // mload taking 32 bytes and `source_` starts with 32 byte
-                    // length, so i_ offset moves the end of the loaded bytes
-                    // to the op we want.
-                    let op_ := mload(add(source_, i_))
-                    // rightmost byte is the opcode.
-                    opcode_ := and(op_, 0xFF)
-                    // second rightmost byte is the operand.
-                    operand_ := and(shr(8, op_), 0xFF)
-                }
+        uint256 i_ = 0;
+        uint256 opcode_;
+        uint256 operand_;
+        uint256 len_;
+        uint256 sourceLocation_;
+        uint256 constantsLocation_;
+        uint256 argumentsLocation_;
+        uint256 stackLocation_;
+        assembly {
+            stackLocation_ := mload(add(state_, 0x20))
+            sourceLocation_ := mload(
+                add(
+                    mload(add(state_, 0x40)),
+                    add(0x20, mul(sourceIndex_, 0x20))
+                )
+            )
+            constantsLocation_ := mload(add(state_, 0x60))
+            argumentsLocation_ := mload(add(state_, 0x80))
+            len_ := mload(sourceLocation_)
+        }
 
-                // Handle core opcodes.
-                if (opcode_ < OPS_LENGTH) {
-                    if (opcode_ == OP_SKIP) {
-                        // Skipping opcodes is simply increasing i_.
-                        assembly {
-                            i_ := add(i_, mul(operand_, 2))
+        // Loop until complete.
+        while (i_ < len_) {
+            assembly {
+                i_ := add(i_, 2)
+                let op_ := mload(add(sourceLocation_, i_))
+                opcode_ := byte(30, op_)
+                operand_ := byte(31, op_)
+            }
+            if (opcode_ < OPS_LENGTH) {
+                if (opcode_ == OP_VAL) {
+                    assembly {
+                        let location_ := argumentsLocation_
+                        if iszero(and(operand_, 0x80)) {
+                            location_ := constantsLocation_
                         }
-                        continue;
-                    } else if (opcode_ == OP_VAL) {
-                        assembly {
-                            // All low bits are the index at which to copy a
-                            // value from to the stack.
-                            valIndex_ := and(operand_, 0x7F)
-                            // High bit of VAL switches between copying from
-                            // the constants or arguments in state.
-                            fromArguments_ := gt(shr(7, operand_), 0)
+
+                        let stackIndex_ := mload(state_)
+                        // Copy value to stack.
+                        mstore(
+                            add(
+                                stackLocation_,
+                                add(0x20, mul(stackIndex_, 0x20))
+                            ),
+                            mload(
+                                add(
+                                    location_,
+                                    add(0x20, mul(and(operand_, 0x7F), 0x20))
+                                )
+                            )
+                        )
+                        mstore(state_, add(stackIndex_, 1))
+                    }
+                } else if (opcode_ == OP_ZIPMAP) {
+                    zipmap(context_, state_, operand_);
+                } else {
+                    // if the high bit of the operand is nonzero then take the
+                    // top of the stack and if it is zero we do NOT skip.
+                    // analogous to `JUMPI` in evm opcodes.
+                    // If high bit of the operand is zero then we always skip.
+                    // analogous to `JUMP` in evm opcodes.
+                    // the operand is interpreted as a signed integer so that
+                    // we can skip forwards or backwards. Notable difference
+                    // between skip and jump from evm is that skip moves a
+                    // relative distance from the current position and is known
+                    // at compile time, while jump moves to an absolute
+                    // position read from the stack at runtime. The relative
+                    // simplicity of skip means we can check for out of bounds
+                    // behaviour at compile time and each source can never goto
+                    // a position in a different source.
+                    assembly {
+                        // manually sign extend 1 bit.
+                        // normal signextend works on bytes not bits.
+                        let shift_ := and(operand_, or(shl(1, operand_), 0x7F))
+                        if iszero(iszero(and(operand_, 0x80))) {
+                            // decrement the stack index
+                            let stackIndex_ := sub(mload(state_), 1)
+                            mstore(state_, stackIndex_)
+                            if iszero(
+                                mload(
+                                    add(
+                                        stackLocation_,
+                                        add(0x20, mul(stackIndex_, 0x20))
+                                    )
+                                )
+                            ) {
+                                shift_ := 0
+                            }
                         }
-                        // Stack a value either from constants or arguments.
-                        state_.stack[state_.stackIndex] = fromArguments_
-                            ? state_.arguments[valIndex_]
-                            : state_.constants[valIndex_];
-                        state_.stackIndex++;
-                    } else if (opcode_ == OP_ZIPMAP) {
-                        // state_ modified by reference.
-                        zipmap(context_, state_, operand_);
+                        i_ := add(i_, mul(shift_, 2))
                     }
                 }
-                // Handover to the implementing contract to dispatch non-core
-                // opcodes.
-                else {
-                    // state_ modified by reference.
-                    applyOp(context_, state_, opcode_, operand_);
-                }
+            } else {
+                applyOp(context_, state_, opcode_, operand_);
             }
         }
     }

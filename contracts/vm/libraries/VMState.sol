@@ -29,11 +29,11 @@ library VMState {
     {
         return
             State(
+                0,
+                new uint256[](config_.stackLength),
                 config_.sources,
                 config_.constants,
-                new uint256[](config_.argumentsLength),
-                new uint256[](config_.stackLength),
-                0
+                new uint256[](config_.argumentsLength)
             );
     }
 

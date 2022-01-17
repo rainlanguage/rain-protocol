@@ -513,7 +513,7 @@ export function arg(valIndex: number): number {
  * @param erand - the operand, currently limited to 1 byte (defaults to 0)
  */
 export function op(code: number, erand = 0): Uint8Array {
-  return concat([bytify(erand), bytify(code)]);
+  return concat([bytify(code), bytify(erand)]);
 }
 
 export const wrap2BitUInt = (integer: number) => {
