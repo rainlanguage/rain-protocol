@@ -6,131 +6,174 @@ import {Cooldown} from "../cooldown/Cooldown.sol";
 import "../vm/RainVM.sol";
 import {BlockOps} from "../vm/ops/BlockOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
-import {SaleOps} from "./ops/SaleOps.sol";
+import {SenderOps} from "../vm/ops/SenderOps.sol";
+import {TierOps} from "../vm/ops/TierOps.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {ERC20Config} from "../erc20/ERC20Config.sol";
+import "./ISale.sol";
+//solhint-disable-next-line max-line-length
+import {ITier, RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
+//solhint-disable-next-line max-line-length
+import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+// solhint-disable-next-line max-line-length
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+struct ConstructorConfig {
+    RedeemableERC20Factory redeemableERC20Factory;
+}
 
 struct Config {
     StateConfig vmStateConfig;
+    address recipient;
+    IERC20 reserve;
     uint256 startBlock;
     // Sale can have an id to disambiguate it from other sales from the same
     // initiator.
-    uint256 totalUnits;
+    uint256 initialSupply;
     uint256 cooldownDuration;
     uint256 minimumSaleDuration;
     uint256 minimumRaise;
+    uint256 dustSize;
 }
 
-// Everything in `Config` but:
-// - `StateConfig` is deployed and converted to a pointer address
-// - `initiator` is set as `msg.sender`
-struct Definition {
-    address sourcePointer;
-    address initiator;
-    uint256 startBlock;
-    uint256 totalUnits;
-    uint256 cooldownDuration;
-    uint256 minimumSaleDuration;
-    uint256 minimumRaise;
+struct SaleRedeemableERC20Config {
+    ERC20Config erc20Config;
+    ITier tier;
+    uint256 minimumTier;
+    uint256 initialSupply;
 }
 
 struct BuyConfig {
-    uint16 minimumUnits;
-    uint16 desiredUnits;
+    uint256 minimumUnits;
+    uint256 desiredUnits;
     uint256 maximumPrice;
 }
 
-enum Status {
-    Active,
-    Success,
-    Fail
-}
+contract Sale is Cooldown, RainVM, ISale {
+    using Math for uint256;
+    using SafeERC20 for IERC20;
 
-struct SaleState {
-    uint256 remainingUnits;
-    uint256 totalReserveIn;
-    uint256 lastBuyUnits;
-    uint32 lastBuyBlock;
-    uint256 lastBuyPrice;
-}
+    event Construct(address sender, ConstructorConfig config);
+    event Initialize(address sender, Config config, address token);
+    event End(address sender);
+    event Buy(address sender, BuyConfig config_, uint256 units, uint256 price);
+    event Refund(address sender, uint256 units, uint256 price);
 
-contract Sale is Cooldown, RainVM, BlockOps, MathOps, SaleOps {
-    event Initialize(Definition definition);
+    uint256 private constant REMAINING_UNITS = 0;
+    uint256 private constant TOTAL_RESERVE_IN = 1;
+    uint256 private constant LAST_RESERVE_IN = 2;
 
-    uint private immutable blockOpsStart;
-    uint private immutable senderOpsStart;
-    uint private immutable mathOpsStart;
-    uint private immutable tierOpsStart;
-    uint private immutable localOpsStart;
+    uint256 private constant LAST_BUY_BLOCK = 3;
+    uint256 private constant LAST_BUY_UNITS = 4;
+    uint256 private constant LAST_BUY_PRICE = 5;
 
-    uint256 private definitionHash;
-    uint public token;
+    uint256 internal constant LOCAL_OPS_LENGTH = 6;
 
-    event End();
-    event Buy();
-    event Refund();
+    uint256 private immutable blockOpsStart;
+    uint256 private immutable senderOpsStart;
+    uint256 private immutable mathOpsStart;
+    uint256 private immutable tierOpsStart;
+    uint256 private immutable localOpsStart;
 
-    Status public status;
-    uint32 public immutable saleStartBlock;
-    uint32 public immutable minimumSaleDuration;
-    State public state;
-    uint256 public immutable minimumRaise;
+    RedeemableERC20Factory private immutable redeemableERC20Factory;
+
+    // config.
+    address private recipient;
+    address private vmStatePointer;
+    uint256 private startBlock;
+    uint256 private minimumSaleDuration;
+    uint256 private minimumRaise;
+    uint256 private dustSize;
+
+    IERC20 public reserve;
+    RedeemableERC20 public token;
+
+    // state.
+    uint256 private remainingUnits;
+    uint256 private totalReserveIn;
+    uint256 private lastBuyBlock;
+    uint256 private lastBuyUnits;
+    uint256 private lastBuyPrice;
+
+    SaleStatus private _saleStatus;
 
     /// Account => price => amount.
-    mapping(address => mapping(uint256 => uint16)) public sales;
+    mapping(address => mapping(uint256 => uint256)) public sales;
 
-    constructor(Config memory config_) {
+    constructor(ConstructorConfig memory config_) {
         blockOpsStart = RainVM.OPS_LENGTH;
         senderOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
         mathOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
         tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
         localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
 
-        saleStartBlock = config_.saleStartBlock;
+        redeemableERC20Factory = config_.redeemableERC20Factory;
+
+        emit Construct(msg.sender, config_);
+    }
+
+    function initialize(
+        Config memory config_,
+        SaleRedeemableERC20Config memory saleRedeemableERC20Config_
+    ) external {
+        initializeCooldown(config_.cooldownDuration);
+
+        vmStatePointer = VMState.snapshot(
+            VMState.newState(config_.vmStateConfig)
+        );
+        recipient = config_.recipient;
+        startBlock = config_.startBlock;
         minimumSaleDuration = config_.minimumSaleDuration;
         minimumRaise = config_.minimumRaise;
-    }
+        dustSize = config_.dustSize;
 
-    function initialize(Config memory config_) external {
-        require(config_.totalUnits > 0, "UNITS_0");
-
-        initializeCooldown(config_.cooldownDuration);
-        Definition memory definition_ = Definition(
-            VMState.snapshot(VMState.newState(config_.vmStateConfig)),
-            msg.sender,
-            config_.startBlock,
-            config_.totalUnits,
-            config_.cooldownDuration,
-            config_.minimumSaleDuration,
-            config_.minimumRaise
+        reserve = config_.reserve;
+        RedeemableERC20 token_ = RedeemableERC20(
+            redeemableERC20Factory.createChild(
+                abi.encode(
+                    RedeemableERC20Config(
+                        address(this),
+                        address(config_.reserve),
+                        saleRedeemableERC20Config_.erc20Config,
+                        saleRedeemableERC20Config_.tier,
+                        saleRedeemableERC20Config_.minimumTier,
+                        saleRedeemableERC20Config_.initialSupply
+                    )
+                )
+            )
         );
-        definitionHash = keccak256(abi.encodePacked(definition_));
-        Initialize(definition_);
+        token = token_;
+
+        remainingUnits = saleRedeemableERC20Config_.initialSupply;
+
+        emit Initialize(msg.sender, config_, address(token_));
     }
 
-    modifier onlyDefinition(Definition calldata definition_) {
+    function saleStatus() external view returns (SaleStatus) {
+        return _saleStatus;
+    }
+
+    function end() public {
+        require(_saleStatus == SaleStatus.Pending, "ENDED");
         require(
-            definitionHash == keccak256(abi.encodePacked(definition_)),
-            "DEFINITION_HASH"
+            minimumSaleDuration + startBlock <= uint32(block.number),
+            "MIN_DURATION"
         );
-        _;
-    }
+        emit End(msg.sender);
 
-    function end(Definition calldata definition_)
-        external
-        onlyDefinition(definition_)
-    {
-        require(
-            minimumSaleDuration + saleStartBlock <= uint32(block.number) ||
-                state.remainingUnits < 1,
-            "EARLY_END"
-        );
-        require(status == Status.Active, "NOT_ACTIVE");
-        if (state.totalRaised >= minimumRaise) {
-            status = Status.Success;
+        remainingUnits = 0;
+        address[] memory distributors_ = new address[](1);
+        distributors_[0] = address(this);
+        token.burnDistributors(distributors_);
+
+        if (totalReserveIn >= minimumRaise) {
+            _saleStatus = SaleStatus.Success;
+            reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
         } else {
-            status = Status.Fail;
+            _saleStatus = SaleStatus.Fail;
         }
-        emit End();
     }
 
     function buy(BuyConfig memory config_) external onlyAfterCooldown {
@@ -139,87 +182,119 @@ contract Sale is Cooldown, RainVM, BlockOps, MathOps, SaleOps {
             config_.minimumUnits <= config_.desiredUnits,
             "MINIMUM_OVER_DESIRED"
         );
-        require(
-            config_.minimumUnits <= state.remainingUnits,
-            "INSUFFICIENT_STOCK"
+        require(startBlock <= block.number, "NOT_STARTED");
+
+        require(_saleStatus == SaleStatus.Pending, "ENDED");
+
+        uint256 units_ = config_.desiredUnits.min(remainingUnits).max(
+            config_.minimumUnits
         );
-        require(saleStartBlock <= uint32(block.number), "NOT_STARTED");
+        require(units_ <= remainingUnits, "INSUFFICIENT_STOCK");
 
-        require(status == Status.Active, "NOT_ACTIVE");
+        State memory state_ = VMState.restore(vmStatePointer);
+        eval("", state_, 0);
 
-        Context memory context_ = Context(saleStartBlock, state);
-
-        uint16 units_ = uint16(
-            uint256(config_.desiredUnits).min(context_.state.remainingUnits)
-        );
-
-        Stack memory stack_;
-        stack_ = eval(abi.encode(context_), source(), stack_);
-        uint256 price_ = stack_.vals[stack_.index - 1];
+        uint256 price_ = state_.stack[state_.stackIndex - 1];
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
         uint256 cost_ = price_ * units_;
         sales[msg.sender][price_] = units_;
 
-        state.lastBuyBlock = uint32(block.number);
-        state.remainingUnits -= units_;
-        state.lastBuyPrice = price_;
-        state.totalRaised += cost_;
+        lastBuyBlock = uint32(block.number);
+        remainingUnits -= units_;
+        lastBuyPrice = price_;
+        totalReserveIn += cost_;
 
-        if (state.remainingUnits < 1) {
+        if (remainingUnits < 1) {
             end();
+        } else {
+            require(remainingUnits >= dustSize, "DUST");
         }
 
-        emit Buy();
+        emit Buy(msg.sender, config_, units_, price_);
 
-        afterBuy_(units_, cost_);
+        token.transfer(msg.sender, units_);
+        reserve.safeTransferFrom(msg.sender, address(this), cost_);
     }
-
-    function afterBuy_(uint16 units_, uint256 cost_) public virtual {}
 
     function refundCooldown() private onlyAfterCooldown {}
 
     function refund(uint256 price_) external {
-        require(status != Status.Success, "REFUND_SUCCESS");
+        require(_saleStatus != SaleStatus.Success, "REFUND_SUCCESS");
 
-        uint16 units_ = sales[msg.sender][price_];
+        uint256 units_ = sales[msg.sender][price_];
         uint256 cost_ = price_ * units_;
 
-        state.totalRaised -= cost_;
-        state.remainingUnits += units_;
+        totalReserveIn -= cost_;
+        remainingUnits += units_;
 
         delete sales[msg.sender][price_];
 
         // Only respect/trigger cooldown if the raise is active.
-        if (status == Status.Active) {
+        if (_saleStatus == SaleStatus.Pending) {
             refundCooldown();
         }
 
-        emit Refund();
+        emit Refund(msg.sender, units_, price_);
 
-        afterRefund_(units_, cost_);
+        token.transferFrom(msg.sender, address(this), units_);
+        reserve.safeTransfer(msg.sender, cost_);
     }
-
-    function afterRefund_(uint16 units, uint256 cost_) public virtual {}
 
     function applyOp(
         bytes memory context_,
-        Stack memory stack_,
-        Op memory op_
-    )
-        internal
-        view
-        override(RainVM, BlockOps, MathOps, SaleOps)
-        returns (Stack memory outStack_)
-    {
-        if (op_.code < blockOpsStart + BLOCK_OPS_LENGTH) {
-            outStack_ = BlockOps.applyOp(context_, stack_, op_);
-        } else if (op_.code < mathOpsStart + MATH_OPS_LENGTH) {
-            outStack_ = MathOps.applyOp(context_, stack_, op_);
-        } else if (op_.code < saleOpsStart + SALE_OPS_LENGTH) {
-            outStack_ = SaleOps.applyOp(context_, stack_, op_);
-        } else {
-            // Unknown op!
-            assert(false);
+        State memory state_,
+        uint256 opcode_,
+        uint256 operand_
+    ) internal view override {
+        unchecked {
+            if (opcode_ < senderOpsStart) {
+                BlockOps.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - blockOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < mathOpsStart) {
+                SenderOps.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - senderOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < tierOpsStart) {
+                MathOps.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - mathOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < localOpsStart) {
+                TierOps.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - tierOpsStart,
+                    operand_
+                );
+            } else {
+                opcode_ -= localOpsStart;
+                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
+                if (opcode_ == REMAINING_UNITS) {
+                    state_.stack[state_.stackIndex] = remainingUnits;
+                } else if (opcode_ == TOTAL_RESERVE_IN) {
+                    state_.stack[state_.stackIndex] = totalReserveIn;
+                } else if (opcode_ == LAST_RESERVE_IN) {
+                    state_.stack[state_.stackIndex] =
+                        lastBuyUnits *
+                        lastBuyPrice;
+                } else if (opcode_ == LAST_BUY_BLOCK) {
+                    state_.stack[state_.stackIndex] = lastBuyBlock;
+                } else if (opcode_ == LAST_BUY_UNITS) {
+                    state_.stack[state_.stackIndex] = lastBuyUnits;
+                } else if (opcode_ == LAST_BUY_PRICE) {
+                    state_.stack[state_.stackIndex] = lastBuyPrice;
+                }
+                state_.stackIndex++;
+            }
         }
     }
 }

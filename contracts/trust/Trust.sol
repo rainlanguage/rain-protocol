@@ -30,6 +30,8 @@ import {BPoolFeeEscrow} from "../escrow/BPoolFeeEscrow.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import {Phase, Phased} from "../phased/Phased.sol";
 
+import "../sale/ISale.sol";
+
 // solhint-disable-next-line max-line-length
 import {PoolParams, IConfigurableRightsPool} from "../pool/IConfigurableRightsPool.sol";
 
@@ -276,7 +278,7 @@ struct TrustRedeemableERC20Config {
 /// creates. The `Trust` never transfers ownership so it directly controls all
 /// internal workflows. No stakeholder, even the deployer or creator, can act
 /// as owner of the internals.
-contract Trust is Phased, Initializable {
+contract Trust is Phased, Initializable, ISale {
     /// Balancer requires a minimum balance of `10 ** 6` for all tokens at all
     /// times. ConfigurableRightsPool repo misreports this as 10 ** 12 but the
     /// Balancer Core repo has it set as `10 ** 6`. We add one here to protect
@@ -689,6 +691,21 @@ contract Trust is Phased, Initializable {
             "MAX_WEIGHT_VALUATION"
         );
         return weight_;
+    }
+
+    function saleStatus() external view returns (SaleStatus) {
+        Phase poolPhase_ = currentPhase();
+        if (poolPhase_ == Phase.THREE || poolPhase_ == Phase.FOUR) {
+            if (finalBalance >= successBalance) {
+                return SaleStatus.Success;
+            }
+            else {
+                return SaleStatus.Fail;
+            }
+        }
+        else {
+            return SaleStatus.Pending;
+        }
     }
 
     /// Accessor for the `DistributionStatus` of this `Trust`.
