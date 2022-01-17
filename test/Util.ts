@@ -326,7 +326,10 @@ export const redeemableERC20Deploy = async (deployer, config) => {
   return redeemableERC20;
 };
 
-export const seedERC20Deploy = async (deployer, config) => {
+export const seedERC20Deploy = async (
+  deployer,
+  config
+): Promise<[SeedERC20 & Contract, ContractTransaction]> => {
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory"
   );
@@ -348,7 +351,7 @@ export const seedERC20Deploy = async (deployer, config) => {
 
   await seedERC20.deployed();
 
-  return seedERC20;
+  return [seedERC20, tx];
 };
 
 export const trustDeploy = async (

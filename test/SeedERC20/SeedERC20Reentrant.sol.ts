@@ -29,7 +29,7 @@ describe("SeedERC20Reentrant", async function () {
 
     const bobUnits = seedUnits;
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,
@@ -84,7 +84,7 @@ describe("SeedERC20Reentrant", async function () {
 
     const bobUnits = 1;
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,
@@ -128,7 +128,7 @@ describe("SeedERC20Reentrant", async function () {
 
     const bobUnits = 3;
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,

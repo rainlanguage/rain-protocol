@@ -221,7 +221,7 @@ describe("TrustSeed", async function () {
     const cooldownDuration = 1;
     const seedPrice = reserveInit.div(10);
 
-    const seederContract = await Util.seedERC20Deploy(signers[0], {
+    const [seederContract] = await Util.seedERC20Deploy(signers[0], {
       reserve: reserve.address,
       recipient: signers[0].address,
       seedPrice,

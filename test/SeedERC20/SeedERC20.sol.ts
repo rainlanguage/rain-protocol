@@ -40,7 +40,7 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
@@ -159,7 +159,7 @@ describe("SeedERC20", async function () {
     const bobUnits = ethers.BigNumber.from(6);
     const carolUnits = ethers.BigNumber.from(4);
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
@@ -255,7 +255,7 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
@@ -312,7 +312,7 @@ describe("SeedERC20", async function () {
     const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const seedERC20 = await Util.seedERC20Deploy(signers[9], {
+    const [seedERC20] = await Util.seedERC20Deploy(signers[9], {
       reserve: reserve.address,
       recipient: signers[9].address,
       seedPrice,
@@ -347,7 +347,7 @@ describe("SeedERC20", async function () {
     const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const seedERC20 = await Util.seedERC20Deploy(signers[9], {
+    const [seedERC20] = await Util.seedERC20Deploy(signers[9], {
       reserve: reserve.address,
       recipient: signers[9].address,
       seedPrice,
@@ -452,7 +452,7 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
@@ -519,7 +519,7 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20, txSeedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
@@ -531,19 +531,22 @@ describe("SeedERC20", async function () {
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
 
-    assert((await seedERC20.reserve()) == reserve.address, `reserve not set`);
+    const {
+      reserve: reserveEvent,
+      seedPrice: seedPriceEvent,
+      recipient,
+    } = await Util.getEventArgs(txSeedERC20, "Initialize", seedERC20);
 
-    assert((await seedERC20.seedPrice()).eq(seedPrice), `seed price not set`);
+    assert(reserveEvent == reserve.address, `reserve not set`);
+
+    assert(seedPriceEvent.eq(seedPrice), `seed price not set`);
 
     assert(
       (await seedERC20.totalSupply()).eq(seedUnits),
       `seed total supply is wrong`
     );
 
-    assert(
-      (await seedERC20.recipient()) == dave.address,
-      `failed to set recipient`
-    );
+    assert(recipient == dave.address, `failed to set recipient`);
 
     await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
     await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
