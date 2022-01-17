@@ -266,20 +266,23 @@ abstract contract RainVM {
                     } else if (opcode_ == OP_ZIPMAP) {
                         zipmap(context_, state_, operand_);
                     } else {
-                        // if the high bit of the operand is nonzero then take the
-                        // top of the stack and if it is zero we do NOT skip.
+                        // if the high bit of the operand is nonzero then take
+                        // the top of the stack and if it is zero we do NOT
+                        // skip.
                         // analogous to `JUMPI` in evm opcodes.
-                        // If high bit of the operand is zero then we always skip.
+                        // If high bit of the operand is zero then we always
+                        // skip.
                         // analogous to `JUMP` in evm opcodes.
-                        // the operand is interpreted as a signed integer so that
-                        // we can skip forwards or backwards. Notable difference
-                        // between skip and jump from evm is that skip moves a
-                        // relative distance from the current position and is known
-                        // at compile time, while jump moves to an absolute
-                        // position read from the stack at runtime. The relative
-                        // simplicity of skip means we can check for out of bounds
-                        // behaviour at compile time and each source can never goto
-                        // a position in a different source.
+                        // the operand is interpreted as a signed integer so
+                        // that we can skip forwards or backwards. Notable
+                        // difference between skip and jump from evm is that
+                        // skip moves a relative distance from the current
+                        // position and is known at compile time, while jump
+                        // moves to an absolute position read from the stack at
+                        // runtime. The relative simplicity of skip means we
+                        // can check for out of bounds behaviour at compile
+                        // time and each source can never goto a position in a
+                        // different source.
 
                         // manually sign extend 1 bit.
                         // normal signextend works on bytes not bits.
