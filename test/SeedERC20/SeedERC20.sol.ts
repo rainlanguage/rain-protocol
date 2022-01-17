@@ -9,6 +9,12 @@ import type { Contract } from "ethers";
 chai.use(solidity);
 const { expect, assert } = chai;
 
+enum SeedPhase {
+  UNINITIALIZED,
+  SEEDING,
+  REDEEMING,
+}
+
 describe("SeedERC20", async function () {
   it("should behave correctly if people grief contract with reserve transfers", async function () {
     this.timeout(0);
@@ -40,7 +46,7 @@ describe("SeedERC20", async function () {
     const bobUnits = 6;
     const carolUnits = 4;
 
-    const [seedERC20] = await Util.seedERC20Deploy(dave, {
+    const [seedERC20, txSeedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
@@ -52,16 +58,19 @@ describe("SeedERC20", async function () {
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
 
-    assert((await seedERC20.reserve()) == reserve.address, `reserve not set`);
-    assert((await seedERC20.seedPrice()).eq(seedPrice), `seed price not set`);
+    const {
+      reserve: reserveEvent,
+      seedPrice: seedPriceEvent,
+      recipient,
+    } = await Util.getEventArgs(txSeedERC20, "Initialize", seedERC20);
+
+    assert(reserveEvent == reserve.address, `reserve not set`);
+    assert(seedPriceEvent.eq(seedPrice), `seed price not set`);
     assert(
       (await seedERC20.totalSupply()).eq(seedUnits),
       `seed total supply is wrong`
     );
-    assert(
-      (await seedERC20.recipient()) == dave.address,
-      `failed to set recipient`
-    );
+    assert(recipient == dave.address, `failed to set recipient`);
 
     await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
     await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
@@ -214,6 +223,7 @@ describe("SeedERC20", async function () {
       .to.emit(seedERC20, "Redeem")
       .withArgs(
         bob.address,
+        reserve.address,
         bobUnits,
         bobUnits.mul(reserve0).div(totalSupply0)
       );
@@ -225,6 +235,7 @@ describe("SeedERC20", async function () {
       .to.emit(seedERC20, "Redeem")
       .withArgs(
         carol.address,
+        reserve.address,
         carolUnits,
         carolUnits.mul(reserve1).div(totalSupply1)
       );
@@ -480,7 +491,11 @@ describe("SeedERC20", async function () {
 
     await expect(carolSeed.seed(0, carolUnits))
       .to.emit(carolSeed, "PhaseScheduled")
-      .withArgs(carol.address, 1, (await ethers.provider.getBlockNumber()) + 1);
+      .withArgs(
+        carol.address,
+        SeedPhase.REDEEMING,
+        (await ethers.provider.getBlockNumber()) + 1
+      );
 
     // seed contract automatically transfers to recipient on successful seed
     assert(

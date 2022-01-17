@@ -982,7 +982,7 @@ describe("TrustSeed", async function () {
 
       const bPoolFinalBalance = await reserve.balanceOf(bPool.address);
       const bPoolReserveDust =
-        Util.estimateReserveDust(bPoolFinalBalance).add(1);
+        Util.determineReserveDust(bPoolFinalBalance).add(1);
 
       const trustFinalBalance = bPoolFinalBalance.sub(bPoolReserveDust);
 

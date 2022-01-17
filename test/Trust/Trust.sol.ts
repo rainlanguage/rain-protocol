@@ -956,7 +956,7 @@ describe("Trust", async function () {
     );
   });
 
-  it("should succeed if minimum raise hit exactly (i.e. dust left in pool doesn't cause issues)", async function () {
+  it("should succeed if raise amount equals minimum raise + dust", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1094,13 +1094,21 @@ describe("Trust", async function () {
       console.log(`bPool balance  ${await reserve.balanceOf(bPool.address)}`);
     }
 
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+
     const finalBPoolBalance = await reserve.balanceOf(bPool.address);
 
+    console.log(`bPool balance  ${finalBPoolBalance}`);
+
     assert(
-      finalBPoolBalance.eq(successLevel),
-      `pool balance not exactly equal to success level (important for this test)
-    finalBPoolBalance ${finalBPoolBalance}
-    successLevel      ${successLevel}`
+      finalBPoolBalance.eq(successLevel.add(dustAtSuccessLevel)),
+      `pool balance equal to success level + dust
+      finalBPoolBalance   ${finalBPoolBalance}
+      successLevel        ${successLevel}
+      dustAtSuccessLevel  ${dustAtSuccessLevel}`
     );
 
     while (
@@ -1112,14 +1120,15 @@ describe("Trust", async function () {
 
     await trust.endDutchAuction();
 
-    const bPoolDust = finalBPoolBalance.mul(Util.ONE).div(1e7).div(Util.ONE);
+    const actualBPoolDust = await reserve.balanceOf(bPool.address);
 
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
       `should be SUCCESS; raise should have succeeded when hitting minimum raise exactly
-    finalBPoolBalance ${finalBPoolBalance}
-    successLevel      ${successLevel}
-    bPoolDust         ${bPoolDust}`
+      distributionStatus  ${await trust.getDistributionStatus()}
+      finalBPoolBalance   ${finalBPoolBalance}
+      successLevel        ${successLevel}
+      actualBPoolDust     ${actualBPoolDust}`
     );
   });
 

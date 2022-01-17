@@ -193,11 +193,11 @@ describe("Phased", async function () {
 
       await phased.testScheduleNextPhase(firstBlock + 1);
 
-      await phased.toggleHookCondition(); // test method to turn on/off custom hook require
+      await phased.toggleCondition(); // test method to turn on/off custom hook require
 
       await Util.assertError(
         async () => await phased.testScheduleNextPhase(firstBlock + 3),
-        "HOOK_CONDITION",
+        "CONDITION",
         "hook override could not be used to impose condition"
       );
     });

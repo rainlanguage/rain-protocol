@@ -201,19 +201,12 @@ export const max_uint16 = ethers.BigNumber.from("0xffff");
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
 
-export const estimateReserveDust = (bPoolReserveBalance: BigNumber) => {
+export const determineReserveDust = (bPoolReserveBalance: BigNumber) => {
   let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
   if (dust.lt(RESERVE_MIN_BALANCE)) {
     dust = RESERVE_MIN_BALANCE;
   }
   return dust;
-};
-
-export const determineReserveDust = (bPoolDust: BigNumber) => {
-  if (bPoolDust.lt(RESERVE_MIN_BALANCE)) {
-    bPoolDust = RESERVE_MIN_BALANCE;
-  }
-  return bPoolDust;
 };
 
 export const assertError = async (f, s: string, e: string) => {

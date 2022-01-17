@@ -138,7 +138,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     // calculate real RedeemableERC20 proportions
@@ -302,7 +302,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     // calculate real RedeemableERC20 proportions
@@ -468,7 +468,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
@@ -620,7 +620,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     const txWithdraw0 = await claim
@@ -1049,7 +1049,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     // deposit some claimable tokens
