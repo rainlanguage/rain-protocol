@@ -816,7 +816,7 @@ describe("TrustSeed", async function () {
       );
     });
 
-    it("failed raise", async function () {
+    it.only("failed raise", async function () {
       this.timeout(0);
 
       const signers = await ethers.getSigners();
@@ -1013,8 +1013,11 @@ describe("TrustSeed", async function () {
       actual    ${await reserve.balanceOf(seederContract.address)}`
       );
 
+      const safeExit_ = seedPrice.mul(seederUnits);
+      const safetyRelease_ = safeExit_.sub(expectedSeederPay); // seeder 'yields', accepting that trapped reserve dust in balancer pool after failed raise will affect the amount of reserve they receive on redemption
+
       // seeders redeem funds
-      await seederContract1.redeem(seeder1Units, 0);
+      await seederContract1.redeem(seeder1Units, safetyRelease_);
 
       // correct amount of units should have been redeemed
       assert(
