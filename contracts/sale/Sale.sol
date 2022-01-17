@@ -46,9 +46,19 @@ struct SaleRedeemableERC20Config {
 }
 
 struct BuyConfig {
+    address feeRecipient;
+    uint256 fee;
     uint256 minimumUnits;
     uint256 desiredUnits;
     uint256 maximumPrice;
+}
+
+struct Receipt {
+    uint256 id;
+    address feeRecipient;
+    uint256 fee;
+    uint256 units;
+    uint256 price;
 }
 
 contract Sale is Cooldown, RainVM, ISale {
@@ -58,8 +68,8 @@ contract Sale is Cooldown, RainVM, ISale {
     event Construct(address sender, ConstructorConfig config);
     event Initialize(address sender, Config config, address token);
     event End(address sender);
-    event Buy(address sender, BuyConfig config_, uint256 units, uint256 price);
-    event Refund(address sender, uint256 units, uint256 price);
+    event Buy(address sender, BuyConfig config_, Receipt receipt);
+    event Refund(address sender, Receipt receipt);
 
     uint256 private constant REMAINING_UNITS = 0;
     uint256 private constant TOTAL_RESERVE_IN = 1;
@@ -99,8 +109,12 @@ contract Sale is Cooldown, RainVM, ISale {
 
     SaleStatus private _saleStatus;
 
-    /// Account => price => amount.
-    mapping(address => mapping(uint256 => uint256)) public sales;
+    /// Account => keccak receipt => exists.
+    mapping(address => mapping(bytes32 => bool)) private receipts;
+    uint256 private nextReceiptId;
+
+    /// Account => unclaimed fees.
+    mapping(address => uint256) fees;
 
     constructor(ConstructorConfig memory config_) {
         blockOpsStart = RainVM.OPS_LENGTH;
@@ -158,7 +172,7 @@ contract Sale is Cooldown, RainVM, ISale {
     function end() public {
         require(_saleStatus == SaleStatus.Pending, "ENDED");
         require(
-            minimumSaleDuration + startBlock <= uint32(block.number),
+            minimumSaleDuration + startBlock <= block.number,
             "MIN_DURATION"
         );
         emit End(msg.sender);
@@ -197,12 +211,24 @@ contract Sale is Cooldown, RainVM, ISale {
         uint256 price_ = state_.stack[state_.stackIndex - 1];
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
         uint256 cost_ = price_ * units_;
-        sales[msg.sender][price_] = units_;
 
-        lastBuyBlock = uint32(block.number);
+        Receipt memory receipt_ = Receipt(
+            nextReceiptId,
+            config_.feeRecipient,
+            config_.fee,
+            units_,
+            price_
+        );
+        nextReceiptId++;
+        receipts[msg.sender][keccak256(abi.encode(receipt_))] = true;
+
+        fees[config_.feeRecipient] += config_.fee;
+
         remainingUnits -= units_;
-        lastBuyPrice = price_;
         totalReserveIn += cost_;
+        lastBuyBlock = block.number;
+        lastBuyUnits = units_;
+        lastBuyPrice = price_;
 
         if (remainingUnits < 1) {
             end();
@@ -210,34 +236,46 @@ contract Sale is Cooldown, RainVM, ISale {
             require(remainingUnits >= dustSize, "DUST");
         }
 
-        emit Buy(msg.sender, config_, units_, price_);
+        emit Buy(msg.sender, config_, receipt_);
 
         token.transfer(msg.sender, units_);
-        reserve.safeTransferFrom(msg.sender, address(this), cost_);
+        reserve.safeTransferFrom(
+            msg.sender,
+            address(this),
+            cost_ + config_.fee
+        );
     }
 
     function refundCooldown() private onlyAfterCooldown {}
 
-    function refund(uint256 price_) external {
+    function refund(Receipt calldata receipt_) external {
         require(_saleStatus != SaleStatus.Success, "REFUND_SUCCESS");
+        bytes32 receiptKeccak_ = keccak256(abi.encode(receipt_));
+        require(receipts[msg.sender][receiptKeccak_], "INVALID_RECEIPT");
+        delete receipts[msg.sender][receiptKeccak_];
 
-        uint256 units_ = sales[msg.sender][price_];
-        uint256 cost_ = price_ * units_;
+        uint256 cost_ = receipt_.price * receipt_.units;
 
         totalReserveIn -= cost_;
-        remainingUnits += units_;
-
-        delete sales[msg.sender][price_];
+        remainingUnits += receipt_.units;
+        fees[receipt_.feeRecipient] -= receipt_.fee;
 
         // Only respect/trigger cooldown if the raise is active.
         if (_saleStatus == SaleStatus.Pending) {
             refundCooldown();
         }
 
-        emit Refund(msg.sender, units_, price_);
+        emit Refund(msg.sender, receipt_);
 
-        token.transferFrom(msg.sender, address(this), units_);
-        reserve.safeTransfer(msg.sender, cost_);
+        token.transferFrom(msg.sender, address(this), receipt_.units);
+        reserve.safeTransfer(msg.sender, cost_ + receipt_.fee);
+    }
+
+    function claimFees(address recipient_) external {
+        require(_saleStatus == SaleStatus.Success, "NOT_SUCCESS");
+        uint256 amount_ = fees[recipient_];
+        delete fees[recipient_];
+        reserve.safeTransfer(recipient_, amount_);
     }
 
     function applyOp(
