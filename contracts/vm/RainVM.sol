@@ -200,98 +200,112 @@ abstract contract RainVM {
         State memory state_,
         uint256 sourceIndex_
     ) internal view {
-        uint256 i_ = 0;
-        uint256 opcode_;
-        uint256 operand_;
-        uint256 len_;
-        uint256 sourceLocation_;
-        uint256 constantsLocation_;
-        uint256 argumentsLocation_;
-        uint256 stackLocation_;
-        assembly {
-            stackLocation_ := mload(add(state_, 0x20))
-            sourceLocation_ := mload(
-                add(
-                    mload(add(state_, 0x40)),
-                    add(0x20, mul(sourceIndex_, 0x20))
-                )
-            )
-            constantsLocation_ := mload(add(state_, 0x60))
-            argumentsLocation_ := mload(add(state_, 0x80))
-            len_ := mload(sourceLocation_)
-        }
-
-        // Loop until complete.
-        while (i_ < len_) {
+        // Everything in eval can be checked statically, there are no dynamic
+        // runtime values read from the stack that can cause out of bounds
+        // behaviour. E.g. sourceIndex in zipmap and size of a skip are both
+        // taken from the operand in the source, not the stack. A program that
+        // operates out of bounds SHOULD be flagged by static code analysis and
+        // avoided by end-users.
+        unchecked {
+            uint256 i_ = 0;
+            uint256 opcode_;
+            uint256 operand_;
+            uint256 len_;
+            uint256 sourceLocation_;
+            uint256 constantsLocation_;
+            uint256 argumentsLocation_;
+            uint256 stackLocation_;
             assembly {
-                i_ := add(i_, 2)
-                let op_ := mload(add(sourceLocation_, i_))
-                opcode_ := byte(30, op_)
-                operand_ := byte(31, op_)
+                stackLocation_ := mload(add(state_, 0x20))
+                sourceLocation_ := mload(
+                    add(
+                        mload(add(state_, 0x40)),
+                        add(0x20, mul(sourceIndex_, 0x20))
+                    )
+                )
+                constantsLocation_ := mload(add(state_, 0x60))
+                argumentsLocation_ := mload(add(state_, 0x80))
+                len_ := mload(sourceLocation_)
             }
-            if (opcode_ < OPS_LENGTH) {
-                if (opcode_ == OP_VAL) {
-                    assembly {
-                        let location_ := argumentsLocation_
-                        if iszero(and(operand_, 0x80)) {
-                            location_ := constantsLocation_
-                        }
 
-                        let stackIndex_ := mload(state_)
-                        // Copy value to stack.
-                        mstore(
-                            add(
-                                stackLocation_,
-                                add(0x20, mul(stackIndex_, 0x20))
-                            ),
-                            mload(
+            // Loop until complete.
+            while (i_ < len_) {
+                assembly {
+                    i_ := add(i_, 2)
+                    let op_ := mload(add(sourceLocation_, i_))
+                    opcode_ := byte(30, op_)
+                    operand_ := byte(31, op_)
+                }
+                if (opcode_ < OPS_LENGTH) {
+                    if (opcode_ == OP_VAL) {
+                        assembly {
+                            let location_ := argumentsLocation_
+                            if iszero(and(operand_, 0x80)) {
+                                location_ := constantsLocation_
+                            }
+
+                            let stackIndex_ := mload(state_)
+                            // Copy value to stack.
+                            mstore(
                                 add(
-                                    location_,
-                                    add(0x20, mul(and(operand_, 0x7F), 0x20))
+                                    stackLocation_,
+                                    add(0x20, mul(stackIndex_, 0x20))
+                                ),
+                                mload(
+                                    add(
+                                        location_,
+                                        add(
+                                            0x20,
+                                            mul(and(operand_, 0x7F), 0x20)
+                                        )
+                                    )
                                 )
                             )
-                        )
-                        mstore(state_, add(stackIndex_, 1))
-                    }
-                } else if (opcode_ == OP_ZIPMAP) {
-                    zipmap(context_, state_, operand_);
-                } else {
-                    // if the high bit of the operand is nonzero then take the
-                    // top of the stack and if it is zero we do NOT skip.
-                    // analogous to `JUMPI` in evm opcodes.
-                    // If high bit of the operand is zero then we always skip.
-                    // analogous to `JUMP` in evm opcodes.
-                    // the operand is interpreted as a signed integer so that
-                    // we can skip forwards or backwards. Notable difference
-                    // between skip and jump from evm is that skip moves a
-                    // relative distance from the current position and is known
-                    // at compile time, while jump moves to an absolute
-                    // position read from the stack at runtime. The relative
-                    // simplicity of skip means we can check for out of bounds
-                    // behaviour at compile time and each source can never goto
-                    // a position in a different source.
+                            mstore(state_, add(stackIndex_, 1))
+                        }
+                    } else if (opcode_ == OP_ZIPMAP) {
+                        zipmap(context_, state_, operand_);
+                    } else {
+                        // if the high bit of the operand is nonzero then take the
+                        // top of the stack and if it is zero we do NOT skip.
+                        // analogous to `JUMPI` in evm opcodes.
+                        // If high bit of the operand is zero then we always skip.
+                        // analogous to `JUMP` in evm opcodes.
+                        // the operand is interpreted as a signed integer so that
+                        // we can skip forwards or backwards. Notable difference
+                        // between skip and jump from evm is that skip moves a
+                        // relative distance from the current position and is known
+                        // at compile time, while jump moves to an absolute
+                        // position read from the stack at runtime. The relative
+                        // simplicity of skip means we can check for out of bounds
+                        // behaviour at compile time and each source can never goto
+                        // a position in a different source.
 
-                    // manually sign extend 1 bit.
-                    // normal signextend works on bytes not bits.
-                    int8 shift_ = int8(
-                        uint8(operand_) & ((uint8(operand_) << 1) | 0x7F)
-                    );
-                    if (operand_ & 0x80 > 0) {
-                        state_.stackIndex--;
-                        if (state_.stack[state_.stackIndex] == 0) {
-                            shift_ = 0;
+                        // manually sign extend 1 bit.
+                        // normal signextend works on bytes not bits.
+                        int8 shift_ = int8(
+                            uint8(operand_) & ((uint8(operand_) << 1) | 0x7F)
+                        );
+                        // if the high bit is 1...
+                        if (operand_ & 0x80 > 0) {
+                            // take the top of the stack and only skip if it is
+                            // nonzero.
+                            state_.stackIndex--;
+                            if (state_.stack[state_.stackIndex] == 0) {
+                                shift_ = 0;
+                            }
+                        }
+                        if (shift_ != 0) {
+                            if (shift_ < 0) {
+                                i_ -= uint8(shift_ * -1) * 2;
+                            } else {
+                                i_ += uint8(shift_ * 2);
+                            }
                         }
                     }
-                    if (shift_ != 0) {
-                        if (shift_ < 0) {
-                            i_ -= uint8(shift_ * -2);
-                        } else {
-                            i_ += uint8(shift_ * 2);
-                        }
-                    }
+                } else {
+                    applyOp(context_, state_, opcode_, operand_);
                 }
-            } else {
-                applyOp(context_, state_, opcode_, operand_);
             }
         }
     }
