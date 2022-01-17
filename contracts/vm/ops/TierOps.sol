@@ -39,8 +39,8 @@ library TierOps {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
                 state_.stack[baseIndex_] = ITier(
-                    address(uint160(state_.stack[baseIndex_ + 1]))
-                ).report(address(uint160(state_.stack[baseIndex_])));
+                    address(uint160(state_.stack[baseIndex_]))
+                ).report(address(uint160(state_.stack[baseIndex_ + 1])));
                 state_.stackIndex++;
             }
             // Stack a report that has never been held at any tier.
@@ -60,11 +60,11 @@ library TierOps {
             else if (opcode_ == SATURATING_DIFF) {
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
-                uint256 olderReport_ = state_.stack[baseIndex_];
-                uint256 newerReport_ = state_.stack[baseIndex_ + 1];
+                uint256 newerReport_ = state_.stack[baseIndex_];
+                uint256 olderReport_ = state_.stack[baseIndex_ + 1];
                 state_.stack[baseIndex_] = TierwiseCombine.saturatingSub(
-                    olderReport_,
-                    newerReport_
+                    newerReport_,
+                    olderReport_
                 );
                 state_.stackIndex++;
             }
@@ -78,8 +78,8 @@ library TierOps {
                 uint256 endTier_ = (operand_ >> 4) & 0x0f; // & 00001111
                 state_.stackIndex -= 2;
                 baseIndex_ = state_.stackIndex;
-                uint256 blockNumber_ = state_.stack[baseIndex_];
-                uint256 report_ = state_.stack[baseIndex_ + 1];
+                uint256 report_ = state_.stack[baseIndex_];
+                uint256 blockNumber_ = state_.stack[baseIndex_ + 1];
                 state_.stack[baseIndex_] = TierReport.updateBlocksForTierRange(
                     report_,
                     startTier_,
@@ -92,7 +92,7 @@ library TierOps {
             // All `selectLte` share the same stack and argument handling.
             // In the future these may be combined into a single opcode, taking
             // the `logic_` and `mode_` from the `operand_` high bits.
-            else {
+            else if (opcode_ == SELECT_LTE) {
                 uint256 logic_ = operand_ >> 7;
                 uint256 mode_ = (operand_ >> 5) & 0x3; // & 00000011
                 uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
@@ -102,14 +102,12 @@ library TierOps {
                 baseIndex_ = state_.stackIndex;
                 uint256 cursor_ = baseIndex_;
 
-                uint256 blockNumber_ = state_.stack[cursor_];
-                cursor_++;
-
                 uint256[] memory reports_ = new uint256[](reportsLength_);
                 for (uint256 a_ = 0; a_ < reportsLength_; a_++) {
                     reports_[a_] = state_.stack[cursor_];
                     cursor_++;
                 }
+                uint256 blockNumber_ = state_.stack[cursor_];
 
                 state_.stack[baseIndex_] = TierwiseCombine.selectLte(
                     reports_,
