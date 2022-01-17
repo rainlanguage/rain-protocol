@@ -13,7 +13,7 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 const enum Opcode {
-  END,
+  SKIP,
   VAL,
   ZIPMAP,
   BLOCK_NUMBER,
@@ -49,7 +49,7 @@ describe("RainVM", async function () {
       sources: [source],
       constants,
       argumentsLength: 0,
-      stackLength: 8,
+      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
