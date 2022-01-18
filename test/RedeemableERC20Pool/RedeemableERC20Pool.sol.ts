@@ -60,8 +60,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -107,7 +117,7 @@ describe("RedeemableERC20Pool", async function () {
         minimumTradingDuration,
       },
       {
-        erc20Config,
+        erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
         totalSupply: totalTokenSupply,
@@ -115,8 +125,8 @@ describe("RedeemableERC20Pool", async function () {
       {
         seeder: Util.zeroAddress,
         seederUnits,
-        seederCooldownDuration,
-        seedERC20Config,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
       },
       { gasLimit: 100000000 }
     );
@@ -243,8 +253,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -286,7 +306,7 @@ describe("RedeemableERC20Pool", async function () {
             minimumTradingDuration,
           },
           {
-            erc20Config,
+            erc20Config: redeemableERC20Config,
             tier: tier.address,
             minimumTier,
             totalSupply: totalTokenSupply,
@@ -294,8 +314,8 @@ describe("RedeemableERC20Pool", async function () {
           {
             seeder: Util.zeroAddress,
             seederUnits,
-            seederCooldownDuration,
-            seedERC20Config,
+            cooldownDuration: seederCooldownDuration,
+            erc20Config: seedERC20Config,
           },
           { gasLimit: 100000000 }
         ),
@@ -322,8 +342,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -369,7 +399,7 @@ describe("RedeemableERC20Pool", async function () {
         minimumTradingDuration,
       },
       {
-        erc20Config,
+        erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
         totalSupply: totalTokenSupply,
@@ -377,8 +407,8 @@ describe("RedeemableERC20Pool", async function () {
       {
         seeder: Util.zeroAddress,
         seederUnits,
-        seederCooldownDuration,
-        seedERC20Config,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
       },
       { gasLimit: 100000000 }
     );
@@ -489,8 +519,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -530,7 +570,7 @@ describe("RedeemableERC20Pool", async function () {
         minimumTradingDuration,
       },
       {
-        erc20Config,
+        erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
         totalSupply: totalTokenSupply,
@@ -538,8 +578,8 @@ describe("RedeemableERC20Pool", async function () {
       {
         seeder: Util.zeroAddress,
         seederUnits,
-        seederCooldownDuration,
-        seedERC20Config,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
       },
       { gasLimit: 100000000 }
     );
@@ -582,8 +622,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -629,7 +679,7 @@ describe("RedeemableERC20Pool", async function () {
         minimumTradingDuration,
       },
       {
-        erc20Config,
+        erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
         totalSupply: totalTokenSupply,
@@ -637,8 +687,8 @@ describe("RedeemableERC20Pool", async function () {
       {
         seeder: Util.zeroAddress,
         seederUnits,
-        seederCooldownDuration,
-        seedERC20Config,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
       },
       { gasLimit: 100000000 }
     );
@@ -847,8 +897,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -886,7 +946,7 @@ describe("RedeemableERC20Pool", async function () {
         minimumTradingDuration,
       },
       {
-        erc20Config,
+        erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
         totalSupply: totalTokenSupply,
@@ -894,8 +954,8 @@ describe("RedeemableERC20Pool", async function () {
       {
         seeder: Util.zeroAddress,
         seederUnits,
-        seederCooldownDuration,
-        seedERC20Config,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
       },
       { gasLimit: 100000000 }
     );
@@ -1061,8 +1121,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -1100,7 +1170,7 @@ describe("RedeemableERC20Pool", async function () {
         minimumTradingDuration,
       },
       {
-        erc20Config,
+        erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
         totalSupply: totalTokenSupply,
@@ -1108,8 +1178,8 @@ describe("RedeemableERC20Pool", async function () {
       {
         seeder: Util.zeroAddress,
         seederUnits,
-        seederCooldownDuration,
-        seedERC20Config,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
       },
       { gasLimit: 100000000 }
     );
@@ -1328,8 +1398,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -1367,7 +1447,7 @@ describe("RedeemableERC20Pool", async function () {
         minimumTradingDuration,
       },
       {
-        erc20Config,
+        erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
         totalSupply: totalTokenSupply,
@@ -1375,8 +1455,8 @@ describe("RedeemableERC20Pool", async function () {
       {
         seeder: Util.zeroAddress,
         seederUnits,
-        seederCooldownDuration,
-        seedERC20Config,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
       },
       { gasLimit: 100000000 }
     );
@@ -1525,8 +1605,18 @@ describe("RedeemableERC20Pool", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
-    const erc20Config = { name: "Token", symbol: "TKN" };
-    const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
 
     const reserveInit = 0;
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -1565,7 +1655,7 @@ describe("RedeemableERC20Pool", async function () {
             minimumTradingDuration,
           },
           {
-            erc20Config,
+            erc20Config: redeemableERC20Config,
             tier: tier.address,
             minimumTier,
             totalSupply: totalTokenSupply,
@@ -1573,8 +1663,8 @@ describe("RedeemableERC20Pool", async function () {
           {
             seeder: Util.zeroAddress,
             seederUnits,
-            seederCooldownDuration,
-            seedERC20Config,
+            cooldownDuration: seederCooldownDuration,
+            erc20Config: seedERC20Config,
           },
           { gasLimit: 100000000 }
         );

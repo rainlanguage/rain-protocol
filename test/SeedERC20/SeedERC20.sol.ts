@@ -52,7 +52,12 @@ describe("SeedERC20", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
@@ -174,7 +179,12 @@ describe("SeedERC20", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
@@ -272,7 +282,12 @@ describe("SeedERC20", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
@@ -329,7 +344,12 @@ describe("SeedERC20", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     // SeedERC20 has 0 decimals
@@ -364,7 +384,12 @@ describe("SeedERC20", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
@@ -469,7 +494,12 @@ describe("SeedERC20", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
@@ -540,7 +570,12 @@ describe("SeedERC20", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);

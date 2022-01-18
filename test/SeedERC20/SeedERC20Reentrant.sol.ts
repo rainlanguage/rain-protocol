@@ -35,7 +35,12 @@ describe("SeedERC20Reentrant", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
@@ -90,7 +95,12 @@ describe("SeedERC20Reentrant", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     // setup reserve to reentrantly call `seed` method in `_beforeTokenTransfer` hook
@@ -134,7 +144,12 @@ describe("SeedERC20Reentrant", async function () {
       seedPrice,
       seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);

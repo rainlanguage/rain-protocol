@@ -52,8 +52,18 @@ export const basicSetup = async (
     Contract;
 
   const minimumTier = Tier.GOLD;
-  const erc20Config = { name: "Token", symbol: "TKN" };
-  const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+  const redeemableERC20Config = {
+    name: "Token",
+    symbol: "TKN",
+    distributor: Util.zeroAddress,
+    initialSupply: totalTokenSupply,
+  };
+  const seedERC20Config = {
+    name: "SeedToken",
+    symbol: "SDT",
+    distributor: Util.zeroAddress,
+    initialSupply: seederUnits,
+  };
 
   const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
   const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
@@ -97,7 +107,7 @@ export const basicSetup = async (
       minimumTradingDuration,
     },
     {
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
       totalSupply: totalTokenSupply,
@@ -105,8 +115,8 @@ export const basicSetup = async (
     {
       seeder: seeder.address,
       seederUnits,
-      seederCooldownDuration,
-      seedERC20Config,
+      cooldownDuration: seederCooldownDuration,
+      erc20Config: seedERC20Config,
     },
     { gasLimit: 100000000 }
   );

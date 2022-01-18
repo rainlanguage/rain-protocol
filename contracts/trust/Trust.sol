@@ -536,7 +536,7 @@ contract Trust is Phased {
                 abi.encode(
                     RedeemableERC20Config(
                         address(config_.reserve),
-                        trustRedeemableERC20Config_.erc20Config,
+                        trustRedeemableERC20Config_.erc20Config: redeemableERC20Config,
                         trustRedeemableERC20Config_.tier,
                         trustRedeemableERC20Config_.minimumTier
                     )
