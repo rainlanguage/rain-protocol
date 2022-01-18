@@ -795,7 +795,7 @@ describe("RedeemableERC20", async function () {
     // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
     await Util.assertError(
       async () => await redeemableERC20_SILVER.redeem([reserve.address], 1),
-      "ERC20: burn amount exceeds balance",
+      "ZERO_AMOUNT",
       "user could transfer despite not meeting minimum status"
     );
   });

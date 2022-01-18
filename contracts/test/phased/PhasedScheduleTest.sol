@@ -6,21 +6,23 @@ import {Phased} from "../../phased/Phased.sol";
 /// @title PhasedScheduleTest
 /// Contract for testing phase hook functionality.
 contract PhasedScheduleTest is Phased {
-    uint private constant PHASE_ONE = 1;
-
     constructor() {
         initializePhased();
     }
 
     /// Exposes `schedulePhase` for testing.
-    /// @param phaseBlock_ As per `schedulePhase`.
-    function testScheduleNextPhase(uint256 phaseBlock_) external {
-        succeedsOnlyPhaseOne();
-        schedulePhase(currentPhase() + 1, phaseBlock_);
-        succeedsOnlyPhaseOne();
+    function testScheduleNextPhase()
+    external {
+        uint initialPhase_ = currentPhase();
+
+        succeedsOnlyPhase(initialPhase_);
+        schedulePhase(initialPhase_ + 1, block.number);
+        succeedsOnlyPhase(initialPhase_ + 1);
     }
 
+    /// Exposes `onlyPhase` for testing.
+    /// @param phase_ As per `onlyPhase`.
     // solhint-disable-next-line no-empty-blocks
-    function succeedsOnlyPhaseOne() internal onlyPhase(PHASE_ONE) {}
+    function succeedsOnlyPhase(uint phase_) internal onlyPhase(phase_) {}
 
 }

@@ -90,16 +90,14 @@ describe("Phased", async function () {
       )) as PhasedScheduleTest & Contract;
 
       assert(
-        (await phasedScheduleTest.currentPhase()).eq(0),
-        "wrong initial phase, must be Phase.ZERO"
+        (await phasedScheduleTest.currentPhase()).eq(Phase.ZERO),
+        `wrong phase after initialization, expected Phase.ZERO, got ${await phasedScheduleTest.currentPhase()}`
       );
 
-      const currentBlock = await ethers.provider.getBlockNumber();
-
-      await phasedScheduleTest.testScheduleNextPhase(currentBlock + 1);
+      await phasedScheduleTest.testScheduleNextPhase();
 
       assert(
-        (await phasedScheduleTest.currentPhase()).eq(1),
+        (await phasedScheduleTest.currentPhase()).eq(Phase.ONE),
         "wrong phase, should have scheduled change to Phase.ONE at this block"
       );
     });

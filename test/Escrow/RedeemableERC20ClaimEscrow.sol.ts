@@ -105,6 +105,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       await swapReserveForTokens(signer2, spend2);
     }
 
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
       "100" + "0".repeat(await claimableReserveToken.decimals())
@@ -268,6 +273,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       await swapReserveForTokens(signer1, spend1);
       await swapReserveForTokens(signer2, spend2);
     }
+
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
 
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
@@ -435,6 +445,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       await swapReserveForTokens(signer2, spend2);
     }
 
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
       "100" + "0".repeat(await claimableReserveToken.decimals())
@@ -551,7 +566,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       );
     };
 
-    const spend = ethers.BigNumber.from("50" + Util.sixZeros);
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
 
     await swapReserveForTokens(signer1, spend);
 
@@ -590,6 +605,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
       await swapReserveForTokens(signer1, spend);
     }
+
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
     const emptyBlocks =
@@ -678,7 +698,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       );
     };
 
-    const spend = ethers.BigNumber.from("50" + Util.sixZeros);
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
 
     await swapReserveForTokens(signer1, spend);
 
@@ -842,7 +862,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       );
     };
 
-    const spend = ethers.BigNumber.from("50" + Util.sixZeros);
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
 
     await swapReserveForTokens(signer1, spend);
 
@@ -960,7 +980,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       );
     };
 
-    const spend = ethers.BigNumber.from("50" + Util.sixZeros);
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
 
     await swapReserveForTokens(signer1, spend);
 
@@ -998,6 +1018,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
       await swapReserveForTokens(signer1, spend);
     }
+
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
     const emptyBlocks =
