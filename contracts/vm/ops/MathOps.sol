@@ -33,30 +33,29 @@ library MathOps {
         uint256 operand_
     ) internal pure {
         require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
-        uint256 cursor_;
+        uint256 top_;
         unchecked {
+            top_ = state_.stackIndex - 1;
             state_.stackIndex -= operand_;
         }
         uint256 baseIndex_ = state_.stackIndex;
-        unchecked {
-            cursor_ = baseIndex_ + operand_ - 1;
-        }
+        uint256 cursor_ = baseIndex_;
         uint256 accumulator_ = state_.stack[cursor_];
 
         // Addition.
         if (opcode_ == ADD) {
-            while (cursor_ > baseIndex_) {
+            while (cursor_ < top_) {
                 unchecked {
-                    cursor_--;
+                    cursor_++;
                 }
                 accumulator_ += state_.stack[cursor_];
             }
         }
         // Subtraction.
         else if (opcode_ == SUB) {
-            while (cursor_ > baseIndex_) {
+            while (cursor_ < top_) {
                 unchecked {
-                    cursor_--;
+                    cursor_++;
                 }
                 accumulator_ -= state_.stack[cursor_];
             }
@@ -65,36 +64,36 @@ library MathOps {
         // Slither false positive here complaining about dividing before
         // multiplying but both are mututally exclusive according to `opcode_`.
         else if (opcode_ == MUL) {
-            while (cursor_ > baseIndex_) {
+            while (cursor_ < top_) {
                 unchecked {
-                    cursor_--;
+                    cursor_++;
                 }
                 accumulator_ *= state_.stack[cursor_];
             }
         }
         // Division.
         else if (opcode_ == DIV) {
-            while (cursor_ > baseIndex_) {
+            while (cursor_ < top_) {
                 unchecked {
-                    cursor_--;
+                    cursor_++;
                 }
                 accumulator_ /= state_.stack[cursor_];
             }
         }
         // Modulo.
         else if (opcode_ == MOD) {
-            while (cursor_ > baseIndex_) {
+            while (cursor_ < top_) {
                 unchecked {
-                    cursor_--;
+                    cursor_++;
                 }
                 accumulator_ %= state_.stack[cursor_];
             }
         }
         // Exponentiation.
         else if (opcode_ == EXP) {
-            while (cursor_ > baseIndex_) {
+            while (cursor_ < top_) {
                 unchecked {
-                    cursor_--;
+                    cursor_++;
                 }
                 accumulator_**state_.stack[cursor_];
             }
@@ -102,9 +101,9 @@ library MathOps {
         // Minimum.
         else if (opcode_ == MIN) {
             uint256 item_;
-            while (cursor_ > baseIndex_) {
+            while (cursor_ < top_) {
                 unchecked {
-                    cursor_--;
+                    cursor_++;
                 }
                 item_ = state_.stack[cursor_];
                 if (item_ < accumulator_) {
@@ -115,9 +114,9 @@ library MathOps {
         // Maximum.
         else if (opcode_ == MAX) {
             uint256 item_;
-            while (cursor_ > baseIndex_) {
+            while (cursor_ < top_) {
                 unchecked {
-                    cursor_--;
+                    cursor_++;
                 }
                 item_ = state_.stack[cursor_];
                 if (item_ > accumulator_) {

@@ -174,7 +174,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// trust => withdrawn token =>  rTKN supply => withdrawer => amount
     // solhint-disable-next-line max-line-length
     mapping(address => mapping(address => mapping(uint256 => mapping(address => uint256))))
-        private withdrawals;
+        internal withdrawals;
 
     /// Deposits during an active raise are desirable to trustlessly prove to
     /// raise participants that they will in fact be able to access the TKN
@@ -182,7 +182,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// aside with no rTKN supply mapping, to be swept into a real deposit by
     /// anon once the raise completes.
     mapping(address => mapping(address => mapping(address => uint256)))
-        private pendingDeposits;
+        internal pendingDeposits;
 
     /// Every time an address calls `deposit` their deposited trust/token
     /// combination is increased. If they call `undeposit` when the raise has
@@ -191,7 +191,7 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// trust => deposited token => depositor => rTKN supply => amount
     // solhint-disable-next-line max-line-length
     mapping(address => mapping(address => mapping(address => mapping(uint256 => uint256))))
-        private deposits;
+        internal deposits;
 
     /// Every time an address calls `deposit` the amount is added to that
     /// trust/token/supply combination. This increase becomes the
@@ -199,14 +199,16 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     /// call.
     /// trust => deposited token => rTKN supply => amount
     mapping(address => mapping(address => mapping(uint256 => uint256)))
-        private totalDeposits;
+        internal totalDeposits;
+
     /// Redundant tracking of deposits withdrawn.
     /// Counts aggregate deposits down as users withdraw, while their own
     /// individual withdrawal counters count up.
     /// NOT strictly required but provides a guard against more token being
     /// withdrawn under a given trust/supply than was ever deposited.
+    /// trust => deposited token => rTKN supply => amount
     mapping(address => mapping(address => mapping(uint256 => uint256)))
-        private remainingDeposits;
+        internal remainingDeposits;
 
     /// @param trustFactory_ forwarded to `TrustEscrow` only.
     constructor(address trustFactory_)

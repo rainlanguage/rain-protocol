@@ -26,7 +26,9 @@ library TierwiseCombine {
     /// If older report is in fact newer then `0` will be returned.
     /// i.e. the diff cannot be negative, older report as simply spent 0 blocks
     /// existing before newer report, if it is in truth the newer report.
-    function saturatingSub(uint256 olderReport_, uint256 newerReport_)
+    /// @param newerReport_ Block to subtract from.
+    /// @param olderReport_ Block to subtract.
+    function saturatingSub(uint256 newerReport_, uint256 olderReport_)
         internal
         pure
         returns (uint256)
@@ -34,8 +36,8 @@ library TierwiseCombine {
         unchecked {
             uint256 ret_;
             for (uint256 tier_ = 1; tier_ <= 8; tier_++) {
-                uint256 olderBlock_ = TierReport.tierBlock(olderReport_, tier_);
                 uint256 newerBlock_ = TierReport.tierBlock(newerReport_, tier_);
+                uint256 olderBlock_ = TierReport.tierBlock(olderReport_, tier_);
                 uint256 diff_ = newerBlock_.saturatingSub(olderBlock_);
                 ret_ = TierReport.updateBlockAtTier(ret_, tier_ - 1, diff_);
             }

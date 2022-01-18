@@ -108,7 +108,7 @@ describe("TrustRewards", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -426,7 +426,7 @@ describe("TrustRewards", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -480,12 +480,14 @@ describe("TrustRewards", async function () {
     const [crp, bPool] = await Util.poolContracts(signers, trust);
 
     assert(
-      (await token.currentPhase()) === Phase.ZERO,
-      "token current phase was not ZERO"
+      (await token.currentPhase()).eq(Phase.ONE),
+      "token current phase was not ONE"
     );
 
     assert(
-      ethers.BigNumber.from("0xffffffff").eq(await token.phaseBlocks(0)), // max uint32
+      ethers.BigNumber.from("0xffffffff").eq(
+        await token.phaseBlocks(Phase.ONE)
+      ), // max uint32
       "token phaseOneBlock should not be set until endRaise"
     );
 
@@ -535,12 +537,14 @@ describe("TrustRewards", async function () {
     }
 
     assert(
-      (await token.currentPhase()) === Phase.ZERO,
-      "token current phase was still not ZERO"
+      (await token.currentPhase()).eq(Phase.ONE),
+      "token current phase was still not ONE"
     );
 
     assert(
-      ethers.BigNumber.from("0xffffffff").eq(await token.phaseBlocks(0)), // max uint32
+      ethers.BigNumber.from("0xffffffff").eq(
+        await token.phaseBlocks(Phase.ONE)
+      ), // max uint32
       "token phaseOneBlock should still not be set until endRaise"
     );
 
@@ -554,7 +558,7 @@ describe("TrustRewards", async function () {
       "BAD_PHASE",
       `signer1 redeemed tokens before token phase change
       currentBlock        ${await ethers.provider.getBlockNumber()}
-      tokenPhaseOneBlock  ${await token.phaseBlocks(0)}`
+      tokenPhaseOneBlock  ${await token.phaseBlocks(Phase.ONE)}`
     );
 
     const signer1TokenBalanceAfterRed = await token1.balanceOf(signer1.address);
@@ -570,10 +574,11 @@ describe("TrustRewards", async function () {
     await trust1.endDutchAuctionAndTransfer();
 
     assert(
-      (await token.phaseBlocks(0)) === (await ethers.provider.getBlockNumber()),
+      (await token.phaseBlocks(Phase.ONE)) ===
+        (await ethers.provider.getBlockNumber()),
       `token phase ONE block should be set to current block
     currentBlock  ${await ethers.provider.getBlockNumber()}
-    tokenPhaseOneBlock ${await token.phaseBlocks(0)}`
+    tokenPhaseOneBlock ${await token.phaseBlocks(Phase.ONE)}`
     );
 
     await token1.redeem(

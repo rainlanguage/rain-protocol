@@ -48,7 +48,7 @@ describe("Phased", async function () {
         3
       );
 
-      assert(highestPhase === Phase.FIVE);
+      assert(highestPhase.eq(Phase.FIVE));
     });
 
     it("if every phase block is after the block number then phase zero is returned", async function () {
@@ -62,7 +62,7 @@ describe("Phased", async function () {
         10
       );
 
-      assert(highestPhase === Phase.ZERO);
+      assert(highestPhase.eq(Phase.ZERO));
     });
 
     it("if every phase block is before the block number then phase EIGHT is returned", async function () {
@@ -76,7 +76,7 @@ describe("Phased", async function () {
         200
       );
 
-      assert(highestPhase === Phase.EIGHT);
+      assert(highestPhase.eq(Phase.EIGHT));
     });
   });
 
@@ -90,16 +90,14 @@ describe("Phased", async function () {
       )) as PhasedScheduleTest & Contract;
 
       assert(
-        (await phasedScheduleTest.currentPhase()) === 0,
-        "wrong initial phase, must be Phase.ZERO"
+        (await phasedScheduleTest.currentPhase()).eq(Phase.ZERO),
+        `wrong phase after initialization, expected Phase.ZERO, got ${await phasedScheduleTest.currentPhase()}`
       );
 
-      const currentBlock = await ethers.provider.getBlockNumber();
-
-      await phasedScheduleTest.testScheduleNextPhase(currentBlock + 1);
+      await phasedScheduleTest.testScheduleNextPhase();
 
       assert(
-        (await phasedScheduleTest.currentPhase()) === 1,
+        (await phasedScheduleTest.currentPhase()).eq(Phase.ONE),
         "wrong phase, should have scheduled change to Phase.ONE at this block"
       );
     });
@@ -193,11 +191,11 @@ describe("Phased", async function () {
 
       await phased.testScheduleNextPhase(firstBlock + 1);
 
-      await phased.toggleHookCondition(); // test method to turn on/off custom hook require
+      await phased.toggleCondition(); // test method to turn on/off custom hook require
 
       await Util.assertError(
         async () => await phased.testScheduleNextPhase(firstBlock + 3),
-        "HOOK_CONDITION",
+        "CONDITION",
         "hook override could not be used to impose condition"
       );
     });
@@ -236,7 +234,7 @@ describe("Phased", async function () {
       await ethers.provider.getBlockNumber()
     );
 
-    assert(pABN0 === Phase.ZERO, "wrong initial phase");
+    assert(pABN0.eq(Phase.ZERO), "wrong initial phase");
 
     const bNFP0 = [
       await phased.blockNumberForPhase(phaseBlocks0, Phase.ZERO),
@@ -268,7 +266,7 @@ describe("Phased", async function () {
 
     const cP0 = await phased.currentPhase();
 
-    assert(cP0 === 0, "initial phase should be ZERO");
+    assert(cP0.eq(0), "initial phase should be ZERO");
 
     assert(await phased.runsOnlyPhase(Phase.ZERO));
     assert(await phased.runsOnlyAtLeastPhase(Phase.ZERO));

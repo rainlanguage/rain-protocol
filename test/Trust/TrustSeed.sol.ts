@@ -38,6 +38,12 @@ enum Phase {
   EIGHT,
 }
 
+enum SeedPhase {
+  UNINITIALIZED,
+  SEEDING,
+  REDEEMING,
+}
+
 const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/SeedERC20.json");
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
@@ -88,7 +94,7 @@ describe("TrustSeed", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust, txDeploy] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -119,8 +125,9 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
-      .seeder;
+    const seeder = (
+      await Util.getEventArgs(trust.deployTransaction, "Initialize", trust)
+    ).seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -214,7 +221,7 @@ describe("TrustSeed", async function () {
     const cooldownDuration = 1;
     const seedPrice = reserveInit.div(10);
 
-    const seederContract = await Util.seedERC20Deploy(signers[0], {
+    const [seederContract] = await Util.seedERC20Deploy(signers[0], {
       reserve: reserve.address,
       recipient: signers[0].address,
       seedPrice,
@@ -291,7 +298,7 @@ describe("TrustSeed", async function () {
     });
   });
 
-  it("should set phase ONE when fully seeded", async function () {
+  it("should set phases correctly", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -337,7 +344,7 @@ describe("TrustSeed", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust, txDeploy] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -368,13 +375,19 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
-      .seeder;
+    const seeder = (
+      await Util.getEventArgs(trust.deployTransaction, "Initialize", trust)
+    ).seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
       signers[0]
     ) as SeedERC20 & Contract;
+
+    assert(
+      (await seederContract.currentPhase()).eq(SeedPhase.SEEDING),
+      `should be phase SEEDING (1) after initialization, got ${await seederContract.currentPhase()}`
+    );
 
     const seeder1Units = 4;
     const seeder2Units = 6;
@@ -395,21 +408,15 @@ describe("TrustSeed", async function () {
     await seederContract1.seed(0, seeder1Units);
 
     assert(
-      (await seederContract.currentPhase()) === Phase.ZERO,
-      `should be phase ZERO before fully seeded, got ${await seederContract.currentPhase()}`
+      (await seederContract.currentPhase()).eq(SeedPhase.SEEDING),
+      `should still be phase SEEDING (1) before all units seeded, got ${await seederContract.currentPhase()}`
     );
 
     await seederContract2.seed(0, seeder2Units);
 
     assert(
-      (await seederContract.phaseBlocks(0)) ===
-        (await ethers.provider.getBlockNumber()),
-      `phase ONE block wasn't set when fully seeded`
-    );
-
-    assert(
-      (await seederContract.currentPhase()) === Phase.ONE,
-      `should be phase ONE when fully seeded, got ${await seederContract.currentPhase()}`
+      (await seederContract.currentPhase()).eq(SeedPhase.REDEEMING),
+      `should be phase REDEEMING (2) after all units seeded, got ${await seederContract.currentPhase()}`
     );
   });
 
@@ -459,7 +466,7 @@ describe("TrustSeed", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust, txDeploy] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -490,8 +497,9 @@ describe("TrustSeed", async function () {
 
     await trust.deployed();
 
-    const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
-      .seeder;
+    const seeder = (
+      await Util.getEventArgs(trust.deployTransaction, "Initialize", trust)
+    ).seeder;
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -580,7 +588,7 @@ describe("TrustSeed", async function () {
 
       await tier.setTier(signer1.address, Tier.GOLD, []);
 
-      const [trust, txDeploy] = await Util.trustDeploy(
+      const trust = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -611,8 +619,9 @@ describe("TrustSeed", async function () {
 
       await trust.deployed();
 
-      const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
-        .seeder;
+      const seeder = (
+        await Util.getEventArgs(trust.deployTransaction, "Initialize", trust)
+      ).seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,
@@ -732,7 +741,7 @@ describe("TrustSeed", async function () {
 
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       );
@@ -745,10 +754,8 @@ describe("TrustSeed", async function () {
       // seeder1 pulls erc20
       await seederContract.connect(seeder1).pullERC20(allowance);
 
-      const poolDust = await reserve.balanceOf(bPool.address);
-
-      // on successful raise, seeder gets reserveInit + seederFee - dust
-      const expectedSeederPay = reserveInit.add(seederFee).sub(poolDust);
+      // on successful raise, seeder gets reserveInit + seederFee
+      const expectedSeederPay = reserveInit.add(seederFee);
 
       // seederContract should now hold reserve equal to final balance
       assert(
@@ -759,7 +766,7 @@ describe("TrustSeed", async function () {
       );
 
       // seeders redeem funds
-      await seederContract1.redeem(seeder1Units);
+      await seederContract1.redeem(seeder1Units, 0);
 
       // correct amount of units should have been redeemed
       assert(
@@ -782,12 +789,12 @@ describe("TrustSeed", async function () {
 
       // fails if they don't have seed units
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "ERC20: burn amount exceeds balance",
         "seeder1 redeemed when they had no seed units to redeem"
       );
 
-      await seederContract2.redeem(seeder2Units);
+      await seederContract2.redeem(seeder2Units, 0);
 
       // correct amount of units should have been redeemed
       assert(
@@ -798,8 +805,7 @@ describe("TrustSeed", async function () {
       // add 1 to offset rounding error
       const expectedReturn2 = expectedSeederPay
         .mul(seeder2Units)
-        .div(seederUnits)
-        .add(1);
+        .div(seederUnits);
       const return2 = await reserve.balanceOf(seeder2.address);
 
       // correct amount of reserve should have been returned
@@ -860,7 +866,7 @@ describe("TrustSeed", async function () {
 
       const trustFactoryDeployer = trustFactory.connect(deployer);
 
-      const [trust, txDeploy] = await Util.trustDeploy(
+      const trust = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -891,8 +897,9 @@ describe("TrustSeed", async function () {
 
       await trust.deployed();
 
-      const seeder = (await Util.getEventArgs(txDeploy, "Initialize", trust))
-        .seeder;
+      const seeder = (
+        await Util.getEventArgs(trust.deployTransaction, "Initialize", trust)
+      ).seeder;
       const seederContract = new ethers.Contract(
         seeder,
         seedERC20Json.abi,
@@ -931,7 +938,7 @@ describe("TrustSeed", async function () {
 
       // redeem fails before seeding is complete
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "BAD_PHASE",
         "redeemed before seeding is complete"
       );
@@ -975,7 +982,7 @@ describe("TrustSeed", async function () {
 
       const bPoolFinalBalance = await reserve.balanceOf(bPool.address);
       const bPoolReserveDust =
-        Util.estimateReserveDust(bPoolFinalBalance).add(1);
+        Util.determineReserveDust(bPoolFinalBalance).add(1);
 
       const trustFinalBalance = bPoolFinalBalance.sub(bPoolReserveDust);
 
@@ -987,7 +994,7 @@ describe("TrustSeed", async function () {
 
       // seeder redeeming fails if no reserve balance (raise hasn't ended)
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, 0),
         "RESERVE_BALANCE",
         "seeder1 redeemed when seeder contract had zero reserve balance"
       );
@@ -1008,8 +1015,11 @@ describe("TrustSeed", async function () {
       actual    ${await reserve.balanceOf(seederContract.address)}`
       );
 
+      const safeExit_ = seedPrice.mul(seederUnits);
+      const safetyRelease_ = safeExit_.sub(expectedSeederPay); // seeder 'yields', accepting that trapped reserve dust in balancer pool after failed raise will affect the amount of reserve they receive on redemption
+
       // seeders redeem funds
-      await seederContract1.redeem(seeder1Units);
+      await seederContract1.redeem(seeder1Units, safetyRelease_);
 
       // correct amount of units should have been redeemed
       assert(
@@ -1032,12 +1042,12 @@ describe("TrustSeed", async function () {
 
       // fails if they don't have seed units
       await Util.assertError(
-        async () => await seederContract1.redeem(seeder1Units),
+        async () => await seederContract1.redeem(seeder1Units, safetyRelease_),
         "ERC20: burn amount exceeds balance",
         "seeder1 redeemed when they had no seed units to redeem"
       );
 
-      await seederContract2.redeem(seeder2Units);
+      await seederContract2.redeem(seeder2Units, safetyRelease_);
 
       // correct amount of units should have been redeemed
       assert(

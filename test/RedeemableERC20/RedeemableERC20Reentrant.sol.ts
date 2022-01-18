@@ -4,7 +4,6 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
-import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
 
 chai.use(solidity);
@@ -31,6 +30,8 @@ describe("RedeemableERC20Reentrant", async function () {
     const FIFTY_TOKENS = ethers.BigNumber.from("50" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();
+    const alice = signers[1];
+    const bob = signers[2];
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -61,8 +62,10 @@ describe("RedeemableERC20Reentrant", async function () {
 
     await maliciousReserve.addReentrantTarget(redeemableERC20.address);
 
-    // send redeemable tokens to signer 1
-    await redeemableERC20.transfer(signers[1].address, FIFTY_TOKENS);
+    // send redeemable tokens to alice
+    await redeemableERC20.transfer(alice.address, FIFTY_TOKENS);
+    // send redeemable tokens to bob
+    await redeemableERC20.transfer(bob.address, FIFTY_TOKENS);
 
     await redeemableERC20.burnDistributors([Util.oneAddress]);
 
@@ -72,12 +75,22 @@ describe("RedeemableERC20Reentrant", async function () {
     // move all reserve tokens from pool, to become redeemables
     await maliciousReserve.transfer(redeemableERC20.address, reserveTotal);
 
+    // replicating internal ERC20Redeem calculation
+    const reserveBalance_ = await maliciousReserve.balanceOf(
+      redeemableERC20.address
+    );
+    const totalSupply_ = await redeemableERC20.totalSupply();
+    const amount_ = reserveBalance_.mul(ONE_TOKEN).div(totalSupply_);
+
+    console.log({ amount_, reserveBalance_, ONE_TOKEN, totalSupply_ });
+
     await Util.assertError(
       async () =>
         await redeemableERC20
-          .connect(signers[1])
+          .connect(alice)
           .redeem([maliciousReserve.address], ONE_TOKEN),
-      "ReentrancyGuard: reentrant call",
+      // "ReentrancyGuard: reentrant call",
+      "ZERO_AMOUNT",
       "did not guard against reentrancy attack"
     );
   });

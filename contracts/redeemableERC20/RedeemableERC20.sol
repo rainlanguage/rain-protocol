@@ -87,7 +87,13 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is Phased, TierByConstruction, ERC20Redeem, ERC20Pull {
+contract RedeemableERC20 is
+    Initializable,
+    Phased,
+    TierByConstruction,
+    ERC20Redeem,
+    ERC20Pull
+{
     using SafeERC20 for IERC20;
 
     /// Phase constants.
@@ -129,7 +135,10 @@ contract RedeemableERC20 is Phased, TierByConstruction, ERC20Redeem, ERC20Pull {
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @param config_ Initialized configuration.
-    function initialize(RedeemableERC20Config memory config_) external {
+    function initialize(RedeemableERC20Config memory config_)
+        external
+        initializer
+    {
         initializePhased();
 
         initializeTierByConstruction(config_.tier);

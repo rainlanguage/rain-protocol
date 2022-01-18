@@ -19,13 +19,12 @@ library ThisOps {
     ) internal view {
         unchecked {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
+            // There's only one opcode.
             // Put the current contract address on the stack.
-            if (opcode_ == THIS_ADDRESS) {
-                state_.stack[state_.stackIndex] = uint256(
-                    uint160(address(this))
-                );
-                state_.stackIndex++;
-            }
+            state_.stack[state_.stackIndex] = uint256(
+                uint160(address(this))
+            );
+            state_.stackIndex++;
         }
     }
 }

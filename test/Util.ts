@@ -201,19 +201,12 @@ export const max_uint16 = ethers.BigNumber.from("0xffff");
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
 
-export const estimateReserveDust = (bPoolReserveBalance: BigNumber) => {
+export const determineReserveDust = (bPoolReserveBalance: BigNumber) => {
   let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
   if (dust.lt(RESERVE_MIN_BALANCE)) {
     dust = RESERVE_MIN_BALANCE;
   }
   return dust;
-};
-
-export const determineReserveDust = (bPoolDust: BigNumber) => {
-  if (bPoolDust.lt(RESERVE_MIN_BALANCE)) {
-    bPoolDust = RESERVE_MIN_BALANCE;
-  }
-  return bPoolDust;
 };
 
 export const assertError = async (f, s: string, e: string) => {
@@ -326,7 +319,10 @@ export const redeemableERC20Deploy = async (deployer, config) => {
   return redeemableERC20;
 };
 
-export const seedERC20Deploy = async (deployer, config) => {
+export const seedERC20Deploy = async (
+  deployer,
+  config
+): Promise<[SeedERC20 & Contract, ContractTransaction]> => {
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory"
   );
@@ -348,7 +344,7 @@ export const seedERC20Deploy = async (deployer, config) => {
 
   await seedERC20.deployed();
 
-  return seedERC20;
+  return [seedERC20, tx];
 };
 
 export const trustDeploy = async (
@@ -358,7 +354,7 @@ export const trustDeploy = async (
   trustRedeemableERC20Config: TrustRedeemableERC20ConfigStruct,
   trustSeedERC20Config: TrustSeedERC20ConfigStruct,
   ...args
-): Promise<[Trust & Contract, ContractTransaction]> => {
+): Promise<Trust & Contract> => {
   const txDeploy = await trustFactory.createChildTyped(
     trustConfig,
     trustRedeemableERC20Config,
@@ -385,7 +381,11 @@ export const trustDeploy = async (
 
   await trust.deployed();
 
-  return [trust, txDeploy];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  trust.deployTransaction = txDeploy;
+
+  return trust;
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
@@ -509,7 +509,7 @@ export function arg(valIndex: number): number {
  * @param erand - the operand, currently limited to 1 byte (defaults to 0)
  */
 export function op(code: number, erand = 0): Uint8Array {
-  return concat([bytify(erand), bytify(code)]);
+  return concat([bytify(code), bytify(erand)]);
 }
 
 export const wrap2BitUInt = (integer: number) => {
@@ -601,22 +601,32 @@ export type Constants = [
   BigNumberish
 ];
 
+/**
+ *
+ * @param tx - transaction where event occurs
+ * @param eventName - name of event
+ * @param contract - contract object holding the address, filters, interface
+ * @param contractAddressOverride - (optional) override the contract address which emits this event
+ * @returns Event arguments, can be deconstructed by array index or by object key
+ */
 export const getEventArgs = async (
   tx: ContractTransaction,
   eventName: string,
-  emittingContract: Contract
+  contract: Contract,
+  contractAddressOverride: string = null
 ): Promise<Result> => {
   const eventObj = (await tx.wait()).events.find(
     (x) =>
-      x.topics[0] == emittingContract.filters[eventName]().topics[0] &&
-      x.address == emittingContract.address
+      x.topics[0] == contract.filters[eventName]().topics[0] &&
+      x.address ==
+        (contractAddressOverride ? contractAddressOverride : contract.address)
   );
 
   if (!eventObj) {
     throw new Error(`Could not find event with name ${eventName}`);
   }
 
-  return emittingContract.interface.decodeEventLog(eventName, eventObj.data);
+  return contract.interface.decodeEventLog(eventName, eventObj.data);
 };
 
 export function selectLte(logic: number, mode: number, length: number): number {

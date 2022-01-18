@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity 0.8.10;
 
-import {ITier} from "../tier/ITier.sol";
-import {TierReport} from "../tier/libraries/TierReport.sol";
+import {ITier} from "../../tier/ITier.sol";
+import {TierReport} from "../../tier/libraries/TierReport.sol";
 
 /// @title TierReportTest
 /// Thin wrapper around the `TierReport` library for hardhat unit testing.

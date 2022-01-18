@@ -101,7 +101,7 @@ describe("TrustDistribute", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust, txDeploy] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -132,7 +132,11 @@ describe("TrustDistribute", async function () {
 
     await trust.deployed();
 
-    const { seeder } = await Util.getEventArgs(txDeploy, "Initialize", trust);
+    const { seeder } = await Util.getEventArgs(
+      trust.deployTransaction,
+      "Initialize",
+      trust
+    );
     const seederContract = new ethers.Contract(
       seeder,
       seedERC20Json.abi,
@@ -214,7 +218,7 @@ describe("TrustDistribute", async function () {
 
     // Guard against someone accidentally calling redeem before any reserve has been returned.
     await Util.assertError(
-      async () => await seederContract.connect(seeder1).redeem(seeder1Units),
+      async () => await seederContract.connect(seeder1).redeem(seeder1Units, 0),
       "RESERVE_BALANCE",
       "did not prevent redemption before approved seederPay was pulled"
     );
@@ -225,8 +229,8 @@ describe("TrustDistribute", async function () {
       .pullERC20(await reserve.allowance(trust.address, seeder));
 
     // seeders redeem funds
-    await seederContract.connect(seeder1).redeem(seeder1Units);
-    await seederContract.connect(seeder2).redeem(seeder2Units);
+    await seederContract.connect(seeder1).redeem(seeder1Units, 0);
+    await seederContract.connect(seeder2).redeem(seeder2Units, 0);
 
     // before reserve funds pulled into RedeemableERC20
     await Util.assertError(
@@ -234,7 +238,7 @@ describe("TrustDistribute", async function () {
         await token
           .connect(signer1)
           .redeem([reserve.address], await token.balanceOf(signer1.address)),
-      "ZERO_TRANSFER",
+      "ZERO_AMOUNT",
       "RedeemableERC20 did not protect redeemer, should have checked for non-zero balance for every treasury asset"
     );
 
@@ -268,7 +272,7 @@ describe("TrustDistribute", async function () {
   });
 
   describe("should support creatorFundsRelease escape hatch", async function () {
-    it("in phase TWO", async function () {
+    it("in phase THREE", async function () {
       this.timeout(0);
 
       const signers = await ethers.getSigners();
@@ -318,7 +322,7 @@ describe("TrustDistribute", async function () {
 
       await tier.setTier(signer1.address, Tier.GOLD, []);
 
-      const [trust] = await Util.trustDeploy(
+      const trust = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -350,16 +354,16 @@ describe("TrustDistribute", async function () {
       await trust.deployed();
 
       assert(
-        (await trust.currentPhase()) === Phase.ZERO,
+        (await trust.currentPhase()).eq(Phase.ONE),
         `wrong phase (assert no. 0)
-        expected  ${Phase.ZERO}
+        expected  ${Phase.ONE}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "MIN_PHASE",
-        "anon wrongly set creator funds for release in phase 0"
+        "anon wrongly set creator funds for release in phase ONE"
       );
 
       // seeder needs some cash, give enough to seeder
@@ -375,16 +379,16 @@ describe("TrustDistribute", async function () {
       await reserveSeeder.transfer(trust.address, reserveInit);
 
       assert(
-        (await trust.currentPhase()) === Phase.ZERO,
+        (await trust.currentPhase()).eq(Phase.ONE),
         `wrong phase (assert no. 1)
-        expected  ${Phase.ZERO}
+        expected  ${Phase.ONE}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "MIN_PHASE",
-        "anon wrongly set creator funds for release in phase 0"
+        "anon wrongly set creator funds for release in phase ONE"
       );
 
       const token = new ethers.Contract(
@@ -396,16 +400,16 @@ describe("TrustDistribute", async function () {
       await trust.startDutchAuction({ gasLimit: 100000000 });
 
       assert(
-        (await trust.currentPhase()) === Phase.ONE,
+        (await trust.currentPhase()).eq(Phase.TWO),
         `wrong phase (assert no. 2)
-        expected  ${Phase.ONE}
+        expected  ${Phase.TWO}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "MIN_PHASE",
-        "anon wrongly set creator funds for release in phase 1"
+        "anon wrongly set creator funds for release in phase TWO"
       );
 
       const startBlock = await ethers.provider.getBlockNumber();
@@ -439,16 +443,16 @@ describe("TrustDistribute", async function () {
       }
 
       assert(
-        (await trust.currentPhase()) === Phase.ONE,
+        (await trust.currentPhase()).eq(Phase.TWO),
         `wrong phase (assert no. 3)
-        expected  ${Phase.ONE}
+        expected  ${Phase.TWO}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "MIN_PHASE",
-        "anon wrongly set creator funds for release in phase 1"
+        "anon wrongly set creator funds for release in phase TWO"
       );
 
       // create empty transfer blocks until reaching next phase, so distribution can end
@@ -460,24 +464,24 @@ describe("TrustDistribute", async function () {
       }
 
       assert(
-        (await trust.currentPhase()) === Phase.TWO,
+        (await trust.currentPhase()).eq(Phase.THREE),
         `wrong phase (assert no. 4)
-        expected  ${Phase.TWO}
+        expected  ${Phase.THREE}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "EARLY_RELEASE",
-        "anon wrongly set creator funds in Phase.TWO before creatorFundsReleaseTimeout complete"
+        "anon wrongly set creator funds in Phase.THREE before creatorFundsReleaseTimeout complete"
       );
 
       await Util.createEmptyBlock(Util.CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING);
 
       assert(
-        (await trust.currentPhase()) === Phase.TWO,
+        (await trust.currentPhase()).eq(Phase.THREE),
         `wrong phase (assert no. 5)
-        expected  ${Phase.TWO}
+        expected  ${Phase.THREE}
         got       ${await trust.currentPhase()}`
       );
 
@@ -493,13 +497,13 @@ describe("TrustDistribute", async function () {
         "wrongly released creator funds before release phase"
       );
 
-      // schedule Phase.FOUR immediately
+      // schedule Phase.FIVE immediately
       await trust.connect(signer1).enableCreatorFundsRelease();
 
       assert(
-        (await trust.currentPhase()) === Phase.FOUR,
+        (await trust.currentPhase()).eq(Phase.FIVE),
         `wrong phase (assert no. 6)
-        expected  ${Phase.FOUR}
+        expected  ${Phase.FIVE}
         got       ${await trust.currentPhase()}`
       );
 
@@ -609,7 +613,7 @@ describe("TrustDistribute", async function () {
       );
     });
 
-    it("in phase THREE", async function () {
+    it("in phase FOUR", async function () {
       this.timeout(0);
 
       const signers = await ethers.getSigners();
@@ -659,7 +663,7 @@ describe("TrustDistribute", async function () {
 
       await tier.setTier(signer1.address, Tier.GOLD, []);
 
-      const [trust] = await Util.trustDeploy(
+      const trust = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -691,16 +695,16 @@ describe("TrustDistribute", async function () {
       await trust.deployed();
 
       assert(
-        (await trust.currentPhase()) === Phase.ZERO,
+        (await trust.currentPhase()).eq(Phase.ONE),
         `wrong phase (assert no. 0)
-        expected  ${Phase.ZERO}
+        expected  ${Phase.ONE}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "MIN_PHASE",
-        "anon wrongly set creator funds for release in phase 0"
+        "anon wrongly set creator funds for release in phase ONE"
       );
 
       // seeder needs some cash, give enough to seeder
@@ -716,16 +720,16 @@ describe("TrustDistribute", async function () {
       await reserveSeeder.transfer(trust.address, reserveInit);
 
       assert(
-        (await trust.currentPhase()) === Phase.ZERO,
+        (await trust.currentPhase()).eq(Phase.ONE),
         `wrong phase (assert no. 1)
-        expected  ${Phase.ZERO}
+        expected  ${Phase.ONE}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "MIN_PHASE",
-        "anon wrongly set creator funds for release in phase 0"
+        "anon wrongly set creator funds for release in phase ONE"
       );
 
       const token = new ethers.Contract(
@@ -737,16 +741,16 @@ describe("TrustDistribute", async function () {
       await trust.startDutchAuction({ gasLimit: 100000000 });
 
       assert(
-        (await trust.currentPhase()) === Phase.ONE,
+        (await trust.currentPhase()).eq(Phase.TWO),
         `wrong phase (assert no. 2)
-        expected  ${Phase.ONE}
+        expected  ${Phase.TWO}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "MIN_PHASE",
-        "anon wrongly set creator funds for release in phase 1"
+        "anon wrongly set creator funds for release in phase TWO"
       );
 
       const startBlock = await ethers.provider.getBlockNumber();
@@ -780,16 +784,16 @@ describe("TrustDistribute", async function () {
       }
 
       assert(
-        (await trust.currentPhase()) === Phase.ONE,
+        (await trust.currentPhase()).eq(Phase.TWO),
         `wrong phase (assert no. 3)
-        expected  ${Phase.ONE}
+        expected  ${Phase.TWO}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "MIN_PHASE",
-        "anon wrongly set creator funds for release in phase 1"
+        "anon wrongly set creator funds for release in phase TWO"
       );
 
       // create empty transfer blocks until reaching next phase, so distribution can end
@@ -801,22 +805,22 @@ describe("TrustDistribute", async function () {
       }
 
       assert(
-        (await trust.currentPhase()) === Phase.TWO,
+        (await trust.currentPhase()).eq(Phase.THREE),
         `wrong phase (assert no. 4)
-        expected  ${Phase.TWO}
+        expected  ${Phase.THREE}
         got       ${await trust.currentPhase()}`
       );
       // anon attempts to set creator funds for release
       await Util.assertError(
         async () => await trust.connect(signer1).enableCreatorFundsRelease(),
         "EARLY_RELEASE",
-        "anon wrongly set creator funds in Phase.TWO before creatorFundsReleaseTimeout complete"
+        "anon wrongly set creator funds in Phase.THREE before creatorFundsReleaseTimeout complete"
       );
 
       assert(
-        (await trust.currentPhase()) === Phase.TWO,
+        (await trust.currentPhase()).eq(Phase.THREE),
         `wrong phase (assert no. 5)
-        expected  ${Phase.TWO}
+        expected  ${Phase.THREE}
         got       ${await trust.currentPhase()}`
       );
 
@@ -825,9 +829,9 @@ describe("TrustDistribute", async function () {
       await Util.createEmptyBlock(Util.CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING);
 
       assert(
-        (await trust.currentPhase()) === Phase.THREE,
+        (await trust.currentPhase()).eq(Phase.FOUR),
         `wrong phase (assert no. 6)
-        expected  ${Phase.THREE}
+        expected  ${Phase.FOUR}
         got       ${await trust.currentPhase()}`
       );
 
@@ -843,11 +847,11 @@ describe("TrustDistribute", async function () {
         "wrongly released creator funds before release phase"
       );
 
-      // schedule Phase.FOUR after Phase.THREE
+      // schedule Phase.FIVE after Phase.FOUR
       await trust.connect(signer1).enableCreatorFundsRelease();
 
       assert(
-        (await trust.currentPhase()) === Phase.FOUR,
+        (await trust.currentPhase()).eq(Phase.FIVE),
         `wrong phase (assert no. 7)
         expected  ${Phase.FOUR}
         got       ${await trust.currentPhase()}`
@@ -1002,7 +1006,7 @@ describe("TrustDistribute", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1162,7 +1166,7 @@ describe("TrustDistribute", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1382,7 +1386,7 @@ describe("TrustDistribute", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1525,7 +1529,7 @@ describe("TrustDistribute", async function () {
 
       await tier.setTier(signer1.address, Tier.GOLD, []);
 
-      const [trust] = await Util.trustDeploy(
+      const trust = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -1634,9 +1638,13 @@ describe("TrustDistribute", async function () {
         `distribution status not trading can end`
       );
 
-      const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
+      const reserveBPool = await reserve.balanceOf(bPool.address);
 
       const txEnd = await trust.endDutchAuction();
+
+      const reserveDust = await reserve.balanceOf(bPool.address);
+
+      const expectedTrustFinalBalance = reserveBPool.sub(reserveDust);
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.SUCCESS,
@@ -1651,7 +1659,9 @@ describe("TrustDistribute", async function () {
 
       assert(
         finalBalance.eq(expectedTrustFinalBalance),
-        "finalBalance was not exposed after trading ended (successful distribution)"
+        `finalBalance was wrong
+        expected  ${expectedTrustFinalBalance}
+        got       ${finalBalance}`
       );
     });
 
@@ -1702,7 +1712,7 @@ describe("TrustDistribute", async function () {
 
       const trustFactoryDeployer = trustFactory.connect(deployer);
 
-      const [trust] = await Util.trustDeploy(
+      const trust = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -1779,9 +1789,13 @@ describe("TrustDistribute", async function () {
 
       const [, bPool] = await Util.poolContracts(signers, trust);
 
-      const expectedTrustFinalBalance = await reserve.balanceOf(bPool.address);
+      const reserveBPool = await reserve.balanceOf(bPool.address);
 
       const txEnd = await trust.endDutchAuction();
+
+      const reserveDust = await reserve.balanceOf(bPool.address);
+
+      const expectedTrustFinalBalance = reserveBPool.sub(reserveDust);
 
       assert(
         (await trust.getDistributionStatus()) === RaiseStatus.FAIL,
@@ -1796,7 +1810,9 @@ describe("TrustDistribute", async function () {
 
       assert(
         finalBalance.eq(expectedTrustFinalBalance),
-        "finalBalance was not exposed after trading ended (failed distribution)"
+        `finalBalance was wrong
+        expected  ${expectedTrustFinalBalance}
+        got       ${finalBalance}`
       );
     });
   });
@@ -1849,7 +1865,7 @@ describe("TrustDistribute", async function () {
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -1998,7 +2014,7 @@ describe("TrustDistribute", async function () {
 
     const trustFactoryDeployer = trustFactory.connect(deployer);
 
-    const [trust] = await Util.trustDeploy(
+    const trust = await Util.trustDeploy(
       trustFactoryDeployer,
       creator,
       {
@@ -2066,7 +2082,7 @@ describe("TrustDistribute", async function () {
 
     const bPoolReserveAfterExit = await reserve.balanceOf(bPool.address);
 
-    const expectedDust = Util.estimateReserveDust(bPoolReserveAfterExit)
+    const expectedDust = Util.determineReserveDust(bPoolReserveAfterExit)
       // intentional dust
       .add(1)
       // rounding dust
@@ -2133,7 +2149,7 @@ describe("TrustDistribute", async function () {
 
       await tier.setTier(signer1.address, Tier.GOLD, []);
 
-      const [trust] = await Util.trustDeploy(
+      const trust = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
@@ -2304,7 +2320,7 @@ describe("TrustDistribute", async function () {
 
       await tier.setTier(signer1.address, Tier.GOLD, []);
 
-      const [trust] = await Util.trustDeploy(
+      const trust = await Util.trustDeploy(
         trustFactoryDeployer,
         creator,
         {
