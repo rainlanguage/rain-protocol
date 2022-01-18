@@ -20,11 +20,11 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-struct ConstructorConfig {
+struct SaleConstructorConfig {
     RedeemableERC20Factory redeemableERC20Factory;
 }
 
-struct Config {
+struct SaleConfig {
     StateConfig vmStateConfig;
     address recipient;
     IERC20 reserve;
@@ -65,8 +65,8 @@ contract Sale is Cooldown, RainVM, ISale {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
-    event Construct(address sender, ConstructorConfig config);
-    event Initialize(address sender, Config config, address token);
+    event Construct(address sender, SaleConstructorConfig config);
+    event Initialize(address sender, SaleConfig config, address token);
     event End(address sender);
     event Buy(address sender, BuyConfig config_, Receipt receipt);
     event Refund(address sender, Receipt receipt);
@@ -116,7 +116,7 @@ contract Sale is Cooldown, RainVM, ISale {
     /// Account => unclaimed fees.
     mapping(address => uint256) fees;
 
-    constructor(ConstructorConfig memory config_) {
+    constructor(SaleConstructorConfig memory config_) {
         blockOpsStart = RainVM.OPS_LENGTH;
         senderOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
         mathOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
@@ -129,7 +129,7 @@ contract Sale is Cooldown, RainVM, ISale {
     }
 
     function initialize(
-        Config memory config_,
+        SaleConfig memory config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external {
         initializeCooldown(config_.cooldownDuration);
