@@ -201,19 +201,12 @@ export const max_uint16 = ethers.BigNumber.from("0xffff");
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
 
-export const estimateReserveDust = (bPoolReserveBalance: BigNumber) => {
+export const determineReserveDust = (bPoolReserveBalance: BigNumber) => {
   let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
   if (dust.lt(RESERVE_MIN_BALANCE)) {
     dust = RESERVE_MIN_BALANCE;
   }
   return dust;
-};
-
-export const determineReserveDust = (bPoolDust: BigNumber) => {
-  if (bPoolDust.lt(RESERVE_MIN_BALANCE)) {
-    bPoolDust = RESERVE_MIN_BALANCE;
-  }
-  return bPoolDust;
 };
 
 export const assertError = async (f, s: string, e: string) => {
@@ -326,7 +319,10 @@ export const redeemableERC20Deploy = async (deployer, config) => {
   return redeemableERC20;
 };
 
-export const seedERC20Deploy = async (deployer, config) => {
+export const seedERC20Deploy = async (
+  deployer,
+  config
+): Promise<[SeedERC20 & Contract, ContractTransaction]> => {
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory"
   );
@@ -348,7 +344,7 @@ export const seedERC20Deploy = async (deployer, config) => {
 
   await seedERC20.deployed();
 
-  return seedERC20;
+  return [seedERC20, tx];
 };
 
 export const trustDeploy = async (

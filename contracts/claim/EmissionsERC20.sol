@@ -40,10 +40,10 @@ struct EmissionsERC20Config {
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract EmissionsERC20 is
     Initializable,
+    RainVM,
     ERC20Upgradeable,
     IClaim,
-    ReadOnlyTier,
-    RainVM
+    ReadOnlyTier
 {
     /// Contract has initialized.
     event Initialize(
