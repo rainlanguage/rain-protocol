@@ -289,6 +289,7 @@ abstract contract RainVM {
                         int8 shift_ = int8(
                             uint8(operand_) & ((uint8(operand_) << 1) | 0x7F)
                         );
+
                         // if the high bit is 1...
                         if (operand_ & 0x80 > 0) {
                             // take the top of the stack and only skip if it is

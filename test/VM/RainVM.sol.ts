@@ -59,7 +59,7 @@ describe("RainVM", async function () {
     console.log({ state });
 
     const result = await calculator.run();
-    const expected = 33;
+    const expected = 44;
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
 
