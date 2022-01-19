@@ -7,4 +7,10 @@ struct ERC20Config {
     string name;
     /// Symbol as defined by Open Zeppelin ERC20.
     string symbol;
+    /// Distributor address of the initial supply.
+    /// MAY be zero.
+    address distributor;
+    /// Initial supply to mint.
+    /// MAY be zero.
+    uint256 initialSupply;
 }

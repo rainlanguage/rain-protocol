@@ -22,12 +22,6 @@ struct SeedERC20Config {
     address recipient;
     // Price per seed unit denominated in reserve token.
     uint256 seedPrice;
-    // Total seed units to be mint and sold.
-    // 100% of all seed units must be sold for seeding to complete.
-    // Recommended to keep seed units to a small value (single-triple digits).
-    // The ability for users to buy/sell or not buy/sell dust seed quantities
-    // is likely NOT desired.
-    uint256 seedUnits;
     // Cooldown duration in blocks for seed/unseed cycles.
     // Seeding requires locking funds for at least the cooldown period.
     // Ideally `unseed` is never called and `seed` leaves funds in the contract
@@ -36,6 +30,11 @@ struct SeedERC20Config {
     // but it should be called rarely.
     uint256 cooldownDuration;
     // ERC20 config.
+    // 100% of all supply must be sold for seeding to complete.
+    // Recommended to keep initial supply to a small value
+    // (single-triple digits).
+    // The ability for users to buy/sell or not buy/sell dust seed quantities
+    // is likely NOT desired.
     ERC20Config erc20Config;
 }
 
@@ -103,8 +102,7 @@ contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
         address sender,
         address recipient,
         address reserve,
-        uint256 seedPrice,
-        uint256 seedUnits
+        uint256 seedPrice
     );
 
     /// Reserve was paid in exchange for seed tokens.
@@ -140,29 +138,33 @@ contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
     /// @param config_ All config required to initialize the contract.
     function initialize(SeedERC20Config memory config_) external initializer {
         require(config_.seedPrice > 0, "PRICE_0");
-        require(config_.seedUnits > 0, "UNITS_0");
+        require(config_.erc20Config.initialSupply > 0, "SUPPLY_0");
         require(config_.recipient != address(0), "RECIPIENT_0");
 
         initializePhased();
+        initializeCooldown(config_.cooldownDuration);
 
+        // Force initial supply to mint to this contract as distributor.
+        config_.erc20Config.distributor = address(this);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
+        _mint(
+            config_.erc20Config.distributor,
+            config_.erc20Config.initialSupply
+        );
         initializeERC20Pull(
             ERC20PullConfig(config_.recipient, address(config_.reserve))
         );
-        initializeCooldown(config_.cooldownDuration);
-        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
         recipient = config_.recipient;
         reserve = config_.reserve;
         seedPrice = config_.seedPrice;
-        _mint(address(this), config_.seedUnits);
-        safeExit = config_.seedPrice * config_.seedUnits;
+        safeExit = config_.seedPrice * config_.erc20Config.initialSupply;
         // The reserve must always be one of the treasury assets.
         newTreasuryAsset(address(config_.reserve));
         emit Initialize(
             msg.sender,
             config_.recipient,
             address(config_.reserve),
-            config_.seedPrice,
-            config_.seedUnits
+            config_.seedPrice
         );
 
         schedulePhase(PHASE_SEEDING, block.number);

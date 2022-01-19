@@ -114,6 +114,10 @@ contract EmissionsERC20 is
         initializer
     {
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
+        _mint(
+            config_.erc20Config.distributor,
+            config_.erc20Config.initialSupply
+        );
 
         vmStatePointer = VMState.snapshot(
             VMState.newState(config_.vmStateConfig)

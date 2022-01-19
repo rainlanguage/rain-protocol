@@ -128,6 +128,7 @@ struct TrustConfig {
     uint256 redeemInit;
 }
 
+/// Forwarded config for `SeedERC20Config`.
 struct TrustSeedERC20Config {
     // Either an EOA (externally owned address) or `address(0)`.
     // If an EOA the seeder account must transfer seed funds to the newly
@@ -135,21 +136,8 @@ struct TrustSeedERC20Config {
     // If `address(0)` a new `SeedERC20` contract is built in the `Trust`
     // constructor.
     address seeder;
-    // Total seed units to be mint and sold.
-    // 100% of all seed units must be sold for seeding to complete.
-    // Recommended to keep seed units to a small value (single-triple digits).
-    // The ability for users to buy/sell or not buy/sell dust seed quantities
-    // is likely NOT desired.
-    uint256 seederUnits;
-    // Cooldown duration in blocks for seed/unseed cycles.
-    // Seeding requires locking funds for at least the cooldown period.
-    // Ideally `unseed` is never called and `seed` leaves funds in the contract
-    // until all seed tokens are sold out.
-    // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
-    // but it should be called rarely.
-    uint256 seederCooldownDuration;
-    // ERC20Config forwarded to the seedERC20.
-    ERC20Config seedERC20Config;
+    uint256 cooldownDuration;
+    ERC20Config erc20Config;
 }
 
 /// Forwarded config for `RedeemableERC20Config`.
@@ -157,7 +145,6 @@ struct TrustRedeemableERC20Config {
     ERC20Config erc20Config;
     ITier tier;
     uint256 minimumTier;
-    uint256 totalSupply;
 }
 
 /// @title Trust
@@ -511,7 +498,7 @@ contract Trust is Phased {
                 address(config_.reserve),
                 redeemableERC20_,
                 config_.reserveInit,
-                trustRedeemableERC20Config_.totalSupply,
+                trustRedeemableERC20Config_.erc20Config.initialSupply,
                 config_.initialValuation
             )
         );
@@ -537,19 +524,21 @@ contract Trust is Phased {
         // valuations will be in a sensible range according to the internal
         // assumptions made by Balancer etc.
         require(
-            trustRedeemableERC20Config_.totalSupply >= config_.reserveInit,
+            trustRedeemableERC20Config_.erc20Config.initialSupply >=
+                config_.reserveInit,
             "MIN_TOKEN_SUPPLY"
         );
+        // Whatever address is provided for erc20Config as the distributor is
+        // ignored and overwritten as the `Trust`.
+        trustRedeemableERC20Config_.erc20Config.distributor = address(this);
         RedeemableERC20 redeemableERC20_ = RedeemableERC20(
             redeemableERC20Factory.createChild(
                 abi.encode(
                     RedeemableERC20Config(
-                        address(this),
                         address(config_.reserve),
                         trustRedeemableERC20Config_.erc20Config,
                         trustRedeemableERC20Config_.tier,
-                        trustRedeemableERC20Config_.minimumTier,
-                        trustRedeemableERC20Config_.totalSupply
+                        trustRedeemableERC20Config_.minimumTier
                     )
                 )
             )
@@ -565,7 +554,9 @@ contract Trust is Phased {
         address seeder_ = trustSeedERC20Config_.seeder;
         if (seeder_ == address(0)) {
             require(
-                0 == config_.reserveInit % trustSeedERC20Config_.seederUnits,
+                0 ==
+                    config_.reserveInit %
+                        trustSeedERC20Config_.erc20Config.initialSupply,
                 "SEED_PRICE_MULTIPLIER"
             );
             seeder_ = address(
@@ -576,10 +567,9 @@ contract Trust is Phased {
                             address(this),
                             // seed price.
                             config_.reserveInit /
-                                trustSeedERC20Config_.seederUnits,
-                            trustSeedERC20Config_.seederUnits,
-                            trustSeedERC20Config_.seederCooldownDuration,
-                            trustSeedERC20Config_.seedERC20Config
+                                trustSeedERC20Config_.erc20Config.initialSupply,
+                            trustSeedERC20Config_.cooldownDuration,
+                            trustSeedERC20Config_.erc20Config
                         )
                     )
                 )

@@ -3,7 +3,10 @@ import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
 import type { TrustFactory } from "../typechain/TrustFactory";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type {
+  RedeemableERC20,
+  RedeemableERC20ConfigStruct,
+} from "../typechain/RedeemableERC20";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { CombineTier } from "../typechain/CombineTier";
 import type { CombineTierFactory } from "../typechain/CombineTierFactory";
@@ -11,7 +14,7 @@ import type { Verify } from "../typechain/Verify";
 import type { VerifyFactory } from "../typechain/VerifyFactory";
 import type { VerifyTier } from "../typechain/VerifyTier";
 import type { VerifyTierFactory } from "../typechain/VerifyTierFactory";
-import type { SeedERC20 } from "../typechain/SeedERC20";
+import type { SeedERC20, SeedERC20ConfigStruct } from "../typechain/SeedERC20";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
@@ -294,7 +297,10 @@ export const combineTierDeploy = async (deployer, config) => {
   return contract;
 };
 
-export const redeemableERC20Deploy = async (deployer, config) => {
+export const redeemableERC20Deploy = async (
+  deployer: SignerWithAddress,
+  config: RedeemableERC20ConfigStruct
+) => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory"
   );
@@ -320,8 +326,8 @@ export const redeemableERC20Deploy = async (deployer, config) => {
 };
 
 export const seedERC20Deploy = async (
-  deployer,
-  config
+  deployer: SignerWithAddress,
+  config: SeedERC20ConfigStruct
 ): Promise<[SeedERC20 & Contract, ContractTransaction]> => {
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory"
