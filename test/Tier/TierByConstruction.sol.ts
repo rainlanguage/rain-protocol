@@ -3,7 +3,6 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionTest } from "../../typechain/TierByConstructionTest";
-import type { TierByConstructionClaimTest } from "../../typechain/TierByConstructionClaimTest";
 import { assertError, getEventArgs } from "../Util";
 import type { Contract, ContractFactory } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -193,61 +192,6 @@ describe("TierByConstruction", async function () {
       async () => await tierByConstruction.ifSix(),
       "MINIMUM_TIER",
       "did not make a mistake when the user entered dimond when he did not have it."
-    );
-  });
-});
-
-describe("TierByConstructionClaim", async function () {
-  let owner: SignerWithAddress;
-  let readWriteTier: ReadWriteTier & Contract;
-  let tierByConstructionClaim: TierByConstructionClaimTest & Contract;
-  let tierByConstructionClaimFactory: ContractFactory;
-
-  before(async () => {
-    [owner] = await ethers.getSigners();
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    await readWriteTier.deployed();
-
-    tierByConstructionClaimFactory = await ethers.getContractFactory(
-      "TierByConstructionClaimTest"
-    );
-    tierByConstructionClaim = (await tierByConstructionClaimFactory.deploy(
-      readWriteTier.address
-    )) as TierByConstructionClaimTest & Contract;
-    await tierByConstructionClaim.deployed();
-  });
-
-  it("shouldn't you set to use a function of the new tier after construction", async function () {
-    await readWriteTier.setTier(owner.address, 4, []);
-
-    await assertError(
-      async () => await tierByConstructionClaim.claim(owner.address, []),
-      "MINIMUM_TIER",
-      "did not make a mistake when the user upgraded the FOUR after construction"
-    );
-  });
-
-  it("should enter the function and mint 100 tokens if the owner has tier 4", async function () {
-    tierByConstructionClaim = (await tierByConstructionClaimFactory.deploy(
-      readWriteTier.address
-    )) as TierByConstructionClaimTest & Contract;
-    await tierByConstructionClaim.deployed();
-
-    await tierByConstructionClaim.claim(owner.address, []);
-
-    assert(
-      Number(await tierByConstructionClaim.balanceOf(owner.address)) === 100,
-      "did not enter correctly to the function"
-    );
-  });
-
-  it("should not allow multiple minting", async function () {
-    await assertError(
-      async () => await tierByConstructionClaim.claim(owner.address, []),
-      "DUPLICATE_CLAIM",
-      "function does not correctly restrict multiple mints"
     );
   });
 });

@@ -143,7 +143,7 @@ contract Verify is AccessControl, Initializable {
     /// `addedSince` block on a `State` before trusting an equality check on
     /// any other block number.
     /// (i.e. removed or never added)
-    uint32 public constant UNINITIALIZED = type(uint32).max;
+    uint32 private constant UNINITIALIZED = type(uint32).max;
 
     /// Emitted when evidence is first submitted to approve an account.
     /// The requestor is always the `msg.sender` of the user calling `add`.
@@ -205,7 +205,7 @@ contract Verify is AccessControl, Initializable {
     bytes32 public constant BANNER = keccak256("BANNER");
 
     // Account => State
-    mapping(address => State) public states;
+    mapping(address => State) private states;
 
     /// Defines RBAC logic for each role under Open Zeppelin.
     /// @param admin_ The address to ASSIGN ALL ADMIN ROLES to initially. This

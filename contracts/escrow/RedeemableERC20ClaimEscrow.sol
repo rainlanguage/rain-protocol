@@ -169,9 +169,9 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// The token amount they actually receive is only their prorata share of
     /// that deposited balance. The prorata scaling calculation happens inline
     /// within the `withdraw` function.
-    /// trust => withdrawn token => withdrawer => rTKN supply => amount
+    /// trust => withdrawn token =>  rTKN supply => withdrawer => amount
     // solhint-disable-next-line max-line-length
-    mapping(address => mapping(address => mapping(address => mapping(uint256 => uint256))))
+    mapping(address => mapping(address => mapping(uint256 => mapping(address => uint256))))
         internal withdrawals;
 
     /// Deposits during an active raise are desirable to trustlessly prove to
@@ -198,6 +198,15 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// trust => deposited token => rTKN supply => amount
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         internal totalDeposits;
+
+    /// Redundant tracking of deposits withdrawn.
+    /// Counts aggregate deposits down as users withdraw, while their own
+    /// individual withdrawal counters count up.
+    /// NOT strictly required but provides a guard against more token being
+    /// withdrawn under a given trust/supply than was ever deposited.
+    /// trust => deposited token => rTKN supply => amount
+    mapping(address => mapping(address => mapping(uint256 => uint256)))
+        internal remainingDeposits;
 
     /// Depositor can set aside tokens during pending raise status to be swept
     /// into a real deposit later.
@@ -256,6 +265,7 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
 
         deposits[address(sale_)][token_][depositor_][supply_] += amount_;
         totalDeposits[address(sale_)][token_][supply_] += amount_;
+        remainingDeposits[address(sale_)][token_][supply_] += amount_;
 
         emit Deposit(
             depositor_,
@@ -348,6 +358,7 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         // Guard against outputs exceeding inputs.
         // Last undeposit gets a gas refund.
         totalDeposits[address(sale_)][address(token_)][supply_] -= amount_;
+        remainingDeposits[address(sale_)][address(token_)][supply_] -= amount_;
 
         emit Undeposit(
             msg.sender,
@@ -397,13 +408,13 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
             address(token_)
         ][supply_];
         uint256 withdrawn_ = withdrawals[address(sale_)][address(token_)][
-            msg.sender
-        ][supply_];
+            supply_
+        ][msg.sender];
 
         RedeemableERC20 redeemable_ = RedeemableERC20(ISale(sale_).token());
 
-        withdrawals[address(sale_)][address(token_)][msg.sender][
-            supply_
+        withdrawals[address(sale_)][address(token_)][supply_][
+            msg.sender
         ] = totalDeposited_;
 
         //solhint-disable-next-line max-line-length
@@ -417,6 +428,9 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
             // receive less, so 0/33/33 from 100 with 34 TKN as escrow
             // dust, for example.
             redeemable_.balanceOf(msg.sender)) / supply_;
+
+        // Guard against outputs exceeding inputs.
+        remainingDeposits[address(sale_)][address(token_)][supply_] -= amount_;
 
         require(amount_ > 0, "ZERO_WITHDRAW");
         emit Withdraw(

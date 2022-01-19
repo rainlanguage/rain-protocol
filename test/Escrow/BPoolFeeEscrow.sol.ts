@@ -129,6 +129,7 @@ describe("BPoolFeeEscrow", async function () {
       minimumTradingDuration,
       redeemableERC20,
       bPoolFeeEscrow,
+      bPool,
     } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -243,9 +244,13 @@ describe("BPoolFeeEscrow", async function () {
 
     const signer1Reserve_2 = await reserve.balanceOf(signer1.address);
 
+    const poolDust = await reserve.balanceOf(bPool.address);
+
     assert(
-      signer1Reserve_2.eq(spend.add(fee)),
-      "signer1 should get full refund (spend AND fee from escrow contract)"
+      signer1Reserve_2.eq(spend.add(fee).sub(poolDust)),
+      `signer1 should get full refund (spend AND fee from escrow contract)
+      expected  ${spend.add(fee).sub(poolDust)}
+      got       ${signer1Reserve_2}`
     );
   });
 

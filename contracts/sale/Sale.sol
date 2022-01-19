@@ -42,7 +42,6 @@ struct SaleRedeemableERC20Config {
     ERC20Config erc20Config;
     ITier tier;
     uint256 minimumTier;
-    uint256 initialSupply;
 }
 
 struct BuyConfig {
@@ -144,23 +143,22 @@ contract Sale is Cooldown, RainVM, ISale {
         dustSize = config_.dustSize;
 
         _reserve = config_.reserve;
+        saleRedeemableERC20Config_.erc20Config.distributor = address(this);
         RedeemableERC20 token_ = RedeemableERC20(
             redeemableERC20Factory.createChild(
                 abi.encode(
                     RedeemableERC20Config(
-                        address(this),
                         address(config_.reserve),
                         saleRedeemableERC20Config_.erc20Config,
                         saleRedeemableERC20Config_.tier,
-                        saleRedeemableERC20Config_.minimumTier,
-                        saleRedeemableERC20Config_.initialSupply
+                        saleRedeemableERC20Config_.minimumTier
                     )
                 )
             )
         );
         _token = token_;
 
-        remainingUnits = saleRedeemableERC20Config_.initialSupply;
+        remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
 
         emit Initialize(msg.sender, config_, address(token_));
     }
