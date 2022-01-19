@@ -3,7 +3,10 @@ import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
 import type { TrustFactory } from "../typechain/TrustFactory";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type {
+  RedeemableERC20,
+  RedeemableERC20ConfigStruct,
+} from "../typechain/RedeemableERC20";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { CombineTier } from "../typechain/CombineTier";
 import type { CombineTierFactory } from "../typechain/CombineTierFactory";
@@ -294,7 +297,10 @@ export const combineTierDeploy = async (deployer, config) => {
   return contract;
 };
 
-export const redeemableERC20Deploy = async (deployer, config) => {
+export const redeemableERC20Deploy = async (
+  deployer: SignerWithAddress,
+  config: RedeemableERC20ConfigStruct
+) => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory"
   );

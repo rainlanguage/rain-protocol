@@ -267,7 +267,7 @@ describe("TrustSeed", async function () {
               initialSupply: seederUnits,
             },
           }),
-        "UNITS_0",
+        "SUPPLY_0",
         "seeder contract was wrongly constructed with seederUnits set to 0"
       );
     });
