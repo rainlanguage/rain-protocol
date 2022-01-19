@@ -52,7 +52,7 @@ describe("RedeemableERC20Reentrant", async function () {
     const redeemableERC20Config = {
       name: "RedeemableERC20",
       symbol: "RDX",
-      distributor: Util.zeroAddress,
+      distributor: signers[0].address,
       initialSupply: totalSupply,
     };
 

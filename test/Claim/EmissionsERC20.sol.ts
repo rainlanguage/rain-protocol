@@ -246,7 +246,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -527,7 +527,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -649,7 +649,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -742,7 +742,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -807,7 +807,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -873,7 +873,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -930,7 +930,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -970,7 +970,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -1016,7 +1016,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -1055,7 +1055,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
@@ -1095,7 +1095,7 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
-          distributor: Util.zeroAddress,
+          distributor: signers[0].address,
           initialSupply: 0,
         },
         vmStateConfig: {
