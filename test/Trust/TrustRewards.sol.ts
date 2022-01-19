@@ -84,12 +84,14 @@ describe("TrustRewards", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
       distributor: Util.zeroAddress,
       initialSupply: totalTokenSupply,
     };
+    const seederUnits = 0;
     const seedERC20Config = {
       name: "SeedToken",
       symbol: "SDT",
@@ -99,12 +101,10 @@ describe("TrustRewards", async function () {
 
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
 
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
     const seederCooldownDuration = 0;
 
     const successLevel = redeemInit
@@ -136,11 +136,9 @@ describe("TrustRewards", async function () {
         erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
-        totalSupply: totalTokenSupply,
       },
       {
         seeder: seeder.address,
-        seederUnits,
         cooldownDuration: seederCooldownDuration,
         erc20Config: seedERC20Config,
       },
@@ -412,12 +410,14 @@ describe("TrustRewards", async function () {
 
     const { trustFactory } = await factoriesDeploy(crpFactory, bFactory);
 
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
       distributor: Util.zeroAddress,
       initialSupply: totalTokenSupply,
     };
+    const seederUnits = 0;
     const seedERC20Config = {
       name: "SeedToken",
       symbol: "SDT",
@@ -428,11 +428,9 @@ describe("TrustRewards", async function () {
     const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
     const initialValuation = ethers.BigNumber.from("10000" + Util.sixZeros);
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
 
     const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
     const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-    const seederUnits = 0;
     const seederCooldownDuration = 0;
 
     const successLevel = redeemInit
@@ -464,11 +462,9 @@ describe("TrustRewards", async function () {
         erc20Config: redeemableERC20Config,
         tier: tier.address,
         minimumTier,
-        totalSupply: totalTokenSupply,
       },
       {
         seeder: seeder.address,
-        seederUnits,
         cooldownDuration: seederCooldownDuration,
         erc20Config: seedERC20Config,
       },

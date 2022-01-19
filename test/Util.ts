@@ -11,7 +11,7 @@ import type { Verify } from "../typechain/Verify";
 import type { VerifyFactory } from "../typechain/VerifyFactory";
 import type { VerifyTier } from "../typechain/VerifyTier";
 import type { VerifyTierFactory } from "../typechain/VerifyTierFactory";
-import type { SeedERC20 } from "../typechain/SeedERC20";
+import type { SeedERC20, SeedERC20ConfigStruct } from "../typechain/SeedERC20";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
@@ -320,8 +320,8 @@ export const redeemableERC20Deploy = async (deployer, config) => {
 };
 
 export const seedERC20Deploy = async (
-  deployer,
-  config
+  deployer: SignerWithAddress,
+  config: SeedERC20ConfigStruct
 ): Promise<[SeedERC20 & Contract, ContractTransaction]> => {
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory"

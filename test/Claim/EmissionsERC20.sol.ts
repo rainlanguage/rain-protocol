@@ -246,6 +246,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [SOURCE(), FN()],
@@ -525,6 +527,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [SOURCE(), FN()],
@@ -645,6 +649,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [
@@ -736,6 +742,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
@@ -799,19 +807,21 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [
             concat([
-                  op(Opcode.never),
-                  op(Opcode.blockNumber),
-                op(
-                  Opcode.updateBlocksForTierRange,
-                  claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
-                ),
-                  op(Opcode.val, 0),
-                  op(Opcode.account),
-                op(Opcode.report),
+              op(Opcode.never),
+              op(Opcode.blockNumber),
+              op(
+                Opcode.updateBlocksForTierRange,
+                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+              ),
+              op(Opcode.val, 0),
+              op(Opcode.account),
+              op(Opcode.report),
               op(Opcode.diff),
             ]),
           ],
@@ -863,6 +873,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -918,6 +930,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -956,6 +970,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -1000,6 +1016,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -1037,6 +1055,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -1075,6 +1095,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: Util.zeroAddress,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],

@@ -24,16 +24,15 @@ describe("SeedERC20Reentrant", async function () {
     const daveReserve = maliciousReserve.connect(dave);
 
     const seedPrice = 100;
-    const seedUnits = 10;
+    const seederUnits = 10;
     const cooldownDuration = 1;
 
-    const bobUnits = seedUnits;
+    const bobUnits = seederUnits;
 
     const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
       erc20Config: {
         name: "SeedToken",
@@ -52,7 +51,10 @@ describe("SeedERC20Reentrant", async function () {
     await bobSeed.seed(0, bobUnits);
 
     // Dave gets 10% extra reserve from somewhere.
-    await maliciousReserve.transfer(dave.address, seedPrice * seedUnits * 0.1);
+    await maliciousReserve.transfer(
+      dave.address,
+      seedPrice * seederUnits * 0.1
+    );
 
     // Dave sends reserve back to the seed contract.
     await daveReserve.transfer(
@@ -84,7 +86,7 @@ describe("SeedERC20Reentrant", async function () {
     const bobReserve = maliciousReserve.connect(bob);
 
     const seedPrice = 100;
-    const seedUnits = 10;
+    const seederUnits = 10;
     const cooldownDuration = 1;
 
     const bobUnits = 1;
@@ -93,7 +95,6 @@ describe("SeedERC20Reentrant", async function () {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
       erc20Config: {
         name: "SeedToken",
@@ -133,7 +134,7 @@ describe("SeedERC20Reentrant", async function () {
     const bobReserve = maliciousReserve.connect(bob);
 
     const seedPrice = 100;
-    const seedUnits = 10;
+    const seederUnits = 10;
     const cooldownDuration = 1;
 
     const bobUnits = 3;
@@ -142,7 +143,6 @@ describe("SeedERC20Reentrant", async function () {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
       erc20Config: {
         name: "SeedToken",
