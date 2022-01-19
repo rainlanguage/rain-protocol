@@ -143,10 +143,6 @@ contract RedeemableERC20 is
 
         initializeTierByConstruction(config_.tier);
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
-        _mint(
-            config_.erc20Config.distributor,
-            config_.erc20Config.initialSupply
-        );
         initializeERC20Pull(
             ERC20PullConfig(config_.erc20Config.distributor, config_.reserve)
         );
@@ -164,6 +160,11 @@ contract RedeemableERC20 is
         access[config_.erc20Config.distributor] = RECEIVER;
 
         admin = config_.erc20Config.distributor;
+
+        _mint(
+            config_.erc20Config.distributor,
+            config_.erc20Config.initialSupply
+        );
 
         // The reserve must always be one of the treasury assets.
         newTreasuryAsset(config_.reserve);
