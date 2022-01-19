@@ -281,17 +281,13 @@ contract RedeemableERC20 is
             // The sender and receiver lists bypass all access restrictions.
             !(isSender(sender_) || isReceiver(receiver_))
         ) {
-            uint256 currentPhase_ = currentPhase();
-            // During `PHASE_UNINITIALIZED` minting is allowed.
-            if (currentPhase_ == PHASE_UNINITIALIZED) {
-                require(sender_ == address(0), "ONLY_MINTER");
-            }
-            // During `PHASE_DISTRIBUTING` transfers are only restricted by the
+            // During `Phase.ZERO` transfers are only restricted by the
             // tier of the recipient.
-            else if (currentPhase_ == PHASE_DISTRIBUTING) {
+            uint256 currentPhase_ = currentPhase();
+            if (currentPhase_ == PHASE_DISTRIBUTING) {
                 require(isTier(receiver_, minimumTier), "MIN_TIER");
             }
-            // During `PHASE_FROZEN` only token burns are allowed.
+            // During `Phase.ONE` only token burns are allowed.
             else if (currentPhase_ == PHASE_FROZEN) {
                 require(receiver_ == address(0), "FROZEN");
             }
