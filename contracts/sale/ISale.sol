@@ -8,5 +8,7 @@ enum SaleStatus {
 }
 
 interface ISale {
+    function token() external view returns (address);
+    function reserve() external view returns (address);
     function saleStatus() external view returns (SaleStatus);
 }

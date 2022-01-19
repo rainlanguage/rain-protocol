@@ -375,9 +375,9 @@ contract Trust is Phased, Initializable, ISale {
     uint256 private successBalance;
 
     /// The redeemable token minted in the constructor.
-    RedeemableERC20 public token;
+    RedeemableERC20 private _token;
     /// Reserve token.
-    IERC20 public reserve;
+    IERC20 private _reserve;
     /// The `ConfigurableRightsPool` built during construction.
     IConfigurableRightsPool public crp;
 
@@ -405,7 +405,7 @@ contract Trust is Phased, Initializable, ISale {
         crpFactory = config_.crpFactory;
         redeemableERC20Factory = config_.redeemableERC20Factory;
         seedERC20Factory = config_.seedERC20Factory;
-        BPoolFeeEscrow bPoolFeeEscrow_ = new BPoolFeeEscrow(msg.sender);
+        BPoolFeeEscrow bPoolFeeEscrow_ = new BPoolFeeEscrow();
         bPoolFeeEscrow = bPoolFeeEscrow_;
         creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
         // Assumption here that the `msg.sender` is a `TrustFactory` that the
@@ -465,7 +465,7 @@ contract Trust is Phased, Initializable, ISale {
         );
 
         creator = config_.creator;
-        reserve = config_.reserve;
+        _reserve = config_.reserve;
         reserveInit = config_.reserveInit;
 
         minimumCreatorRaise = config_.minimumCreatorRaise;
@@ -499,7 +499,7 @@ contract Trust is Phased, Initializable, ISale {
             config_,
             trustRedeemableERC20Config_
         );
-        token = RedeemableERC20(redeemableERC20_);
+        _token = RedeemableERC20(redeemableERC20_);
 
         address seeder_ = setupSeeder(config_, trustSeedERC20Config_);
         seeder = seeder_;
@@ -693,6 +693,17 @@ contract Trust is Phased, Initializable, ISale {
         return weight_;
     }
 
+    /// @inheritdoc ISale
+    function token() external view returns (address) {
+        return address(_token);
+    }
+
+    /// @inheritdoc ISale
+    function reserve() external view returns (address) {
+        return address(_reserve);
+    }
+
+    /// @inheritdoc ISale
     function saleStatus() external view returns (SaleStatus) {
         Phase poolPhase_ = currentPhase();
         if (poolPhase_ == Phase.THREE || poolPhase_ == Phase.FOUR) {
@@ -720,7 +731,7 @@ contract Trust is Phased, Initializable, ISale {
     {
         Phase poolPhase_ = currentPhase();
         if (poolPhase_ == Phase.ZERO) {
-            if (reserve.balanceOf(address(this)) >= reserveInit) {
+            if (_reserve.balanceOf(address(this)) >= reserveInit) {
                 return DistributionStatus.Seeded;
             } else {
                 return DistributionStatus.Pending;
@@ -788,7 +799,7 @@ contract Trust is Phased, Initializable, ISale {
         // always sell back into the pool.
         // Note: We do NOT grant the bPool the SENDER role as that would bypass
         // `ITier` restrictions for everyone buying the token.
-        token.grantReceiver(pool_);
+        _token.grantReceiver(pool_);
         crp_.updateWeightsGradually(
             finalWeights_,
             block.number,
@@ -811,8 +822,8 @@ contract Trust is Phased, Initializable, ISale {
 
         // Ensure the bPool is aware of the real internal token balances.
         // Balancer will ignore tokens transferred to it until they are gulped.
-        pool_.gulp(address(reserve));
-        pool_.gulp(address(token));
+        pool_.gulp(address(_reserve));
+        pool_.gulp(address(_token));
 
         uint256 totalPoolTokens_ = IERC20(address(crp)).totalSupply();
 
@@ -835,7 +846,7 @@ contract Trust is Phased, Initializable, ISale {
             // be preventing zero balance due to trades. If this ever
             // happens even emergency mode probably won't help because it's
             // unlikely that `exitPool` will succeed for any input values.
-            pool_.getBalance(address(reserve));
+            pool_.getBalance(address(_reserve));
         // The minimum redeemable token supply is `10 ** 18` so it is near
         // impossible to hit this before the reserve or global pool minimums.
         uint256 minRedeemablePoolTokens_ = MIN_BALANCER_POOL_BALANCE
@@ -845,7 +856,7 @@ contract Trust is Phased, Initializable, ISale {
             // same.
             // WARNING: As above, this will error if token balance in the
             // pool is `0`.
-            pool_.getBalance(address(token));
+            pool_.getBalance(address(_token));
         uint256 minPoolSupply_ = IBalancerConstants
             .MIN_POOL_SUPPLY
             .max(minReservePoolTokens_)
@@ -858,7 +869,7 @@ contract Trust is Phased, Initializable, ISale {
             // `crp.exitPool` subtracts one so token amounts round down.
             1;
 
-        uint256 finalBalance_ = reserve.balanceOf(address(pool_));
+        uint256 finalBalance_ = _reserve.balanceOf(address(pool_));
         finalBalance = finalBalance_;
 
         // This removes as much as is allowable which leaves behind some dust.
@@ -882,10 +893,10 @@ contract Trust is Phased, Initializable, ISale {
         address[] memory distributors_ = new address[](2);
         distributors_[0] = address(this);
         distributors_[1] = address(pool_);
-        token.burnDistributors(distributors_);
+        _token.burnDistributors(distributors_);
 
         // Balancer traps a tiny amount of reserve in the pool when it exits.
-        uint256 poolDust_ = reserve.balanceOf(address(pool_));
+        uint256 poolDust_ = _reserve.balanceOf(address(pool_));
 
         // The dust is included in the final balance for UX reasons.
         // We don't want to fail the raise due to dust, even if technically it
@@ -894,7 +905,7 @@ contract Trust is Phased, Initializable, ISale {
         // dust from the seeder.
         // The `availableBalance_` is the reserve the `Trust` owns and so can
         // safely transfer, despite dust etc.
-        uint256 availableBalance_ = reserve.balanceOf(address(this));
+        uint256 availableBalance_ = _reserve.balanceOf(address(this));
 
         // Base payments for each fundraiser.
         uint256 seederPay_ = reserveInit.saturatingSub(poolDust_);
@@ -933,15 +944,15 @@ contract Trust is Phased, Initializable, ISale {
         );
 
         if (seederPay_ > 0) {
-            reserve.safeApprove(seeder, seederPay_);
+            _reserve.safeApprove(seeder, seederPay_);
         }
 
         if (creatorPay_ > 0) {
-            reserve.safeApprove(creator, creatorPay_);
+            _reserve.safeApprove(creator, creatorPay_);
         }
 
         if (tokenPay_ > 0) {
-            reserve.safeApprove(address(token), tokenPay_);
+            _reserve.safeApprove(address(_token), tokenPay_);
         }
     }
 
@@ -958,8 +969,8 @@ contract Trust is Phased, Initializable, ISale {
     /// their approvals fully or partially. By default this should be called
     /// atomically after `endDutchAuction`.
     function transferAuctionTokens() public onlyAtLeastPhase(Phase.THREE) {
-        IERC20 reserve_ = reserve;
-        RedeemableERC20 token_ = token;
+        IERC20 reserve_ = _reserve;
+        RedeemableERC20 token_ = _token;
         address creator_ = creator;
         address seeder_ = seeder;
 
@@ -1038,8 +1049,8 @@ contract Trust is Phased, Initializable, ISale {
         onlyPhase(Phase.FOUR)
     {
         require(
-            token_ == address(reserve) ||
-                token_ == address(token) ||
+            token_ == address(_reserve) ||
+                token_ == address(_token) ||
                 token_ == address(crp),
             "UNKNOWN_TOKEN"
         );

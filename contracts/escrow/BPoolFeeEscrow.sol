@@ -6,7 +6,7 @@ import {IBPool} from "../pool/IBPool.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConfigurableRightsPool} from "../pool/IConfigurableRightsPool.sol";
-import "./TrustEscrow.sol";
+import "./SaleEscrow.sol";
 
 /// Represents fees as they are claimed by a recipient on a per-trust basis.
 /// Used to work around a limitation in the EVM i.e. return values must be
@@ -61,7 +61,7 @@ struct ClaimedFees {
 /// We cannot prevent FEs implementing their own smart contracts to take fees
 /// outside the scope of the escrow, but we aren't encouraging or implementing
 /// it for them either.
-contract BPoolFeeEscrow is TrustEscrow {
+contract BPoolFeeEscrow is SaleEscrow {
     using SafeERC20 for IERC20;
 
     /// A claim has been processed for a recipient.
@@ -117,14 +117,6 @@ contract BPoolFeeEscrow is TrustEscrow {
     /// trust => amount
     mapping(address => uint256) internal totalFees;
 
-    /// @param trustFactory_ forwarded to `TrustEscrow` only.
-    constructor(address trustFactory_)
-        TrustEscrow(trustFactory_)
-    //solhint-disable-next-line no-empty-blocks
-    {
-
-    }
-
     /// Anon can pay the gas to send all claimable fees to any recipient.
     /// Caller is expected to infer profitable trusts for the recipient by
     /// parsing the event log for `Fee` events. Caller pays gas and there is no
@@ -168,7 +160,7 @@ contract BPoolFeeEscrow is TrustEscrow {
             delete fees[address(trust_)][recipient_];
 
             emit ClaimFees(msg.sender, recipient_, address(trust_), amount_);
-            trust_.reserve().safeTransfer(recipient_, amount_);
+            IERC20(trust_.reserve()).safeTransfer(recipient_, amount_);
         }
         return amount_;
     }
@@ -200,7 +192,10 @@ contract BPoolFeeEscrow is TrustEscrow {
             delete totalFees[address(trust_)];
 
             emit RefundFees(msg.sender, address(trust_), amount_);
-            trust_.reserve().safeTransfer(address(trust_.token()), amount_);
+            IERC20(trust_.reserve()).safeTransfer(
+                address(trust_.token()),
+                amount_
+            );
         }
         return amount_;
     }
@@ -269,8 +264,8 @@ contract BPoolFeeEscrow is TrustEscrow {
         // hurt the escrow.
         // A bad crp or pool is not approved to touch escrow fees, only the
         // `msg.sender` funds.
-        IERC20 reserve_ = trust_.reserve();
-        RedeemableERC20 token_ = trust_.token();
+        IERC20 reserve_ = IERC20(trust_.reserve());
+        RedeemableERC20 token_ = RedeemableERC20(trust_.token());
         IConfigurableRightsPool crp_ = trust_.crp();
         address pool_ = crp_.bPool();
 

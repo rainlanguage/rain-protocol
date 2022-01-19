@@ -97,8 +97,8 @@ contract Sale is Cooldown, RainVM, ISale {
     uint256 private minimumRaise;
     uint256 private dustSize;
 
-    IERC20 public reserve;
-    RedeemableERC20 public token;
+    IERC20 private _reserve;
+    RedeemableERC20 private _token;
 
     // state.
     uint256 private remainingUnits;
@@ -143,7 +143,7 @@ contract Sale is Cooldown, RainVM, ISale {
         minimumRaise = config_.minimumRaise;
         dustSize = config_.dustSize;
 
-        reserve = config_.reserve;
+        _reserve = config_.reserve;
         RedeemableERC20 token_ = RedeemableERC20(
             redeemableERC20Factory.createChild(
                 abi.encode(
@@ -158,13 +158,24 @@ contract Sale is Cooldown, RainVM, ISale {
                 )
             )
         );
-        token = token_;
+        _token = token_;
 
         remainingUnits = saleRedeemableERC20Config_.initialSupply;
 
         emit Initialize(msg.sender, config_, address(token_));
     }
 
+    /// @inheritdoc ISale
+    function token() external view returns (address) {
+        return address(_token);
+    }
+
+    /// @inheritdoc ISale
+    function reserve() external view returns (address) {
+        return address(_reserve);
+    }
+
+    /// @inheritdoc ISale
     function saleStatus() external view returns (SaleStatus) {
         return _saleStatus;
     }
@@ -180,11 +191,11 @@ contract Sale is Cooldown, RainVM, ISale {
         remainingUnits = 0;
         address[] memory distributors_ = new address[](1);
         distributors_[0] = address(this);
-        token.burnDistributors(distributors_);
+        _token.burnDistributors(distributors_);
 
         if (totalReserveIn >= minimumRaise) {
             _saleStatus = SaleStatus.Success;
-            reserve.safeTransfer(recipient, reserve.balanceOf(address(this)));
+            _reserve.safeTransfer(recipient, _reserve.balanceOf(address(this)));
         } else {
             _saleStatus = SaleStatus.Fail;
         }
@@ -238,8 +249,8 @@ contract Sale is Cooldown, RainVM, ISale {
 
         emit Buy(msg.sender, config_, receipt_);
 
-        token.transfer(msg.sender, units_);
-        reserve.safeTransferFrom(
+        _token.transfer(msg.sender, units_);
+        _reserve.safeTransferFrom(
             msg.sender,
             address(this),
             cost_ + config_.fee
@@ -267,15 +278,15 @@ contract Sale is Cooldown, RainVM, ISale {
 
         emit Refund(msg.sender, receipt_);
 
-        token.transferFrom(msg.sender, address(this), receipt_.units);
-        reserve.safeTransfer(msg.sender, cost_ + receipt_.fee);
+        _token.transferFrom(msg.sender, address(this), receipt_.units);
+        _reserve.safeTransfer(msg.sender, cost_ + receipt_.fee);
     }
 
     function claimFees(address recipient_) external {
         require(_saleStatus == SaleStatus.Success, "NOT_SUCCESS");
         uint256 amount_ = fees[recipient_];
         delete fees[recipient_];
-        reserve.safeTransfer(recipient_, amount_);
+        _reserve.safeTransfer(recipient_, amount_);
     }
 
     function applyOp(
