@@ -509,15 +509,16 @@ export function arg(valIndex: number): number {
 
 export function skip(
   places: number,
-  negative = false,
   conditional = false
 ): number {
+  // console.log('places0', hexlify(places))
+  // if (places < 0) {
+  //   places = ~places
+  // }
+  // console.log('places', hexlify(places))
   let skip = conditional ? 1 : 0;
-  skip <<= 1;
-  skip += negative ? 1 : 0;
-  skip <<= 6;
-  skip += places;
-  console.log({ skip: hexlify(skip) });
+  skip <<= 7;
+  skip |= places & 0x7F;
   return skip;
 }
 

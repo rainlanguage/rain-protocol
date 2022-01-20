@@ -94,12 +94,14 @@ abstract contract RainVM {
     /// the stack. The high bit of the operand specifies which, `0` for
     /// `constants` and `1` for `arguments`.
     uint256 private constant OP_VAL = 1;
+    /// Duplicates the top of the stack.
+    uint256 private constant OP_DUP = 2;
     /// `2` takes N values off the stack, interprets them as an array then zips
     /// and maps a source from `sources` over them. The source has access to
     /// the original constants using `1 0` and to zipped arguments as `1 1`.
-    uint256 private constant OP_ZIPMAP = 2;
+    uint256 private constant OP_ZIPMAP = 3;
     /// Number of provided opcodes for `RainVM`.
-    uint256 internal constant OPS_LENGTH = 3;
+    uint256 internal constant OPS_LENGTH = 4;
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -263,6 +265,23 @@ abstract contract RainVM {
                             )
                             mstore(state_, add(stackIndex_, 1))
                         }
+                    } else if (opcode_ == OP_DUP) {
+                        assembly {
+                            let stackIndex_ := mload(state_)
+                            mstore(
+                                add(
+                                    stackLocation_,
+                                    add(0x20, mul(stackIndex_, 0x20))
+                                ),
+                                mload(
+                                    add(
+                                        stackLocation_,
+                                        add(0x20, mul(operand_, 0x20))
+                                    )
+                                )
+                            )
+                            mstore(state_, add(stackIndex_, 1))
+                        }
                     } else if (opcode_ == OP_ZIPMAP) {
                         zipmap(context_, state_, operand_);
                     } else {
@@ -296,12 +315,17 @@ abstract contract RainVM {
                             // nonzero.
                             state_.stackIndex--;
                             if (state_.stack[state_.stackIndex] == 0) {
-                                shift_ = 0;
+                                continue;
                             }
                         }
                         if (shift_ != 0) {
                             if (shift_ < 0) {
-                                i_ -= uint8(shift_ * -1) * 2;
+                                // This is not particularly intuitive.
+                                // Converting between int and uint and then
+                                // moving `i_` back another 2 bytes to
+                                // compensate for the addition of 2 bytes at
+                                // the start of the next loop.
+                                i_ -= uint8(~shift_ + 2) * 2;
                             } else {
                                 i_ += uint8(shift_ * 2);
                             }

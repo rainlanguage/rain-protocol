@@ -15,6 +15,7 @@ const { expect, assert } = chai;
 const enum Opcode {
   SKIP,
   VAL,
+  DUP,
   ZIPMAP,
   BLOCK_NUMBER,
   ADD,
@@ -40,13 +41,13 @@ describe("RainVM", async function () {
 
     const source = concat([
       // (max 33 44 1 skip 22 11)
-      v33,
       v44,
+      v33,
       v1, // non-zero (true)
-      op(Opcode.SKIP, skip(1, false, true)),
+      op(Opcode.SKIP, skip(1, true)),
       v22,
       v11,
-      op(Opcode.MAX, 4), // is 4 correct operand, the max no. vals?
+      op(Opcode.MAX, 2), // is 4 correct operand, the max no. vals?
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -76,11 +77,11 @@ describe("RainVM", async function () {
     const v0 = op(Opcode.VAL, 4);
 
     const source = concat([
-      // (max 33 44 0 skip 22 11)
-      v33,
+      // (max 44 33 0 skip 22 11)
       v44,
+      v33,
       v0, // zero (false)
-      op(Opcode.SKIP, skip(1, false, true)),
+      op(Opcode.SKIP, skip(1, true)),
       v22,
       v11,
       op(Opcode.MAX, 4), // is 4 correct operand, the max no. vals?
@@ -102,6 +103,38 @@ describe("RainVM", async function () {
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
 
+  it("should skip backwards (conditional skip: true)", async () => {
+    this.timeout(0);
+
+    const constants = [1, 2];
+    const v1 = op(Opcode.VAL, 0)
+    const v2 = op(Opcode.VAL, 1)
+
+    // Loop from 2 subtracting 1 until we hit 0 then stop looping.
+    const source = concat([
+      v2,
+      v1,
+      op(Opcode.SUB, 2),
+      op(Opcode.DUP, 0),
+      op(Opcode.SKIP, skip(-3, true))
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 0;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
   it("should skip (unconditional skip)", async () => {
     this.timeout(0);
 
@@ -112,13 +145,13 @@ describe("RainVM", async function () {
     const v44 = op(Opcode.VAL, 3);
 
     const source = concat([
-      // (max 33 44 skip 22 11)
-      v33,
+      // (max 44 33 skip 22 11)
       v44,
-      op(Opcode.SKIP, skip(1, false, false)),
+      v33,
+      op(Opcode.SKIP, skip(1, false)),
       v22,
       v11,
-      op(Opcode.MAX, 4), // is 4 correct operand, the max no. vals?
+      op(Opcode.MAX, 3), // is 4 correct operand, the max no. vals?
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -133,7 +166,7 @@ describe("RainVM", async function () {
     console.log({ state });
 
     const result = await calculator.run();
-    const expected = 33;
+    const expected = 44;
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
 
