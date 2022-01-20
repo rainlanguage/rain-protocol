@@ -507,6 +507,20 @@ export function arg(valIndex: number): number {
   return arg;
 }
 
+export function skip(
+  places: number,
+  negative = false,
+  conditional = false
+): number {
+  let skip = conditional ? 1 : 0;
+  skip <<= 1;
+  skip += negative ? 1 : 0;
+  skip <<= 6;
+  skip += places;
+  console.log({ skip: hexlify(skip) });
+  return skip;
+}
+
 /**
  * Converts an opcode and operand to bytes, and returns their concatenation.
  * @param code - the opcode

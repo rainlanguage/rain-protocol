@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, op, arg } from "../Util";
+import { bytify, callSize, op, arg, skip } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
@@ -28,6 +28,80 @@ const enum Opcode {
 }
 
 describe("RainVM", async function () {
+  it("should skip (conditional skip: true)", async () => {
+    this.timeout(0);
+
+    const constants = [11, 22, 33, 44, 1];
+    const v11 = op(Opcode.VAL, 0);
+    const v22 = op(Opcode.VAL, 1);
+    const v33 = op(Opcode.VAL, 2);
+    const v44 = op(Opcode.VAL, 3);
+    const v1 = op(Opcode.VAL, 4);
+
+    const source = concat([
+      // (max 33 44 1 skip 22 11)
+      v33,
+      v44,
+      v1, // non-zero (true)
+      op(Opcode.SKIP, skip(1, false, true)),
+      v22,
+      v11,
+      op(Opcode.MAX, 4), // is 4 correct operand, the max no. vals?
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 33;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should skip (conditional skip: false)", async () => {
+    this.timeout(0);
+
+    const constants = [11, 22, 33, 44, 0];
+    const v11 = op(Opcode.VAL, 0);
+    const v22 = op(Opcode.VAL, 1);
+    const v33 = op(Opcode.VAL, 2);
+    const v44 = op(Opcode.VAL, 3);
+    const v0 = op(Opcode.VAL, 4);
+
+    const source = concat([
+      // (max 33 44 0 skip 22 11)
+      v33,
+      v44,
+      v0, // zero (false)
+      op(Opcode.SKIP, skip(1, false, true)),
+      v22,
+      v11,
+      op(Opcode.MAX, 4), // is 4 correct operand, the max no. vals?
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 44;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
   it("should skip (unconditional skip)", async () => {
     this.timeout(0);
 
@@ -41,10 +115,10 @@ describe("RainVM", async function () {
       // (max 33 44 skip 22 11)
       v33,
       v44,
-      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, skip(1, false, false)),
       v22,
       v11,
-      op(Opcode.MAX, 4),
+      op(Opcode.MAX, 4), // is 4 correct operand, the max no. vals?
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -59,7 +133,7 @@ describe("RainVM", async function () {
     console.log({ state });
 
     const result = await calculator.run();
-    const expected = 44;
+    const expected = 33;
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
 
