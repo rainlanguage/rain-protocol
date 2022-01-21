@@ -328,5 +328,4 @@ describe("BPoolFeeEscrow", async function () {
       got      ${reserveBalanceToken}`
     );
   });
-
 });

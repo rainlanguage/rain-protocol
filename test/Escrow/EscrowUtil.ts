@@ -36,13 +36,16 @@ export const deployGlobals = async () => {
   const claimFactory = await ethers.getContractFactory(
     "RedeemableERC20ClaimEscrow"
   );
-  const claim = (await claimFactory.deploy()) as RedeemableERC20ClaimEscrow & Contract;
+  const claim = (await claimFactory.deploy()) as RedeemableERC20ClaimEscrow &
+    Contract;
 
   // Deploy wrapped Claim version (accessors)
   const claimWrapperFactory = await ethers.getContractFactory(
     "RedeemableERC20ClaimEscrowWrapper"
   );
-  const claimWrapper = (await claimWrapperFactory.deploy()) as RedeemableERC20ClaimEscrowWrapper & Contract;
+  const claimWrapper =
+    (await claimWrapperFactory.deploy()) as RedeemableERC20ClaimEscrowWrapper &
+      Contract;
 
   return {
     crpFactory,
