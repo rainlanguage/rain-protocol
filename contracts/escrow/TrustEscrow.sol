@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Trust, DistributionStatus } from "../trust/Trust.sol";
-import { FactoryTruster } from "../factory/FactoryTruster.sol";
+import {Trust, DistributionStatus} from "../trust/Trust.sol";
+import {FactoryTruster} from "../factory/FactoryTruster.sol";
 
 /// Represents the 3 possible statuses an escrow could care about.
 /// Either the escrow takes no action or consistently allows a success/fail
@@ -32,8 +32,12 @@ contract TrustEscrow is FactoryTruster {
     /// of. The security model of the escrow REQUIRES that the `TrustFactory`
     /// implements `IFactory` correctly and that the `Trust` contracts that it
     /// deploys are not buggy or malicious re: tracking distribution status.
-    constructor(address trustFactory_) FactoryTruster(trustFactory_)
-        {} //solhint-disable-line no-empty-blocks
+    constructor(address trustFactory_)
+        FactoryTruster(trustFactory_)
+    //solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 
     /// Read the one-way, one-time transition from pending to success/fail.
     /// We never change our opinion of a success/fail outcome.
@@ -44,7 +48,7 @@ contract TrustEscrow is FactoryTruster {
     function getEscrowStatus(Trust trust_)
         public
         onlyTrustedFactoryChild(address(trust_))
-        returns(EscrowStatus)
+        returns (EscrowStatus)
     {
         EscrowStatus escrowStatus_ = escrowStatuses[trust_];
         // Short circuit and ignore the `Trust` if we previously saved a value.
@@ -54,8 +58,8 @@ contract TrustEscrow is FactoryTruster {
         // We have never seen a success/fail outcome so need to ask the `Trust`
         // for the distribution status.
         else {
-            DistributionStatus distributionStatus_
-                = trust_.getDistributionStatus();
+            DistributionStatus distributionStatus_ = trust_
+                .getDistributionStatus();
             // Success maps to success.
             if (distributionStatus_ == DistributionStatus.Success) {
                 escrowStatuses[trust_] = EscrowStatus.Success;
