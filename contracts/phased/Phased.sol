@@ -150,10 +150,10 @@ contract Phased {
     /// and clear in the calling code which phase is being moved to.
     /// Emits `PhaseShiftScheduled` with the phase block.
     /// @param phase_ The phase being scheduled.
-    /// @param phaseBlock_ The block for the phase.
-    function schedulePhase(uint256 phase_, uint256 phaseBlock_) internal {
-        require(block.number <= phaseBlock_, "NEXT_BLOCK_PAST");
-        require(phaseBlock_ < UNINITIALIZED, "NEXT_BLOCK_UNINITIALIZED");
+    /// @param block_ The block for the phase.
+    function schedulePhase(uint256 phase_, uint256 block_) internal {
+        require(block.number <= block_, "NEXT_BLOCK_PAST");
+        require(block_ < UNINITIALIZED, "NEXT_BLOCK_UNINITIALIZED");
         // Don't need to check for underflow as the index will be used as a
         // fixed array index below. Implies that scheduling phase `0` is NOT
         // supported.
@@ -167,8 +167,8 @@ contract Phased {
 
         require(UNINITIALIZED == phaseBlocks[index_], "NEXT_BLOCK_SET");
 
-        phaseBlocks[index_] = uint32(phaseBlock_);
+        phaseBlocks[index_] = uint32(block_);
 
-        emit PhaseScheduled(msg.sender, phase_, phaseBlock_);
+        emit PhaseScheduled(msg.sender, phase_, block_);
     }
 }

@@ -64,12 +64,12 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
         // Guard against no asset redemptions and log all events before we
         // change any contract state or call external contracts.
         require(assetsLength_ > 0, "EMPTY_ASSETS");
-        uint256 totalSupply_ = IERC20(address(this)).totalSupply();
+        uint256 supply_ = IERC20(address(this)).totalSupply();
         uint256 amount_ = 0;
         for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
             amount_ =
                 (treasuryAssets_[i_].balanceOf(address(this)) * redeemAmount_) /
-                totalSupply_;
+                supply_;
             require(amount_ > 0, "ZERO_AMOUNT");
             emit Redeem(
                 msg.sender,

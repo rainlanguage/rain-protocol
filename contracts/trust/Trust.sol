@@ -495,8 +495,9 @@ contract Trust is Phased {
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
         TrustSeedERC20Config memory trustSeedERC20Config_
-    ) external {
+    ) external onlyPhase(PHASE_UNINITIALIZED) {
         initializePhased();
+        schedulePhase(PHASE_PENDING, block.number);
 
         require(config_.creator != address(0), "CREATOR_0");
         require(address(config_.reserve) != address(0), "RESERVE_0");
@@ -568,7 +569,6 @@ contract Trust is Phased {
             address(redeemableERC20_),
             successBalance_
         );
-        schedulePhase(PHASE_PENDING, block.number);
     }
 
     /// Initializes the `RedeemableERC20` token used by the trust.
