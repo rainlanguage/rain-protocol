@@ -8,12 +8,6 @@ import {RedeemableERC20ClaimEscrow} from "../../escrow/RedeemableERC20ClaimEscro
 /// Thin wrapper around the `RedeemableERC20ClaimEscrow` contract with
 /// accessors to facilitate hardhat unit testing of `internal` variables.
 contract RedeemableERC20ClaimEscrowWrapper is RedeemableERC20ClaimEscrow {
-
-    constructor(address trustFactory_)
-        RedeemableERC20ClaimEscrow(trustFactory_)
-        // solhint-disable-next-line no-empty-blocks
-    {}
-
     function getWithdrawals(
         address trust_,
         address token_,

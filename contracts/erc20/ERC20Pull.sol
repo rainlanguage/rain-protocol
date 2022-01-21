@@ -32,9 +32,13 @@ struct ERC20PullConfig {
 contract ERC20Pull {
     using SafeERC20 for IERC20;
 
+    /// Emitted during initialization.
     event ERC20PullInitialize(
+        /// `msg.sender` of initialize.
         address sender,
+        /// Address that token can be pulled from.
         address tokenSender,
+        /// Token that can be pulled.
         address token
     );
 

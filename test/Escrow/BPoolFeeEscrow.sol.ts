@@ -53,67 +53,6 @@ describe("BPoolFeeEscrow", async function () {
     );
   });
 
-  it("should revert if unknown trust is claimed against", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const { trustFactory, tier } = await deployGlobals();
-    const { trustFactory: trustFactory2 } = await deployGlobals();
-
-    const { recipient, bPoolFeeEscrow } = await successfulRaise(
-      signers,
-      trustFactory,
-      tier
-    );
-
-    const { trust: unknownTrust } = await successfulRaise(
-      signers,
-      trustFactory2,
-      tier
-    );
-
-    // const fees0 = await bPoolFeeEscrow.fees(trust.address, recipient.address);
-    // const feesUnknown0 = await bPoolFeeEscrow.fees(
-    //   unknownTrust.address,
-    //   recipient.address
-    // );
-    // const totalFees0 = await bPoolFeeEscrow.totalFees(trust.address);
-    // const totalFeesUnknown0 = await bPoolFeeEscrow.totalFees(
-    //   unknownTrust.address
-    // );
-
-    await Util.assertError(
-      async () =>
-        await bPoolFeeEscrow.connect(recipient).claimFees(
-          recipient.address,
-          unknownTrust.address // unknown trust created by different trust factory
-        ),
-      "NOT_TRUSTED_CHILD",
-      "wrongly claimed fees against unknown trust"
-    );
-
-    // const fees1 = await bPoolFeeEscrow.fees(trust.address, recipient.address);
-    // const feesUnknown1 = await bPoolFeeEscrow.fees(
-    //   unknownTrust.address,
-    //   recipient.address
-    // );
-    // const totalFees1 = await bPoolFeeEscrow.totalFees(trust.address);
-    // const totalFeesUnknown1 = await bPoolFeeEscrow.totalFees(
-    //   unknownTrust.address
-    // );
-
-    // const beforeState = [fees0, feesUnknown0, totalFees0, totalFeesUnknown0];
-    // const afterState = [fees1, feesUnknown1, totalFees1, totalFeesUnknown1];
-
-    // for (let i = 0; i < beforeState.length; i++) {
-    //   const before = beforeState[i];
-    //   const after = afterState[i];
-
-    //   assert(before.eq(after), `${before} did not match ${after}, index ${i}`);
-    // }
-  });
-
   it("should refund fees (via token contract) upon failed raise", async function () {
     this.timeout(0);
 
@@ -388,56 +327,5 @@ describe("BPoolFeeEscrow", async function () {
       expected ${fee}
       got      ${reserveBalanceToken}`
     );
-  });
-
-  it("should check that trust address is child of trust factory when buying tokens", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const { trustFactory, tier } = await deployGlobals();
-
-    const { reserve, trust, recipient, signer1, bPoolFeeEscrow } =
-      await basicSetup(signers, trustFactory, tier);
-
-    const buyTokensViaEscrow = async (signer, spend, fee) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend.add(fee));
-
-      const reserveSigner = reserve.connect(signer);
-
-      await reserveSigner.approve(bPoolFeeEscrow.address, spend.add(fee));
-
-      await Util.assertError(
-        async () =>
-          await bPoolFeeEscrow.connect(signer).buyToken(
-            recipient.address,
-            signers[19].address, // bad trust address
-            fee,
-            spend,
-            ethers.BigNumber.from("1"),
-            ethers.BigNumber.from("1000000" + Util.eighteenZeros)
-          ),
-        "NOT_TRUSTED_CHILD",
-        "buyToken proceeded despite trust address not being child of factory"
-      );
-
-      await bPoolFeeEscrow
-        .connect(signer)
-        .buyToken(
-          recipient.address,
-          trust.address,
-          fee,
-          spend,
-          ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
-        );
-    };
-
-    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
-    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
-
-    // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
-    await buyTokensViaEscrow(signer1, spend, fee);
   });
 });

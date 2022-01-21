@@ -10,13 +10,21 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20Burnable
 contract ERC20Redeem is ERC20BurnableUpgradeable {
     using SafeERC20 for IERC20;
 
+    /// Anon has burned their tokens in exchange for some treasury assets.
+    /// Emitted once per redeemed asset.
     event Redeem(
+        /// `msg.sender` is burning.
         address sender,
+        /// Treasury asset being sent to redeemer.
         address treasuryAsset,
-        uint256 reserveAmount,
+        /// Amount of token being burned.
+        uint256 redeemAmount,
+        /// Amount of treasury asset being sent.
         uint256 assetAmount
     );
 
+    /// Anon can notify the world that they are adding treasury assets to the
+    /// contract. Indexers are strongly encouraged to ignore untrusted anons.
     event TreasuryAsset(address sender, address asset);
 
     /// Anon can emit a `TreasuryAsset` event to notify token holders that
@@ -28,6 +36,20 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
         emit TreasuryAsset(msg.sender, newTreasuryAsset_);
     }
 
+    /// Burn tokens for a prorata share of the current treasury.
+    ///
+    /// The assets to be redeemed for must be specified as an array. This keeps
+    /// the redeem functionality:
+    /// - Gas efficient as we avoid tracking assets in storage
+    /// - Decentralised as any user can deposit any asset to be redeemed
+    /// - Error resistant as any individual asset reverting can be avoided by
+    ///   redeeming againt sans the problematic asset.
+    /// It is also a super sharp edge if someone burns their tokens prematurely
+    /// or with an incorrect asset list. Implementing contracts are strongly
+    /// encouraged to implement additional safety rails to prevent high value
+    /// mistakes.
+    /// @param treasuryAssets_ The list of assets to redeem.
+    /// @param redeemAmount_ The amount of redeemable token to burn.
     function _redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
         internal
     {
@@ -42,12 +64,12 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
         // Guard against no asset redemptions and log all events before we
         // change any contract state or call external contracts.
         require(assetsLength_ > 0, "EMPTY_ASSETS");
-        uint256 totalSupply_ = IERC20(address(this)).totalSupply();
+        uint256 supply_ = IERC20(address(this)).totalSupply();
         uint256 amount_ = 0;
         for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
             amount_ =
                 (treasuryAssets_[i_].balanceOf(address(this)) * redeemAmount_) /
-                totalSupply_;
+                supply_;
             require(amount_ > 0, "ZERO_AMOUNT");
             emit Redeem(
                 msg.sender,

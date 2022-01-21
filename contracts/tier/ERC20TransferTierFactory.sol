@@ -8,8 +8,11 @@ import "./ERC20TransferTier.sol";
 /// @title ERC20TransferTierFactory
 /// @notice Factory for creating and deploying `ERC20TransferTier` contracts.
 contract ERC20TransferTierFactory is Factory {
+    /// Template contract to clone.
+    /// Deployed by the constructor.
     address private implementation;
 
+    /// Build the reference implementation to clone for each child.
     constructor() {
         address implementation_ = address(new ERC20TransferTier());
         emit Implementation(msg.sender, implementation);

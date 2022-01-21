@@ -9,8 +9,11 @@ import {StateConfig} from "../vm/libraries/VMState.sol";
 /// @title CombineTierFactory
 /// @notice Factory for creating and deploying `CombineTier` contracts.
 contract CombineTierFactory is Factory {
+    /// Template contract to clone.
+    /// Deployed by the constructor.
     address private implementation;
 
+    /// Build the reference implementation to clone for each child.
     constructor() {
         address implementation_ = address(new CombineTier());
         emit Implementation(msg.sender, implementation_);

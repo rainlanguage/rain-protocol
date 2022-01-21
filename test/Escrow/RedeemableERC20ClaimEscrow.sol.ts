@@ -1115,21 +1115,4 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       got       ${totalDepositedActual1}`
     );
   });
-
-  it("should check that trust address is child of trust factory when depositing", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    await Util.assertError(
-      async () =>
-        await claim.deposit(
-          signers[19].address, // bad trust address
-          claimableReserveToken.address,
-          0
-        ),
-      "NOT_TRUSTED_CHILD",
-      "did not check trust is child of trust factory"
-    );
-  });
 });

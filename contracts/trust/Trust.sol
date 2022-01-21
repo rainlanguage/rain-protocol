@@ -80,6 +80,7 @@ struct TrustConstructionConfig {
     address crpFactory;
     /// Balancer factory.
     address balancerFactory;
+    /// `RedeemableERC20Factory`.
     RedeemableERC20Factory redeemableERC20Factory;
     // The `SeedERC20Factory` on the current network.
     SeedERC20Factory seedERC20Factory;
@@ -261,6 +262,12 @@ struct TrustRedeemableERC20Config {
 /// internal workflows. No stakeholder, even the deployer or creator, can act
 /// as owner of the internals.
 contract Trust is Phased {
+    using Math for uint256;
+    using SaturatingMath for uint256;
+
+    using SafeERC20 for IERC20;
+    using SafeERC20 for RedeemableERC20;
+
     /// Balancer requires a minimum balance of `10 ** 6` for all tokens at all
     /// times. ConfigurableRightsPool repo misreports this as 10 ** 12 but the
     /// Balancer Core repo has it set as `10 ** 6`. We add one here to protect
@@ -270,14 +277,24 @@ contract Trust is Phased {
     /// enforce a minimum starting reserve balance 100x the minimum.
     uint256 private constant MIN_RESERVE_INIT = 10**8;
 
+    /// Trust is not initialized.
     uint256 private constant PHASE_UNINITIALIZED = 0;
+    /// Trust has not received reserve funds to start a raise.
     uint256 private constant PHASE_PENDING = 1;
+    /// Trust has started trading against an LBP.
     uint256 private constant PHASE_TRADING = 2;
+    /// LBP can end.
     uint256 private constant PHASE_CAN_END = 3;
+    /// LBP has ended successfully and funds are distributed.
     uint256 private constant PHASE_ENDED = 4;
+    /// LBP failed to end somehow and creator must handle funds.
     uint256 private constant PHASE_EMERGENCY = 5;
 
+    /// Trust has been constructed.
+    /// Intended for use with a `TrustFactory` that will clone all these.
     event Construction(
+        /// `msg.sender` of the construction.
+        address sender,
         address balancerFactory,
         address crpFactory,
         address redeemableERC20Factory,
@@ -289,6 +306,9 @@ contract Trust is Phased {
 
     /// Summary of every contract built or referenced internally by `Trust`.
     event Initialize(
+        /// `msg.sender` of the initialize.
+        address sender,
+        /// config input to initialize.
         TrustConfig config,
         /// The Balancer `ConfigurableRightsPool` deployed for this
         /// distribution.
@@ -301,30 +321,47 @@ contract Trust is Phased {
         uint256 successBalance
     );
 
+    /// The dutch auction has started.
     event StartDutchAuction(
+        /// `msg.sender` of the auction start.
         address sender,
+        /// The pool created for the auction.
         address pool,
+        /// The block the auction can end after.
         uint256 finalAuctionBlock
     );
 
+    /// The dutch auction has ended.
     event EndDutchAuction(
+        /// `msg.sender` of the auction end.
         address sender,
+        /// Final balance of the auction that is payable to participants.
+        /// Doesn't include trapped dust.
         uint256 finalBalance,
+        /// Amount paid to seeder.
         uint256 seederPay,
+        /// Amount paid to raise creator.
         uint256 creatorPay,
+        /// Amount paid to redeemable token.
         uint256 tokenPay,
+        /// Dust trapped in the pool.
         uint256 poolDust
     );
 
-    using Math for uint256;
-    using SaturatingMath for uint256;
+    /// Funds released for creator in emergency mode.
+    event CreatorFundsRelease(
+        /// `msg.sender` of the funds release.
+        address sender,
+        /// Token being released.
+        address token,
+        /// Amount of token released.
+        uint256 amount
+    );
 
-    using SafeERC20 for IERC20;
-    using SafeERC20 for RedeemableERC20;
-
-    event CreatorFundsRelease(address sender, address token, uint256 amount);
-
+    /// Balancer pool fee escrow used for trust trades.
     BPoolFeeEscrow private immutable bPoolFeeEscrow;
+
+    /// Max duration that can be initialized for the `Trust`.
     uint256 private immutable maxRaiseDuration;
 
     /// Anyone can emit a `Notice`.
@@ -335,16 +372,22 @@ contract Trust is Phased {
     /// - Simple onchain voting/signalling
     /// GUIs/tooling/indexers reading this data are expected to know how to
     /// interpret it in context because the contract does not.
-    /// @param sender The `msg.sender` that emitted the `Notice`.
-    /// @param data Opaque binary data for the GUI/tooling/indexer to read.
-    event Notice(address sender, bytes data);
+    event Notice(
+        /// The `msg.sender` that emitted the `Notice`.
+        address sender,
+        /// Opaque binary data for the GUI/tooling/indexer to read.
+        bytes data
+    );
 
-    /// SeedERC20Factory from the initial config.
     /// Seeder from the initial config.
     address private seeder;
+    /// `SeedERC20Factory` from the construction config.
     SeedERC20Factory private immutable seedERC20Factory;
+    /// `RedeemableERC20Factory` from the construction config.
     RedeemableERC20Factory private immutable redeemableERC20Factory;
+    /// `CRPFactory` from the construction config.
     address private immutable crpFactory;
+    /// `BalancerFactory` from the construction config.
     address private immutable balancerFactory;
 
     /// Balance of the reserve asset in the Balance pool at the moment
@@ -373,12 +416,24 @@ contract Trust is Phased {
     /// Initial reserve balance of the pool.
     uint256 private reserveInit;
 
+    /// Minimum amount that must be raised for the creator for a success.
+    /// Dust, seeder and token balances must be added to this for the final
+    /// pool success value.
     uint256 private minimumCreatorRaise;
 
+    /// The creator of the raise.
     address private creator;
+    /// After this many blocks in a raise-endable state, the creator funds
+    /// release can be activated. Ideally this is either never activated or by
+    /// the time it is activated all funds are long gone due to a successful
+    /// raise end distribution.
     uint256 private immutable creatorFundsReleaseTimeout;
 
+    /// The fee paid to seeders on top of the seeder input if the raise is a
+    /// success.
     uint256 private seederFee;
+    /// The reserve forwarded to the redeemable token if the raise is a
+    /// success.
     uint256 private redeemInit;
 
     /// Minimum trading duration from the initial config.
@@ -394,7 +449,7 @@ contract Trust is Phased {
         crpFactory = config_.crpFactory;
         redeemableERC20Factory = config_.redeemableERC20Factory;
         seedERC20Factory = config_.seedERC20Factory;
-        BPoolFeeEscrow bPoolFeeEscrow_ = new BPoolFeeEscrow(msg.sender);
+        BPoolFeeEscrow bPoolFeeEscrow_ = new BPoolFeeEscrow();
         bPoolFeeEscrow = bPoolFeeEscrow_;
         creatorFundsReleaseTimeout = config_.creatorFundsReleaseTimeout;
         // Assumption here that the `msg.sender` is a `TrustFactory` that the
@@ -404,6 +459,7 @@ contract Trust is Phased {
         maxRaiseDuration = config_.maxRaiseDuration;
 
         emit Construction(
+            msg.sender,
             config_.balancerFactory,
             config_.crpFactory,
             address(config_.redeemableERC20Factory),
@@ -441,6 +497,9 @@ contract Trust is Phased {
         TrustSeedERC20Config memory trustSeedERC20Config_
     ) external {
         initializePhased();
+        // Copied from onlyPhase so it can sit after `initializePhased`.
+        require(currentPhase() == PHASE_UNINITIALIZED, "BAD_PHASE");
+        schedulePhase(PHASE_PENDING, block.number);
 
         require(config_.creator != address(0), "CREATOR_0");
         require(address(config_.reserve) != address(0), "RESERVE_0");
@@ -505,15 +564,16 @@ contract Trust is Phased {
         crp = IConfigurableRightsPool(crp_);
 
         emit Initialize(
+            msg.sender,
             config_,
             crp_,
             seeder_,
             address(redeemableERC20_),
             successBalance_
         );
-        schedulePhase(PHASE_PENDING, block.number);
     }
 
+    /// Initializes the `RedeemableERC20` token used by the trust.
     function initializeRedeemableERC20(
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_
@@ -547,6 +607,9 @@ contract Trust is Phased {
         return address(redeemableERC20_);
     }
 
+    /// Initializes the seeder used by the `Trust`.
+    /// If `TrustSeedERC20Config.seeder` is `address(0)` a new `SeedERC20`
+    /// contract is cloned, otherwise the seeder is used verbatim.
     function initializeSeeder(
         TrustConfig memory config_,
         TrustSeedERC20Config memory trustSeedERC20Config_
