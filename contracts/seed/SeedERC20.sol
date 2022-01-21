@@ -94,14 +94,24 @@ contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
+    /// Phase constants.
+    /// Contract is uninitialized.
     uint256 private constant PHASE_UNINITIALIZED = 0;
+    /// Minimum seed funds have not yet been reached so seeding is in progress.
     uint256 private constant PHASE_SEEDING = 1;
+    /// Minimum seed funds were reached so now tokens can be redeemed but not
+    /// purchased from or refunded to this contract.
     uint256 private constant PHASE_REDEEMING = 2;
 
+    /// Contract has initialized.
     event Initialize(
+        /// `msg.sender` that initialized the contract.
         address sender,
+        /// Recipient of the seed funds, if/when seeding is successful.
         address recipient,
+        /// The token seed funds are denominated in.
         address reserve,
+        /// The price of each seed unit denominated in reserve.
         uint256 seedPrice
     );
 
@@ -109,7 +119,9 @@ contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
     event Seed(
         /// Anon `msg.sender` seeding.
         address sender,
+        /// Number of seed tokens purchased.
         uint256 tokensSeeded,
+        /// Amount of reserve received by the seed contract for the seed tokens.
         uint256 reserveReceived
     );
 
@@ -117,7 +129,9 @@ contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
     event Unseed(
         /// Anon `msg.sender` unseeding.
         address sender,
+        /// Number of seed tokens returned.
         uint256 tokensUnseeded,
+        /// Amount of reserve returned to the `msg.sender`.
         uint256 reserveReturned
     );
 
@@ -128,8 +142,12 @@ contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
     address private recipient;
     /// Price in reserve for a unit of seed token.
     uint256 private seedPrice;
-
+    /// Minimum amount of reserve to safely exit.
+    /// I.e. the amount of reserve raised is the minimum that seeders should
+    /// expect back in the redeeming phase.
     uint256 private safeExit;
+    /// The highest reserve value seen upon redeem call.
+    /// See `redeem` for more discussion.
     uint256 public highwater;
 
     /// Sanity checks on configuration.

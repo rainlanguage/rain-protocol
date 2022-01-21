@@ -116,7 +116,7 @@ contract Phased {
         pure
         returns (uint256)
     {
-        return phase_ > 0 ? phaseBlocks_[uint256(phase_) - 1] : 0;
+        return phase_ > 0 ? phaseBlocks_[phase_ - 1] : 0;
     }
 
     /// Impure read-only function to return the "current" phase from internal

@@ -30,8 +30,11 @@ import {ERC20Config} from "../erc20/ERC20Config.sol";
 contract TrustFactory is Factory {
     using SafeERC20 for RedeemableERC20;
 
+    /// Template contract to clone.
+    /// Deployed by the constructor.
     address private immutable implementation;
 
+    /// Build the reference implementation to clone for each child.
     /// @param config_ All configuration for the `TrustFactory`.
     constructor(TrustConstructionConfig memory config_) {
         address implementation_ = address(new Trust(config_));

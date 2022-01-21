@@ -11,9 +11,8 @@ contract PhasedScheduleTest is Phased {
     }
 
     /// Exposes `schedulePhase` for testing.
-    function testScheduleNextPhase()
-    external {
-        uint initialPhase_ = currentPhase();
+    function testScheduleNextPhase() external {
+        uint256 initialPhase_ = currentPhase();
 
         succeedsOnlyPhase(initialPhase_);
         schedulePhase(initialPhase_ + 1, block.number);
@@ -23,6 +22,5 @@ contract PhasedScheduleTest is Phased {
     /// Exposes `onlyPhase` for testing.
     /// @param phase_ As per `onlyPhase`.
     // solhint-disable-next-line no-empty-blocks
-    function succeedsOnlyPhase(uint phase_) internal onlyPhase(phase_) {}
-
+    function succeedsOnlyPhase(uint256 phase_) internal onlyPhase(phase_) {}
 }

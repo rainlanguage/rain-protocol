@@ -4,10 +4,15 @@ pragma solidity ^0.8.10;
 import {State} from "../RainVM.sol";
 import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 
+/// Config required to build a new `State`.
 struct StateConfig {
+    /// Sources verbatim.
     bytes[] sources;
+    /// Constants verbatim.
     uint256[] constants;
+    /// Sets the length of the uint256[] of the stack.
     uint256 stackLength;
+    /// Sets the length of the uint256[] of the arguments.
     uint256 argumentsLength;
 }
 
@@ -20,8 +25,19 @@ struct StateConfig {
 /// all the source into storage.
 /// See https://github.com/0xsequence/sstore2
 library VMState {
-    event Snapshot(address sender, address pointer, State state_);
+    /// A new shapshot has been deployed onchain.
+    event Snapshot(
+        /// `msg.sender` of the deployer.
+        address sender,
+        /// Pointer to the onchain snapshot contract.
+        address pointer,
+        /// `State` of the snapshot that was deployed.
+        State state_
+    );
 
+    /// Builds a new `State` from `StateConfig`.
+    /// Empty stack and arguments with stack index 0.
+    /// @param config_ State config to build the new `State`.
     function newState(StateConfig memory config_)
         internal
         pure
@@ -37,7 +53,10 @@ library VMState {
             );
     }
 
-    /// Snapshot a rainVM state as an immutable onchain contract.
+    /// Snapshot a RainVM state as an immutable onchain contract.
+    /// Usually `State` will be new as per `newState` but can be a snapshot of
+    /// an "in flight" execution state also.
+    /// @param state_ The state to snapshot.
     function snapshot(State memory state_) internal returns (address) {
         address pointer_ = SSTORE2.write(abi.encode(state_));
         emit Snapshot(msg.sender, pointer_, state_);
@@ -46,6 +65,7 @@ library VMState {
 
     /// Builds a fresh state for rainVM execution from all construction data.
     /// This can be passed directly to `eval` for a `RainVM` contract.
+    /// @param pointer_ The pointer (address) of the snapshot to restore.
     function restore(address pointer_) internal view returns (State memory) {
         return abi.decode(SSTORE2.read(pointer_), (State));
     }
