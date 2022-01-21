@@ -495,8 +495,10 @@ contract Trust is Phased {
         TrustConfig memory config_,
         TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
         TrustSeedERC20Config memory trustSeedERC20Config_
-    ) external onlyPhase(PHASE_UNINITIALIZED) {
+    ) external {
         initializePhased();
+        // Copied from onlyPhase so it can sit after `initializePhased`.
+        require(currentPhase() == PHASE_UNINITIALIZED, "BAD_PHASE");
         schedulePhase(PHASE_PENDING, block.number);
 
         require(config_.creator != address(0), "CREATOR_0");
