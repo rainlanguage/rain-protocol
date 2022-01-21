@@ -3,7 +3,10 @@ import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
 import type { TrustFactory } from "../typechain/TrustFactory";
-import type { RedeemableERC20 } from "../typechain/RedeemableERC20";
+import type {
+  RedeemableERC20,
+  RedeemableERC20ConfigStruct,
+} from "../typechain/RedeemableERC20";
 import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
 import type { CombineTier } from "../typechain/CombineTier";
 import type { CombineTierFactory } from "../typechain/CombineTierFactory";
@@ -11,7 +14,7 @@ import type { Verify } from "../typechain/Verify";
 import type { VerifyFactory } from "../typechain/VerifyFactory";
 import type { VerifyTier } from "../typechain/VerifyTier";
 import type { VerifyTierFactory } from "../typechain/VerifyTierFactory";
-import type { SeedERC20 } from "../typechain/SeedERC20";
+import type { SeedERC20, SeedERC20ConfigStruct } from "../typechain/SeedERC20";
 import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
@@ -201,19 +204,12 @@ export const max_uint16 = ethers.BigNumber.from("0xffff");
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
 
-export const estimateReserveDust = (bPoolReserveBalance: BigNumber) => {
+export const determineReserveDust = (bPoolReserveBalance: BigNumber) => {
   let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
   if (dust.lt(RESERVE_MIN_BALANCE)) {
     dust = RESERVE_MIN_BALANCE;
   }
   return dust;
-};
-
-export const determineReserveDust = (bPoolDust: BigNumber) => {
-  if (bPoolDust.lt(RESERVE_MIN_BALANCE)) {
-    bPoolDust = RESERVE_MIN_BALANCE;
-  }
-  return bPoolDust;
 };
 
 export const assertError = async (f, s: string, e: string) => {
@@ -301,7 +297,10 @@ export const combineTierDeploy = async (deployer, config) => {
   return contract;
 };
 
-export const redeemableERC20Deploy = async (deployer, config) => {
+export const redeemableERC20Deploy = async (
+  deployer: SignerWithAddress,
+  config: RedeemableERC20ConfigStruct
+) => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory"
   );
@@ -326,7 +325,10 @@ export const redeemableERC20Deploy = async (deployer, config) => {
   return redeemableERC20;
 };
 
-export const seedERC20Deploy = async (deployer, config) => {
+export const seedERC20Deploy = async (
+  deployer: SignerWithAddress,
+  config: SeedERC20ConfigStruct
+): Promise<[SeedERC20 & Contract, ContractTransaction]> => {
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory"
   );
@@ -348,7 +350,7 @@ export const seedERC20Deploy = async (deployer, config) => {
 
   await seedERC20.deployed();
 
-  return seedERC20;
+  return [seedERC20, tx];
 };
 
 export const trustDeploy = async (

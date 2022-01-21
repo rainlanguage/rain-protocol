@@ -247,6 +247,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [SOURCE(), FN()],
@@ -526,6 +528,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [SOURCE(), FN()],
@@ -646,6 +650,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [
@@ -737,6 +743,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
@@ -800,6 +808,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [
@@ -864,6 +874,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -919,6 +931,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -957,6 +971,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -1001,6 +1017,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -1038,6 +1056,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],
@@ -1076,6 +1096,8 @@ describe("EmissionsERC20", async function () {
         erc20Config: {
           name: "Emissions",
           symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
         },
         vmStateConfig: {
           sources: [concat([op(Opcode.val)])],

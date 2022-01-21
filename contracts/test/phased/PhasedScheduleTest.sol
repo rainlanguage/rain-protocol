@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import {Phase, Phased} from "../../phased/Phased.sol";
+import {Phased} from "../../phased/Phased.sol";
 
 /// @title PhasedScheduleTest
 /// Contract for testing phase hook functionality.
@@ -10,23 +10,19 @@ contract PhasedScheduleTest is Phased {
         initializePhased();
     }
 
-    /// Exposes `scheduleNextPhase` for testing.
-    /// @param nextPhaseBlock_ As per `scheduleNestPhase`.
-    function testScheduleNextPhase(uint256 nextPhaseBlock_) external {
-        scheduleNextPhase(nextPhaseBlock_);
+    /// Exposes `schedulePhase` for testing.
+    function testScheduleNextPhase()
+    external {
+        uint initialPhase_ = currentPhase();
+
+        succeedsOnlyPhase(initialPhase_);
+        schedulePhase(initialPhase_ + 1, block.number);
+        succeedsOnlyPhase(initialPhase_ + 1);
     }
 
+    /// Exposes `onlyPhase` for testing.
+    /// @param phase_ As per `onlyPhase`.
     // solhint-disable-next-line no-empty-blocks
-    function succeedsOnlyPhaseZero() internal onlyPhase(Phase.ZERO) {}
+    function succeedsOnlyPhase(uint phase_) internal onlyPhase(phase_) {}
 
-    /// @inheritdoc Phased
-    function _beforeScheduleNextPhase(uint256 nextPhaseBlock_)
-        internal
-        virtual
-        override
-    {
-        succeedsOnlyPhaseZero();
-        super._beforeScheduleNextPhase(nextPhaseBlock_);
-        succeedsOnlyPhaseZero(); // can run phase-dependent logic anywhere
-    }
 }

@@ -52,18 +52,21 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     await tier.setTier(alice.address, Tier.GOLD, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalSupply,
     });
 
     // Redemption not allowed yet.
@@ -119,16 +122,19 @@ describe("RedeemableERC20", async function () {
 
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve1.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalSupply,
     });
 
     await expect(redeemableERC20.newTreasuryAsset(reserve1.address))
@@ -155,8 +161,13 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -164,12 +175,10 @@ describe("RedeemableERC20", async function () {
     )) as ReserveToken & Contract;
 
     const token = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalSupply,
     });
 
     // token has 18 decimals
@@ -196,7 +205,24 @@ describe("RedeemableERC20", async function () {
       "1" + Util.eighteenZeros
     );
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
+    const redeemableERC20ConfigZero = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalTokenSupplyZero,
+    };
+    const redeemableERC20ConfigOneShort = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalTokenSupplyOneShort,
+    };
+    const redeemableERC20ConfigMinimum = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalTokenSupplyMinimum,
+    };
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -206,12 +232,10 @@ describe("RedeemableERC20", async function () {
     await Util.assertError(
       async () =>
         await Util.redeemableERC20Deploy(signers[0], {
-          admin: signers[0].address,
           reserve: reserve.address,
-          erc20Config,
+          erc20Config: redeemableERC20ConfigZero,
           tier: tier.address,
           minimumTier,
-          totalSupply: totalTokenSupplyZero,
         }),
       `MINIMUM_INITIAL_SUPPLY`,
       `failed to error when constructed with 0 total supply`
@@ -220,24 +244,20 @@ describe("RedeemableERC20", async function () {
     await Util.assertError(
       async () =>
         await Util.redeemableERC20Deploy(signers[0], {
-          admin: signers[0].address,
           reserve: reserve.address,
-          erc20Config,
+          erc20Config: redeemableERC20ConfigOneShort,
           tier: tier.address,
           minimumTier,
-          totalSupply: totalTokenSupplyOneShort,
         }),
       `MINIMUM_INITIAL_SUPPLY`,
       `failed to error when constructed with 0 total supply`
     );
 
     await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20ConfigMinimum,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalTokenSupplyMinimum,
     });
   });
 
@@ -261,8 +281,13 @@ describe("RedeemableERC20", async function () {
     await tier.setTier(sender.address, Tier.COPPER, []);
     await tier.setTier(receiver.address, Tier.COPPER, []);
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -270,12 +295,10 @@ describe("RedeemableERC20", async function () {
     )) as ReserveToken & Contract;
 
     const token = (await Util.redeemableERC20Deploy(owner, {
-      admin: owner.address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalSupply,
     })) as RedeemableERC20 & Contract;
 
     // try sending/receiving, both with insufficient tier
@@ -329,8 +352,13 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -338,12 +366,10 @@ describe("RedeemableERC20", async function () {
     )) as ReserveToken & Contract;
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalSupply,
     });
 
     // user attempts to wrongly 'redeem' by sending all of their redeemable tokens directly to contract address
@@ -375,18 +401,21 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     await tier.setTier(alice.address, Tier.GOLD, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalSupply,
     });
 
     await redeemableERC20.deployed();
@@ -405,8 +434,8 @@ describe("RedeemableERC20", async function () {
 
     // The phase is not set (i.e. contract is blocked)
     assert(
-      (await redeemableERC20.currentPhase()) === Phase.ZERO,
-      `phase was not ${Phase.ZERO} in construction`
+      (await redeemableERC20.currentPhase()).eq(Phase.ONE),
+      `phase was not ${Phase.ONE} in construction`
     );
 
     // Normal ERC20 labelling applies
@@ -440,7 +469,7 @@ describe("RedeemableERC20", async function () {
 
     await expect(redeemableERC20.burnDistributors([Util.oneAddress]))
       .to.emit(redeemableERC20, "PhaseScheduled")
-      .withArgs(signers[0].address, Phase.ONE, now + 1);
+      .withArgs(signers[0].address, Phase.TWO, now + 1);
 
     // Funds need to be frozen once redemption phase begins.
     await Util.assertError(
@@ -450,9 +479,9 @@ describe("RedeemableERC20", async function () {
     );
 
     assert(
-      (await redeemableERC20.currentPhase()) === Phase.ONE,
+      (await redeemableERC20.currentPhase()).eq(Phase.TWO),
       `wrong phase, expected ${
-        Phase.ONE
+        Phase.TWO
       } got ${await redeemableERC20.currentPhase()}`
     );
 
@@ -493,10 +522,12 @@ describe("RedeemableERC20", async function () {
     // signer redeems all tokens they have for fraction of each asset
     await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
       .to.emit(redeemableERC20, "Redeem")
-      .withArgs(signers[0].address, reserve.address, [
+      .withArgs(
+        signers[0].address,
+        reserve.address,
         redeemAmount,
-        expectedReserveRedemption,
-      ]);
+        expectedReserveRedemption
+      );
 
     const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(
       signers[0].address
@@ -561,10 +592,12 @@ describe("RedeemableERC20", async function () {
         const balanceBefore = await reserve.balanceOf(signers[0].address);
         await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
-          .withArgs(signers[0].address, reserve.address, [
+          .withArgs(
+            signers[0].address,
+            reserve.address,
             redeemAmount,
-            expectedDiff,
-          ]);
+            expectedDiff
+          );
         const balanceAfter = await reserve.balanceOf(signers[0].address);
         const diff = balanceAfter.sub(balanceBefore);
         assert(
@@ -589,10 +622,12 @@ describe("RedeemableERC20", async function () {
         const balanceBefore = await reserve.balanceOf(signers[0].address);
         await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
           .to.emit(redeemableERC20, "Redeem")
-          .withArgs(signers[0].address, reserve.address, [
+          .withArgs(
+            signers[0].address,
+            reserve.address,
             redeemAmount,
-            expectedDiff,
-          ]);
+            expectedDiff
+          );
         const balanceAfter = await reserve.balanceOf(signers[0].address);
         const diff = balanceAfter.sub(balanceBefore);
         assert(
@@ -613,8 +648,13 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -622,17 +662,15 @@ describe("RedeemableERC20", async function () {
     )) as ReserveToken & Contract;
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
-      totalSupply: totalSupply,
     });
 
     assert(
-      (await redeemableERC20.currentPhase()) === Phase.ZERO,
-      "default phase was not zero"
+      (await redeemableERC20.currentPhase()).eq(Phase.ONE),
+      `default phase was not phase ONE, got ${await redeemableERC20.currentPhase()}`
     );
 
     const redeemableERC201 = new ethers.Contract(
@@ -659,8 +697,13 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -668,12 +711,10 @@ describe("RedeemableERC20", async function () {
     )) as ReserveToken & Contract;
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
-      totalSupply: totalSupply,
     });
 
     assert(
@@ -702,16 +743,19 @@ describe("RedeemableERC20", async function () {
 
     const minimumTier = Tier.DIAMOND;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
-      totalSupply: totalSupply,
     });
 
     // admin is made receiver during construction, so required token transfers can go ahead
@@ -742,8 +786,13 @@ describe("RedeemableERC20", async function () {
 
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     // grant second signer GOLD status so they can receive transferred tokens
     await tier.setTier(signers[1].address, Tier.GOLD, []);
@@ -751,12 +800,10 @@ describe("RedeemableERC20", async function () {
     await tier.setTier(signers[2].address, Tier.SILVER, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: signers[0].address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
-      totalSupply: totalSupply,
     });
 
     await redeemableERC20.deployed();
@@ -781,17 +828,15 @@ describe("RedeemableERC20", async function () {
     await reserve.transfer(redeemableERC20.address, reserveTotal);
 
     // GOLD signer can redeem.
-    await redeemableERC20
-      .connect(signers[1])
-      .redeem(
-        [reserve.address],
-        await redeemableERC20.balanceOf(signers[1].address)
-      );
+    await redeemableERC20.connect(signers[1]).redeem(
+      [reserve.address],
+      (await redeemableERC20.balanceOf(signers[1].address)).div(2) // leave some
+    );
 
     // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
     await Util.assertError(
       async () => await redeemableERC20_SILVER.redeem([reserve.address], 1),
-      "ERC20: burn amount exceeds balance",
+      "ZERO_AMOUNT",
       "user could transfer despite not meeting minimum status"
     );
   });
@@ -805,7 +850,6 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const admin = signers[0];
     const signer1 = signers[1];
     const signer2 = signers[2];
 
@@ -825,19 +869,22 @@ describe("RedeemableERC20", async function () {
 
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
     await tier.setTier(signer2.address, Tier.GOLD, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: admin.address,
       reserve: reserve1.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
-      totalSupply: totalSupply,
     });
 
     // There are no reserve tokens in the redeemer on construction
@@ -920,10 +967,12 @@ describe("RedeemableERC20", async function () {
         .redeem([reserve1.address, reserve2.address], redeemAmount)
     )
       .to.emit(redeemableERC20, "Redeem")
-      .withArgs(signer1.address, reserve1.address, [
+      .withArgs(
+        signer1.address,
+        reserve1.address,
         redeemAmount,
-        expectedReserve1Redemption,
-      ]);
+        expectedReserve1Redemption
+      );
 
     // contract after
     const redeemableContractTotalSupplyAfter =
@@ -1004,7 +1053,6 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const admin = signers[0];
     const signer1 = signers[1];
     const signer2 = signers[2];
 
@@ -1022,19 +1070,22 @@ describe("RedeemableERC20", async function () {
 
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
     await tier.setTier(signer2.address, Tier.GOLD, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: admin.address,
       reserve: reserve1.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
-      totalSupply: totalSupply,
     });
 
     await reserve2.transfer(
@@ -1105,7 +1156,6 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const admin = signers[0];
     const signer1 = signers[1];
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
@@ -1113,8 +1163,13 @@ describe("RedeemableERC20", async function () {
 
     const minimumTier = Tier.GOLD;
 
-    const erc20Config = { name: "RedeemableERC20", symbol: "RDX" };
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
 
     await tier.setTier(signer1.address, Tier.GOLD, []);
 
@@ -1124,12 +1179,10 @@ describe("RedeemableERC20", async function () {
     )) as ReserveToken & Contract;
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      admin: admin.address,
       reserve: reserve.address,
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
-      totalSupply: totalSupply,
     });
 
     await Util.assertError(

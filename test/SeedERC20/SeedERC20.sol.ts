@@ -9,6 +9,12 @@ import type { Contract } from "ethers";
 chai.use(solidity);
 const { expect, assert } = chai;
 
+enum SeedPhase {
+  UNINITIALIZED,
+  SEEDING,
+  REDEEMING,
+}
+
 describe("SeedERC20", async function () {
   it("should behave correctly if people grief contract with reserve transfers", async function () {
     this.timeout(0);
@@ -37,37 +43,44 @@ describe("SeedERC20", async function () {
     const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const bobUnits = 6;
-    const carolUnits = 4;
+    const bobUnits = ethers.BigNumber.from(6);
+    const carolUnits = ethers.BigNumber.from(4);
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20, txSeedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: bobUnits.add(carolUnits),
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
 
-    assert((await seedERC20.reserve()) == reserve.address, `reserve not set`);
-    assert((await seedERC20.seedPrice()).eq(seedPrice), `seed price not set`);
+    const {
+      reserve: reserveEvent,
+      seedPrice: seedPriceEvent,
+      recipient,
+    } = await Util.getEventArgs(txSeedERC20, "Initialize", seedERC20);
+
+    assert(reserveEvent == reserve.address, `reserve not set`);
+    assert(seedPriceEvent.eq(seedPrice), `seed price not set`);
     assert(
       (await seedERC20.totalSupply()).eq(seedUnits),
       `seed total supply is wrong`
     );
-    assert(
-      (await seedERC20.recipient()) == dave.address,
-      `failed to set recipient`
-    );
+    assert(recipient == dave.address, `failed to set recipient`);
 
-    await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
-    await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
+    await aliceReserve.transfer(bob.address, bobUnits.mul(seedPrice));
+    await aliceReserve.transfer(carol.address, carolUnits.mul(seedPrice));
 
     assert(
-      (await reserve.balanceOf(bob.address)).eq(bobUnits * seedPrice),
+      (await reserve.balanceOf(bob.address)).eq(bobUnits.mul(seedPrice)),
       `failed to send reserve to bob`
     );
     assert(
@@ -82,14 +95,14 @@ describe("SeedERC20", async function () {
 
     // Bob and carol co-fund the seed round.
 
-    await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
+    await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
     await bobSeed.seed(0, bobUnits);
     await bobSeed.unseed(2);
 
     await bobReserve.approve(seedERC20.address, 2 * seedPrice);
     await bobSeed.seed(0, 2);
 
-    await carolReserve.approve(seedERC20.address, carolUnits * seedPrice);
+    await carolReserve.approve(seedERC20.address, carolUnits.mul(seedPrice));
     await carolSeed.seed(0, carolUnits);
 
     // seed contract automatically transfers to recipient on successful seed
@@ -116,8 +129,8 @@ describe("SeedERC20", async function () {
     );
 
     // Bob and carol can redeem their seed tokens.
-    await bobSeed.redeem(bobUnits);
-    await carolSeed.redeem(carolUnits);
+    await bobSeed.redeem(bobUnits, 0);
+    await carolSeed.redeem(carolUnits, 0);
 
     const bobFinalBalance = await bobReserve.balanceOf(bob.address);
     const carolFinalBalance = await carolReserve.balanceOf(carol.address);
@@ -159,13 +172,17 @@ describe("SeedERC20", async function () {
     const bobUnits = ethers.BigNumber.from(6);
     const carolUnits = ethers.BigNumber.from(4);
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: bobUnits.add(carolUnits),
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
@@ -210,10 +227,11 @@ describe("SeedERC20", async function () {
     const reserve0 = await reserve.balanceOf(seedERC20.address);
     const totalSupply0 = await seedERC20.totalSupply();
 
-    await expect(bobSeed.redeem(bobUnits))
+    await expect(bobSeed.redeem(bobUnits, 0))
       .to.emit(seedERC20, "Redeem")
       .withArgs(
         bob.address,
+        reserve.address,
         bobUnits,
         bobUnits.mul(reserve0).div(totalSupply0)
       );
@@ -221,10 +239,11 @@ describe("SeedERC20", async function () {
     const reserve1 = await reserve.balanceOf(seedERC20.address);
     const totalSupply1 = await seedERC20.totalSupply();
 
-    await expect(carolSeed.redeem(carolUnits))
+    await expect(carolSeed.redeem(carolUnits, 0))
       .to.emit(seedERC20, "Redeem")
       .withArgs(
         carol.address,
+        reserve.address,
         carolUnits,
         carolUnits.mul(reserve1).div(totalSupply1)
       );
@@ -249,30 +268,33 @@ describe("SeedERC20", async function () {
     const carolReserve = reserve.connect(carol);
 
     const seedPrice = 100;
-    const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const bobUnits = 6;
-    const carolUnits = 4;
+    const bobUnits = ethers.BigNumber.from(6);
+    const carolUnits = ethers.BigNumber.from(4);
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: bobUnits.add(carolUnits),
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
 
-    await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
-    await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
+    await aliceReserve.transfer(bob.address, bobUnits.mul(seedPrice));
+    await aliceReserve.transfer(carol.address, carolUnits.mul(seedPrice));
 
     // Bob and carol co-fund the seed round.
 
-    await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
+    await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
     await bobSeed.seed(0, bobUnits);
 
     // Setup attacker contract
@@ -292,9 +314,12 @@ describe("SeedERC20", async function () {
     // destroy attacker contract
     await forceSendEther.destroy(seedERC20.address);
 
-    await carolReserve.approve(seedERC20.address, (carolUnits + 1) * seedPrice);
+    await carolReserve.approve(
+      seedERC20.address,
+      carolUnits.add(1).mul(seedPrice)
+    );
     await Util.assertError(
-      async () => await carolSeed.seed(carolUnits + 1, carolUnits + 1),
+      async () => await carolSeed.seed(carolUnits.add(1), carolUnits.add(1)),
       "INSUFFICIENT_STOCK",
       "seedUnits stock calculation was affected by forcibly sending eth to contract"
     );
@@ -312,13 +337,17 @@ describe("SeedERC20", async function () {
     const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const seedERC20 = await Util.seedERC20Deploy(signers[9], {
+    const [seedERC20] = await Util.seedERC20Deploy(signers[9], {
       reserve: reserve.address,
       recipient: signers[9].address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seedUnits,
+      },
     });
 
     // SeedERC20 has 0 decimals
@@ -344,16 +373,20 @@ describe("SeedERC20", async function () {
     const daveReserve = reserve.connect(dave);
 
     const seedPrice = 100;
-    const seedUnits = 10;
+    const seederUnits = 10;
     const cooldownDuration = 1;
 
-    const seedERC20 = await Util.seedERC20Deploy(signers[9], {
+    const [seedERC20] = await Util.seedERC20Deploy(signers[9], {
       reserve: reserve.address,
       recipient: signers[9].address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
@@ -449,38 +482,46 @@ describe("SeedERC20", async function () {
     const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const bobUnits = 6;
-    const carolUnits = 4;
+    const bobUnits = ethers.BigNumber.from(6);
+    const carolUnits = ethers.BigNumber.from(4);
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: bobUnits.add(carolUnits),
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
 
-    await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
-    await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
+    await aliceReserve.transfer(bob.address, bobUnits.mul(seedPrice));
+    await aliceReserve.transfer(carol.address, carolUnits.mul(seedPrice));
 
     // Bob and carol co-fund the seed round.
 
-    await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
+    await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
     await bobSeed.seed(0, bobUnits);
     await bobSeed.unseed(2);
 
     await bobReserve.approve(seedERC20.address, 2 * seedPrice);
     await bobSeed.seed(0, 2);
 
-    await carolReserve.approve(seedERC20.address, carolUnits * seedPrice);
+    await carolReserve.approve(seedERC20.address, carolUnits.mul(seedPrice));
 
     await expect(carolSeed.seed(0, carolUnits))
       .to.emit(carolSeed, "PhaseScheduled")
-      .withArgs(carol.address, 1, (await ethers.provider.getBlockNumber()) + 1);
+      .withArgs(
+        carol.address,
+        SeedPhase.REDEEMING,
+        (await ethers.provider.getBlockNumber()) + 1
+      );
 
     // seed contract automatically transfers to recipient on successful seed
     assert(
@@ -516,40 +557,47 @@ describe("SeedERC20", async function () {
     const seedUnits = 10;
     const cooldownDuration = 1;
 
-    const bobUnits = 6;
-    const carolUnits = 4;
+    const bobUnits = ethers.BigNumber.from(6);
+    const carolUnits = ethers.BigNumber.from(4);
 
-    const seedERC20 = await Util.seedERC20Deploy(dave, {
+    const [seedERC20, txSeedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: bobUnits.add(carolUnits),
+      },
     });
 
     const bobSeed = seedERC20.connect(bob);
     const carolSeed = seedERC20.connect(carol);
 
-    assert((await seedERC20.reserve()) == reserve.address, `reserve not set`);
+    const {
+      reserve: reserveEvent,
+      seedPrice: seedPriceEvent,
+      recipient,
+    } = await Util.getEventArgs(txSeedERC20, "Initialize", seedERC20);
 
-    assert((await seedERC20.seedPrice()).eq(seedPrice), `seed price not set`);
+    assert(reserveEvent == reserve.address, `reserve not set`);
+
+    assert(seedPriceEvent.eq(seedPrice), `seed price not set`);
 
     assert(
       (await seedERC20.totalSupply()).eq(seedUnits),
       `seed total supply is wrong`
     );
 
-    assert(
-      (await seedERC20.recipient()) == dave.address,
-      `failed to set recipient`
-    );
+    assert(recipient == dave.address, `failed to set recipient`);
 
-    await aliceReserve.transfer(bob.address, bobUnits * seedPrice);
-    await aliceReserve.transfer(carol.address, carolUnits * seedPrice);
+    await aliceReserve.transfer(bob.address, bobUnits.mul(seedPrice));
+    await aliceReserve.transfer(carol.address, carolUnits.mul(seedPrice));
 
     assert(
-      (await reserve.balanceOf(bob.address)).eq(bobUnits * seedPrice),
+      (await reserve.balanceOf(bob.address)).eq(bobUnits.mul(seedPrice)),
       `failed to send reserve to bob`
     );
     assert(
@@ -559,14 +607,14 @@ describe("SeedERC20", async function () {
 
     // Bob and carol co-fund the seed round.
 
-    await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
+    await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
     await bobSeed.seed(0, bobUnits);
     await bobSeed.unseed(2);
 
     await bobReserve.approve(seedERC20.address, 2 * seedPrice);
     await bobSeed.seed(0, 2);
 
-    await carolReserve.approve(seedERC20.address, carolUnits * seedPrice);
+    await carolReserve.approve(seedERC20.address, carolUnits.mul(seedPrice));
     await carolSeed.seed(0, carolUnits);
 
     // seed contract automatically transfers to recipient on successful seed
@@ -591,8 +639,8 @@ describe("SeedERC20", async function () {
     );
 
     // Bob and carol can redeem their seed tokens.
-    await bobSeed.redeem(bobUnits);
-    await carolSeed.redeem(carolUnits);
+    await bobSeed.redeem(bobUnits, 0);
+    await carolSeed.redeem(carolUnits, 0);
 
     const bobFinalBalance = await bobReserve.balanceOf(bob.address);
     const carolFinalBalance = await carolReserve.balanceOf(carol.address);

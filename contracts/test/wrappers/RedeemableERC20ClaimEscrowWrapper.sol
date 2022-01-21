@@ -17,10 +17,10 @@ contract RedeemableERC20ClaimEscrowWrapper is RedeemableERC20ClaimEscrow {
     function getWithdrawals(
         address trust_,
         address token_,
-        address withdrawer_,
-        uint256 supply_
+        uint256 supply_,
+        address withdrawer_
     ) external view returns (uint256) {
-        return withdrawals[trust_][token_][withdrawer_][supply_];
+        return withdrawals[trust_][token_][supply_][withdrawer_];
     }
 
     function getPendingDeposits(

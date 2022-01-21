@@ -105,6 +105,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       await swapReserveForTokens(signer2, spend2);
     }
 
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
       "100" + "0".repeat(await claimableReserveToken.decimals())
@@ -138,7 +143,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     // calculate real RedeemableERC20 proportions
@@ -269,6 +274,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       await swapReserveForTokens(signer2, spend2);
     }
 
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
       "100" + "0".repeat(await claimableReserveToken.decimals())
@@ -302,7 +312,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     // calculate real RedeemableERC20 proportions
@@ -435,6 +445,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       await swapReserveForTokens(signer2, spend2);
     }
 
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
       "100" + "0".repeat(await claimableReserveToken.decimals())
@@ -468,7 +483,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
@@ -551,7 +566,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       );
     };
 
-    const spend = ethers.BigNumber.from("50" + Util.sixZeros);
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
 
     await swapReserveForTokens(signer1, spend);
 
@@ -591,6 +606,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       await swapReserveForTokens(signer1, spend);
     }
 
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
     const emptyBlocks =
       startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
@@ -620,7 +640,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     const txWithdraw0 = await claim
@@ -678,7 +698,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       );
     };
 
-    const spend = ethers.BigNumber.from("50" + Util.sixZeros);
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
 
     await swapReserveForTokens(signer1, spend);
 
@@ -842,7 +862,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       );
     };
 
-    const spend = ethers.BigNumber.from("50" + Util.sixZeros);
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
 
     await swapReserveForTokens(signer1, spend);
 
@@ -960,7 +980,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       );
     };
 
-    const spend = ethers.BigNumber.from("50" + Util.sixZeros);
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
 
     await swapReserveForTokens(signer1, spend);
 
@@ -998,6 +1018,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
       await swapReserveForTokens(signer1, spend);
     }
+
+    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+
+    // cover the dust amount
+    await swapReserveForTokens(signer1, dustAtSuccessLevel);
 
     const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
     const emptyBlocks =
@@ -1049,7 +1074,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // Distribution Status is Success
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
     );
 
     // deposit some claimable tokens
