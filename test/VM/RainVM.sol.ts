@@ -47,7 +47,7 @@ describe("RainVM", async function () {
       op(Opcode.SKIP, skip(1, true)),
       v22,
       v11,
-      op(Opcode.MAX, 2), // is 4 correct operand, the max no. vals?
+      op(Opcode.MAX, 2),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -84,7 +84,7 @@ describe("RainVM", async function () {
       op(Opcode.SKIP, skip(1, true)),
       v22,
       v11,
-      op(Opcode.MAX, 4), // is 4 correct operand, the max no. vals?
+      op(Opcode.MAX, 4),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -107,8 +107,8 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [1, 2];
-    const v1 = op(Opcode.VAL, 0)
-    const v2 = op(Opcode.VAL, 1)
+    const v1 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
 
     // Loop from 2 subtracting 1 until we hit 0 then stop looping.
     const source = concat([
@@ -116,7 +116,7 @@ describe("RainVM", async function () {
       v1,
       op(Opcode.SUB, 2),
       op(Opcode.DUP, 0),
-      op(Opcode.SKIP, skip(-3, true))
+      op(Opcode.SKIP, skip(-3, true)),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -151,7 +151,7 @@ describe("RainVM", async function () {
       op(Opcode.SKIP, skip(1, false)),
       v22,
       v11,
-      op(Opcode.MAX, 3), // is 4 correct operand, the max no. vals?
+      op(Opcode.MAX, 3),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");

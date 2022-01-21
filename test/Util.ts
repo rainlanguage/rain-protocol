@@ -507,18 +507,11 @@ export function arg(valIndex: number): number {
   return arg;
 }
 
-export function skip(
-  places: number,
-  conditional = false
-): number {
-  // console.log('places0', hexlify(places))
-  // if (places < 0) {
-  //   places = ~places
-  // }
-  // console.log('places', hexlify(places))
+export function skip(places: number, conditional = false): number {
   let skip = conditional ? 1 : 0;
   skip <<= 7;
-  skip |= places & 0x7F;
+  // JS ints are already signed.
+  skip |= places & 0x7f;
   return skip;
 }
 

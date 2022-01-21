@@ -804,15 +804,15 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [
             concat([
-                  op(Opcode.never),
-                  op(Opcode.blockNumber),
-                op(
-                  Opcode.updateBlocksForTierRange,
-                  claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
-                ),
-                  op(Opcode.val, 0),
-                  op(Opcode.account),
-                op(Opcode.report),
+              op(Opcode.never),
+              op(Opcode.blockNumber),
+              op(
+                Opcode.updateBlocksForTierRange,
+                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+              ),
+              op(Opcode.val, 0),
+              op(Opcode.account),
+              op(Opcode.report),
               op(Opcode.diff),
             ]),
           ],

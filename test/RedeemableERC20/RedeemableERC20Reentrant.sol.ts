@@ -4,7 +4,6 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
-import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
 
 chai.use(solidity);

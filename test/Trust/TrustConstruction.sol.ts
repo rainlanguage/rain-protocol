@@ -6,9 +6,8 @@ import type { Trust } from "../../typechain/Trust";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
 import type { Contract } from "ethers";
-import type { BigNumber } from "ethers";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import { factoriesDeploy, max_uint32 } from "../Util";
+import { factoriesDeploy } from "../Util";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 
 chai.use(solidity);
@@ -27,37 +26,6 @@ enum Tier {
   DIAMOND,
   CHAD,
   JAWAD,
-}
-
-enum DistributionStatus {
-  PENDING,
-  SEEDED,
-  TRADING,
-  TRADINGCANEND,
-  SUCCESS,
-  FAIL,
-}
-
-interface DistributionProgress {
-  distributionStatus: DistributionStatus;
-  distributionStartBlock: BigNumber;
-  distributionEndBlock: BigNumber;
-  poolReserveBalance: BigNumber;
-  poolTokenBalance: BigNumber;
-  reserveInit: BigNumber;
-  minimumCreatorRaise: BigNumber;
-  seederFee: BigNumber;
-  redeemInit: BigNumber;
-}
-
-interface TrustContracts {
-  reserveERC20: string;
-  redeemableERC20: string;
-  redeemableERC20Pool: string;
-  seeder: string;
-  tier: string;
-  crp: string;
-  pool: string;
 }
 
 describe("TrustConstruction", async function () {
