@@ -22,6 +22,7 @@ const { expect, assert } = chai;
 const enum Opcode {
   skip,
   val,
+  dup,
   zipmap,
   blockNumber,
   thisAddress,

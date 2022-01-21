@@ -8,7 +8,6 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { TrustFactory } from "../../typechain/TrustFactory";
-import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");

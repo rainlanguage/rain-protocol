@@ -6,7 +6,6 @@ import type { Trust } from "../../typechain/Trust";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
 import type { Contract } from "ethers";
-import type { BigNumber } from "ethers";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { factoriesDeploy } from "../Util";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
@@ -27,15 +26,6 @@ enum Tier {
   DIAMOND,
   CHAD,
   JAWAD,
-}
-
-enum DistributionStatus {
-  PENDING,
-  SEEDED,
-  TRADING,
-  TRADINGCANEND,
-  SUCCESS,
-  FAIL,
 }
 
 describe("TrustConstruction", async function () {
