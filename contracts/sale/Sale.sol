@@ -31,7 +31,6 @@ struct SaleConfig {
     uint256 startBlock;
     // Sale can have an id to disambiguate it from other sales from the same
     // initiator.
-    uint256 initialSupply;
     uint256 cooldownDuration;
     uint256 minimumSaleDuration;
     uint256 minimumRaise;
