@@ -145,13 +145,14 @@ describe("Sale", async function () {
     await saleFactory.deployed();
   });
 
-  it("should have status of Success if minimum raise met", async function () {
+  it("should prevent recipient claiming fees on failed raise, allowing buyers to refund their tokens", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
-    const signer1 = signers[2];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -202,7 +203,251 @@ describe("Sale", async function () {
       }
     );
 
-    // check getters
+    const fee = ethers.BigNumber.from(
+      "1" + "0".repeat(await reserve.decimals())
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    // give signer1 a lot of reserve
+    await reserve.transfer(
+      signer1.address,
+      ethers.BigNumber.from("1000000" + "0".repeat(await reserve.decimals()))
+    );
+
+    const desiredUnits = 1000;
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    // buy _some_ units; insufficient raise amount
+    const txBuy = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 1,
+      desiredUnits: desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    const { receipt } = await Util.getEventArgs(txBuy, "Buy", sale);
+
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      minimumSaleDuration +
+        startBlock -
+        (await ethers.provider.getBlockNumber())
+    );
+
+    // recipient cannot claim before sale ended with status of success
+    await Util.assertError(
+      async () =>
+        await sale.connect(feeRecipient).claimFees(feeRecipient.address),
+      "NOT_SUCCESS",
+      "fees were claimed before sale ended with status of success"
+    );
+
+    await sale.end();
+
+    const saleStatusFail = await sale.saleStatus();
+
+    assert(
+      saleStatusFail === Status.FAIL,
+      `wrong status
+      expected  ${Status.FAIL}
+      got       ${saleStatusFail}`
+    );
+
+    // recipient cannot claim after sale ended with status of fail
+    await Util.assertError(
+      async () =>
+        await sale.connect(feeRecipient).claimFees(feeRecipient.address),
+      "NOT_SUCCESS",
+      "fees were claimed after sale ended with status of fail"
+    );
+
+    // signer1 requests refund
+    await sale.connect(signer1).refund(receipt);
+  });
+
+  it("should allow recipient to claim fees on successful raise", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const minimumSaleDuration = 20;
+    const minimumRaise = ethers.BigNumber.from(
+      "100000" + "0".repeat(await reserve.decimals())
+    );
+
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from(
+      "10" + "0".repeat(await reserve.decimals())
+    );
+
+    const constants = [staticPrice];
+    const v10 = op(Opcode.VAL, 0);
+
+    const sources = [concat([v10])];
+
+    const sale = await saleDeploy(
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        minimumSaleDuration,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const fee = ethers.BigNumber.from(
+      "1" + "0".repeat(await reserve.decimals())
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    // give signer1 a lot of reserve
+    await reserve.transfer(
+      signer1.address,
+      ethers.BigNumber.from("1000000" + "0".repeat(await reserve.decimals()))
+    );
+
+    const desiredUnits = 10000;
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    // buy all units to meet minimum raise amount
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 1,
+      desiredUnits: desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      minimumSaleDuration +
+        startBlock -
+        (await ethers.provider.getBlockNumber())
+    );
+
+    // recipient cannot claim before sale ended with status of success
+    await Util.assertError(
+      async () =>
+        await sale.connect(feeRecipient).claimFees(feeRecipient.address),
+      "NOT_SUCCESS",
+      "fees were claimed before sale ended with status of success"
+    );
+
+    await sale.end();
+
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status
+      expected  ${Status.SUCCESS}
+      got       ${saleStatusSuccess}`
+    );
+
+    await sale.connect(feeRecipient).claimFees(feeRecipient.address);
+  });
+
+  it("should have status of Success if minimum raise met", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const minimumSaleDuration = 20;
+    const minimumRaise = ethers.BigNumber.from(
+      "100000" + "0".repeat(await reserve.decimals())
+    );
+
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from(
+      "10" + "0".repeat(await reserve.decimals())
+    );
+
+    const constants = [staticPrice];
+    const v10 = op(Opcode.VAL, 0);
+
+    const sources = [concat([v10])];
+
+    const sale = await saleDeploy(
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        minimumSaleDuration,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
     const saleToken = await sale.token();
     const saleReserve = await sale.reserve();
     const saleStatusPending = await sale.saleStatus();
@@ -234,7 +479,7 @@ describe("Sale", async function () {
 
     // buy all units to meet minimum raise amount
     await sale.connect(signer1).buy({
-      feeRecipient: recipient.address,
+      feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: 1,
       desiredUnits: desiredUnits,
@@ -316,7 +561,6 @@ describe("Sale", async function () {
       }
     );
 
-    // check getters
     const saleToken = await sale.token();
     const saleReserve = await sale.reserve();
     const saleStatusPending = await sale.saleStatus();
