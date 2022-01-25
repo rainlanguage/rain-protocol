@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
 import {ITier} from "./ITier.sol";
@@ -19,8 +18,14 @@ import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 /// a library.
 contract ValueTier {
     /// TODO: Typescript errors on uint256[8] so can't include tierValues here.
-    event InitializeValueTier(address sender, address pointer);
+    event InitializeValueTier(
+        /// The `msg.sender` initializing value tier.
+        address sender,
+        /// Pointer to the uint256[8] values.
+        address pointer
+    );
 
+    /// Pointer to the uint256[8] values.
     address private tierValuesPointer;
 
     /// Set the `tierValues` on construction to be referenced immutably.

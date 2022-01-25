@@ -3,7 +3,7 @@ import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, op, arg } from "../Util";
+import { bytify, callSize, op, arg, skip } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
@@ -15,6 +15,7 @@ const { expect, assert } = chai;
 const enum Opcode {
   SKIP,
   VAL,
+  DUP,
   ZIPMAP,
   BLOCK_NUMBER,
   ADD,
@@ -28,13 +29,154 @@ const enum Opcode {
 }
 
 describe("RainVM", async function () {
+  it("should skip (conditional skip: true)", async () => {
+    this.timeout(0);
+
+    const constants = [11, 22, 33, 44, 1];
+    const v11 = op(Opcode.VAL, 0);
+    const v22 = op(Opcode.VAL, 1);
+    const v33 = op(Opcode.VAL, 2);
+    const v44 = op(Opcode.VAL, 3);
+    const v1 = op(Opcode.VAL, 4);
+
+    const source = concat([
+      // (max 33 44 1 skip 22 11)
+      v44,
+      v33,
+      v1, // non-zero (true)
+      op(Opcode.SKIP, skip(1, true)),
+      v22,
+      v11,
+      op(Opcode.MAX, 2),
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 33;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should skip (conditional skip: false)", async () => {
+    this.timeout(0);
+
+    const constants = [11, 22, 33, 44, 0];
+    const v11 = op(Opcode.VAL, 0);
+    const v22 = op(Opcode.VAL, 1);
+    const v33 = op(Opcode.VAL, 2);
+    const v44 = op(Opcode.VAL, 3);
+    const v0 = op(Opcode.VAL, 4);
+
+    const source = concat([
+      // (max 44 33 0 skip 22 11)
+      v44,
+      v33,
+      v0, // zero (false)
+      op(Opcode.SKIP, skip(1, true)),
+      v22,
+      v11,
+      op(Opcode.MAX, 4),
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 44;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should skip backwards (conditional skip: true)", async () => {
+    this.timeout(0);
+
+    const constants = [1, 2];
+    const v1 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+
+    // Loop from 2 subtracting 1 until we hit 0 then stop looping.
+    const source = concat([
+      v2,
+      v1,
+      op(Opcode.SUB, 2),
+      op(Opcode.DUP, 0),
+      op(Opcode.SKIP, skip(-3, true)),
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 0;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should skip (unconditional skip)", async () => {
+    this.timeout(0);
+
+    const constants = [11, 22, 33, 44];
+    const v11 = op(Opcode.VAL, 0);
+    const v22 = op(Opcode.VAL, 1);
+    const v33 = op(Opcode.VAL, 2);
+    const v44 = op(Opcode.VAL, 3);
+
+    const source = concat([
+      // (max 44 33 skip 22 11)
+      v44,
+      v33,
+      op(Opcode.SKIP, skip(1, false)),
+      v22,
+      v11,
+      op(Opcode.MAX, 3),
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 5,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 44;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
   it("should return the maximum of a sequence of numbers", async () => {
     this.timeout(0);
 
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.VAL, 0)
-    const v11 = op(Opcode.VAL, 1)
-    const v22 = op(Opcode.VAL, 2)
+    const v33 = op(Opcode.VAL, 0);
+    const v11 = op(Opcode.VAL, 1);
+    const v22 = op(Opcode.VAL, 2);
 
     const source = concat([
       // (max 22 11 33)
@@ -61,9 +203,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.VAL, 0)
-    const v11 = op(Opcode.VAL, 1)
-    const v22 = op(Opcode.VAL, 2)
+    const v33 = op(Opcode.VAL, 0);
+    const v11 = op(Opcode.VAL, 1);
+    const v22 = op(Opcode.VAL, 2);
 
     const source = concat([
       // (min 22 11 33)
@@ -414,13 +556,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 1];
-    const v3 = op(Opcode.VAL, 0)
-    const v2 = op(Opcode.VAL, 1)
-    const v1 = op(Opcode.VAL, 2)
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.VAL, 2);
 
-    const a3 = op(Opcode.VAL, arg(0))
-    const a2 = op(Opcode.VAL, arg(1))
-    const a1 = op(Opcode.VAL, arg(2))
+    const a3 = op(Opcode.VAL, arg(0));
+    const a2 = op(Opcode.VAL, arg(1));
+    const a1 = op(Opcode.VAL, arg(2));
 
     // zero-based counting
     const fnSize = 1;
@@ -502,13 +644,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 4, 5];
-    const v3 = op(Opcode.VAL, 0)
-    const v4 = op(Opcode.VAL, 1)
-    const v5 = op(Opcode.VAL, 2)
+    const v3 = op(Opcode.VAL, 0);
+    const v4 = op(Opcode.VAL, 1);
+    const v5 = op(Opcode.VAL, 2);
 
-    const a3 = op(Opcode.VAL, arg(0))
-    const a4 = op(Opcode.VAL, arg(1))
-    const a5 = op(Opcode.VAL, arg(2))
+    const a3 = op(Opcode.VAL, arg(0));
+    const a4 = op(Opcode.VAL, arg(1));
+    const a5 = op(Opcode.VAL, arg(2));
 
     // zero-based counting
     const fnSize = 1;
@@ -522,16 +664,7 @@ describe("RainVM", async function () {
         v5,
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
-      concat([
-        a3,
-        a4,
-        a5,
-        op(Opcode.MUL, 3),
-        a3,
-        a4,
-        a5,
-        op(Opcode.ADD, 3),
-      ]),
+      concat([a3, a4, a5, op(Opcode.MUL, 3), a3, a4, a5, op(Opcode.ADD, 3)]),
     ];
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -576,13 +709,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [1, 2, 3];
-    const v1 = op(Opcode.VAL, 0)
-    const v2 = op(Opcode.VAL, 1)
-    const v3 = op(Opcode.VAL, 2)
+    const v1 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v3 = op(Opcode.VAL, 2);
 
-    const a1 = op(Opcode.VAL, arg(0))
-    const a2 = op(Opcode.VAL, arg(1))
-    const a3 = op(Opcode.VAL, arg(2))
+    const a1 = op(Opcode.VAL, arg(0));
+    const a2 = op(Opcode.VAL, arg(1));
+    const a3 = op(Opcode.VAL, arg(2));
 
     const fnSize = 1; // 1
     const loopSize = 0; // 1
@@ -595,12 +728,7 @@ describe("RainVM", async function () {
         v3,
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
-      concat([
-        a1,
-        a2,
-        a3,
-        op(Opcode.ADD, 3),
-      ]),
+      concat([a1, a2, a3, op(Opcode.ADD, 3)]),
     ];
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -626,11 +754,11 @@ describe("RainVM", async function () {
 
     const constants = [1, 2, 3, 4, 6];
 
-    const one = op(Opcode.VAL, 0)
-    const two = op(Opcode.VAL, 1)
-    const three = op(Opcode.VAL, 2)
-    const four = op(Opcode.VAL, 3)
-    const six = op(Opcode.VAL, 4)
+    const one = op(Opcode.VAL, 0);
+    const two = op(Opcode.VAL, 1);
+    const three = op(Opcode.VAL, 2);
+    const four = op(Opcode.VAL, 3);
+    const six = op(Opcode.VAL, 4);
 
     const sources = [
       concat([
@@ -696,8 +824,8 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [2, 3];
-    const v2 = op(Opcode.VAL, 0)
-    const v3 = op(Opcode.VAL, 1)
+    const v2 = op(Opcode.VAL, 0);
+    const v3 = op(Opcode.VAL, 1);
 
     const sources = [
       concat([
@@ -710,7 +838,7 @@ describe("RainVM", async function () {
         op(Opcode.MUL, 2),
         v2,
         v3,
-        op(Opcode.DIV,3),
+        op(Opcode.DIV, 3),
       ]),
     ];
 
@@ -736,9 +864,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 13];
-    const v3 = op(Opcode.VAL, 0)
-    const v2 = op(Opcode.VAL, 1)
-    const v13 = op(Opcode.VAL, 2)
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v13 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
@@ -772,9 +900,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 12];
-    const v3 = op(Opcode.VAL, 0)
-    const v2 = op(Opcode.VAL, 1)
-    const v12 = op(Opcode.VAL, 2)
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v12 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
@@ -808,9 +936,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [5, 4, 3];
-    const v5 = op(Opcode.VAL, 0)
-    const v4 = op(Opcode.VAL, 1)
-    const v3 = op(Opcode.VAL, 2)
+    const v5 = op(Opcode.VAL, 0);
+    const v4 = op(Opcode.VAL, 1);
+    const v3 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
@@ -844,9 +972,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 10];
-    const v3 = op(Opcode.VAL, 0)
-    const v2 = op(Opcode.VAL, 1)
-    const v10 = op(Opcode.VAL, 2)
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v10 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
@@ -880,9 +1008,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 1];
-    const v3 = op(Opcode.VAL, 0)
-    const v2 = op(Opcode.VAL, 1)
-    const v1 = op(Opcode.VAL, 2)
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([

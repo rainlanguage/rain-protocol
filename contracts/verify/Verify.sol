@@ -11,8 +11,11 @@ import "./libraries/VerifyConstants.sol";
 /// Most accounts will never be banned so most accounts will never reach every
 /// status, which is a good thing.
 struct State {
+    /// Block the address was added else 0xFFFFFFFF.
     uint32 addedSince;
+    /// Block the address was approved else 0xFFFFFFFF.
     uint32 approvedSince;
+    /// Block the address was banned else 0xFFFFFFFF.
     uint32 bannedSince;
 }
 

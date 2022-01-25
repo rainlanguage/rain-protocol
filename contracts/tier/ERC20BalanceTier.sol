@@ -48,8 +48,15 @@ struct ERC20BalanceTierConfig {
 /// - Lightweight, realtime checks that encumber the tiered address
 ///   as little as possible.
 contract ERC20BalanceTier is ReadOnlyTier, ValueTier, Initializable {
-    event Initialize(address sender, address erc20);
+    /// Result of initialize.
+    event Initialize(
+        /// `msg.sender` of the initialize.
+        address sender,
+        /// erc20 to check balance of.
+        address erc20
+    );
 
+    /// The erc20 to check balances against.
     IERC20 internal erc20;
 
     /// @param config_ Initialize config.

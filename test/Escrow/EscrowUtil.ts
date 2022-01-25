@@ -8,7 +8,6 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { TrustFactory } from "../../typechain/TrustFactory";
-import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
@@ -37,17 +36,16 @@ export const deployGlobals = async () => {
   const claimFactory = await ethers.getContractFactory(
     "RedeemableERC20ClaimEscrow"
   );
-  const claim = (await claimFactory.deploy(
-    trustFactory.address
-  )) as RedeemableERC20ClaimEscrow & Contract;
+  const claim = (await claimFactory.deploy()) as RedeemableERC20ClaimEscrow &
+    Contract;
 
   // Deploy wrapped Claim version (accessors)
   const claimWrapperFactory = await ethers.getContractFactory(
     "RedeemableERC20ClaimEscrowWrapper"
   );
-  const claimWrapper = (await claimWrapperFactory.deploy(
-    trustFactory.address
-  )) as RedeemableERC20ClaimEscrowWrapper & Contract;
+  const claimWrapper =
+    (await claimWrapperFactory.deploy()) as RedeemableERC20ClaimEscrowWrapper &
+      Contract;
 
   return {
     crpFactory,

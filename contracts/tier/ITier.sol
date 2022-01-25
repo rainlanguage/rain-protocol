@@ -52,14 +52,14 @@ interface ITier {
     /// external contract.
     /// The start tier MAY be lower than the current tier as at the block this
     /// event is emitted in.
-    /// @param sender The `msg.sender` that authorized the tier change.
-    /// @param account The account changing tier.
-    /// @param startTier The previous tier the account held.
-    /// @param endTier the newly acquired tier the account now holds.
     event TierChange(
+        /// The `msg.sender` that authorized the tier change.
         address sender,
+        /// The account changing tier.
         address account,
+        /// The previous tier the account held.
         uint256 startTier,
+        /// The newly acquired tier the account now holds.
         uint256 endTier
     );
 

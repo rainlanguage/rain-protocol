@@ -97,8 +97,13 @@ contract RedeemableERC20 is
     using SafeERC20 for IERC20;
 
     /// Phase constants.
+    /// Contract is not yet initialized.
     uint256 private constant PHASE_UNINITIALIZED = 0;
+    /// Token is in the distribution phase and can be transferred freely
+    /// subject to tier requirements.
     uint256 private constant PHASE_DISTRIBUTING = 1;
+    /// Token is frozen and cannot be transferred unless the sender/receiver is
+    /// authorized as a sender/receiver.
     uint256 private constant PHASE_FROZEN = 2;
 
     /// Bits for a receiver.
@@ -114,10 +119,30 @@ contract RedeemableERC20 is
     /// sender/receiver => access bits
     mapping(address => uint256) private access;
 
-    event Initialize(address sender, address admin, uint256 minimumTier);
+    /// Results of initializing.
+    event Initialize(
+        /// `msg.sender` of initialize.
+        address sender,
+        /// contract admin.
+        address admin,
+        /// Minimum tier required to receive the token.
+        uint256 minimumTier
+    );
 
-    event Sender(address sender, address grantedSender);
-    event Receiver(address sender, address grantedReceiver);
+    /// A new token sender has been added.
+    event Sender(
+        /// `msg.sender` that approved the token sender.
+        address sender,
+        /// address that is now a token sender.
+        address grantedSender
+    );
+    /// A new token receiver has been added.
+    event Receiver(
+        /// `msg.sender` that approved the token receiver.
+        address sender,
+        /// address that is now a token receiver.
+        address grantedReceiver
+    );
 
     /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
     /// The minimum supply enforced by the constructor is "one" token which is
@@ -161,6 +186,7 @@ contract RedeemableERC20 is
 
         admin = config_.erc20Config.distributor;
 
+        // Need to mint after assigning access.
         _mint(
             config_.erc20Config.distributor,
             config_.erc20Config.initialSupply
@@ -249,6 +275,8 @@ contract RedeemableERC20 is
         }
     }
 
+    /// Wraps `_redeem` from `ERC20Redeem`.
+    /// Very thin wrapper so be careful when calling!
     function redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
         external
         onlyPhase(PHASE_FROZEN)

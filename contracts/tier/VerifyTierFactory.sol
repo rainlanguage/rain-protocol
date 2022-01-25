@@ -10,8 +10,11 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 /// @title VerifyTierFactory
 /// @notice Factory for creating and deploying `VerifyTier` contracts.
 contract VerifyTierFactory is Factory {
+    /// Template contract to clone.
+    /// Deployed by the constructor.
     address private immutable implementation;
 
+    /// Build the reference implementation to clone for each child.
     constructor() {
         address implementation_ = address(new VerifyTier());
         emit Implementation(msg.sender, implementation_);

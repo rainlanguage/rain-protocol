@@ -40,12 +40,18 @@ import {ITier} from "./ITier.sol";
 /// The construction block is compared against the blocks returned by `report`.
 /// The `ITier` contract is paramaterised and set during construction.
 contract TierByConstruction {
+    /// Result of initialize.
     event TierByConstructionInitialize(
+        /// `msg.sender` that initialized the contract.
         address sender,
+        /// Tier contract to reference.
         address tierContract,
+        /// Construction block to reference.
         uint256 constructionBlockNumber
     );
+    /// Tier contract to reference.
     ITier internal tierContract;
+    /// Construction block to reference.
     uint256 internal constructionBlockNumber;
 
     /// Initialize the tier contract and block number.

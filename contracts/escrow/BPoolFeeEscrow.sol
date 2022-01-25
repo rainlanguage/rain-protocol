@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import {RedeemableERC20, Trust} from "../trust/Trust.sol";
 import {IBPool} from "../pool/IBPool.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConfigurableRightsPool} from "../pool/IConfigurableRightsPool.sol";
-import "./SaleEscrow.sol";
+import "./TrustEscrow.sol";
 
 /// Represents fees as they are claimed by a recipient on a per-trust basis.
 /// Used to work around a limitation in the EVM i.e. return values must be
@@ -61,7 +60,7 @@ struct ClaimedFees {
 /// We cannot prevent FEs implementing their own smart contracts to take fees
 /// outside the scope of the escrow, but we aren't encouraging or implementing
 /// it for them either.
-contract BPoolFeeEscrow is SaleEscrow {
+contract BPoolFeeEscrow is TrustEscrow {
     using SafeERC20 for IERC20;
 
     /// A claim has been processed for a recipient.
@@ -136,17 +135,17 @@ contract BPoolFeeEscrow is SaleEscrow {
     /// trusts and then another anon claims 1 of these trusts with higher gas,
     /// causing the batch transaction to revert.
     /// @param recipient_ The recipient of the fees.
-    /// @param trust_ The trust to process claims for. MUST be a child of the
-    /// trusted `TrustFactory`.
+    /// @param trust_ The trust to process claims for. SHOULD be a child of the
+    /// a trusted `TrustFactory`.
     /// @return The fees claimed.
-    function claimFees(address recipient_, Trust trust_)
+    function claimFees(address recipient_, address trust_)
         public
         returns (uint256)
     {
-        EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
+        EscrowStatus escrowStatus_ = escrowStatus(trust_);
         require(escrowStatus_ == EscrowStatus.Success, "NOT_SUCCESS");
 
-        uint256 amount_ = fees[address(trust_)][recipient_];
+        uint256 amount_ = fees[trust_][recipient_];
 
         // Zero `amount_` is noop not error.
         // Allows batch wrappers to be written that cannot be front run
@@ -154,13 +153,13 @@ contract BPoolFeeEscrow is SaleEscrow {
         if (amount_ > 0) {
             // Guard against outputs exceeding inputs.
             // Last `receipient_` gets gas refund.
-            totalFees[(address(trust_))] -= amount_;
+            totalFees[trust_] -= amount_;
 
             // Gas refund.
-            delete fees[address(trust_)][recipient_];
+            delete fees[trust_][recipient_];
 
-            emit ClaimFees(msg.sender, recipient_, address(trust_), amount_);
-            IERC20(trust_.reserve()).safeTransfer(recipient_, amount_);
+            emit ClaimFees(msg.sender, recipient_, trust_, amount_);
+            IERC20(reserve(trust_)).safeTransfer(recipient_, amount_);
         }
         return amount_;
     }
@@ -175,27 +174,24 @@ contract BPoolFeeEscrow is SaleEscrow {
     /// refund once. Subsequent calls will be a noop if there is `0` refundable
     /// value remaining.
     ///
-    /// @param trust_ The `Trust` to refund for. This MUST be a child of the
-    /// trusted `TrustFactory`.
+    /// @param trust_ The `Trust` to refund for. This MSHOULDUST be a child of
+    /// a trusted `TrustFactory`.
     /// @return The total refund.
-    function refundFees(Trust trust_) external returns (uint256) {
-        EscrowStatus escrowStatus_ = getEscrowStatus(trust_);
+    function refundFees(address trust_) external returns (uint256) {
+        EscrowStatus escrowStatus_ = escrowStatus(trust_);
         require(escrowStatus_ == EscrowStatus.Fail, "NOT_FAIL");
 
-        uint256 amount_ = totalFees[address(trust_)];
+        uint256 amount_ = totalFees[trust_];
 
         // Zero `amount_` is noop not error.
         // Allows batch wrappers to be written that cannot be front run
         // and reverted.
         if (amount_ > 0) {
             // Gas refund.
-            delete totalFees[address(trust_)];
+            delete totalFees[trust_];
 
-            emit RefundFees(msg.sender, address(trust_), amount_);
-            IERC20(trust_.reserve()).safeTransfer(
-                address(trust_.token()),
-                amount_
-            );
+            emit RefundFees(msg.sender, trust_, amount_);
+            IERC20(reserve(trust_)).safeTransfer(token(trust_), amount_);
         }
         return amount_;
     }
@@ -231,15 +227,15 @@ contract BPoolFeeEscrow is SaleEscrow {
     /// user poking, trading and setting aside a fee as separate actions.
     ///
     /// @param feeRecipient_ The recipient of the fee as `Trust` reserve.
-    /// @param trust_ The `Trust` to buy tokens from. This `Trust` MUST be
-    /// known as a child of the trusted `TrustFactory`.
+    /// @param trust_ The `Trust` to buy tokens from. This `Trust` SHOULD be
+    /// known as a child of a trusted `TrustFactory`.
     /// @param fee_ The amount of the fee.
     /// @param reserveAmountIn_ As per balancer.
     /// @param minTokenAmountOut_ As per balancer.
     /// @param maxPrice_ As per balancer.
     function buyToken(
         address feeRecipient_,
-        Trust trust_,
+        address trust_,
         uint256 fee_,
         uint256 reserveAmountIn_,
         uint256 minTokenAmountOut_,
@@ -248,15 +244,12 @@ contract BPoolFeeEscrow is SaleEscrow {
         // Zero fee makes no sense, simply call `swapExactAmountIn` directly
         // rather than using the escrow.
         require(fee_ > 0, "ZERO_FEE");
-        require(getEscrowStatus(trust_) == EscrowStatus.Pending, "ENDED");
-        fees[address(trust_)][feeRecipient_] += fee_;
-        totalFees[address(trust_)] += fee_;
+        require(escrowStatus(trust_) == EscrowStatus.Pending, "ENDED");
+        fees[trust_][feeRecipient_] += fee_;
+        totalFees[trust_] += fee_;
 
-        emit Fee(msg.sender, feeRecipient_, address(trust_), fee_);
+        emit Fee(msg.sender, feeRecipient_, trust_, fee_);
 
-        // Everything except reserve is built by a trusted `Trust`
-        // (getEscrowStatus enforces this) but it shouldn't matter to the
-        // integrity of the escrow.
         // A bad reserve could set itself up to be drained from the escrow, but
         // cannot interfere with other reserve balances.
         // e.g. rebasing reserves are NOT supported.
@@ -264,9 +257,9 @@ contract BPoolFeeEscrow is SaleEscrow {
         // hurt the escrow.
         // A bad crp or pool is not approved to touch escrow fees, only the
         // `msg.sender` funds.
-        IERC20 reserve_ = IERC20(trust_.reserve());
-        RedeemableERC20 token_ = RedeemableERC20(trust_.token());
-        IConfigurableRightsPool crp_ = trust_.crp();
+        address reserve_ = reserve(trust_);
+        address token_ = token(trust_);
+        IConfigurableRightsPool crp_ = IConfigurableRightsPool(crp(trust_));
         address pool_ = crp_.bPool();
 
         crp_.pokeWeights();
@@ -286,14 +279,14 @@ contract BPoolFeeEscrow is SaleEscrow {
         // Perform the swap sans fee.
         (uint256 tokenAmountOut_, uint256 spotPriceAfter_) = IBPool(pool_)
             .swapExactAmountIn(
-                address(reserve_),
+                reserve_,
                 reserveAmountIn_,
-                address(token_),
+                token_,
                 minTokenAmountOut_,
                 maxPrice_
             );
         // Return the result of the swap to `msg.sender`.
-        IERC20(address(token_)).safeTransfer(msg.sender, tokenAmountOut_);
+        IERC20(token_).safeTransfer(msg.sender, tokenAmountOut_);
         // Mimic return signature of `swapExactAmountIn`.
         return ((tokenAmountOut_, spotPriceAfter_));
     }

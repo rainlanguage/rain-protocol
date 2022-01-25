@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+//solhint-disable-next-line max-line-length
 import {RedeemableERC20ClaimEscrow} from "../../escrow/RedeemableERC20ClaimEscrow.sol";
 
 /// @title RedeemableERC20ClaimEscrowWrapper
 /// Thin wrapper around the `RedeemableERC20ClaimEscrow` contract with
 /// accessors to facilitate hardhat unit testing of `internal` variables.
 contract RedeemableERC20ClaimEscrowWrapper is RedeemableERC20ClaimEscrow {
-
     function getWithdrawals(
         address trust_,
         address token_,

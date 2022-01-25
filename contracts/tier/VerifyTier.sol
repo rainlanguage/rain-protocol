@@ -14,7 +14,13 @@ import "./libraries/TierReport.sol";
 /// the account was approved by the underlying `Verify` contract. The approval
 /// block numbers defer to `State.since` returned from `Verify.state`.
 contract VerifyTier is ReadOnlyTier, Initializable {
-    event Initialize(address sender, address verify);
+    /// Result of initializing.
+    event Initialize(
+        /// `msg.sender` that initialized the contract.
+        address sender,
+        /// The `Verify` contract checked for reports.ww
+        address verify
+    );
     /// The contract to check to produce reports.
     Verify private verify;
 

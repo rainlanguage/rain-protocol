@@ -77,6 +77,7 @@ contract EmissionsERC20 is
     /// opcode, and so can be used in rainVM scripts.
     uint256 private constructionBlockNumber;
 
+    /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
 
     /// Whether the claimant must be the caller of `claim`. If `false` then
@@ -127,11 +128,7 @@ contract EmissionsERC20 is
         allowDelegatedClaims = config_.allowDelegatedClaims;
         constructionBlockNumber = block.number;
 
-        emit Initialize(
-            msg.sender,
-            allowDelegatedClaims,
-            constructionBlockNumber
-        );
+        emit Initialize(msg.sender, config_.allowDelegatedClaims, block.number);
     }
 
     /// @inheritdoc RainVM

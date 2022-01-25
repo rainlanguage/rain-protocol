@@ -115,6 +115,10 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         address sender,
         /// `Sale` contract deposit is under.
         address trust,
+        /// Redeemable token that can claim this deposit.
+        /// Implicitly snapshots the redeemable so malicious `Trust` cannot
+        /// redirect funds later.
+        address redeemable,
         /// `IERC20` token being deposited.
         address token,
         /// Amount of token deposited.
@@ -128,6 +132,8 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         address depositor,
         /// `Sale` contract deposit is under.
         address trust,
+        /// Redeemable token that can claim this deposit.
+        address redeemable,
         /// `IERC20` token being deposited.
         address token,
         /// rTKN supply at moment of deposit.
@@ -156,6 +162,8 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         address withdrawer,
         /// `Sale` contract withdrawal is from.
         address trust,
+        /// Redeemable token used to withdraw.
+        address redeemable,
         /// `IERC20` token being withdrawn.
         address token,
         /// rTKN supply at moment of deposit.
@@ -202,8 +210,8 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// Redundant tracking of deposits withdrawn.
     /// Counts aggregate deposits down as users withdraw, while their own
     /// individual withdrawal counters count up.
-    /// NOT strictly required but provides a guard against more token being
-    /// withdrawn under a given trust/supply than was ever deposited.
+    /// Guards against buggy/malicious redeemable tokens that don't correctly
+    /// freeze their balances, hence opening up double spends.
     /// trust => deposited token => rTKN supply => amount
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         internal remainingDeposits;
@@ -227,24 +235,19 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// approved at least this amount to succeed.
     function depositPending(
         address sale_,
-        IERC20 token_,
+        address token_,
         uint256 amount_
     ) external {
         require(amount_ > 0, "ZERO_DEPOSIT");
-        require(
-            getEscrowStatus(ISale(sale_)) == EscrowStatus.Pending,
-            "NOT_PENDING"
-        );
-        pendingDeposits[address(sale_)][address(token_)][msg.sender] += amount_;
+        require(escrowStatus(sale_) == EscrowStatus.Pending, "NOT_PENDING");
+        pendingDeposits[sale_][token_][msg.sender] += amount_;
+        // Important to snapshot the token from the trust here so it can't be
+        // changed later by the trust.
+        address redeemable_ = token(sale_);
 
-        emit PendingDeposit(
-            msg.sender,
-            address(sale_),
-            address(token_),
-            amount_
-        );
+        emit PendingDeposit(msg.sender, sale_, redeemable_, token_, amount_);
 
-        token_.safeTransferFrom(msg.sender, address(this), amount_);
+        IERC20(token_).safeTransferFrom(msg.sender, address(this), amount_);
     }
 
     /// Internal accounting for a deposit.
@@ -255,25 +258,17 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         address depositor_,
         uint256 amount_
     ) private {
-        require(
-            getEscrowStatus(ISale(sale_)) > EscrowStatus.Pending,
-            "PENDING"
-        );
+        require(escrowStatus(sale_) > EscrowStatus.Pending, "PENDING");
         require(amount_ > 0, "ZERO_DEPOSIT");
 
-        uint256 supply_ = IERC20(ISale(sale_).token()).totalSupply();
+        address redeemable_ = token(sale_);
+        uint256 supply_ = IERC20(redeemable_).totalSupply();
 
-        deposits[address(sale_)][token_][depositor_][supply_] += amount_;
-        totalDeposits[address(sale_)][token_][supply_] += amount_;
-        remainingDeposits[address(sale_)][token_][supply_] += amount_;
+        deposits[sale_][token_][depositor_][supply_] += amount_;
+        totalDeposits[sale_][token_][supply_] += amount_;
+        remainingDeposits[sale_][token_][supply_] += amount_;
 
-        emit Deposit(
-            depositor_,
-            address(sale_),
-            address(token_),
-            supply_,
-            amount_
-        );
+        emit Deposit(depositor_, sale_, redeemable_, token_, supply_, amount_);
     }
 
     /// Anon can convert any existing pending deposit to a deposit with known
@@ -290,8 +285,8 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         address token_,
         address depositor_
     ) external {
-        uint256 amount_ = pendingDeposits[address(sale_)][token_][depositor_];
-        delete pendingDeposits[address(sale_)][token_][depositor_];
+        uint256 amount_ = pendingDeposits[sale_][token_][depositor_];
+        delete pendingDeposits[sale_][token_][depositor_];
         registerDeposit(sale_, token_, depositor_, amount_);
     }
 
@@ -319,11 +314,11 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// approved at least this amount to succeed.
     function deposit(
         address sale_,
-        IERC20 token_,
+        address token_,
         uint256 amount_
     ) external {
-        registerDeposit(sale_, address(token_), msg.sender, amount_);
-        token_.safeTransferFrom(msg.sender, address(this), amount_);
+        registerDeposit(sale_, token_, msg.sender, amount_);
+        IERC20(token_).safeTransferFrom(msg.sender, address(this), amount_);
     }
 
     /// The inverse of `deposit`.
@@ -344,31 +339,23 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// @param token_ The token to undeposit.
     function undeposit(
         address sale_,
-        IERC20 token_,
+        address token_,
         uint256 supply_,
         uint256 amount_
     ) external {
-        // Can only undeposit when the `Sale` reports failure.
-        require(getEscrowStatus(ISale(sale_)) == EscrowStatus.Fail, "NOT_FAIL");
+        // Can only undeposit when the `Trust` reports failure.
+        require(escrowStatus(sale_) == EscrowStatus.Fail, "NOT_FAIL");
         require(amount_ > 0, "ZERO_AMOUNT");
 
-        deposits[address(sale_)][address(token_)][msg.sender][
-            supply_
-        ] -= amount_;
+        deposits[sale_][token_][msg.sender][supply_] -= amount_;
         // Guard against outputs exceeding inputs.
         // Last undeposit gets a gas refund.
-        totalDeposits[address(sale_)][address(token_)][supply_] -= amount_;
-        remainingDeposits[address(sale_)][address(token_)][supply_] -= amount_;
+        totalDeposits[sale_][token_][supply_] -= amount_;
+        remainingDeposits[sale_][token_][supply_] -= amount_;
 
-        emit Undeposit(
-            msg.sender,
-            address(sale_),
-            address(token_),
-            supply_,
-            amount_
-        );
+        emit Undeposit(msg.sender, sale_, token_, supply_, amount_);
 
-        token_.safeTransfer(msg.sender, amount_);
+        IERC20(token_).safeTransfer(msg.sender, amount_);
     }
 
     /// The successful handover of a `deposit` to a recipient.
@@ -395,27 +382,18 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// @param token_ The token to `withdraw`.
     function withdraw(
         address sale_,
-        IERC20 token_,
+        address token_,
         uint256 supply_
     ) external {
-        // Can only withdraw when the `Sale` reports success.
-        require(
-            getEscrowStatus(ISale(sale_)) == EscrowStatus.Success,
-            "NOT_SUCCESS"
-        );
+        // Can only withdraw when the `Trust` reports success.
+        require(escrowStatus(sale_) == EscrowStatus.Success, "NOT_SUCCESS");
 
-        uint256 totalDeposited_ = totalDeposits[address(sale_)][
-            address(token_)
-        ][supply_];
-        uint256 withdrawn_ = withdrawals[address(sale_)][address(token_)][
-            supply_
-        ][msg.sender];
+        uint256 totalDeposited_ = totalDeposits[sale_][token_][supply_];
+        uint256 withdrawn_ = withdrawals[sale_][token_][supply_][msg.sender];
 
-        RedeemableERC20 redeemable_ = RedeemableERC20(ISale(sale_).token());
+        RedeemableERC20 redeemable_ = RedeemableERC20(token(sale_));
 
-        withdrawals[address(sale_)][address(token_)][supply_][
-            msg.sender
-        ] = totalDeposited_;
+        withdrawals[sale_][token_][supply_][msg.sender] = totalDeposited_;
 
         //solhint-disable-next-line max-line-length
         uint256 amount_ = (// Underflow MUST error here (should not be possible).
@@ -430,16 +408,21 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
             redeemable_.balanceOf(msg.sender)) / supply_;
 
         // Guard against outputs exceeding inputs.
-        remainingDeposits[address(sale_)][address(token_)][supply_] -= amount_;
+        // For example a malicious `Trust` could report a `redeemable_` token
+        // that does NOT freeze balances. In this case token holders can double
+        // spend their withdrawals by simply shuffling the same token around
+        // between accounts.
+        remainingDeposits[sale_][token_][supply_] -= amount_;
 
         require(amount_ > 0, "ZERO_WITHDRAW");
         emit Withdraw(
             msg.sender,
-            address(sale_),
-            address(token_),
+            sale_,
+            address(redeemable_),
+            token_,
             supply_,
             amount_
         );
-        token_.safeTransfer(msg.sender, amount_);
+        IERC20(token_).safeTransfer(msg.sender, amount_);
     }
 }

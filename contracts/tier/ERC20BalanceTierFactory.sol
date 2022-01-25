@@ -8,8 +8,11 @@ import "./ERC20BalanceTier.sol";
 /// @title ERC20BalanceTierFactory
 /// @notice Factory for creating and deploying `ERC20BalanceTier` contracts.
 contract ERC20BalanceTierFactory is Factory {
+    /// Template contract to clone.
+    /// Deployed by the constructor.
     address private implementation;
 
+    /// Build the reference implementation to clone for each child.
     constructor() {
         address implementation_ = address(new ERC20BalanceTier());
         emit Implementation(msg.sender, implementation_);
