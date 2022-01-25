@@ -156,7 +156,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 20;
+    const minimumSaleDuration = 30;
     const minimumRaise = ethers.BigNumber.from(
       "100000" + "0".repeat(await reserve.decimals())
     );
@@ -218,7 +218,7 @@ describe("Sale", async function () {
       ethers.BigNumber.from("1000000" + "0".repeat(await reserve.decimals()))
     );
 
-    const desiredUnits = 1000;
+    const desiredUnits = totalTokenSupply.div(10);
 
     await reserve
       .connect(signer1)
@@ -229,7 +229,7 @@ describe("Sale", async function () {
       feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: 1,
-      desiredUnits: desiredUnits,
+      desiredUnits,
       maximumPrice: staticPrice,
     });
 
@@ -284,7 +284,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 20;
+    const minimumSaleDuration = 30;
     const minimumRaise = ethers.BigNumber.from(
       "100000" + "0".repeat(await reserve.decimals())
     );
@@ -346,7 +346,7 @@ describe("Sale", async function () {
       ethers.BigNumber.from("1000000" + "0".repeat(await reserve.decimals()))
     );
 
-    const desiredUnits = 10000;
+    const desiredUnits = totalTokenSupply;
 
     await reserve
       .connect(signer1)
@@ -357,7 +357,7 @@ describe("Sale", async function () {
       feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: 1,
-      desiredUnits: desiredUnits,
+      desiredUnits,
       maximumPrice: staticPrice,
     });
 
@@ -401,7 +401,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 20;
+    const minimumSaleDuration = 30;
     const minimumRaise = ethers.BigNumber.from(
       "100000" + "0".repeat(await reserve.decimals())
     );
@@ -460,6 +460,22 @@ describe("Sale", async function () {
       "1" + "0".repeat(await reserve.decimals())
     );
 
+    const desiredUnits = totalTokenSupply;
+
+    await Util.assertError(
+      async () => {
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 1,
+          desiredUnits,
+          maximumPrice: staticPrice,
+        });
+      },
+      "NOT_STARTED",
+      "bought tokens before sale start"
+    );
+
     // wait until sale start
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
@@ -471,20 +487,74 @@ describe("Sale", async function () {
       ethers.BigNumber.from("1000000" + "0".repeat(await reserve.decimals()))
     );
 
-    const desiredUnits = 10000;
-
     await reserve
       .connect(signer1)
       .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
 
-    // buy all units to meet minimum raise amount
+    await Util.assertError(
+      async () => {
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 1,
+          desiredUnits: 0,
+          maximumPrice: staticPrice,
+        });
+      },
+      "0_DESIRED",
+      "bought with 0 desired units"
+    );
+
+    await Util.assertError(
+      async () => {
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 2,
+          desiredUnits: 1,
+          maximumPrice: staticPrice,
+        });
+      },
+      "MINIMUM_OVER_DESIRED",
+      "bought with minimum over desired no. units"
+    );
+
+    await Util.assertError(
+      async () => {
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 2,
+          desiredUnits,
+          maximumPrice: staticPrice.sub(1),
+        });
+      },
+      "MAXIMUM_PRICE",
+      "bought with max price less than actual price"
+    );
+
+    // ACTUALLY buy all units to meet minimum raise amount
     await sale.connect(signer1).buy({
       feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: 1,
-      desiredUnits: desiredUnits,
+      desiredUnits,
       maximumPrice: staticPrice,
     });
+
+    await Util.assertError(
+      async () => {
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 1,
+          desiredUnits: 1,
+          maximumPrice: staticPrice,
+        });
+      },
+      "INSUFFICIENT_STOCK",
+      "bought after all units sold"
+    );
 
     // wait until sale can end
     await Util.createEmptyBlock(
@@ -503,6 +573,20 @@ describe("Sale", async function () {
       expected  ${Status.SUCCESS}
       got       ${saleStatusSuccess}`
     );
+
+    await Util.assertError(
+      async () => {
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 1,
+          desiredUnits,
+          maximumPrice: staticPrice,
+        });
+      },
+      "ENDED",
+      "bought after sale ended"
+    );
   });
 
   it("should have status of Fail if minimum raise not met", async function () {
@@ -514,7 +598,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 20;
+    const minimumSaleDuration = 30;
     const minimumRaise = ethers.BigNumber.from(
       "100" + "0".repeat(await reserve.decimals())
     );
