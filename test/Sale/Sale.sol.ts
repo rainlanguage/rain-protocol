@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { artifacts, ethers } from "hardhat";
-import type { Contract } from "ethers";
+import type { Contract, ContractFactory } from "ethers";
 import type {
   SaleConfigStruct,
   SaleConstructorConfigStruct,
@@ -106,7 +106,45 @@ const saleDeploy = async (
   return sale;
 };
 
+let reserve: ReserveToken & Contract,
+  redeemableERC20FactoryFactory: ContractFactory,
+  redeemableERC20Factory: RedeemableERC20Factory & Contract,
+  readWriteTierFactory: ContractFactory,
+  readWriteTier: ReadWriteTier & Contract,
+  saleConstructorConfig: SaleConstructorConfigStruct,
+  saleFactoryFactory: ContractFactory,
+  saleFactory: SaleFactory & Contract;
+
 describe("Sale", async function () {
+  before(async () => {
+    reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
+      Contract;
+
+    redeemableERC20FactoryFactory = await ethers.getContractFactory(
+      "RedeemableERC20Factory",
+      {}
+    );
+    redeemableERC20Factory =
+      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
+        Contract;
+    await redeemableERC20Factory.deployed();
+
+    readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
+    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
+      Contract;
+    await readWriteTier.deployed();
+
+    saleConstructorConfig = {
+      redeemableERC20Factory: redeemableERC20Factory.address,
+    };
+
+    saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
+    saleFactory = (await saleFactoryFactory.deploy(
+      saleConstructorConfig
+    )) as SaleFactory & Contract;
+    await saleFactory.deployed();
+  });
+
   it("should have status of Success if minimum raise met", async function () {
     this.timeout(0);
 
@@ -114,40 +152,6 @@ describe("Sale", async function () {
     const deployer = signers[0];
     const recipient = signers[1];
     const signer1 = signers[2];
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
-    const redeemableERC20FactoryFactory = await ethers.getContractFactory(
-      "RedeemableERC20Factory",
-      {}
-    );
-    const redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-        Contract;
-    await redeemableERC20Factory.deployed();
-
-    const readWriteTierFactory = await ethers.getContractFactory(
-      "ReadWriteTier"
-    );
-    const readWriteTier =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
-    await readWriteTier.deployed();
-
-    const saleConstructorConfig: SaleConstructorConfigStruct = {
-      redeemableERC20Factory: redeemableERC20Factory.address,
-    };
-
-    const saleFactoryFactory = await ethers.getContractFactory(
-      "SaleFactory",
-      {}
-    );
-    const saleFactory = (await saleFactoryFactory.deploy(
-      saleConstructorConfig
-    )) as SaleFactory & Contract;
-    await saleFactory.deployed();
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -262,40 +266,6 @@ describe("Sale", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
-    const redeemableERC20FactoryFactory = await ethers.getContractFactory(
-      "RedeemableERC20Factory",
-      {}
-    );
-    const redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-        Contract;
-    await redeemableERC20Factory.deployed();
-
-    const readWriteTierFactory = await ethers.getContractFactory(
-      "ReadWriteTier"
-    );
-    const readWriteTier =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
-    await readWriteTier.deployed();
-
-    const saleConstructorConfig: SaleConstructorConfigStruct = {
-      redeemableERC20Factory: redeemableERC20Factory.address,
-    };
-
-    const saleFactoryFactory = await ethers.getContractFactory(
-      "SaleFactory",
-      {}
-    );
-    const saleFactory = (await saleFactoryFactory.deploy(
-      saleConstructorConfig
-    )) as SaleFactory & Contract;
-    await saleFactory.deployed();
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
