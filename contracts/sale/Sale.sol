@@ -19,6 +19,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+// solhint-disable-next-line max-line-length
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 struct SaleConstructorConfig {
     RedeemableERC20Factory redeemableERC20Factory;
@@ -59,7 +61,7 @@ struct Receipt {
     uint256 price;
 }
 
-contract Sale is Cooldown, RainVM, ISale {
+contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -68,6 +70,8 @@ contract Sale is Cooldown, RainVM, ISale {
     event End(address sender);
     event Buy(address sender, BuyConfig config_, Receipt receipt);
     event Refund(address sender, Receipt receipt);
+
+    uint256 private constant PRICE_ONE = 10**18;
 
     uint256 private constant REMAINING_UNITS = 0;
     uint256 private constant TOTAL_RESERVE_IN = 1;
@@ -192,13 +196,18 @@ contract Sale is Cooldown, RainVM, ISale {
 
         if (totalReserveIn >= minimumRaise) {
             _saleStatus = SaleStatus.Success;
+            // Only send reserve to recipient if the raise is a success.
             _reserve.safeTransfer(recipient, totalReserveIn);
         } else {
             _saleStatus = SaleStatus.Fail;
         }
     }
 
-    function buy(BuyConfig memory config_) external onlyAfterCooldown {
+    function buy(BuyConfig memory config_)
+        external
+        onlyAfterCooldown
+        nonReentrant
+    {
         require(config_.desiredUnits > 0, "0_DESIRED");
         require(
             config_.minimumUnits <= config_.desiredUnits,
@@ -218,7 +227,7 @@ contract Sale is Cooldown, RainVM, ISale {
 
         uint256 price_ = state_.stack[state_.stackIndex - 1];
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
-        uint256 cost_ = price_ * units_;
+        uint256 cost_ = ( price_ * units_ ) / PRICE_ONE;
 
         Receipt memory receipt_ = Receipt(
             nextReceiptId,
@@ -238,6 +247,15 @@ contract Sale is Cooldown, RainVM, ISale {
         lastBuyUnits = units_;
         lastBuyPrice = price_;
 
+        // This happens before `end` so that the transfer out happens before
+        // the last transfer in.
+        // `end` does state changes so `buy` needs to be nonReentrant.
+        _reserve.safeTransferFrom(
+            msg.sender,
+            address(this),
+            cost_ + config_.fee
+        );
+
         if (remainingUnits < 1) {
             end();
         } else {
@@ -247,11 +265,6 @@ contract Sale is Cooldown, RainVM, ISale {
         emit Buy(msg.sender, config_, receipt_);
 
         _token.transfer(msg.sender, units_);
-        _reserve.safeTransferFrom(
-            msg.sender,
-            address(this),
-            cost_ + config_.fee
-        );
     }
 
     function refundCooldown() private onlyAfterCooldown {}
@@ -262,7 +275,7 @@ contract Sale is Cooldown, RainVM, ISale {
         require(receipts[msg.sender][receiptKeccak_], "INVALID_RECEIPT");
         delete receipts[msg.sender][receiptKeccak_];
 
-        uint256 cost_ = receipt_.price * receipt_.units;
+        uint256 cost_ = ( receipt_.price * receipt_.units ) / PRICE_ONE;
 
         totalReserveIn -= cost_;
         remainingUnits += receipt_.units;

@@ -2,7 +2,8 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { artifacts, ethers } from "hardhat";
-import type { Contract, ContractFactory } from "ethers";
+import type { ContractFactory } from "ethers"
+import { Contract } from "ethers";
 import type {
   SaleConfigStruct,
   SaleConstructorConfigStruct,
@@ -16,6 +17,7 @@ import { ReserveToken } from "../../typechain/ReserveToken";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import { concat } from "ethers/lib/utils";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20"
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -73,7 +75,7 @@ const saleDeploy = async (
   config: SaleConfigStruct,
   saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
   ...args
-): Promise<Sale & Contract> => {
+): Promise<[Sale & Contract, RedeemableERC20 & Contract]> => {
   const txDeploy = await saleFactory.createChildTyped(
     config,
     saleRedeemableERC20Config,
@@ -103,7 +105,9 @@ const saleDeploy = async (
   // @ts-ignore
   sale.deployTransaction = txDeploy;
 
-  return sale;
+  const token: RedeemableERC20 = new Contract(await sale.token(), (await artifacts.readArtifact("RedeemableERC20")).abi) as Contract & RedeemableERC20;
+
+  return [sale, token];
 };
 
 let reserve: ReserveToken & Contract,
@@ -178,7 +182,7 @@ describe("Sale", async function () {
 
     const sources = [concat([v10])];
 
-    const sale = await saleDeploy(
+    const [sale, token] = await saleDeploy(
       deployer,
       saleFactory,
       {
@@ -269,6 +273,8 @@ describe("Sale", async function () {
       "fees were claimed after sale ended with status of fail"
     );
 
+    await token.connect(signer1).approve(sale.address, desiredUnits)
+
     // signer1 requests refund
     await sale.connect(signer1).refund(receipt);
   });
@@ -306,7 +312,7 @@ describe("Sale", async function () {
 
     const sources = [concat([v10])];
 
-    const sale = await saleDeploy(
+    const [sale, token] = await saleDeploy(
       deployer,
       saleFactory,
       {
@@ -423,7 +429,7 @@ describe("Sale", async function () {
 
     const sources = [concat([v10])];
 
-    const sale = await saleDeploy(
+    const [sale, token] = await saleDeploy(
       deployer,
       saleFactory,
       {
@@ -620,7 +626,7 @@ describe("Sale", async function () {
 
     const sources = [concat([v10])];
 
-    const sale = await saleDeploy(
+    const [sale, token] = await saleDeploy(
       deployer,
       saleFactory,
       {
