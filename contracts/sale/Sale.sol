@@ -112,7 +112,7 @@ contract Sale is Cooldown, RainVM, ISale {
     uint256 private nextReceiptId;
 
     /// Account => unclaimed fees.
-    mapping(address => uint256) fees;
+    mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_) {
         blockOpsStart = RainVM.OPS_LENGTH;
@@ -192,7 +192,7 @@ contract Sale is Cooldown, RainVM, ISale {
 
         if (totalReserveIn >= minimumRaise) {
             _saleStatus = SaleStatus.Success;
-            _reserve.safeTransfer(recipient, _reserve.balanceOf(address(this)));
+            _reserve.safeTransfer(recipient, totalReserveIn);
         } else {
             _saleStatus = SaleStatus.Fail;
         }
