@@ -248,7 +248,7 @@ contract EmissionsERC20 is
         if (token_ == address(0)) {
             _mint(claimant_, amount_);
         } else {
-            IERC20(token_).safeTransfer(msg.sender, amount_);
+            IERC20(token_).safeTransfer(claimant_, amount_);
         }
 
         // Record the current block as the latest claim.
