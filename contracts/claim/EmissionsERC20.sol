@@ -13,6 +13,10 @@ import {MathOps} from "../vm/ops/MathOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// solhint-disable-next-line max-line-length
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 /// Constructor config.
 struct EmissionsERC20Config {
     /// True if accounts can call `claim` on behalf of another account.
@@ -45,6 +49,8 @@ contract EmissionsERC20 is
     IClaim,
     ReadOnlyTier
 {
+    using SafeERC20 for IERC20;
+
     /// Contract has initialized.
     event Initialize(
         address sender,
@@ -207,10 +213,17 @@ contract EmissionsERC20 is
     /// to process the claim with `claim` if `msg.sender` is not the
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
-    function calculateClaim(address claimant_) public view returns (uint256) {
+    function calculateClaim(address claimant_)
+        public
+        view
+        returns (address, uint256)
+    {
         State memory state_ = VMState.restore(vmStatePointer);
         eval(abi.encode(claimant_), state_, 0);
-        return state_.stack[state_.stackIndex - 1];
+        return (
+            address(uint160(state_.stack[state_.stackIndex - 2])),
+            state_.stack[state_.stackIndex - 1]
+        );
     }
 
     /// Processes the claim for `claimant_`.
@@ -231,8 +244,12 @@ contract EmissionsERC20 is
         }
 
         // Mint the claim.
-        uint256 amount_ = calculateClaim(claimant_);
-        _mint(claimant_, amount_);
+        (address token_, uint256 amount_) = calculateClaim(claimant_);
+        if (token_ == address(0)) {
+            _mint(claimant_, amount_);
+        } else {
+            IERC20(token_).safeTransfer(msg.sender, amount_);
+        }
 
         // Record the current block as the latest claim.
         // This can be diffed/combined with external reports in future claim
