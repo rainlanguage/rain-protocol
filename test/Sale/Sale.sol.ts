@@ -2,22 +2,21 @@ import * as Util from "../Util";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { artifacts, ethers } from "hardhat";
-import type { ContractFactory } from "ethers"
-import { Contract } from "ethers";
+import type { Contract, ContractFactory } from "ethers";
 import type {
   SaleConfigStruct,
   SaleConstructorConfigStruct,
   SaleFactory,
   SaleRedeemableERC20ConfigStruct,
 } from "../../typechain/SaleFactory";
-import type { Sale } from "../../typechain/Sale";
+import type { BuyEvent, Sale } from "../../typechain/Sale";
 import { getEventArgs, op } from "../Util";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import { concat } from "ethers/lib/utils";
-import type { RedeemableERC20 } from "../../typechain/RedeemableERC20"
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 
 chai.use(solidity);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -70,6 +69,7 @@ const enum Opcode {
 }
 
 const saleDeploy = async (
+  signers: SignerWithAddress[],
   deployer: SignerWithAddress,
   saleFactory: SaleFactory & Contract,
   config: SaleConfigStruct,
@@ -105,7 +105,12 @@ const saleDeploy = async (
   // @ts-ignore
   sale.deployTransaction = txDeploy;
 
-  const token: RedeemableERC20 = new Contract(await sale.token(), (await artifacts.readArtifact("RedeemableERC20")).abi) as Contract & RedeemableERC20;
+  let token = new ethers.Contract(
+    await sale.token(),
+    (await artifacts.readArtifact("RedeemableERC20")).abi
+  ) as RedeemableERC20 & Contract;
+
+  token = token.connect(signers[0]); // need to do this for some reason
 
   return [sale, token];
 };
@@ -174,15 +179,16 @@ describe("Sale", async function () {
     };
 
     const staticPrice = ethers.BigNumber.from(
-      "10" + "0".repeat(await reserve.decimals())
+      "75" + "0".repeat(await reserve.decimals())
     );
 
     const constants = [staticPrice];
-    const v10 = op(Opcode.VAL, 0);
+    const v75 = op(Opcode.VAL, 0);
 
-    const sources = [concat([v10])];
+    const sources = [concat([v75])];
 
     const [sale, token] = await saleDeploy(
+      signers,
       deployer,
       saleFactory,
       {
@@ -237,7 +243,11 @@ describe("Sale", async function () {
       maximumPrice: staticPrice,
     });
 
-    const { receipt } = await Util.getEventArgs(txBuy, "Buy", sale);
+    const { receipt } = (await Util.getEventArgs(
+      txBuy,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
 
     // wait until sale can end
     await Util.createEmptyBlock(
@@ -273,9 +283,8 @@ describe("Sale", async function () {
       "fees were claimed after sale ended with status of fail"
     );
 
-    await token.connect(signer1).approve(sale.address, desiredUnits)
-
-    // signer1 requests refund
+    // signer1 gets refund
+    await token.connect(signer1).approve(sale.address, receipt.units);
     await sale.connect(signer1).refund(receipt);
   });
 
@@ -304,15 +313,16 @@ describe("Sale", async function () {
     };
 
     const staticPrice = ethers.BigNumber.from(
-      "10" + "0".repeat(await reserve.decimals())
+      "75" + "0".repeat(await reserve.decimals())
     );
 
     const constants = [staticPrice];
-    const v10 = op(Opcode.VAL, 0);
+    const v75 = op(Opcode.VAL, 0);
 
-    const sources = [concat([v10])];
+    const sources = [concat([v75])];
 
     const [sale, token] = await saleDeploy(
+      signers,
       deployer,
       saleFactory,
       {
@@ -421,15 +431,16 @@ describe("Sale", async function () {
     };
 
     const staticPrice = ethers.BigNumber.from(
-      "10" + "0".repeat(await reserve.decimals())
+      "75" + "0".repeat(await reserve.decimals())
     );
 
     const constants = [staticPrice];
-    const v10 = op(Opcode.VAL, 0);
+    const v75 = op(Opcode.VAL, 0);
 
-    const sources = [concat([v10])];
+    const sources = [concat([v75])];
 
     const [sale, token] = await saleDeploy(
+      signers,
       deployer,
       saleFactory,
       {
@@ -618,15 +629,16 @@ describe("Sale", async function () {
     };
 
     const staticPrice = ethers.BigNumber.from(
-      "10" + "0".repeat(await reserve.decimals())
+      "75" + "0".repeat(await reserve.decimals())
     );
 
     const constants = [staticPrice];
-    const v10 = op(Opcode.VAL, 0);
+    const v75 = op(Opcode.VAL, 0);
 
-    const sources = [concat([v10])];
+    const sources = [concat([v75])];
 
     const [sale, token] = await saleDeploy(
+      signers,
       deployer,
       saleFactory,
       {

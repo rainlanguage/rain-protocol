@@ -256,7 +256,10 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
             cost_ + config_.fee
         );
 
-        if (remainingUnits < 1) {
+        if (
+            remainingUnits < 1 &&
+            minimumSaleDuration + startBlock <= block.number
+        ) {
             end();
         } else {
             require(remainingUnits >= dustSize, "DUST");
