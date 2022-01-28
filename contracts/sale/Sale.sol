@@ -22,8 +22,6 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 // solhint-disable-next-line max-line-length
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import "hardhat/console.sol";
-
 struct SaleConstructorConfig {
     RedeemableERC20Factory redeemableERC20Factory;
 }
@@ -33,10 +31,12 @@ struct SaleConfig {
     address recipient;
     IERC20 reserve;
     uint256 startBlock;
-    // Sale can have an id to disambiguate it from other sales from the same
-    // initiator.
+    /// Sale can have an id to disambiguate it from other sales from the same
+    /// initiator.
     uint256 cooldownDuration;
-    uint256 minimumSaleDuration;
+    /// Sale can be finalised by anon after this many blocks even if the
+    /// minimumRaise value has not been met.
+    uint256 saleTimeout;
     uint256 minimumRaise;
     uint256 dustSize;
 }
@@ -97,7 +97,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
     address private recipient;
     address private vmStatePointer;
     uint256 private startBlock;
-    uint256 private minimumSaleDuration;
+    uint256 private saleTimeout;
     uint256 private minimumRaise;
     uint256 private dustSize;
 
@@ -143,7 +143,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         );
         recipient = config_.recipient;
         startBlock = config_.startBlock;
-        minimumSaleDuration = config_.minimumSaleDuration;
+        saleTimeout = config_.saleTimeout;
         minimumRaise = config_.minimumRaise;
         dustSize = config_.dustSize;
 
@@ -185,10 +185,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
 
     function end() public {
         require(_saleStatus == SaleStatus.Pending, "ENDED");
-        require(
-            minimumSaleDuration + startBlock <= block.number,
-            "MIN_DURATION"
-        );
+        require(saleTimeout + startBlock <= block.number, "MIN_DURATION");
         emit End(msg.sender);
 
         remainingUnits = 0;
@@ -203,6 +200,13 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         } else {
             _saleStatus = SaleStatus.Fail;
         }
+    }
+
+    function calculatePrice() public view returns (uint256) {
+        State memory state_ = VMState.restore(vmStatePointer);
+        eval("", state_, 0);
+
+        return state_.stack[state_.stackIndex - 1];
     }
 
     function buy(BuyConfig memory config_)
@@ -224,12 +228,10 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         );
         require(units_ <= remainingUnits, "INSUFFICIENT_STOCK");
 
-        State memory state_ = VMState.restore(vmStatePointer);
-        eval("", state_, 0);
+        uint256 price_ = calculatePrice();
 
-        uint256 price_ = state_.stack[state_.stackIndex - 1];
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
-        uint256 cost_ = ( price_ * units_ ) / PRICE_ONE;
+        uint256 cost_ = (price_ * units_) / PRICE_ONE;
 
         Receipt memory receipt_ = Receipt(
             nextReceiptId,
@@ -246,11 +248,6 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         remainingUnits -= units_;
         totalReserveIn += cost_;
 
-        console.log("price_         %s", price_);
-        console.log("units_         %s", units_);
-        console.log("cost_          %s", cost_);
-        console.log("totalReserveIn %s", totalReserveIn);
-
         lastBuyBlock = block.number;
         lastBuyUnits = units_;
         lastBuyPrice = price_;
@@ -264,10 +261,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
             cost_ + config_.fee
         );
 
-        if (
-            remainingUnits < 1 &&
-            minimumSaleDuration + startBlock <= block.number
-        ) {
+        if (remainingUnits < 1) {
             end();
         } else {
             require(remainingUnits >= dustSize, "DUST");
@@ -286,7 +280,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         require(receipts[msg.sender][receiptKeccak_], "INVALID_RECEIPT");
         delete receipts[msg.sender][receiptKeccak_];
 
-        uint256 cost_ = ( receipt_.price * receipt_.units ) / PRICE_ONE;
+        uint256 cost_ = (receipt_.price * receipt_.units) / PRICE_ONE;
 
         totalReserveIn -= cost_;
         remainingUnits += receipt_.units;
