@@ -22,6 +22,8 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 // solhint-disable-next-line max-line-length
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+import "hardhat/console.sol";
+
 struct SaleConstructorConfig {
     RedeemableERC20Factory redeemableERC20Factory;
 }
@@ -243,6 +245,12 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
 
         remainingUnits -= units_;
         totalReserveIn += cost_;
+
+        console.log("price_         %s", price_);
+        console.log("units_         %s", units_);
+        console.log("cost_          %s", cost_);
+        console.log("totalReserveIn %s", totalReserveIn);
+
         lastBuyBlock = block.number;
         lastBuyUnits = units_;
         lastBuyPrice = price_;
