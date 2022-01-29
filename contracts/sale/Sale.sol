@@ -83,7 +83,9 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
     uint256 private constant LAST_BUY_UNITS = 4;
     uint256 private constant LAST_BUY_PRICE = 5;
 
-    uint256 internal constant LOCAL_OPS_LENGTH = 6;
+    uint256 private constant CURRENT_BUY_UNITS = 6;
+
+    uint256 internal constant LOCAL_OPS_LENGTH = 7;
 
     uint256 private immutable blockOpsStart;
     uint256 private immutable senderOpsStart;
@@ -185,7 +187,10 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
 
     function end() public {
         require(_saleStatus == SaleStatus.Pending, "ENDED");
-        require(saleTimeout + startBlock <= block.number, "MIN_DURATION");
+        require(
+            remainingUnits < 1 || saleTimeout + startBlock <= block.number,
+            "MIN_DURATION"
+        );
         emit End(msg.sender);
 
         remainingUnits = 0;
@@ -202,9 +207,9 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         }
     }
 
-    function calculatePrice() public view returns (uint256) {
+    function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = VMState.restore(vmStatePointer);
-        eval("", state_, 0);
+        eval(abi.encode(units_), state_, 0);
 
         return state_.stack[state_.stackIndex - 1];
     }
@@ -228,7 +233,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         );
         require(units_ <= remainingUnits, "INSUFFICIENT_STOCK");
 
-        uint256 price_ = calculatePrice();
+        uint256 price_ = calculatePrice(units_);
 
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
         uint256 cost_ = (price_ * units_) / PRICE_ONE;
@@ -260,6 +265,9 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
             address(this),
             cost_ + config_.fee
         );
+        // This happens before `end` so that the transfer happens before the
+        // distributor is burned and token is frozen.
+        _token.transfer(msg.sender, units_);
 
         if (remainingUnits < 1) {
             end();
@@ -268,8 +276,6 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         }
 
         emit Buy(msg.sender, config_, receipt_);
-
-        _token.transfer(msg.sender, units_);
     }
 
     function refundCooldown() private onlyAfterCooldown {}
@@ -356,6 +362,9 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
                     state_.stack[state_.stackIndex] = lastBuyUnits;
                 } else if (opcode_ == LAST_BUY_PRICE) {
                     state_.stack[state_.stackIndex] = lastBuyPrice;
+                } else if (opcode_ == CURRENT_BUY_UNITS) {
+                    uint256 units_ = abi.decode(context_, (uint256));
+                    state_.stack[state_.stackIndex] = units_;
                 }
                 state_.stackIndex++;
             }

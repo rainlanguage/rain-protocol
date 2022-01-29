@@ -190,7 +190,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000");
 
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
@@ -230,7 +230,7 @@ describe("Sale", async function () {
         reserve: reserve.address,
         startBlock,
         cooldownDuration: 1,
-        minimumSaleDuration,
+        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -321,7 +321,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000");
 
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
@@ -361,7 +361,7 @@ describe("Sale", async function () {
         reserve: reserve.address,
         startBlock,
         cooldownDuration: 1,
-        minimumSaleDuration,
+        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -422,7 +422,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000");
 
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
@@ -462,7 +462,7 @@ describe("Sale", async function () {
         reserve: reserve.address,
         startBlock,
         cooldownDuration: 1,
-        minimumSaleDuration,
+        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -555,7 +555,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000");
 
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
@@ -588,7 +588,7 @@ describe("Sale", async function () {
         reserve: reserve.address,
         startBlock,
         cooldownDuration: 1,
-        minimumSaleDuration,
+        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -632,7 +632,7 @@ describe("Sale", async function () {
 
     // wait until sale can end
     await Util.createEmptyBlock(
-      minimumSaleDuration +
+      saleTimeout +
         startBlock -
         (await ethers.provider.getBlockNumber())
     );
@@ -680,7 +680,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000");
 
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
@@ -713,7 +713,7 @@ describe("Sale", async function () {
         reserve: reserve.address,
         startBlock,
         cooldownDuration: 1,
-        minimumSaleDuration,
+        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -751,7 +751,7 @@ describe("Sale", async function () {
 
     // wait until sale can end
     await Util.createEmptyBlock(
-      minimumSaleDuration +
+      saleTimeout +
         startBlock -
         (await ethers.provider.getBlockNumber())
     );
@@ -789,7 +789,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000");
 
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
@@ -822,7 +822,7 @@ describe("Sale", async function () {
         reserve: reserve.address,
         startBlock,
         cooldownDuration: 1,
-        minimumSaleDuration,
+        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -905,6 +905,20 @@ describe("Sale", async function () {
         await sale.connect(signer1).buy({
           feeRecipient: feeRecipient.address,
           fee,
+          minimumUnits: desiredUnits.mul(10),
+          desiredUnits: desiredUnits.mul(20),
+          maximumPrice: staticPrice,
+        });
+      },
+      "INSUFFICIENT_STOCK",
+      "bought more units than available"
+    );
+
+    await Util.assertError(
+      async () => {
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
           minimumUnits: desiredUnits,
           desiredUnits,
           maximumPrice: staticPrice.sub(1),
@@ -933,18 +947,9 @@ describe("Sale", async function () {
           maximumPrice: staticPrice,
         });
       },
-      "INSUFFICIENT_STOCK",
+      "ENDED",
       "bought after all units sold"
     );
-
-    // wait until sale can end
-    await Util.createEmptyBlock(
-      minimumSaleDuration +
-        startBlock -
-        (await ethers.provider.getBlockNumber())
-    );
-
-    await sale.end();
 
     const saleStatusSuccess = await sale.saleStatus();
 
@@ -953,20 +958,6 @@ describe("Sale", async function () {
       `wrong status
       expected  ${Status.SUCCESS}
       got       ${saleStatusSuccess}`
-    );
-
-    await Util.assertError(
-      async () => {
-        await sale.connect(signer1).buy({
-          feeRecipient: feeRecipient.address,
-          fee,
-          minimumUnits: desiredUnits,
-          desiredUnits,
-          maximumPrice: staticPrice,
-        });
-      },
-      "ENDED",
-      "bought after sale ended"
     );
   });
 
@@ -979,7 +970,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const minimumSaleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100");
 
     const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
@@ -1012,7 +1003,7 @@ describe("Sale", async function () {
         reserve: reserve.address,
         startBlock,
         cooldownDuration: 1,
-        minimumSaleDuration,
+        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1033,7 +1024,7 @@ describe("Sale", async function () {
 
     // wait until sale can end
     await Util.createEmptyBlock(
-      minimumSaleDuration +
+      saleTimeout +
         startBlock -
         (await ethers.provider.getBlockNumber())
     );
