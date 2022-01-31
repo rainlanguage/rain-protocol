@@ -182,10 +182,6 @@ describe("Sale", async function () {
     throw new Error("dustSize untested");
   });
 
-  it("PRICE_ONE scaling down VM calculation by 10**18", async function () {
-    throw new Error("PRICE_ONE scaling down VM calculation by 10**18 untested");
-  });
-
   it("should dynamically calculate price (based on total reserve in)", async function () {
     this.timeout(0);
 
@@ -210,13 +206,18 @@ describe("Sale", async function () {
 
     const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    const constants = [basePrice];
+    const reserveDivisor = ethers.BigNumber.from("1" + Util.fourZeros);
+
+    const constants = [basePrice, reserveDivisor];
     const vBasePrice = op(Opcode.VAL, 0);
+    const vReserveDivisor = op(Opcode.VAL, 1);
 
     const sources = [
       concat([
-        // (+ 75 TOTAL_RESERVE_IN)
+        // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         op(Opcode.TOTAL_RESERVE_IN),
+        vReserveDivisor,
+        op(Opcode.DIV, 2),
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
@@ -256,8 +257,8 @@ describe("Sale", async function () {
     );
 
     const desiredUnits0 = totalTokenSupply.div(10);
-    const expectedPrice0 = basePrice.add(0).mul(desiredUnits0);
-    const expectedCost0 = expectedPrice0;
+    const expectedPrice0 = basePrice.add(0);
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
 
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost0.add(fee));
@@ -266,7 +267,7 @@ describe("Sale", async function () {
       .connect(signer1)
       .approve(sale.address, expectedCost0.add(fee));
 
-    // buy 1 unit
+    // buy 10% of total supply
     const txBuy0 = await sale.connect(signer1).buy({
       feeRecipient: feeRecipient.address,
       fee,
@@ -288,13 +289,20 @@ describe("Sale", async function () {
       got       ${receipt0.price}`
     );
 
+    const totalReserveIn1 = expectedCost0;
+
     const desiredUnits1 = totalTokenSupply.div(10);
-    const expectedPrice1 = basePrice.add(expectedCost0).mul(desiredUnits1);
-    const expectedCost1 = expectedPrice1.add(fee);
+    const expectedPrice1 = basePrice.add(totalReserveIn1.div(reserveDivisor));
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
 
-    await reserve.connect(signer1).approve(sale.address, expectedCost1);
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
 
-    // buy 1 unit
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
+
+    // buy another 10% of total supply
     const txBuy1 = await sale.connect(signer1).buy({
       feeRecipient: feeRecipient.address,
       fee,
@@ -308,8 +316,6 @@ describe("Sale", async function () {
       "Buy",
       sale
     )) as BuyEvent["args"];
-
-    console.log({ receipt0, receipt1 });
 
     assert(
       receipt1.price.eq(expectedPrice1),
@@ -343,18 +349,17 @@ describe("Sale", async function () {
 
     const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    const constants = [
-      basePrice,
-      ethers.BigNumber.from("1" + Util.sixteenZeros),
-    ];
+    const supplyDivisor = ethers.BigNumber.from("1" + Util.sixteenZeros);
+
+    const constants = [basePrice, supplyDivisor];
     const vBasePrice = op(Opcode.VAL, 0);
-    const vSixteenZeros = op(Opcode.VAL, 1);
+    const vSupplyDivisor = op(Opcode.VAL, 1);
 
     const sources = [
       concat([
-        // (+ 75 (/ REMAINING_UNITS 10000000000000000)))
-        vSixteenZeros,
+        // ((REMAINING_UNITS 10000000000000000 /) 75 +)
         op(Opcode.REMAINING_UNITS),
+        vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
         op(Opcode.ADD, 2),
@@ -369,7 +374,7 @@ describe("Sale", async function () {
         vmStateConfig: {
           sources,
           constants,
-          stackLength: 2,
+          stackLength: 3,
           argumentsLength: 0,
         },
         recipient: recipient.address,
@@ -394,15 +399,15 @@ describe("Sale", async function () {
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
+    const remainingSupplySummand = totalTokenSupply.div(supplyDivisor);
+
     const desiredUnits = totalTokenSupply.div(10);
-    const expectedPrice = basePrice.add(
-      totalTokenSupply.div(ethers.BigNumber.from("1" + Util.sixteenZeros))
-    );
+    const expectedPrice = basePrice.add(remainingSupplySummand);
     const expectedCost = expectedPrice.mul(desiredUnits).div(Util.ONE);
 
     const actualPrice = await sale.calculatePrice(desiredUnits);
 
-    console.log({ expectedPrice, actualPrice });
+    assert(actualPrice.eq(expectedPrice), "wrong calculated price");
 
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost.add(fee));
@@ -461,7 +466,7 @@ describe("Sale", async function () {
 
     const sources = [
       concat([
-        // (+ 75 BLOCK_NUMBER)
+        // (BLOCK_NUMBER 75 +)
         op(Opcode.BLOCK_NUMBER),
         vBasePrice,
         op(Opcode.ADD, 2),
