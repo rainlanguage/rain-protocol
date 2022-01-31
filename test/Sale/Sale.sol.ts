@@ -67,6 +67,7 @@ const enum Opcode {
   LAST_BUY_BLOCK,
   LAST_BUY_UNITS,
   LAST_BUY_PRICE,
+  CURRENT_BUY_UNITS,
 }
 
 const saleDeploy = async (
@@ -126,10 +127,12 @@ let reserve: ReserveToken & Contract,
   saleFactory: SaleFactory & Contract;
 
 describe("Sale", async function () {
-  before(async () => {
+  beforeEach(async () => {
     reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
       Contract;
+  });
 
+  before(async () => {
     redeemableERC20FactoryFactory = await ethers.getContractFactory(
       "RedeemableERC20Factory",
       {}
@@ -153,6 +156,10 @@ describe("Sale", async function () {
       saleConstructorConfig
     )) as SaleFactory & Contract;
     await saleFactory.deployed();
+  });
+
+  it("CURRENT_BUY_UNITS", async function () {
+    throw new Error("CURRENT_BUY_UNITS untested");
   });
 
   it("LAST_BUY_PRICE", async function () {
@@ -191,9 +198,9 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("100000");
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
@@ -201,16 +208,16 @@ describe("Sale", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const basePrice = ethers.BigNumber.from("75");
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [basePrice];
-    const v75 = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.VAL, 0);
 
     const sources = [
       concat([
         // (+ 75 TOTAL_RESERVE_IN)
         op(Opcode.TOTAL_RESERVE_IN),
-        v75,
+        vBasePrice,
         op(Opcode.ADD, 2),
       ]),
     ];
@@ -241,21 +248,23 @@ describe("Sale", async function () {
       }
     );
 
-    const fee = ethers.BigNumber.from("1");
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
 
     // wait until sale start
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    // give signer1 a lot of reserve
-    await reserve.transfer(signer1.address, ethers.BigNumber.from("1000000"));
-
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0).mul(desiredUnits0);
-    const expectedCost0 = expectedPrice0.add(fee);
+    const expectedCost0 = expectedPrice0;
 
-    await reserve.connect(signer1).approve(sale.address, expectedCost0);
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
 
     // buy 1 unit
     const txBuy0 = await sale.connect(signer1).buy({
@@ -310,7 +319,7 @@ describe("Sale", async function () {
     );
   });
 
-  it("should dynamically calculate price (based on remaining units)", async function () {
+  it("should dynamically calculate price (based on remaining supply)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -322,9 +331,9 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("100000");
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
@@ -332,16 +341,22 @@ describe("Sale", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const basePrice = ethers.BigNumber.from("75");
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    const constants = [basePrice];
-    const v75 = op(Opcode.VAL, 0);
+    const constants = [
+      basePrice,
+      ethers.BigNumber.from("1" + Util.sixteenZeros),
+    ];
+    const vBasePrice = op(Opcode.VAL, 0);
+    const vSixteenZeros = op(Opcode.VAL, 1);
 
     const sources = [
       concat([
-        // (+ 75 REMAINING_UNITS)
+        // (+ 75 (/ REMAINING_UNITS 10000000000000000)))
+        vSixteenZeros,
         op(Opcode.REMAINING_UNITS),
-        v75,
+        op(Opcode.DIV, 2),
+        vBasePrice,
         op(Opcode.ADD, 2),
       ]),
     ];
@@ -354,7 +369,7 @@ describe("Sale", async function () {
         vmStateConfig: {
           sources,
           constants,
-          stackLength: 3,
+          stackLength: 2,
           argumentsLength: 0,
         },
         recipient: recipient.address,
@@ -372,21 +387,27 @@ describe("Sale", async function () {
       }
     );
 
-    const fee = ethers.BigNumber.from("1");
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
 
     // wait until sale start
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    // give signer1 a lot of reserve
-    await reserve.transfer(signer1.address, ethers.BigNumber.from("1000000"));
-
     const desiredUnits = totalTokenSupply.div(10);
-    const expectedPrice = basePrice.add(totalTokenSupply).mul(desiredUnits);
-    const expectedCost = expectedPrice.add(fee);
+    const expectedPrice = basePrice.add(
+      totalTokenSupply.div(ethers.BigNumber.from("1" + Util.sixteenZeros))
+    );
+    const expectedCost = expectedPrice.mul(desiredUnits).div(Util.ONE);
 
-    await reserve.connect(signer1).approve(sale.address, expectedCost);
+    const actualPrice = await sale.calculatePrice(desiredUnits);
+
+    console.log({ expectedPrice, actualPrice });
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost.add(fee));
+
+    await reserve.connect(signer1).approve(sale.address, expectedCost.add(fee));
 
     // buy 1 unit
     const txBuy = await sale.connect(signer1).buy({
@@ -423,9 +444,9 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("100000");
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
@@ -433,16 +454,16 @@ describe("Sale", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const basePrice = ethers.BigNumber.from("75");
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [basePrice];
-    const v75 = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.VAL, 0);
 
     const sources = [
       concat([
         // (+ 75 BLOCK_NUMBER)
         op(Opcode.BLOCK_NUMBER),
-        v75,
+        vBasePrice,
         op(Opcode.ADD, 2),
       ]),
     ];
@@ -473,23 +494,25 @@ describe("Sale", async function () {
       }
     );
 
-    const fee = ethers.BigNumber.from("1");
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
 
     // wait until sale start
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    // give signer1 a lot of reserve
-    await reserve.transfer(signer1.address, ethers.BigNumber.from("1000000"));
-
     const desiredUnits0 = totalTokenSupply.div(10);
-    const expectedPrice0 = basePrice
-      .add((await ethers.provider.getBlockNumber()) + 2) // 2 blocks from now
-      .mul(desiredUnits0);
-    const expectedCost0 = expectedPrice0.add(fee);
+    const expectedPrice0 = basePrice.add(
+      (await ethers.provider.getBlockNumber()) + 3
+    ); // 2 blocks from now
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
 
-    await reserve.connect(signer1).approve(sale.address, expectedCost0);
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
 
     // buy 1 unit
     const txBuy0 = await sale.connect(signer1).buy({
@@ -514,12 +537,16 @@ describe("Sale", async function () {
     );
 
     const desiredUnits1 = totalTokenSupply.div(10);
-    const expectedPrice1 = basePrice
-      .add((await ethers.provider.getBlockNumber()) + 2) // 2 blocks from now
-      .mul(desiredUnits1);
-    const expectedCost1 = expectedPrice1.add(fee);
+    const expectedPrice1 = basePrice.add(
+      (await ethers.provider.getBlockNumber()) + 3
+    ); // 2 blocks from now
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
 
-    await reserve.connect(signer1).approve(sale.address, expectedCost1);
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
 
     // buy 1 unit
     const txBuy1 = await sale.connect(signer1).buy({
@@ -556,9 +583,9 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("100000");
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
@@ -566,12 +593,12 @@ describe("Sale", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const staticPrice = ethers.BigNumber.from("75");
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const v75 = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    const sources = [concat([v75])];
+    const sources = [concat([vBasePrice])];
 
     const [sale, token] = await saleDeploy(
       signers,
@@ -599,17 +626,18 @@ describe("Sale", async function () {
       }
     );
 
-    const fee = ethers.BigNumber.from("1");
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
 
     // wait until sale start
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    // give signer1 a lot of reserve
-    await reserve.transfer(signer1.address, ethers.BigNumber.from("1000000"));
-
     const desiredUnits = totalTokenSupply.div(10);
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
 
     await reserve
       .connect(signer1)
@@ -632,9 +660,7 @@ describe("Sale", async function () {
 
     // wait until sale can end
     await Util.createEmptyBlock(
-      saleTimeout +
-        startBlock -
-        (await ethers.provider.getBlockNumber())
+      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
     );
 
     // recipient cannot claim before sale ended with status of success
@@ -681,9 +707,9 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("100000");
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
@@ -691,12 +717,12 @@ describe("Sale", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const staticPrice = ethers.BigNumber.from("75");
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const v75 = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    const sources = [concat([v75])];
+    const sources = [concat([vBasePrice])];
 
     const [sale] = await saleDeploy(
       signers,
@@ -724,17 +750,18 @@ describe("Sale", async function () {
       }
     );
 
-    const fee = ethers.BigNumber.from("1");
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
 
     // wait until sale start
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    // give signer1 a lot of reserve
-    await reserve.transfer(signer1.address, ethers.BigNumber.from("1000000"));
-
     const desiredUnits = totalTokenSupply;
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
 
     await reserve
       .connect(signer1)
@@ -749,23 +776,7 @@ describe("Sale", async function () {
       maximumPrice: staticPrice,
     });
 
-    // wait until sale can end
-    await Util.createEmptyBlock(
-      saleTimeout +
-        startBlock -
-        (await ethers.provider.getBlockNumber())
-    );
-
-    // recipient cannot claim before sale ended with status of success
-    await Util.assertError(
-      async () =>
-        await sale.connect(feeRecipient).claimFees(feeRecipient.address),
-      "NOT_SUCCESS",
-      "fees were claimed before sale ended with status of success"
-    );
-
-    await sale.end();
-
+    // sale should automatically have ended after all units bought
     const saleStatusSuccess = await sale.saleStatus();
 
     assert(
@@ -778,7 +789,7 @@ describe("Sale", async function () {
     await sale.connect(feeRecipient).claimFees(feeRecipient.address);
   });
 
-  it.only("should have status of Success if minimum raise met", async function () {
+  it("should have status of Success if minimum raise met", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -790,9 +801,9 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("100000");
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
@@ -800,12 +811,12 @@ describe("Sale", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const staticPrice = ethers.BigNumber.from("75");
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const v75 = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    const sources = [concat([v75])];
+    const sources = [concat([vBasePrice])];
 
     const [sale] = await saleDeploy(
       signers,
@@ -841,13 +852,19 @@ describe("Sale", async function () {
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
 
-    const fee = ethers.BigNumber.from("1");
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
 
     const desiredUnits = totalTokenSupply;
-    const cost = staticPrice.mul(desiredUnits).div(Util.ONE).add(fee);
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
 
-    // give signer1 a lot of reserve
-    await reserve.transfer(signer1.address, cost);
+    const price = await sale.calculatePrice(desiredUnits);
+
+    assert(price.eq(75000000), "wrong price");
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
 
     await Util.assertError(
       async () => {
@@ -868,9 +885,7 @@ describe("Sale", async function () {
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    await reserve
-      .connect(signer1)
-      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+    await reserve.connect(signer1).approve(sale.address, signer1ReserveBalance);
 
     await Util.assertError(
       async () => {
@@ -959,6 +974,17 @@ describe("Sale", async function () {
       expected  ${Status.SUCCESS}
       got       ${saleStatusSuccess}`
     );
+
+    const recipientFinalReserveBalance = await reserve.balanceOf(
+      recipient.address
+    );
+
+    assert(
+      recipientFinalReserveBalance.eq(minimumRaise),
+      `recipient did not receive correct funds at end of successful raise
+      expected  ${minimumRaise}
+      got       ${recipientFinalReserveBalance}`
+    );
   });
 
   it("should have status of Fail if minimum raise not met", async function () {
@@ -971,9 +997,9 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("100");
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
@@ -981,12 +1007,12 @@ describe("Sale", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const staticPrice = ethers.BigNumber.from("75").mul(Util.ONE); // VM price assumed to be a factor of 10**18 to minimise rounding issues
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const v75 = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    const sources = [concat([v75])];
+    const sources = [concat([vBasePrice])];
 
     const [sale] = await saleDeploy(
       signers,
@@ -1024,9 +1050,7 @@ describe("Sale", async function () {
 
     // wait until sale can end
     await Util.createEmptyBlock(
-      saleTimeout +
-        startBlock -
-        (await ethers.provider.getBlockNumber())
+      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
     );
 
     await sale.end();
