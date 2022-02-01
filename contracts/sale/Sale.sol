@@ -354,8 +354,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
                     state_.stack[state_.stackIndex] = totalReserveIn;
                 } else if (opcode_ == LAST_RESERVE_IN) {
                     state_.stack[state_.stackIndex] =
-                        lastBuyUnits *
-                        lastBuyPrice;
+                        (lastBuyPrice * lastBuyUnits) / PRICE_ONE;
                 } else if (opcode_ == LAST_BUY_BLOCK) {
                     state_.stack[state_.stackIndex] = lastBuyBlock;
                 } else if (opcode_ == LAST_BUY_UNITS) {

@@ -158,28 +158,1085 @@ describe("Sale", async function () {
     await saleFactory.deployed();
   });
 
-  it("CURRENT_BUY_UNITS", async function () {
-    throw new Error("CURRENT_BUY_UNITS untested");
+  it("should prevent a buy which leaves remaining units less than configured `dustSize`", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const dustSize = totalTokenSupply.div(10 ** 7); // arbitrary value
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vStaticPrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vStaticPrice])];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 3,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        saleTimeout,
+        minimumRaise,
+        dustSize,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const desiredUnits = totalTokenSupply.add(1).sub(dustSize);
+    const expectedPrice = staticPrice;
+    const expectedCost = expectedPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost.add(fee));
+
+    await reserve.connect(signer1).approve(sale.address, expectedCost.add(fee));
+
+    // attempt to leave remaining units
+    await Util.assertError(
+      async () =>
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 0, // user configures ANY minimum
+          desiredUnits: desiredUnits,
+          maximumPrice: expectedPrice,
+        }),
+      "DUST",
+      "wrongly purchased number of units which leaves less than `dustSize` units remaining"
+    );
   });
 
-  it("LAST_BUY_PRICE", async function () {
-    throw new Error("LAST_BUY_PRICE untested");
+  it("should dynamically calculate price (based on number of units being bought)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const supplyDivisor = ethers.BigNumber.from("1" + Util.sixteenZeros);
+
+    const constants = [basePrice, supplyDivisor];
+    const vBasePrice = op(Opcode.VAL, 0);
+    const vSupplyDivisor = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // ((CURRENT_BUY_UNITS priceDivisor /) 75 +)
+        op(Opcode.CURRENT_BUY_UNITS),
+        vSupplyDivisor,
+        op(Opcode.DIV, 2),
+        vBasePrice,
+        op(Opcode.ADD, 2),
+      ]),
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 3,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        saleTimeout,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const desiredUnits0 = totalTokenSupply.div(10);
+    const expectedPrice0 = basePrice.add(desiredUnits0.div(supplyDivisor));
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+
+    // buy 10% of total supply
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits0,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt0.price.eq(expectedPrice0),
+      `wrong dynamic price0
+      expected  ${expectedPrice0}
+      got       ${receipt0.price}`
+    );
+
+    const desiredUnits1 = totalTokenSupply.div(10);
+    const expectedPrice1 = basePrice.add(desiredUnits1.div(supplyDivisor));
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits1,
+      desiredUnits: desiredUnits1,
+      maximumPrice: expectedPrice1,
+    });
+
+    const { receipt: receipt1 } = (await Util.getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt1.price.eq(expectedPrice1),
+      `wrong dynamic price1
+      expected  ${expectedPrice1}
+      got       ${receipt1.price}`
+    );
   });
 
-  it("LAST_BUY_UNITS", async function () {
-    throw new Error("LAST_BUY_UNITS untested");
+  it("should dynamically calculate price (based on unit price in most recent buy)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const priceDivisor = ethers.BigNumber.from("1" + Util.fourZeros);
+
+    const constants = [basePrice, priceDivisor];
+    const vBasePrice = op(Opcode.VAL, 0);
+    const vPriceDivisor = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // ((LAST_BUY_PRICE priceDivisor /) 75 +)
+        op(Opcode.LAST_BUY_PRICE),
+        vPriceDivisor,
+        op(Opcode.DIV, 2),
+        vBasePrice,
+        op(Opcode.ADD, 2),
+      ]),
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 3,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        saleTimeout,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const desiredUnits0 = totalTokenSupply.div(10);
+    const expectedPrice0 = basePrice.add(0);
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+
+    // buy 10% of total supply
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits0,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt0.price.eq(expectedPrice0),
+      `wrong dynamic price0
+      expected  ${expectedPrice0}
+      got       ${receipt0.price}`
+    );
+
+    const desiredUnits1 = totalTokenSupply.div(10);
+    const expectedPrice1 = basePrice.add(expectedPrice0.div(priceDivisor));
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits1,
+      desiredUnits: desiredUnits1,
+      maximumPrice: expectedPrice1,
+    });
+
+    const { receipt: receipt1 } = (await Util.getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt1.price.eq(expectedPrice1),
+      `wrong dynamic price1
+      expected  ${expectedPrice1}
+      got       ${receipt1.price}`
+    );
   });
 
-  it("LAST_BUY_BLOCK", async function () {
-    throw new Error("LAST_BUY_BLOCK untested");
+  it("should dynamically calculate price (based on number of units sold in most recent buy)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const supplyDivisor = ethers.BigNumber.from("1" + Util.sixteenZeros);
+
+    const constants = [basePrice, supplyDivisor];
+    const vBasePrice = op(Opcode.VAL, 0);
+    const vSupplyDivisor = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // ((LAST_BUY_UNITS supplyDivisor /) 75 +)
+        op(Opcode.LAST_BUY_UNITS),
+        vSupplyDivisor,
+        op(Opcode.DIV, 2),
+        vBasePrice,
+        op(Opcode.ADD, 2),
+      ]),
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 3,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        saleTimeout,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const desiredUnits0 = totalTokenSupply.div(10);
+    const expectedPrice0 = basePrice.add(0);
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+
+    // buy 10% of total supply
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits0,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt0.price.eq(expectedPrice0),
+      `wrong dynamic price0
+      expected  ${expectedPrice0}
+      got       ${receipt0.price}`
+    );
+
+    const desiredUnits1 = totalTokenSupply.div(10);
+    const expectedPrice1 = basePrice.add(desiredUnits0.div(supplyDivisor));
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits1,
+      desiredUnits: desiredUnits1,
+      maximumPrice: expectedPrice1,
+    });
+
+    const { receipt: receipt1 } = (await Util.getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt1.price.eq(expectedPrice1),
+      `wrong dynamic price1
+      expected  ${expectedPrice1}
+      got       ${receipt1.price}`
+    );
   });
 
-  it("LAST_RESERVE_IN", async function () {
-    throw new Error("LAST_RESERVE_IN untested");
+  it("should dynamically calculate price (based on block of most recent buy)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [basePrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [
+      concat([
+        // (LAST_BUY_BLOCK 75 +)
+        op(Opcode.LAST_BUY_BLOCK),
+        vBasePrice,
+        op(Opcode.ADD, 2),
+      ]),
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 3,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        saleTimeout,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const desiredUnits0 = totalTokenSupply.div(10);
+    const expectedPrice0 = basePrice.add(0);
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+
+    // buy 10% of total supply
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits0,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+
+    const blockLastBuy0 = await ethers.provider.getBlockNumber();
+
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt0.price.eq(expectedPrice0),
+      `wrong dynamic price0
+      expected  ${expectedPrice0}
+      got       ${receipt0.price}`
+    );
+
+    const desiredUnits1 = totalTokenSupply.div(10);
+    const expectedPrice1 = basePrice.add(blockLastBuy0);
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits1,
+      desiredUnits: desiredUnits1,
+      maximumPrice: expectedPrice1,
+    });
+
+    const { receipt: receipt1 } = (await Util.getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt1.price.eq(expectedPrice1),
+      `wrong dynamic price1
+      expected  ${expectedPrice1}
+      got       ${receipt1.price}`
+    );
   });
 
-  it("dustSize", async function () {
-    throw new Error("dustSize untested");
+  it("should dynamically calculate price (based on last reserve in)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const reserveDivisor = ethers.BigNumber.from("1" + Util.fourZeros);
+
+    const constants = [basePrice, reserveDivisor];
+    const vBasePrice = op(Opcode.VAL, 0);
+    const vReserveDivisor = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // ((LAST_RESERVE_IN reserveDivisor /) 75 +)
+        op(Opcode.LAST_RESERVE_IN),
+        vReserveDivisor,
+        op(Opcode.DIV, 2),
+        vBasePrice,
+        op(Opcode.ADD, 2),
+      ]),
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 3,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        saleTimeout,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const desiredUnits0 = totalTokenSupply.div(10);
+    const expectedPrice0 = basePrice.add(0);
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+
+    // buy 10% of total supply
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits0,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt0.price.eq(expectedPrice0),
+      `wrong dynamic price0
+      expected  ${expectedPrice0}
+      got       ${receipt0.price}`
+    );
+
+    const lastReserveIn1 = expectedCost0;
+
+    const desiredUnits1 = totalTokenSupply.div(10);
+    const expectedPrice1 = basePrice.add(lastReserveIn1.div(reserveDivisor));
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits1,
+      desiredUnits: desiredUnits1,
+      maximumPrice: expectedPrice1,
+    });
+
+    const { receipt: receipt1 } = (await Util.getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt1.price.eq(expectedPrice1),
+      `wrong dynamic price1
+      expected  ${expectedPrice1}
+      got       ${receipt1.price}`
+    );
+  });
+
+  it("should support multiple successive buys (same logic as the following total reserve in test)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const reserveDivisor = ethers.BigNumber.from("1" + Util.fourZeros);
+
+    const constants = [basePrice, reserveDivisor];
+    const vBasePrice = op(Opcode.VAL, 0);
+    const vReserveDivisor = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
+        op(Opcode.TOTAL_RESERVE_IN),
+        vReserveDivisor,
+        op(Opcode.DIV, 2),
+        vBasePrice,
+        op(Opcode.ADD, 2),
+      ]),
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+          stackLength: 3,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        startBlock,
+        cooldownDuration: 1,
+        saleTimeout,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const desiredUnits0 = totalTokenSupply.div(10);
+    const expectedPrice0 = basePrice.add(0);
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+
+    // buy 10% of total supply
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits0,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt0.price.eq(expectedPrice0),
+      `wrong dynamic price0
+      expected  ${expectedPrice0}
+      got       ${receipt0.price}`
+    );
+
+    const totalReserveIn1 = expectedCost0;
+
+    const desiredUnits1 = totalTokenSupply.div(10);
+    const expectedPrice1 = basePrice.add(totalReserveIn1.div(reserveDivisor));
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits1,
+      desiredUnits: desiredUnits1,
+      maximumPrice: expectedPrice1,
+    });
+
+    const { receipt: receipt1 } = (await Util.getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt1.price.eq(expectedPrice1),
+      `wrong dynamic price1
+      expected  ${expectedPrice1}
+      got       ${receipt1.price}`
+    );
+
+    const totalReserveIn2 = expectedCost1.add(expectedCost0);
+
+    const desiredUnits2 = totalTokenSupply.div(10);
+    const expectedPrice2 = basePrice.add(totalReserveIn2.div(reserveDivisor));
+    const expectedCost2 = expectedPrice2.mul(desiredUnits2).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost2.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost2.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy2 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits2,
+      desiredUnits: desiredUnits2,
+      maximumPrice: expectedPrice2,
+    });
+
+    const { receipt: receipt2 } = (await Util.getEventArgs(
+      txBuy2,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt2.price.eq(expectedPrice2),
+      `wrong dynamic price2
+      expected  ${expectedPrice2}
+      got       ${receipt2.price}`
+    );
+
+    const totalReserveIn3 = expectedCost2.add(expectedCost1).add(expectedCost0);
+
+    const desiredUnits3 = totalTokenSupply.div(10);
+    const expectedPrice3 = basePrice.add(totalReserveIn3.div(reserveDivisor));
+    const expectedCost3 = expectedPrice3.mul(desiredUnits3).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost3.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost3.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy3 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits3,
+      desiredUnits: desiredUnits3,
+      maximumPrice: expectedPrice3,
+    });
+
+    const { receipt: receipt3 } = (await Util.getEventArgs(
+      txBuy3,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt3.price.eq(expectedPrice3),
+      `wrong dynamic price3
+      expected  ${expectedPrice3}
+      got       ${receipt3.price}`
+    );
+
+    const totalReserveIn4 = expectedCost3
+      .add(expectedCost2)
+      .add(expectedCost1)
+      .add(expectedCost0);
+
+    const desiredUnits4 = totalTokenSupply.div(10);
+    const expectedPrice4 = basePrice.add(totalReserveIn4.div(reserveDivisor));
+    const expectedCost4 = expectedPrice4.mul(desiredUnits4).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost4.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost4.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy4 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits4,
+      desiredUnits: desiredUnits4,
+      maximumPrice: expectedPrice4,
+    });
+
+    const { receipt: receipt4 } = (await Util.getEventArgs(
+      txBuy4,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt4.price.eq(expectedPrice4),
+      `wrong dynamic price4
+      expected  ${expectedPrice4}
+      got       ${receipt4.price}`
+    );
+
+    const totalReserveIn5 = expectedCost4
+      .add(expectedCost3)
+      .add(expectedCost2)
+      .add(expectedCost1)
+      .add(expectedCost0);
+
+    const desiredUnits5 = totalTokenSupply.div(10);
+    const expectedPrice5 = basePrice.add(totalReserveIn5.div(reserveDivisor));
+    const expectedCost5 = expectedPrice5.mul(desiredUnits5).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost5.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost5.add(fee));
+
+    // buy another 10% of total supply
+    const txBuy5 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits5,
+      desiredUnits: desiredUnits5,
+      maximumPrice: expectedPrice5,
+    });
+
+    const { receipt: receipt5 } = (await Util.getEventArgs(
+      txBuy5,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    assert(
+      receipt5.price.eq(expectedPrice5),
+      `wrong dynamic price5
+      expected  ${expectedPrice5}
+      got       ${receipt5.price}`
+    );
   });
 
   it("should dynamically calculate price (based on total reserve in)", async function () {
