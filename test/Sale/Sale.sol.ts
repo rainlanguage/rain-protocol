@@ -63,7 +63,6 @@ const enum Opcode {
   SELECT_LTE,
   REMAINING_UNITS,
   TOTAL_RESERVE_IN,
-  LAST_RESERVE_IN,
   LAST_BUY_BLOCK,
   LAST_BUY_UNITS,
   LAST_BUY_PRICE,
@@ -829,19 +828,23 @@ describe("Sale", async function () {
     };
 
     const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
-
+    const one = Util.ONE
     const reserveDivisor = ethers.BigNumber.from("1" + Util.fourZeros);
 
-    const constants = [basePrice, reserveDivisor];
-    const vBasePrice = op(Opcode.VAL, 0);
-    const vReserveDivisor = op(Opcode.VAL, 1);
+    const constants = [one, basePrice, reserveDivisor];
+    const vOne = op(Opcode.VAL, 0)
+    const vBasePrice = op(Opcode.VAL, 1);
+    const vReserveDivisor = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
-        // ((LAST_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.LAST_RESERVE_IN),
+        // (((LAST_BUY_PRICE LAST_BUY_UNITS *) one reserveDivisor /) 75 +)
+        op(Opcode.LAST_BUY_PRICE),
+        op(Opcode.LAST_BUY_UNITS),
+        op(Opcode.MUL, 2),
+        vOne,
         vReserveDivisor,
-        op(Opcode.DIV, 2),
+        op(Opcode.DIV, 3),
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),

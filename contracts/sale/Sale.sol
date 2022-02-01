@@ -22,6 +22,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable-next-line max-line-length
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 struct SaleConstructorConfig {
     RedeemableERC20Factory redeemableERC20Factory;
@@ -66,7 +67,7 @@ struct Receipt {
     uint256 price;
 }
 
-contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
+contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -81,15 +82,14 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
 
     uint256 private constant REMAINING_UNITS = 0;
     uint256 private constant TOTAL_RESERVE_IN = 1;
-    uint256 private constant LAST_RESERVE_IN = 2;
 
-    uint256 private constant LAST_BUY_BLOCK = 3;
-    uint256 private constant LAST_BUY_UNITS = 4;
-    uint256 private constant LAST_BUY_PRICE = 5;
+    uint256 private constant LAST_BUY_BLOCK = 2;
+    uint256 private constant LAST_BUY_UNITS = 3;
+    uint256 private constant LAST_BUY_PRICE = 4;
 
-    uint256 private constant CURRENT_BUY_UNITS = 6;
+    uint256 private constant CURRENT_BUY_UNITS = 5;
 
-    uint256 internal constant LOCAL_OPS_LENGTH = 7;
+    uint256 internal constant LOCAL_OPS_LENGTH = 6;
 
     uint256 private immutable blockOpsStart;
     uint256 private immutable senderOpsStart;
@@ -144,7 +144,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
     function initialize(
         SaleConfig memory config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
-    ) external {
+    ) external initializer {
         initializeCooldown(config_.cooldownDuration);
 
         canStartStatePointer = VMState.snapshot(
@@ -224,14 +224,16 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         remainingUnits = 0;
         address[] memory distributors_ = new address[](1);
         distributors_[0] = address(this);
+
+        bool success_ = totalReserveIn >= minimumRaise;
+        _saleStatus = success_ ? SaleStatus.Success : SaleStatus.Fail;
+
+        // Always burn the undistributed tokens.
         _token.burnDistributors(distributors_);
 
-        if (totalReserveIn >= minimumRaise) {
-            _saleStatus = SaleStatus.Success;
-            // Only send reserve to recipient if the raise is a success.
+        // Only send reserve to recipient if the raise is a success.
+        if (success_) {
             _reserve.safeTransfer(recipient, totalReserveIn);
-        } else {
-            _saleStatus = SaleStatus.Fail;
         }
     }
 
@@ -294,7 +296,7 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
         );
         // This happens before `end` so that the transfer happens before the
         // distributor is burned and token is frozen.
-        _token.transfer(msg.sender, units_);
+        IERC20(address(_token)).safeTransfer(msg.sender, units_);
 
         if (remainingUnits < 1) {
             end();
@@ -326,7 +328,11 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
 
         emit Refund(msg.sender, receipt_);
 
-        _token.transferFrom(msg.sender, address(this), receipt_.units);
+        IERC20(address(_token)).safeTransferFrom(
+            msg.sender,
+            address(this),
+            receipt_.units
+        );
         _reserve.safeTransfer(msg.sender, cost_ + receipt_.fee);
     }
 
@@ -386,10 +392,6 @@ contract Sale is Cooldown, RainVM, ISale, ReentrancyGuard {
                     state_.stack[state_.stackIndex] = remainingUnits;
                 } else if (opcode_ == TOTAL_RESERVE_IN) {
                     state_.stack[state_.stackIndex] = totalReserveIn;
-                } else if (opcode_ == LAST_RESERVE_IN) {
-                    state_.stack[state_.stackIndex] =
-                        (lastBuyPrice * lastBuyUnits) /
-                        PRICE_ONE;
                 } else if (opcode_ == LAST_BUY_BLOCK) {
                     state_.stack[state_.stackIndex] = lastBuyBlock;
                 } else if (opcode_ == LAST_BUY_UNITS) {
