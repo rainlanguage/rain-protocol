@@ -830,6 +830,7 @@ describe("RainVM", async function () {
     const sources = [
       concat([
         // (/ (* (+ 2 2 2) 3) 2 3)
+        // (((2 2 2 +) 3 *) 2 3 /)
         v2,
         v2,
         v2,
