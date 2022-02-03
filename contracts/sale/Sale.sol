@@ -34,13 +34,11 @@ struct SaleConfig {
     StateConfig calculatePriceStateConfig;
     address recipient;
     IERC20 reserve;
-    uint256 startBlock;
     /// Sale can have an id to disambiguate it from other sales from the same
     /// initiator.
     uint256 cooldownDuration;
     /// Sale can be finalised by anon after this many blocks even if the
     /// minimumRaise value has not been met.
-    uint256 saleTimeout;
     uint256 minimumRaise;
     uint256 dustSize;
 }
@@ -105,7 +103,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     address private canStartStatePointer;
     address private canEndStatePointer;
     address private calculatePriceStatePointer;
-    uint256 private saleTimeout;
     uint256 private minimumRaise;
     uint256 private dustSize;
 
@@ -157,7 +154,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             VMState.newState(config_.calculatePriceStateConfig)
         );
         recipient = config_.recipient;
-        saleTimeout = config_.saleTimeout;
         minimumRaise = config_.minimumRaise;
         dustSize = config_.dustSize;
 

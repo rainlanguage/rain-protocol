@@ -122,11 +122,20 @@ const saleDeploy = async (
   return [sale, token];
 };
 
-const trueConfig = {
-  sources: [concat([op(Opcode.VAL, 0)])],
-  constants: [1],
-  stackLength: 1,
-  argumentsLength: 0,
+const afterBlockNumberConfig = (blockNumber) => {
+  return {
+    sources: [
+      concat([
+        // (BLOCK_NUMBER blockNumberSub1 gt)
+        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.VAL, 0),
+        op(Opcode.GREATER_THAN),
+      ]),
+    ],
+    constants: [blockNumber - 1],
+    stackLength: 3,
+    argumentsLength: 0,
+  };
 };
 
 let reserve: ReserveToken & Contract,
@@ -170,7 +179,13 @@ describe("Sale", async function () {
     await saleFactory.deployed();
   });
 
-  // TODO: Test remaining events
+  it("test remaining opcodes", async function () {
+    throw new Error("some opcodes untested");
+  });
+
+  it("test remaining events", async function () {
+    throw new Error("some events untested");
+  });
 
   it("should prevent a buy which leaves remaining units less than configured `dustSize`", async function () {
     this.timeout(0);
@@ -207,8 +222,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -217,9 +232,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize,
       },
@@ -309,8 +322,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -319,9 +332,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -454,8 +465,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -464,9 +475,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -599,8 +608,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -609,9 +618,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -739,8 +746,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -749,9 +756,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -890,8 +895,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -900,9 +905,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1037,8 +1040,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1047,9 +1050,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1331,8 +1332,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1341,9 +1342,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1478,8 +1477,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1488,9 +1487,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1589,8 +1586,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1599,9 +1596,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1725,8 +1720,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1735,9 +1730,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1853,8 +1846,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1863,9 +1856,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1951,8 +1942,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1961,9 +1952,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -2151,8 +2140,8 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        canStartStateConfig: trueConfig,
-        canEndStateConfig: trueConfig,
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2161,9 +2150,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -2182,7 +2169,11 @@ describe("Sale", async function () {
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
 
-    // await sale.start(); // TODO: should error if we configure sale start based on block number
+    await Util.assertError(
+      async () => await sale.start(),
+      "CANT_START",
+      "wrongly started before configured block number"
+    );
 
     // wait until sale start
     await Util.createEmptyBlock(
@@ -2190,6 +2181,12 @@ describe("Sale", async function () {
     );
 
     await sale.start();
+
+    await Util.assertError(
+      async () => await sale.end(),
+      "CANT_END",
+      "wrongly ended before configured block number"
+    );
 
     // wait until sale can end
     await Util.createEmptyBlock(
