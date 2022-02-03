@@ -70,7 +70,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     event Construct(address sender, SaleConstructorConfig config);
     event Initialize(address sender, SaleConfig config, address token);
     event Start(address sender);
-    event End(address sender);
+    event End(address sender, SaleStatus saleStatus);
     event Buy(address sender, BuyConfig config_, Receipt receipt);
     event Refund(address sender, Receipt receipt);
 
@@ -215,14 +215,17 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     function end() public {
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
         require(remainingUnits < 1 || canEnd(), "CANT_END");
-        emit End(msg.sender);
 
         remainingUnits = 0;
         address[] memory distributors_ = new address[](1);
         distributors_[0] = address(this);
 
         bool success_ = totalReserveIn >= minimumRaise;
-        _saleStatus = success_ ? SaleStatus.Success : SaleStatus.Fail;
+        SaleStatus endStatus_ = success_
+            ? SaleStatus.Success
+            : SaleStatus.Fail;
+        emit End(msg.sender, endStatus_);
+        _saleStatus = endStatus_;
 
         // Always burn the undistributed tokens.
         _token.burnDistributors(distributors_);
