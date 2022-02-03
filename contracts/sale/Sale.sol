@@ -154,6 +154,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         recipient = config_.recipient;
         minimumRaise = config_.minimumRaise;
         dustSize = config_.dustSize;
+        // just making this explicit.
+        _saleStatus = SaleStatus.Pending;
 
         _reserve = config_.reserve;
         saleRedeemableERC20Config_.erc20Config.distributor = address(this);
