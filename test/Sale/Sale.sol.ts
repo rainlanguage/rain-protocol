@@ -179,10 +179,6 @@ describe("Sale", async function () {
     await saleFactory.deployed();
   });
 
-  it("test remaining opcodes", async function () {
-    throw new Error("some opcodes untested");
-  });
-
   it("test remaining events", async function () {
     throw new Error("some events untested");
   });
