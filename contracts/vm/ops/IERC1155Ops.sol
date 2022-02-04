@@ -26,7 +26,7 @@ library IERC1155Ops {
 
             // Stack the return of `balanceOf`.
             if (opcode_ == BALANCE_OF) {
-                state_.stackIndex = state_.stackIndex - 2;
+                state_.stackIndex -= 2;
                 state_.stack[state_.stackIndex - 1] = IERC1155(
                     address(uint160(state_.stack[state_.stackIndex - 1]))
                 ).balanceOf(
@@ -37,15 +37,32 @@ library IERC1155Ops {
             // Stack the return of `balanceOfBatch`.
             // Operand will be the length
             else if (opcode_ == BALANCE_OF_BATCH) {
-                state_.stack[state_.stackIndex - 1] = uint256(
-                    uint160(
-                        IERC721(
-                            address(
-                                uint160(state_.stack[state_.stackIndex - 1])
-                            )
-                        ).ownerOf(state_.stack[state_.stackIndex])
-                    )
+                uint256 len_ = operand_ + 1;
+                address[] memory addresses_ = new address[](len_);
+                uint256[] memory ids_ = new uint256[](len_);
+
+                // Consumes (2 * len_ + 1) inputs and produces len_ outputs.
+                state_.stackIndex = state_.stackIndex - (len_ + 1);
+                uint256 baseIndex_ = state_.stackIndex - len_;
+
+                IERC1155 token_ = IERC1155(
+                    address(uint160(state_.stack[baseIndex_]))
                 );
+                for (uint256 i_ = 0; i_ < len_; i_++) {
+                    addresses_[i_] = address(
+                        uint160(state_.stack[baseIndex_ + i_ + 1])
+                    );
+                    ids_[i_] = state_.stack[baseIndex_ + len_ + i_ + 1];
+                }
+
+                uint256[] memory balances_ = token_.balanceOfBatch(
+                    addresses_,
+                    ids_
+                );
+
+                for (uint256 i_ = 0; i_ < len_; i_++) {
+                    state_.stack[baseIndex_ + i_] = balances_[i_];
+                }
             }
         }
     }

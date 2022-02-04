@@ -10,6 +10,8 @@ import {LogicOps} from "../vm/ops/LogicOps.sol";
 import {SenderOps} from "../vm/ops/SenderOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
 import {IERC20Ops} from "../vm/ops/IERC20Ops.sol";
+import {IERC721Ops} from "../vm/ops/IERC721Ops.sol";
+import {IERC1155Ops} from "../vm/ops/IERC1155Ops.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
@@ -94,6 +96,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     uint256 private immutable mathOpsStart;
     uint256 private immutable tierOpsStart;
     uint256 private immutable ierc20OpsStart;
+    uint256 private immutable ierc721OpsStart;
+    uint256 private immutable ierc1155OpsStart;
     uint256 private immutable localOpsStart;
 
     RedeemableERC20Factory private immutable redeemableERC20Factory;
@@ -132,7 +136,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         mathOpsStart = logicOpsStart + LogicOps.OPS_LENGTH;
         tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
         ierc20OpsStart = tierOpsStart + TierOps.OPS_LENGTH;
-        localOpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
+        ierc721OpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
+        ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
+        localOpsStart = ierc1155OpsStart + IERC1155Ops.OPS_LENGTH;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
 
@@ -385,11 +391,25 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                     opcode_ - tierOpsStart,
                     operand_
                 );
-            } else if (opcode_ < localOpsStart) {
+            } else if (opcode_ < ierc721OpsStart) {
                 IERC20Ops.applyOp(
                     context_,
                     state_,
                     opcode_ - ierc20OpsStart,
+                    operand_
+                );
+            } else if (opcode_ < ierc1155OpsStart) {
+                IERC721Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc721OpsStart,
+                    operand_
+                );
+            } else if (opcode_ < localOpsStart) {
+                IERC1155Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc1155OpsStart,
                     operand_
                 );
             } else {

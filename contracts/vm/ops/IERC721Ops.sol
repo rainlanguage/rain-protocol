@@ -7,7 +7,7 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @title IERC721Ops
 /// @notice RainVM opcode pack to read the IERC721 interface.
-library IERC20Ops {
+library IERC721Ops {
     /// Opcode for `IERC721` `balanceOf`.
     uint256 private constant BALANCE_OF = 0;
     /// Opcode for `IERC721` `ownerOf`.
