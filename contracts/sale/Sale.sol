@@ -88,7 +88,10 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     uint256 private constant CURRENT_BUY_UNITS = 5;
 
-    uint256 internal constant LOCAL_OPS_LENGTH = 6;
+    uint256 private constant TOKEN_ADDRESS = 6;
+    uint256 private constant RESERVE_ADDRESS = 7;
+
+    uint256 internal constant LOCAL_OPS_LENGTH = 8;
 
     uint256 private immutable blockOpsStart;
     uint256 private immutable senderOpsStart;
@@ -428,6 +431,14 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                 } else if (opcode_ == CURRENT_BUY_UNITS) {
                     uint256 units_ = abi.decode(context_, (uint256));
                     state_.stack[state_.stackIndex] = units_;
+                } else if (opcode_ == TOKEN_ADDRESS) {
+                    state_.stack[state_.stackIndex] = uint256(
+                        uint160(address(_token))
+                    );
+                } else if (opcode_ == RESERVE_ADDRESS) {
+                    state_.stack[state_.stackIndex] = uint256(
+                        uint160(address(_reserve))
+                    );
                 }
                 state_.stackIndex++;
             }
