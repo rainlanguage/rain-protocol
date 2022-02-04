@@ -6,6 +6,7 @@ import {Cooldown} from "../cooldown/Cooldown.sol";
 import "../vm/RainVM.sol";
 import {BlockOps} from "../vm/ops/BlockOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
+import {LogicOps} from "../vm/ops/LogicOps.sol";
 import {SenderOps} from "../vm/ops/SenderOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
@@ -28,16 +29,14 @@ struct SaleConstructorConfig {
 }
 
 struct SaleConfig {
-    StateConfig vmStateConfig;
+    StateConfig canStartStateConfig;
+    StateConfig canEndStateConfig;
+    StateConfig calculatePriceStateConfig;
     address recipient;
     IERC20 reserve;
-    uint256 startBlock;
     /// Sale can have an id to disambiguate it from other sales from the same
     /// initiator.
     uint256 cooldownDuration;
-    /// Sale can be finalised by anon after this many blocks even if the
-    /// minimumRaise value has not been met.
-    uint256 saleTimeout;
     uint256 minimumRaise;
     uint256 dustSize;
 }
@@ -70,7 +69,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     event Construct(address sender, SaleConstructorConfig config);
     event Initialize(address sender, SaleConfig config, address token);
-    event End(address sender);
+    event Start(address sender);
+    event End(address sender, SaleStatus saleStatus);
     event Buy(address sender, BuyConfig config_, Receipt receipt);
     event Refund(address sender, Receipt receipt);
 
@@ -89,6 +89,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     uint256 private immutable blockOpsStart;
     uint256 private immutable senderOpsStart;
+    uint256 private immutable logicOpsStart;
     uint256 private immutable mathOpsStart;
     uint256 private immutable tierOpsStart;
     uint256 private immutable localOpsStart;
@@ -97,9 +98,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     // config.
     address private recipient;
-    address private vmStatePointer;
-    uint256 private startBlock;
-    uint256 private saleTimeout;
+    address private canStartStatePointer;
+    address private canEndStatePointer;
+    address private calculatePriceStatePointer;
     uint256 private minimumRaise;
     uint256 private dustSize;
 
@@ -125,7 +126,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     constructor(SaleConstructorConfig memory config_) {
         blockOpsStart = RainVM.OPS_LENGTH;
         senderOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
-        mathOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
+        logicOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
+        mathOpsStart = logicOpsStart + LogicOps.OPS_LENGTH;
         tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
         localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
 
@@ -140,14 +142,20 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     ) external initializer {
         initializeCooldown(config_.cooldownDuration);
 
-        vmStatePointer = VMState.snapshot(
-            VMState.newState(config_.vmStateConfig)
+        canStartStatePointer = VMState.snapshot(
+            VMState.newState(config_.canStartStateConfig)
+        );
+        canEndStatePointer = VMState.snapshot(
+            VMState.newState(config_.canEndStateConfig)
+        );
+        calculatePriceStatePointer = VMState.snapshot(
+            VMState.newState(config_.calculatePriceStateConfig)
         );
         recipient = config_.recipient;
-        startBlock = config_.startBlock;
-        saleTimeout = config_.saleTimeout;
         minimumRaise = config_.minimumRaise;
         dustSize = config_.dustSize;
+        // just making this explicit.
+        _saleStatus = SaleStatus.Pending;
 
         _reserve = config_.reserve;
         saleRedeemableERC20Config_.erc20Config.distributor = address(this);
@@ -185,20 +193,39 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         return _saleStatus;
     }
 
+    function canStart() public view returns (bool) {
+        State memory state_ = VMState.restore(canStartStatePointer);
+        eval("", state_, 0);
+        return state_.stack[state_.stackIndex - 1] > 0;
+    }
+
+    function canEnd() public view returns (bool) {
+        State memory state_ = VMState.restore(canEndStatePointer);
+        eval("", state_, 0);
+        return state_.stack[state_.stackIndex - 1] > 0;
+    }
+
+    function start() external {
+        require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
+        require(canStart(), "CANT_START");
+        _saleStatus = SaleStatus.Active;
+        emit Start(msg.sender);
+    }
+
     function end() public {
-        require(_saleStatus == SaleStatus.Pending, "ENDED");
-        require(
-            remainingUnits < 1 || saleTimeout + startBlock <= block.number,
-            "MIN_DURATION"
-        );
-        emit End(msg.sender);
+        require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
+        require(remainingUnits < 1 || canEnd(), "CANT_END");
 
         remainingUnits = 0;
         address[] memory distributors_ = new address[](1);
         distributors_[0] = address(this);
 
         bool success_ = totalReserveIn >= minimumRaise;
-        _saleStatus = success_ ? SaleStatus.Success : SaleStatus.Fail;
+        SaleStatus endStatus_ = success_
+            ? SaleStatus.Success
+            : SaleStatus.Fail;
+        emit End(msg.sender, endStatus_);
+        _saleStatus = endStatus_;
 
         // Always burn the undistributed tokens.
         _token.burnDistributors(distributors_);
@@ -210,7 +237,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     }
 
     function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = VMState.restore(vmStatePointer);
+        State memory state_ = VMState.restore(calculatePriceStatePointer);
         eval(abi.encode(units_), state_, 0);
 
         return state_.stack[state_.stackIndex - 1];
@@ -226,9 +253,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             config_.minimumUnits <= config_.desiredUnits,
             "MINIMUM_OVER_DESIRED"
         );
-        require(startBlock <= block.number, "NOT_STARTED");
 
-        require(_saleStatus == SaleStatus.Pending, "ENDED");
+        require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
         uint256 units_ = config_.desiredUnits.min(remainingUnits).max(
             config_.minimumUnits
@@ -330,11 +356,18 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                     opcode_ - blockOpsStart,
                     operand_
                 );
-            } else if (opcode_ < mathOpsStart) {
+            } else if (opcode_ < logicOpsStart) {
                 SenderOps.applyOp(
                     context_,
                     state_,
                     opcode_ - senderOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < mathOpsStart) {
+                LogicOps.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - logicOpsStart,
                     operand_
                 );
             } else if (opcode_ < tierOpsStart) {

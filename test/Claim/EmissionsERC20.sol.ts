@@ -20,28 +20,29 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 const enum Opcode {
-  skip,
-  val,
-  dup,
-  zipmap,
-  blockNumber,
-  thisAddress,
-  add,
-  sub,
-  mul,
-  div,
-  mod,
-  exp,
-  min,
-  max,
-  report,
-  never,
-  always,
-  diff,
-  updateBlocksForTierRange,
-  selectLte,
-  account,
-  constructionBlockNumber,
+  SKIP,
+  VAL,
+  DUP,
+  ZIPMAP,
+  BLOCK_NUMBER,
+  BLOCK_TIMESTAMP,
+  THIS_ADDRESS,
+  ADD,
+  SUB,
+  MUL,
+  DIV,
+  MOD,
+  EXP,
+  MIN,
+  MAX,
+  REPORT,
+  NEVER,
+  ALWAYS,
+  SATURATING_DIFF,
+  UPDATE_BLOCKS_FOR_TIER_RANGE,
+  SELECT_LTE,
+  CLAIMANT_ACCOUNT,
+  CONSTRUCTION_BLOCK_NUMBER,
 }
 
 enum Tier {
@@ -122,18 +123,18 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN global constants
 
-    const valTierAddress = op(Opcode.val, 0);
-    const valBaseRewardPerTier = op(Opcode.val, 1);
-    const valBlocksPerYear = op(Opcode.val, 2);
-    const valBNOne = op(Opcode.val, 3);
-    const valBNOneReward = op(Opcode.val, 4);
+    const valTierAddress = op(Opcode.VAL, 0);
+    const valBaseRewardPerTier = op(Opcode.VAL, 1);
+    const valBlocksPerYear = op(Opcode.VAL, 2);
+    const valBNOne = op(Opcode.VAL, 3);
+    const valBNOneReward = op(Opcode.VAL, 4);
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.val, arg(0));
-    const valBaseReward = op(Opcode.val, arg(1));
+    const valDuration = op(Opcode.VAL, arg(0));
+    const valBaseReward = op(Opcode.VAL, arg(1));
 
     // END zipmap args
 
@@ -144,7 +145,7 @@ describe("EmissionsERC20", async function () {
       concat([
           valBaseReward,
           valDuration,
-        op(Opcode.mul, 2),
+        op(Opcode.MUL, 2),
       ]);
 
     // prettier-ignore
@@ -153,10 +154,10 @@ describe("EmissionsERC20", async function () {
           valBNOne,
               valBNOne,
               valDuration,
-            op(Opcode.mul, 2),
+            op(Opcode.MUL, 2),
             valBlocksPerYear,
-          op(Opcode.div, 2),
-        op(Opcode.min, 2),
+          op(Opcode.DIV, 2),
+        op(Opcode.MIN, 2),
       ]);
 
     // prettier-ignore
@@ -164,7 +165,7 @@ describe("EmissionsERC20", async function () {
       concat([
           PROGRESS(),
           valBNOne,
-        op(Opcode.add, 2),
+        op(Opcode.ADD, 2),
       ]);
 
     // prettier-ignore
@@ -172,16 +173,16 @@ describe("EmissionsERC20", async function () {
       concat([
           REWARD(),
           MULTIPLIER(),
-        op(Opcode.mul, 2),
+        op(Opcode.MUL, 2),
       ]);
 
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.never),
-          op(Opcode.blockNumber),
+          op(Opcode.NEVER),
+          op(Opcode.BLOCK_NUMBER),
         op(
-          Opcode.updateBlocksForTierRange,
+          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
           claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -189,17 +190,17 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
-          op(Opcode.thisAddress),
-          op(Opcode.account),
-        op(Opcode.report),
+          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CLAIMANT_ACCOUNT),
+        op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
           valTierAddress,
-          op(Opcode.account),
-        op(Opcode.report),
+          op(Opcode.CLAIMANT_ACCOUNT),
+        op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
@@ -208,9 +209,9 @@ describe("EmissionsERC20", async function () {
           CURRENT_BLOCK_AS_REPORT(),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
-            op(Opcode.blockNumber),
-          op(Opcode.selectLte, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
-        op(Opcode.diff),
+            op(Opcode.BLOCK_NUMBER),
+          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
+        op(Opcode.SATURATING_DIFF),
       ]);
 
     // prettier-ignore
@@ -218,10 +219,10 @@ describe("EmissionsERC20", async function () {
       concat([
               TIERWISE_DIFF(),
               valBaseRewardPerTier,
-            op(Opcode.zipmap, Util.callSize(1, 3, 1)),
-          op(Opcode.add, 8),
+            op(Opcode.ZIPMAP, Util.callSize(1, 3, 1)),
+          op(Opcode.ADD, 8),
           valBNOneReward, // scale FINAL result down by reward per block scaler
-        op(Opcode.div, 2),
+        op(Opcode.DIV, 2),
       ]);
 
     // END Source snippets
@@ -404,18 +405,18 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN global constants
 
-    const valTierAddress = op(Opcode.val, 0);
-    const valBaseRewardPerTier = op(Opcode.val, 1);
-    const valBlocksPerYear = op(Opcode.val, 2);
-    const valBNOne = op(Opcode.val, 3);
-    const valBNOneReward = op(Opcode.val, 4);
+    const valTierAddress = op(Opcode.VAL, 0);
+    const valBaseRewardPerTier = op(Opcode.VAL, 1);
+    const valBlocksPerYear = op(Opcode.VAL, 2);
+    const valBNOne = op(Opcode.VAL, 3);
+    const valBNOneReward = op(Opcode.VAL, 4);
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.val, arg(0));
-    const valBaseReward = op(Opcode.val, arg(1));
+    const valDuration = op(Opcode.VAL, arg(0));
+    const valBaseReward = op(Opcode.VAL, arg(1));
 
     // END zipmap args
 
@@ -426,7 +427,7 @@ describe("EmissionsERC20", async function () {
       concat([
           valDuration,
           valBaseReward,
-        op(Opcode.mul, 2),
+        op(Opcode.MUL, 2),
       ]);
 
     // prettier-ignore
@@ -435,10 +436,10 @@ describe("EmissionsERC20", async function () {
           valBNOne,
               valDuration,
               valBNOne,
-            op(Opcode.mul, 2),
+            op(Opcode.MUL, 2),
             valBlocksPerYear,
-          op(Opcode.div, 2),
-        op(Opcode.min, 2),
+          op(Opcode.DIV, 2),
+        op(Opcode.MIN, 2),
       ]);
 
     // prettier-ignore
@@ -446,7 +447,7 @@ describe("EmissionsERC20", async function () {
       concat([
           PROGRESS(),
           valBNOne,
-        op(Opcode.add, 2),
+        op(Opcode.ADD, 2),
       ]);
 
     // prettier-ignore
@@ -454,18 +455,18 @@ describe("EmissionsERC20", async function () {
       concat([
             REWARD(),
             MULTIPLIER(),
-          op(Opcode.mul, 2),
+          op(Opcode.MUL, 2),
           valBNOneReward, // scale EACH tier result down by reward per block scaler
-        op(Opcode.div, 2),
+        op(Opcode.DIV, 2),
       ]);
 
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.never),
-          op(Opcode.blockNumber),
+          op(Opcode.NEVER),
+          op(Opcode.BLOCK_NUMBER),
         op(
-          Opcode.updateBlocksForTierRange,
+          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
           claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -473,17 +474,17 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
-          op(Opcode.thisAddress),
-          op(Opcode.account),
-        op(Opcode.report),
+          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CLAIMANT_ACCOUNT),
+        op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
           valTierAddress,
-          op(Opcode.account),
-        op(Opcode.report),
+          op(Opcode.CLAIMANT_ACCOUNT),
+        op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
@@ -492,9 +493,9 @@ describe("EmissionsERC20", async function () {
           CURRENT_BLOCK_AS_REPORT(),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
-            op(Opcode.blockNumber),
-          op(Opcode.selectLte, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
-        op(Opcode.diff),
+            op(Opcode.BLOCK_NUMBER),
+          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
+        op(Opcode.SATURATING_DIFF),
       ]);
 
     // prettier-ignore
@@ -502,8 +503,8 @@ describe("EmissionsERC20", async function () {
       concat([
             TIERWISE_DIFF(),
             valBaseRewardPerTier,
-          op(Opcode.zipmap, Util.callSize(1, 3, 1)),
-        op(Opcode.add, 8),
+          op(Opcode.ZIPMAP, Util.callSize(1, 3, 1)),
+        op(Opcode.ADD, 8),
       ]);
 
     // END Source snippets
@@ -657,9 +658,9 @@ describe("EmissionsERC20", async function () {
           sources: [
             concat([
               // lastClaimReport
-              op(Opcode.thisAddress),
-              op(Opcode.account),
-              op(Opcode.report),
+              op(Opcode.THIS_ADDRESS),
+              op(Opcode.CLAIMANT_ACCOUNT),
+              op(Opcode.REPORT),
             ]),
           ],
           constants: [],
@@ -700,10 +701,10 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.never),
-          op(Opcode.blockNumber),
+          op(Opcode.NEVER),
+          op(Opcode.BLOCK_NUMBER),
         op(
-          Opcode.updateBlocksForTierRange,
+          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
           claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -711,17 +712,17 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
-          op(Opcode.thisAddress),
-          op(Opcode.account),
-        op(Opcode.report),
+          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CLAIMANT_ACCOUNT),
+        op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          op(Opcode.val, 0),
-          op(Opcode.account),
-        op(Opcode.report),
+          op(Opcode.VAL, 0),
+          op(Opcode.CLAIMANT_ACCOUNT),
+        op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
@@ -730,9 +731,9 @@ describe("EmissionsERC20", async function () {
           CURRENT_BLOCK_AS_REPORT(),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
-            op(Opcode.blockNumber),
-          op(Opcode.selectLte, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
-        op(Opcode.diff),
+            op(Opcode.BLOCK_NUMBER),
+          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
+        op(Opcode.SATURATING_DIFF),
       ]);
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
@@ -814,16 +815,16 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [
             concat([
-              op(Opcode.never),
-              op(Opcode.blockNumber),
+              op(Opcode.NEVER),
+              op(Opcode.BLOCK_NUMBER),
               op(
-                Opcode.updateBlocksForTierRange,
+                Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
                 claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
               ),
-              op(Opcode.val, 0),
-              op(Opcode.account),
-              op(Opcode.report),
-              op(Opcode.diff),
+              op(Opcode.VAL, 0),
+              op(Opcode.CLAIMANT_ACCOUNT),
+              op(Opcode.REPORT),
+              op(Opcode.SATURATING_DIFF),
             ]),
           ],
           constants: [readWriteTier.address],
@@ -878,7 +879,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.val)])],
+          sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
           argumentsLength: 0,
           stackLength: 1,
@@ -935,7 +936,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.val)])],
+          sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
           argumentsLength: 0,
           stackLength: 1,
@@ -975,7 +976,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.val)])],
+          sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
           argumentsLength: 0,
           stackLength: 1,
@@ -1021,7 +1022,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.val)])],
+          sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
           argumentsLength: 0,
           stackLength: 1,
@@ -1060,7 +1061,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.val)])],
+          sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
           argumentsLength: 0,
           stackLength: 1,
@@ -1100,7 +1101,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.val)])],
+          sources: [concat([op(Opcode.VAL)])],
           constants: [],
           argumentsLength: 0,
           stackLength: 1,

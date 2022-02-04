@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 enum SaleStatus {
     Pending,
+    Active,
     Success,
     Fail
 }

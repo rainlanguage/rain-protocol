@@ -9,7 +9,15 @@ import type {
   SaleFactory,
   SaleRedeemableERC20ConfigStruct,
 } from "../../typechain/SaleFactory";
-import type { BuyEvent, Sale } from "../../typechain/Sale";
+import type {
+  BuyEvent,
+  ConstructEvent,
+  EndEvent,
+  InitializeEvent,
+  RefundEvent,
+  Sale,
+  StartEvent,
+} from "../../typechain/Sale";
 import { getEventArgs, op } from "../Util";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ReserveToken } from "../../typechain/ReserveToken";
@@ -36,6 +44,7 @@ enum Tier {
 
 enum Status {
   PENDING,
+  ACTIVE,
   SUCCESS,
   FAIL,
 }
@@ -46,7 +55,12 @@ const enum Opcode {
   DUP,
   ZIPMAP,
   BLOCK_NUMBER,
+  BLOCK_TIMESTAMP,
   SENDER,
+  IS_ZERO,
+  EQUAL_TO,
+  LESS_THAN,
+  GREATER_THAN,
   ADD,
   SUB,
   MUL,
@@ -116,6 +130,22 @@ const saleDeploy = async (
   return [sale, token];
 };
 
+const afterBlockNumberConfig = (blockNumber) => {
+  return {
+    sources: [
+      concat([
+        // (BLOCK_NUMBER blockNumberSub1 gt)
+        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.VAL, 0),
+        op(Opcode.GREATER_THAN),
+      ]),
+    ],
+    constants: [blockNumber - 1],
+    stackLength: 3,
+    argumentsLength: 0,
+  };
+};
+
 let reserve: ReserveToken & Contract,
   redeemableERC20FactoryFactory: ContractFactory,
   redeemableERC20Factory: RedeemableERC20Factory & Contract,
@@ -123,7 +153,8 @@ let reserve: ReserveToken & Contract,
   readWriteTier: ReadWriteTier & Contract,
   saleConstructorConfig: SaleConstructorConfigStruct,
   saleFactoryFactory: ContractFactory,
-  saleFactory: SaleFactory & Contract;
+  saleFactory: SaleFactory & Contract,
+  saleProxy: Sale & Contract;
 
 describe("Sale", async function () {
   beforeEach(async () => {
@@ -155,6 +186,92 @@ describe("Sale", async function () {
       saleConstructorConfig
     )) as SaleFactory & Contract;
     await saleFactory.deployed();
+
+    const { implementation, sender } = await Util.getEventArgs(
+      saleFactory.deployTransaction,
+      "Implementation",
+      saleFactory
+    );
+
+    assert(sender === (await ethers.getSigners())[0].address, "wrong sender");
+
+    saleProxy = new ethers.Contract(
+      implementation,
+      (await artifacts.readArtifact("Sale")).abi
+    ) as Sale & Contract;
+
+    const { sender: senderProxy, config } = (await Util.getEventArgs(
+      saleFactory.deployTransaction,
+      "Construct",
+      saleProxy
+    )) as ConstructEvent["args"];
+
+    assert(senderProxy === saleFactory.address, "wrong proxy sender");
+
+    assert(
+      config.redeemableERC20Factory === redeemableERC20Factory.address,
+      "wrong redeemableERC20Factory in SaleConstructorConfig"
+    );
+  });
+
+  it("should prevent out of bounds opcode call", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const dustSize = totalTokenSupply.div(10 ** 7); // arbitrary value
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const constants = [];
+
+    const sources = [concat([op(99)])]; // bad source
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 3,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    const desiredUnits = totalTokenSupply.add(1).sub(dustSize);
+
+    await Util.assertError(
+      async () => await sale.calculatePrice(desiredUnits),
+      "MAX_OPCODE",
+      "did not prevent out of bounds opcode call"
+    );
   });
 
   it("should prevent a buy which leaves remaining units less than configured `dustSize`", async function () {
@@ -192,7 +309,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -200,9 +319,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize,
       },
@@ -219,6 +336,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits = totalTokenSupply.add(1).sub(dustSize);
     const expectedPrice = staticPrice;
@@ -290,7 +409,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -298,9 +419,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -317,6 +436,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(desiredUnits0.div(supplyDivisor));
@@ -431,7 +552,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -439,9 +562,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -458,6 +579,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0);
@@ -572,7 +695,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -580,9 +705,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -599,6 +722,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0);
@@ -708,7 +833,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -716,9 +843,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -735,6 +860,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0);
@@ -828,11 +955,11 @@ describe("Sale", async function () {
     };
 
     const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
-    const one = Util.ONE
+    const one = Util.ONE;
     const reserveDivisor = ethers.BigNumber.from("1" + Util.fourZeros);
 
     const constants = [one, basePrice, reserveDivisor];
-    const vOne = op(Opcode.VAL, 0)
+    const vOne = op(Opcode.VAL, 0);
     const vBasePrice = op(Opcode.VAL, 1);
     const vReserveDivisor = op(Opcode.VAL, 2);
 
@@ -855,7 +982,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -863,9 +992,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -882,6 +1009,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0);
@@ -998,7 +1127,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -1006,9 +1137,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1025,6 +1154,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0);
@@ -1288,7 +1419,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -1296,9 +1429,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1315,6 +1446,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0);
@@ -1431,7 +1564,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -1439,9 +1574,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1458,6 +1591,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const remainingSupplySummand = totalTokenSupply.div(supplyDivisor);
 
@@ -1538,7 +1673,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 3,
@@ -1546,9 +1683,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1565,6 +1700,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(
@@ -1670,7 +1807,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 1,
@@ -1678,9 +1817,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1697,6 +1834,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits = totalTokenSupply.div(10);
     const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
@@ -1755,9 +1894,28 @@ describe("Sale", async function () {
       "fees were claimed after sale ended with status of fail"
     );
 
-    // signer1 gets refund
     await token.connect(signer1).approve(sale.address, receipt.units);
-    await sale.connect(signer1).refund(receipt);
+
+    await Util.assertError(
+      async () => await sale.connect(signer1).refund({ ...receipt, id: 123 }),
+      "INVALID_RECEIPT",
+      "wrongly processed refund with invalid receipt"
+    );
+
+    // signer1 gets refund
+    const refundTx = await sale.connect(signer1).refund(receipt);
+
+    const { sender, receipt: eventReceipt } = (await Util.getEventArgs(
+      refundTx,
+      "Refund",
+      sale
+    )) as RefundEvent["args"];
+
+    assert(sender === signer1.address, "wrong sender in Refund event");
+    assert(
+      JSON.stringify(eventReceipt) === JSON.stringify(receipt),
+      "wrong receipt in Refund event"
+    );
   });
 
   it("should allow recipient to claim fees on successful raise", async function () {
@@ -1794,7 +1952,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 1,
@@ -1802,9 +1962,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1821,6 +1979,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     const desiredUnits = totalTokenSupply;
     const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
@@ -1883,12 +2043,14 @@ describe("Sale", async function () {
 
     const sources = [concat([vBasePrice])];
 
-    const [sale] = await saleDeploy(
+    const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 1,
@@ -1896,9 +2058,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -1941,7 +2101,7 @@ describe("Sale", async function () {
           maximumPrice: staticPrice,
         });
       },
-      "NOT_STARTED",
+      "NOT_ACTIVE",
       "bought tokens before sale start"
     );
 
@@ -1949,6 +2109,8 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
 
     await reserve.connect(signer1).approve(sale.address, signer1ReserveBalance);
 
@@ -2009,13 +2171,19 @@ describe("Sale", async function () {
     );
 
     // ACTUALLY buy all units to meet minimum raise amount
-    await sale.connect(signer1).buy({
+    const txBuy = await sale.connect(signer1).buy({
       feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: desiredUnits,
       desiredUnits,
       maximumPrice: staticPrice,
     });
+
+    const { receipt } = (await Util.getEventArgs(
+      txBuy,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
 
     await Util.assertError(
       async () => {
@@ -2027,7 +2195,7 @@ describe("Sale", async function () {
           maximumPrice: staticPrice,
         });
       },
-      "ENDED",
+      "NOT_ACTIVE",
       "bought after all units sold"
     );
 
@@ -2049,6 +2217,14 @@ describe("Sale", async function () {
       `recipient did not receive correct funds at end of successful raise
       expected  ${minimumRaise}
       got       ${recipientFinalReserveBalance}`
+    );
+
+    // signer1 attempts refund
+    await token.connect(signer1).approve(sale.address, receipt.units);
+    await Util.assertError(
+      async () => await sale.connect(signer1).refund(receipt),
+      "REFUND_SUCCESS",
+      "signer1 wrongly refunded when raise was Successful"
     );
   });
 
@@ -2084,7 +2260,9 @@ describe("Sale", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
           sources,
           constants,
           stackLength: 1,
@@ -2092,9 +2270,7 @@ describe("Sale", async function () {
         },
         recipient: recipient.address,
         reserve: reserve.address,
-        startBlock,
         cooldownDuration: 1,
-        saleTimeout,
         minimumRaise,
         dustSize: 0,
       },
@@ -2105,7 +2281,20 @@ describe("Sale", async function () {
       }
     );
 
+    const { sender, config, token } = (await Util.getEventArgs(
+      sale.deployTransaction,
+      "Initialize",
+      sale
+    )) as InitializeEvent["args"];
+
+    console.log({ initializeConfig: config }); // just eyeball the log I can't be bothered to test object equivalence
+
+    assert(sender === saleFactory.address, "wrong sender in Initialize event");
+
     const saleToken = await sale.token();
+
+    assert(saleToken === token, "wrong token in Initialize event");
+
     const saleReserve = await sale.reserve();
     const saleStatusPending = await sale.saleStatus();
 
@@ -2113,18 +2302,83 @@ describe("Sale", async function () {
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
 
+    const cantStart = await sale.canStart();
+    assert(!cantStart);
+
+    await Util.assertError(
+      async () => await sale.start(),
+      "CANT_START",
+      "wrongly started before configured block number"
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const canStart = await sale.canStart();
+    assert(canStart);
+
+    await Util.assertError(
+      async () => await sale.end(),
+      "NOT_ACTIVE",
+      "wrongly ended before started"
+    );
+
+    const startTx = await sale.start();
+
+    const { sender: senderStart } = (await Util.getEventArgs(
+      startTx,
+      "Start",
+      sale
+    )) as StartEvent["args"];
+
+    assert(senderStart === signers[0].address, "wrong Start sender");
+
+    const saleStatusActive = await sale.saleStatus();
+    assert(saleStatusActive === Status.ACTIVE);
+
+    await Util.assertError(
+      async () => await sale.start(),
+      "NOT_PENDING",
+      "wrongly re-started while with Status of ACTIVE"
+    );
+
+    const cantEnd = await sale.canEnd();
+    assert(!cantEnd);
+
+    await Util.assertError(
+      async () => await sale.end(),
+      "CANT_END",
+      "wrongly ended before configured block number"
+    );
+
     // wait until sale can end
     await Util.createEmptyBlock(
       saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    await sale.end();
+    const canEnd = await sale.canEnd();
+    assert(canEnd);
+
+    const endTx = await sale.end();
+
+    const { sender: senderEnd, saleStatus: saleStatusEnd } =
+      (await Util.getEventArgs(endTx, "End", sale)) as EndEvent["args"];
+
+    assert(senderEnd === signers[0].address, "wrong End sender");
+    assert(
+      saleStatusEnd === Status.FAIL,
+      `wrong status in event
+      expected  ${Status.FAIL}
+      got       ${saleStatusEnd}`
+    );
 
     const saleStatusFail = await sale.saleStatus();
 
     assert(
       saleStatusFail === Status.FAIL,
-      `wrong status
+      `wrong status in getter
       expected  ${Status.FAIL}
       got       ${saleStatusFail}`
     );
