@@ -9,6 +9,7 @@ import {MathOps} from "../vm/ops/MathOps.sol";
 import {LogicOps} from "../vm/ops/LogicOps.sol";
 import {SenderOps} from "../vm/ops/SenderOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
+import {IERC20Ops} from "../vm/ops/IERC20Ops.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
@@ -92,6 +93,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     uint256 private immutable logicOpsStart;
     uint256 private immutable mathOpsStart;
     uint256 private immutable tierOpsStart;
+    uint256 private immutable ierc20OpsStart;
     uint256 private immutable localOpsStart;
 
     RedeemableERC20Factory private immutable redeemableERC20Factory;
@@ -129,7 +131,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         logicOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
         mathOpsStart = logicOpsStart + LogicOps.OPS_LENGTH;
         tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
-        localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        ierc20OpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        localOpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
 
@@ -221,9 +224,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         distributors_[0] = address(this);
 
         bool success_ = totalReserveIn >= minimumRaise;
-        SaleStatus endStatus_ = success_
-            ? SaleStatus.Success
-            : SaleStatus.Fail;
+        SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
         emit End(msg.sender, endStatus_);
         _saleStatus = endStatus_;
 
@@ -377,11 +378,18 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                     opcode_ - mathOpsStart,
                     operand_
                 );
-            } else if (opcode_ < localOpsStart) {
+            } else if (opcode_ < ierc20OpsStart) {
                 TierOps.applyOp(
                     context_,
                     state_,
                     opcode_ - tierOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < localOpsStart) {
+                IERC20Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc20OpsStart,
                     operand_
                 );
             } else {
