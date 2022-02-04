@@ -7,77 +7,77 @@ import "../sale/ISale.sol";
 /// Either the escrow takes no action or consistently allows a success/fail
 /// action.
 enum EscrowStatus {
-    /// The underlying `Trust` has not reached a definitive pass/fail state.
+    /// The underlying `Sale` has not reached a definitive pass/fail state.
     /// Important this is the first item in the enum as inequality is used to
     /// check pending vs. pass/fail in security sensitive code.
     Pending,
-    /// The underlying `Trust` distribution failed.
+    /// The underlying `Sale` distribution failed.
     Fail,
-    /// The underlying `Trust` distribution succeeded.
+    /// The underlying `Sale` distribution succeeded.
     Success
 }
 
 /// @title SaleEscrow
-/// An escrow that is designed to work with untrusted `Trust` bytecode.
-/// `escrowStatus` wraps `Trust` functions to guarantee that results do not
-/// change. Reserve and token addresses never change for a given `Trust` and
-/// a pass/fail result is one-way. Even if some bug in the `Trust` causes the
+/// An escrow that is designed to work with untrusted `Sale` bytecode.
+/// `escrowStatus` wraps `Sale` functions to guarantee that results do not
+/// change. Reserve and token addresses never change for a given `Sale` and
+/// a pass/fail result is one-way. Even if some bug in the `Sale` causes the
 /// pass/fail status to flip, this will not result in the escrow double
 /// spending or otherwise changing the direction that it sends funds.
 contract SaleEscrow {
-    /// Trust address => reserve address.
+    /// ISale address => reserve address.
     mapping(address => address) private reserves;
-    /// Trust address => token address.
+    /// ISale address => token address.
     mapping(address => address) private tokens;
-    /// Trust address => status.
+    /// ISale address => status.
     mapping(address => EscrowStatus) private escrowStatuses;
 
-    /// Immutable wrapper around `Trust.reserve`.
-    /// Once a `Trust` reports a reserve address the `SaleEscrow` never asks
-    /// again. Prevents a malicious `Trust` from changing the reserve at some
+    /// Immutable wrapper around `ISale.reserve`.
+    /// Once a `Sale` reports a reserve address the `SaleEscrow` never asks
+    /// again. Prevents a malicious `Sale` from changing the reserve at some
     /// point to break internal escrow accounting.
-    /// @param trust_ The trust to fetch reserve for.
-    function reserve(address trust_) internal returns (address) {
-        address reserve_ = reserves[trust_];
+    /// @param sale_ The ISale to fetch reserve for.
+    function reserve(address sale_) internal returns (address) {
+        address reserve_ = reserves[sale_];
         if (reserve_ == address(0)) {
-            address trustReserve_ = address(ISale(trust_).reserve());
-            require(trustReserve_ != address(0), "0_RESERVE");
-            reserves[trust_] = trustReserve_;
-            reserve_ = trustReserve_;
+            address saleReserve_ = address(ISale(sale_).reserve());
+            require(saleReserve_ != address(0), "0_RESERVE");
+            reserves[sale_] = saleReserve_;
+            reserve_ = saleReserve_;
         }
         return reserve_;
     }
 
-    /// Immutable wrapper around `Trust.token`.
-    /// Once a `Trust` reports a token address the `SaleEscrow` never asks
-    /// again. Prevents a malicious `Trust` from changing the token at some
+    /// Immutable wrapper around `ISale.token`.
+    /// Once a `Sale` reports a token address the `SaleEscrow` never asks
+    /// again. Prevents a malicious `Sale` from changing the token at some
     /// point to divert escrow payments after assets have already been set
     /// aside.
-    /// @param trust_ The trust to fetch token for.
-    function token(address trust_) internal returns (address) {
-        address token_ = tokens[trust_];
+    /// @param sale_ The ISale to fetch token for.
+    function token(address sale_) internal returns (address) {
+        address token_ = tokens[sale_];
         if (token_ == address(0)) {
-            address trustToken_ = address(ISale(trust_).token());
-            require(trustToken_ != address(0), "0_TOKEN");
-            tokens[trust_] = trustToken_;
-            token_ = trustToken_;
+            address saleToken_ = address(ISale(sale_).token());
+            require(saleToken_ != address(0), "0_TOKEN");
+            tokens[sale_] = saleToken_;
+            token_ = saleToken_;
         }
         return token_;
     }
 
     /// Read the one-way, one-time transition from pending to success/fail.
     /// We never change our opinion of a success/fail outcome.
-    /// If a buggy/malicious `Trust` somehow changes success/fail state then
+    /// If a buggy/malicious `ISale` somehow changes success/fail state then
     /// that is obviously bad as the escrow will release funds in the wrong
     /// direction. But if we were to change our opinion that would be worse as
     /// claims/refunds could potentially be "double spent" somehow.
     function escrowStatus(address sale_) internal returns (EscrowStatus) {
         EscrowStatus escrowStatus_ = escrowStatuses[sale_];
-        // Short circuit and ignore the `Trust` if we previously saved a value.
+        // Short circuit and ignore the `ISale` if we previously saved a value.
         if (escrowStatus_ > EscrowStatus.Pending) {
             return escrowStatus_;
         }
-        // We have never seen a success/fail outcome so need to ask the `Trust`
+        // We have never seen a success/fail outcome so need to ask the `ISale`
         // for the distribution status.
         else {
             SaleStatus saleStatus_ = ISale(sale_).saleStatus();

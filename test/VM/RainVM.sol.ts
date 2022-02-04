@@ -18,6 +18,7 @@ const enum Opcode {
   DUP,
   ZIPMAP,
   BLOCK_NUMBER,
+  BLOCK_TIMESTAMP,
   ADD,
   SUB,
   MUL,
