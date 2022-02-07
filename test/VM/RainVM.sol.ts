@@ -30,6 +30,53 @@ const enum Opcode {
 }
 
 describe("RainVM", async function () {
+  it("should return block.number and block.timestamp", async () => {
+    this.timeout(0);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+
+    const constants = [];
+
+    // prettier-ignore
+    const source0 = concat([
+      op(Opcode.BLOCK_NUMBER)
+    ]);
+
+    const calculator0 = (await calculatorFactory.deploy({
+      sources: [source0],
+      constants,
+      argumentsLength: 0,
+      stackLength: 1,
+    })) as CalculatorTest & Contract;
+
+    const block0 = await ethers.provider.getBlockNumber();
+    const result0 = await calculator0.run();
+    assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
+
+    // prettier-ignore
+    const source1 = concat([
+      op(Opcode.BLOCK_TIMESTAMP)
+    ]);
+
+    const calculator1 = (await calculatorFactory.deploy({
+      sources: [source1],
+      constants,
+      argumentsLength: 0,
+      stackLength: 1,
+    })) as CalculatorTest & Contract;
+
+    const timestamp1 = Date.now();
+    const result1 = await calculator1.run();
+
+    const roughTimestamp1 = ethers.BigNumber.from(`${timestamp1}`.slice(0, 6));
+    const roughResult1 = ethers.BigNumber.from(`${result1}`.slice(0, 6));
+
+    assert(
+      roughResult1.eq(roughTimestamp1),
+      `expected timestamp ${roughTimestamp1} got ${roughResult1}`
+    );
+  });
+
   it("should skip (conditional skip: true)", async () => {
     this.timeout(0);
 
