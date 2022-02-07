@@ -7,8 +7,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {TierByConstruction} from "../tier/TierByConstruction.sol";
 import {ITier} from "../tier/ITier.sol";
+import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
 
@@ -90,7 +90,6 @@ struct RedeemableERC20Config {
 contract RedeemableERC20 is
     Initializable,
     Phased,
-    TierByConstruction,
     ERC20Redeem,
     ERC20Pull
 {
@@ -150,6 +149,8 @@ contract RedeemableERC20 is
     /// The minimum supply does not prevent subsequent redemption/burning.
     uint256 private constant MINIMUM_INITIAL_SUPPLY = 10**18;
 
+    ITier public tier;
+
     /// The minimum status that a user must hold to receive transfers during
     /// `Phase.ZERO`.
     /// The tier contract passed to `TierByConstruction` determines if
@@ -166,7 +167,7 @@ contract RedeemableERC20 is
     {
         initializePhased();
 
-        initializeTierByConstruction(config_.tier);
+        tier = ITier(config_.tier);
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
         initializeERC20Pull(
             ERC20PullConfig(config_.erc20Config.distributor, config_.reserve)
@@ -314,7 +315,13 @@ contract RedeemableERC20 is
             // tier of the recipient.
             uint256 currentPhase_ = currentPhase();
             if (currentPhase_ == PHASE_DISTRIBUTING) {
-                require(isTier(receiver_, minimumTier), "MIN_TIER");
+                require(
+                    TierReport.tierAtBlockFromReport(
+                        tier.report(receiver_),
+                        block.number
+                    ) >= minimumTier,
+                    "MIN_TIER"
+                );
             }
             // During `Phase.ONE` only token burns are allowed.
             else if (currentPhase_ == PHASE_FROZEN) {
