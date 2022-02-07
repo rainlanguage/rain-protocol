@@ -22,7 +22,7 @@ struct RedeemableERC20Config {
     // ERC20 config forwarded to the ERC20 constructor.
     ERC20Config erc20Config;
     // Tier contract to compare statuses against on transfer.
-    ITier tier;
+    address tier;
     // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
     uint256 minimumTier;
 }
@@ -124,6 +124,8 @@ contract RedeemableERC20 is
         address sender,
         /// contract admin.
         address admin,
+        /// Tier contract that `minimumTier` is checked against.
+        address tier,
         /// Minimum tier required to receive the token.
         uint256 minimumTier
     );
@@ -149,6 +151,9 @@ contract RedeemableERC20 is
     /// The minimum supply does not prevent subsequent redemption/burning.
     uint256 private constant MINIMUM_INITIAL_SUPPLY = 10**18;
 
+    /// Tier contract that produces the report that `minimumTier` is checked
+    /// against.
+    /// Public so external contracts can interface with the required tier.
     ITier public tier;
 
     /// The minimum status that a user must hold to receive transfers during
@@ -199,6 +204,7 @@ contract RedeemableERC20 is
         emit Initialize(
             msg.sender,
             config_.erc20Config.distributor,
+            config_.tier,
             config_.minimumTier
         );
 
