@@ -133,6 +133,8 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         address depositor,
         /// `Trust` contract deposit is under.
         address trust,
+        /// Redeemable token first reported by the trust.
+        address redeemable,
         /// `IERC20` token being swept into a deposit.
         address token,
         /// Amount of token being swept into a deposit.
@@ -312,7 +314,14 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     ) external {
         uint256 amount_ = pendingDeposits[trust_][token_][depositor_];
         delete pendingDeposits[trust_][token_][depositor_];
-        emit Sweep(msg.sender, depositor_, trust_, token_, amount_);
+        emit Sweep(
+            msg.sender,
+            depositor_,
+            trust_,
+            token(trust_),
+            token_,
+            amount_
+        );
         registerDeposit(trust_, token_, depositor_, amount_);
     }
 
