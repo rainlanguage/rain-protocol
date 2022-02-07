@@ -72,6 +72,8 @@ contract BPoolFeeEscrow is TrustEscrow {
         address recipient,
         /// Trust the fees were collected for.
         address trust,
+        /// Reserve token first reported by the `Trust`.
+        address reserve,
         /// Amount of fees claimed.
         uint256 claimedFees
     );
@@ -83,6 +85,10 @@ contract BPoolFeeEscrow is TrustEscrow {
         /// `Trust` the fees were refunded to.
         /// Fees go to the redeemable token, not the `Trust` itself.
         address trust,
+        /// Reserve token first reported by the `Trust`.
+        address reserve,
+        /// Redeemable token first reported by the `Trust`.
+        address redeemable,
         /// Amount of fees refunded.
         uint256 refundedFees
     );
@@ -94,6 +100,10 @@ contract BPoolFeeEscrow is TrustEscrow {
         address recipient,
         /// `Trust` the fee was set aside for.
         address trust,
+        /// Reserve token first reported by the `Trust`.
+        address reserve,
+        /// Redeemable token first reported by the `Trust`.
+        address redeemable,
         /// Amount of fee denominated in the reserve asset of the `trust`.
         uint256 fee
     );
@@ -158,8 +168,9 @@ contract BPoolFeeEscrow is TrustEscrow {
             // Gas refund.
             delete fees[trust_][recipient_];
 
-            emit ClaimFees(msg.sender, recipient_, trust_, amount_);
-            IERC20(reserve(trust_)).safeTransfer(recipient_, amount_);
+            address reserve_ = reserve(trust_);
+            emit ClaimFees(msg.sender, recipient_, trust_, reserve_, amount_);
+            IERC20(reserve_).safeTransfer(recipient_, amount_);
         }
         return amount_;
     }
@@ -190,8 +201,10 @@ contract BPoolFeeEscrow is TrustEscrow {
             // Gas refund.
             delete totalFees[trust_];
 
-            emit RefundFees(msg.sender, trust_, amount_);
-            IERC20(reserve(trust_)).safeTransfer(token(trust_), amount_);
+            address reserve_ = reserve(trust_);
+            address token_ = token(trust_);
+            emit RefundFees(msg.sender, trust_, reserve_, token_, amount_);
+            IERC20(reserve_).safeTransfer(token_, amount_);
         }
         return amount_;
     }
@@ -248,8 +261,6 @@ contract BPoolFeeEscrow is TrustEscrow {
         fees[trust_][feeRecipient_] += fee_;
         totalFees[trust_] += fee_;
 
-        emit Fee(msg.sender, feeRecipient_, trust_, fee_);
-
         // A bad reserve could set itself up to be drained from the escrow, but
         // cannot interfere with other reserve balances.
         // e.g. rebasing reserves are NOT supported.
@@ -261,6 +272,15 @@ contract BPoolFeeEscrow is TrustEscrow {
         address token_ = token(trust_);
         IConfigurableRightsPool crp_ = IConfigurableRightsPool(crp(trust_));
         address pool_ = crp_.bPool();
+
+        emit Fee(
+            msg.sender,
+            feeRecipient_,
+            trust_,
+            reserve_,
+            token_,
+            fee_
+        );
 
         crp_.pokeWeights();
 

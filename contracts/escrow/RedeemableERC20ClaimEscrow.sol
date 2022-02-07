@@ -148,6 +148,8 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         address sender,
         /// `Trust` contract undeposit is from.
         address trust,
+        /// Redeemable token that is being undeposited against.
+        address redeemable,
         /// `IERC20` token being undeposited.
         address token,
         /// rTKN supply at moment of deposit.
@@ -353,7 +355,17 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         totalDeposits[trust_][token_][supply_] -= amount_;
         remainingDeposits[trust_][token_][supply_] -= amount_;
 
-        emit Undeposit(msg.sender, trust_, token_, supply_, amount_);
+        emit Undeposit(
+            msg.sender,
+            trust_,
+            // Include this in the event so that indexer consumers see a
+            // consistent world view even if the trust_ changes its answer
+            // about the redeemable.
+            token(trust_),
+            token_,
+            supply_,
+            amount_
+        );
 
         IERC20(token_).safeTransfer(msg.sender, amount_);
     }
