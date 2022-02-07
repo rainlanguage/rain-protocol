@@ -29,14 +29,12 @@ contract LogicTest is RainVM {
         uint256 operand_
     ) internal view override {
         unchecked {
-            if (opcode_ < logicOpsStart) {
-                LogicOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - logicOpsStart,
-                    operand_
-                );
-            }
+            LogicOps.applyOp(
+                context_,
+                state_,
+                opcode_ - logicOpsStart,
+                operand_
+            );
         }
     }
 
