@@ -179,7 +179,6 @@ describe("LogicOps", async function () {
     })) as LogicTest & Contract;
 
     const result0 = await logic0.run(); // expect 1
-    console.log(result0, isTruthy(result0))
 
     assert(isTruthy(result0), "wrongly says 0 is not zero");
 
