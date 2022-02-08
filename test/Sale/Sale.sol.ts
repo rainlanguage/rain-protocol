@@ -87,6 +87,8 @@ const enum Opcode {
   LAST_BUY_UNITS,
   LAST_BUY_PRICE,
   CURRENT_BUY_UNITS,
+  TOKEN_ADDRESS,
+  RESERVE_ADDRESS,
 }
 
 const saleDeploy = async (
@@ -220,9 +222,7 @@ describe("Sale", async function () {
     );
   });
 
-  /*
-
-  it("should dynamically calculate price (discount off base price based on proportion of token currently held by buyer)", async function () {
+  it("should dynamically calculate price (discount off base price based on proportion of ERC20 token currently held by buyer)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -245,7 +245,9 @@ describe("Sale", async function () {
     };
 
     const basePrice = ethers.BigNumber.from("100").mul(Util.RESERVE_ONE);
-    const balanceMultiplier = ethers.BigNumber.from("100").mul(Util.ONE);
+    const balanceMultiplier = ethers.BigNumber.from("100").mul(
+      Util.RESERVE_ONE
+    );
 
     const constants = [basePrice, balanceMultiplier];
     const vBasePrice = op(Opcode.VAL, 0);
@@ -256,18 +258,18 @@ describe("Sale", async function () {
       concat([
           vBasePrice,
               vFractionMultiplier,
-                op(Opcode.TOKEN),
+                op(Opcode.TOKEN_ADDRESS),
                 op(Opcode.SENDER),
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-              op(Opcode.TOKEN),
+              op(Opcode.TOKEN_ADDRESS),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
       ]),
     ];
 
-    const [sale] = await saleDeploy(
+    const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
@@ -302,12 +304,13 @@ describe("Sale", async function () {
 
     await sale.start();
 
-    const signer1Balance0 = await reserve.balanceOf(signer1.address);
+    const signer1Balance0 = await token.balanceOf(signer1.address);
 
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.sub(
       signer1Balance0.mul(balanceMultiplier).div(totalTokenSupply)
     );
+
     const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(Util.ONE);
 
     // give signer1 reserve to cover cost + fee
@@ -317,70 +320,67 @@ describe("Sale", async function () {
       .connect(signer1)
       .approve(sale.address, expectedCost0.add(fee));
 
-    const price = await sale.calculatePrice(1);
+    // buy 10% of total supply
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits0,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
 
-    console.log({ expectedPrice0, price });
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
 
-    // // buy 10% of total supply
-    // const txBuy0 = await sale.connect(signer1).buy({
-    //   feeRecipient: feeRecipient.address,
-    //   fee,
-    //   minimumUnits: desiredUnits0,
-    //   desiredUnits: desiredUnits0,
-    //   maximumPrice: expectedPrice0,
-    // });
+    assert(
+      receipt0.price.eq(expectedPrice0),
+      `wrong dynamic price0
+      expected  ${expectedPrice0}
+      got       ${receipt0.price}`
+    );
 
-    // const { receipt: receipt0 } = (await Util.getEventArgs(
-    //   txBuy0,
-    //   "Buy",
-    //   sale
-    // )) as BuyEvent["args"];
+    const signer1Balance1 = await token.balanceOf(signer1.address);
 
-    // assert(
-    //   receipt0.price.eq(expectedPrice0),
-    //   `wrong dynamic price0
-    //   expected  ${expectedPrice0}
-    //   got       ${receipt0.price}`
-    // );
+    const desiredUnits1 = totalTokenSupply.div(10);
+    const expectedPrice1 = basePrice.sub(
+      signer1Balance1.mul(balanceMultiplier).div(totalTokenSupply)
+    );
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
 
-    // const signer1Balance1 = await reserve.balanceOf(signer1.address);
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
 
-    // const desiredUnits1 = totalTokenSupply.div(10);
-    // const expectedPrice1 = basePrice.sub(
-    //   signer1Balance1.mul(balanceMultiplier).div(totalReserve)
-    // );
-    // const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(Util.ONE);
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
 
-    // await reserve
-    //   .connect(signer1)
-    //   .approve(sale.address, expectedCost1.add(fee));
+    // buy another 10% of total supply
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits1,
+      desiredUnits: desiredUnits1,
+      maximumPrice: expectedPrice1,
+    });
 
-    // // buy another 10% of total supply
-    // const txBuy1 = await sale.connect(signer1).buy({
-    //   feeRecipient: feeRecipient.address,
-    //   fee,
-    //   minimumUnits: desiredUnits1,
-    //   desiredUnits: desiredUnits1,
-    //   maximumPrice: expectedPrice1,
-    // });
+    const { receipt: receipt1 } = (await Util.getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
 
-    // const { receipt: receipt1 } = (await Util.getEventArgs(
-    //   txBuy1,
-    //   "Buy",
-    //   sale
-    // )) as BuyEvent["args"];
-
-    // assert(
-    //   receipt1.price.eq(expectedPrice1),
-    //   `wrong dynamic price1
-    //   expected  ${expectedPrice1}
-    //   got       ${receipt1.price}`
-    // );
+    assert(
+      receipt1.price.eq(expectedPrice1),
+      `wrong dynamic price1
+      expected  ${expectedPrice1}
+      got       ${receipt1.price}`
+    );
   });
 
-  */
-
-  it("should dynamically calculate price (discount off base price based on proportion of reserve currently held by buyer)", async function () {
+  it("should dynamically calculate price (discount off base price based on proportion of ERC20 reserve currently held by buyer)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -407,21 +407,20 @@ describe("Sale", async function () {
       Util.RESERVE_ONE
     );
 
-    const constants = [basePrice, reserve.address, balanceMultiplier];
+    const constants = [basePrice, balanceMultiplier];
     const vBasePrice = op(Opcode.VAL, 0);
-    const vReserveAddress = op(Opcode.VAL, 1);
-    const vFractionMultiplier = op(Opcode.VAL, 2);
+    const vFractionMultiplier = op(Opcode.VAL, 1);
 
     // prettier-ignore
     const sources = [
       concat([
           vBasePrice,
               vFractionMultiplier,
-                vReserveAddress,
+                op(Opcode.RESERVE_ADDRESS),
                 op(Opcode.SENDER),
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-              vReserveAddress,
+              op(Opcode.RESERVE_ADDRESS),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
