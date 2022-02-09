@@ -31,7 +31,7 @@ library IERC721Ops {
                     address(uint160(state_.stack[state_.stackIndex - 1]))
                 ).balanceOf(address(uint160(state_.stack[state_.stackIndex])));
             }
-            // Stack the return of `totalSupply`.
+            // Stack the return of `ownerOf`.
             else if (opcode_ == OWNER_OF) {
                 state_.stack[state_.stackIndex - 1] = uint256(
                     uint160(

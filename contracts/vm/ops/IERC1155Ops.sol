@@ -26,12 +26,13 @@ library IERC1155Ops {
 
             // Stack the return of `balanceOf`.
             if (opcode_ == BALANCE_OF) {
-                state_.stackIndex -= 1;
-                state_.stack[state_.stackIndex - 1] = IERC1155(
-                    address(uint160(state_.stack[state_.stackIndex - 2]))
+                state_.stackIndex -= 2;
+                uint baseIndex_ = state_.stackIndex - 1;
+                state_.stack[baseIndex_] = IERC1155(
+                    address(uint160(state_.stack[baseIndex_]))
                 ).balanceOf(
-                        address(uint160(state_.stack[state_.stackIndex - 1])),
-                        state_.stack[state_.stackIndex]
+                        address(uint160(state_.stack[baseIndex_ + 1])),
+                        state_.stack[baseIndex_ + 2]
                     );
             }
             // Stack the return of `balanceOfBatch`.
