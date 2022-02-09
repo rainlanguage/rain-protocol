@@ -184,10 +184,6 @@ describe("TokenOpsTest", async function () {
       got       ${signer1Balance}`
     );
 
-    const state1 = await tokenOpsTest.runState();
-
-    console.log({ state1 });
-
     const result1 = await tokenOpsTest.run();
     assert(
       result1.eq(transferAmount),

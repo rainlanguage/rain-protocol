@@ -26,9 +26,9 @@ library IERC1155Ops {
 
             // Stack the return of `balanceOf`.
             if (opcode_ == BALANCE_OF) {
-                state_.stackIndex -= 2;
+                state_.stackIndex -= 1;
                 state_.stack[state_.stackIndex - 1] = IERC1155(
-                    address(uint160(state_.stack[state_.stackIndex - 1]))
+                    address(uint160(state_.stack[state_.stackIndex - 2]))
                 ).balanceOf(
                         address(uint160(state_.stack[state_.stackIndex - 1])),
                         state_.stack[state_.stackIndex]
