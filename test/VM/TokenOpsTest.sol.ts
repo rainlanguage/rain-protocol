@@ -4,7 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
-import type { Contract } from "ethers";
+import type { Contract, ContractFactory } from "ethers";
 
 import type { TokenOpsTest } from "../../typechain/TokenOpsTest";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -38,7 +38,13 @@ let tokenERC20: ReserveToken;
 let tokenERC721: ReserveTokenERC721;
 let tokenERC1155: ReserveTokenERC1155;
 
+let tokenOpsTestFactory: ContractFactory;
+
 describe("TokenOpsTest", async function () {
+  before(async () => {
+    tokenOpsTestFactory = await ethers.getContractFactory("TokenOpsTest");
+  });
+
   beforeEach(async () => {
     signers = await ethers.getSigners();
     signer0 = signers[0];
@@ -86,7 +92,6 @@ describe("TokenOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTestFactory = await ethers.getContractFactory("TokenOpsTest");
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
@@ -146,7 +151,6 @@ describe("TokenOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTestFactory = await ethers.getContractFactory("TokenOpsTest");
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
@@ -180,6 +184,10 @@ describe("TokenOpsTest", async function () {
       got       ${signer1Balance}`
     );
 
+    const state1 = await tokenOpsTest.runState();
+
+    console.log({ state1 });
+
     const result1 = await tokenOpsTest.run();
     assert(
       result1.eq(transferAmount),
@@ -193,19 +201,18 @@ describe("TokenOpsTest", async function () {
     const nftId = 0;
 
     const constants = [nftId, tokenERC721.address];
-    const vNftId1 = op(Opcode.VAL, 0);
+    const vNftId = op(Opcode.VAL, 0);
     const vTokenAddr = op(Opcode.VAL, 1);
 
     // prettier-ignore
     const sources = [
       concat([
           vTokenAddr,
-          vNftId1,
+          vNftId,
         op(Opcode.ERC721_OWNER_OF)
       ]),
     ];
 
-    const tokenOpsTestFactory = await ethers.getContractFactory("TokenOpsTest");
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
@@ -238,7 +245,6 @@ describe("TokenOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTestFactory = await ethers.getContractFactory("TokenOpsTest");
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
@@ -275,7 +281,6 @@ describe("TokenOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTestFactory = await ethers.getContractFactory("TokenOpsTest");
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
@@ -307,7 +312,6 @@ describe("TokenOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTestFactory = await ethers.getContractFactory("TokenOpsTest");
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,

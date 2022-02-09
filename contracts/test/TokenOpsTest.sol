@@ -35,7 +35,7 @@ contract TokenOpsTest is RainVM {
     }
 
     /// Wraps `runState` and returns top `length_` values on the stack.
-    /// @return top of `runState` stack.
+    /// @return top `length_` values on `runState` stack.
     function runLength(
         uint256 length_
     ) external view returns (uint256[] memory) {
