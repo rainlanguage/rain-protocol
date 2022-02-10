@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { SeedERC20 } from "../../typechain/SeedERC20";
@@ -10,9 +9,7 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { factoriesDeploy } from "../Util";
 import type { Contract } from "ethers";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Tier {
   NIL,

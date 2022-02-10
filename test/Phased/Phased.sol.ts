@@ -1,14 +1,15 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { PhasedTest } from "../../typechain/PhasedTest";
+import type {
+  PhasedTest,
+  PhaseScheduledEvent,
+} from "../../typechain/PhasedTest";
 import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { Contract } from "ethers";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Phase {
   ZERO,
@@ -277,10 +278,15 @@ describe("Phased", async function () {
 
     const schedule1Promise = phased.testScheduleNextPhase(block1);
 
-    expect(schedule1Promise)
-      .to.emit(phased, "PhaseScheduled")
-      .withArgs(signers[0].address, Phase.ONE, block1);
-    await schedule1Promise;
+    const event0 = (await Util.getEventArgs(
+      await schedule1Promise,
+      "PhaseScheduled",
+      phased
+    )) as PhaseScheduledEvent["args"];
+
+    assert(event0.sender === signers[0].address, "wrong sender in event0");
+    assert(event0.newPhase.eq(Phase.ONE), "wrong newPhase in event0");
+    assert(event0.scheduledBlock.eq(block1), "wrong scheduledBlock in event0");
 
     // empty block
     await reserve.transfer(signers[0].address, 0);

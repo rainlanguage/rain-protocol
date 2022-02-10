@@ -1,14 +1,17 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type {
+  PhaseScheduledEvent,
+  RedeemableERC20,
+  RedeemEvent,
+  TreasuryAssetEvent,
+} from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Tier {
   NIL,
@@ -137,19 +140,34 @@ describe("RedeemableERC20", async function () {
       minimumTier,
     });
 
-    await expect(redeemableERC20.newTreasuryAsset(reserve1.address))
-      .to.emit(redeemableERC20, "TreasuryAsset")
-      .withArgs(signers[0].address, reserve1.address);
-    await expect(redeemableERC20.newTreasuryAsset(reserve2.address))
-      .to.emit(redeemableERC20, "TreasuryAsset")
-      .withArgs(signers[0].address, reserve2.address);
+    const event0 = (await Util.getEventArgs(
+      await redeemableERC20.newTreasuryAsset(reserve1.address),
+      "TreasuryAsset",
+      redeemableERC20
+    )) as TreasuryAssetEvent["args"];
 
-    // anon can emit treasury events also.
-    await expect(
-      redeemableERC20.connect(signers[1]).newTreasuryAsset(reserve1.address)
-    )
-      .to.emit(redeemableERC20, "TreasuryAsset")
-      .withArgs(signers[1].address, reserve1.address);
+    assert(event0.sender === signers[0].address, "wrong sender in event0");
+    assert(event0.asset === reserve1.address, "wrong asset in event0");
+
+    const event1 = (await Util.getEventArgs(
+      await redeemableERC20.newTreasuryAsset(reserve2.address),
+      "TreasuryAsset",
+      redeemableERC20
+    )) as TreasuryAssetEvent["args"];
+
+    assert(event1.sender === signers[0].address, "wrong sender in event1");
+    assert(event1.asset === reserve2.address, "wrong asset in event1");
+
+    const event2 = (await Util.getEventArgs(
+      await redeemableERC20
+        .connect(signers[1])
+        .newTreasuryAsset(reserve1.address),
+      "TreasuryAsset",
+      redeemableERC20
+    )) as TreasuryAssetEvent["args"];
+
+    assert(event2.sender === signers[1].address, "wrong sender in event2");
+    assert(event2.asset === reserve1.address, "wrong asset in event2");
   });
 
   it("should have 18 decimals", async () => {
@@ -467,9 +485,15 @@ describe("RedeemableERC20", async function () {
 
     const now = await ethers.provider.getBlockNumber();
 
-    await expect(redeemableERC20.burnDistributors([Util.oneAddress]))
-      .to.emit(redeemableERC20, "PhaseScheduled")
-      .withArgs(signers[0].address, Phase.TWO, now + 1);
+    const event0 = (await Util.getEventArgs(
+      await redeemableERC20.burnDistributors([Util.oneAddress]),
+      "PhaseScheduled",
+      redeemableERC20
+    )) as PhaseScheduledEvent["args"];
+
+    assert(event0.sender === signers[0].address, "wrong sender in event0");
+    assert(event0.newPhase.eq(Phase.TWO), "wrong newPhase in event0");
+    assert(event0.scheduledBlock.eq(now + 1), "wrong scheduledBlock in event0");
 
     // Funds need to be frozen once redemption phase begins.
     await Util.assertError(
@@ -519,15 +543,27 @@ describe("RedeemableERC20", async function () {
     const expectedReserveRedemption = ethers.BigNumber.from(
       "10" + Util.sixZeros
     );
+
     // signer redeems all tokens they have for fraction of each asset
-    await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
-      .to.emit(redeemableERC20, "Redeem")
-      .withArgs(
-        signers[0].address,
-        reserve.address,
-        redeemAmount,
-        expectedReserveRedemption
-      );
+    const event1 = (await Util.getEventArgs(
+      await redeemableERC20.redeem([reserve.address], redeemAmount),
+      "Redeem",
+      redeemableERC20
+    )) as RedeemEvent["args"];
+
+    assert(event1.sender === signers[0].address, "wrong sender in event1");
+    assert(
+      event1.treasuryAsset === reserve.address,
+      "wrong treasuryAsset in event1"
+    );
+    assert(
+      event1.redeemAmount.eq(redeemAmount),
+      "wrong redeemAmount in event1"
+    );
+    assert(
+      event1.assetAmount.eq(expectedReserveRedemption),
+      "wrong assetAmount in event1"
+    );
 
     const redeemableSignerBalanceAfter = await redeemableERC20.balanceOf(
       signers[0].address
@@ -590,14 +626,27 @@ describe("RedeemableERC20", async function () {
       const expectedDiff = "10000000";
       while (i < 3) {
         const balanceBefore = await reserve.balanceOf(signers[0].address);
-        await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
-          .to.emit(redeemableERC20, "Redeem")
-          .withArgs(
-            signers[0].address,
-            reserve.address,
-            redeemAmount,
-            expectedDiff
-          );
+
+        const event0 = (await Util.getEventArgs(
+          await redeemableERC20.redeem([reserve.address], redeemAmount),
+          "Redeem",
+          redeemableERC20
+        )) as RedeemEvent["args"];
+
+        assert(event0.sender === signers[0].address, "wrong sender in event1");
+        assert(
+          event0.treasuryAsset === reserve.address,
+          "wrong treasuryAsset in event1"
+        );
+        assert(
+          event0.redeemAmount.eq(redeemAmount),
+          "wrong redeemAmount in event1"
+        );
+        assert(
+          event0.assetAmount.eq(expectedDiff),
+          "wrong assetAmount in event1"
+        );
+
         const balanceAfter = await reserve.balanceOf(signers[0].address);
         const diff = balanceAfter.sub(balanceBefore);
         assert(
@@ -620,14 +669,27 @@ describe("RedeemableERC20", async function () {
 
       while (i < 3) {
         const balanceBefore = await reserve.balanceOf(signers[0].address);
-        await expect(redeemableERC20.redeem([reserve.address], redeemAmount))
-          .to.emit(redeemableERC20, "Redeem")
-          .withArgs(
-            signers[0].address,
-            reserve.address,
-            redeemAmount,
-            expectedDiff
-          );
+
+        const event1 = (await Util.getEventArgs(
+          await redeemableERC20.redeem([reserve.address], redeemAmount),
+          "Redeem",
+          redeemableERC20
+        )) as RedeemEvent["args"];
+
+        assert(event1.sender === signers[0].address, "wrong sender in event1");
+        assert(
+          event1.treasuryAsset === reserve.address,
+          "wrong treasuryAsset in event1"
+        );
+        assert(
+          event1.redeemAmount.eq(redeemAmount),
+          "wrong redeemAmount in event1"
+        );
+        assert(
+          event1.assetAmount.eq(expectedDiff),
+          "wrong assetAmount in event1"
+        );
+
         const balanceAfter = await reserve.balanceOf(signers[0].address);
         const diff = balanceAfter.sub(balanceBefore);
         assert(
@@ -961,18 +1023,27 @@ describe("RedeemableERC20", async function () {
       .div(ethers.BigNumber.from(redeemableContractTotalSupplyBefore));
 
     // signer redeems all tokens they have for fraction of each redeemable asset
-    await expect(
-      redeemableERC20
+    const event0 = (await Util.getEventArgs(
+      await redeemableERC20
         .connect(signer1)
-        .redeem([reserve1.address, reserve2.address], redeemAmount)
-    )
-      .to.emit(redeemableERC20, "Redeem")
-      .withArgs(
-        signer1.address,
-        reserve1.address,
-        redeemAmount,
-        expectedReserve1Redemption
-      );
+        .redeem([reserve1.address, reserve2.address], redeemAmount),
+      "Redeem",
+      redeemableERC20
+    )) as RedeemEvent["args"];
+
+    assert(event0.sender === signer1.address, "wrong sender in event1");
+    assert(
+      event0.treasuryAsset === reserve1.address,
+      "wrong treasuryAsset in event1"
+    );
+    assert(
+      event0.redeemAmount.eq(redeemAmount),
+      "wrong redeemAmount in event1"
+    );
+    assert(
+      event0.assetAmount.eq(expectedReserve1Redemption),
+      "wrong assetAmount in event1"
+    );
 
     // contract after
     const redeemableContractTotalSupplyAfter =

@@ -1,15 +1,12 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ERC20BalanceTier } from "../../typechain/ERC20BalanceTier";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
 import { assertError, basicDeploy, eighteenZeros } from "../Util";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Tier {
   ZERO,

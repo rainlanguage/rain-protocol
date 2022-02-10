@@ -1,5 +1,4 @@
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierByConstructionTest } from "../../typechain/TierByConstructionTest";
@@ -7,9 +6,7 @@ import { assertError, getEventArgs } from "../Util";
 import type { Contract, ContractFactory } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 describe("TierByConstruction", async function () {
   let alice: SignerWithAddress;
