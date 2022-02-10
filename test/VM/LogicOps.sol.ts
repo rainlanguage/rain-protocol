@@ -1,6 +1,5 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
@@ -8,9 +7,7 @@ import type { BigNumber, Contract } from "ethers";
 
 import type { LogicTest } from "../../typechain/LogicTest";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 const enum Opcode {
   SKIP,
