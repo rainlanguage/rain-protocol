@@ -9,6 +9,9 @@ import {MathOps} from "../vm/ops/MathOps.sol";
 import {LogicOps} from "../vm/ops/LogicOps.sol";
 import {SenderOps} from "../vm/ops/SenderOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
+import {IERC20Ops} from "../vm/ops/IERC20Ops.sol";
+import {IERC721Ops} from "../vm/ops/IERC721Ops.sol";
+import {IERC1155Ops} from "../vm/ops/IERC1155Ops.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
@@ -85,13 +88,19 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     uint256 private constant CURRENT_BUY_UNITS = 5;
 
-    uint256 internal constant LOCAL_OPS_LENGTH = 6;
+    uint256 private constant TOKEN_ADDRESS = 6;
+    uint256 private constant RESERVE_ADDRESS = 7;
+
+    uint256 internal constant LOCAL_OPS_LENGTH = 8;
 
     uint256 private immutable blockOpsStart;
     uint256 private immutable senderOpsStart;
     uint256 private immutable logicOpsStart;
     uint256 private immutable mathOpsStart;
     uint256 private immutable tierOpsStart;
+    uint256 private immutable ierc20OpsStart;
+    uint256 private immutable ierc721OpsStart;
+    uint256 private immutable ierc1155OpsStart;
     uint256 private immutable localOpsStart;
 
     RedeemableERC20Factory private immutable redeemableERC20Factory;
@@ -129,7 +138,10 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         logicOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
         mathOpsStart = logicOpsStart + LogicOps.OPS_LENGTH;
         tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
-        localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        ierc20OpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        ierc721OpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
+        ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
+        localOpsStart = ierc1155OpsStart + IERC1155Ops.OPS_LENGTH;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
 
@@ -221,9 +233,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         distributors_[0] = address(this);
 
         bool success_ = totalReserveIn >= minimumRaise;
-        SaleStatus endStatus_ = success_
-            ? SaleStatus.Success
-            : SaleStatus.Fail;
+        SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
         emit End(msg.sender, endStatus_);
         _saleStatus = endStatus_;
 
@@ -377,11 +387,32 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                     opcode_ - mathOpsStart,
                     operand_
                 );
-            } else if (opcode_ < localOpsStart) {
+            } else if (opcode_ < ierc20OpsStart) {
                 TierOps.applyOp(
                     context_,
                     state_,
                     opcode_ - tierOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < ierc721OpsStart) {
+                IERC20Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc20OpsStart,
+                    operand_
+                );
+            } else if (opcode_ < ierc1155OpsStart) {
+                IERC721Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc721OpsStart,
+                    operand_
+                );
+            } else if (opcode_ < localOpsStart) {
+                IERC1155Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc1155OpsStart,
                     operand_
                 );
             } else {
@@ -400,6 +431,14 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                 } else if (opcode_ == CURRENT_BUY_UNITS) {
                     uint256 units_ = abi.decode(context_, (uint256));
                     state_.stack[state_.stackIndex] = units_;
+                } else if (opcode_ == TOKEN_ADDRESS) {
+                    state_.stack[state_.stackIndex] = uint256(
+                        uint160(address(_token))
+                    );
+                } else if (opcode_ == RESERVE_ADDRESS) {
+                    state_.stack[state_.stackIndex] = uint256(
+                        uint160(address(_reserve))
+                    );
                 }
                 state_.stackIndex++;
             }
