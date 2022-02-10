@@ -68,8 +68,8 @@ describe("RainVM", async function () {
     const timestamp1 = Date.now();
     const result1 = await calculator1.run();
 
-    const roughTimestamp1 = ethers.BigNumber.from(`${timestamp1}`.slice(0, 6));
-    const roughResult1 = ethers.BigNumber.from(`${result1}`.slice(0, 6));
+    const roughTimestamp1 = ethers.BigNumber.from(`${timestamp1}`.slice(0, 4));
+    const roughResult1 = ethers.BigNumber.from(`${result1}`.slice(0, 4));
 
     assert(
       roughResult1.eq(roughTimestamp1),
