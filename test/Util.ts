@@ -35,8 +35,7 @@ import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 export const CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING = 100;
 export const MAX_RAISE_DURATION_TESTING = 100;
@@ -631,15 +630,18 @@ export const getEventArgs = async (
   contract: Contract,
   contractAddressOverride: string = null
 ): Promise<Result> => {
+  const address = contractAddressOverride
+    ? contractAddressOverride
+    : contract.address;
+
   const eventObj = (await tx.wait()).events.find(
     (x) =>
       x.topics[0] == contract.filters[eventName]().topics[0] &&
-      x.address ==
-        (contractAddressOverride ? contractAddressOverride : contract.address)
+      x.address == address
   );
 
   if (!eventObj) {
-    throw new Error(`Could not find event with name ${eventName}`);
+    throw new Error(`Could not find event ${eventName} at address ${address}`);
   }
 
   return contract.interface.decodeEventLog(eventName, eventObj.data);

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers } from "hardhat";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
 import type { Contract } from "ethers";
@@ -9,10 +8,9 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { factoriesDeploy } from "../Util";
 import type { SeedERC20 } from "../../typechain/SeedERC20";
+import { CreatorFundsReleaseEvent } from "../../typechain/Trust";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 const seedERC20Json = require("../../artifacts/contracts/seed/SeedERC20.sol/SeedERC20.json");
@@ -547,27 +545,38 @@ describe("TrustDistribute", async function () {
 
       // approve all for transfer
 
-      await expect(
-        trust
+      const event0 = (await Util.getEventArgs(
+        await trust
           .connect(creator)
-          .creatorFundsRelease(reserve.address, reserveTrustBefore)
-      )
-        .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(creator.address, reserve.address, reserveTrustBefore);
-
-      await expect(
+          .creatorFundsRelease(reserve.address, reserveTrustBefore),
+        "CreatorFundsRelease",
         trust
-          .connect(creator)
-          .creatorFundsRelease(token.address, tokenTrustBefore)
-      )
-        .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(creator.address, token.address, tokenTrustBefore);
+      )) as CreatorFundsReleaseEvent["args"];
+      assert(event0.sender === creator.address, "wrong sender in event0");
+      assert(event0.token === reserve.address, "wrong token in event0");
+      assert(event0.amount.eq(reserveTrustBefore), "wrong amount in event0");
 
-      await expect(
-        trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
-      )
-        .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(creator.address, crp.address, crpTrustBefore);
+      const event1 = (await Util.getEventArgs(
+        await trust
+          .connect(creator)
+          .creatorFundsRelease(token.address, tokenTrustBefore),
+        "CreatorFundsRelease",
+        trust
+      )) as CreatorFundsReleaseEvent["args"];
+      assert(event1.sender === creator.address, "wrong sender in event1");
+      assert(event1.token === token.address, "wrong token in event1");
+      assert(event1.amount.eq(tokenTrustBefore), "wrong amount in event1");
+
+      const event2 = (await Util.getEventArgs(
+        await trust
+          .connect(creator)
+          .creatorFundsRelease(crp.address, crpTrustBefore),
+        "CreatorFundsRelease",
+        trust
+      )) as CreatorFundsReleaseEvent["args"];
+      assert(event2.sender === creator.address, "wrong sender in event2");
+      assert(event2.token === crp.address, "wrong token in event2");
+      assert(event2.amount.eq(crpTrustBefore), "wrong amount in event2");
 
       // perform transfers
       await reserve
@@ -899,27 +908,38 @@ describe("TrustDistribute", async function () {
 
       // approve all for transfer
 
-      await expect(
-        trust
+      const event0 = (await Util.getEventArgs(
+        await trust
           .connect(creator)
-          .creatorFundsRelease(reserve.address, reserveTrustBefore)
-      )
-        .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(creator.address, reserve.address, reserveTrustBefore);
-
-      await expect(
+          .creatorFundsRelease(reserve.address, reserveTrustBefore),
+        "CreatorFundsRelease",
         trust
-          .connect(creator)
-          .creatorFundsRelease(token.address, tokenTrustBefore)
-      )
-        .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(creator.address, token.address, tokenTrustBefore);
+      )) as CreatorFundsReleaseEvent["args"];
+      assert(event0.sender === creator.address, "wrong sender in event0");
+      assert(event0.token === reserve.address, "wrong token in event0");
+      assert(event0.amount.eq(reserveTrustBefore), "wrong amount in event0");
 
-      await expect(
-        trust.connect(creator).creatorFundsRelease(crp.address, crpTrustBefore)
-      )
-        .to.emit(trust, "CreatorFundsRelease")
-        .withArgs(creator.address, crp.address, crpTrustBefore);
+      const event1 = (await Util.getEventArgs(
+        await trust
+          .connect(creator)
+          .creatorFundsRelease(token.address, tokenTrustBefore),
+        "CreatorFundsRelease",
+        trust
+      )) as CreatorFundsReleaseEvent["args"];
+      assert(event1.sender === creator.address, "wrong sender in event1");
+      assert(event1.token === token.address, "wrong token in event1");
+      assert(event1.amount.eq(tokenTrustBefore), "wrong amount in event1");
+
+      const event2 = (await Util.getEventArgs(
+        await trust
+          .connect(creator)
+          .creatorFundsRelease(crp.address, crpTrustBefore),
+        "CreatorFundsRelease",
+        trust
+      )) as CreatorFundsReleaseEvent["args"];
+      assert(event2.sender === creator.address, "wrong sender in event2");
+      assert(event2.token === crp.address, "wrong token in event2");
+      assert(event2.amount.eq(crpTrustBefore), "wrong amount in event2");
 
       // perform transfers
       await reserve

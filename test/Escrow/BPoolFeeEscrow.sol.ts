@@ -1,6 +1,5 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import {
   basicSetup,
@@ -9,9 +8,12 @@ import {
   successfulRaise,
 } from "./BPoolFeeEscrowUtil";
 import { getAddress } from "ethers/lib/utils";
+import {
+  ClaimFeesEvent,
+  RefundFeesEvent,
+} from "../../typechain/BPoolFeeEscrow";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum DistributionStatus {
   PENDING,
@@ -141,15 +143,15 @@ describe("BPoolFeeEscrow", async function () {
       .connect(signer1)
       .refundFees(trust.address);
 
-    // RefundFees event
-    await expect(refundFeesPromise)
-      .to.emit(bPoolFeeEscrow, "RefundFees")
-      .withArgs(
-        signer1.address,
-        getAddress(trust.address),
-        // totalRefund
-        10000000
-      );
+    const event0 = (await Util.getEventArgs(
+      await refundFeesPromise,
+      "RefundFees",
+      bPoolFeeEscrow
+    )) as RefundFeesEvent["args"];
+
+    assert(event0.sender === signer1.address, "wrong sender in event0");
+    assert(event0.trust === getAddress(trust.address), "wrong trust in event0");
+    assert(event0.refundedFees.eq(10000000), "wrong refundedFees in event0");
 
     const reserveRedeemableERC20_2 = await reserve.balanceOf(
       redeemableERC20.address
@@ -242,16 +244,16 @@ describe("BPoolFeeEscrow", async function () {
       .connect(recipient)
       .claimFees(recipient.address, trust.address);
 
-    // ClaimFees event
-    await expect(claimFeesPromise)
-      .to.emit(bPoolFeeEscrow, "ClaimFees")
-      .withArgs(
-        recipient.address,
-        recipient.address,
-        getAddress(trust.address),
-        // claimableFee
-        90000000
-      );
+    const event0 = (await Util.getEventArgs(
+      await claimFeesPromise,
+      "ClaimFees",
+      bPoolFeeEscrow
+    )) as ClaimFeesEvent["args"];
+
+    assert(event0.sender === recipient.address, "wrong sender in event0");
+    assert(event0.recipient === recipient.address, "wrong recipient in event0");
+    assert(event0.trust === getAddress(trust.address), "wrong trust in event0");
+    assert(event0.claimedFees.eq(90000000), "wrong claimedFees in event0");
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
 

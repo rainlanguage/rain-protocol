@@ -1,6 +1,5 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { bytify, op, paddedUInt32, paddedUInt256 } from "../Util";
@@ -9,9 +8,7 @@ import type { Contract } from "ethers";
 import type { CombineTier } from "../../typechain/CombineTier";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Tier {
   ZERO,
