@@ -7,7 +7,7 @@ import {LogicOps} from "../vm/ops/LogicOps.sol";
 
 /// @title LogicTest
 /// Simple contract that exposes logic ops for testing.
-contract LogicTest is RainVM {
+contract LogicTest is RainVM, VMState {
     uint256 private immutable logicOpsStart;
     address private immutable vmStatePointer;
 
@@ -18,7 +18,7 @@ contract LogicTest is RainVM {
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
         logicOpsStart = RainVM.OPS_LENGTH;
-        vmStatePointer = VMState.snapshot(VMState.newState(config_));
+        vmStatePointer = _snapshot(_newState(config_));
     }
 
     /// @inheritdoc RainVM
@@ -48,7 +48,7 @@ contract LogicTest is RainVM {
     /// Runs `eval` and returns full state.
     /// @return `State` after running own immutable source.
     function runState() public view returns (State memory) {
-        State memory state_ = VMState.restore(vmStatePointer);
+        State memory state_ = _restore(vmStatePointer);
         eval("", state_, 0);
         return state_;
     }

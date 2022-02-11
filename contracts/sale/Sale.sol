@@ -66,7 +66,7 @@ struct Receipt {
     uint256 price;
 }
 
-contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
+contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuard {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -154,14 +154,14 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     ) external initializer {
         initializeCooldown(config_.cooldownDuration);
 
-        canStartStatePointer = VMState.snapshot(
-            VMState.newState(config_.canStartStateConfig)
+        canStartStatePointer = _snapshot(
+            _newState(config_.canStartStateConfig)
         );
-        canEndStatePointer = VMState.snapshot(
-            VMState.newState(config_.canEndStateConfig)
+        canEndStatePointer = _snapshot(
+            _newState(config_.canEndStateConfig)
         );
-        calculatePriceStatePointer = VMState.snapshot(
-            VMState.newState(config_.calculatePriceStateConfig)
+        calculatePriceStatePointer = _snapshot(
+            _newState(config_.calculatePriceStateConfig)
         );
         recipient = config_.recipient;
         minimumRaise = config_.minimumRaise;
@@ -206,13 +206,13 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     }
 
     function canStart() public view returns (bool) {
-        State memory state_ = VMState.restore(canStartStatePointer);
+        State memory state_ = _restore(canStartStatePointer);
         eval("", state_, 0);
         return state_.stack[state_.stackIndex - 1] > 0;
     }
 
     function canEnd() public view returns (bool) {
-        State memory state_ = VMState.restore(canEndStatePointer);
+        State memory state_ = _restore(canEndStatePointer);
         eval("", state_, 0);
         return state_.stack[state_.stackIndex - 1] > 0;
     }
@@ -247,7 +247,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     }
 
     function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = VMState.restore(calculatePriceStatePointer);
+        State memory state_ = _restore(calculatePriceStatePointer);
         eval(abi.encode(units_), state_, 0);
 
         return state_.stack[state_.stackIndex - 1];

@@ -11,7 +11,7 @@ import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 
-contract TokenOpsTest is RainVM {
+contract TokenOpsTest is RainVM, VMState {
     uint256 private immutable ierc20OpsStart;
     uint256 private immutable ierc721OpsStart;
     uint256 private immutable ierc1155OpsStart;
@@ -24,7 +24,7 @@ contract TokenOpsTest is RainVM {
         ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
         localOpsStart = ierc1155OpsStart + IERC1155Ops.OPS_LENGTH;
 
-        vmStatePointer = VMState.snapshot(VMState.newState(config_));
+        vmStatePointer = _snapshot(_newState(config_));
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -53,7 +53,7 @@ contract TokenOpsTest is RainVM {
     /// Runs `eval` and returns full state.
     /// @return `State` after running own immutable source.
     function runState() public view returns (State memory) {
-        State memory state_ = VMState.restore(vmStatePointer);
+        State memory state_ = _restore(vmStatePointer);
         eval("", state_, 0);
         return state_;
     }
