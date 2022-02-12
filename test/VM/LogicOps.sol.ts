@@ -15,6 +15,7 @@ const enum Opcode {
   DUP,
   ZIPMAP,
   IS_ZERO,
+  EAGER_IF,
   EQUAL_TO,
   LESS_THAN,
   GREATER_THAN,
