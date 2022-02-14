@@ -48,6 +48,7 @@ struct SaleRedeemableERC20Config {
     ERC20Config erc20Config;
     ITier tier;
     uint256 minimumTier;
+    address distributionEndForwardingAddress;
 }
 
 struct BuyConfig {
@@ -66,7 +67,14 @@ struct Receipt {
     uint256 price;
 }
 
-contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuard {
+contract Sale is
+    Initializable,
+    Cooldown,
+    RainVM,
+    VMState,
+    ISale,
+    ReentrancyGuard
+{
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -157,9 +165,7 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         canStartStatePointer = _snapshot(
             _newState(config_.canStartStateConfig)
         );
-        canEndStatePointer = _snapshot(
-            _newState(config_.canEndStateConfig)
-        );
+        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
         calculatePriceStatePointer = _snapshot(
             _newState(config_.calculatePriceStateConfig)
         );
@@ -178,7 +184,9 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
                         address(config_.reserve),
                         saleRedeemableERC20Config_.erc20Config,
                         saleRedeemableERC20Config_.tier,
-                        saleRedeemableERC20Config_.minimumTier
+                        saleRedeemableERC20Config_.minimumTier,
+                        saleRedeemableERC20Config_
+                            .distributionEndForwardingAddress
                     )
                 )
             )
@@ -229,8 +237,6 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         require(remainingUnits < 1 || canEnd(), "CANT_END");
 
         remainingUnits = 0;
-        address[] memory distributors_ = new address[](1);
-        distributors_[0] = address(this);
 
         bool success_ = totalReserveIn >= minimumRaise;
         SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
@@ -238,7 +244,7 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         _saleStatus = endStatus_;
 
         // Always burn the undistributed tokens.
-        _token.burnDistributors(distributors_);
+        _token.endDistribution(address(this));
 
         // Only send reserve to recipient if the raise is a success.
         if (success_) {

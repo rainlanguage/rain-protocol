@@ -25,6 +25,7 @@ struct RedeemableERC20Config {
     ITier tier;
     // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
     uint256 minimumTier;
+    address distributionEndForwardingAddress;
 }
 
 /// @title RedeemableERC20
@@ -126,7 +127,8 @@ contract RedeemableERC20 is
         /// contract admin.
         address admin,
         /// Minimum tier required to receive the token.
-        uint256 minimumTier
+        uint256 minimumTier,
+        address distributionEndForwardingAddress
     );
 
     /// A new token sender has been added.
@@ -157,6 +159,8 @@ contract RedeemableERC20 is
     /// Public so external contracts can interface with the required tier.
     uint256 public minimumTier;
 
+    address private distributionEndForwardingAddress;
+
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @param config_ Initialized configuration.
@@ -177,6 +181,8 @@ contract RedeemableERC20 is
             "MINIMUM_INITIAL_SUPPLY"
         );
         minimumTier = config_.minimumTier;
+        distributionEndForwardingAddress = config_
+            .distributionEndForwardingAddress;
 
         // Minting and burning must never fail.
         access[address(0)] = SENDER;
@@ -198,7 +204,8 @@ contract RedeemableERC20 is
         emit Initialize(
             msg.sender,
             config_.erc20Config.distributor,
-            config_.minimumTier
+            config_.minimumTier,
+            config_.distributionEndForwardingAddress
         );
 
         // Smoke test on whatever is on the other side of `config_.tier`.
@@ -251,26 +258,36 @@ contract RedeemableERC20 is
         emit Sender(msg.sender, newSender_);
     }
 
-    /// The admin can burn all tokens of a single address to end `Phase.ZERO`.
+    /// The admin can forward or burn all tokens of a single address to end
+    /// `Phase.ZERO`.
     /// The intent is that during `Phase.ZERO` there is some contract
     /// responsible for distributing the tokens.
-    /// The admin specifies the distributor to end `Phase.ZERO` and all
-    /// undistributed tokens are burned.
-    /// The distributor is NOT set during the constructor because it likely
-    /// doesn't exist at that point. For example, Balancer needs the paired
-    /// erc20 tokens to exist before the trading pool can be built.
-    /// @param distributors_ The distributor according to the admin.
-    function burnDistributors(address[] memory distributors_)
+    /// The admin specifies the distributor to end `Phase.ZERO` and the
+    /// forwarding address set during initialization is used. If the forwarding
+    /// address is `0` the rTKN will be burned, otherwise the entire balance of
+    /// the distributor is forwarded to the nominated address. In practical
+    /// terms the forwarding allows for escrow depositors to receive a prorata
+    /// claim on unsold rTKN if they forward it to themselves, otherwise raise
+    /// participants will receive a greater share of the final escrowed tokens
+    /// due to the burn reducing the total supply.
+    /// The distributor is NOT set during the constructor because it may not
+    /// exist at that point. For example, Balancer needs the paired erc20
+    /// tokens to exist before the trading pool can be built.
+    /// @param distributor_ The distributor according to the admin.
+    /// BURN the tokens if `address(0)`.
+    function endDistribution(address distributor_)
         external
         onlyPhase(PHASE_DISTRIBUTING)
         onlyAdmin
     {
         schedulePhase(PHASE_FROZEN, block.number);
-        for (uint256 i_ = 0; i_ < distributors_.length; i_++) {
-            address distributor_ = distributors_[i_];
-            uint256 distributorBalance_ = balanceOf(distributor_);
-            if (distributorBalance_ > 0) {
-                _burn(distributor_, balanceOf(distributor_));
+        address forwardTo_ = distributionEndForwardingAddress;
+        uint256 distributorBalance_ = balanceOf(distributor_);
+        if (distributorBalance_ > 0) {
+            if (forwardTo_ == address(0)) {
+                _burn(distributor_, distributorBalance_);
+            } else {
+                _transfer(distributor_, forwardTo_, distributorBalance_);
             }
         }
     }

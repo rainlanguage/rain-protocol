@@ -289,6 +289,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -447,6 +448,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -581,6 +583,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -646,6 +649,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -746,6 +750,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -889,6 +894,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -1032,6 +1038,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -1170,6 +1177,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -1319,6 +1327,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -1464,6 +1473,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -1756,6 +1766,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -1901,6 +1912,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -2010,6 +2022,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -2144,6 +2157,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -2289,6 +2303,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -2385,6 +2400,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 
@@ -2597,6 +2613,7 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
 

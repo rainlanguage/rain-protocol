@@ -600,7 +600,12 @@ contract Trust is Phased, ISale {
                         address(config_.reserve),
                         trustRedeemableERC20Config_.erc20Config,
                         trustRedeemableERC20Config_.tier,
-                        trustRedeemableERC20Config_.minimumTier
+                        trustRedeemableERC20Config_.minimumTier,
+                        // Forwarding address is always zero
+                        // (i.e. distribution will burn unsold rTKN)
+                        // because LBP mechanics basically mandate many unsold
+                        // tokens.
+                        address(0)
                     )
                 )
             )
@@ -956,10 +961,12 @@ contract Trust is Phased, ISale {
         // Burning the distributor moves the rTKN to its `Phase.ONE` and
         // unlocks redemptions.
         // The distributor is the `bPool` itself and all unsold inventory.
-        address[] memory distributors_ = new address[](2);
-        distributors_[0] = address(this);
-        distributors_[1] = pool_;
-        _token.burnDistributors(distributors_);
+        // First we send all exited rTKN back to the pool so it can be burned.
+        IERC20(address(_token)).safeTransfer(
+            pool_,
+            _token.balanceOf(address(this))
+        );
+        _token.endDistribution(pool_);
 
         // The dust is NOT included in the final balance.
         // The `availableBalance_` is the reserve the `Trust` owns and so can
