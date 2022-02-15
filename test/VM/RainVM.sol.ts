@@ -27,6 +27,84 @@ const enum Opcode {
 }
 
 describe("RainVM", async function () {
+  it("should support source scripts with leading zeroes", async () => {
+    this.timeout(0);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+
+    await Util.createEmptyBlock(5);
+
+    const block0 = await ethers.provider.getBlockNumber();
+    const constants = [block0];
+
+    const vBlock = op(Opcode.VAL, 0);
+
+    // prettier-ignore
+    const source0 = concat([
+      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, 0),
+        vBlock,
+        op(Opcode.BLOCK_NUMBER),
+      op(Opcode.MIN, 2),
+    ]);
+
+    const calculator0 = (await calculatorFactory.deploy({
+      sources: [source0],
+      constants,
+      argumentsLength: 0,
+      stackLength: 10,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator0.runState();
+
+    console.log({ state });
+
+    const result0 = await calculator0.run();
+    assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
+  });
+
+  it("should support source scripts with trailing zeroes", async () => {
+    this.timeout(0);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+
+    await Util.createEmptyBlock(5);
+
+    const block0 = await ethers.provider.getBlockNumber();
+    const constants = [block0];
+
+    const vBlock = op(Opcode.VAL, 0);
+
+    // prettier-ignore
+    const source0 = concat([
+        vBlock,
+        op(Opcode.BLOCK_NUMBER),
+      op(Opcode.MIN, 2),
+      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, 0),
+      op(Opcode.SKIP, 0),
+    ]);
+
+    const calculator0 = (await calculatorFactory.deploy({
+      sources: [source0],
+      constants,
+      argumentsLength: 0,
+      stackLength: 10,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator0.runState();
+
+    console.log({ state });
+
+    const result0 = await calculator0.run();
+    assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
+  });
+
   it("should return block.number and block.timestamp", async () => {
     this.timeout(0);
 
