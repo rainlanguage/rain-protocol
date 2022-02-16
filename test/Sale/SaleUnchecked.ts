@@ -13,7 +13,7 @@ import {
   SaleConstructorConfigStruct,
   SaleFactory,
 } from "../../typechain/SaleFactory";
-import { Opcode } from "./SaleUtil";
+import { afterBlockNumberConfig, saleDeploy, Opcode, Tier } from "./SaleUtil";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -93,7 +93,21 @@ describe("SaleUnchecked", async function () {
   it("should panic when accumulator overflows with exponentiation op", async () => {
     this.timeout(0);
 
-    const saleFactory = await ethers.getContractFactory("Sale");
+    const deployer = signers[0];
+    const recipient = signers[1];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
     const constants = [Util.max_uint256.div(2), 2];
 
@@ -107,15 +121,43 @@ describe("SaleUnchecked", async function () {
       op(Opcode.POW, 2)
     ]);
 
-    const sale0 = (await saleFactory.deploy({
-      sources: [source0],
-      constants,
-      argumentsLength: 0,
-      stackLength: 10,
-    })) as Sale & Contract;
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources: [source0],
+          constants,
+          stackLength: 10,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply;
 
     await Util.assertError(
-      async () => await sale0.report(),
+      async () => await sale.calculatePrice(desiredUnits),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
     );
@@ -124,7 +166,21 @@ describe("SaleUnchecked", async function () {
   it("should panic when accumulator overflows with multiplication op", async () => {
     this.timeout(0);
 
-    const saleFactory = await ethers.getContractFactory("Sale");
+    const deployer = signers[0];
+    const recipient = signers[1];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
     const constants = [Util.max_uint256.div(2), 3];
 
@@ -138,15 +194,43 @@ describe("SaleUnchecked", async function () {
       op(Opcode.MUL, 2)
     ]);
 
-    const sale0 = (await saleFactory.deploy({
-      sources: [source0],
-      constants,
-      argumentsLength: 0,
-      stackLength: 10,
-    })) as Sale & Contract;
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources: [source0],
+          constants,
+          stackLength: 10,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply;
 
     await Util.assertError(
-      async () => await sale0.report(),
+      async () => await sale.calculatePrice(desiredUnits),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
     );
@@ -155,7 +239,21 @@ describe("SaleUnchecked", async function () {
   it("should panic when accumulator underflows with subtraction op", async () => {
     this.timeout(0);
 
-    const saleFactory = await ethers.getContractFactory("Sale");
+    const deployer = signers[0];
+    const recipient = signers[1];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
     const constants = [0, 1];
 
@@ -169,15 +267,43 @@ describe("SaleUnchecked", async function () {
       op(Opcode.SUB, 2)
     ]);
 
-    const sale0 = (await saleFactory.deploy({
-      sources: [source0],
-      constants,
-      argumentsLength: 0,
-      stackLength: 10,
-    })) as Sale & Contract;
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources: [source0],
+          constants,
+          stackLength: 10,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply;
 
     await Util.assertError(
-      async () => await sale0.report(),
+      async () => await sale.calculatePrice(desiredUnits),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator underflow did not panic"
     );
@@ -186,7 +312,21 @@ describe("SaleUnchecked", async function () {
   it("should panic when accumulator overflows with addition op", async () => {
     this.timeout(0);
 
-    const saleFactory = await ethers.getContractFactory("Sale");
+    const deployer = signers[0];
+    const recipient = signers[1];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
     const constants = [Util.max_uint256, 1];
 
@@ -200,15 +340,43 @@ describe("SaleUnchecked", async function () {
       op(Opcode.ADD, 2)
     ]);
 
-    const sale0 = (await saleFactory.deploy({
-      sources: [source0],
-      constants,
-      argumentsLength: 0,
-      stackLength: 10,
-    })) as Sale & Contract;
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources: [source0],
+          constants,
+          stackLength: 10,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+      }
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply;
 
     await Util.assertError(
-      async () => await sale0.report(),
+      async () => await sale.calculatePrice(desiredUnits),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
     );
