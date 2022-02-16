@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {Cooldown} from "../cooldown/Cooldown.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import "../vm/RainVM.sol";
 import {BlockOps} from "../vm/ops/BlockOps.sol";
@@ -32,6 +33,9 @@ struct SaleConstructorConfig {
 }
 
 struct SaleConfig {
+    uint256 baseSalt;
+    uint256 seriesLength;
+    StateConfig isSuccessStateConfig;
     StateConfig canStartStateConfig;
     StateConfig canEndStateConfig;
     StateConfig calculatePriceStateConfig;
@@ -40,7 +44,6 @@ struct SaleConfig {
     /// Sale can have an id to disambiguate it from other sales from the same
     /// initiator.
     uint256 cooldownDuration;
-    uint256 minimumRaise;
     uint256 dustSize;
 }
 
@@ -66,7 +69,14 @@ struct Receipt {
     uint256 price;
 }
 
-contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuard {
+contract Sale is
+    Initializable,
+    Cooldown,
+    RainVM,
+    VMState,
+    ISale,
+    ReentrancyGuard
+{
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -93,6 +103,9 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
 
     uint256 internal constant LOCAL_OPS_LENGTH = 8;
 
+    address private immutable deployer;
+    address private immutable self;
+
     uint256 private immutable blockOpsStart;
     uint256 private immutable senderOpsStart;
     uint256 private immutable logicOpsStart;
@@ -106,22 +119,24 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
     RedeemableERC20Factory private immutable redeemableERC20Factory;
 
     // config.
+    uint256 private baseSalt;
+    uint256 private seriesLength;
+    uint256 private dustSize;
     address private recipient;
+    address private isSuccessStatePointer;
     address private canStartStatePointer;
     address private canEndStatePointer;
     address private calculatePriceStatePointer;
-    uint256 private minimumRaise;
-    uint256 private dustSize;
 
     IERC20 private _reserve;
     RedeemableERC20 private _token;
 
     // state.
-    uint256 private remainingUnits;
-    uint256 private totalReserveIn;
-    uint256 private lastBuyBlock;
-    uint256 private lastBuyUnits;
-    uint256 private lastBuyPrice;
+    uint256 public remainingUnits;
+    uint256 public totalReserveIn;
+    uint256 public lastBuyBlock;
+    uint256 public lastBuyUnits;
+    uint256 public lastBuyPrice;
 
     SaleStatus private _saleStatus;
 
@@ -133,6 +148,9 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_) {
+        deployer = msg.sender;
+        self = address(this);
+
         blockOpsStart = RainVM.OPS_LENGTH;
         senderOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
         logicOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
@@ -154,17 +172,19 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
     ) external initializer {
         initializeCooldown(config_.cooldownDuration);
 
+        baseSalt = config_.baseSalt;
+        seriesLength = config_.seriesLength;
         canStartStatePointer = _snapshot(
             _newState(config_.canStartStateConfig)
         );
-        canEndStatePointer = _snapshot(
-            _newState(config_.canEndStateConfig)
+        isSuccessStatePointer = _snapshot(
+            _newState(config_.isSuccessStateConfig)
         );
+        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
         calculatePriceStatePointer = _snapshot(
             _newState(config_.calculatePriceStateConfig)
         );
         recipient = config_.recipient;
-        minimumRaise = config_.minimumRaise;
         dustSize = config_.dustSize;
         // just making this explicit.
         _saleStatus = SaleStatus.Pending;
@@ -205,6 +225,12 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         return _saleStatus;
     }
 
+    function isSuccess() public view returns (bool) {
+        State memory state_ = _restore(isSuccessStatePointer);
+        eval("", state_, 0);
+        return state_.stack[state_.stackIndex - 1] > 0;
+    }
+
     function canStart() public view returns (bool) {
         State memory state_ = _restore(canStartStatePointer);
         eval("", state_, 0);
@@ -224,7 +250,16 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         emit Start(msg.sender);
     }
 
-    function end() public {
+    function end() external {
+        require(
+            msg.sender ==
+                Clones.predictDeterministicAddress(
+                    self,
+                    bytes32(baseSalt),
+                    deployer
+                ),
+            "ONLY_SERIES_BASE"
+        );
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
         require(remainingUnits < 1 || canEnd(), "CANT_END");
 
@@ -232,7 +267,7 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         address[] memory distributors_ = new address[](1);
         distributors_[0] = address(this);
 
-        bool success_ = totalReserveIn >= minimumRaise;
+        bool success_ = isSuccess();
         SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
         emit End(msg.sender, endStatus_);
         _saleStatus = endStatus_;
@@ -243,6 +278,18 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         // Only send reserve to recipient if the raise is a success.
         if (success_) {
             _reserve.safeTransfer(recipient, totalReserveIn);
+        }
+    }
+
+    function endSeries() public {
+        for (uint256 i_ = 0; i_ < seriesLength; i_++) {
+            Sale(
+                Clones.predictDeterministicAddress(
+                    self,
+                    bytes32(baseSalt + i_),
+                    deployer
+                )
+            ).end();
         }
     }
 
@@ -308,7 +355,7 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         IERC20(address(_token)).safeTransfer(msg.sender, units_);
 
         if (remainingUnits < 1) {
-            end();
+            endSeries();
         } else {
             require(remainingUnits >= dustSize, "DUST");
         }
@@ -418,26 +465,33 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
             } else {
                 opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
+                Sale sale_ = Sale(
+                    Clones.predictDeterministicAddress(
+                        self,
+                        bytes32(baseSalt + operand_),
+                        deployer
+                    )
+                );
                 if (opcode_ == REMAINING_UNITS) {
-                    state_.stack[state_.stackIndex] = remainingUnits;
+                    state_.stack[state_.stackIndex] = sale_.remainingUnits();
                 } else if (opcode_ == TOTAL_RESERVE_IN) {
-                    state_.stack[state_.stackIndex] = totalReserveIn;
+                    state_.stack[state_.stackIndex] = sale_.totalReserveIn();
                 } else if (opcode_ == LAST_BUY_BLOCK) {
-                    state_.stack[state_.stackIndex] = lastBuyBlock;
+                    state_.stack[state_.stackIndex] = sale_.lastBuyBlock();
                 } else if (opcode_ == LAST_BUY_UNITS) {
-                    state_.stack[state_.stackIndex] = lastBuyUnits;
+                    state_.stack[state_.stackIndex] = sale_.lastBuyUnits();
                 } else if (opcode_ == LAST_BUY_PRICE) {
-                    state_.stack[state_.stackIndex] = lastBuyPrice;
+                    state_.stack[state_.stackIndex] = sale_.lastBuyPrice();
                 } else if (opcode_ == CURRENT_BUY_UNITS) {
                     uint256 units_ = abi.decode(context_, (uint256));
                     state_.stack[state_.stackIndex] = units_;
                 } else if (opcode_ == TOKEN_ADDRESS) {
                     state_.stack[state_.stackIndex] = uint256(
-                        uint160(address(_token))
+                        uint160(address(sale_.token()))
                     );
                 } else if (opcode_ == RESERVE_ADDRESS) {
                     state_.stack[state_.stackIndex] = uint256(
-                        uint160(address(_reserve))
+                        uint160(address(sale_.reserve()))
                     );
                 }
                 state_.stackIndex++;

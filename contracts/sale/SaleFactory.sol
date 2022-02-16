@@ -6,6 +6,18 @@ import "./Sale.sol";
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
+struct SaleSeriesConfig {
+    uint256 seriesId;
+    uint256 seriesLength;
+    uint256 seriesIndex;
+}
+
+struct SaleFactorySaleConfig {
+    SaleSeriesConfig saleSeriesConfig;
+    SaleConfig saleConfig;
+    SaleRedeemableERC20Config saleRedeemableERC20Config;
+}
+
 /// @title SaleFactory
 /// @notice Factory for creating and deploying `Sale` contracts.
 contract SaleFactory is Factory {
@@ -29,12 +41,38 @@ contract SaleFactory is Factory {
         override
         returns (address)
     {
-        (
-            SaleConfig memory config_,
-            SaleRedeemableERC20Config memory saleRedeemableERC20Config_
-        ) = abi.decode(data_, (SaleConfig, SaleRedeemableERC20Config));
-        address clone_ = Clones.clone(implementation);
-        Sale(clone_).initialize(config_, saleRedeemableERC20Config_);
+        SaleFactorySaleConfig memory saleFactorySaleConfig_ = abi.decode(
+            data_,
+            (SaleFactorySaleConfig)
+        );
+        require(
+            saleFactorySaleConfig_.saleSeriesConfig.seriesIndex <
+                saleFactorySaleConfig_.saleSeriesConfig.seriesLength,
+            "SERIES_OOB"
+        );
+
+        uint256 baseSalt_ = uint256(
+            keccak256(
+                abi.encodePacked(
+                    // include the sender so that each sender has their own
+                    // universe of possible sales to deploy.
+                    msg.sender,
+                    // include series id and length so every sale with the same
+                    // base salt has the same opinion on the series shape.
+                    saleFactorySaleConfig_.saleSeriesConfig.seriesId,
+                    saleFactorySaleConfig_.saleSeriesConfig.seriesLength
+                )
+            )
+        );
+        bytes32 salt_ = bytes32(
+            baseSalt_ + saleFactorySaleConfig_.saleSeriesConfig.seriesIndex
+        );
+
+        address clone_ = Clones.cloneDeterministic(implementation, salt_);
+        Sale(clone_).initialize(
+            saleFactorySaleConfig_.saleConfig,
+            saleFactorySaleConfig_.saleRedeemableERC20Config
+        );
         return clone_;
     }
 
@@ -45,13 +83,14 @@ contract SaleFactory is Factory {
     /// @param config_ `SeedERC20` constructor configuration.
     /// @return New `SeedERC20` child contract.
     function createChildTyped(
+        uint256 seriesId_,
         SaleConfig calldata config_,
         SaleRedeemableERC20Config calldata saleRedeemableERC20Config_
     ) external returns (Sale) {
         return
             Sale(
                 this.createChild(
-                    abi.encode(config_, saleRedeemableERC20Config_)
+                    abi.encode(seriesId_, config_, saleRedeemableERC20Config_)
                 )
             );
     }
