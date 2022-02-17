@@ -5,7 +5,7 @@ import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
 import type { BigNumber, Contract } from "ethers";
 
-import type { LogicTest } from "../../typechain/LogicTest";
+import type { LogicOpsTest } from "../../typechain/LogicOpsTest";
 
 const { assert } = chai;
 
@@ -22,11 +22,11 @@ const enum Opcode {
 
 const isTruthy = (vmValue: BigNumber) => vmValue.eq(1);
 
-describe("LogicOps", async function () {
+describe("LogicOpsTest", async function () {
   it("should check that value is greater than another value", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicTest");
+    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
 
     const constants = [1, 2];
 
@@ -42,7 +42,7 @@ describe("LogicOps", async function () {
       constants,
       argumentsLength: 0,
       stackLength: 3,
-    })) as LogicTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run(); // expect 1
 
@@ -60,7 +60,7 @@ describe("LogicOps", async function () {
       constants,
       argumentsLength: 1,
       stackLength: 3,
-    })) as LogicTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run(); // expect 0
 
@@ -70,7 +70,7 @@ describe("LogicOps", async function () {
   it("should check that value is less than another value", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicTest");
+    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
 
     const constants = [1, 2];
 
@@ -86,7 +86,7 @@ describe("LogicOps", async function () {
       constants,
       argumentsLength: 0,
       stackLength: 3,
-    })) as LogicTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run(); // expect 0
 
@@ -104,7 +104,7 @@ describe("LogicOps", async function () {
       constants,
       argumentsLength: 1,
       stackLength: 3,
-    })) as LogicTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run(); // expect 1
 
@@ -114,7 +114,7 @@ describe("LogicOps", async function () {
   it("should check that values are equal to each other", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicTest");
+    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
 
     const constants = [1, 2];
 
@@ -130,7 +130,7 @@ describe("LogicOps", async function () {
       constants,
       argumentsLength: 0,
       stackLength: 3,
-    })) as LogicTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run(); // expect 1
 
@@ -148,7 +148,7 @@ describe("LogicOps", async function () {
       constants,
       argumentsLength: 1,
       stackLength: 3,
-    })) as LogicTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run(); // expect 0
 
@@ -158,7 +158,7 @@ describe("LogicOps", async function () {
   it("should check that a value is zero", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicTest");
+    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
 
     const constants = [0, 1];
 
@@ -173,7 +173,7 @@ describe("LogicOps", async function () {
       constants,
       argumentsLength: 0,
       stackLength: 3,
-    })) as LogicTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run(); // expect 1
 
@@ -190,7 +190,7 @@ describe("LogicOps", async function () {
       constants,
       argumentsLength: 1,
       stackLength: 3,
-    })) as LogicTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run(); // expect 0
 
