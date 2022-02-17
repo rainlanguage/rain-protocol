@@ -518,6 +518,14 @@ contract Trust is Phased, ISale {
         _reserve = config_.reserve;
         reserveInit = config_.reserveInit;
 
+        // If the raise really does have a minimum of `0` and `0` trading
+        // happens then the raise will be considered a "success", burning all
+        // rTKN, which would trap any escrowed or deposited funds that nobody
+        // can retrieve as nobody holds any rTKN.
+        // A zero or very low minimum raise is very likely NOT what you want
+        // for a LBP, consider using `Sale` instead, which supports rTKN
+        // forwarding in the case of a raise not selling out.
+        require(config_.minimumCreatorRaise > 0, "MIN_RAISE_0");
         minimumCreatorRaise = config_.minimumCreatorRaise;
         seederFee = config_.seederFee;
         redeemInit = config_.redeemInit;

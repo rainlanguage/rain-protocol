@@ -170,7 +170,21 @@ contract Sale is
             _newState(config_.calculatePriceStateConfig)
         );
         recipient = config_.recipient;
-        minimumRaise = config_.minimumRaise;
+
+        // If the raise really does have a minimum of `0` and `0` trading
+        // happens then the raise will be considered a "success", burning all
+        // rTKN, which would trap any escrowed or deposited funds that nobody
+        // can retrieve as nobody holds any rTKN.
+        // If you want `0` or very low minimum raise consider enabling rTKN
+        // forwarding for unsold inventory.
+        if (
+            saleRedeemableERC20Config_.distributionEndForwardingAddress ==
+            address(0)
+        ) {
+            require(config_.minimumRaise > 0, "MIN_RAISE_0");
+            minimumRaise = config_.minimumRaise;
+        }
+
         dustSize = config_.dustSize;
         // just making this explicit.
         _saleStatus = SaleStatus.Pending;
