@@ -73,7 +73,7 @@ describe("TierOpsTest", async function () {
 
     console.log({ result: result0, resultHex: resultHex0, state: state0 });
 
-    const expectedResult0 = "0x20000000200000002";
+    const expectedResult0 = "0x020000000200000002";
 
     assert(
       resultHex0 === expectedResult0,

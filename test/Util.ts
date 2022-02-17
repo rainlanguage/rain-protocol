@@ -431,13 +431,13 @@ export function tierReport(report: string): number[] {
   return parsedReport;
 }
 
-export function blockNumbersToReport(blockNos: number[]): string {
+export function blockNumbersToReport(blockNos: number[]): BigNumberish {
   assert(blockNos.length === 8);
 
-  return [...blockNos]
+  return ethers.BigNumber.from("0x" + [...blockNos]
     .reverse()
     .map((i) => BigInt(i).toString(16).padStart(8, "0"))
-    .join("");
+    .join(""));
 }
 
 /**
