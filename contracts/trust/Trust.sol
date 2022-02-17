@@ -366,21 +366,6 @@ contract Trust is Phased, ISale {
     /// Max duration that can be initialized for the `Trust`.
     uint256 private immutable maxRaiseDuration;
 
-    /// Anyone can emit a `Notice`.
-    /// This is open ended content related to the `Trust`.
-    /// Some examples:
-    /// - Raise descriptions/promises
-    /// - Reviews/comments from token holders
-    /// - Simple onchain voting/signalling
-    /// GUIs/tooling/indexers reading this data are expected to know how to
-    /// interpret it in context because the contract does not.
-    event Notice(
-        /// The `msg.sender` that emitted the `Notice`.
-        address sender,
-        /// Opaque binary data for the GUI/tooling/indexer to read.
-        bytes data
-    );
-
     /// Seeder from the initial config.
     address private seeder;
     /// `SeedERC20Factory` from the construction config.
@@ -813,14 +798,6 @@ contract Trust is Phased, ISale {
         } else {
             revert("UNKNOWN_POOL_PHASE");
         }
-    }
-
-    /// Anyone can send a notice about this `Trust`.
-    /// The notice is opaque bytes. The indexer/GUI is expected to understand
-    /// the context to decode/interpret it.
-    /// @param data_ The data associated with this notice.
-    function sendNotice(bytes memory data_) external {
-        emit Notice(msg.sender, data_);
     }
 
     /// Allow anyone to start the Balancer style dutch auction.
