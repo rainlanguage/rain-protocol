@@ -182,8 +182,8 @@ contract Sale is
             address(0)
         ) {
             require(config_.minimumRaise > 0, "MIN_RAISE_0");
-            minimumRaise = config_.minimumRaise;
         }
+        minimumRaise = config_.minimumRaise;
 
         dustSize = config_.dustSize;
         // just making this explicit.
