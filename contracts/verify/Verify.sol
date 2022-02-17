@@ -291,6 +291,11 @@ contract Verify is AccessControl, Initializable {
         _;
     }
 
+    /// @dev Builds a new `State` for use by `add` and `approve`.
+    function newState() private view returns (State memory) {
+        return State(uint32(block.number), UNINITIALIZED, UNINITIALIZED);
+    }
+
     /// An account adds their own verification evidence.
     /// Internally `msg.sender` is used; delegated `add` is not supported.
     /// @param data_ The evidence to support approving the `msg.sender`.
@@ -304,11 +309,7 @@ contract Verify is AccessControl, Initializable {
         // equality checks against `0`. The intent is to ensure that
         // `addedSince` is not already set before we set it.
         require(states[msg.sender].addedSince < 1, "PRIOR_ADD");
-        states[msg.sender] = State(
-            uint32(block.number),
-            UNINITIALIZED,
-            UNINITIALIZED
-        );
+        states[msg.sender] = newState();
         emit RequestApprove(msg.sender, data_);
     }
 
@@ -318,16 +319,18 @@ contract Verify is AccessControl, Initializable {
     function approve(address account_, bytes calldata data_) external {
         require(account_ != address(0), "0_ADDRESS");
         require(hasRole(APPROVER, msg.sender), "ONLY_APPROVER");
-        // In theory we should also check the `addedSince` is lte the current
-        // `block.number` but in practise no code path produces a future
-        // `addedSince`.
-        require(states[account_].addedSince > 0, "NOT_ADDED");
-        require(
-            states[account_].approvedSince == UNINITIALIZED,
-            "PRIOR_APPROVE"
-        );
-        require(states[account_].bannedSince == UNINITIALIZED, "PRIOR_BAN");
-        states[account_].approvedSince = uint32(block.number);
+
+        State memory state_ = states[account_];
+        // If the account hasn't been added an approver can still add and
+        // approve it on their behalf.
+        if (state_.addedSince < 1) {
+            state_ = newState();
+        } else {
+            require(state_.approvedSince == UNINITIALIZED, "PRIOR_APPROVE");
+            require(state_.bannedSince == UNINITIALIZED, "PRIOR_BAN");
+            state_.approvedSince = uint32(block.number);
+        }
+        states[account_] = state_;
         emit Approve(msg.sender, account_, data_);
     }
 
