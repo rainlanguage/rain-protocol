@@ -3,10 +3,9 @@ import chai from "chai";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
 import { op } from "../Util";
-import { BigNumber, Contract } from "ethers";
+import { Contract } from "ethers";
 
 import type { TierOpsTest } from "../../typechain/TierOpsTest";
-import { tierRange } from "../Claim/ClaimUtil";
 
 const { assert } = chai;
 
@@ -35,7 +34,53 @@ enum Tier {
   EIGHT,
 }
 
+function tierRangeUnrestricted(startTier: number, endTier: number): number {
+  //   op_.val & 0x0f, //     00001111
+  //   op_.val & 0xf0, //     11110000
+  let range = endTier;
+  range <<= 4;
+  range += startTier;
+  return range;
+}
+
 describe("TierOpsTest", async function () {
+  it("should enforce maxTier for all TierReport logic", async () => {
+    this.timeout(0);
+
+    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
+
+    await Util.createEmptyBlock(3);
+
+    const block = await ethers.provider.getBlockNumber();
+
+    const constants0 = [block];
+
+    const vBlock = op(Opcode.VAL, 0);
+
+    // prettier-ignore
+    const source0 = concat([
+        op(Opcode.NEVER),
+        vBlock,
+      op(
+        Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+        tierRangeUnrestricted(Tier.ZERO, 9) // beyond max tier of Tier.EIGHT
+      ),
+    ]);
+
+    const tierOps0 = (await tierOpsFactory.deploy({
+      sources: [source0],
+      constants: constants0,
+      argumentsLength: 0,
+      stackLength: 10,
+    })) as TierOpsTest & Contract;
+
+    await Util.assertError(
+      async () => await tierOps0.run(),
+      "MAX_TIER",
+      "wrongly updated blocks with endTier of 9, which is greater than maxTier constant"
+    );
+  });
+
   it("should use saturating sub for diff where only some tiers would underflow", async () => {
     this.timeout(0);
 
