@@ -4,14 +4,14 @@ const expect = chai.expect;
 import { ethers } from "ethers";
 import {
   array2BitUInts,
-  array4BitUInts,
+  array4BitUInts, getEventArgs,
   pack32UIntsIntoByte,
   paddedUInt256,
   paddedUInt32,
   wrap2BitUInt
 } from "./Utils";
 
-describe("Utils Functions",function () {
+describe("Utils Functions",async function () {
   it("Should transform a hex number to a number block array",() => {
     const res = Utils.tierReport('123456');
     expect(res).to.have.lengthOf(8);
@@ -183,6 +183,13 @@ describe("Utils Functions",function () {
       Utils.paddedUInt32(123456789012345);
     }).to.throw();
   });
+
+  // todo needs writing
+  it("Gets Event Arguments",async () => {
+    // const res = await Utils.getEventArgs(1, 2, 3, 4);
+  });
+
+
 
 
 })
