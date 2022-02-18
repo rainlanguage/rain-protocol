@@ -232,7 +232,7 @@ contract RedeemableERC20 is
     /// @param newReceiver_ The account to grand receiver.
     function grantReceiver(address newReceiver_) external onlyAdmin {
         // Using `|` preserves sender if previously granted.
-        access[newReceiver_] = access[newReceiver_] | RECEIVER;
+        access[newReceiver_] |= RECEIVER;
         emit Receiver(msg.sender, newReceiver_);
     }
 
@@ -314,6 +314,12 @@ contract RedeemableERC20 is
             // tier of the recipient.
             uint256 currentPhase_ = currentPhase();
             if (currentPhase_ == PHASE_DISTRIBUTING) {
+                // Receivers act as "hubs" that can send to "spokes".
+                // i.e. any address of the minimum tier.
+                // Spokes cannot send tokens another "hop" e.g. to each other.
+                // Spokes can only send back to a receiver (doesn't need to be
+                // the same receiver they received from).
+                require(isReceiver(sender_), "2SPOKE");
                 require(isTier(receiver_, minimumTier), "MIN_TIER");
             }
             // During `Phase.ONE` only token burns are allowed.
