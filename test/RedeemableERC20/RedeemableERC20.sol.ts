@@ -54,19 +54,22 @@ describe("RedeemableERC20", async function () {
     const signers = await ethers.getSigners();
 
     const owner = signers[0];
-    const alice = signers[1];
-    const bob = signers[2];
-    const carol = signers[3];
+    const aliceReceiver = signers[1];
+    const bobReceiver = signers[2];
+    const carolSpoke = signers[3];
+    const daveSpoke = signers[4];
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.COPPER;
 
-    await tier.setTier(alice.address, Tier.COPPER, []);
-    await tier.setTier(bob.address, Tier.COPPER, []);
-    await tier.setTier(carol.address, Tier.COPPER, []);
+    // all parties above min tier
+    await tier.setTier(aliceReceiver.address, Tier.SILVER, []);
+    await tier.setTier(bobReceiver.address, Tier.SILVER, []);
+    await tier.setTier(carolSpoke.address, Tier.SILVER, []);
+    await tier.setTier(daveSpoke.address, Tier.SILVER, []);
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -88,16 +91,50 @@ describe("RedeemableERC20", async function () {
       minimumTier,
     })) as RedeemableERC20 & Contract;
 
+    // give some tokens
+    await token.transfer(aliceReceiver.address, TEN_TOKENS);
+    await token.transfer(bobReceiver.address, TEN_TOKENS);
+    await token.transfer(carolSpoke.address, TEN_TOKENS);
+    await token.transfer(daveSpoke.address, TEN_TOKENS);
+
     await Util.assertError(
-      async () => await token.connect(alice).transfer(bob.address, 1),
-      "2SPOKE", // token sender must be a 'receiver'
+      async () =>
+        await token.connect(aliceReceiver).transfer(bobReceiver.address, 1),
+      "2SPOKE",
       "alice sent tokens despite not being a 'receiver'"
     );
+
+    // grant roles
+    await token.grantReceiver(aliceReceiver.address);
+    await token.grantReceiver(bobReceiver.address);
+
+    // 'hub' sends to 'spoke'
+    await token.connect(aliceReceiver).transfer(carolSpoke.address, 1);
+    const carolSpokeBalance0 = await token.balanceOf(carolSpoke.address);
+    assert(carolSpokeBalance0.eq(TEN_TOKENS.add(1)));
+
+    // 'spoke' sends to 'hub'
+    await token.connect(carolSpoke).transfer(aliceReceiver.address, 1);
+    const aliceReceiverBalance0 = await token.balanceOf(aliceReceiver.address);
+    assert(aliceReceiverBalance0.eq(TEN_TOKENS));
+
+    // 'spoke' sends to 'spoke' -> should fail
     await Util.assertError(
-      async () => await token.connect(bob).transfer(alice.address, 1),
-      "2SPOKE", // token sender must be a 'receiver'
-      "bob sent tokens despite not being a 'receiver'"
+      async () =>
+        await token.connect(carolSpoke).transfer(daveSpoke.address, 1),
+      "2SPOKE",
+      "carol wrongly sent tokens to dave (another spoke)"
     );
+
+    // 'spoke' sends to another 'hub'
+    await token.connect(carolSpoke).transfer(bobReceiver.address, 1);
+    const bobReceiverBalance0 = await token.balanceOf(bobReceiver.address);
+    assert(bobReceiverBalance0.eq(TEN_TOKENS.add(1)));
+
+    // 'hub' sends to another 'hub'
+    await token.connect(aliceReceiver).transfer(bobReceiver.address, 1);
+    const bobReceiverBalance1 = await token.balanceOf(bobReceiver.address);
+    assert(bobReceiverBalance1.eq(bobReceiverBalance0.add(1)));
   });
 
   it("should guard against null treasury assets redemptions", async function () {
