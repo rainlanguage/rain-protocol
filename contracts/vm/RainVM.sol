@@ -100,6 +100,8 @@ abstract contract RainVM {
     /// Number of provided opcodes for `RainVM`.
     uint256 internal constant OPS_LENGTH = 3;
 
+    uint private constant UINT256_MASK = type(uint256).max;
+
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
     /// values where X is configurable by `operand_`. Each 1 increment in the
@@ -141,6 +143,9 @@ abstract contract RainVM {
         uint256 stepSize_;
         uint256 offset_;
         uint256 valLength_;
+        uint mask_;
+        uint256 location_;
+
         // assembly here to shave some gas.
         assembly {
             // rightmost 3 bits are the index of the source to use from
@@ -156,6 +161,10 @@ abstract contract RainVM {
             //
             // Slither false positive here for the shift of constant `256`.
             // slither-disable-next-line incorrect-shift
+            switch and(shr(3, operand_), 0x03)
+            case 0 {
+                mask_ := UINT256_MASK
+            }
             stepSize_ := shr(and(shr(3, operand_), 0x03), 256)
             // `offset_` is used by the actual bit shifting operations and
             // is precalculated here to save some gas as this is a hot
@@ -165,11 +174,6 @@ abstract contract RainVM {
             // one value must be provided so a `valLength_` of `0` is one
             // value to loop over.
             valLength_ := add(shr(5, operand_), 1)
-        }
-        // uint256[] memory baseVals_ = new uint256[](valLength_);
-
-        uint256 location_;
-        assembly {
             location_ := sub(stackTopLocation_, mul(valLength_, 0x20))
         }
 
