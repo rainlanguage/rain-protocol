@@ -10,7 +10,7 @@ library LogicOps {
     /// The opcodes are NOT listed on the library as they are all internal to
     /// the assembly and yul doesn't seem to support using solidity constants
     /// as switch case values.
-    uint256 internal constant OPS_LENGTH = 4;
+    uint256 internal constant OPS_LENGTH = 5;
 
     function applyOp(
         bytes memory,
@@ -32,24 +32,45 @@ library LogicOps {
             }
             if iszero(iszero(opcode_)) {
                 stackIndex_ := sub(stackIndex_, 1)
-                mstore(state_, stackIndex_)
                 let x_ := mload(add(stackLocation_, mul(stackIndex_, 0x20)))
                 let output_ := 0
 
                 switch opcode_
-                // EQUAL_TO
+                // EAGER_IF
+                // Eager because BOTH x_ and y_ must be eagerly evaluated
+                // before EAGER_IF will select one of them. If both x_ and y_
+                // are cheap (e.g. constant values) then this may also be the
+                // simplest and cheapest way to select one of them. If either
+                // x_ or y_ is expensive consider using the conditional form
+                // of OP_SKIP to carefully avoid it instead.
                 case 1 {
+                    stackIndex_ := sub(stackIndex_, 1)
+                    let maybe_ := mload(
+                        add(stackLocation_, mul(stackIndex_, 0x20))
+                    )
+                    // true => use x_
+                    if iszero(iszero(maybe_)) {
+                        output_ := x_
+                    }
+                    // false => use y_
+                    if iszero(maybe_) {
+                        output_ := y_
+                    }
+                }
+                // EQUAL_TO
+                case 2 {
                     output_ := eq(x_, y_)
                 }
                 // LESS_THAN
-                case 2 {
+                case 3 {
                     output_ := lt(x_, y_)
                 }
                 // GREATER_THAN
-                case 3 {
+                case 4 {
                     output_ := gt(x_, y_)
                 }
 
+                mstore(state_, stackIndex_)
                 mstore(add(stackLocation_, mul(stackIndex_, 0x20)), output_)
             }
         }
