@@ -19,6 +19,8 @@ const enum Opcode {
   EQUAL_TO,
   LESS_THAN,
   GREATER_THAN,
+  EVERY,
+  ANY,
 }
 
 const isTruthy = (vmValue: BigNumber) => vmValue.eq(1);

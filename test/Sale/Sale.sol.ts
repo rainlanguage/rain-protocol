@@ -59,6 +59,8 @@ const enum Opcode {
   EQUAL_TO,
   LESS_THAN,
   GREATER_THAN,
+  EVERY,
+  ANY,
   ADD,
   SUB,
   MUL,
