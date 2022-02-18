@@ -38,6 +38,68 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
+  it("should enforce 'hub and spoke' pattern for sending and receiving tokens during distribution phase", async function () {
+    // Copied from `RedeemableERC20.sol`
+    //
+    // Receivers act as "hubs" that can send to "spokes".
+    // i.e. any address of the minimum tier.
+    // Spokes cannot send tokens another "hop" e.g. to each other.
+    // Spokes can only send back to a receiver (doesn't need to be
+    // the same receiver they received from).
+
+    this.timeout(0);
+
+    const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
+
+    const signers = await ethers.getSigners();
+
+    const owner = signers[0];
+    const alice = signers[1];
+    const bob = signers[2];
+    const carol = signers[3];
+
+    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumTier = Tier.GOLD;
+
+    await tier.setTier(alice.address, Tier.COPPER, []);
+    await tier.setTier(bob.address, Tier.COPPER, []);
+    await tier.setTier(carol.address, Tier.COPPER, []);
+
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const token = (await Util.redeemableERC20Deploy(owner, {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20Config,
+      tier: tier.address,
+      minimumTier,
+    })) as RedeemableERC20 & Contract;
+
+    await Util.assertError(
+      async () => await token.connect(alice).transfer(bob.address, 1),
+      "2SPOKE", // token sender must be a 'receiver'
+      "alice sent tokens despite not being a 'receiver'"
+    );
+    await Util.assertError(
+      async () => await token.connect(bob).transfer(alice.address, 1),
+      "2SPOKE", // token sender must be a 'receiver'
+      "bob sent tokens despite not being a 'receiver'"
+    );
+  });
+
   it("should guard against null treasury assets redemptions", async function () {
     this.timeout(0);
 
@@ -287,8 +349,8 @@ describe("RedeemableERC20", async function () {
     const signers = await ethers.getSigners();
 
     const owner = signers[0];
-    const sender = signers[1];
-    const receiver = signers[2];
+    const alice = signers[1];
+    const bob = signers[2];
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -296,8 +358,8 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
 
-    await tier.setTier(sender.address, Tier.COPPER, []);
-    await tier.setTier(receiver.address, Tier.COPPER, []);
+    await tier.setTier(alice.address, Tier.COPPER, []);
+    await tier.setTier(bob.address, Tier.COPPER, []);
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -319,44 +381,41 @@ describe("RedeemableERC20", async function () {
       minimumTier,
     })) as RedeemableERC20 & Contract;
 
-    // try sending/receiving, both with insufficient tier
+    // alice tries to transfer to bob
     await Util.assertError(
-      async () => await token.connect(sender).transfer(receiver.address, 1),
-      "MIN_TIER",
-      "sender/receiver sent/received tokens despite insufficient tier status"
+      async () => await token.connect(alice).transfer(bob.address, 1),
+      "2SPOKE", // token sender must be a 'receiver'
+      "alice/bob sent/received tokens despite alice not being a 'receiver'"
     );
 
-    // remove transfer restrictions for sender and receiver
-    await token.grantSender(sender.address);
-    assert(await token.isSender(sender.address), "sender status was wrong");
+    // remove transfer restrictions for alice and receiver
+    await token.grantSender(alice.address);
+    assert(await token.isSender(alice.address), "alice status was wrong");
 
-    await token.grantReceiver(receiver.address);
-    assert(
-      await token.isReceiver(receiver.address),
-      "receiver status was wrong"
-    );
+    await token.grantReceiver(bob.address);
+    assert(await token.isReceiver(bob.address), "bob status was wrong");
 
-    // sender needs tokens (actually needs permission to receive these tokens anyway)
-    await token.grantReceiver(sender.address);
+    // alice needs tokens (actually needs permission to receive these tokens anyway)
+    await token.grantReceiver(alice.address);
     assert(
-      await token.isReceiver(sender.address),
-      "sender did not also become receiver"
+      await token.isReceiver(alice.address),
+      "alice did not also become receiver"
     );
     assert(
-      await token.isSender(sender.address),
-      "sender did not remain sender after also becoming receiver"
+      await token.isSender(alice.address),
+      "alice did not remain sender after also becoming receiver"
     );
 
     // give some tokens
-    await token.transfer(sender.address, TEN_TOKENS);
+    await token.transfer(alice.address, TEN_TOKENS);
 
     // should work now
-    await token.connect(sender).transfer(receiver.address, 1);
+    await token.connect(alice).transfer(bob.address, 1);
 
     await token.burnDistributors([Util.oneAddress]);
 
-    // sender and receiver should be unrestricted in phase 1
-    await token.connect(sender).transfer(receiver.address, 1);
+    // alice and bob should be unrestricted in phase 1
+    await token.connect(alice).transfer(bob.address, 1);
   });
 
   it("should prevent tokens being sent to self (when user should be redeeming)", async function () {
