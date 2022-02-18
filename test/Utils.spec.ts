@@ -189,7 +189,10 @@ describe("Utils Functions",async function () {
     // const res = await Utils.getEventArgs(1, 2, 3, 4);
   });
 
-
+  it("Should selectLte",() => {
+    const res = Utils.selectLte(1,2,3);
+    expect(res).to.equal(195);
+  });
 
 
 })
