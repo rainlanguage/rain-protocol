@@ -23,15 +23,26 @@ describe("Utils Functions", async function () {
   it("Should pad hex number to length of 32 bytes", async () => {
     const bigNumber = ethers.BigNumber.from(
       "1234"
-    );    const res = Utils.zeroPad32(bigNumber);
+    );
+    const res = Utils.zeroPad32(bigNumber);
     expect(res).to.have.lengthOf(66); // todo consider replacing with `chai-bytes`: usage: expect(buffer).to.equalBytes('0102030405');
   });
 
   it("Should pad hex number to length of 4 bytes", async () => {
     const bigNumber = ethers.BigNumber.from(
       "1234"
-    );    const res = Utils.zeroPad4(bigNumber);
+    );
+    const res = Utils.zeroPad4(bigNumber);
     expect(res).to.have.lengthOf(10); // todo consider replacing with `chai-bytes`: usage: expect(buffer).to.equalBytes('0102030405');
   });
+
+  it("Should convert a value to a raw bytes representation", async () => {
+    const res = Utils.bytify(100);
+    expect(res).to.have.lengthOf(1); // todo consider replacing with `chai-bytes`: usage: expect(buffer).to.equalBytes('0102030405');
+    const res2 = Utils.bytify(22);
+    expect(res2).to.have.lengthOf(1); // todo consider replacing with `chai-bytes`: usage: expect(buffer).to.equalBytes('0102030405');
+  });
+
+
 
 })
