@@ -2,6 +2,7 @@ import * as Utils from "./Utils";
 import chai from "chai";
 const expect = chai.expect;
 import { ethers } from "ethers";
+import { wrap2BitUInt } from "./Utils";
 
 describe("Utils Functions",function () {
   it("Should transform a hex number to a number block array",() => {
@@ -96,6 +97,31 @@ describe("Utils Functions",function () {
     expect(res).to.have.lengthOf(2);
     expect(res[0]).to.equal(1);
     expect(res[1]).to.equal(2);
+  });
+
+  it("Should wrap2BitUInt",() => {
+    const res = Utils.wrap2BitUInt(3);
+    expect(res).to.equal(3);
+
+    // todo is this working correctly?
+    const res2 = Utils.wrap2BitUInt(1000);
+    expect(res2).to.equal(0);
+  });
+
+  it("Should wrap4BitUInt",() => {
+    const res = Utils.wrap4BitUInt(3);
+    expect(res).to.equal(3);
+
+    const res2 = Utils.wrap4BitUInt(1000);
+    expect(res2).to.equal(8);
+  });
+
+  it("Should wrap8BitUInt",() => {
+    const res = Utils.wrap8BitUInt(3);
+    expect(res).to.equal(3);
+
+    const res2 = Utils.wrap8BitUInt(1000);
+    expect(res2).to.equal(232);
   });
 
 })
