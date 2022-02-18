@@ -2,14 +2,6 @@ import * as Utils from "./Utils";
 import chai from "chai";
 const expect = chai.expect;
 import { ethers } from "ethers";
-import {
-  array2BitUInts,
-  array4BitUInts, getEventArgs,
-  pack32UIntsIntoByte,
-  paddedUInt256,
-  paddedUInt32,
-  wrap2BitUInt
-} from "./Utils";
 
 describe("Utils Functions",async function () {
   it("Should transform a hex number to a number block array",() => {
