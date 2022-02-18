@@ -2,7 +2,14 @@ import * as Utils from "./Utils";
 import chai from "chai";
 const expect = chai.expect;
 import { ethers } from "ethers";
-import { array2BitUInts, array4BitUInts, wrap2BitUInt } from "./Utils";
+import {
+  array2BitUInts,
+  array4BitUInts,
+  pack32UIntsIntoByte,
+  paddedUInt256,
+  paddedUInt32,
+  wrap2BitUInt
+} from "./Utils";
 
 describe("Utils Functions",function () {
   it("Should transform a hex number to a number block array",() => {
@@ -140,5 +147,42 @@ describe("Utils Functions",function () {
     const res = Utils.array8BitUInts(3);
     expect(res).to.have.lengthOf(3);
   });
+
+  it("Should pack pack32UIntsIntoByte into Byte",() => {
+    const res = Utils.pack32UIntsIntoByte([1,2,3]);
+    expect(res).to.have.lengthOf(1);
+    // todo result seems to be NaN
+    expect(res[0]).to.be.NaN;
+  });
+
+  it("Should pad UInt256",() => {
+    const bigNumber = ethers.BigNumber.from(
+      "1234"
+    );
+    const res = Utils.paddedUInt256(bigNumber);
+    expect(res).to.equal('0x00000000000000000000000000000000000000000000000000000000000004d2');
+  });
+
+  it("Throws an error if padding UInt256 exceeds max uint256",() => {
+    const bigNumber = ethers.BigNumber.from(
+      "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    );
+    expect(() => {
+      Utils.paddedUInt256(bigNumber);
+    }).to.throw();
+  });
+
+  // todo could check with BytesLike and Hexable input
+  it("Should pad padInt32",() => {
+    const res = Utils.paddedUInt32(1);
+    expect(res).to.equal('00000001');
+  });
+
+  it("Throws an error if padding UInt256 exceeds max uint256",() => {
+    expect(() => {
+      Utils.paddedUInt32(123456789012345);
+    }).to.throw();
+  });
+
 
 })
