@@ -17,32 +17,53 @@ library IERC721Ops {
 
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256
-    ) internal view {
+    ) internal view returns (uint256) {
         unchecked {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
 
-            state_.stackIndex--;
             // Stack the return of `balanceOf`.
             if (opcode_ == BALANCE_OF) {
-                state_.stack[state_.stackIndex - 1] = IERC721(
-                    address(uint160(state_.stack[state_.stackIndex - 1]))
-                ).balanceOf(address(uint160(state_.stack[state_.stackIndex])));
+                uint256 location_;
+                uint256 token_;
+                uint256 account_;
+
+                assembly {
+                    location_ := sub(stackTopLocation_, 0x40)
+                    token_ := mload(location_)
+                    account_ := mload(add(location_, 0x20))
+                }
+                uint256 balance_ = IERC721(address(uint160(token_))).balanceOf(
+                    address(uint160(account_))
+                );
+
+                assembly {
+                    mstore(location_, balance_)
+                    stackTopLocation_ := add(location_, 0x20)
+                }
             }
             // Stack the return of `ownerOf`.
             else if (opcode_ == OWNER_OF) {
-                state_.stack[state_.stackIndex - 1] = uint256(
-                    uint160(
-                        IERC721(
-                            address(
-                                uint160(state_.stack[state_.stackIndex - 1])
-                            )
-                        ).ownerOf(state_.stack[state_.stackIndex])
-                    )
+                uint256 location_;
+                uint256 token_;
+                uint256 id_;
+
+                assembly {
+                    location_ := sub(stackTopLocation_, 0x40)
+                    token_ := mload(location_)
+                    id_ := mload(add(location_, 0x20))
+                }
+                uint256 owner_ = uint256(
+                    uint160(IERC721(address(uint160(token_))).ownerOf(id_))
                 );
+                assembly {
+                    mstore(location_, owner_)
+                    stackTopLocation_ := add(location_, 0x20)
+                }
             }
+            return stackTopLocation_;
         }
     }
 }

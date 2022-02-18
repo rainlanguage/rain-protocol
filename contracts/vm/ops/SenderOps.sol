@@ -3,26 +3,29 @@ pragma solidity ^0.8.10;
 
 import {State} from "../RainVM.sol";
 
-/// @title BlockOps
-/// @notice RainVM opcode pack to access the current block number.
+/// @title SenderOps
+/// @notice RainVM opcode pack to access `msg.sender`.
 library SenderOps {
-    /// Opcode for the `msg.sender`.
-    uint256 private constant SENDER = 0;
-    /// Number of provided opcodes for `BlockOps`.
+    /// Number of provided opcodes for `SenderOps`.
     uint256 internal constant OPS_LENGTH = 1;
 
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256
-    ) internal view {
+    ) internal view returns (uint256) {
         unchecked {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             // There's only one opcode.
-            // Stack the current `block.number`.
-            state_.stack[state_.stackIndex] = uint256(uint160(msg.sender));
-            state_.stackIndex++;
+            // Stack the current `msg.sender`.
+            // @todo - is this the same as `caller()` in yul?
+            uint256 sender_ = uint256(uint160(msg.sender));
+            assembly {
+                mstore(stackTopLocation_, sender_)
+                stackTopLocation_ := add(stackTopLocation_, 0x20)
+            }
+            return stackTopLocation_;
         }
     }
 }

@@ -24,17 +24,18 @@ contract LogicTest is RainVM, VMState {
     /// @inheritdoc RainVM
     function applyOp(
         bytes memory context_,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint256) {
         unchecked {
-            LogicOps.applyOp(
-                context_,
-                state_,
-                opcode_ - logicOpsStart,
-                operand_
-            );
+            return
+                LogicOps.applyOp(
+                    context_,
+                    stackTopLocation_,
+                    opcode_ - logicOpsStart,
+                    operand_
+                );
         }
     }
 

@@ -28,106 +28,167 @@ library MathOps {
 
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal pure {
+    ) internal pure returns (uint256) {
         require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
-        uint256 top_;
-        unchecked {
-            top_ = state_.stackIndex - 1;
-            state_.stackIndex -= operand_;
+        uint256 location_;
+        uint256 accumulator_;
+        assembly {
+            location_ := sub(stackTopLocation_, mul(operand_, 0x20))
+            accumulator_ := mload(location_)
         }
-        uint256 baseIndex_ = state_.stackIndex;
-        uint256 cursor_ = baseIndex_;
-        uint256 accumulator_ = state_.stack[cursor_];
-
+        uint256 intermediate_;
+        uint256 didOverflow_ = 0;
         // Addition.
         if (opcode_ == ADD) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
+            assembly {
+                for {
+                    let cursor_ := add(location_, 0x20)
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    intermediate_ := add(accumulator_, mload(cursor_))
+                    // Adapted from Open Zeppelin safe math.
+                    if lt(intermediate_, accumulator_) {
+                        didOverflow_ := 1
+                        cursor_ := stackTopLocation_
+                    }
+                    accumulator_ := intermediate_
                 }
-                accumulator_ += state_.stack[cursor_];
             }
         }
         // Subtraction.
         else if (opcode_ == SUB) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
+            assembly {
+                for {
+                    let cursor_ := add(location_, 0x20)
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    intermediate_ := sub(accumulator_, mload(cursor_))
+                    // Adapted from Open Zeppelin safe math.
+                    if gt(intermediate_, accumulator_) {
+                        didOverflow_ := 1
+                        cursor_ := stackTopLocation_
+                    }
+                    accumulator_ := intermediate_
                 }
-                accumulator_ -= state_.stack[cursor_];
             }
         }
         // Multiplication.
         // Slither false positive here complaining about dividing before
         // multiplying but both are mututally exclusive according to `opcode_`.
         else if (opcode_ == MUL) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
+            assembly {
+                let item_ := 0
+                for {
+                    let cursor_ := add(location_, 0x20)
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    if gt(accumulator_, 0) {
+                        item_ := mload(cursor_)
+                        intermediate_ := mul(accumulator_, item_)
+                        // Adapted from Open Zeppelin safe math.
+                        if iszero(eq(div(intermediate_, accumulator_), item_)) {
+                            didOverflow_ := 1
+                            cursor_ := stackTopLocation_
+                        }
+                        accumulator_ := intermediate_
+                    }
                 }
-                accumulator_ *= state_.stack[cursor_];
             }
         }
         // Division.
         else if (opcode_ == DIV) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
+            assembly {
+                let item_ := 0
+                for {
+                    let cursor_ := add(location_, 0x20)
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    item_ := mload(cursor_)
+                    // Adapted from Open Zeppelin safe math.
+                    if iszero(item_) {
+                        didOverflow_ := 1
+                        cursor_ := stackTopLocation_
+                    }
+                    accumulator_ := div(accumulator_, item_)
                 }
-                accumulator_ /= state_.stack[cursor_];
             }
         }
         // Modulo.
         else if (opcode_ == MOD) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
+            assembly {
+                let item_ := 0
+                for {
+                    let cursor_ := add(location_, 0x20)
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    item_ := mload(cursor_)
+                    // Adapted from Open Zeppelin safe math.
+                    if iszero(item_) {
+                        didOverflow_ := 1
+                        cursor_ := stackTopLocation_
+                    }
+                    accumulator_ := mod(accumulator_, item_)
                 }
-                accumulator_ %= state_.stack[cursor_];
             }
         }
         // Exponentiation.
         else if (opcode_ == EXP) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
+            uint256 item_;
+            uint256 cursor_ = location_;
+            while (cursor_ < stackTopLocation_) {
+                assembly {
+                    item_ := mload(cursor_)
+                    cursor_ := add(cursor_, 0x20)
                 }
-                accumulator_**state_.stack[cursor_];
+                accumulator_**item_;
             }
         }
         // Minimum.
         else if (opcode_ == MIN) {
-            uint256 item_;
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
-                }
-                item_ = state_.stack[cursor_];
-                if (item_ < accumulator_) {
-                    accumulator_ = item_;
+            assembly {
+                let item_ := 0
+                for {
+                    let cursor_ := add(location_, 0x20)
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    item_ := mload(cursor_)
+                    if lt(item_, accumulator_) {
+                        accumulator_ := item_
+                    }
                 }
             }
         }
         // Maximum.
         else if (opcode_ == MAX) {
-            uint256 item_;
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
-                }
-                item_ = state_.stack[cursor_];
-                if (item_ > accumulator_) {
-                    accumulator_ = item_;
+            assembly {
+                let item_ := 0
+                for {
+                    let cursor_ := location_
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    item_ := mload(cursor_)
+                    if gt(item_, accumulator_) {
+                        accumulator_ := item_
+                    }
                 }
             }
         }
-
-        unchecked {
-            state_.stack[baseIndex_] = accumulator_;
-            state_.stackIndex++;
+        require(didOverflow_ < 1, "MATH_OVERFLOW");
+        assembly {
+            mstore(location_, accumulator_)
+            stackTopLocation_ := add(location_, 0x20)
         }
+
+        return stackTopLocation_;
     }
 }

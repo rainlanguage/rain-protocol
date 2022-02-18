@@ -17,26 +17,47 @@ library IERC20Ops {
 
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256
-    ) internal view {
+    ) internal view returns (uint256) {
         unchecked {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
 
             // Stack the return of `balanceOf`.
             if (opcode_ == BALANCE_OF) {
-                state_.stackIndex--;
-                state_.stack[state_.stackIndex - 1] = IERC20(
-                    address(uint160(state_.stack[state_.stackIndex - 1]))
-                ).balanceOf(address(uint160(state_.stack[state_.stackIndex])));
+                uint256 location_;
+                uint256 token_;
+                uint256 account_;
+                assembly {
+                    location_ := sub(stackTopLocation_, 0x40)
+                    token_ := mload(location_)
+                    account_ := mload(add(location_, 0x20))
+                }
+                uint256 balance_ = IERC20(address(uint160(token_))).balanceOf(
+                    address(uint160(account_))
+                );
+                assembly {
+                    mstore(location_, balance_)
+                    stackTopLocation_ := add(location_, 0x20)
+                }
             }
             // Stack the return of `totalSupply`.
             else if (opcode_ == TOTAL_SUPPLY) {
-                state_.stack[state_.stackIndex - 1] = IERC20(
-                    address(uint160(state_.stack[state_.stackIndex - 1]))
-                ).totalSupply();
+                uint256 location_;
+                uint256 token_;
+                assembly {
+                    location_ := sub(stackTopLocation_, 0x20)
+                    token_ := mload(location_)
+                }
+                uint256 supply_ = IERC20(address(uint160(token_)))
+                    .totalSupply();
+                assembly {
+                    mstore(location_, supply_)
+                }
             }
+
+            return stackTopLocation_;
         }
     }
 }

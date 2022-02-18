@@ -14,32 +14,16 @@ library LogicOps {
 
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal pure {
+    ) internal pure returns (uint256) {
         require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
         assembly {
-            let stackIndex_ := mload(state_)
-            // This is the start of the stack, adjusted for the leading length
-            // 32 bytes.
-            // i.e. reading from stackLocation_ gives the first value of the
-            // stack and NOT its length.
-            let stackTopLocation_ := add(
-                // pointer to the stack.
-                mload(add(state_, 0x20)),
-                add(
-                    // length of the stack
-                    0x20,
-                    // index of the stack
-                    mul(stackIndex_, 0x20)
-                )
-            )
-
             switch opcode_
             // ISZERO
             case 0 {
-                // The stackIndex_ doesn't change for iszero as there is
+                // The index doesn't change for iszero as there is
                 // one input and output.
                 let location_ := sub(stackTopLocation_, 0x20)
                 mstore(location_, iszero(mload(location_)))
@@ -52,8 +36,6 @@ library LogicOps {
             // x_ or y_ is expensive consider using the conditional form
             // of OP_SKIP to carefully avoid it instead.
             case 1 {
-                // decrease stack index by 2 (3 inputs, 1 output)
-                mstore(state_, sub(stackIndex_, 2))
                 let location_ := sub(stackTopLocation_, 0x60)
                 switch mload(location_)
                 // false => use second value
@@ -64,36 +46,34 @@ library LogicOps {
                 default {
                     mstore(location_, mload(add(location_, 0x20)))
                 }
+                stackTopLocation_ := add(location_, 0x20)
             }
             // EQUAL_TO
             case 2 {
-                // decrease stack index by 1 (2 inputs, 1 output)
-                mstore(state_, sub(stackIndex_, 1))
                 let location_ := sub(stackTopLocation_, 0x40)
                 mstore(
                     location_,
                     eq(mload(location_), mload(add(location_, 0x20)))
                 )
+                stackTopLocation_ := add(location_, 0x20)
             }
             // LESS_THAN
             case 3 {
-                // decrease stack index by 1 (2 inputs, 1 output)
-                mstore(state_, sub(stackIndex_, 1))
                 let location_ := sub(stackTopLocation_, 0x40)
                 mstore(
                     location_,
                     lt(mload(location_), mload(add(location_, 0x20)))
                 )
+                stackTopLocation_ := add(location_, 0x20)
             }
             // GREATER_THAN
             case 4 {
-                // decrease stack index by 1 (2 inputs, 1 output)
-                mstore(state_, sub(stackIndex_, 1))
                 let location_ := sub(stackTopLocation_, 0x40)
                 mstore(
                     location_,
                     gt(mload(location_), mload(add(location_, 0x20)))
                 )
+                stackTopLocation_ := add(location_, 0x20)
             }
             // EVERY
             // EVERY is either the first item if every item is nonzero, else 0.
@@ -101,8 +81,6 @@ library LogicOps {
             // EVERY of length `0` is a noop.
             case 5 {
                 if iszero(iszero(operand_)) {
-                    // decrease stack index by 1 less than operand_
-                    mstore(state_, sub(stackIndex_, sub(operand_, 1)))
                     let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
                     for {
                         let cursor_ := location_
@@ -116,7 +94,7 @@ library LogicOps {
                             mstore(location_, 0)
                         }
                     }
-
+                    stackTopLocation_ := add(location_, 0x20)
                 }
             }
             // ANY
@@ -125,8 +103,6 @@ library LogicOps {
             // ANY of length `0` is a noop.
             case 6 {
                 if iszero(iszero(operand_)) {
-                    // decrease stack index by 1 less than the operand_
-                    mstore(state_, sub(stackIndex_, sub(operand_, 1)))
                     let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
                     for {
                         let cursor_ := location_
@@ -143,8 +119,10 @@ library LogicOps {
                             mstore(location_, item_)
                         }
                     }
+                    stackTopLocation_ := add(location_, 0x20)
                 }
             }
         }
+        return stackTopLocation_;
     }
 }

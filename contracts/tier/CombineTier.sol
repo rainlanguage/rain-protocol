@@ -49,35 +49,36 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     /// @inheritdoc RainVM
     function applyOp(
         bytes memory context_,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint) {
         unchecked {
             if (opcode_ < tierOpsStart) {
-                BlockOps.applyOp(
+                return BlockOps.applyOp(
                     context_,
-                    state_,
+                    stackTopLocation_,
                     opcode_ - blockOpsStart,
                     operand_
                 );
             } else if (opcode_ < localOpsStart) {
-                TierOps.applyOp(
+                return TierOps.applyOp(
                     context_,
-                    state_,
+                    stackTopLocation_,
                     opcode_ - tierOpsStart,
                     operand_
                 );
             } else {
                 opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                if (opcode_ == ACCOUNT) {
-                    address account_ = abi.decode(context_, (address));
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(account_)
-                    );
-                    state_.stackIndex++;
+                uint256 account_ = uint256(
+                    uint160(address(abi.decode(context_, (address))))
+                );
+                assembly {
+                    mstore(stackTopLocation_, account_)
+                    stackTopLocation_ := add(stackTopLocation_, 0x20)
                 }
+                return stackTopLocation_;
             }
         }
     }

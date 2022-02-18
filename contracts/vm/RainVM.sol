@@ -85,23 +85,18 @@ struct State {
 /// up very quickly. Implementing contracts and opcode packs SHOULD require
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
-    /// `0` is a skip as this is the fallback value for unset solidity bytes.
-    /// Any additional "whitespace" in rain scripts will be noops as `0 0` is
-    /// "skip self". The val can be used to skip additional opcodes but take
-    /// care to not underflow the source itself.
-    uint256 private constant OP_SKIP = 0;
     /// `1` copies a value either off `constants` or `arguments` to the top of
     /// the stack. The high bit of the operand specifies which, `0` for
     /// `constants` and `1` for `arguments`.
-    uint256 private constant OP_VAL = 1;
+    uint256 private constant OP_VAL = 0;
     /// Duplicates the top of the stack.
-    uint256 private constant OP_DUP = 2;
+    uint256 private constant OP_DUP = 1;
     /// `2` takes N values off the stack, interprets them as an array then zips
     /// and maps a source from `sources` over them. The source has access to
     /// the original constants using `1 0` and to zipped arguments as `1 1`.
-    uint256 private constant OP_ZIPMAP = 3;
+    uint256 private constant OP_ZIPMAP = 2;
     /// Number of provided opcodes for `RainVM`.
-    uint256 internal constant OPS_LENGTH = 4;
+    uint256 internal constant OPS_LENGTH = 3;
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -208,134 +203,122 @@ abstract contract RainVM {
         // taken from the operand in the source, not the stack. A program that
         // operates out of bounds SHOULD be flagged by static code analysis and
         // avoided by end-users.
-        unchecked {
-            uint256 i_ = 0;
-            uint256 opcode_;
-            uint256 operand_;
-            uint256 len_;
-            uint256 sourceLocation_;
-            uint256 constantsLocation_;
-            uint256 argumentsLocation_;
-            uint256 stackLocation_;
-            assembly {
-                stackLocation_ := mload(add(state_, 0x20))
-                sourceLocation_ := mload(
-                    add(
-                        mload(add(state_, 0x40)),
-                        add(0x20, mul(sourceIndex_, 0x20))
-                    )
+        uint256 i_ = 0;
+        uint256 opcode_;
+        uint256 operand_;
+        uint256 sourceLocation_;
+        uint256 sourceLen_;
+        uint256 constantsLocation_;
+        uint256 argumentsLocation_;
+        uint256 stackBottomLocation_;
+        uint256 stackTopLocation_;
+        uint256 stackMaxLocation_;
+        assembly {
+            let stackLocation_ := mload(add(state_, 0x20))
+            stackBottomLocation_ := add(stackLocation_, 0x20)
+            // It is OK for the stack top to point at something out of bounds
+            // provided that it is never written to.
+            // I.e. the max stack top is the bottom + stack length.
+            // Implementers of `applyOp` MUST NOT write any data past the
+            // `stackTopLocation_` that they return at any time. If they do
+            // then writes can silently overflow the stack which is very bad.
+            stackMaxLocation_ := add(
+                stackBottomLocation_,
+                mul(mload(stackLocation_), 0x20)
+            )
+            stackTopLocation_ := add(
+                stackBottomLocation_,
+                // Add stack index offset.
+                mul(mload(state_), 0x20)
+            )
+            sourceLocation_ := mload(
+                add(
+                    mload(add(state_, 0x40)),
+                    add(0x20, mul(sourceIndex_, 0x20))
                 )
-                constantsLocation_ := mload(add(state_, 0x60))
-                argumentsLocation_ := mload(add(state_, 0x80))
-                len_ := mload(sourceLocation_)
+            )
+            sourceLen_ := mload(sourceLocation_)
+            constantsLocation_ := mload(add(state_, 0x60))
+            argumentsLocation_ := mload(add(state_, 0x80))
+        }
+
+        // Loop until complete.
+        while (i_ < sourceLen_) {
+            assembly {
+                i_ := add(i_, 2)
+                let op_ := mload(add(sourceLocation_, i_))
+                opcode_ := byte(30, op_)
+                operand_ := byte(31, op_)
             }
-
-            // Loop until complete.
-            while (i_ < len_) {
-                assembly {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
-                    operand_ := byte(31, op_)
-                }
-                if (opcode_ < OPS_LENGTH) {
-                    if (opcode_ == OP_VAL) {
-                        assembly {
-                            let location_ := argumentsLocation_
-                            if iszero(and(operand_, 0x80)) {
-                                location_ := constantsLocation_
-                            }
-
-                            let stackIndex_ := mload(state_)
-                            // Copy value to stack.
-                            mstore(
+            if (opcode_ < OPS_LENGTH) {
+                if (opcode_ == OP_VAL) {
+                    assembly {
+                        let location_ := argumentsLocation_
+                        // 0x80 is a bit mask on the operand_ to take the high
+                        // bit only to switch between arguments and constants.
+                        if iszero(and(operand_, 0x80)) {
+                            location_ := constantsLocation_
+                        }
+                        mstore(
+                            stackTopLocation_,
+                            mload(
                                 add(
-                                    stackLocation_,
-                                    add(0x20, mul(stackIndex_, 0x20))
-                                ),
-                                mload(
+                                    location_,
                                     add(
-                                        location_,
-                                        add(
+                                        // Length data.
+                                        0x20,
+                                        mul(
                                             0x20,
-                                            mul(and(operand_, 0x7F), 0x20)
+                                            // 0x7F is a bit mask on the
+                                            // operand_ define the index of the
+                                            // argument/constant to load.
+                                            and(operand_, 0x7F)
                                         )
                                     )
                                 )
                             )
-                            mstore(state_, add(stackIndex_, 1))
-                        }
-                    } else if (opcode_ == OP_DUP) {
-                        assembly {
-                            let stackIndex_ := mload(state_)
-                            mstore(
-                                add(
-                                    stackLocation_,
-                                    add(0x20, mul(stackIndex_, 0x20))
-                                ),
-                                mload(
-                                    add(
-                                        stackLocation_,
-                                        add(0x20, mul(operand_, 0x20))
-                                    )
-                                )
-                            )
-                            mstore(state_, add(stackIndex_, 1))
-                        }
-                    } else if (opcode_ == OP_ZIPMAP) {
-                        zipmap(context_, state_, operand_);
-                    } else {
-                        // if the high bit of the operand is nonzero then take
-                        // the top of the stack and if it is zero we do NOT
-                        // skip.
-                        // analogous to `JUMPI` in evm opcodes.
-                        // If high bit of the operand is zero then we always
-                        // skip.
-                        // analogous to `JUMP` in evm opcodes.
-                        // the operand is interpreted as a signed integer so
-                        // that we can skip forwards or backwards. Notable
-                        // difference between skip and jump from evm is that
-                        // skip moves a relative distance from the current
-                        // position and is known at compile time, while jump
-                        // moves to an absolute position read from the stack at
-                        // runtime. The relative simplicity of skip means we
-                        // can check for out of bounds behaviour at compile
-                        // time and each source can never goto a position in a
-                        // different source.
-
-                        // manually sign extend 1 bit.
-                        // normal signextend works on bytes not bits.
-                        int8 shift_ = int8(
-                            uint8(operand_) & ((uint8(operand_) << 1) | 0x7F)
-                        );
-
-                        // if the high bit is 1...
-                        if (operand_ & 0x80 > 0) {
-                            // take the top of the stack and only skip if it is
-                            // nonzero.
-                            state_.stackIndex--;
-                            if (state_.stack[state_.stackIndex] == 0) {
-                                continue;
-                            }
-                        }
-                        if (shift_ != 0) {
-                            if (shift_ < 0) {
-                                // This is not particularly intuitive.
-                                // Converting between int and uint and then
-                                // moving `i_` back another 2 bytes to
-                                // compensate for the addition of 2 bytes at
-                                // the start of the next loop.
-                                i_ -= uint8(~shift_ + 2) * 2;
-                            } else {
-                                i_ += uint8(shift_ * 2);
-                            }
-                        }
+                        )
+                        stackTopLocation_ := add(stackTopLocation_, 0x20)
                     }
-                } else {
-                    applyOp(context_, state_, opcode_, operand_);
+                } else if (opcode_ == OP_DUP) {
+                    assembly {
+                        mstore(
+                            stackTopLocation_,
+                            mload(
+                                add(stackBottomLocation_, mul(operand_, 0x20))
+                            )
+                        )
+                        stackTopLocation_ := add(stackTopLocation_, 0x20)
+                    }
+                } else if (opcode_ == OP_ZIPMAP) {
+                    // Sync the stackIndex_ with local stackTopLocation_.
+                    state_.stackIndex =
+                        (stackTopLocation_ - stackBottomLocation_) /
+                        0x20;
+                    zipmap(context_, state_, operand_);
+                    assembly {
+                        stackTopLocation_ := add(
+                            stackBottomLocation_,
+                            // Add stack index offset.
+                            mul(mload(state_), 0x20)
+                        )
+                    }
                 }
+            } else {
+                stackTopLocation_ = applyOp(
+                    context_,
+                    stackTopLocation_,
+                    opcode_,
+                    operand_
+                );
+                require(
+                    stackTopLocation_ <= stackMaxLocation_,
+                    "STACK_OVERLFLOW"
+                );
             }
         }
+        // This math is checked because a stack underflow here MUST panic.
+        state_.stackIndex = (stackTopLocation_ - stackBottomLocation_) / 0x20;
     }
 
     /// Every contract that implements `RainVM` should override `applyOp` so
@@ -350,13 +333,21 @@ abstract contract RainVM {
     /// Stack is modified by reference NOT returned.
     /// @param context_ Bytes that the implementing contract can passthrough
     /// to be ready internally by its own opcodes. RainVM ignores the context.
-    /// @param state_ The RainVM state that tracks the execution progress.
+    /// @param stackTopLocation_ The memory location of the top of the stack.
     /// @param opcode_ The current opcode to dispatch.
     /// @param operand_ Additional information to inform the opcode dispatch.
     function applyOp(
         bytes memory context_,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view virtual {} //solhint-disable-line no-empty-blocks
+    )
+        internal
+        view
+        virtual
+        returns (uint256)
+    //solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 }

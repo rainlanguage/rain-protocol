@@ -10,7 +10,6 @@ import type { CalculatorTest } from "../../typechain/CalculatorTest";
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,
@@ -74,7 +73,7 @@ describe("RainVM", async function () {
     );
   });
 
-  it("should skip (conditional skip: true)", async () => {
+  xit("should skip (conditional skip: true)", async () => {
     this.timeout(0);
 
     const constants = [11, 22, 33, 44, 1];
@@ -89,7 +88,7 @@ describe("RainVM", async function () {
       v44,
       v33,
       v1, // non-zero (true)
-      op(Opcode.SKIP, skip(1, true)),
+      // op(Opcode.SKIP, skip(1, true)),
       v22,
       v11,
       op(Opcode.MAX, 2),
@@ -111,7 +110,7 @@ describe("RainVM", async function () {
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
 
-  it("should skip (conditional skip: false)", async () => {
+  xit("should skip (conditional skip: false)", async () => {
     this.timeout(0);
 
     const constants = [11, 22, 33, 44, 0];
@@ -126,7 +125,7 @@ describe("RainVM", async function () {
       v44,
       v33,
       v0, // zero (false)
-      op(Opcode.SKIP, skip(1, true)),
+      // op(Opcode.SKIP, skip(1, true)),
       v22,
       v11,
       op(Opcode.MAX, 4),
@@ -148,7 +147,7 @@ describe("RainVM", async function () {
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
 
-  it("should skip backwards (conditional skip: true)", async () => {
+  xit("should skip backwards (conditional skip: true)", async () => {
     this.timeout(0);
 
     const constants = [1, 2];
@@ -161,7 +160,7 @@ describe("RainVM", async function () {
       v1,
       op(Opcode.SUB, 2),
       op(Opcode.DUP, 0),
-      op(Opcode.SKIP, skip(-3, true)),
+      // op(Opcode.SKIP, skip(-3, true)),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -180,7 +179,7 @@ describe("RainVM", async function () {
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
 
-  it("should skip (unconditional skip)", async () => {
+  xit("should skip (unconditional skip)", async () => {
     this.timeout(0);
 
     const constants = [11, 22, 33, 44];
@@ -193,7 +192,7 @@ describe("RainVM", async function () {
       // (max 44 33 skip 22 11)
       v44,
       v33,
-      op(Opcode.SKIP, skip(1, false)),
+      // op(Opcode.SKIP, skip(1, false)),
       v22,
       v11,
       op(Opcode.MAX, 3),

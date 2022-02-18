@@ -23,7 +23,6 @@ enum Tier {
 }
 
 const enum Opcode {
-  END,
   VAL,
   DUP,
   ZIPMAP,

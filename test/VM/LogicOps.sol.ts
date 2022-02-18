@@ -10,7 +10,6 @@ import type { LogicTest } from "../../typechain/LogicTest";
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,

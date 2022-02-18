@@ -27,25 +27,27 @@ contract CalculatorTest is RainVM, VMState {
     /// @inheritdoc RainVM
     function applyOp(
         bytes memory context_,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < mathOpsStart) {
-                BlockOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - blockOpsStart,
-                    operand_
-                );
+                return
+                    BlockOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - blockOpsStart,
+                        operand_
+                    );
             } else {
-                MathOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - mathOpsStart,
-                    operand_
-                );
+                return
+                    MathOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - mathOpsStart,
+                        operand_
+                    );
             }
         }
     }

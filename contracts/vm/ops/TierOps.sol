@@ -25,47 +25,69 @@ library TierOps {
 
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view {
+    ) internal view returns (uint256) {
         unchecked {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
-            uint256 baseIndex_;
             // Stack the report returned by an `ITier` contract.
             // Top two stack vals are used as the address and `ITier` contract
             // to check against.
             if (opcode_ == REPORT) {
-                state_.stackIndex -= 1;
-                baseIndex_ = state_.stackIndex - 1;
-                state_.stack[baseIndex_] = ITier(
-                    address(uint160(state_.stack[baseIndex_]))
-                ).report(address(uint160(state_.stack[baseIndex_ + 1])));
+                uint256 location_;
+                uint256 tier_;
+                uint256 account_;
+                assembly {
+                    location_ := sub(stackTopLocation_, 0x40)
+                    tier_ := mload(location_)
+                    account_ := mload(add(location_, 0x20))
+                }
+                uint256 report_ = ITier(address(uint160(tier_))).report(
+                    address(uint160(account_))
+                );
+                assembly {
+                    mstore(location_, report_)
+                    stackTopLocation_ := add(location_, 0x20)
+                }
             }
             // Stack a report that has never been held at any tier.
             else if (opcode_ == NEVER) {
-                state_.stack[state_.stackIndex] = TierConstants.NEVER_REPORT;
-                state_.stackIndex++;
+                uint256 never_ = TierConstants.NEVER_REPORT;
+                assembly {
+                    mstore(stackTopLocation_, never_)
+                    stackTopLocation_ := add(stackTopLocation_, 0x20)
+                }
             }
             // Stack a report that has always been held at every tier.
             else if (opcode_ == ALWAYS) {
-                state_.stack[state_.stackIndex] = TierConstants.ALWAYS;
-                state_.stackIndex++;
+                uint256 always_ = TierConstants.ALWAYS;
+                assembly {
+                    mstore(stackTopLocation_, always_)
+                    stackTopLocation_ := add(stackTopLocation_, 0x20)
+                }
             }
             // Stack the tierwise saturating subtraction of two reports.
             // If the older report is newer than newer report the result will
             // be `0`, else a tierwise diff in blocks will be obtained.
             // The older and newer report are taken from the stack.
             else if (opcode_ == SATURATING_DIFF) {
-                state_.stackIndex -= 2;
-                baseIndex_ = state_.stackIndex;
-                uint256 newerReport_ = state_.stack[baseIndex_];
-                uint256 olderReport_ = state_.stack[baseIndex_ + 1];
-                state_.stack[baseIndex_] = TierwiseCombine.saturatingSub(
+                uint256 location_;
+                uint256 newerReport_;
+                uint256 olderReport_;
+                assembly {
+                    location_ := sub(stackTopLocation_, 0x40)
+                    newerReport_ := mload(location_)
+                    olderReport_ := mload(add(location_, 0x20))
+                }
+                uint256 result_ = TierwiseCombine.saturatingSub(
                     newerReport_,
                     olderReport_
                 );
-                state_.stackIndex++;
+                assembly {
+                    mstore(location_, result_)
+                    stackTopLocation_ := add(location_, 0x20)
+                }
             }
             // Stacks a report with updated blocks over tier range.
             // The start and end tier are taken from the low and high bits of
@@ -73,19 +95,29 @@ library TierOps {
             // The block number to update to and the report to update over are
             // both taken from the stack.
             else if (opcode_ == UPDATE_BLOCKS_FOR_TIER_RANGE) {
+                uint256 location_;
+                uint256 report_;
                 uint256 startTier_ = operand_ & 0x0f; // & 00001111
                 uint256 endTier_ = (operand_ >> 4) & 0x0f; // & 00001111
-                state_.stackIndex -= 2;
-                baseIndex_ = state_.stackIndex;
-                uint256 report_ = state_.stack[baseIndex_];
-                uint256 blockNumber_ = state_.stack[baseIndex_ + 1];
-                state_.stack[baseIndex_] = TierReport.updateBlocksForTierRange(
+                uint256 blockNumber_;
+
+                assembly {
+                    location_ := sub(stackTopLocation_, 0x40)
+                    report_ := mload(location_)
+                    blockNumber_ := mload(add(location_, 0x20))
+                }
+
+                uint256 result_ = TierReport.updateBlocksForTierRange(
                     report_,
                     startTier_,
                     endTier_,
                     blockNumber_
                 );
-                state_.stackIndex++;
+
+                assembly {
+                    mstore(location_, result_)
+                    stackTopLocation_ := add(location_, 0x20)
+                }
             }
             // Stacks the result of a `selectLte` combinator.
             // All `selectLte` share the same stack and argument handling.
@@ -96,26 +128,39 @@ library TierOps {
                 uint256 mode_ = (operand_ >> 5) & 0x3; // & 00000011
                 uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
 
-                // Need one more than reports length to include block number.
-                state_.stackIndex -= reportsLength_ + 1;
-                baseIndex_ = state_.stackIndex;
-                uint256 cursor_ = baseIndex_;
-
+                uint256 location_;
                 uint256[] memory reports_ = new uint256[](reportsLength_);
-                for (uint256 a_ = 0; a_ < reportsLength_; a_++) {
-                    reports_[a_] = state_.stack[cursor_];
-                    cursor_++;
+                uint256 blockNumber_;
+                assembly {
+                    location_ := sub(
+                        stackTopLocation_,
+                        mul(add(reportsLength_, 1), 0x20)
+                    )
+                    let maxCursor_ := add(location_, mul(reportsLength_, 0x20))
+                    for {
+                        let cursor_ := location_
+                        let i_ := 0
+                    } lt(cursor_, maxCursor_) {
+                        cursor_ := add(cursor_, 0x20)
+                        i_ := add(i_, 0x20)
+                    } {
+                        mstore(add(reports_, add(0x20, i_)), mload(cursor_))
+                    }
+                    blockNumber_ := mload(maxCursor_)
                 }
-                uint256 blockNumber_ = state_.stack[cursor_];
 
-                state_.stack[baseIndex_] = TierwiseCombine.selectLte(
+                uint256 result_ = TierwiseCombine.selectLte(
                     reports_,
                     blockNumber_,
                     logic_,
                     mode_
                 );
-                state_.stackIndex++;
+                assembly {
+                    mstore(location_, result_)
+                    stackTopLocation_ := add(location_, 0x20)
+                }
             }
+            return stackTopLocation_;
         }
     }
 }

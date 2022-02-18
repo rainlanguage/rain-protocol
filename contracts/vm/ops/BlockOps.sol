@@ -15,22 +15,25 @@ library BlockOps {
 
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256
-    ) internal view {
+    ) internal view returns (uint256) {
         unchecked {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
-            // Stack the current `block.number`.
-            if (opcode_ == BLOCK_NUMBER) {
-                state_.stack[state_.stackIndex] = block.number;
-                state_.stackIndex++;
+            assembly {
+                switch opcode_
+                // BLOCK_NUMBER
+                case 0 {
+                    mstore(stackTopLocation_, number())
+                }
+                // BLOCK_TIMESTAMP
+                case 1 {
+                    mstore(stackTopLocation_, timestamp())
+                }
+                stackTopLocation_ := add(stackTopLocation_, 0x20)
             }
-            // Stack the current `block.timestamp`.
-            else if (opcode_ == BLOCK_TIMESTAMP) {
-                state_.stack[state_.stackIndex] = block.timestamp;
-                state_.stackIndex++;
-            }
+            return stackTopLocation_;
         }
     }
 }

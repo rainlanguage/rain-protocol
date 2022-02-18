@@ -47,7 +47,6 @@ enum Status {
 }
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,

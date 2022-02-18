@@ -47,18 +47,12 @@ contract EmissionsERC20 is
     ReadOnlyTier
 {
     /// Contract has initialized.
-    event Initialize(
-        address sender,
-        bool allowDelegatedClaims,
-        uint256 constructionBlockNumber
-    );
+    event Initialize(address sender, bool allowDelegatedClaims);
 
     /// @dev local opcode to put claimant account on the stack.
     uint256 private constant CLAIMANT_ACCOUNT = 0;
-    /// @dev local opcode to put this contract's deploy block on the stack.
-    uint256 private constant CONSTRUCTION_BLOCK_NUMBER = 1;
     /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 2;
+    uint256 internal constant LOCAL_OPS_LENGTH = 1;
 
     /// @dev local offset for block ops.
     uint256 private immutable blockOpsStart;
@@ -70,13 +64,6 @@ contract EmissionsERC20 is
     uint256 private immutable tierOpsStart;
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
-
-    /// @dev Block this contract was constructed.
-    /// Can be used to calculate claim entitlements relative to the deployment
-    /// of the emissions contract itself.
-    /// This is internal to `EmissionsERC20` but is available via a local
-    /// opcode, and so can be used in rainVM scripts.
-    uint256 private constructionBlockNumber;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
@@ -121,66 +108,65 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = _snapshot(
-            _newState(config_.vmStateConfig)
-        );
+        vmStatePointer = _snapshot(_newState(config_.vmStateConfig));
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
-        constructionBlockNumber = block.number;
 
-        emit Initialize(msg.sender, config_.allowDelegatedClaims, block.number);
+        emit Initialize(msg.sender, config_.allowDelegatedClaims);
     }
 
     /// @inheritdoc RainVM
     function applyOp(
         bytes memory context_,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < thisOpsStart) {
-                BlockOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - blockOpsStart,
-                    operand_
-                );
+                return
+                    BlockOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - blockOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < mathOpsStart) {
-                ThisOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - thisOpsStart,
-                    operand_
-                );
+                return
+                    ThisOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - thisOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < tierOpsStart) {
-                MathOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - mathOpsStart,
-                    operand_
-                );
+                return
+                    MathOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - mathOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < localOpsStart) {
-                TierOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - tierOpsStart,
-                    operand_
-                );
+                return
+                    TierOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - tierOpsStart,
+                        operand_
+                    );
             } else {
                 opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                if (opcode_ == CLAIMANT_ACCOUNT) {
-                    address account_ = abi.decode(context_, (address));
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(account_)
-                    );
-                    state_.stackIndex++;
-                } else if (opcode_ == CONSTRUCTION_BLOCK_NUMBER) {
-                    state_.stack[state_.stackIndex] = constructionBlockNumber;
-                    state_.stackIndex++;
+                uint256 account_ = uint256(
+                    uint160(address(abi.decode(context_, (address))))
+                );
+                assembly {
+                    mstore(stackTopLocation_, account_)
+                    stackTopLocation_ := add(stackTopLocation_, 0x20)
                 }
+                return stackTopLocation_;
             }
         }
     }

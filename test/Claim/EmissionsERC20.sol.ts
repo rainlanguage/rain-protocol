@@ -17,7 +17,6 @@ import { BigNumber, Contract } from "ethers";
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,
@@ -39,7 +38,6 @@ const enum Opcode {
   UPDATE_BLOCKS_FOR_TIER_RANGE,
   SELECT_LTE,
   CLAIMANT_ACCOUNT,
-  CONSTRUCTION_BLOCK_NUMBER,
 }
 
 enum Tier {
@@ -233,7 +231,7 @@ describe("EmissionsERC20", async function () {
       BN_ONE_REWARD,
     ];
 
-    console.log("source", SOURCE());
+    console.log("source", SOURCE(), FN());
     console.log("constants", constants);
     console.log("source length", SOURCE().length);
 

@@ -14,7 +14,6 @@ import { ReserveTokenERC1155 } from "../../typechain/ReserveTokenERC1155";
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,

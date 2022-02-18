@@ -66,7 +66,14 @@ struct Receipt {
     uint256 price;
 }
 
-contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuard {
+contract Sale is
+    Initializable,
+    Cooldown,
+    RainVM,
+    VMState,
+    ISale,
+    ReentrancyGuard
+{
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -157,9 +164,7 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
         canStartStatePointer = _snapshot(
             _newState(config_.canStartStateConfig)
         );
-        canEndStatePointer = _snapshot(
-            _newState(config_.canEndStateConfig)
-        );
+        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
         calculatePriceStatePointer = _snapshot(
             _newState(config_.calculatePriceStateConfig)
         );
@@ -354,93 +359,115 @@ contract Sale is Initializable, Cooldown, RainVM, VMState, ISale, ReentrancyGuar
 
     function applyOp(
         bytes memory context_,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < senderOpsStart) {
-                BlockOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - blockOpsStart,
-                    operand_
-                );
+                return
+                    BlockOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - blockOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < logicOpsStart) {
-                SenderOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - senderOpsStart,
-                    operand_
-                );
+                return
+                    SenderOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - senderOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < mathOpsStart) {
-                LogicOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - logicOpsStart,
-                    operand_
-                );
+                return
+                    LogicOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - logicOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < tierOpsStart) {
-                MathOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - mathOpsStart,
-                    operand_
-                );
+                return
+                    MathOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - mathOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < ierc20OpsStart) {
-                TierOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - tierOpsStart,
-                    operand_
-                );
+                return
+                    TierOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - tierOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < ierc721OpsStart) {
-                IERC20Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc20OpsStart,
-                    operand_
-                );
+                return
+                    IERC20Ops.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - ierc20OpsStart,
+                        operand_
+                    );
             } else if (opcode_ < ierc1155OpsStart) {
-                IERC721Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc721OpsStart,
-                    operand_
-                );
+                return
+                    IERC721Ops.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - ierc721OpsStart,
+                        operand_
+                    );
             } else if (opcode_ < localOpsStart) {
-                IERC1155Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc1155OpsStart,
-                    operand_
-                );
+                return
+                    IERC1155Ops.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - ierc1155OpsStart,
+                        operand_
+                    );
             } else {
                 opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 if (opcode_ == REMAINING_UNITS) {
-                    state_.stack[state_.stackIndex] = remainingUnits;
+                    assembly {
+                        mstore(stackTopLocation_, sload(remainingUnits.slot))
+                    }
                 } else if (opcode_ == TOTAL_RESERVE_IN) {
-                    state_.stack[state_.stackIndex] = totalReserveIn;
+                    assembly {
+                        mstore(stackTopLocation_, sload(totalReserveIn.slot))
+                    }
                 } else if (opcode_ == LAST_BUY_BLOCK) {
-                    state_.stack[state_.stackIndex] = lastBuyBlock;
+                    assembly {
+                        mstore(stackTopLocation_, sload(lastBuyBlock.slot))
+                    }
                 } else if (opcode_ == LAST_BUY_UNITS) {
-                    state_.stack[state_.stackIndex] = lastBuyUnits;
+                    assembly {
+                        mstore(stackTopLocation_, sload(lastBuyUnits.slot))
+                    }
                 } else if (opcode_ == LAST_BUY_PRICE) {
-                    state_.stack[state_.stackIndex] = lastBuyPrice;
+                    assembly {
+                        mstore(stackTopLocation_, sload(lastBuyPrice.slot))
+                    }
                 } else if (opcode_ == CURRENT_BUY_UNITS) {
                     uint256 units_ = abi.decode(context_, (uint256));
-                    state_.stack[state_.stackIndex] = units_;
+                    assembly {
+                        mstore(stackTopLocation_, units_)
+                    }
                 } else if (opcode_ == TOKEN_ADDRESS) {
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(address(_token))
-                    );
+                    uint256 token_ = uint256(uint160(address(_token)));
+                    assembly {
+                        mstore(stackTopLocation_, token_)
+                    }
                 } else if (opcode_ == RESERVE_ADDRESS) {
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(address(_reserve))
-                    );
+                    uint256 reserve_ = uint256(uint160(address(_reserve)));
+                    assembly {
+                        mstore(stackTopLocation_, reserve_)
+                    }
                 }
-                state_.stackIndex++;
+                return stackTopLocation_ + 0x20;
             }
         }
     }
