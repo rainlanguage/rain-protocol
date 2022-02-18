@@ -91,7 +91,11 @@ describe("Utils Functions",function () {
     expect(res2).to.equal(131);
   });
 
-
-
+  it("Should convert to an opcode and operand to bytes and return their concatenation",() => {
+    const res = Utils.op(1, 2);
+    expect(res).to.have.lengthOf(2);
+    expect(res[0]).to.equal(1);
+    expect(res[1]).to.equal(2);
+  });
 
 })
