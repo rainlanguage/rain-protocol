@@ -132,54 +132,93 @@ abstract contract RainVM {
     function zipmap(
         bytes memory context_,
         State memory state_,
+        uint256 stackTopLocation_,
+        uint256 argumentsBottomLocation_,
         uint256 operand_
-    ) internal view {
-        unchecked {
-            uint256 sourceIndex_;
-            uint256 stepSize_;
-            uint256 offset_;
-            uint256 valLength_;
-            // assembly here to shave some gas.
-            assembly {
-                // rightmost 3 bits are the index of the source to use from
-                // sources in `state_`.
-                sourceIndex_ := and(operand_, 0x07)
-                // bits 4 and 5 indicate size of the loop. Each 1 increment of
-                // the size halves the bits of the arguments to the zipmap.
-                // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
-                // into args for the inner `eval`. A loop size of `1` would
-                // shift `stepSize_` by 1 (halving it) and meaning the uint256
-                // is `eval` as 2x 128 bit values (runs twice). A loop size of
-                // `2` would run 4 times as 64 bit values, and so on.
-                //
-                // Slither false positive here for the shift of constant `256`.
-                // slither-disable-next-line incorrect-shift
-                stepSize_ := shr(and(shr(3, operand_), 0x03), 256)
-                // `offset_` is used by the actual bit shifting operations and
-                // is precalculated here to save some gas as this is a hot
-                // performance path.
-                offset_ := sub(256, stepSize_)
-                // bits 5+ determine the number of vals to be zipped. At least
-                // one value must be provided so a `valLength_` of `0` is one
-                // value to loop over.
-                valLength_ := add(shr(5, operand_), 1)
-            }
-            state_.stackIndex -= valLength_;
-
-            uint256[] memory baseVals_ = new uint256[](valLength_);
-            for (uint256 a_ = 0; a_ < valLength_; a_++) {
-                baseVals_[a_] = state_.stack[state_.stackIndex + a_];
-            }
-
-            for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-                for (uint256 a_ = 0; a_ < valLength_; a_++) {
-                    state_.constants[state_.argumentsIndex + a_] =
-                        (baseVals_[a_] << (offset_ - step_)) >>
-                        offset_;
-                }
-                eval(context_, state_, sourceIndex_);
-            }
+    ) internal view returns (uint256) {
+        // unchecked {
+        uint256 sourceIndex_;
+        uint256 stepSize_;
+        uint256 offset_;
+        uint256 valLength_;
+        // assembly here to shave some gas.
+        assembly {
+            // rightmost 3 bits are the index of the source to use from
+            // sources in `state_`.
+            sourceIndex_ := and(operand_, 0x07)
+            // bits 4 and 5 indicate size of the loop. Each 1 increment of
+            // the size halves the bits of the arguments to the zipmap.
+            // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
+            // into args for the inner `eval`. A loop size of `1` would
+            // shift `stepSize_` by 1 (halving it) and meaning the uint256
+            // is `eval` as 2x 128 bit values (runs twice). A loop size of
+            // `2` would run 4 times as 64 bit values, and so on.
+            //
+            // Slither false positive here for the shift of constant `256`.
+            // slither-disable-next-line incorrect-shift
+            stepSize_ := shr(and(shr(3, operand_), 0x03), 256)
+            // `offset_` is used by the actual bit shifting operations and
+            // is precalculated here to save some gas as this is a hot
+            // performance path.
+            offset_ := sub(256, stepSize_)
+            // bits 5+ determine the number of vals to be zipped. At least
+            // one value must be provided so a `valLength_` of `0` is one
+            // value to loop over.
+            valLength_ := add(shr(5, operand_), 1)
         }
+        // uint256[] memory baseVals_ = new uint256[](valLength_);
+
+        uint256 location_;
+        assembly {
+            location_ := sub(stackTopLocation_, mul(valLength_, 0x20))
+        }
+
+        for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
+            assembly {
+                for {
+                    let argumentsCursor_ := argumentsBottomLocation_
+                    let cursor_ := location_
+                } lt(cursor_, stackTopLocation_) {
+                    argumentsCursor_ := add(argumentsCursor_, 0x20)
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    mstore(
+                        argumentsCursor_,
+                        shr(offset_, shl(sub(offset_, step_), mload(cursor_)))
+                    )
+                }
+            }
+            stackTopLocation_ = eval(context_, state_, sourceIndex_);
+        }
+        return stackTopLocation_;
+        //         // for {
+        //         //     let baseValsCursor_ := add(baseVals_, 0x20)
+        //         //     let cursor_ := location_
+        //         // } lt(cursor_, stackTopLocation_) {
+        //         //     baseValsCursor_ := add(baseValsCursor_, 0x20)
+        //         //     cursor_ := add(cursor_, 0x20)
+        //         // } {
+        //         //     mstore(baseValsCursor_, mload(cursor_))
+        //         // }
+
+        //         }
+        //     }
+
+        //     // state_.stackIndex -= valLength_;
+
+        //     // for (uint256 a_ = 0; a_ < valLength_; a_++) {
+        //     //     baseVals_[a_] = state_.stack[state_.stackIndex + a_];
+        //     // }
+
+        //     for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
+        //         for (uint256 a_ = 0; a_ < valLength_; a_++) {
+        //             // state_.constants[state_.argumentsIndex + a_] =
+        //             //     (baseVals_[a_] << (offset_ - step_)) >>
+        //             //     offset_;
+        //         }
+        //         eval(context_, state_, sourceIndex_);
+        //     }
+        // }
     }
 
     /// Evaluates a rain script.
@@ -198,7 +237,7 @@ abstract contract RainVM {
         bytes memory context_,
         State memory state_,
         uint256 sourceIndex_
-    ) internal view {
+    ) internal view returns (uint256) {
         // Everything in eval can be checked statically, there are no dynamic
         // runtime values read from the stack that can cause out of bounds
         // behaviour. E.g. sourceIndex in zipmap and size of a skip are both
@@ -211,6 +250,12 @@ abstract contract RainVM {
         uint256 sourceLocation_;
         uint256 sourceLen_;
         uint256 constantsBottomLocation_;
+        uint256 argumentsBottomLocation_;
+        unchecked {
+            argumentsBottomLocation_ =
+                constantsBottomLocation_ +
+                (state_.argumentsIndex * 0x20);
+        }
         uint256 stackBottomLocation_;
         uint256 stackTopLocation_;
         uint256 stackMaxLocation_;
@@ -276,17 +321,16 @@ abstract contract RainVM {
                     }
                 } else if (opcode_ == OP_ZIPMAP) {
                     // Sync the stackIndex_ with local stackTopLocation_.
-                    state_.stackIndex =
-                        (stackTopLocation_ - stackBottomLocation_) /
-                        0x20;
-                    zipmap(context_, state_, operand_);
-                    assembly {
-                        stackTopLocation_ := add(
-                            stackBottomLocation_,
-                            // Add stack index offset.
-                            mul(mload(state_), 0x20)
-                        )
-                    }
+                    // state_.stackIndex =
+                    //     (stackTopLocation_ - stackBottomLocation_) /
+                    //     0x20;
+                    stackTopLocation_ = zipmap(
+                        context_,
+                        state_,
+                        stackTopLocation_,
+                        argumentsBottomLocation_,
+                        operand_
+                    );
                 }
             } else {
                 stackTopLocation_ = applyOp(
@@ -303,6 +347,7 @@ abstract contract RainVM {
         }
         // This math is checked because a stack underflow here MUST panic.
         state_.stackIndex = (stackTopLocation_ - stackBottomLocation_) / 0x20;
+        return stackTopLocation_;
     }
 
     /// Every contract that implements `RainVM` should override `applyOp` so
