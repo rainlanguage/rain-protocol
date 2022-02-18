@@ -328,8 +328,8 @@ contract Verify is AccessControl, Initializable {
         } else {
             require(state_.approvedSince == UNINITIALIZED, "PRIOR_APPROVE");
             require(state_.bannedSince == UNINITIALIZED, "PRIOR_BAN");
-            state_.approvedSince = uint32(block.number);
         }
+        state_.approvedSince = uint32(block.number);
         states[account_] = state_;
         emit Approve(msg.sender, account_, data_);
     }
