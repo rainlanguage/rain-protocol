@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierReportTest } from "../../typechain/TierReportTest";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { basicDeploy, zeroPad32, zeroPad4 } from "../Util";
+import { assertError, basicDeploy, zeroPad32, zeroPad4 } from "../Util";
 import type { Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -39,6 +39,53 @@ describe("TierReport", async function () {
 
     reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
       Contract;
+  });
+
+  it("should enforce maxTier for all TierReport logic", async () => {
+    const initialBlock = await ethers.provider.getBlockNumber();
+
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
+
+    while ((await ethers.provider.getBlockNumber()) < initialBlock + 10) {
+      reserve.transfer(signer1.address, 0); // create empty block
+    }
+
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
+
+    while ((await ethers.provider.getBlockNumber()) < initialBlock + 20) {
+      reserve.transfer(signer1.address, 0); // create empty block
+    }
+
+    const report = await readWriteTier.report(signer1.address);
+
+    // tierBlock()
+    await assertError(
+      async () => await tierReport.tierBlock(report, 9),
+      "MAX_TIER",
+      "wrongly attempted to read tier '9' in the report, which is greater than maxTier constant"
+    );
+
+    // truncateTiersAbove()
+    await assertError(
+      async () => await tierReport.truncateTiersAbove(report, 9),
+      "MAX_TIER",
+      "wrongly attempted to truncate tiers above '9' in the report, which is greater than maxTier constant"
+    );
+
+    // updateBlockAtTier()
+    await assertError(
+      async () => await tierReport.updateBlockAtTier(report, 9, initialBlock),
+      "MAX_TIER",
+      "wrongly attempted to update block at tier '9' in the report, which is greater than maxTier constant"
+    );
+
+    // updateBlocksForTierRange()
+    await assertError(
+      async () =>
+        await tierReport.updateBlocksForTierRange(report, 0, 9, initialBlock),
+      "MAX_TIER",
+      "wrongly attempted to update blocks from tier 0 to '9' in the report, which is greater than maxTier constant"
+    );
   });
 
   it("should correctly return the highest achieved tier relative to a given report and block number", async () => {
