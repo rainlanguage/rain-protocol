@@ -21,8 +21,10 @@ struct State {
     bytes[] sources;
     /// Constants that can be copied to the stack by index by `VAL`.
     uint256[] constants;
-    /// `ZIPMAP` populates arguments which can be copied to the stack by `VAL`.
-    uint256[] arguments;
+    /// `ZIPMAP` populates arguments into constants which can be copied to the
+    /// stack by `VAL` as usual, starting from this index. This copying is
+    /// destructive so it is recommended to leave space in the constants array.
+    uint256 argumentsIndex;
 }
 
 /// @title RainVM
@@ -171,7 +173,7 @@ abstract contract RainVM {
 
             for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
                 for (uint256 a_ = 0; a_ < valLength_; a_++) {
-                    state_.arguments[a_] =
+                    state_.constants[state_.argumentsIndex + a_] =
                         (baseVals_[a_] << (offset_ - step_)) >>
                         offset_;
                 }
@@ -208,8 +210,7 @@ abstract contract RainVM {
         uint256 operand_;
         uint256 sourceLocation_;
         uint256 sourceLen_;
-        uint256 constantsLocation_;
-        uint256 argumentsLocation_;
+        uint256 constantsBottomLocation_;
         uint256 stackBottomLocation_;
         uint256 stackTopLocation_;
         uint256 stackMaxLocation_;
@@ -238,8 +239,7 @@ abstract contract RainVM {
                 )
             )
             sourceLen_ := mload(sourceLocation_)
-            constantsLocation_ := mload(add(state_, 0x60))
-            argumentsLocation_ := mload(add(state_, 0x80))
+            constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
         }
 
         // Loop until complete.
@@ -253,28 +253,12 @@ abstract contract RainVM {
             if (opcode_ < OPS_LENGTH) {
                 if (opcode_ == OP_VAL) {
                     assembly {
-                        let location_ := argumentsLocation_
-                        // 0x80 is a bit mask on the operand_ to take the high
-                        // bit only to switch between arguments and constants.
-                        if iszero(and(operand_, 0x80)) {
-                            location_ := constantsLocation_
-                        }
                         mstore(
                             stackTopLocation_,
                             mload(
                                 add(
-                                    location_,
-                                    add(
-                                        // Length data.
-                                        0x20,
-                                        mul(
-                                            0x20,
-                                            // 0x7F is a bit mask on the
-                                            // operand_ define the index of the
-                                            // argument/constant to load.
-                                            and(operand_, 0x7F)
-                                        )
-                                    )
+                                    constantsBottomLocation_,
+                                    mul(0x20, operand_)
                                 )
                             )
                         )

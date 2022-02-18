@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, op, arg, skip } from "../Util";
+import { bytify, callSize, op, skip } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
@@ -332,11 +332,11 @@ describe("RainVM", async function () {
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, 2), // arg0
+        op(Opcode.VAL, 3), // arg1
         op(Opcode.MUL, 2),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, 2), // arg0
+        op(Opcode.VAL, 3), // arg1
         op(Opcode.ADD, 2),
       ]),
     ];
@@ -404,19 +404,19 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.VAL, 2), // val0
+        op(Opcode.VAL, 2), // val2
         op(Opcode.VAL, 1), // val1
-        op(Opcode.VAL, 0), // val2
+        op(Opcode.VAL, 0), // val0
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, 3), // arg0
+        op(Opcode.VAL, 4), // arg1
+        op(Opcode.VAL, 5), // arg2
         op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, 3), // arg0
+        op(Opcode.VAL, 4), // arg1
+        op(Opcode.VAL, 5), // arg2
         op(Opcode.ADD, 3),
       ]),
     ];
@@ -480,80 +480,80 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.VAL, 7), // val0
-        op(Opcode.VAL, 6), // val1
-        op(Opcode.VAL, 5), // val2
-        op(Opcode.VAL, 4), // val3
-        op(Opcode.VAL, 3), // val4
-        op(Opcode.VAL, 2), // val5
-        op(Opcode.VAL, 1), // val6
-        op(Opcode.VAL, 0), // val7
+        op(Opcode.VAL, 7), // val7
+        op(Opcode.VAL, 6), // val6
+        op(Opcode.VAL, 5), // val5
+        op(Opcode.VAL, 4), // val4
+        op(Opcode.VAL, 3), // val3
+        op(Opcode.VAL, 2), // val2
+        op(Opcode.VAL, 1), // val1
+        op(Opcode.VAL, 0), // val0
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(7)),
+        op(Opcode.VAL, 8), // arg0
+        op(Opcode.VAL, 9), // arg1
+        op(Opcode.VAL, 10), // arg2
+        op(Opcode.VAL, 11), // arg3
+        op(Opcode.VAL, 12), // arg4
+        op(Opcode.VAL, 13), // arg5
+        op(Opcode.VAL, 14), // arg6
+        op(Opcode.VAL, 15), // arg7
+        op(Opcode.VAL, 8), // arg0
+        op(Opcode.VAL, 9), // arg1
+        op(Opcode.VAL, 10), // arg2
+        op(Opcode.VAL, 11), // arg3
+        op(Opcode.VAL, 12), // arg4
+        op(Opcode.VAL, 13), // arg5
+        op(Opcode.VAL, 14), // arg6
+        op(Opcode.VAL, 15), // arg7
+        op(Opcode.VAL, 8), // arg0
+        op(Opcode.VAL, 9), // arg1
+        op(Opcode.VAL, 10), // arg2
+        op(Opcode.VAL, 11), // arg3
+        op(Opcode.VAL, 12), // arg4
+        op(Opcode.VAL, 13), // arg5
+        op(Opcode.VAL, 14), // arg6
+        op(Opcode.VAL, 15), // arg7
+        op(Opcode.VAL, 8), // arg0
+        op(Opcode.VAL, 9), // arg1
+        op(Opcode.VAL, 10), // arg2
+        op(Opcode.VAL, 11), // arg3
+        op(Opcode.VAL, 12), // arg4
+        op(Opcode.VAL, 13), // arg5
+        op(Opcode.VAL, 14), // arg6
+        op(Opcode.VAL, 15), // arg7
         op(Opcode.ADD, 32), // max no. items
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(5)),
+        op(Opcode.VAL, 8), // arg0
+        op(Opcode.VAL, 9), // arg1
+        op(Opcode.VAL, 10), // arg2
+        op(Opcode.VAL, 11), // arg3
+        op(Opcode.VAL, 12), // arg4
+        op(Opcode.VAL, 13), // arg5
+        op(Opcode.VAL, 14), // arg6
+        op(Opcode.VAL, 15), // arg7
+        op(Opcode.VAL, 8), // arg0
+        op(Opcode.VAL, 9), // arg1
+        op(Opcode.VAL, 10), // arg2
+        op(Opcode.VAL, 11), // arg3
+        op(Opcode.VAL, 12), // arg4
+        op(Opcode.VAL, 13), // arg5
+        op(Opcode.VAL, 14), // arg6
+        op(Opcode.VAL, 15), // arg7
+        op(Opcode.VAL, 8), // arg0
+        op(Opcode.VAL, 9), // arg1
+        op(Opcode.VAL, 10), // arg2
+        op(Opcode.VAL, 11), // arg3
+        op(Opcode.VAL, 12), // arg4
+        op(Opcode.VAL, 13), // arg5
+        op(Opcode.VAL, 14), // arg6
+        op(Opcode.VAL, 15), // arg7
+        op(Opcode.VAL, 8), // arg0
+        op(Opcode.VAL, 9), // arg1
+        op(Opcode.VAL, 10), // arg2
+        op(Opcode.VAL, 11), // arg3
+        op(Opcode.VAL, 12), // arg4
+        op(Opcode.VAL, 13), // arg5
         op(Opcode.ADD, 30),
       ]),
     ];
@@ -604,9 +604,9 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.VAL, 1);
     const v1 = op(Opcode.VAL, 2);
 
-    const a3 = op(Opcode.VAL, arg(0));
-    const a2 = op(Opcode.VAL, arg(1));
-    const a1 = op(Opcode.VAL, arg(2));
+    const a3 = op(Opcode.VAL, 3); // arg0
+    const a2 = op(Opcode.VAL, 4); // arg1
+    const a1 = op(Opcode.VAL, 5); // arg2
 
     // zero-based counting
     const fnSize = 1;
@@ -692,9 +692,9 @@ describe("RainVM", async function () {
     const v4 = op(Opcode.VAL, 1);
     const v5 = op(Opcode.VAL, 2);
 
-    const a3 = op(Opcode.VAL, arg(0));
-    const a4 = op(Opcode.VAL, arg(1));
-    const a5 = op(Opcode.VAL, arg(2));
+    const a3 = op(Opcode.VAL, 3); // arg0
+    const a4 = op(Opcode.VAL, 4); // arg1
+    const a5 = op(Opcode.VAL, 5); // arg2
 
     // zero-based counting
     const fnSize = 1;
@@ -757,9 +757,9 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.VAL, 1);
     const v3 = op(Opcode.VAL, 2);
 
-    const a1 = op(Opcode.VAL, arg(0));
-    const a2 = op(Opcode.VAL, arg(1));
-    const a3 = op(Opcode.VAL, arg(2));
+    const a1 = op(Opcode.VAL, 3); // arg0
+    const a2 = op(Opcode.VAL, 4); // arg1
+    const a3 = op(Opcode.VAL, 5); // arg2
 
     const fnSize = 1; // 1
     const loopSize = 0; // 1

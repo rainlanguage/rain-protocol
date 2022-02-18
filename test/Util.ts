@@ -503,13 +503,6 @@ export function callSize(
   return callSize;
 }
 
-export function arg(valIndex: number): number {
-  let arg = 1;
-  arg <<= 7;
-  arg += valIndex;
-  return arg;
-}
-
 export function skip(places: number, conditional = false): number {
   let skip = conditional ? 1 : 0;
   skip <<= 7;

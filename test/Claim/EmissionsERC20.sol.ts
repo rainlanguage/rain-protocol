@@ -8,7 +8,6 @@ import {
   op,
   paddedUInt32,
   paddedUInt256,
-  arg,
   sixZeros,
 } from "../Util";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
@@ -128,8 +127,8 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.VAL, arg(0));
-    const valBaseReward = op(Opcode.VAL, arg(1));
+    const valDuration = op(Opcode.VAL, 5);
+    const valBaseReward = op(Opcode.VAL, 6);
 
     // END zipmap args
 
@@ -410,8 +409,8 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.VAL, arg(0));
-    const valBaseReward = op(Opcode.VAL, arg(1));
+    const valDuration = op(Opcode.VAL, 5)
+    const valBaseReward = op(Opcode.VAL, 6)
 
     // END zipmap args
 

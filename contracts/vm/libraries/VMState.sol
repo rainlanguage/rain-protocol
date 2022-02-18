@@ -43,13 +43,19 @@ contract VMState {
         pure
         returns (State memory)
     {
+        uint256[] memory constants_ = new uint256[](
+            config_.constants.length + config_.argumentsLength
+        );
+        for (uint i_ = 0; i_ < config_.constants.length; i_++) {
+            constants_[i_] = config_.constants[i_];
+        }
         return
             State(
                 0,
                 new uint256[](config_.stackLength),
                 config_.sources,
-                config_.constants,
-                new uint256[](config_.argumentsLength)
+                constants_,
+                config_.constants.length
             );
     }
 
