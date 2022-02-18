@@ -43,6 +43,40 @@ describe("Utils Functions", async function () {
     expect(res2).to.have.lengthOf(1); // todo consider replacing with `chai-bytes`: usage: expect(buffer).to.equalBytes('0102030405');
   });
 
+  it("Should construct an operand for RainVM's call opcode", async () => {
+    const res = Utils.callSize(1, 2, 3);
+    expect(res).to.equal(113);
+  });
+
+  it("Should check for invalid fnSize", async () => {
+    expect(() => {
+      Utils.callSize(8,2,3)
+    }).to.throw('Invalid fnSize');
+    expect(() => {
+      Utils.callSize(-8,2,3)
+    }).to.throw('Invalid fnSize');
+  });
+
+  it("Should check for invalid loopSize", async () => {
+    expect(() => {
+      Utils.callSize(1,-1,3)
+    }).to.throw('Invalid loopSize');
+
+    expect(() => {
+      Utils.callSize(1,4,3)
+    }).to.throw('Invalid loopSize');
+  });
+
+  it("Should check for invalid valSize", async () => {
+    expect(() => {
+      Utils.callSize(1,2,-1)
+    }).to.throw('Invalid valSize');
+
+    expect(() => {
+      Utils.callSize(1,2,8)
+    }).to.throw('Invalid valSize');
+  });
+
 
 
 })
