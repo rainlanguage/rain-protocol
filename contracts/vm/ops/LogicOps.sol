@@ -36,6 +36,7 @@ library LogicOps {
             // of OP_SKIP to carefully avoid it instead.
             case 1 {
                 let location_ := sub(stackTopLocation_, 0x60)
+                stackTopLocation_ := add(location_, 0x20)
                 switch mload(location_)
                 // false => use second value
                 case 0 {
@@ -43,36 +44,35 @@ library LogicOps {
                 }
                 // true => use first value
                 default {
-                    mstore(location_, mload(add(location_, 0x20)))
+                    mstore(location_, mload(stackTopLocation_))
                 }
-                stackTopLocation_ := add(location_, 0x20)
             }
             // EQUAL_TO
             case 2 {
                 let location_ := sub(stackTopLocation_, 0x40)
+                stackTopLocation_ := add(location_, 0x20)
                 mstore(
                     location_,
-                    eq(mload(location_), mload(add(location_, 0x20)))
+                    eq(mload(location_), mload(stackTopLocation_))
                 )
-                stackTopLocation_ := add(location_, 0x20)
             }
             // LESS_THAN
             case 3 {
                 let location_ := sub(stackTopLocation_, 0x40)
+                stackTopLocation_ := add(location_, 0x20)
                 mstore(
                     location_,
-                    lt(mload(location_), mload(add(location_, 0x20)))
+                    lt(mload(location_), mload(stackTopLocation_))
                 )
-                stackTopLocation_ := add(location_, 0x20)
             }
             // GREATER_THAN
             case 4 {
                 let location_ := sub(stackTopLocation_, 0x40)
+                stackTopLocation_ := add(location_, 0x20)
                 mstore(
                     location_,
-                    gt(mload(location_), mload(add(location_, 0x20)))
+                    gt(mload(location_), mload(stackTopLocation_))
                 )
-                stackTopLocation_ := add(location_, 0x20)
             }
             // EVERY
             // EVERY is either the first item if every item is nonzero, else 0.

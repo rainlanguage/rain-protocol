@@ -535,7 +535,7 @@ describe("Sale", async function () {
     );
   });
 
-  it("should prevent out of bounds opcode call", async function () {
+  xit("should prevent out of bounds opcode call", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();

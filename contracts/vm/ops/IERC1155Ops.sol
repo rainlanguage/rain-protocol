@@ -30,8 +30,9 @@ library IERC1155Ops {
                 uint256 id_;
                 assembly {
                     location_ := sub(stackTopLocation_, 0x60)
+                    stackTopLocation_ := add(location_, 0x20)
                     token_ := mload(location_)
-                    account_ := mload(add(location_, 0x20))
+                    account_ := mload(stackTopLocation_)
                     id_ := mload(add(location_, 0x40))
                 }
                 uint256 result_ = IERC1155(address(uint160(token_))).balanceOf(
@@ -40,7 +41,6 @@ library IERC1155Ops {
                 );
                 assembly {
                     mstore(location_, result_)
-                    stackTopLocation_ := add(location_, 0x20)
                 }
             }
             // Stack the return of `balanceOfBatch`.

@@ -39,15 +39,15 @@ library TierOps {
                 uint256 account_;
                 assembly {
                     location_ := sub(stackTopLocation_, 0x40)
+                    stackTopLocation_ := add(location_, 0x20)
                     tier_ := mload(location_)
-                    account_ := mload(add(location_, 0x20))
+                    account_ := mload(stackTopLocation_)
                 }
                 uint256 report_ = ITier(address(uint160(tier_))).report(
                     address(uint160(account_))
                 );
                 assembly {
                     mstore(location_, report_)
-                    stackTopLocation_ := add(location_, 0x20)
                 }
             }
             // Stack a report that has never been held at any tier.
@@ -76,8 +76,9 @@ library TierOps {
                 uint256 olderReport_;
                 assembly {
                     location_ := sub(stackTopLocation_, 0x40)
+                    stackTopLocation_ := add(location_, 0x20)
                     newerReport_ := mload(location_)
-                    olderReport_ := mload(add(location_, 0x20))
+                    olderReport_ := mload(stackTopLocation_)
                 }
                 uint256 result_ = TierwiseCombine.saturatingSub(
                     newerReport_,
@@ -85,7 +86,6 @@ library TierOps {
                 );
                 assembly {
                     mstore(location_, result_)
-                    stackTopLocation_ := add(location_, 0x20)
                 }
             }
             // Stacks a report with updated blocks over tier range.
@@ -102,8 +102,9 @@ library TierOps {
 
                 assembly {
                     location_ := sub(stackTopLocation_, 0x40)
+                    stackTopLocation_ := add(location_, 0x20)
                     report_ := mload(location_)
-                    blockNumber_ := mload(add(location_, 0x20))
+                    blockNumber_ := mload(stackTopLocation_)
                 }
 
                 uint256 result_ = TierReport.updateBlocksForTierRange(
@@ -115,7 +116,6 @@ library TierOps {
 
                 assembly {
                     mstore(location_, result_)
-                    stackTopLocation_ := add(location_, 0x20)
                 }
             }
             // Stacks the result of a `selectLte` combinator.

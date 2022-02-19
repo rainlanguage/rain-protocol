@@ -29,15 +29,15 @@ library IERC20Ops {
                 uint256 account_;
                 assembly {
                     location_ := sub(stackTopLocation_, 0x40)
+                    stackTopLocation_ := add(location_, 0x20)
                     token_ := mload(location_)
-                    account_ := mload(add(location_, 0x20))
+                    account_ := mload(stackTopLocation_)
                 }
                 uint256 balance_ = IERC20(address(uint160(token_))).balanceOf(
                     address(uint160(account_))
                 );
                 assembly {
                     mstore(location_, balance_)
-                    stackTopLocation_ := add(location_, 0x20)
                 }
             }
             // Stack the return of `totalSupply`.
