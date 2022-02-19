@@ -20,7 +20,6 @@ library BlockOps {
         uint256
     ) internal view returns (uint256) {
         unchecked {
-            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             assembly {
                 switch opcode_
                 // BLOCK_NUMBER

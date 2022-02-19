@@ -430,7 +430,6 @@ contract Sale is
                     );
             } else {
                 opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 if (opcode_ == REMAINING_UNITS) {
                     assembly {
                         mstore(stackTopLocation_, sload(remainingUnits.slot))

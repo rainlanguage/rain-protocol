@@ -22,8 +22,6 @@ library IERC1155Ops {
         uint256
     ) internal view returns (uint256) {
         unchecked {
-            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
-
             // Stack the return of `balanceOf`.
             if (opcode_ == BALANCE_OF) {
                 uint256 location_;

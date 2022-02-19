@@ -12,11 +12,10 @@ library ThisOps {
     function applyOp(
         bytes memory,
         uint256 stackTopLocation_,
-        uint256 opcode_,
+        uint256,
         uint256
     ) internal view returns (uint256) {
         unchecked {
-            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             // There's only one opcode.
             // Put the current contract address on the stack.
             assembly {

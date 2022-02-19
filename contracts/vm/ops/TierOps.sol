@@ -30,7 +30,6 @@ library TierOps {
         uint256 operand_
     ) internal view returns (uint256) {
         unchecked {
-            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             // Stack the report returned by an `ITier` contract.
             // Top two stack vals are used as the address and `ITier` contract
             // to check against.

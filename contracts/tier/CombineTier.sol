@@ -70,7 +70,6 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
                 );
             } else {
                 opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 uint256 account_ = uint256(
                     uint160(address(abi.decode(context_, (address))))
                 );

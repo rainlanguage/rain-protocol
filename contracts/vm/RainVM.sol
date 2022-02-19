@@ -326,10 +326,6 @@ abstract contract RainVM {
                         opcode_,
                         operand_
                     );
-                    // require(
-                    //     stackTopLocation_ <= stackMaxLocation_,
-                    //     "STACK_OVERLFLOW"
-                    // );
                 }
             }
             state_.stackIndex =

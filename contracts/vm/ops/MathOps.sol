@@ -32,7 +32,6 @@ library MathOps {
         uint256 opcode_,
         uint256 operand_
     ) internal pure returns (uint256) {
-        require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
         uint256 location_;
         uint256 accumulator_;
         assembly {

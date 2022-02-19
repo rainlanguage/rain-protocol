@@ -12,11 +12,10 @@ library SenderOps {
     function applyOp(
         bytes memory,
         uint256 stackTopLocation_,
-        uint256 opcode_,
+        uint256,
         uint256
     ) internal view returns (uint256) {
         unchecked {
-            require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             // There's only one opcode.
             // Stack the current `msg.sender`.
             // @todo - is this the same as `caller()` in yul?
