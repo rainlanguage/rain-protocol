@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "hardhat/console.sol";
-
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -159,136 +157,50 @@ abstract contract RainVM {
                 stepSize_ = 0x20;
             }
             uint256 valLength_ = (operand_ >> 5) + 1;
-            uint256 location_ = stackTopLocation_ - (valLength_ * 0x20);
 
-            for (uint256 step_ = 0; step_ < 0x100; step_ += stepSize_) {
-                uint256 argumentsCursor_ = argumentsBottomLocation_;
-                uint256 cursor_ = location_;
-                while (cursor_ < stackTopLocation_) {
-                    console.log("cursors: %s %s", cursor_, argumentsCursor_);
-                    assembly {
-                        mstore(
-                            argumentsCursor_,
-                            and(shr(step_, mload(cursor_)), mask_)
+            // Set aside base values so they can't be clobbered during eval
+            // as the stack changes on each loop.
+            uint256[] memory baseVals_ = new uint256[](valLength_);
+            uint256 baseValsBottom_;
+            {
+                assembly {
+                    baseValsBottom_ := add(baseVals_, 0x20)
+                    for {
+                        let cursor_ := sub(
+                            stackTopLocation_,
+                            mul(valLength_, 0x20)
                         )
+                        let baseValsCursor_ := baseValsBottom_
+                    } lt(cursor_, stackTopLocation_) {
+                        cursor_ := add(cursor_, 0x20)
+                        baseValsCursor_ := add(baseValsCursor_, 0x20)
+                    } {
+                        mstore(baseValsCursor_, mload(cursor_))
                     }
-                    cursor_ += 0x20;
-                    argumentsCursor_ += 0x20;
+                }
+            }
+
+            uint256 maxCursor_ = baseValsBottom_ + (valLength_ * 0x20);
+            for (uint256 step_ = 0; step_ < 0x100; step_ += stepSize_) {
+                // Prepare arguments.
+                {
+                    uint256 argumentsCursor_ = argumentsBottomLocation_;
+                    uint256 cursor_ = baseValsBottom_;
+                    while (cursor_ < maxCursor_) {
+                        assembly {
+                            mstore(
+                                argumentsCursor_,
+                                and(shr(step_, mload(cursor_)), mask_)
+                            )
+                            cursor_ := add(cursor_, 0x20)
+                            argumentsCursor_ := add(argumentsCursor_, 0x20)
+                        }
+                    }
                 }
                 stackTopLocation_ = eval(context_, state_, sourceIndex_);
             }
             return stackTopLocation_;
         }
-
-        // // unchecked {
-        // uint256 sourceIndex_;
-        // uint256 stepSize_;
-        // // uint256 offset_;
-        // uint256 valLength_;
-        // uint256 mask_;
-        // uint256 location_;
-
-        // // assembly here to shave some gas.
-        // assembly {
-        //     // rightmost 3 bits are the index of the source to use from
-        //     // sources in `state_`.
-        //     sourceIndex_ := and(operand_, 0x07)
-        //     // bits 4 and 5 indicate size of the loop. Each 1 increment of
-        //     // the size halves the bits of the arguments to the zipmap.
-        //     // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
-        //     // into args for the inner `eval`. A loop size of `1` would
-        //     // shift `stepSize_` by 1 (halving it) and meaning the uint256
-        //     // is `eval` as 2x 128 bit values (runs twice). A loop size of
-        //     // `2` would run 4 times as 64 bit values, and so on.
-        //     //
-        //     // Slither false positive here for the shift of constant `256`.
-        //     // slither-disable-next-line incorrect-shift
-        //     switch and(shr(3, operand_), 0x03)
-        //     case 0 {
-        //         mask_ := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-        //         stepSize_ := 256
-        //         // offset_ := 0
-        //     }
-        //     case 1 {
-        //         mask_ := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-        //         stepSize_ := 128
-        //         // offset_ := 128
-        //     }
-        //     case 2 {
-        //         mask_ := 0xFFFFFFFFFFFFFFFF
-        //         stepSize_ := 64
-        //         // offset_ := 192
-        //     }
-        //     case 3 {
-        //         mask_ := 0xFFFFFFFF
-        //         stepSize_ := 32
-        //         // offset_ := 224
-        //     }
-        //     // stepSize_ := shr(and(shr(3, operand_), 0x03), 256)
-        //     // `offset_` is used by the actual bit shifting operations and
-        //     // is precalculated here to save some gas as this is a hot
-        //     // performance path.
-        //     // offset_ := sub(256, stepSize_)
-        //     // bits 5+ determine the number of vals to be zipped. At least
-        //     // one value must be provided so a `valLength_` of `0` is one
-        //     // value to loop over.
-        //     valLength_ := add(shr(5, operand_), 1)
-        //     location_ := sub(stackTopLocation_, mul(valLength_, 0x20))
-        // }
-
-        // console.log("l: %s %s", stackTopLocation_, location_);
-
-        // uint cLog_;
-        // uint aLog_;
-        // for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-        //     assembly {
-        //         for {
-        //             let argumentsCursor_ := argumentsBottomLocation_
-        //             let cursor_ := location_
-        //         } lt(cursor_, stackTopLocation_) {
-        //             argumentsCursor_ := add(argumentsCursor_, 0x20)
-        //             cursor_ := add(cursor_, 0x20)
-        //         } {
-        //             mstore(
-        //                 argumentsCursor_,
-        //                 and(shr(step_, mload(cursor_)), mask_)
-        //             )
-        //             cLog_ := mload(cursor_)
-        //             aLog_ := mload(argumentsCursor_)
-        //         }
-        //     }
-        //     console.log("z: %s %s %s", valLength_, cLog_, aLog_);
-        //     stackTopLocation_ = eval(context_, state_, sourceIndex_);
-        // }
-        // return stackTopLocation_;
-        //         // for {
-        //         //     let baseValsCursor_ := add(baseVals_, 0x20)
-        //         //     let cursor_ := location_
-        //         // } lt(cursor_, stackTopLocation_) {
-        //         //     baseValsCursor_ := add(baseValsCursor_, 0x20)
-        //         //     cursor_ := add(cursor_, 0x20)
-        //         // } {
-        //         //     mstore(baseValsCursor_, mload(cursor_))
-        //         // }
-
-        //         }
-        //     }
-
-        //     // state_.stackIndex -= valLength_;
-
-        //     // for (uint256 a_ = 0; a_ < valLength_; a_++) {
-        //     //     baseVals_[a_] = state_.stack[state_.stackIndex + a_];
-        //     // }
-
-        //     for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-        //         for (uint256 a_ = 0; a_ < valLength_; a_++) {
-        //             // state_.constants[state_.argumentsIndex + a_] =
-        //             //     (baseVals_[a_] << (offset_ - step_)) >>
-        //             //     offset_;
-        //         }
-        //         eval(context_, state_, sourceIndex_);
-        //     }
-        // }
     }
 
     /// Evaluates a rain script.
@@ -321,11 +233,6 @@ abstract contract RainVM {
         uint256 sourceLen_;
         uint256 constantsBottomLocation_;
         uint256 argumentsBottomLocation_;
-        unchecked {
-            argumentsBottomLocation_ =
-                constantsBottomLocation_ +
-                (state_.argumentsIndex * 0x20);
-        }
         uint256 stackBottomLocation_;
         uint256 stackTopLocation_;
         uint256 stackMaxLocation_;
@@ -355,6 +262,16 @@ abstract contract RainVM {
             )
             sourceLen_ := mload(sourceLocation_)
             constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
+            argumentsBottomLocation_ := add(
+                constantsBottomLocation_,
+                mul(
+                    0x20,
+                    mload(
+                        // argumentsIndex
+                        add(state_, 0x80)
+                    )
+                )
+            )
         }
 
         // Loop until complete.
