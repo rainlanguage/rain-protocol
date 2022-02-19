@@ -749,7 +749,7 @@ describe("RainVM", async function () {
     );
   });
 
-  it("should handle a simple call op", async () => {
+  it.only("should handle a simple call op", async () => {
     this.timeout(0);
 
     const constants = [1, 2, 3];

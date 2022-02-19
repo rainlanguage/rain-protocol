@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "hardhat/console.sol";
+
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -100,7 +102,7 @@ abstract contract RainVM {
     /// Number of provided opcodes for `RainVM`.
     uint256 internal constant OPS_LENGTH = 3;
 
-    uint private constant UINT256_MASK = type(uint256).max;
+    uint256 private constant UINT256_MASK = type(uint256).max;
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -138,63 +140,127 @@ abstract contract RainVM {
         uint256 argumentsBottomLocation_,
         uint256 operand_
     ) internal view returns (uint256) {
-        // unchecked {
-        uint256 sourceIndex_;
-        uint256 stepSize_;
-        uint256 offset_;
-        uint256 valLength_;
-        uint mask_;
-        uint256 location_;
-
-        // assembly here to shave some gas.
-        assembly {
-            // rightmost 3 bits are the index of the source to use from
-            // sources in `state_`.
-            sourceIndex_ := and(operand_, 0x07)
-            // bits 4 and 5 indicate size of the loop. Each 1 increment of
-            // the size halves the bits of the arguments to the zipmap.
-            // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
-            // into args for the inner `eval`. A loop size of `1` would
-            // shift `stepSize_` by 1 (halving it) and meaning the uint256
-            // is `eval` as 2x 128 bit values (runs twice). A loop size of
-            // `2` would run 4 times as 64 bit values, and so on.
-            //
-            // Slither false positive here for the shift of constant `256`.
-            // slither-disable-next-line incorrect-shift
-            switch and(shr(3, operand_), 0x03)
-            case 0 {
-                mask_ := UINT256_MASK
+        unchecked {
+            uint256 sourceIndex_ = operand_ & 0x07;
+            uint256 loopSize_ = (operand_ >> 3) & 0x03;
+            uint256 mask_;
+            uint256 stepSize_;
+            if (loopSize_ == 0) {
+                mask_ = type(uint256).max;
+                stepSize_ = 0x100;
+            } else if (loopSize_ == 1) {
+                mask_ = type(uint128).max;
+                stepSize_ = 0x80;
+            } else if (loopSize_ == 2) {
+                mask_ = type(uint64).max;
+                stepSize_ = 0x40;
+            } else {
+                mask_ = type(uint32).max;
+                stepSize_ = 0x20;
             }
-            stepSize_ := shr(and(shr(3, operand_), 0x03), 256)
-            // `offset_` is used by the actual bit shifting operations and
-            // is precalculated here to save some gas as this is a hot
-            // performance path.
-            offset_ := sub(256, stepSize_)
-            // bits 5+ determine the number of vals to be zipped. At least
-            // one value must be provided so a `valLength_` of `0` is one
-            // value to loop over.
-            valLength_ := add(shr(5, operand_), 1)
-            location_ := sub(stackTopLocation_, mul(valLength_, 0x20))
-        }
+            uint256 valLength_ = (operand_ >> 5) + 1;
+            uint256 location_ = stackTopLocation_ - (valLength_ * 0x20);
 
-        for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-            assembly {
-                for {
-                    let argumentsCursor_ := argumentsBottomLocation_
-                    let cursor_ := location_
-                } lt(cursor_, stackTopLocation_) {
-                    argumentsCursor_ := add(argumentsCursor_, 0x20)
-                    cursor_ := add(cursor_, 0x20)
-                } {
-                    mstore(
-                        argumentsCursor_,
-                        shr(offset_, shl(sub(offset_, step_), mload(cursor_)))
-                    )
+            for (uint256 step_ = 0; step_ < 0x100; step_ += stepSize_) {
+                uint256 argumentsCursor_ = argumentsBottomLocation_;
+                uint256 cursor_ = location_;
+                while (cursor_ < stackTopLocation_) {
+                    console.log("cursors: %s %s", cursor_, argumentsCursor_);
+                    assembly {
+                        mstore(
+                            argumentsCursor_,
+                            and(shr(step_, mload(cursor_)), mask_)
+                        )
+                    }
+                    cursor_ += 0x20;
+                    argumentsCursor_ += 0x20;
                 }
+                stackTopLocation_ = eval(context_, state_, sourceIndex_);
             }
-            stackTopLocation_ = eval(context_, state_, sourceIndex_);
+            return stackTopLocation_;
         }
-        return stackTopLocation_;
+
+        // // unchecked {
+        // uint256 sourceIndex_;
+        // uint256 stepSize_;
+        // // uint256 offset_;
+        // uint256 valLength_;
+        // uint256 mask_;
+        // uint256 location_;
+
+        // // assembly here to shave some gas.
+        // assembly {
+        //     // rightmost 3 bits are the index of the source to use from
+        //     // sources in `state_`.
+        //     sourceIndex_ := and(operand_, 0x07)
+        //     // bits 4 and 5 indicate size of the loop. Each 1 increment of
+        //     // the size halves the bits of the arguments to the zipmap.
+        //     // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
+        //     // into args for the inner `eval`. A loop size of `1` would
+        //     // shift `stepSize_` by 1 (halving it) and meaning the uint256
+        //     // is `eval` as 2x 128 bit values (runs twice). A loop size of
+        //     // `2` would run 4 times as 64 bit values, and so on.
+        //     //
+        //     // Slither false positive here for the shift of constant `256`.
+        //     // slither-disable-next-line incorrect-shift
+        //     switch and(shr(3, operand_), 0x03)
+        //     case 0 {
+        //         mask_ := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        //         stepSize_ := 256
+        //         // offset_ := 0
+        //     }
+        //     case 1 {
+        //         mask_ := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        //         stepSize_ := 128
+        //         // offset_ := 128
+        //     }
+        //     case 2 {
+        //         mask_ := 0xFFFFFFFFFFFFFFFF
+        //         stepSize_ := 64
+        //         // offset_ := 192
+        //     }
+        //     case 3 {
+        //         mask_ := 0xFFFFFFFF
+        //         stepSize_ := 32
+        //         // offset_ := 224
+        //     }
+        //     // stepSize_ := shr(and(shr(3, operand_), 0x03), 256)
+        //     // `offset_` is used by the actual bit shifting operations and
+        //     // is precalculated here to save some gas as this is a hot
+        //     // performance path.
+        //     // offset_ := sub(256, stepSize_)
+        //     // bits 5+ determine the number of vals to be zipped. At least
+        //     // one value must be provided so a `valLength_` of `0` is one
+        //     // value to loop over.
+        //     valLength_ := add(shr(5, operand_), 1)
+        //     location_ := sub(stackTopLocation_, mul(valLength_, 0x20))
+        // }
+
+        // console.log("l: %s %s", stackTopLocation_, location_);
+
+        // uint cLog_;
+        // uint aLog_;
+        // for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
+        //     assembly {
+        //         for {
+        //             let argumentsCursor_ := argumentsBottomLocation_
+        //             let cursor_ := location_
+        //         } lt(cursor_, stackTopLocation_) {
+        //             argumentsCursor_ := add(argumentsCursor_, 0x20)
+        //             cursor_ := add(cursor_, 0x20)
+        //         } {
+        //             mstore(
+        //                 argumentsCursor_,
+        //                 and(shr(step_, mload(cursor_)), mask_)
+        //             )
+        //             cLog_ := mload(cursor_)
+        //             aLog_ := mload(argumentsCursor_)
+        //         }
+        //     }
+        //     console.log("z: %s %s %s", valLength_, cLog_, aLog_);
+        //     stackTopLocation_ = eval(context_, state_, sourceIndex_);
+        // }
+        // return stackTopLocation_;
         //         // for {
         //         //     let baseValsCursor_ := add(baseVals_, 0x20)
         //         //     let cursor_ := location_
@@ -324,10 +390,6 @@ abstract contract RainVM {
                         stackTopLocation_ := add(stackTopLocation_, 0x20)
                     }
                 } else if (opcode_ == OP_ZIPMAP) {
-                    // Sync the stackIndex_ with local stackTopLocation_.
-                    // state_.stackIndex =
-                    //     (stackTopLocation_ - stackBottomLocation_) /
-                    //     0x20;
                     stackTopLocation_ = zipmap(
                         context_,
                         state_,

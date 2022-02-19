@@ -339,7 +339,7 @@ describe("EmissionsERC20", async function () {
     console.log(await emissionsERC20.balanceOf(claimer.address));
   });
 
-  it.only("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
+  it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
