@@ -26,6 +26,17 @@ library MathOps {
     /// Number of provided opcodes for `MathOps`.
     uint256 internal constant OPS_LENGTH = 8;
 
+    function stackIndexDiff(uint256, uint256 operand_)
+        internal
+        pure
+        returns (int256)
+    {
+        // Zero length math ops not supported.
+        require(operand_ > 0, "BAD_OPERAND");
+        // All operations take operand_ as length inputs and have 1 output.
+        return 1 - int256(operand_);
+    }
+
     function applyOp(
         bytes memory,
         uint256 stackTopLocation_,

@@ -15,6 +15,21 @@ library IERC1155Ops {
     /// Number of provided opcodes for `IERC1155Ops`.
     uint256 internal constant OPS_LENGTH = 2;
 
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        internal
+        pure
+        returns (int256)
+    {
+        if (opcode_ == BALANCE_OF) {
+            return -2;
+        } else {
+            require(operand_ > 0, "BAD_OPERAND");
+            // inputs: (len * 2) + 1
+            // outputs: len
+            return -(1 + int(operand_));
+        }
+    }
+
     function applyOp(
         bytes memory,
         uint256 stackTopLocation_,

@@ -102,6 +102,51 @@ abstract contract RainVM {
 
     uint256 private constant UINT256_MASK = type(uint256).max;
 
+    function calculateStackUpperBound(bytes memory source_)
+        public
+        view
+        returns (uint256)
+    {
+        unchecked {
+            uint256 i_ = 0;
+            uint256 sourceLen_ = source_.length;
+            uint256 opcode_;
+            uint256 operand_;
+            uint256 stackUpperBound_ = 0;
+            int256 stackIndex_ = 0;
+
+            while (i_ < sourceLen_) {
+                assembly {
+                    i_ := add(i_, 2)
+                    let op_ := mload(add(source_, i_))
+                    opcode_ := byte(30, op_)
+                    operand_ := byte(31, op_)
+                }
+                stackIndex_ += stackIndexDiff(opcode_, operand_);
+                require(stackIndex_ >= 0, "STACK_UNDERFLOW");
+                if (uint256(stackIndex_) > stackUpperBound_) {
+                    stackUpperBound_ = uint256(stackIndex_);
+                }
+            }
+
+            return stackUpperBound_;
+        }
+    }
+
+    function stackIndexDiff(uint256 opcode_, uint256)
+        public
+        view
+        virtual
+        returns (int256)
+    {
+        if (opcode_ < OP_ZIPMAP) {
+            return 1;
+        } else {
+            // @todo
+            return 0;
+        }
+    }
+
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
     /// values where X is configurable by `operand_`. Each 1 increment in the

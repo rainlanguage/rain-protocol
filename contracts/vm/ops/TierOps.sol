@@ -23,6 +23,24 @@ library TierOps {
     /// Number of provided opcodes for `TierOps`.
     uint256 internal constant OPS_LENGTH = 6;
 
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        internal
+        pure
+        returns (int256)
+    {
+        if (opcode_ == REPORT) {
+            return -1;
+        } else if (opcode_ < SATURATING_DIFF) {
+            return 1;
+        } else if (opcode_ < SELECT_LTE) {
+            return -1;
+        } else {
+            uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
+            require(reportsLength_ > 0, "BAD_OPERAND");
+            return 1 - int(reportsLength_);
+        }
+    }
+
     function applyOp(
         bytes memory,
         uint256 stackTopLocation_,

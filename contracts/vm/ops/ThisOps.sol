@@ -9,6 +9,10 @@ library ThisOps {
     /// Number of provided opcodes for `ThisOps`.
     uint256 internal constant OPS_LENGTH = 1;
 
+    function stackIndexDiff(uint256, uint256) internal pure returns (int256) {
+        return 1;
+    }
+
     function applyOp(
         bytes memory,
         uint256 stackTopLocation_,

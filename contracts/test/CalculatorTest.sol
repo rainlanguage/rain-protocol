@@ -25,6 +25,25 @@ contract CalculatorTest is RainVM, VMState {
     }
 
     /// @inheritdoc RainVM
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        override
+        returns (int256)
+    {
+        unchecked {
+            if (opcode_ < blockOpsStart) {
+                return super.stackIndexDiff(opcode_, operand_);
+            } else if (opcode_ < mathOpsStart) {
+                return
+                    BlockOps.stackIndexDiff(opcode_ - blockOpsStart, operand_);
+            } else {
+                return MathOps.stackIndexDiff(opcode_ - mathOpsStart, operand_);
+            }
+        }
+    }
+
+    /// @inheritdoc RainVM
     function applyOp(
         bytes memory context_,
         uint256 stackTopLocation_,

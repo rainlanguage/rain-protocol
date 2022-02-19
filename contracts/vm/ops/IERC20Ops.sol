@@ -15,6 +15,18 @@ library IERC20Ops {
     /// Number of provided opcodes for `IERC20Ops`.
     uint256 internal constant OPS_LENGTH = 2;
 
+    function stackIndexDiff(uint256 opcode_, uint256)
+        internal
+        pure
+        returns (int256)
+    {
+        if (opcode_ == BALANCE_OF) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
     function applyOp(
         bytes memory,
         uint256 stackTopLocation_,

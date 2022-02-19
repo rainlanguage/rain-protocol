@@ -6,11 +6,40 @@ import {State} from "../RainVM.sol";
 /// @title LogicOps
 /// @notice RainVM opcode pack to perform some basic logic operations.
 library LogicOps {
+    uint256 private constant ISZERO = 0;
+    uint256 private constant EAGER_IF = 1;
+    uint256 private constant EQUAL_TO = 2;
+    uint256 private constant LESS_THAN = 3;
+    uint256 private constant GREATER_THAN = 4;
+    uint256 private constant EVERY = 5;
+    uint256 private constant ANY = 6;
     /// Number of provided opcodes for `LogicOps`.
     /// The opcodes are NOT listed on the library as they are all internal to
     /// the assembly and yul doesn't seem to support using solidity constants
     /// as switch case values.
     uint256 internal constant OPS_LENGTH = 7;
+
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        internal
+        pure
+        returns (int256)
+    {
+        if (opcode_ == ISZERO) {
+            // ISZERO negates a value in place.
+            return 0;
+        } else if (opcode_ == EAGER_IF) {
+            // Ternary IF collapses 3 inputs into 1 output.
+            return -2;
+        } else if (opcode_ < EVERY) {
+            // All comparisons collapse 2 inputs into 1 output.
+            return -1;
+        } else {
+            // Zero length EVERY and ANY is not supported.
+            require(operand_ > 0, "BAD_OPERAND");
+            // EVERY and ANY collapse operand_ as length of inputs to 1 output.
+            return 1 - int256(operand_);
+        }
+    }
 
     function applyOp(
         bytes memory,
@@ -77,49 +106,43 @@ library LogicOps {
             // EVERY
             // EVERY is either the first item if every item is nonzero, else 0.
             // operand_ is the length of items to check.
-            // EVERY of length `0` is a noop.
             case 5 {
-                if iszero(iszero(operand_)) {
-                    let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-                    for {
-                        let cursor_ := location_
-                    } lt(cursor_, stackTopLocation_) {
-                        cursor_ := add(cursor_, 0x20)
-                    } {
-                        // If anything is zero then EVERY is a failed check.
-                        if iszero(mload(cursor_)) {
-                            // Prevent further looping.
-                            cursor_ := stackTopLocation_
-                            mstore(location_, 0)
-                        }
+                let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
+                for {
+                    let cursor_ := location_
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    // If anything is zero then EVERY is a failed check.
+                    if iszero(mload(cursor_)) {
+                        // Prevent further looping.
+                        cursor_ := stackTopLocation_
+                        mstore(location_, 0)
                     }
-                    stackTopLocation_ := add(location_, 0x20)
                 }
+                stackTopLocation_ := add(location_, 0x20)
             }
             // ANY
             // ANY is the first nonzero item, else 0.
             // operand_ id the length of items to check.
-            // ANY of length `0` is a noop.
             case 6 {
-                if iszero(iszero(operand_)) {
-                    let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-                    for {
-                        let cursor_ := location_
-                    } lt(cursor_, stackTopLocation_) {
-                        cursor_ := add(cursor_, 0x20)
-                    } {
-                        // If anything is NOT zero then ANY is a successful
-                        // check and can short-circuit.
-                        let item_ := mload(cursor_)
-                        if iszero(iszero(item_)) {
-                            // Prevent further looping.
-                            cursor_ := stackTopLocation_
-                            // Write the usable value to the top of the stack.
-                            mstore(location_, item_)
-                        }
+                let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
+                for {
+                    let cursor_ := location_
+                } lt(cursor_, stackTopLocation_) {
+                    cursor_ := add(cursor_, 0x20)
+                } {
+                    // If anything is NOT zero then ANY is a successful
+                    // check and can short-circuit.
+                    let item_ := mload(cursor_)
+                    if iszero(iszero(item_)) {
+                        // Prevent further looping.
+                        cursor_ := stackTopLocation_
+                        // Write the usable value to the top of the stack.
+                        mstore(location_, item_)
                     }
-                    stackTopLocation_ := add(location_, 0x20)
                 }
+                stackTopLocation_ := add(location_, 0x20)
             }
         }
         return stackTopLocation_;

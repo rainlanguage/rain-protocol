@@ -15,6 +15,14 @@ library IERC721Ops {
     /// Number of provided opcodes for `IERC721Ops`.
     uint256 internal constant OPS_LENGTH = 2;
 
+    function stackIndexDiff(uint256, uint256)
+        internal
+        pure
+        returns (int256)
+    {
+        return -1;
+    }
+
     function applyOp(
         bytes memory,
         uint256 stackTopLocation_,
