@@ -32,9 +32,7 @@ contract CalculatorTest is RainVM, VMState {
         returns (int256)
     {
         unchecked {
-            if (opcode_ < blockOpsStart) {
-                return super.stackIndexDiff(opcode_, operand_);
-            } else if (opcode_ < mathOpsStart) {
+            if (opcode_ < mathOpsStart) {
                 return
                     BlockOps.stackIndexDiff(opcode_ - blockOpsStart, operand_);
             } else {

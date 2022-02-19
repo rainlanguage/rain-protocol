@@ -386,7 +386,7 @@ describe("RainVM", async function () {
     }
   });
 
-  it.only("should handle a call which loops twice", async () => {
+  it("should handle a call which loops twice", async () => {
     this.timeout(0);
 
     // zero-based counting
@@ -429,13 +429,14 @@ describe("RainVM", async function () {
       stackLength: 16,
     })) as CalculatorTest & Contract;
 
-    const stackUB0 = await calculator.calculateStackUpperBound(sources[0])
-    const stackUB1 = await calculator.calculateStackUpperBound(sources[1])
+    console.log(sources)
 
-    console.log(stackUB0)
-    console.log(stackUB1)
+    const stackUB = await calculator.analyzeSources(sources, 0, 0)
+
+    console.log(stackUB)
 
     const resultState = await calculator.runState();
+    console.log(resultState)
 
     const expectedMul1 = 6;
     const actualMul1 = resultState.stack[0];

@@ -100,36 +100,114 @@ abstract contract RainVM {
     /// Number of provided opcodes for `RainVM`.
     uint256 internal constant OPS_LENGTH = 3;
 
-    uint256 private constant UINT256_MASK = type(uint256).max;
+    function analyzeZipmap(
+        bytes[] memory sources_,
+        int256 stackIndex_,
+        uint256 stackUpperBound_,
+        uint256 argumentsUpperBound_,
+        uint256 operand_
+    )
+        private
+        view
+        returns (
+            int256,
+            uint256,
+            uint256
+        )
+    {
+        uint256 valLength_ = (operand_ >> 5) + 1;
+        if (valLength_ > argumentsUpperBound_) {
+            argumentsUpperBound_ = valLength_;
+        }
+        stackIndex_ -= int256(valLength_);
+        uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
+        for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
+            (
+                uint256 localStackIndex_,
+                uint256 localStackUpperBound_,
+                uint256 localArgumentsUpperBound_
+            ) = analyzeSources(sources_, operand_ & 0x07, stackIndex_);
+            stackIndex_ = int256(localStackIndex_);
+            if (localStackUpperBound_ > stackUpperBound_) {
+                stackUpperBound_ = localStackUpperBound_;
+            }
+            if (localArgumentsUpperBound_ > argumentsUpperBound_) {
+                argumentsUpperBound_ = localArgumentsUpperBound_;
+            }
+        }
+        return (stackIndex_, stackUpperBound_, argumentsUpperBound_);
+    }
 
-    function calculateStackUpperBound(bytes memory source_)
+    function analyzeSources(
+        bytes[] memory sources_,
+        uint256 sourceIndex_,
+        int256 stackIndex_
+    )
         public
         view
-        returns (uint256)
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
     {
         unchecked {
             uint256 i_ = 0;
-            uint256 sourceLen_ = source_.length;
+            uint256 sourceLen_;
             uint256 opcode_;
             uint256 operand_;
-            uint256 stackUpperBound_ = 0;
-            int256 stackIndex_ = 0;
+            uint256 sourceLocation_;
+            uint256 stackUpperBound_ = uint256(stackIndex_);
+            uint256 argumentsUpperBound_;
+            uint256 d_;
+
+            assembly {
+                d_ := mload(add(sources_, 0x20))
+                sourceLocation_ := mload(
+                    add(sources_, add(0x20, mul(sourceIndex_, 0x20)))
+                )
+
+                sourceLen_ := mload(sourceLocation_)
+            }
 
             while (i_ < sourceLen_) {
                 assembly {
                     i_ := add(i_, 2)
-                    let op_ := mload(add(source_, i_))
+                    let op_ := mload(add(sourceLocation_, i_))
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
                 }
-                stackIndex_ += stackIndexDiff(opcode_, operand_);
+
+                if (opcode_ < OPS_LENGTH) {
+                    if (opcode_ < OP_ZIPMAP) {
+                        stackIndex_++;
+                    } else {
+                        (
+                            stackIndex_,
+                            stackUpperBound_,
+                            argumentsUpperBound_
+                        ) = analyzeZipmap(
+                            sources_,
+                            stackIndex_,
+                            stackUpperBound_,
+                            argumentsUpperBound_,
+                            operand_
+                        );
+                    }
+                } else {
+                    stackIndex_ += stackIndexDiff(opcode_, operand_);
+                }
                 require(stackIndex_ >= 0, "STACK_UNDERFLOW");
                 if (uint256(stackIndex_) > stackUpperBound_) {
                     stackUpperBound_ = uint256(stackIndex_);
                 }
             }
 
-            return stackUpperBound_;
+            return (
+                uint256(stackIndex_),
+                stackUpperBound_,
+                argumentsUpperBound_
+            );
         }
     }
 
@@ -138,14 +216,7 @@ abstract contract RainVM {
         view
         virtual
         returns (int256)
-    {
-        if (opcode_ < OP_ZIPMAP) {
-            return 1;
-        } else {
-            // @todo
-            return 0;
-        }
-    }
+    {}
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
