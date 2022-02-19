@@ -84,7 +84,7 @@ describe("TokenOpsTest", async function () {
           vSigner2,
           vTokenId,
           vTokenId,
-        op(Opcode.ERC1155_BALANCE_OF_BATCH, length - 1)
+        op(Opcode.ERC1155_BALANCE_OF_BATCH, length)
       ]),
     ];
 

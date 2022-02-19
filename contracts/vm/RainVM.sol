@@ -221,12 +221,6 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
-            // Everything in eval can be checked statically, there are no dynamic
-            // runtime values read from the stack that can cause out of bounds
-            // behaviour. E.g. sourceIndex in zipmap and size of a skip are both
-            // taken from the operand in the source, not the stack. A program that
-            // operates out of bounds SHOULD be flagged by static code analysis and
-            // avoided by end-users.
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
@@ -236,20 +230,9 @@ abstract contract RainVM {
             uint256 argumentsBottomLocation_;
             uint256 stackBottomLocation_;
             uint256 stackTopLocation_;
-            // uint256 stackMaxLocation_;
             assembly {
                 let stackLocation_ := mload(add(state_, 0x20))
                 stackBottomLocation_ := add(stackLocation_, 0x20)
-                // It is OK for the stack top to point at something out of bounds
-                // provided that it is never written to.
-                // I.e. the max stack top is the bottom + stack length.
-                // Implementers of `applyOp` MUST NOT write any data past the
-                // `stackTopLocation_` that they return at any time. If they do
-                // then writes can silently overflow the stack which is very bad.
-                // stackMaxLocation_ := add(
-                //     stackBottomLocation_,
-                //     mul(mload(stackLocation_), 0x20)
-                // )
                 stackTopLocation_ := add(
                     stackBottomLocation_,
                     // Add stack index offset.
