@@ -220,117 +220,123 @@ abstract contract RainVM {
         State memory state_,
         uint256 sourceIndex_
     ) internal view returns (uint256) {
-        // Everything in eval can be checked statically, there are no dynamic
-        // runtime values read from the stack that can cause out of bounds
-        // behaviour. E.g. sourceIndex in zipmap and size of a skip are both
-        // taken from the operand in the source, not the stack. A program that
-        // operates out of bounds SHOULD be flagged by static code analysis and
-        // avoided by end-users.
-        uint256 i_ = 0;
-        uint256 opcode_;
-        uint256 operand_;
-        uint256 sourceLocation_;
-        uint256 sourceLen_;
-        uint256 constantsBottomLocation_;
-        uint256 argumentsBottomLocation_;
-        uint256 stackBottomLocation_;
-        uint256 stackTopLocation_;
-        uint256 stackMaxLocation_;
-        assembly {
-            let stackLocation_ := mload(add(state_, 0x20))
-            stackBottomLocation_ := add(stackLocation_, 0x20)
-            // It is OK for the stack top to point at something out of bounds
-            // provided that it is never written to.
-            // I.e. the max stack top is the bottom + stack length.
-            // Implementers of `applyOp` MUST NOT write any data past the
-            // `stackTopLocation_` that they return at any time. If they do
-            // then writes can silently overflow the stack which is very bad.
-            stackMaxLocation_ := add(
-                stackBottomLocation_,
-                mul(mload(stackLocation_), 0x20)
-            )
-            stackTopLocation_ := add(
-                stackBottomLocation_,
-                // Add stack index offset.
-                mul(mload(state_), 0x20)
-            )
-            sourceLocation_ := mload(
-                add(
-                    mload(add(state_, 0x40)),
-                    add(0x20, mul(sourceIndex_, 0x20))
+        unchecked {
+            // Everything in eval can be checked statically, there are no dynamic
+            // runtime values read from the stack that can cause out of bounds
+            // behaviour. E.g. sourceIndex in zipmap and size of a skip are both
+            // taken from the operand in the source, not the stack. A program that
+            // operates out of bounds SHOULD be flagged by static code analysis and
+            // avoided by end-users.
+            uint256 i_ = 0;
+            uint256 opcode_;
+            uint256 operand_;
+            uint256 sourceLocation_;
+            uint256 sourceLen_;
+            uint256 constantsBottomLocation_;
+            uint256 argumentsBottomLocation_;
+            uint256 stackBottomLocation_;
+            uint256 stackTopLocation_;
+            // uint256 stackMaxLocation_;
+            assembly {
+                let stackLocation_ := mload(add(state_, 0x20))
+                stackBottomLocation_ := add(stackLocation_, 0x20)
+                // It is OK for the stack top to point at something out of bounds
+                // provided that it is never written to.
+                // I.e. the max stack top is the bottom + stack length.
+                // Implementers of `applyOp` MUST NOT write any data past the
+                // `stackTopLocation_` that they return at any time. If they do
+                // then writes can silently overflow the stack which is very bad.
+                // stackMaxLocation_ := add(
+                //     stackBottomLocation_,
+                //     mul(mload(stackLocation_), 0x20)
+                // )
+                stackTopLocation_ := add(
+                    stackBottomLocation_,
+                    // Add stack index offset.
+                    mul(mload(state_), 0x20)
                 )
-            )
-            sourceLen_ := mload(sourceLocation_)
-            constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
-            argumentsBottomLocation_ := add(
-                constantsBottomLocation_,
-                mul(
-                    0x20,
-                    mload(
-                        // argumentsIndex
-                        add(state_, 0x80)
+                sourceLocation_ := mload(
+                    add(
+                        mload(add(state_, 0x40)),
+                        add(0x20, mul(sourceIndex_, 0x20))
                     )
                 )
-            )
-        }
-
-        // Loop until complete.
-        while (i_ < sourceLen_) {
-            assembly {
-                i_ := add(i_, 2)
-                let op_ := mload(add(sourceLocation_, i_))
-                opcode_ := byte(30, op_)
-                operand_ := byte(31, op_)
+                sourceLen_ := mload(sourceLocation_)
+                constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
+                argumentsBottomLocation_ := add(
+                    constantsBottomLocation_,
+                    mul(
+                        0x20,
+                        mload(
+                            // argumentsIndex
+                            add(state_, 0x80)
+                        )
+                    )
+                )
             }
-            if (opcode_ < OPS_LENGTH) {
-                if (opcode_ == OP_VAL) {
-                    assembly {
-                        mstore(
-                            stackTopLocation_,
-                            mload(
-                                add(
-                                    constantsBottomLocation_,
-                                    mul(0x20, operand_)
+
+            // Loop until complete.
+            while (i_ < sourceLen_) {
+                assembly {
+                    i_ := add(i_, 2)
+                    let op_ := mload(add(sourceLocation_, i_))
+                    opcode_ := byte(30, op_)
+                    operand_ := byte(31, op_)
+                }
+                if (opcode_ < OPS_LENGTH) {
+                    if (opcode_ == OP_VAL) {
+                        assembly {
+                            mstore(
+                                stackTopLocation_,
+                                mload(
+                                    add(
+                                        constantsBottomLocation_,
+                                        mul(0x20, operand_)
+                                    )
                                 )
                             )
-                        )
-                        stackTopLocation_ := add(stackTopLocation_, 0x20)
-                    }
-                } else if (opcode_ == OP_DUP) {
-                    assembly {
-                        mstore(
-                            stackTopLocation_,
-                            mload(
-                                add(stackBottomLocation_, mul(operand_, 0x20))
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                        }
+                    } else if (opcode_ == OP_DUP) {
+                        assembly {
+                            mstore(
+                                stackTopLocation_,
+                                mload(
+                                    add(
+                                        stackBottomLocation_,
+                                        mul(operand_, 0x20)
+                                    )
+                                )
                             )
-                        )
-                        stackTopLocation_ := add(stackTopLocation_, 0x20)
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                        }
+                    } else if (opcode_ == OP_ZIPMAP) {
+                        stackTopLocation_ = zipmap(
+                            context_,
+                            state_,
+                            stackTopLocation_,
+                            argumentsBottomLocation_,
+                            operand_
+                        );
                     }
-                } else if (opcode_ == OP_ZIPMAP) {
-                    stackTopLocation_ = zipmap(
+                } else {
+                    stackTopLocation_ = applyOp(
                         context_,
-                        state_,
                         stackTopLocation_,
-                        argumentsBottomLocation_,
+                        opcode_,
                         operand_
                     );
+                    // require(
+                    //     stackTopLocation_ <= stackMaxLocation_,
+                    //     "STACK_OVERLFLOW"
+                    // );
                 }
-            } else {
-                stackTopLocation_ = applyOp(
-                    context_,
-                    stackTopLocation_,
-                    opcode_,
-                    operand_
-                );
-                require(
-                    stackTopLocation_ <= stackMaxLocation_,
-                    "STACK_OVERLFLOW"
-                );
             }
+            state_.stackIndex =
+                (stackTopLocation_ - stackBottomLocation_) /
+                0x20;
+            return stackTopLocation_;
         }
-        // This math is checked because a stack underflow here MUST panic.
-        state_.stackIndex = (stackTopLocation_ - stackBottomLocation_) / 0x20;
-        return stackTopLocation_;
     }
 
     /// Every contract that implements `RainVM` should override `applyOp` so
