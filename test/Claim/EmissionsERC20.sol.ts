@@ -62,7 +62,7 @@ enum Tier {
 }
 
 describe("EmissionsERC20", async function () {
-  it.only("should calculate correct emissions amount (if division is performed on final result)", async function () {
+  it("should calculate correct emissions amount (if division is performed on final result)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -128,7 +128,6 @@ describe("EmissionsERC20", async function () {
     const valTierAddress = op(Opcode.VAL, 0);
     const valBaseRewardPerTier = op(Opcode.VAL, 1);
     const valBlocksPerYear = op(Opcode.VAL, 2);
-    const valBNOneReward = op(Opcode.VAL, 3);
 
     // END global constants
 
@@ -225,7 +224,6 @@ describe("EmissionsERC20", async function () {
       readWriteTier.address,
       BASE_REWARD_PER_TIER,
       BLOCKS_PER_YEAR,
-      BN_ONE_REWARD,
     ];
 
     console.log("source", SOURCE());
@@ -331,7 +329,7 @@ describe("EmissionsERC20", async function () {
     //   expected  ${expectedClaimAmount}
     //   got       ${claimAmount}`
     // );
-    console.log(claimAmount, expectedClaimAmount)
+    console.log(claimAmount, expectedClaimAmount);
 
     await emissionsERC20.connect(claimer).claim(claimer.address, []);
 
