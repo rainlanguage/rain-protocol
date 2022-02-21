@@ -55,6 +55,7 @@ const enum Opcode {
   BLOCK_TIMESTAMP,
   SENDER,
   IS_ZERO,
+  EAGER_IF,
   EQUAL_TO,
   LESS_THAN,
   GREATER_THAN,
