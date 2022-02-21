@@ -105,7 +105,20 @@ describe("RedeemableERC20", async function () {
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.GOLD;
-    
+
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: distributor.address,
+      initialSupply: totalSupply,
+    };
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
@@ -132,7 +145,7 @@ describe("RedeemableERC20", async function () {
 
     // OZ ERC20 doesn't track address(0) balance
   });
-    
+
   it("should enforce 'hub and spoke' pattern for sending and receiving tokens during distribution phase", async function () {
     // Copied from `RedeemableERC20.sol`
     //
@@ -184,6 +197,7 @@ describe("RedeemableERC20", async function () {
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
     })) as RedeemableERC20 & Contract;
 
     // give some tokens
