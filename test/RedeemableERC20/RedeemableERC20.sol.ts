@@ -4,6 +4,7 @@ import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type {
+  InitializeEvent,
   PhaseScheduledEvent,
   RedeemableERC20,
   RedeemEvent,
@@ -311,6 +312,55 @@ describe("RedeemableERC20", async function () {
       "EMPTY_ASSETS",
       "wrongly redeemed null treasury assets"
     );
+  });
+
+  it("should emit Initialize event", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const reserve1 = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+
+    const minimumTier = Tier.GOLD;
+
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: signers[0].address,
+      initialSupply: totalSupply,
+    };
+
+    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+      reserve: reserve1.address,
+      erc20Config: redeemableERC20Config,
+      tier: tier.address,
+      minimumTier,
+    });
+
+    const { sender, config } = (await Util.getEventArgs(
+      redeemableERC20.deployTransaction,
+      "Initialize",
+      redeemableERC20
+    )) as InitializeEvent["args"];
+
+    assert(sender, "sender does not exist"); // redeemableERC20Factory
+    assert(config.reserve === reserve1.address, "wrong reserve");
+    assert(
+      JSON.stringify(config.erc20Config) ===
+        JSON.stringify(Object.values(redeemableERC20Config)),
+      "wrong config"
+    );
+    assert(config.tier === tier.address, "wrong tier");
+    assert(config.minimumTier.eq(minimumTier), "wrong minimumTier");
   });
 
   it("should emit TreasuryAsset event", async function () {

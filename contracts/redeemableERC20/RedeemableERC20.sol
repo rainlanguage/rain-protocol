@@ -124,11 +124,8 @@ contract RedeemableERC20 is
     event Initialize(
         /// `msg.sender` of initialize.
         address sender,
-        /// contract admin.
-        address admin,
-        /// Minimum tier required to receive the token.
-        uint256 minimumTier,
-        address distributionEndForwardingAddress
+        /// Initialization config.
+        RedeemableERC20Config config
     );
 
     /// A new token sender has been added.
@@ -206,12 +203,7 @@ contract RedeemableERC20 is
         // The reserve must always be one of the treasury assets.
         newTreasuryAsset(config_.reserve);
 
-        emit Initialize(
-            msg.sender,
-            config_.erc20Config.distributor,
-            config_.minimumTier,
-            config_.distributionEndForwardingAddress
-        );
+        emit Initialize(msg.sender, config_);
 
         // Smoke test on whatever is on the other side of `config_.tier`.
         // It is a common mistake to pass in a contract without the `ITier`
