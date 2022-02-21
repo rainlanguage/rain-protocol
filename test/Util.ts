@@ -309,11 +309,11 @@ export const redeemableERC20Deploy = async (
     (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
   await redeemableERC20Factory.deployed();
 
-  const tx = await redeemableERC20Factory.createChildTyped(config);
+  const txDeploy = await redeemableERC20Factory.createChildTyped(config);
   const redeemableERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", redeemableERC20Factory)).child
+        (await getEventArgs(txDeploy, "NewChild", redeemableERC20Factory)).child
       ),
       20
     ),
@@ -322,6 +322,10 @@ export const redeemableERC20Deploy = async (
   ) as RedeemableERC20 & Contract;
 
   await redeemableERC20.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  redeemableERC20.deployTransaction = txDeploy;
 
   return redeemableERC20;
 };
@@ -337,11 +341,11 @@ export const seedERC20Deploy = async (
     (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory;
   await seedERC20Factory.deployed();
 
-  const tx = await seedERC20Factory.createChildTyped(config);
+  const txDeploy = await seedERC20Factory.createChildTyped(config);
   const seedERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", seedERC20Factory)).child
+        (await getEventArgs(txDeploy, "NewChild", seedERC20Factory)).child
       ),
       20
     ),
@@ -351,7 +355,11 @@ export const seedERC20Deploy = async (
 
   await seedERC20.deployed();
 
-  return [seedERC20, tx];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  seedERC20.deployTransaction = txDeploy;
+
+  return [seedERC20, txDeploy];
 };
 
 export const trustDeploy = async (
