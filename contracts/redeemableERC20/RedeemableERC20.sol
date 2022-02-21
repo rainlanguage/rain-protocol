@@ -190,6 +190,11 @@ contract RedeemableERC20 is
         // Admin receives full supply.
         access[config_.erc20Config.distributor] = RECEIVER;
 
+        // Forwarding address must be able to receive tokens.
+        if (distributionEndForwardingAddress != address(0)) {
+            access[distributionEndForwardingAddress] = RECEIVER;
+        }
+
         admin = config_.erc20Config.distributor;
 
         // Need to mint after assigning access.
