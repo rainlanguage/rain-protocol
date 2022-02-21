@@ -108,12 +108,37 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = _snapshot(_newState(config_.vmStateConfig));
+        vmStatePointer = _snapshot(
+            _newState(RainVM(this), config_.vmStateConfig)
+        );
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
 
         emit Initialize(msg.sender, config_.allowDelegatedClaims);
+    }
+
+    /// @inheritdoc RainVM
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        override
+        returns (int256)
+    {
+        unchecked {
+            if (opcode_ < thisOpsStart) {
+                return
+                    BlockOps.stackIndexDiff(opcode_ - blockOpsStart, operand_);
+            } else if (opcode_ < mathOpsStart) {
+                return ThisOps.stackIndexDiff(opcode_ - thisOpsStart, operand_);
+            } else if (opcode_ < tierOpsStart) {
+                return MathOps.stackIndexDiff(opcode_ - mathOpsStart, operand_);
+            } else if (opcode_ < localOpsStart) {
+                return TierOps.stackIndexDiff(opcode_ - tierOpsStart, operand_);
+            } else {
+                return 1;
+            }
+        }
     }
 
     /// @inheritdoc RainVM

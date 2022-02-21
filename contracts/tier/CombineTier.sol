@@ -43,7 +43,27 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     }
 
     function initialize(StateConfig memory config_) external initializer {
-        vmStatePointer = _snapshot(_newState(config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
+    }
+
+    /// @inheritdoc RainVM
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        virtual
+        override
+        returns (int256)
+    {
+        unchecked {
+            if (opcode_ < tierOpsStart) {
+                return
+                    BlockOps.stackIndexDiff(opcode_ - blockOpsStart, operand_);
+            } else if (opcode_ < localOpsStart) {
+                return TierOps.stackIndexDiff(opcode_ - tierOpsStart, operand_);
+            } else {
+                return 1;
+            }
+        }
     }
 
     /// @inheritdoc RainVM
@@ -52,22 +72,24 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override returns (uint) {
+    ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < tierOpsStart) {
-                return BlockOps.applyOp(
-                    context_,
-                    stackTopLocation_,
-                    opcode_ - blockOpsStart,
-                    operand_
-                );
+                return
+                    BlockOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - blockOpsStart,
+                        operand_
+                    );
             } else if (opcode_ < localOpsStart) {
-                return TierOps.applyOp(
-                    context_,
-                    stackTopLocation_,
-                    opcode_ - tierOpsStart,
-                    operand_
-                );
+                return
+                    TierOps.applyOp(
+                        context_,
+                        stackTopLocation_,
+                        opcode_ - tierOpsStart,
+                        operand_
+                    );
             } else {
                 opcode_ -= localOpsStart;
                 uint256 account_ = uint256(

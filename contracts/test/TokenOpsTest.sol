@@ -23,7 +23,7 @@ contract TokenOpsTest is RainVM, VMState {
         ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
         localOpsStart = ierc1155OpsStart + IERC1155Ops.OPS_LENGTH;
 
-        vmStatePointer = _snapshot(_newState(config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -57,6 +57,37 @@ contract TokenOpsTest is RainVM, VMState {
         State memory state_ = _restore(vmStatePointer);
         eval("", state_, 0);
         return state_;
+    }
+
+    /// @inheritdoc RainVM
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        virtual
+        override
+        returns (int256)
+    {
+        unchecked {
+            if (opcode_ < ierc721OpsStart) {
+                return
+                    IERC20Ops.stackIndexDiff(
+                        opcode_ - ierc20OpsStart,
+                        operand_
+                    );
+            } else if (opcode_ < ierc1155OpsStart) {
+                return
+                    IERC721Ops.stackIndexDiff(
+                        opcode_ - ierc721OpsStart,
+                        operand_
+                    );
+            } else {
+                return
+                    IERC721Ops.stackIndexDiff(
+                        opcode_ - ierc1155OpsStart,
+                        operand_
+                    );
+            }
+        }
     }
 
     /// @inheritdoc RainVM

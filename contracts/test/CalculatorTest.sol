@@ -21,7 +21,7 @@ contract CalculatorTest is RainVM, VMState {
         /// added/removed and potentially breaking the offsets here.
         blockOpsStart = RainVM.OPS_LENGTH;
         mathOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
-        vmStatePointer = _snapshot(_newState(config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
     }
 
     /// @inheritdoc RainVM

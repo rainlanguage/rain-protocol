@@ -18,7 +18,20 @@ contract LogicTest is RainVM, VMState {
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
         logicOpsStart = RainVM.OPS_LENGTH;
-        vmStatePointer = _snapshot(_newState(config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
+    }
+
+    /// @inheritdoc RainVM
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        virtual
+        override
+        returns (int256)
+    {
+        unchecked {
+            return LogicOps.stackIndexDiff(opcode_ - logicOpsStart, operand_);
+        }
     }
 
     /// @inheritdoc RainVM

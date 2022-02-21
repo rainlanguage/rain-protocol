@@ -162,11 +162,13 @@ contract Sale is
         initializeCooldown(config_.cooldownDuration);
 
         canStartStatePointer = _snapshot(
-            _newState(config_.canStartStateConfig)
+            _newState(RainVM(this), config_.canStartStateConfig)
         );
-        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
+        canEndStatePointer = _snapshot(
+            _newState(RainVM(this), config_.canEndStateConfig)
+        );
         calculatePriceStatePointer = _snapshot(
-            _newState(config_.calculatePriceStateConfig)
+            _newState(RainVM(this), config_.calculatePriceStateConfig)
         );
         recipient = config_.recipient;
         minimumRaise = config_.minimumRaise;
@@ -355,6 +357,54 @@ contract Sale is
         uint256 amount_ = fees[recipient_];
         delete fees[recipient_];
         _reserve.safeTransfer(recipient_, amount_);
+    }
+
+    /// @inheritdoc RainVM
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        override
+        returns (int256)
+    {
+        unchecked {
+            if (opcode_ < senderOpsStart) {
+                return
+                    BlockOps.stackIndexDiff(opcode_ - blockOpsStart, operand_);
+            } else if (opcode_ < logicOpsStart) {
+                return
+                    SenderOps.stackIndexDiff(
+                        opcode_ - senderOpsStart,
+                        operand_
+                    );
+            } else if (opcode_ < mathOpsStart) {
+                return
+                    LogicOps.stackIndexDiff(opcode_ - logicOpsStart, operand_);
+            } else if (opcode_ < tierOpsStart) {
+                return MathOps.stackIndexDiff(opcode_ - mathOpsStart, operand_);
+            } else if (opcode_ < ierc20OpsStart) {
+                return TierOps.stackIndexDiff(opcode_ - tierOpsStart, operand_);
+            } else if (opcode_ < ierc721OpsStart) {
+                return
+                    IERC20Ops.stackIndexDiff(
+                        opcode_ - ierc20OpsStart,
+                        operand_
+                    );
+            } else if (opcode_ < ierc1155OpsStart) {
+                return
+                    IERC721Ops.stackIndexDiff(
+                        opcode_ - ierc721OpsStart,
+                        operand_
+                    );
+            } else if (opcode_ < localOpsStart) {
+                return
+                    IERC1155Ops.stackIndexDiff(
+                        opcode_ - ierc1155OpsStart,
+                        operand_
+                    );
+            } else {
+                return 1;
+            }
+        }
     }
 
     function applyOp(
