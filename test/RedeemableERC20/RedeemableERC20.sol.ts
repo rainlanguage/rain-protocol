@@ -344,6 +344,7 @@ describe("RedeemableERC20", async function () {
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
     });
 
     const { sender, config } = (await Util.getEventArgs(
