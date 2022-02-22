@@ -123,10 +123,8 @@ contract RedeemableERC20 is
     event Initialize(
         /// `msg.sender` of initialize.
         address sender,
-        /// contract admin.
-        address admin,
-        /// Minimum tier required to receive the token.
-        uint256 minimumTier
+        /// Initialization config
+        RedeemableERC20Config config
     );
 
     /// A new token sender has been added.
@@ -195,11 +193,7 @@ contract RedeemableERC20 is
         // The reserve must always be one of the treasury assets.
         newTreasuryAsset(config_.reserve);
 
-        emit Initialize(
-            msg.sender,
-            config_.erc20Config.distributor,
-            config_.minimumTier
-        );
+        emit Initialize(msg.sender, config_);
 
         // Smoke test on whatever is on the other side of `config_.tier`.
         // It is a common mistake to pass in a contract without the `ITier`
@@ -232,7 +226,7 @@ contract RedeemableERC20 is
     /// @param newReceiver_ The account to grand receiver.
     function grantReceiver(address newReceiver_) external onlyAdmin {
         // Using `|` preserves sender if previously granted.
-        access[newReceiver_] = access[newReceiver_] | RECEIVER;
+        access[newReceiver_] |= RECEIVER;
         emit Receiver(msg.sender, newReceiver_);
     }
 
@@ -314,6 +308,12 @@ contract RedeemableERC20 is
             // tier of the recipient.
             uint256 currentPhase_ = currentPhase();
             if (currentPhase_ == PHASE_DISTRIBUTING) {
+                // Receivers act as "hubs" that can send to "spokes".
+                // i.e. any address of the minimum tier.
+                // Spokes cannot send tokens another "hop" e.g. to each other.
+                // Spokes can only send back to a receiver (doesn't need to be
+                // the same receiver they received from).
+                require(isReceiver(sender_), "2SPOKE");
                 require(isTier(receiver_, minimumTier), "MIN_TIER");
             }
             // During `Phase.ONE` only token burns are allowed.
