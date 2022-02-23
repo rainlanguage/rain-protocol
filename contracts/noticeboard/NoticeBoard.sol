@@ -7,7 +7,6 @@ struct Notice {
 }
 
 contract NoticeBoard {
-    uint256 private nextId;
     /// Anyone can emit a `Notice`.
     /// This is open ended content related to the subject.
     /// Some examples:
@@ -19,8 +18,6 @@ contract NoticeBoard {
     event NewNotice(
         /// The `msg.sender` that emitted the `Notice`.
         address sender,
-        /// The id of the event.
-        uint256 id,
         /// The notice data.
         Notice notice
     );
@@ -30,11 +27,8 @@ contract NoticeBoard {
     /// the context to decode/interpret it.
     /// @param notices_ All the notices to emit.
     function createNotices(Notice[] calldata notices_) external {
-        uint256 id_ = nextId;
         for (uint256 i_ = 0; i_ < notices_.length; i_++) {
-            emit NewNotice(msg.sender, id_, notices_[i_]);
-            id_++;
+            emit NewNotice(msg.sender, notices_[i_]);
         }
-        nextId = id_;
     }
 }
