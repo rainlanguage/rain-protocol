@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers, artifacts } from "hardhat";
 import chai from "chai";
-import type { NoticeEvent, Trust } from "../../typechain/Trust";
+import type { Trust } from "../../typechain/Trust";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
@@ -12,6 +12,7 @@ import type { BPool } from "../../typechain/BPool";
 import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import type { SeedERC20 } from "../../typechain/SeedERC20";
+import type { NoticeBoard } from "../../typechain/NoticeBoard";
 
 const { assert } = chai;
 
@@ -436,7 +437,7 @@ describe("Trust", async function () {
     await trust.endDutchAuction();
   });
 
-  it("should allow anon to emit Notice event", async function () {
+  it("should allow anon to add to NoticeBoard and associate a NewNotice with this trust", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -522,17 +523,28 @@ describe("Trust", async function () {
 
     await trust.deployed();
 
-    const message = "foo";
-    const notice = hexlify([...Buffer.from(message)]);
+    const noticeboardFactory = await ethers.getContractFactory("NoticeBoard");
+    const noticeboard = (await noticeboardFactory.deploy()) as NoticeBoard &
+      Contract;
 
-    const event0 = (await Util.getEventArgs(
-      await trust.connect(signer1).sendNotice(notice),
-      "Notice",
-      trust
-    )) as NoticeEvent["args"];
+    const message = "foo";
+    const notice = {
+      subject: trust.address,
+      data: hexlify([...Buffer.from(message)]),
+    };
+
+    const event0 = await Util.getEventArgs(
+      await noticeboard.connect(signer1).createNotices([notice]),
+      "NewNotice",
+      noticeboard
+    );
 
     assert(event0.sender === signer1.address, "wrong sender in event0");
-    assert(event0.data === notice, "wrong data in event0");
+    assert(event0.id, "no id in event0");
+    assert(
+      JSON.stringify(event0.notice) === JSON.stringify(Object.values(notice)),
+      "wrong notice in event0"
+    );
   });
 
   it("should burn token dust when closing pool", async function () {
