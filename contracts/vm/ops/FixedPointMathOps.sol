@@ -62,7 +62,7 @@ library FixedPointMathOps {
                     );
                 } else if (opcode_ == SCALE_BY) {
                     state_.stack[baseIndex_] = state_.stack[baseIndex_].scaleBy(
-                        int256(operand_)
+                        int8(uint8(operand_))
                     );
                 }
             } else {

@@ -55,7 +55,7 @@ library FixedPointMath {
     /// @param a_ Some integer of any scale.
     /// @param scaleBy_ OOMs to scale `a_` up or down by.
     /// @return `a_` rescaled according to `scaleBy_`.
-    function scaleBy(uint256 a_, int256 scaleBy_)
+    function scaleBy(uint256 a_, int8 scaleBy_)
         internal
         pure
         returns (uint256)
@@ -63,9 +63,9 @@ library FixedPointMath {
         if (scaleBy_ == 0) {
             return a_;
         } else if (scaleBy_ > 0) {
-            return a_ * 10**uint256(scaleBy_);
+            return a_ * 10**uint8(scaleBy_);
         } else {
-            return a_ / 10**uint256(~scaleBy_ + 1);
+            return a_ / 10**(~uint8(scaleBy_) + 1);
         }
     }
 
