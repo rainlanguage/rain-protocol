@@ -36,12 +36,11 @@ library TierOps {
             // Top two stack vals are used as the address and `ITier` contract
             // to check against.
             if (opcode_ == REPORT) {
-                state_.stackIndex -= 2;
-                baseIndex_ = state_.stackIndex;
+                state_.stackIndex -= 1;
+                baseIndex_ = state_.stackIndex - 1;
                 state_.stack[baseIndex_] = ITier(
                     address(uint160(state_.stack[baseIndex_]))
                 ).report(address(uint160(state_.stack[baseIndex_ + 1])));
-                state_.stackIndex++;
             }
             // Stack a report that has never been held at any tier.
             else if (opcode_ == NEVER) {

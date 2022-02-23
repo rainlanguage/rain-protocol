@@ -859,14 +859,6 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () =>
-        await verify
-          .connect(approver)
-          .approve(signer1.address, evidenceApprove),
-      "NOT_ADDED",
-      "wrongly approved when Status equals Nil"
-    );
-    await Util.assertError(
-      async () =>
         await verify.connect(banner).ban(signer1.address, evidenceBan),
       "NOT_ADDED",
       "wrongly banned when Status equals Nil"
@@ -1171,6 +1163,92 @@ describe("Verify", async function () {
         `state not equivalent at position ${index}. Left ${propertyLeft}, Right ${propertyRight}`
       );
     }
+  });
+
+  it("should allow approver to automatically add an account that hasn't been added yet while approving it", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    const aprAdmin = signers[1];
+    const signer1 = signers[2];
+    const approver = signers[3];
+    const nonApprover = signers[4];
+
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
+
+    // defaultAdmin grants admin role
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // approver admin grants approver role
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+
+    // const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
+
+    // await verify.connect(signer1).add(evidenceAdd);
+
+    // prevent approving zero address
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(approver)
+          .approve(Util.zeroAddress, evidenceApprove),
+      "0_ADDRESS",
+      "wrongly approved account with address of 0"
+    );
+
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(nonApprover)
+          .approve(signer1.address, evidenceApprove),
+      "ONLY_APPROVER",
+      "non-approver wrongly approved account"
+    );
+
+    // approve account
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(approver).approve(signer1.address, evidenceApprove),
+      "Approve",
+      verify
+    )) as ApproveEvent["args"];
+    assert(event0.sender === approver.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceApprove, "wrong data in event0");
+
+    // check that signer1 has been approved
+    const stateApproved = await verify.state(signer1.address);
+
+    assert(
+      stateApproved.approvedSince === (await ethers.provider.getBlockNumber()),
+      `not approved
+      expected  ${await ethers.provider.getBlockNumber()}
+      got       ${stateApproved.approvedSince}`
+    );
   });
 
   it("should allow only approver to approve accounts", async function () {

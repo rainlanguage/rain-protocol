@@ -28,6 +28,7 @@ const enum Opcode {
   DUP,
   ZIPMAP,
   BLOCK_NUMBER,
+  BLOCK_TIMESTAMP,
   REPORT,
   NEVER,
   ALWAYS,

@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import {State} from "../RainVM.sol";
 
-/// @title BlockOps
+/// @title MathOps
 /// @notice RainVM opcode pack to perform basic checked math operations.
 /// Underflow and overflow will error as per default solidity behaviour.
 library MathOps {
