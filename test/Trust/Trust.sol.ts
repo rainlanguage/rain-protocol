@@ -3518,7 +3518,7 @@ describe("Trust", async function () {
     const reserveInit = ethers.BigNumber.from("100000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("100000" + Util.sixZeros);
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("0");
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
 
     const seederFee = ethers.BigNumber.from("0");
     const seederCooldownDuration = 0;

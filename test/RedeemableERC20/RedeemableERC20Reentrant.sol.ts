@@ -55,6 +55,7 @@ describe("RedeemableERC20Reentrant", async function () {
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
     });
 
     await maliciousReserve.addReentrantTarget(redeemableERC20.address);
@@ -64,7 +65,7 @@ describe("RedeemableERC20Reentrant", async function () {
     // send redeemable tokens to bob
     await redeemableERC20.transfer(bob.address, FIFTY_TOKENS);
 
-    await redeemableERC20.burnDistributors([Util.oneAddress]);
+    await redeemableERC20.endDistribution(Util.oneAddress);
 
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
