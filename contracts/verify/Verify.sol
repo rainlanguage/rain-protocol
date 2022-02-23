@@ -423,7 +423,7 @@ contract Verify is AccessControl, Initializable {
             }
 
             // Always emit a `Ban` event even if we didn't write state. This
-            // ensures that supporting evidence hits the logs for offchain 
+            // ensures that supporting evidence hits the logs for offchain
             // review.
             emit Ban(msg.sender, evidences_[i_]);
         }
