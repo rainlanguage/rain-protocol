@@ -67,6 +67,7 @@ struct Receipt {
     uint256 price;
 }
 
+// solhint-disable-next-line max-states-count
 contract Sale is
     Initializable,
     Cooldown,
@@ -336,7 +337,13 @@ contract Sale is
         emit Buy(msg.sender, config_, receipt_);
     }
 
-    function refundCooldown() private onlyAfterCooldown {}
+    function refundCooldown()
+        private
+        onlyAfterCooldown
+    // solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 
     function refund(Receipt calldata receipt_) external {
         require(_saleStatus != SaleStatus.Success, "REFUND_SUCCESS");
