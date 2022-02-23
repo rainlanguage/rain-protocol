@@ -28,6 +28,7 @@ library BlockOps {
             }
             // Stack the current `block.timestamp`.
             else if (opcode_ == BLOCK_TIMESTAMP) {
+                // solhint-disable-next-line not-rely-on-time
                 state_.stack[state_.stackIndex] = block.timestamp;
                 state_.stackIndex++;
             }
