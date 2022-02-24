@@ -17,7 +17,7 @@ import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
 //solhint-disable-next-line max-line-length
-import {ITier, RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
+import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
 //solhint-disable-next-line max-line-length
 import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -47,7 +47,7 @@ struct SaleConfig {
 
 struct SaleRedeemableERC20Config {
     ERC20Config erc20Config;
-    ITier tier;
+    address tier;
     uint256 minimumTier;
     address distributionEndForwardingAddress;
 }

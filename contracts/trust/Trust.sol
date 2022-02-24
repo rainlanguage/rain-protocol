@@ -15,8 +15,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {ITier} from "../tier/ITier.sol";
-
 // solhint-disable-next-line max-line-length
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
 import {SeedERC20, SeedERC20Config} from "../seed/SeedERC20.sol";
@@ -146,7 +144,7 @@ struct TrustSeedERC20Config {
 /// Forwarded config for `RedeemableERC20Config`.
 struct TrustRedeemableERC20Config {
     ERC20Config erc20Config;
-    ITier tier;
+    address tier;
     uint256 minimumTier;
 }
 
