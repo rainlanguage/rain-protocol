@@ -540,7 +540,6 @@ describe("Trust", async function () {
     );
 
     assert(event0.sender === signer1.address, "wrong sender in event0");
-    assert(event0.id, "no id in event0");
     assert(
       JSON.stringify(event0.notice) === JSON.stringify(Object.values(notice)),
       "wrong notice in event0"
