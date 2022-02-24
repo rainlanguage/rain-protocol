@@ -22,6 +22,12 @@ enum Status {
   Banned,
 }
 
+enum Request {
+  APPROVE,
+  BAN,
+  REMOVE,
+}
+
 const APPROVER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("APPROVER_ADMIN")
 );
@@ -99,7 +105,9 @@ describe("Verify", async function () {
     const evidenceApprove0 = hexlify([...Buffer.from("Evidence for approve")]);
 
     await verify.connect(signer1).add(evidenceAdd0);
-    await verify.connect(approver).approve(signer1.address, evidenceApprove0);
+    await verify
+      .connect(approver)
+      .approve([{ account: signer1.address, data: evidenceApprove0 }]);
 
     const evidenceBanReq = hexlify([
       ...Buffer.from("Evidence for ban request"),
@@ -108,7 +116,11 @@ describe("Verify", async function () {
     // unapproved signer2 requests ban of signer1 account
     await Util.assertError(
       async () =>
-        verify.connect(signer2).requestBan(signer1.address, evidenceBanReq),
+        verify
+          .connect(signer2)
+          .request(Request.BAN, [
+            { account: signer1.address, data: evidenceBanReq },
+          ]),
       "ONLY_APPROVED",
       "signer2 requested ban despite not being an approved account"
     );
@@ -118,17 +130,26 @@ describe("Verify", async function () {
     const evidenceApprove1 = hexlify([...Buffer.from("Evidence for approve")]);
 
     await verify.connect(signer2).add(evidenceAdd1);
-    await verify.connect(approver).approve(signer2.address, evidenceApprove1);
+    await verify
+      .connect(approver)
+      .approve([{ account: signer2.address, data: evidenceApprove1 }]);
 
     // signer2 requests ban of signer1 account
     const event0 = (await Util.getEventArgs(
-      await verify.connect(signer2).requestBan(signer1.address, evidenceBanReq),
+      await verify
+        .connect(signer2)
+        .request(Request.BAN, [
+          { account: signer1.address, data: evidenceBanReq },
+        ]),
       "RequestBan",
       verify
     )) as RequestBanEvent["args"];
     assert(event0.sender === signer2.address, "wrong sender in event0");
-    assert(event0.account === signer1.address, "wrong account in event0");
-    assert(event0.data === evidenceBanReq, "wrong data in event0");
+    assert(
+      event0.evidence.account === signer1.address,
+      "wrong account in event0"
+    );
+    assert(event0.evidence.data === evidenceBanReq, "wrong data in event0");
   });
 
   it("should allow anyone to submit data to support a request to remove an account", async function () {
@@ -192,7 +213,9 @@ describe("Verify", async function () {
     const evidenceApprove0 = hexlify([...Buffer.from("Evidence for approve")]);
 
     await verify.connect(signer1).add(evidenceAdd0);
-    await verify.connect(approver).approve(signer1.address, evidenceApprove0);
+    await verify
+      .connect(approver)
+      .approve([{ account: signer1.address, data: evidenceApprove0 }]);
 
     const evidenceRemoveReq = hexlify([
       ...Buffer.from("Evidence for remove request"),
@@ -203,7 +226,9 @@ describe("Verify", async function () {
       async () =>
         verify
           .connect(signer2)
-          .requestRemove(signer1.address, evidenceRemoveReq),
+          .request(Request.REMOVE, [
+            { account: signer1.address, data: evidenceRemoveReq },
+          ]),
       "ONLY_APPROVED",
       "signer2 requested removal despite not being an approved account"
     );
@@ -213,19 +238,26 @@ describe("Verify", async function () {
     const evidenceApprove1 = hexlify([...Buffer.from("Evidence for approve")]);
 
     await verify.connect(signer2).add(evidenceAdd1);
-    await verify.connect(approver).approve(signer2.address, evidenceApprove1);
+    await verify
+      .connect(approver)
+      .approve([{ account: signer2.address, data: evidenceApprove1 }]);
 
     // signer2 requests removal of signer1 account
     const event0 = (await Util.getEventArgs(
       await verify
         .connect(signer2)
-        .requestRemove(signer1.address, evidenceRemoveReq),
+        .request(Request.REMOVE, [
+          { account: signer1.address, data: evidenceRemoveReq },
+        ]),
       "RequestRemove",
       verify
     )) as RequestRemoveEvent["args"];
     assert(event0.sender === signer2.address, "wrong sender in event0");
-    assert(event0.account === signer1.address, "wrong account in event0");
-    assert(event0.data === evidenceRemoveReq, "wrong data in event0");
+    assert(
+      event0.evidence.account === signer1.address,
+      "wrong account in event0"
+    );
+    assert(event0.evidence.data === evidenceRemoveReq, "wrong data in event0");
   });
 
   it("should not grant banner ability to approve or remove if they only have BANNER role", async function () {
@@ -291,15 +323,19 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () =>
-        await verify.connect(remover).approve(signer1.address, evidenceApprove),
-      "ONLY_APPROVER",
+        await verify
+          .connect(remover)
+          .approve([{ account: signer1.address, data: evidenceApprove }]),
+      `AccessControl: account ${remover.address.toLowerCase()} is missing role ${await verify.APPROVER()}`,
       "non-approver wrongly approved account"
     );
 
     await Util.assertError(
       async () =>
-        await verify.connect(approver).remove(signer1.address, evidenceRemove),
-      "ONLY_REMOVER",
+        await verify
+          .connect(approver)
+          .remove([{ account: signer1.address, data: evidenceRemove }]),
+      `AccessControl: account ${approver.address.toLowerCase()} is missing role ${await verify.REMOVER()}`,
       "non-remover wrongly removed account"
     );
   });
@@ -367,15 +403,19 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () =>
-        await verify.connect(remover).approve(signer1.address, evidenceApprove),
-      "ONLY_APPROVER",
+        await verify
+          .connect(remover)
+          .approve([{ account: signer1.address, data: evidenceApprove }]),
+      `AccessControl: account ${remover.address.toLowerCase()} is missing role ${await verify.APPROVER()}`,
       "non-approver wrongly approved account"
     );
 
     await Util.assertError(
       async () =>
-        await verify.connect(approver).ban(signer1.address, evidenceBan),
-      "ONLY_BANNER",
+        await verify
+          .connect(approver)
+          .ban([{ account: signer1.address, data: evidenceBan }]),
+      `AccessControl: account ${approver.address.toLowerCase()} is missing role ${await verify.BANNER()}`,
       "non-banner wrongly banned session"
     );
   });
@@ -443,15 +483,19 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () =>
-        await verify.connect(approver).remove(signer1.address, evidenceRemove),
-      "ONLY_REMOVER",
+        await verify
+          .connect(approver)
+          .remove([{ account: signer1.address, data: evidenceRemove }]),
+      `AccessControl: account ${approver.address.toLowerCase()} is missing role ${await verify.REMOVER()}`,
       "non-remover wrongly removed account"
     );
 
     await Util.assertError(
       async () =>
-        await verify.connect(approver).ban(signer1.address, evidenceBan),
-      "ONLY_BANNER",
+        await verify
+          .connect(approver)
+          .ban([{ account: signer1.address, data: evidenceBan }]),
+      `AccessControl: account ${approver.address.toLowerCase()} is missing role ${await verify.BANNER()}`,
       "non-banner wrongly banned session"
     );
   });
@@ -743,7 +787,9 @@ describe("Verify", async function () {
     const blockBeforeApprove = await ethers.provider.getBlockNumber();
 
     // approve account
-    await verify.connect(approver).approve(signer1.address, evidenceApprove);
+    await verify
+      .connect(approver)
+      .approve([{ account: signer1.address, data: evidenceApprove }]);
 
     const state2 = await verify.state(signer1.address);
     assert(
@@ -759,7 +805,9 @@ describe("Verify", async function () {
     const blockBeforeBan = await ethers.provider.getBlockNumber();
 
     // ban account
-    await verify.connect(banner).ban(signer1.address, evidenceBan);
+    await verify
+      .connect(banner)
+      .ban([{ account: signer1.address, data: evidenceBan }]);
 
     const state3 = await verify.state(signer1.address);
     assert(
@@ -787,7 +835,9 @@ describe("Verify", async function () {
     );
 
     // remove account
-    await verify.connect(remover).remove(signer1.address, evidenceRemove);
+    await verify
+      .connect(remover)
+      .remove([{ account: signer1.address, data: evidenceRemove }]);
 
     const state4 = await verify.state(signer1.address);
     assert(
@@ -857,48 +907,56 @@ describe("Verify", async function () {
     const evidenceBan = hexlify([...Buffer.from("Evidence for ban")]);
     const evidenceRemove = hexlify([...Buffer.from("Evidence for remove")]);
 
-    await Util.assertError(
-      async () =>
-        await verify.connect(banner).ban(signer1.address, evidenceBan),
-      "NOT_ADDED",
-      "wrongly banned when Status equals Nil"
-    );
-
     // Add
     await verify.connect(signer1).add(evidenceAdd);
 
     // Approve
-    await verify.connect(approver).approve(signer1.address, evidenceApprove);
+    await verify
+      .connect(approver)
+      .approve([{ account: signer1.address, data: evidenceApprove }]);
 
-    await Util.assertError(
-      async () =>
-        await verify
-          .connect(approver)
-          .approve(signer1.address, evidenceApprove),
-      "PRIOR_APPROVE",
-      "wrongly approved when Status equals Approved"
+    // Calling approve() again succeeds but does not update approval block.
+    // This could occur with multiple approvers operating concurrently and independently.
+    const reApproveTx = await verify
+      .connect(approver)
+      .approve([{ account: signer1.address, data: evidenceApprove }]);
+
+    const { sender, evidence } = (await Util.getEventArgs(
+      reApproveTx,
+      "Approve",
+      verify
+    )) as ApproveEvent["args"];
+    assert(sender === approver.address, "wrong sender in reapprove event");
+    assert(
+      evidence.account === signer1.address,
+      "wrong account in reapprove event"
     );
+    assert(evidence.data === evidenceApprove, "wrong data in reapprove event");
 
     // Ban
-    await verify.connect(banner).ban(signer1.address, evidenceBan);
+    await verify
+      .connect(banner)
+      .ban([{ account: signer1.address, data: evidenceBan }]);
 
-    await Util.assertError(
-      async () =>
-        await verify
-          .connect(approver)
-          .approve(signer1.address, evidenceApprove),
-      "PRIOR_APPROVE",
-      "wrongly approved when Status equals Banned"
+    // Calling ban() again succeeds but does not update approval block.
+    // This could occur with multiple approvers operating concurrently and independently.
+    const reBanTx = await verify
+      .connect(banner)
+      .ban([{ account: signer1.address, data: evidenceBan }]);
+
+    const { sender: senderReBan, evidence: evidenceReBan } =
+      (await Util.getEventArgs(reBanTx, "Ban", verify)) as BanEvent["args"];
+    assert(senderReBan === banner.address, "wrong sender in reban event");
+    assert(
+      evidenceReBan.account === signer1.address,
+      "wrong account in reban event"
     );
-    await Util.assertError(
-      async () =>
-        await verify.connect(banner).ban(signer1.address, evidenceBan),
-      "PRIOR_BAN",
-      "wrongly banned when Status equals Banned"
-    );
+    assert(evidenceReBan.data === evidenceBan, "wrong data in reban event");
 
     // Remove
-    await verify.connect(remover).remove(signer1.address, evidenceRemove);
+    await verify
+      .connect(remover)
+      .remove([{ account: signer1.address, data: evidenceRemove }]);
   });
 
   it("should require non-zero admin address", async function () {
@@ -1016,7 +1074,9 @@ describe("Verify", async function () {
     );
 
     // approve account
-    await verify.connect(approver).approve(signer1.address, evidenceApprove);
+    await verify
+      .connect(approver)
+      .approve([{ account: signer1.address, data: evidenceApprove }]);
 
     const block2 = await ethers.provider.getBlockNumber();
     const state2 = await verify.state(signer1.address);
@@ -1043,7 +1103,9 @@ describe("Verify", async function () {
     );
 
     // ban account
-    await verify.connect(banner).ban(signer1.address, evidenceBan);
+    await verify
+      .connect(banner)
+      .ban([{ account: signer1.address, data: evidenceBan }]);
 
     const block3 = await ethers.provider.getBlockNumber();
     const state3 = await verify.state(signer1.address);
@@ -1070,7 +1132,9 @@ describe("Verify", async function () {
     );
 
     // remove account
-    await verify.connect(remover).remove(signer1.address, evidenceRemove);
+    await verify
+      .connect(remover)
+      .remove([{ account: signer1.address, data: evidenceRemove }]);
 
     const state4 = await verify.state(signer1.address);
     assert(
@@ -1139,7 +1203,7 @@ describe("Verify", async function () {
       verify
     )) as RequestApproveEvent["args"];
     assert(event0.sender === signer1.address, "wrong sender in event0");
-    assert(event0.data === evidenceAdd, "wrong data in event0");
+    assert(event0.evidence.data === evidenceAdd, "wrong data in event0");
 
     const state0 = await verify.state(signer1.address);
 
@@ -1211,34 +1275,39 @@ describe("Verify", async function () {
 
     // await verify.connect(signer1).add(evidenceAdd);
 
-    // prevent approving zero address
-    await Util.assertError(
-      async () =>
-        await verify
-          .connect(approver)
-          .approve(Util.zeroAddress, evidenceApprove),
-      "0_ADDRESS",
-      "wrongly approved account with address of 0"
-    );
+    // // prevent approving zero address
+    // await Util.assertError(
+    //   async () =>
+    //     await verify
+    //       .connect(approver)
+    //       .approve([{ account: Util.zeroAddress, data: evidenceApprove }]),
+    //   "0_ADDRESS",
+    //   "wrongly approved account with address of 0"
+    // );
 
     await Util.assertError(
       async () =>
         await verify
           .connect(nonApprover)
-          .approve(signer1.address, evidenceApprove),
-      "ONLY_APPROVER",
+          .approve([{ account: signer1.address, data: evidenceApprove }]),
+      `AccessControl: account ${nonApprover.address.toLowerCase()} is missing role ${await verify.APPROVER()}`,
       "non-approver wrongly approved account"
     );
 
     // approve account
     const event0 = (await Util.getEventArgs(
-      await verify.connect(approver).approve(signer1.address, evidenceApprove),
+      await verify
+        .connect(approver)
+        .approve([{ account: signer1.address, data: evidenceApprove }]),
       "Approve",
       verify
     )) as ApproveEvent["args"];
     assert(event0.sender === approver.address, "wrong sender in event0");
-    assert(event0.account === signer1.address, "wrong account in event0");
-    assert(event0.data === evidenceApprove, "wrong data in event0");
+    assert(
+      event0.evidence.account === signer1.address,
+      "wrong account in event0"
+    );
+    assert(event0.evidence.data === evidenceApprove, "wrong data in event0");
 
     // check that signer1 has been approved
     const stateApproved = await verify.state(signer1.address);
@@ -1297,34 +1366,39 @@ describe("Verify", async function () {
 
     await verify.connect(signer1).add(evidenceAdd);
 
-    // prevent approving zero address
-    await Util.assertError(
-      async () =>
-        await verify
-          .connect(approver)
-          .approve(Util.zeroAddress, evidenceApprove),
-      "0_ADDRESS",
-      "wrongly approved account with address of 0"
-    );
+    // // prevent approving zero address
+    // await Util.assertError(
+    //   async () =>
+    //     await verify
+    //       .connect(approver)
+    //       .approve([{ account: Util.zeroAddress, data: evidenceApprove }]),
+    //   "0_ADDRESS",
+    //   "wrongly approved account with address of 0"
+    // );
 
     await Util.assertError(
       async () =>
         await verify
           .connect(nonApprover)
-          .approve(signer1.address, evidenceApprove),
-      "ONLY_APPROVER",
+          .approve([{ account: signer1.address, data: evidenceApprove }]),
+      `AccessControl: account ${nonApprover.address.toLowerCase()} is missing role ${await verify.APPROVER()}`,
       "non-approver wrongly approved account"
     );
 
     // approve account
     const event0 = (await Util.getEventArgs(
-      await verify.connect(approver).approve(signer1.address, evidenceApprove),
+      await verify
+        .connect(approver)
+        .approve([{ account: signer1.address, data: evidenceApprove }]),
       "Approve",
       verify
     )) as ApproveEvent["args"];
     assert(event0.sender === approver.address, "wrong sender in event0");
-    assert(event0.account === signer1.address, "wrong account in event0");
-    assert(event0.data === evidenceApprove, "wrong data in event0");
+    assert(
+      event0.evidence.account === signer1.address,
+      "wrong account in event0"
+    );
+    assert(event0.evidence.data === evidenceApprove, "wrong data in event0");
 
     // check that signer1 has been approved
     const stateApproved = await verify.state(signer1.address);
@@ -1380,32 +1454,39 @@ describe("Verify", async function () {
 
     await verify.connect(signer1).add(evidenceAdd);
 
-    // prevent removing account of address 0
-    await Util.assertError(
-      async () =>
-        await verify.connect(remover).remove(Util.zeroAddress, evidenceRemove),
-      "0_ADDRESS",
-      "wrongly removed account with address of 0"
-    );
+    // // prevent removing account of address 0
+    // await Util.assertError(
+    //   async () =>
+    //     await verify
+    //       .connect(remover)
+    //       .remove([{ account: Util.zeroAddress, data: evidenceRemove }]),
+    //   "0_ADDRESS",
+    //   "wrongly removed account with address of 0"
+    // );
 
     await Util.assertError(
       async () =>
         await verify
           .connect(nonRemover)
-          .remove(signer1.address, evidenceRemove),
-      "ONLY_REMOVER",
+          .remove([{ account: signer1.address, data: evidenceRemove }]),
+      `AccessControl: account ${nonRemover.address.toLowerCase()} is missing role ${await verify.REMOVER()}`,
       "non-remover wrongly removed account"
     );
 
     // admin removes account
     const event0 = (await Util.getEventArgs(
-      await verify.connect(remover).remove(signer1.address, evidenceRemove),
+      await verify
+        .connect(remover)
+        .remove([{ account: signer1.address, data: evidenceRemove }]),
       "Remove",
       verify
     )) as RemoveEvent["args"];
     assert(event0.sender === remover.address, "wrong sender in event0");
-    assert(event0.account === signer1.address, "wrong account in event0");
-    assert(event0.data === evidenceRemove, "wrong data in event0");
+    assert(
+      event0.evidence.account === signer1.address,
+      "wrong account in event0"
+    );
+    assert(event0.evidence.data === evidenceRemove, "wrong data in event0");
 
     // check that signer1 has been removed
     const stateRemoved = await verify.state(signer1.address);
@@ -1460,30 +1541,39 @@ describe("Verify", async function () {
 
     await verify.connect(signer1).add(evidenceAdd);
 
-    // prevent banning zero address
-    await Util.assertError(
-      async () =>
-        await verify.connect(banner).ban(Util.zeroAddress, evidenceBan),
-      "0_ADDRESS",
-      "wrongly banning zero address"
-    );
+    // // prevent banning zero address
+    // await Util.assertError(
+    //   async () =>
+    //     await verify
+    //       .connect(banner)
+    //       .ban([{ account: Util.zeroAddress, data: evidenceBan }]),
+    //   "0_ADDRESS",
+    //   "wrongly banning zero address"
+    // );
 
     await Util.assertError(
       async () =>
-        await verify.connect(nonBanner).ban(signer1.address, evidenceBan),
-      "ONLY_BANNER",
+        await verify
+          .connect(nonBanner)
+          .ban([{ account: signer1.address, data: evidenceBan }]),
+      `AccessControl: account ${nonBanner.address.toLowerCase()} is missing role ${await verify.BANNER()}`,
       "non-banner wrongly banned session"
     );
 
     // admin bans account
     const event0 = (await Util.getEventArgs(
-      await verify.connect(banner).ban(signer1.address, evidenceBan),
+      await verify
+        .connect(banner)
+        .ban([{ account: signer1.address, data: evidenceBan }]),
       "Ban",
       verify
     )) as BanEvent["args"];
     assert(event0.sender === banner.address, "wrong sender in event0");
-    assert(event0.account === signer1.address, "wrong account in event0");
-    assert(event0.data === evidenceBan, "wrong data in event0");
+    assert(
+      event0.evidence.account === signer1.address,
+      "wrong account in event0"
+    );
+    assert(event0.evidence.data === evidenceBan, "wrong data in event0");
 
     // check that signer1 has been banned
     const stateBanned = await verify.state(signer1.address);
