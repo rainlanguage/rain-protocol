@@ -518,6 +518,14 @@ contract Trust is Phased, ISale {
         _reserve = config_.reserve;
         reserveInit = config_.reserveInit;
 
+        // If the raise really does have a minimum of `0` and `0` trading
+        // happens then the raise will be considered a "success", burning all
+        // rTKN, which would trap any escrowed or deposited funds that nobody
+        // can retrieve as nobody holds any rTKN.
+        // A zero or very low minimum raise is very likely NOT what you want
+        // for a LBP, consider using `Sale` instead, which supports rTKN
+        // forwarding in the case of a raise not selling out.
+        require(config_.minimumCreatorRaise > 0, "MIN_RAISE_0");
         minimumCreatorRaise = config_.minimumCreatorRaise;
         seederFee = config_.seederFee;
         redeemInit = config_.redeemInit;
@@ -600,7 +608,12 @@ contract Trust is Phased, ISale {
                         address(config_.reserve),
                         trustRedeemableERC20Config_.erc20Config,
                         trustRedeemableERC20Config_.tier,
-                        trustRedeemableERC20Config_.minimumTier
+                        trustRedeemableERC20Config_.minimumTier,
+                        // Forwarding address is always zero
+                        // (i.e. distribution will burn unsold rTKN)
+                        // because LBP mechanics basically mandate many unsold
+                        // tokens.
+                        address(0)
                     )
                 )
             )
@@ -956,10 +969,12 @@ contract Trust is Phased, ISale {
         // Burning the distributor moves the rTKN to its `Phase.ONE` and
         // unlocks redemptions.
         // The distributor is the `bPool` itself and all unsold inventory.
-        address[] memory distributors_ = new address[](2);
-        distributors_[0] = address(this);
-        distributors_[1] = pool_;
-        _token.burnDistributors(distributors_);
+        // First we send all exited rTKN back to the pool so it can be burned.
+        IERC20(address(_token)).safeTransfer(
+            pool_,
+            _token.balanceOf(address(this))
+        );
+        _token.endDistribution(pool_);
 
         // The dust is NOT included in the final balance.
         // The `availableBalance_` is the reserve the `Trust` owns and so can

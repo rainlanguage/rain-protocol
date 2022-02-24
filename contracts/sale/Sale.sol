@@ -49,6 +49,7 @@ struct SaleRedeemableERC20Config {
     ERC20Config erc20Config;
     ITier tier;
     uint256 minimumTier;
+    address distributionEndForwardingAddress;
 }
 
 struct BuyConfig {
@@ -67,6 +68,7 @@ struct Receipt {
     uint256 price;
 }
 
+// solhint-disable-next-line max-states-count
 contract Sale is
     Initializable,
     Cooldown,
@@ -169,7 +171,21 @@ contract Sale is
             _newState(config_.calculatePriceStateConfig)
         );
         recipient = config_.recipient;
+
+        // If the raise really does have a minimum of `0` and `0` trading
+        // happens then the raise will be considered a "success", burning all
+        // rTKN, which would trap any escrowed or deposited funds that nobody
+        // can retrieve as nobody holds any rTKN.
+        // If you want `0` or very low minimum raise consider enabling rTKN
+        // forwarding for unsold inventory.
+        if (
+            saleRedeemableERC20Config_.distributionEndForwardingAddress ==
+            address(0)
+        ) {
+            require(config_.minimumRaise > 0, "MIN_RAISE_0");
+        }
         minimumRaise = config_.minimumRaise;
+
         dustSize = config_.dustSize;
         // just making this explicit.
         _saleStatus = SaleStatus.Pending;
@@ -183,7 +199,9 @@ contract Sale is
                         address(config_.reserve),
                         saleRedeemableERC20Config_.erc20Config,
                         saleRedeemableERC20Config_.tier,
-                        saleRedeemableERC20Config_.minimumTier
+                        saleRedeemableERC20Config_.minimumTier,
+                        saleRedeemableERC20Config_
+                            .distributionEndForwardingAddress
                     )
                 )
             )
@@ -234,8 +252,6 @@ contract Sale is
         require(remainingUnits < 1 || canEnd(), "CANT_END");
 
         remainingUnits = 0;
-        address[] memory distributors_ = new address[](1);
-        distributors_[0] = address(this);
 
         bool success_ = totalReserveIn >= minimumRaise;
         SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
@@ -243,7 +259,7 @@ contract Sale is
         _saleStatus = endStatus_;
 
         // Always burn the undistributed tokens.
-        _token.burnDistributors(distributors_);
+        _token.endDistribution(address(this));
 
         // Only send reserve to recipient if the raise is a success.
         if (success_) {
@@ -321,7 +337,13 @@ contract Sale is
         emit Buy(msg.sender, config_, receipt_);
     }
 
-    function refundCooldown() private onlyAfterCooldown {}
+    function refundCooldown()
+        private
+        onlyAfterCooldown
+    // solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 
     function refund(Receipt calldata receipt_) external {
         require(_saleStatus != SaleStatus.Success, "REFUND_SUCCESS");
