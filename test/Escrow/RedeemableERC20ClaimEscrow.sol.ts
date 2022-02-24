@@ -1056,13 +1056,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     const totalDepositedActual0 = deposited0.add(deposited1);
+    const totalDepositedExpected0 = depositAmount1.add(depositAmount0);
 
     assert(
-      totalDepositedActual0.eq(depositAmount1.add(depositAmount0)),
+      totalDepositedActual0.eq(totalDepositedExpected0),
       `actual tokens deposited by sender and registered amount do not match (1)
-      expected  ${depositAmount1.add(
-        depositAmount0
-      )} = ${depositAmount1} + ${depositAmount0}
+      expected  ${totalDepositedExpected0} = ${depositAmount1} + ${depositAmount0}
       got       ${totalDepositedActual0}`
     );
 
@@ -1081,11 +1080,27 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount2);
 
-    await claim.sweepPending(
+    const txSweep0 = await claim.sweepPending(
       trust.address,
       claimableReserveToken.address,
       signers[0].address
     );
+
+    const {
+      sender,
+      depositor,
+      trust: trustAddress,
+      redeemable,
+      token,
+      amount,
+    } = await Util.getEventArgs(txSweep0, "Sweep", claim);
+
+    assert(sender === signers[0].address, "wrong sender");
+    assert(depositor === signers[0].address, "wrong depositor");
+    assert(trustAddress === trust.address, "wrong trust address");
+    assert(redeemable === redeemableERC20.address, "wrong redeemable address");
+    assert(token === claimableReserveToken.address, "wrong token address");
+    assert(amount.eq(totalDepositedExpected0), "wrong amount");
 
     const txDeposit0 = await claim.deposit(
       trust.address,
@@ -1100,15 +1115,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     const totalDepositedActual1 = deposited2.add(deposited1).add(deposited0);
+    const totalDepositedExpected1 = depositAmount2.add(
+      depositAmount1.add(depositAmount0)
+    );
 
     assert(
-      totalDepositedActual1.eq(
-        depositAmount2.add(depositAmount1.add(depositAmount0))
-      ),
+      totalDepositedActual1.eq(totalDepositedExpected1),
       `actual tokens deposited by sender and registered amount do not match (2)
-      expected  ${depositAmount2.add(
-        depositAmount1.add(depositAmount0)
-      )} = ${depositAmount2} + ${depositAmount1} + ${depositAmount0}
+      expected  ${totalDepositedExpected1} = ${depositAmount2} + ${depositAmount1} + ${depositAmount0}
       got       ${totalDepositedActual1}`
     );
   });

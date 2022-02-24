@@ -125,10 +125,29 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         uint256 amount
     );
 
+    /// Emitted every time a pending deposit is swept to a full deposit.
+    event Sweep(
+        /// Anon `msg.sender` sweeping the deposit.
+        address sender,
+        /// Anon `msg.sender` who originally deposited the token.
+        address depositor,
+        /// `Trust` contract deposit is under.
+        address trust,
+        /// Redeemable token first reported by the trust.
+        address redeemable,
+        /// `IERC20` token being swept into a deposit.
+        address token,
+        /// Amount of token being swept into a deposit.
+        uint256 amount
+    );
+
     /// Emitted for every successful deposit.
     event Deposit(
+        /// Anon `msg.sender` triggering the deposit.
+        /// MAY NOT be the `depositor` in the case of a pending sweep.
+        address sender,
         /// Anon `msg.sender` who originally deposited the token.
-        /// May NOT be the current `msg.sender` in the case of a pending sweep.
+        /// MAY NOT be the current `msg.sender` in the case of a pending sweep.
         address depositor,
         /// `Trust` contract deposit is under.
         address trust,
@@ -268,7 +287,15 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
         totalDeposits[trust_][token_][supply_] += amount_;
         remainingDeposits[trust_][token_][supply_] += amount_;
 
-        emit Deposit(depositor_, trust_, redeemable_, token_, supply_, amount_);
+        emit Deposit(
+            msg.sender,
+            depositor_,
+            trust_,
+            redeemable_,
+            token_,
+            supply_,
+            amount_
+        );
     }
 
     /// Anon can convert any existing pending deposit to a deposit with known
@@ -287,6 +314,14 @@ contract RedeemableERC20ClaimEscrow is TrustEscrow {
     ) external {
         uint256 amount_ = pendingDeposits[trust_][token_][depositor_];
         delete pendingDeposits[trust_][token_][depositor_];
+        emit Sweep(
+            msg.sender,
+            depositor_,
+            trust_,
+            token(trust_),
+            token_,
+            amount_
+        );
         registerDeposit(trust_, token_, depositor_, amount_);
     }
 
