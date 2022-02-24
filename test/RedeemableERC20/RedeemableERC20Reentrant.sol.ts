@@ -1,14 +1,8 @@
 import * as Util from "../Util";
-import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
 import type { Contract } from "ethers";
-
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
 
 enum Tier {
   NIL,
@@ -61,6 +55,7 @@ describe("RedeemableERC20Reentrant", async function () {
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
     });
 
     await maliciousReserve.addReentrantTarget(redeemableERC20.address);
@@ -70,7 +65,7 @@ describe("RedeemableERC20Reentrant", async function () {
     // send redeemable tokens to bob
     await redeemableERC20.transfer(bob.address, FIFTY_TOKENS);
 
-    await redeemableERC20.burnDistributors([Util.oneAddress]);
+    await redeemableERC20.endDistribution(Util.oneAddress);
 
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);

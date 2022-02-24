@@ -1,14 +1,15 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import type { Contract } from "ethers";
 import { ethers } from "hardhat";
-import type { ERC20TransferTier } from "../../typechain/ERC20TransferTier";
+import type {
+  ERC20TransferTier,
+  TierChangeEvent,
+} from "../../typechain/ERC20TransferTier";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { assertError, basicDeploy, eighteenZeros } from "../Util";
+import { assertError, basicDeploy, eighteenZeros, getEventArgs } from "../Util";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Tier {
   ZERO,
@@ -238,11 +239,16 @@ describe("ERC20TransferTier", async function () {
       .connect(alice)
       .setTier(alice.address, Tier.ONE, []);
 
-    await expect(setTier1Promise)
-      .to.emit(erc20TransferTier, "TierChange")
-      .withArgs(alice.address, alice.address, Tier.ZERO, Tier.ONE);
+    const event0 = (await getEventArgs(
+      await setTier1Promise,
+      "TierChange",
+      erc20TransferTier
+    )) as TierChangeEvent["args"];
 
-    await setTier1Promise;
+    assert(event0.sender === alice.address, "wrong sender in event0");
+    assert(event0.account === alice.address, "wrong account in event0");
+    assert(event0.startTier.eq(Tier.ZERO), "wrong startTier in event0");
+    assert(event0.endTier.eq(Tier.ONE), "wrong endTier in event0");
 
     // alice has current tier of ONE
     const report1 = await erc20TransferTier.report(alice.address);
@@ -280,11 +286,16 @@ describe("ERC20TransferTier", async function () {
       .connect(alice)
       .setTier(alice.address, Tier.TWO, []);
 
-    await expect(setTier2Promise)
-      .to.emit(erc20TransferTier, "TierChange")
-      .withArgs(alice.address, alice.address, Tier.ONE, Tier.TWO);
+    const event1 = (await getEventArgs(
+      await setTier2Promise,
+      "TierChange",
+      erc20TransferTier
+    )) as TierChangeEvent["args"];
 
-    await setTier2Promise;
+    assert(event1.sender === alice.address, "wrong sender in event1");
+    assert(event1.account === alice.address, "wrong account in event1");
+    assert(event1.startTier.eq(Tier.ONE), "wrong startTier in event1");
+    assert(event1.endTier.eq(Tier.TWO), "wrong endTier in event1");
 
     // alice has current tier of TWO
     const report2 = await erc20TransferTier.report(alice.address);

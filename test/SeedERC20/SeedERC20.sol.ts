@@ -1,13 +1,17 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { SeedERC20ForceSendEther } from "../../typechain/SeedERC20ForceSendEther";
 import type { Contract } from "ethers";
+import {
+  PhaseScheduledEvent,
+  RedeemEvent,
+  SeedEvent,
+  UnseedEvent,
+} from "../../typechain/SeedERC20";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum SeedPhase {
   UNINITIALIZED,
@@ -195,15 +199,34 @@ describe("SeedERC20", async function () {
 
     await bobReserve.approve(seedERC20.address, bobUnits.mul(seedPrice));
     const bobSeedPromise = bobSeed.seed(0, bobUnits);
-    expect(bobSeedPromise)
-      .to.emit(seedERC20, "Seed")
-      .withArgs(bob.address, bobUnits, bobUnits.mul(seedPrice));
-    await bobSeedPromise;
+
+    const event0 = (await Util.getEventArgs(
+      await bobSeedPromise,
+      "Seed",
+      seedERC20
+    )) as SeedEvent["args"];
+
+    assert(event0.sender === bob.address, "wrong sender in event0");
+    assert(event0.tokensSeeded.eq(bobUnits), "wrong tokensSeeded in event0");
+    assert(
+      event0.reserveReceived.eq(bobUnits.mul(seedPrice)),
+      "wrong reserveReceived in event0"
+    );
+
     const bobUnseedPromise = bobSeed.unseed(2);
-    expect(bobUnseedPromise)
-      .to.emit(seedERC20, "Unseed")
-      .withArgs(bob.address, 2, ethers.BigNumber.from(2).mul(seedPrice));
-    await bobUnseedPromise;
+
+    const event1 = (await Util.getEventArgs(
+      await bobUnseedPromise,
+      "Unseed",
+      seedERC20
+    )) as UnseedEvent["args"];
+
+    assert(event1.sender === bob.address, "wrong sender in event1");
+    assert(event1.tokensUnseeded.eq(2), "wrong tokensUnseeded in event1");
+    assert(
+      event1.reserveReturned.eq(ethers.BigNumber.from(2).mul(seedPrice)),
+      "wrong reserveReturned in event1"
+    );
 
     await bobReserve.approve(seedERC20.address, seedPrice.mul(2));
     await bobSeed.seed(0, 2);
@@ -227,26 +250,42 @@ describe("SeedERC20", async function () {
     const reserve0 = await reserve.balanceOf(seedERC20.address);
     const totalSupply0 = await seedERC20.totalSupply();
 
-    await expect(bobSeed.redeem(bobUnits, 0))
-      .to.emit(seedERC20, "Redeem")
-      .withArgs(
-        bob.address,
-        reserve.address,
-        bobUnits,
-        bobUnits.mul(reserve0).div(totalSupply0)
-      );
+    const event2 = (await Util.getEventArgs(
+      await bobSeed.redeem(bobUnits, 0),
+      "Redeem",
+      seedERC20
+    )) as RedeemEvent["args"];
+
+    assert(event2.sender === bob.address, "wrong sender in event2");
+    assert(
+      event2.treasuryAsset === reserve.address,
+      "wrong treasuryAsset in event2"
+    );
+    assert(event2.redeemAmount.eq(bobUnits), "wrong redeemAmount in event2");
+    assert(
+      event2.assetAmount.eq(bobUnits.mul(reserve0).div(totalSupply0)),
+      "wrong assetAmount in event2"
+    );
 
     const reserve1 = await reserve.balanceOf(seedERC20.address);
     const totalSupply1 = await seedERC20.totalSupply();
 
-    await expect(carolSeed.redeem(carolUnits, 0))
-      .to.emit(seedERC20, "Redeem")
-      .withArgs(
-        carol.address,
-        reserve.address,
-        carolUnits,
-        carolUnits.mul(reserve1).div(totalSupply1)
-      );
+    const event3 = (await Util.getEventArgs(
+      await carolSeed.redeem(carolUnits, 0),
+      "Redeem",
+      seedERC20
+    )) as RedeemEvent["args"];
+
+    assert(event3.sender === carol.address, "wrong sender in event3");
+    assert(
+      event3.treasuryAsset === reserve.address,
+      "wrong treasuryAsset in event3"
+    );
+    assert(event3.redeemAmount.eq(carolUnits), "wrong redeemAmount in event3");
+    assert(
+      event3.assetAmount.eq(carolUnits.mul(reserve1).div(totalSupply1)),
+      "wrong assetAmount in event3"
+    );
   });
 
   it("shouldn't be affected by attacker forcibly sending ether to contract", async function () {
@@ -515,13 +554,18 @@ describe("SeedERC20", async function () {
 
     await carolReserve.approve(seedERC20.address, carolUnits.mul(seedPrice));
 
-    await expect(carolSeed.seed(0, carolUnits))
-      .to.emit(carolSeed, "PhaseScheduled")
-      .withArgs(
-        carol.address,
-        SeedPhase.REDEEMING,
-        (await ethers.provider.getBlockNumber()) + 1
-      );
+    const event0 = (await Util.getEventArgs(
+      await carolSeed.seed(0, carolUnits),
+      "PhaseScheduled",
+      seedERC20
+    )) as PhaseScheduledEvent["args"];
+
+    assert(event0.sender === carol.address, "wrong sender in event0");
+    assert(event0.newPhase.eq(SeedPhase.REDEEMING), "wrong newPhase in event0");
+    assert(
+      event0.scheduledBlock.eq(await ethers.provider.getBlockNumber()),
+      "wrong scheduledBlock in event0"
+    );
 
     // seed contract automatically transfers to recipient on successful seed
     assert(

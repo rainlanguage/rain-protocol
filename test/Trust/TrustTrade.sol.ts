@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers } from "hardhat";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
 import type { Contract } from "ethers";
@@ -10,9 +9,7 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { ConfigurableRightsPool } from "../../typechain/ConfigurableRightsPool";
 import { factoriesDeploy } from "../Util";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 const redeemableTokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 const crpJson = require("../../artifacts/contracts/pool/IConfigurableRightsPool.sol/IConfigurableRightsPool.json");
@@ -221,21 +218,32 @@ describe("TrustTrade", async function () {
     await swapReserveForTokens(signerGold, reserveSpend);
     await swapReserveForTokens(signerPlatinum, reserveSpend);
 
-    // signers happily trade tokens directly with each other before redemption phase
-    await token
-      .connect(signerGold)
-      .transfer(signerPlatinum.address, reserveSpend.div(10));
-    await token
-      .connect(signerPlatinum)
-      .transfer(signerGold.address, reserveSpend.div(10));
+    // signers ('spokes') cannot trade tokens directly with each other before redemption phase
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(signerGold)
+          .transfer(signerPlatinum.address, reserveSpend.div(10)),
+      "2SPOKE",
+      "gold signer wrongly transferred tokens to platinum signer"
+    );
+
+    await Util.assertError(
+      async () =>
+        await token
+          .connect(signerPlatinum)
+          .transfer(signerGold.address, reserveSpend.div(10)),
+      "2SPOKE",
+      "platinum signer wrongly transferred tokens to gold signer"
+    );
 
     await Util.assertError(
       async () =>
         await token
           .connect(signerGold)
           .transfer(signerBronze.address, reserveSpend.div(10)),
-      "MIN_TIER",
-      "gold signer transferred tokens to bronze signer, despite bronze signer being below min status of gold"
+      "2SPOKE",
+      "gold signer wrongly transferred tokens to bronze signer"
     );
   });
 

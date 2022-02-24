@@ -3,14 +3,12 @@ pragma solidity ^0.8.10;
 
 import {RainVM, State} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {BlockOps} from "../vm/ops/BlockOps.sol";
-import {MathOps} from "../vm/ops/MathOps.sol";
+import {LogicOps} from "../vm/ops/LogicOps.sol";
 
-/// @title CalculatorTest
-/// Simple calculator that exposes basic math ops and block ops for testing.
-contract CalculatorTest is RainVM, VMState {
-    uint256 private immutable blockOpsStart;
-    uint256 private immutable mathOpsStart;
+/// @title LogicTest
+/// Simple contract that exposes logic ops for testing.
+contract LogicTest is RainVM, VMState {
+    uint256 private immutable logicOpsStart;
     address private immutable vmStatePointer;
 
     constructor(StateConfig memory config_) {
@@ -19,8 +17,7 @@ contract CalculatorTest is RainVM, VMState {
         /// imported libraries and contracts. These are calculated at
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
-        blockOpsStart = RainVM.OPS_LENGTH;
-        mathOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
+        logicOpsStart = RainVM.OPS_LENGTH;
         vmStatePointer = _snapshot(_newState(config_));
     }
 
@@ -32,21 +29,12 @@ contract CalculatorTest is RainVM, VMState {
         uint256 operand_
     ) internal view override {
         unchecked {
-            if (opcode_ < mathOpsStart) {
-                BlockOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - blockOpsStart,
-                    operand_
-                );
-            } else {
-                MathOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - mathOpsStart,
-                    operand_
-                );
-            }
+            LogicOps.applyOp(
+                context_,
+                state_,
+                opcode_ - logicOpsStart,
+                operand_
+            );
         }
     }
 

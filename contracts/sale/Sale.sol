@@ -9,6 +9,9 @@ import {MathOps} from "../vm/ops/MathOps.sol";
 import {LogicOps} from "../vm/ops/LogicOps.sol";
 import {SenderOps} from "../vm/ops/SenderOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
+import {IERC20Ops} from "../vm/ops/IERC20Ops.sol";
+import {IERC721Ops} from "../vm/ops/IERC721Ops.sol";
+import {IERC1155Ops} from "../vm/ops/IERC1155Ops.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
@@ -45,6 +48,7 @@ struct SaleRedeemableERC20Config {
     ERC20Config erc20Config;
     address tier;
     uint256 minimumTier;
+    address distributionEndForwardingAddress;
 }
 
 struct BuyConfig {
@@ -63,7 +67,15 @@ struct Receipt {
     uint256 price;
 }
 
-contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
+// solhint-disable-next-line max-states-count
+contract Sale is
+    Initializable,
+    Cooldown,
+    RainVM,
+    VMState,
+    ISale,
+    ReentrancyGuard
+{
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -85,13 +97,19 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     uint256 private constant CURRENT_BUY_UNITS = 5;
 
-    uint256 internal constant LOCAL_OPS_LENGTH = 6;
+    uint256 private constant TOKEN_ADDRESS = 6;
+    uint256 private constant RESERVE_ADDRESS = 7;
+
+    uint256 internal constant LOCAL_OPS_LENGTH = 8;
 
     uint256 private immutable blockOpsStart;
     uint256 private immutable senderOpsStart;
     uint256 private immutable logicOpsStart;
     uint256 private immutable mathOpsStart;
     uint256 private immutable tierOpsStart;
+    uint256 private immutable ierc20OpsStart;
+    uint256 private immutable ierc721OpsStart;
+    uint256 private immutable ierc1155OpsStart;
     uint256 private immutable localOpsStart;
 
     RedeemableERC20Factory private immutable redeemableERC20Factory;
@@ -129,7 +147,10 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         logicOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
         mathOpsStart = logicOpsStart + LogicOps.OPS_LENGTH;
         tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
-        localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        ierc20OpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        ierc721OpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
+        ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
+        localOpsStart = ierc1155OpsStart + IERC1155Ops.OPS_LENGTH;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
 
@@ -142,17 +163,29 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     ) external initializer {
         initializeCooldown(config_.cooldownDuration);
 
-        canStartStatePointer = VMState.snapshot(
-            VMState.newState(config_.canStartStateConfig)
+        canStartStatePointer = _snapshot(
+            _newState(config_.canStartStateConfig)
         );
-        canEndStatePointer = VMState.snapshot(
-            VMState.newState(config_.canEndStateConfig)
-        );
-        calculatePriceStatePointer = VMState.snapshot(
-            VMState.newState(config_.calculatePriceStateConfig)
+        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
+        calculatePriceStatePointer = _snapshot(
+            _newState(config_.calculatePriceStateConfig)
         );
         recipient = config_.recipient;
+
+        // If the raise really does have a minimum of `0` and `0` trading
+        // happens then the raise will be considered a "success", burning all
+        // rTKN, which would trap any escrowed or deposited funds that nobody
+        // can retrieve as nobody holds any rTKN.
+        // If you want `0` or very low minimum raise consider enabling rTKN
+        // forwarding for unsold inventory.
+        if (
+            saleRedeemableERC20Config_.distributionEndForwardingAddress ==
+            address(0)
+        ) {
+            require(config_.minimumRaise > 0, "MIN_RAISE_0");
+        }
         minimumRaise = config_.minimumRaise;
+
         dustSize = config_.dustSize;
         // just making this explicit.
         _saleStatus = SaleStatus.Pending;
@@ -166,7 +199,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                         address(config_.reserve),
                         saleRedeemableERC20Config_.erc20Config,
                         saleRedeemableERC20Config_.tier,
-                        saleRedeemableERC20Config_.minimumTier
+                        saleRedeemableERC20Config_.minimumTier,
+                        saleRedeemableERC20Config_
+                            .distributionEndForwardingAddress
                     )
                 )
             )
@@ -194,13 +229,13 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     }
 
     function canStart() public view returns (bool) {
-        State memory state_ = VMState.restore(canStartStatePointer);
+        State memory state_ = _restore(canStartStatePointer);
         eval("", state_, 0);
         return state_.stack[state_.stackIndex - 1] > 0;
     }
 
     function canEnd() public view returns (bool) {
-        State memory state_ = VMState.restore(canEndStatePointer);
+        State memory state_ = _restore(canEndStatePointer);
         eval("", state_, 0);
         return state_.stack[state_.stackIndex - 1] > 0;
     }
@@ -217,18 +252,14 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         require(remainingUnits < 1 || canEnd(), "CANT_END");
 
         remainingUnits = 0;
-        address[] memory distributors_ = new address[](1);
-        distributors_[0] = address(this);
 
         bool success_ = totalReserveIn >= minimumRaise;
-        SaleStatus endStatus_ = success_
-            ? SaleStatus.Success
-            : SaleStatus.Fail;
+        SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
         emit End(msg.sender, endStatus_);
         _saleStatus = endStatus_;
 
         // Always burn the undistributed tokens.
-        _token.burnDistributors(distributors_);
+        _token.endDistribution(address(this));
 
         // Only send reserve to recipient if the raise is a success.
         if (success_) {
@@ -237,7 +268,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     }
 
     function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = VMState.restore(calculatePriceStatePointer);
+        State memory state_ = _restore(calculatePriceStatePointer);
         eval(abi.encode(units_), state_, 0);
 
         return state_.stack[state_.stackIndex - 1];
@@ -306,7 +337,13 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         emit Buy(msg.sender, config_, receipt_);
     }
 
-    function refundCooldown() private onlyAfterCooldown {}
+    function refundCooldown()
+        private
+        onlyAfterCooldown
+    // solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 
     function refund(Receipt calldata receipt_) external {
         require(_saleStatus != SaleStatus.Success, "REFUND_SUCCESS");
@@ -377,11 +414,32 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                     opcode_ - mathOpsStart,
                     operand_
                 );
-            } else if (opcode_ < localOpsStart) {
+            } else if (opcode_ < ierc20OpsStart) {
                 TierOps.applyOp(
                     context_,
                     state_,
                     opcode_ - tierOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < ierc721OpsStart) {
+                IERC20Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc20OpsStart,
+                    operand_
+                );
+            } else if (opcode_ < ierc1155OpsStart) {
+                IERC721Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc721OpsStart,
+                    operand_
+                );
+            } else if (opcode_ < localOpsStart) {
+                IERC1155Ops.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - ierc1155OpsStart,
                     operand_
                 );
             } else {
@@ -400,6 +458,14 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                 } else if (opcode_ == CURRENT_BUY_UNITS) {
                     uint256 units_ = abi.decode(context_, (uint256));
                     state_.stack[state_.stackIndex] = units_;
+                } else if (opcode_ == TOKEN_ADDRESS) {
+                    state_.stack[state_.stackIndex] = uint256(
+                        uint160(address(_token))
+                    );
+                } else if (opcode_ == RESERVE_ADDRESS) {
+                    state_.stack[state_.stackIndex] = uint256(
+                        uint160(address(_reserve))
+                    );
                 }
                 state_.stackIndex++;
             }

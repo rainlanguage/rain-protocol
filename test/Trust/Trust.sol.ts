@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers, artifacts } from "hardhat";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
-import type { Trust } from "../../typechain/Trust";
+import type { NoticeEvent, Trust } from "../../typechain/Trust";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../Util";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
@@ -14,9 +13,7 @@ import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import type { SeedERC20 } from "../../typechain/SeedERC20";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Tier {
   NIL,
@@ -528,9 +525,14 @@ describe("Trust", async function () {
     const message = "foo";
     const notice = hexlify([...Buffer.from(message)]);
 
-    await expect(trust.connect(signer1).sendNotice(notice))
-      .to.emit(trust, "Notice")
-      .withArgs(signer1.address, notice);
+    const event0 = (await Util.getEventArgs(
+      await trust.connect(signer1).sendNotice(notice),
+      "Notice",
+      trust
+    )) as NoticeEvent["args"];
+
+    assert(event0.sender === signer1.address, "wrong sender in event0");
+    assert(event0.data === notice, "wrong data in event0");
   });
 
   it("should burn token dust when closing pool", async function () {
@@ -3516,7 +3518,7 @@ describe("Trust", async function () {
     const reserveInit = ethers.BigNumber.from("100000" + Util.sixZeros);
     const redeemInit = ethers.BigNumber.from("100000" + Util.sixZeros);
     const initialValuation = ethers.BigNumber.from("1000000" + Util.sixZeros);
-    const minimumCreatorRaise = ethers.BigNumber.from("0");
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
 
     const seederFee = ethers.BigNumber.from("0");
     const seederCooldownDuration = 0;

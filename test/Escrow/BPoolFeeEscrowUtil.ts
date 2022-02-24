@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as Util from "../Util";
 import { ethers } from "hardhat";
-import type { BPoolFeeEscrow } from "../../typechain/BPoolFeeEscrow";
+import type { BPoolFeeEscrow, FeeEvent } from "../../typechain/BPoolFeeEscrow";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
@@ -9,7 +9,7 @@ import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { BigNumber, Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { getAddress } from "ethers/lib/utils";
-import { expect } from "chai";
+import { assert } from "chai";
 
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 const escrowJson = require("../../artifacts/contracts/escrow/BPoolFeeEscrow.sol/BPoolFeeEscrow.json");
@@ -224,14 +224,16 @@ export const successfulRaise = async (
       );
 
     // Fee event
-    await expect(buyTokenPromise)
-      .to.emit(bPoolFeeEscrow, "Fee")
-      .withArgs(
-        signer.address,
-        recipient.address,
-        getAddress(trust.address),
-        fee
-      );
+    const event0 = (await Util.getEventArgs(
+      await buyTokenPromise,
+      "Fee",
+      bPoolFeeEscrow
+    )) as FeeEvent["args"];
+
+    assert(event0.sender === signer.address, "wrong sender in event0");
+    assert(event0.recipient === recipient.address, "wrong recipient in event0");
+    assert(event0.trust === getAddress(trust.address), "wrong trust in event0");
+    assert(event0.fee.eq(fee), "wrong fee in event0");
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
@@ -320,14 +322,16 @@ export const failedRaise = async (
       );
 
     // Fee event
-    await expect(buyTokenPromise)
-      .to.emit(bPoolFeeEscrow, "Fee")
-      .withArgs(
-        signer1.address,
-        recipient.address,
-        getAddress(trust.address),
-        fee
-      );
+    const event0 = (await Util.getEventArgs(
+      await buyTokenPromise,
+      "Fee",
+      bPoolFeeEscrow
+    )) as FeeEvent["args"];
+
+    assert(event0.sender === signer.address, "wrong sender in event0");
+    assert(event0.recipient === recipient.address, "wrong recipient in event0");
+    assert(event0.trust === getAddress(trust.address), "wrong trust in event0");
+    assert(event0.fee.eq(fee), "wrong fee in event0");
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);

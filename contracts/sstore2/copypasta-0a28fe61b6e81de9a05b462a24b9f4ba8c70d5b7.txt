@@ -1,0 +1,5 @@
+This was all copied and pasted from https://github.com/0xsequence/sstore2.
+
+See https://github.com/0xsequence/sstore2/issues/2 for more info.
+
+Master was at commit `0a28fe61b6e81de9a05b462a24b9f4ba8c70d5b7`.

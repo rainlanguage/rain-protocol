@@ -1,13 +1,19 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain/Verify";
+import type {
+  ApproveEvent,
+  BanEvent,
+  RemoveEvent,
+  RequestApproveEvent,
+  RequestBanEvent,
+  RequestRemoveEvent,
+  Verify,
+} from "../../typechain/Verify";
 import { max_uint32 } from "../Util";
 import { hexlify } from "ethers/lib/utils";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Status {
   Nil,
@@ -115,11 +121,14 @@ describe("Verify", async function () {
     await verify.connect(approver).approve(signer2.address, evidenceApprove1);
 
     // signer2 requests ban of signer1 account
-    await expect(
-      verify.connect(signer2).requestBan(signer1.address, evidenceBanReq)
-    )
-      .to.emit(verify, "RequestBan")
-      .withArgs(signer2.address, signer1.address, evidenceBanReq);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(signer2).requestBan(signer1.address, evidenceBanReq),
+      "RequestBan",
+      verify
+    )) as RequestBanEvent["args"];
+    assert(event0.sender === signer2.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceBanReq, "wrong data in event0");
   });
 
   it("should allow anyone to submit data to support a request to remove an account", async function () {
@@ -207,11 +216,16 @@ describe("Verify", async function () {
     await verify.connect(approver).approve(signer2.address, evidenceApprove1);
 
     // signer2 requests removal of signer1 account
-    await expect(
-      verify.connect(signer2).requestRemove(signer1.address, evidenceRemoveReq)
-    )
-      .to.emit(verify, "RequestRemove")
-      .withArgs(signer2.address, signer1.address, evidenceRemoveReq);
+    const event0 = (await Util.getEventArgs(
+      await verify
+        .connect(signer2)
+        .requestRemove(signer1.address, evidenceRemoveReq),
+      "RequestRemove",
+      verify
+    )) as RequestRemoveEvent["args"];
+    assert(event0.sender === signer2.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceRemoveReq, "wrong data in event0");
   });
 
   it("should not grant banner ability to approve or remove if they only have BANNER role", async function () {
@@ -845,14 +859,6 @@ describe("Verify", async function () {
 
     await Util.assertError(
       async () =>
-        await verify
-          .connect(approver)
-          .approve(signer1.address, evidenceApprove),
-      "NOT_ADDED",
-      "wrongly approved when Status equals Nil"
-    );
-    await Util.assertError(
-      async () =>
         await verify.connect(banner).ban(signer1.address, evidenceBan),
       "NOT_ADDED",
       "wrongly banned when Status equals Nil"
@@ -1127,9 +1133,13 @@ describe("Verify", async function () {
     const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
 
     // signer1 submits evidence
-    await expect(verify.connect(signer1).add(evidenceAdd))
-      .to.emit(verify, "RequestApprove")
-      .withArgs(signer1.address, evidenceAdd);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(signer1).add(evidenceAdd),
+      "RequestApprove",
+      verify
+    )) as RequestApproveEvent["args"];
+    assert(event0.sender === signer1.address, "wrong sender in event0");
+    assert(event0.data === evidenceAdd, "wrong data in event0");
 
     const state0 = await verify.state(signer1.address);
 
@@ -1153,6 +1163,92 @@ describe("Verify", async function () {
         `state not equivalent at position ${index}. Left ${propertyLeft}, Right ${propertyRight}`
       );
     }
+  });
+
+  it("should allow approver to automatically add an account that hasn't been added yet while approving it", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    const aprAdmin = signers[1];
+    const signer1 = signers[2];
+    const approver = signers[3];
+    const nonApprover = signers[4];
+
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
+
+    // defaultAdmin grants admin role
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.DEFAULT_ADMIN_ROLE(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // approver admin grants approver role
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+
+    // const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceApprove = hexlify([...Buffer.from("Evidence for approve")]);
+
+    // await verify.connect(signer1).add(evidenceAdd);
+
+    // prevent approving zero address
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(approver)
+          .approve(Util.zeroAddress, evidenceApprove),
+      "0_ADDRESS",
+      "wrongly approved account with address of 0"
+    );
+
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(nonApprover)
+          .approve(signer1.address, evidenceApprove),
+      "ONLY_APPROVER",
+      "non-approver wrongly approved account"
+    );
+
+    // approve account
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(approver).approve(signer1.address, evidenceApprove),
+      "Approve",
+      verify
+    )) as ApproveEvent["args"];
+    assert(event0.sender === approver.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceApprove, "wrong data in event0");
+
+    // check that signer1 has been approved
+    const stateApproved = await verify.state(signer1.address);
+
+    assert(
+      stateApproved.approvedSince === (await ethers.provider.getBlockNumber()),
+      `not approved
+      expected  ${await ethers.provider.getBlockNumber()}
+      got       ${stateApproved.approvedSince}`
+    );
   });
 
   it("should allow only approver to approve accounts", async function () {
@@ -1221,11 +1317,14 @@ describe("Verify", async function () {
     );
 
     // approve account
-    await expect(
-      verify.connect(approver).approve(signer1.address, evidenceApprove)
-    )
-      .to.emit(verify, "Approve")
-      .withArgs(approver.address, signer1.address, evidenceApprove);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(approver).approve(signer1.address, evidenceApprove),
+      "Approve",
+      verify
+    )) as ApproveEvent["args"];
+    assert(event0.sender === approver.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceApprove, "wrong data in event0");
 
     // check that signer1 has been approved
     const stateApproved = await verify.state(signer1.address);
@@ -1299,11 +1398,14 @@ describe("Verify", async function () {
     );
 
     // admin removes account
-    await expect(
-      verify.connect(remover).remove(signer1.address, evidenceRemove)
-    )
-      .to.emit(verify, "Remove")
-      .withArgs(remover.address, signer1.address, evidenceRemove);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(remover).remove(signer1.address, evidenceRemove),
+      "Remove",
+      verify
+    )) as RemoveEvent["args"];
+    assert(event0.sender === remover.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceRemove, "wrong data in event0");
 
     // check that signer1 has been removed
     const stateRemoved = await verify.state(signer1.address);
@@ -1374,9 +1476,14 @@ describe("Verify", async function () {
     );
 
     // admin bans account
-    await expect(verify.connect(banner).ban(signer1.address, evidenceBan))
-      .to.emit(verify, "Ban")
-      .withArgs(banner.address, signer1.address, evidenceBan);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(banner).ban(signer1.address, evidenceBan),
+      "Ban",
+      verify
+    )) as BanEvent["args"];
+    assert(event0.sender === banner.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceBan, "wrong data in event0");
 
     // check that signer1 has been banned
     const stateBanned = await verify.state(signer1.address);
