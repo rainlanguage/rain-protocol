@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
+import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
 import {BlockOps} from "../vm/ops/BlockOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
@@ -77,6 +78,7 @@ contract Sale is
     ReentrancyGuard
 {
     using Math for uint256;
+    using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
 
     event Construct(address sender, SaleConstructorConfig config);
@@ -85,8 +87,6 @@ contract Sale is
     event End(address sender, SaleStatus saleStatus);
     event Buy(address sender, BuyConfig config_, Receipt receipt);
     event Refund(address sender, Receipt receipt);
-
-    uint256 private constant PRICE_ONE = 10**18;
 
     uint256 private constant REMAINING_UNITS = 0;
     uint256 private constant TOTAL_RESERVE_IN = 1;
@@ -295,7 +295,7 @@ contract Sale is
         uint256 price_ = calculatePrice(units_);
 
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
-        uint256 cost_ = (price_ * units_) / PRICE_ONE;
+        uint256 cost_ = price_.fixedPointMul(units_);
 
         Receipt memory receipt_ = Receipt(
             nextReceiptId,
@@ -351,7 +351,7 @@ contract Sale is
         require(receipts[msg.sender][receiptKeccak_], "INVALID_RECEIPT");
         delete receipts[msg.sender][receiptKeccak_];
 
-        uint256 cost_ = (receipt_.price * receipt_.units) / PRICE_ONE;
+        uint256 cost_ = receipt_.price.fixedPointMul(receipt_.units);
 
         totalReserveIn -= cost_;
         remainingUnits += receipt_.units;

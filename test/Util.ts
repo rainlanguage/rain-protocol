@@ -531,7 +531,10 @@ export function skip(places: number, conditional = false): number {
  * @param code - the opcode
  * @param erand - the operand, currently limited to 1 byte (defaults to 0)
  */
-export function op(code: number, erand = 0): Uint8Array {
+export function op(
+  code: number,
+  erand: number | BytesLike | Hexable = 0
+): Uint8Array {
   return concat([bytify(code), bytify(erand)]);
 }
 
