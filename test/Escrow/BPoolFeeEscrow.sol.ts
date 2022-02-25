@@ -1,6 +1,5 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import {
   basicSetup,
@@ -14,7 +13,6 @@ import {
   RefundFeesEvent,
 } from "../../typechain/BPoolFeeEscrow";
 
-chai.use(solidity);
 const { assert } = chai;
 
 enum DistributionStatus {

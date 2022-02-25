@@ -1,15 +1,22 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import type { Contract } from "ethers";
-import { ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import type { ERC20BalanceTier } from "../../typechain/ERC20BalanceTier";
+import type {
+  ERC20BalanceTierFactory,
+  ImplementationEvent as ImplementationEventERC20BalanceTierFactory,
+} from "../../typechain/ERC20BalanceTierFactory";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { assertError, basicDeploy, eighteenZeros } from "../Util";
+import {
+  assertError,
+  basicDeploy,
+  eighteenZeros,
+  getEventArgs,
+  zeroAddress,
+} from "../Util";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Tier {
   ZERO,
@@ -40,15 +47,38 @@ describe("ERC20BalanceTier", async function () {
     reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
       Contract;
 
-    const erc20BalanceTierFactory = await ethers.getContractFactory(
-      "ERC20BalanceTier"
+    const erc20BalanceTierFactoryFactory = await ethers.getContractFactory(
+      "ERC20BalanceTierFactory"
     );
-    erc20BalanceTier =
-      (await erc20BalanceTierFactory.deploy()) as ERC20BalanceTier & Contract;
-    await erc20BalanceTier.initialize({
+    const erc20BalanceTierFactory =
+      (await erc20BalanceTierFactoryFactory.deploy()) as ERC20BalanceTierFactory &
+        Contract;
+    await erc20BalanceTierFactory.deployed();
+
+    const { implementation } = (await getEventArgs(
+      erc20BalanceTierFactory.deployTransaction,
+      "Implementation",
+      erc20BalanceTierFactory
+    )) as ImplementationEventERC20BalanceTierFactory["args"];
+    assert(
+      !(implementation === zeroAddress),
+      "implementation erc20BalanceTier factory zero address"
+    );
+
+    const tx = await erc20BalanceTierFactory.createChildTyped({
       erc20: reserve.address,
       tierValues: LEVELS,
     });
+    erc20BalanceTier = new ethers.Contract(
+      ethers.utils.hexZeroPad(
+        ethers.utils.hexStripZeros(
+          (await getEventArgs(tx, "NewChild", erc20BalanceTierFactory)).child
+        ),
+        20
+      ),
+      (await artifacts.readArtifact("ERC20BalanceTier")).abi,
+      owner
+    ) as ERC20BalanceTier & Contract;
 
     await erc20BalanceTier.deployed();
   });

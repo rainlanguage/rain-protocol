@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {State} from "../RainVM.sol";
-import "@0xsequence/sstore2/contracts/SSTORE2.sol";
+import "../../sstore2/SSTORE2.sol";
 
 /// Config required to build a new `State`.
 struct StateConfig {

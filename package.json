@@ -30,7 +30,6 @@
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@typechain/ethers-v5": "^8.0.5",
     "@typechain/hardhat": "^3.0.0",
     "@types/mocha": "^8.2.0",
@@ -55,7 +54,6 @@
     "typechain": "^6.0.2"
   },
   "dependencies": {
-    "@0xsequence/sstore2": "git+https://github.com/0xsequence/sstore2.git#b9233bcf1bbbbed37f9029e0355ac3026cd3563b",
     "@beehiveinnovation/balancer-core": "0.0.7",
     "@beehiveinnovation/configurable-rights-pool": "0.0.1",
     "@openzeppelin/contracts": "^4.3.3",
