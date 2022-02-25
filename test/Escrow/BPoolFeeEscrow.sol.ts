@@ -9,9 +9,13 @@ import {
   successfulRaise,
 } from "./BPoolFeeEscrowUtil";
 import { getAddress } from "ethers/lib/utils";
+import {
+  ClaimFeesEvent,
+  RefundFeesEvent,
+} from "../../typechain/BPoolFeeEscrow";
 
 chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum DistributionStatus {
   PENDING,
@@ -134,22 +138,26 @@ describe("BPoolFeeEscrow", async function () {
       redeemableERC20.address
     );
 
-    // const totalRefund = await bPoolFeeEscrow.totalFees(trust.address);
-
     // anyone can trigger refund.
-    const refundFeesPromise = bPoolFeeEscrow
+    const refundFeesTx = await bPoolFeeEscrow
       .connect(signer1)
       .refundFees(trust.address);
 
     // RefundFees event
-    await expect(refundFeesPromise)
-      .to.emit(bPoolFeeEscrow, "RefundFees")
-      .withArgs(
-        signer1.address,
-        getAddress(trust.address),
-        // totalRefund
-        10000000
-      );
+    const event = (await Util.getEventArgs(
+      refundFeesTx,
+      "RefundFees",
+      bPoolFeeEscrow
+    )) as RefundFeesEvent["args"];
+
+    assert(event.sender === signer1.address, "wrong sender");
+    assert(event.trust === getAddress(trust.address), "wrong trust");
+    assert(event.reserve === getAddress(reserve.address), "wrong reserve");
+    assert(
+      event.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(event.refundedFees.eq(10000000), "wrong refundedFees");
 
     const reserveRedeemableERC20_2 = await reserve.balanceOf(
       redeemableERC20.address
@@ -215,16 +223,6 @@ describe("BPoolFeeEscrow", async function () {
       "raise wasn't successful"
     );
 
-    // check fees are registered for trust and recipient
-    // const recipientFees1 = await bPoolFeeEscrow.fees(
-    //   trust.address,
-    //   recipient.address
-    // );
-    // assert(
-    //   recipientFees1.eq(fee.mul(buyCount)),
-    //   "wrong registered fee amount for trust and recipient"
-    // );
-
     // Attempting refund on successful raise should revert
     await Util.assertError(
       async () =>
@@ -233,37 +231,24 @@ describe("BPoolFeeEscrow", async function () {
       "wrongly refunded fees after successful raise"
     );
 
-    // const claimableFee = await bPoolFeeEscrow.fees(
-    //   trust.address,
-    //   recipient.address
-    // );
-
-    const claimFeesPromise = bPoolFeeEscrow
+    const claimFeesTx = await bPoolFeeEscrow
       .connect(recipient)
       .claimFees(recipient.address, trust.address);
 
     // ClaimFees event
-    await expect(claimFeesPromise)
-      .to.emit(bPoolFeeEscrow, "ClaimFees")
-      .withArgs(
-        recipient.address,
-        recipient.address,
-        getAddress(trust.address),
-        // claimableFee
-        90000000
-      );
+    const event = (await Util.getEventArgs(
+      claimFeesTx,
+      "ClaimFees",
+      bPoolFeeEscrow
+    )) as ClaimFeesEvent["args"];
+
+    assert(event.sender === recipient.address, "wrong sender");
+    assert(event.recipient === recipient.address, "wrong recipient");
+    assert(event.trust === getAddress(trust.address), "wrong trust");
+    assert(event.reserve === getAddress(reserve.address), "wrong reserve");
+    assert(event.claimedFees.eq(90000000), "wrong claimed fees");
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
-
-    // check fees are deleted for trust and recipient
-    // const recipientFees2 = await bPoolFeeEscrow.fees(
-    //   trust.address,
-    //   recipient.address
-    // );
-    // assert(
-    //   recipientFees2.isZero(),
-    //   "did not delete fee amount for trust and recipient"
-    // );
 
     // recipient should have claimed fees after calling `claimFees` after successful raise
     assert(

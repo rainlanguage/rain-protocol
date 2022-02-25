@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as Util from "../Util";
 import { ethers } from "hardhat";
-import type { BPoolFeeEscrow } from "../../typechain/BPoolFeeEscrow";
+import type { BPoolFeeEscrow, FeeEvent } from "../../typechain/BPoolFeeEscrow";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
@@ -9,7 +9,7 @@ import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { BigNumber, Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { getAddress } from "ethers/lib/utils";
-import { expect } from "chai";
+import { assert, expect } from "chai";
 
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 const escrowJson = require("../../artifacts/contracts/escrow/BPoolFeeEscrow.sol/BPoolFeeEscrow.json");
@@ -212,7 +212,7 @@ export const successfulRaise = async (
       .connect(signer)
       .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-    const buyTokenPromise = bPoolFeeEscrow
+    const buyTokenTx = await bPoolFeeEscrow
       .connect(signer)
       .buyToken(
         recipient.address,
@@ -224,14 +224,21 @@ export const successfulRaise = async (
       );
 
     // Fee event
-    await expect(buyTokenPromise)
-      .to.emit(bPoolFeeEscrow, "Fee")
-      .withArgs(
-        signer.address,
-        recipient.address,
-        getAddress(trust.address),
-        fee
-      );
+    const event = (await Util.getEventArgs(
+      buyTokenTx,
+      "Fee",
+      bPoolFeeEscrow
+    )) as FeeEvent["args"];
+
+    assert(event.sender === signer.address, "wrong sender");
+    assert(event.recipient === recipient.address, "wrong recipient");
+    assert(event.trust === getAddress(trust.address), "wrong trust");
+    assert(event.reserve === getAddress(reserve.address), "wrong reserve");
+    assert(
+      event.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(event.fee.eq(fee), "wrong fee");
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
@@ -308,7 +315,7 @@ export const failedRaise = async (
       .connect(signer)
       .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-    const buyTokenPromise = bPoolFeeEscrow
+    const buyTokenTx = await bPoolFeeEscrow
       .connect(signer)
       .buyToken(
         recipient.address,
@@ -320,14 +327,21 @@ export const failedRaise = async (
       );
 
     // Fee event
-    await expect(buyTokenPromise)
-      .to.emit(bPoolFeeEscrow, "Fee")
-      .withArgs(
-        signer1.address,
-        recipient.address,
-        getAddress(trust.address),
-        fee
-      );
+    const event = (await Util.getEventArgs(
+      buyTokenTx,
+      "Fee",
+      bPoolFeeEscrow
+    )) as FeeEvent["args"];
+
+    assert(event.sender === signer.address, "wrong sender");
+    assert(event.recipient === recipient.address, "wrong recipient");
+    assert(event.trust === getAddress(trust.address), "wrong trust");
+    assert(event.reserve === getAddress(reserve.address), "wrong reserve");
+    assert(
+      event.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(event.fee.eq(fee), "wrong fee");
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
