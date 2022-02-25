@@ -57,6 +57,20 @@ module.exports = {
           includeCurrentVersion: false,
           exclude: ["**/*/test/**/*.md"],
           sidebarPath: require.resolve("./sidebars.js"),
+          async sidebarItemsGenerator({
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            isCategoryIndex: defaultCategoryIndexMatcher, // The default matcher implementation, given below
+            defaultSidebarItemsGenerator,
+            ...args
+          }) {
+            return defaultSidebarItemsGenerator({
+              isCategoryIndex() {
+                // No doc will be automatically picked as category index
+                return false;
+              },
+              ...args,
+            });
+          },
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),

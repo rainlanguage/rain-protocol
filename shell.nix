@@ -191,6 +191,6 @@ pkgs.stdenv.mkDerivation {
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
-    npm install --prefix docusaurus
+    npm install --prefix docusaurus --legacy-peer-deps
   '';
 }
