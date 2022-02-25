@@ -1,13 +1,19 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain/Verify";
+import type {
+  ApproveEvent,
+  BanEvent,
+  RemoveEvent,
+  RequestApproveEvent,
+  RequestBanEvent,
+  RequestRemoveEvent,
+  Verify,
+} from "../../typechain/Verify";
 import { max_uint32 } from "../Util";
 import { hexlify } from "ethers/lib/utils";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Status {
   Nil,
@@ -31,13 +37,7 @@ const BANNER_ADMIN = ethers.utils.keccak256(
 );
 const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
-let verifyFactory;
-
 describe("Verify", async function () {
-  before(async () => {
-    verifyFactory = await ethers.getContractFactory("Verify");
-  });
-
   it("should allow anyone to submit data to support a request to ban an account", async function () {
     this.timeout(0);
 
@@ -55,7 +55,10 @@ describe("Verify", async function () {
     const signer1 = signers[7];
     const signer2 = signers[8];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -118,11 +121,14 @@ describe("Verify", async function () {
     await verify.connect(approver).approve(signer2.address, evidenceApprove1);
 
     // signer2 requests ban of signer1 account
-    await expect(
-      verify.connect(signer2).requestBan(signer1.address, evidenceBanReq)
-    )
-      .to.emit(verify, "RequestBan")
-      .withArgs(signer2.address, signer1.address, evidenceBanReq);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(signer2).requestBan(signer1.address, evidenceBanReq),
+      "RequestBan",
+      verify
+    )) as RequestBanEvent["args"];
+    assert(event0.sender === signer2.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceBanReq, "wrong data in event0");
   });
 
   it("should allow anyone to submit data to support a request to remove an account", async function () {
@@ -142,7 +148,10 @@ describe("Verify", async function () {
     const signer1 = signers[7];
     const signer2 = signers[8];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -207,11 +216,16 @@ describe("Verify", async function () {
     await verify.connect(approver).approve(signer2.address, evidenceApprove1);
 
     // signer2 requests removal of signer1 account
-    await expect(
-      verify.connect(signer2).requestRemove(signer1.address, evidenceRemoveReq)
-    )
-      .to.emit(verify, "RequestRemove")
-      .withArgs(signer2.address, signer1.address, evidenceRemoveReq);
+    const event0 = (await Util.getEventArgs(
+      await verify
+        .connect(signer2)
+        .requestRemove(signer1.address, evidenceRemoveReq),
+      "RequestRemove",
+      verify
+    )) as RequestRemoveEvent["args"];
+    assert(event0.sender === signer2.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceRemoveReq, "wrong data in event0");
   });
 
   it("should not grant banner ability to approve or remove if they only have BANNER role", async function () {
@@ -230,7 +244,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -303,7 +320,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -376,7 +396,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -445,7 +468,10 @@ describe("Verify", async function () {
     const rmvAdmin1 = signers[5];
     const banAdmin1 = signers[6];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
@@ -492,7 +518,10 @@ describe("Verify", async function () {
     const rmvAdmin1 = signers[5];
     const banAdmin1 = signers[6];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
@@ -585,7 +614,10 @@ describe("Verify", async function () {
     const remover = signers[5];
     const banner = signers[6];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -638,7 +670,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -782,7 +817,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -873,9 +911,10 @@ describe("Verify", async function () {
 
   it("should require non-zero admin address", async function () {
     this.timeout(0);
+    const signers = await ethers.getSigners();
 
     await Util.assertError(
-      async () => await verifyFactory.deploy(Util.zeroAddress),
+      async () => await Util.verifyDeploy(signers[0], Util.zeroAddress),
       "0_ACCOUNT",
       "wrongly constructed Verify with admin as zero address"
     );
@@ -897,7 +936,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -1059,7 +1101,10 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const defaultAdmin = signers[0];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     assert(
       (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
@@ -1088,14 +1133,21 @@ describe("Verify", async function () {
     const signer1 = signers[1];
     const signer2 = signers[2];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
 
     // signer1 submits evidence
-    await expect(verify.connect(signer1).add(evidenceAdd))
-      .to.emit(verify, "RequestApprove")
-      .withArgs(signer1.address, evidenceAdd);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(signer1).add(evidenceAdd),
+      "RequestApprove",
+      verify
+    )) as RequestApproveEvent["args"];
+    assert(event0.sender === signer1.address, "wrong sender in event0");
+    assert(event0.data === evidenceAdd, "wrong data in event0");
 
     const state0 = await verify.state(signer1.address);
 
@@ -1131,7 +1183,10 @@ describe("Verify", async function () {
     const approver = signers[3];
     const nonApprover = signers[4];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -1184,11 +1239,14 @@ describe("Verify", async function () {
     );
 
     // approve account
-    await expect(
-      verify.connect(approver).approve(signer1.address, evidenceApprove)
-    )
-      .to.emit(verify, "Approve")
-      .withArgs(approver.address, signer1.address, evidenceApprove);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(approver).approve(signer1.address, evidenceApprove),
+      "Approve",
+      verify
+    )) as ApproveEvent["args"];
+    assert(event0.sender === approver.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceApprove, "wrong data in event0");
 
     // check that signer1 has been approved
     const stateApproved = await verify.state(signer1.address);
@@ -1208,7 +1266,10 @@ describe("Verify", async function () {
     const remover = signers[3];
     const nonRemover = signers[4];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
@@ -1259,11 +1320,14 @@ describe("Verify", async function () {
     );
 
     // admin removes account
-    await expect(
-      verify.connect(remover).remove(signer1.address, evidenceRemove)
-    )
-      .to.emit(verify, "Remove")
-      .withArgs(remover.address, signer1.address, evidenceRemove);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(remover).remove(signer1.address, evidenceRemove),
+      "Remove",
+      verify
+    )) as RemoveEvent["args"];
+    assert(event0.sender === remover.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceRemove, "wrong data in event0");
 
     // check that signer1 has been removed
     const stateRemoved = await verify.state(signer1.address);
@@ -1282,7 +1346,10 @@ describe("Verify", async function () {
     const banner = signers[3];
     const nonBanner = signers[4];
 
-    const verify = (await verifyFactory.deploy(defaultAdmin.address)) as Verify;
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      defaultAdmin.address
+    )) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
@@ -1331,9 +1398,14 @@ describe("Verify", async function () {
     );
 
     // admin bans account
-    await expect(verify.connect(banner).ban(signer1.address, evidenceBan))
-      .to.emit(verify, "Ban")
-      .withArgs(banner.address, signer1.address, evidenceBan);
+    const event0 = (await Util.getEventArgs(
+      await verify.connect(banner).ban(signer1.address, evidenceBan),
+      "Ban",
+      verify
+    )) as BanEvent["args"];
+    assert(event0.sender === banner.address, "wrong sender in event0");
+    assert(event0.account === signer1.address, "wrong account in event0");
+    assert(event0.data === evidenceBan, "wrong data in event0");
 
     // check that signer1 has been banned
     const stateBanned = await verify.state(signer1.address);

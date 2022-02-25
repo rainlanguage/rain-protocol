@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 //solhint-disable-next-line max-line-length
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { TierReport } from "./libraries/TierReport.sol";
-import { ValueTier } from "./ValueTier.sol";
-import { ITier } from "./ITier.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {TierConstants} from "./libraries/TierConstants.sol";
+import {ValueTier} from "./ValueTier.sol";
+import {ITier} from "./ITier.sol";
 import "./ReadOnlyTier.sol";
 
 /// Constructor config for ERC20BalanceTier.
@@ -16,7 +18,7 @@ struct ERC20BalanceTierConfig {
     IERC20 erc20;
     /// 8 values corresponding to minimum erc20
     /// balances for tier 1 through tier 8.
-    uint[8] tierValues;
+    uint256[8] tierValues;
 }
 
 /// @title ERC20BalanceTier
@@ -45,22 +47,35 @@ struct ERC20BalanceTierConfig {
 ///   `ERC20TransferTier`.
 /// - Lightweight, realtime checks that encumber the tiered address
 ///   as little as possible.
-contract ERC20BalanceTier is ReadOnlyTier, ValueTier {
-    IERC20 public immutable erc20;
+contract ERC20BalanceTier is ReadOnlyTier, ValueTier, Initializable {
+    /// Result of initialize.
+    event Initialize(
+        /// `msg.sender` of the initialize.
+        address sender,
+        /// erc20 to check balance of.
+        address erc20
+    );
 
-    /// @param config_ Constructor config.
-    constructor(ERC20BalanceTierConfig memory config_)
-        ValueTier(config_.tierValues)
+    /// The erc20 to check balances against.
+    IERC20 internal erc20;
+
+    /// @param config_ Initialize config.
+    function initialize(ERC20BalanceTierConfig memory config_)
+        external
+        initializer
     {
+        initializeValueTier(config_.tierValues);
         erc20 = config_.erc20;
+        emit Initialize(msg.sender, address(config_.erc20));
     }
 
     /// Report simply truncates all tiers above the highest value held.
     /// @inheritdoc ITier
-    function report(address account_) public view override returns (uint) {
-        return TierReport.truncateTiersAbove(
-            TierReport.ALWAYS,
-            valueToTier(erc20.balanceOf(account_))
-        );
+    function report(address account_) public view override returns (uint256) {
+        return
+            TierReport.truncateTiersAbove(
+                TierConstants.ALWAYS,
+                valueToTier(tierValues(), erc20.balanceOf(account_))
+            );
     }
 }

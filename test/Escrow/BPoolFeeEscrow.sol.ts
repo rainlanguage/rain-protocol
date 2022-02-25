@@ -1,6 +1,5 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import {
   basicSetup,
@@ -9,9 +8,12 @@ import {
   successfulRaise,
 } from "./BPoolFeeEscrowUtil";
 import { getAddress } from "ethers/lib/utils";
+import {
+  ClaimFeesEvent,
+  RefundFeesEvent,
+} from "../../typechain/BPoolFeeEscrow";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum DistributionStatus {
   PENDING,
@@ -28,12 +30,11 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, tier, seedERC20Factory } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
     const { recipient, trust, bPoolFeeEscrow } = await basicSetup(
       signers,
       trustFactory,
-      seedERC20Factory,
       tier
     );
 
@@ -54,75 +55,12 @@ describe("BPoolFeeEscrow", async function () {
     );
   });
 
-  it("should revert if unknown trust is claimed against", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const { trustFactory, tier, seedERC20Factory } = await deployGlobals();
-    const { trustFactory: trustFactory2 } = await deployGlobals();
-
-    const { recipient, trust, bPoolFeeEscrow } = await successfulRaise(
-      signers,
-      trustFactory,
-      seedERC20Factory,
-      tier
-    );
-
-    const { trust: unknownTrust } = await successfulRaise(
-      signers,
-      trustFactory2,
-      seedERC20Factory,
-      tier
-    );
-
-    const fees0 = await bPoolFeeEscrow.fees(trust.address, recipient.address);
-    const feesUnknown0 = await bPoolFeeEscrow.fees(
-      unknownTrust.address,
-      recipient.address
-    );
-    const totalFees0 = await bPoolFeeEscrow.totalFees(trust.address);
-    const totalFeesUnknown0 = await bPoolFeeEscrow.totalFees(
-      unknownTrust.address
-    );
-
-    await Util.assertError(
-      async () =>
-        await bPoolFeeEscrow.connect(recipient).claimFees(
-          recipient.address,
-          unknownTrust.address // unknown trust created by different trust factory
-        ),
-      "NOT_TRUSTED_CHILD",
-      "wrongly claimed fees against unknown trust"
-    );
-
-    const fees1 = await bPoolFeeEscrow.fees(trust.address, recipient.address);
-    const feesUnknown1 = await bPoolFeeEscrow.fees(
-      unknownTrust.address,
-      recipient.address
-    );
-    const totalFees1 = await bPoolFeeEscrow.totalFees(trust.address);
-    const totalFeesUnknown1 = await bPoolFeeEscrow.totalFees(
-      unknownTrust.address
-    );
-
-    const beforeState = [fees0, feesUnknown0, totalFees0, totalFeesUnknown0];
-    const afterState = [fees1, feesUnknown1, totalFees1, totalFeesUnknown1];
-
-    for (let i = 0; i < beforeState.length; i++) {
-      const before = beforeState[i];
-      const after = afterState[i];
-
-      assert(before.eq(after), `${before} did not match ${after}, index ${i}`);
-    }
-  });
-
   it("should refund fees (via token contract) upon failed raise", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, tier, seedERC20Factory } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
     const {
       reserve,
@@ -132,7 +70,8 @@ describe("BPoolFeeEscrow", async function () {
       minimumTradingDuration,
       redeemableERC20,
       bPoolFeeEscrow,
-    } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+      bPool,
+    } = await basicSetup(signers, trustFactory, tier);
 
     const startBlock = await ethers.provider.getBlockNumber();
 
@@ -197,17 +136,26 @@ describe("BPoolFeeEscrow", async function () {
       redeemableERC20.address
     );
 
-    const totalRefund = await bPoolFeeEscrow.totalFees(trust.address);
-
     // anyone can trigger refund.
-    const refundFeesPromise = bPoolFeeEscrow
+    const refundFeesTx = await bPoolFeeEscrow
       .connect(signer1)
       .refundFees(trust.address);
 
     // RefundFees event
-    await expect(refundFeesPromise)
-      .to.emit(bPoolFeeEscrow, "RefundFees")
-      .withArgs(signer1.address, getAddress(trust.address), totalRefund);
+    const event = (await Util.getEventArgs(
+      refundFeesTx,
+      "RefundFees",
+      bPoolFeeEscrow
+    )) as RefundFeesEvent["args"];
+
+    assert(event.sender === signer1.address, "wrong sender");
+    assert(event.trust === getAddress(trust.address), "wrong trust");
+    assert(event.reserve === getAddress(reserve.address), "wrong reserve");
+    assert(
+      event.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(event.refundedFees.eq(10000000), "wrong refundedFees");
 
     const reserveRedeemableERC20_2 = await reserve.balanceOf(
       redeemableERC20.address
@@ -241,9 +189,13 @@ describe("BPoolFeeEscrow", async function () {
 
     const signer1Reserve_2 = await reserve.balanceOf(signer1.address);
 
+    const poolDust = await reserve.balanceOf(bPool.address);
+
     assert(
-      signer1Reserve_2.eq(spend.add(fee)),
-      "signer1 should get full refund (spend AND fee from escrow contract)"
+      signer1Reserve_2.eq(spend.add(fee).sub(poolDust)),
+      `signer1 should get full refund (spend AND fee from escrow contract)
+      expected  ${spend.add(fee).sub(poolDust)}
+      got       ${signer1Reserve_2}`
     );
   });
 
@@ -252,7 +204,7 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, seedERC20Factory, tier } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
     const {
       reserve,
@@ -262,21 +214,11 @@ describe("BPoolFeeEscrow", async function () {
       bPoolFeeEscrow,
       fee,
       buyCount,
-    } = await successfulRaise(signers, trustFactory, seedERC20Factory, tier);
+    } = await successfulRaise(signers, trustFactory, tier);
 
     assert(
       (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
       "raise wasn't successful"
-    );
-
-    // check fees are registered for trust and recipient
-    const recipientFees1 = await bPoolFeeEscrow.fees(
-      trust.address,
-      recipient.address
-    );
-    assert(
-      recipientFees1.eq(fee.mul(buyCount)),
-      "wrong registered fee amount for trust and recipient"
     );
 
     // Attempting refund on successful raise should revert
@@ -287,36 +229,24 @@ describe("BPoolFeeEscrow", async function () {
       "wrongly refunded fees after successful raise"
     );
 
-    const claimableFee = await bPoolFeeEscrow.fees(
-      trust.address,
-      recipient.address
-    );
-
-    const claimFeesPromise = bPoolFeeEscrow
+    const claimFeesTx = await bPoolFeeEscrow
       .connect(recipient)
       .claimFees(recipient.address, trust.address);
 
     // ClaimFees event
-    await expect(claimFeesPromise)
-      .to.emit(bPoolFeeEscrow, "ClaimFees")
-      .withArgs(
-        recipient.address,
-        recipient.address,
-        getAddress(trust.address),
-        claimableFee
-      );
+    const event = (await Util.getEventArgs(
+      claimFeesTx,
+      "ClaimFees",
+      bPoolFeeEscrow
+    )) as ClaimFeesEvent["args"];
+
+    assert(event.sender === recipient.address, "wrong sender");
+    assert(event.recipient === recipient.address, "wrong recipient");
+    assert(event.trust === getAddress(trust.address), "wrong trust");
+    assert(event.reserve === getAddress(reserve.address), "wrong reserve");
+    assert(event.claimedFees.eq(90000000), "wrong claimed fees");
 
     const reserveBalanceRecipient2 = await reserve.balanceOf(recipient.address);
-
-    // check fees are deleted for trust and recipient
-    const recipientFees2 = await bPoolFeeEscrow.fees(
-      trust.address,
-      recipient.address
-    );
-    assert(
-      recipientFees2.isZero(),
-      "did not delete fee amount for trust and recipient"
-    );
 
     // recipient should have claimed fees after calling `claimFees` after successful raise
     assert(
@@ -333,11 +263,11 @@ describe("BPoolFeeEscrow", async function () {
 
     const signers = await ethers.getSigners();
 
-    const { trustFactory, seedERC20Factory, tier } = await deployGlobals();
+    const { trustFactory, tier } = await deployGlobals();
 
     // signer1 uses a front end to buy token. Front end makes call to bPoolFeeEscrow contract so it takes a fee on behalf of recipient.
     const { reserve, trust, recipient, bPoolFeeEscrow, fee } =
-      await failedRaise(signers, trustFactory, seedERC20Factory, tier);
+      await failedRaise(signers, trustFactory, tier);
 
     const reserveBalanceEscrow1 = await reserve.balanceOf(
       bPoolFeeEscrow.address
@@ -380,63 +310,5 @@ describe("BPoolFeeEscrow", async function () {
       expected ${fee}
       got      ${reserveBalanceToken}`
     );
-  });
-
-  it("should check that trust address is child of trust factory when buying tokens", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-
-    const { trustFactory, seedERC20Factory, tier } = await deployGlobals();
-
-    const { reserve, trust, recipient, signer1, bPoolFeeEscrow } =
-      await basicSetup(signers, trustFactory, seedERC20Factory, tier);
-
-    const registeredTrustFactory = await bPoolFeeEscrow.trustedFactory();
-
-    assert(
-      registeredTrustFactory === getAddress(trustFactory.address),
-      "trust factory was not correctly registered on construction"
-    );
-
-    const buyTokensViaEscrow = async (signer, spend, fee) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend.add(fee));
-
-      const reserveSigner = reserve.connect(signer);
-
-      await reserveSigner.approve(bPoolFeeEscrow.address, spend.add(fee));
-
-      await Util.assertError(
-        async () =>
-          await bPoolFeeEscrow.connect(signer).buyToken(
-            recipient.address,
-            signers[19].address, // bad trust address
-            fee,
-            spend,
-            ethers.BigNumber.from("1"),
-            ethers.BigNumber.from("1000000" + Util.eighteenZeros)
-          ),
-        "NOT_TRUSTED_CHILD",
-        "buyToken proceeded despite trust address not being child of factory"
-      );
-
-      await bPoolFeeEscrow
-        .connect(signer)
-        .buyToken(
-          recipient.address,
-          trust.address,
-          fee,
-          spend,
-          ethers.BigNumber.from("1"),
-          ethers.BigNumber.from("1000000" + Util.eighteenZeros)
-        );
-    };
-
-    const spend = ethers.BigNumber.from("250" + Util.sixZeros);
-    const fee = ethers.BigNumber.from("10" + Util.sixZeros);
-
-    // signer1 uses a front end to buy token. Front end makes call to escrow contract so it takes a fee on behalf of recipient.
-    await buyTokensViaEscrow(signer1, spend, fee);
   });
 });

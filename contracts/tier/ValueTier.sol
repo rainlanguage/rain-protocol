@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: CAL
-
 pragma solidity ^0.8.10;
 
-import { ITier } from "./ITier.sol";
+import {ITier} from "./ITier.sol";
+import "./libraries/TierConstants.sol";
+
+import "../sstore2/SSTORE2.sol";
 
 /// @title ValueTier
 ///
@@ -15,58 +17,57 @@ import { ITier } from "./ITier.sol";
 /// `ValueTier` does include state however, to track the `tierValues` so is not
 /// a library.
 contract ValueTier {
-    uint private immutable tierOne;
-    uint private immutable tierTwo;
-    uint private immutable tierThree;
-    uint private immutable tierFour;
-    uint private immutable tierFive;
-    uint private immutable tierSix;
-    uint private immutable tierSeven;
-    uint private immutable tierEight;
+    /// TODO: Typescript errors on uint256[8] so can't include tierValues here.
+    event InitializeValueTier(
+        /// The `msg.sender` initializing value tier.
+        address sender,
+        /// Pointer to the uint256[8] values.
+        address pointer
+    );
+
+    /// Pointer to the uint256[8] values.
+    address private tierValuesPointer;
 
     /// Set the `tierValues` on construction to be referenced immutably.
-    constructor(uint[8] memory tierValues_) {
-        tierOne = tierValues_[0];
-        tierTwo = tierValues_[1];
-        tierThree = tierValues_[2];
-        tierFour = tierValues_[3];
-        tierFive = tierValues_[4];
-        tierSix = tierValues_[5];
-        tierSeven = tierValues_[6];
-        tierEight = tierValues_[7];
+    function initializeValueTier(uint256[8] memory tierValues_) internal {
+        // Reinitialization is a bug.
+        assert(tierValuesPointer == address(0));
+        address tierValuesPointer_ = SSTORE2.write(abi.encode(tierValues_));
+        emit InitializeValueTier(msg.sender, tierValuesPointer_);
+        tierValuesPointer = tierValuesPointer_;
     }
 
     /// Complements the default solidity accessor for `tierValues`.
     /// Returns all the values in a list rather than requiring an index be
     /// specified.
     /// @return tierValues_ The immutable `tierValues`.
-    function tierValues() public view returns(uint[8] memory tierValues_) {
-        tierValues_[0] = tierOne;
-        tierValues_[1] = tierTwo;
-        tierValues_[2] = tierThree;
-        tierValues_[3] = tierFour;
-        tierValues_[4] = tierFive;
-        tierValues_[5] = tierSix;
-        tierValues_[6] = tierSeven;
-        tierValues_[7] = tierEight;
-        return tierValues_;
+    function tierValues() public view returns (uint256[8] memory tierValues_) {
+        return abi.decode(SSTORE2.read(tierValuesPointer), (uint256[8]));
     }
 
     /// Converts a Tier to the minimum value it requires.
     /// tier 0 is always value 0 as it is the fallback.
     /// @param tier_ The Tier to convert to a value.
-    function tierToValue(uint tier_) internal view returns(uint) {
-        return tier_ > 0 ? tierValues()[tier_ - 1] : 0;
+    function tierToValue(uint256[8] memory tierValues_, uint256 tier_)
+        internal
+        pure
+        returns (uint256)
+    {
+        return tier_ > TierConstants.TIER_ZERO ? tierValues_[tier_ - 1] : 0;
     }
 
     /// Converts a value to the maximum Tier it qualifies for.
     /// @param value_ The value to convert to a tier.
-    function valueToTier(uint value_) internal view returns(uint) {
-        for (uint i_ = 0; i_ < 8; i_++) {
-            if (value_ < tierValues()[i_]) {
+    function valueToTier(uint256[8] memory tierValues_, uint256 value_)
+        internal
+        pure
+        returns (uint256)
+    {
+        for (uint256 i_ = 0; i_ < TierConstants.MAX_TIER; i_++) {
+            if (value_ < tierValues_[i_]) {
                 return i_;
             }
         }
-        return 8;
+        return TierConstants.MAX_TIER;
     }
 }

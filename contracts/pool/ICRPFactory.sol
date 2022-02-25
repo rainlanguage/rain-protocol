@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { PoolParams } from "./IConfigurableRightsPool.sol";
-import { Rights } from "./IRightsManager.sol";
+import {PoolParams} from "./IConfigurableRightsPool.sol";
+import {Rights} from "./IRightsManager.sol";
 
 /// Mirrors the Balancer `CRPFactory` functions relevant to
 /// bootstrapping a pool. This is the minimal interface required for
@@ -17,7 +17,5 @@ interface ICRPFactory {
         address factoryAddress,
         PoolParams calldata poolParams,
         Rights calldata rights
-    )
-    external
-    returns (address);
+    ) external returns (address);
 }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { ReserveToken } from "./ReserveToken.sol";
-import { SeedERC20, ERC20 } from "../seed/SeedERC20.sol";
+import {ReserveToken} from "./ReserveToken.sol";
+import {SeedERC20} from "../seed/SeedERC20.sol";
 
 /// @title SeedERC20Reentrant
 /// Test contract that attempts to call reentrant code on `SeedERC20`.
@@ -31,31 +31,31 @@ contract SeedERC20Reentrant is ReserveToken {
         methodTarget = methodTarget_;
     }
 
-    /// @inheritdoc ERC20
+    /// @inheritdoc ReserveToken
     function _beforeTokenTransfer(
         address sender_,
         address receiver_,
-        uint amount_
+        uint256 amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
         if (
-            methodTarget == Method.SEED
-            && receiver_ == address(seedERC20Contract)
+            methodTarget == Method.SEED &&
+            receiver_ == address(seedERC20Contract)
         ) {
             // This call MUST fail.
             seedERC20Contract.seed(0, 1);
         } else if (
-            methodTarget == Method.UNSEED
-            && sender_ == address(seedERC20Contract)
+            methodTarget == Method.UNSEED &&
+            sender_ == address(seedERC20Contract)
         ) {
             // This call MUST fail.
             seedERC20Contract.unseed(1);
         } else if (
-            methodTarget == Method.REDEEM
-            && sender_ == address(seedERC20Contract)
+            methodTarget == Method.REDEEM &&
+            sender_ == address(seedERC20Contract)
         ) {
             // This call MUST fail.
-            seedERC20Contract.redeem(1);
+            seedERC20Contract.redeem(1, 0);
         }
     }
 }

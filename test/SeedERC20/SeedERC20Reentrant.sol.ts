@@ -1,14 +1,10 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { SeedERC20Reentrant } from "../../typechain/SeedERC20Reentrant";
-import type { SeedERC20 } from "../../typechain/SeedERC20";
 import type { Contract } from "ethers";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 describe("SeedERC20Reentrant", async function () {
   it("should guard against reentrancy when redeeming if primary reserve is malicious", async function () {
@@ -25,20 +21,23 @@ describe("SeedERC20Reentrant", async function () {
     const daveReserve = maliciousReserve.connect(dave);
 
     const seedPrice = 100;
-    const seedUnits = 10;
+    const seederUnits = 10;
     const cooldownDuration = 1;
 
-    const bobUnits = seedUnits;
+    const bobUnits = seederUnits;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
+    });
 
     const bobSeed = seedERC20.connect(bob);
 
@@ -49,7 +48,10 @@ describe("SeedERC20Reentrant", async function () {
     await bobSeed.seed(0, bobUnits);
 
     // Dave gets 10% extra reserve from somewhere.
-    await maliciousReserve.transfer(dave.address, seedPrice * seedUnits * 0.1);
+    await maliciousReserve.transfer(
+      dave.address,
+      seedPrice * seederUnits * 0.1
+    );
 
     // Dave sends reserve back to the seed contract.
     await daveReserve.transfer(
@@ -62,7 +64,7 @@ describe("SeedERC20Reentrant", async function () {
     await maliciousReserve.setMethodTarget(3);
 
     await Util.assertError(
-      async () => await bobSeed.redeem(1),
+      async () => await bobSeed.redeem(1, 0),
       "ERC20: burn amount exceeds balance",
       "did not guard against redeem reentrancy via immediate burning"
     );
@@ -81,20 +83,23 @@ describe("SeedERC20Reentrant", async function () {
     const bobReserve = maliciousReserve.connect(bob);
 
     const seedPrice = 100;
-    const seedUnits = 10;
+    const seederUnits = 10;
     const cooldownDuration = 1;
 
     const bobUnits = 1;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
+    });
 
     // setup reserve to reentrantly call `seed` method in `_beforeTokenTransfer` hook
     await maliciousReserve.addReentrantTarget(seedERC20.address);
@@ -126,20 +131,23 @@ describe("SeedERC20Reentrant", async function () {
     const bobReserve = maliciousReserve.connect(bob);
 
     const seedPrice = 100;
-    const seedUnits = 10;
+    const seederUnits = 10;
     const cooldownDuration = 1;
 
     const bobUnits = 3;
 
-    const seedERC20Factory = await ethers.getContractFactory("SeedERC20");
-    const seedERC20 = (await seedERC20Factory.deploy({
+    const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
       recipient: dave.address,
       seedPrice,
-      seedUnits,
       cooldownDuration,
-      erc20Config: { name: "SeedToken", symbol: "SDT" },
-    })) as SeedERC20 & Contract;
+      erc20Config: {
+        name: "SeedToken",
+        symbol: "SDT",
+        distributor: Util.zeroAddress,
+        initialSupply: seederUnits,
+      },
+    });
 
     const bobSeed = seedERC20.connect(bob);
 

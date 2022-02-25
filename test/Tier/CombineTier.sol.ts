@@ -1,18 +1,14 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { bytify, op, paddedUInt32, paddedUInt256 } from "../Util";
-import type { Contract, ContractFactory } from "ethers";
+import type { Contract } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type { CombineTierFactory } from "../../typechain/CombineTierFactory";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 enum Tier {
   ZERO,
@@ -29,6 +25,7 @@ enum Tier {
 const enum Opcode {
   END,
   VAL,
+  DUP,
   ZIPMAP,
   BLOCK_NUMBER,
   REPORT,
@@ -49,22 +46,18 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
-    const alwaysTier = (await combineTierFactory.deploy({
+    const alwaysTier = await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
       stackLength: 8,
       argumentsLength: 0,
-    })) as CombineTier & Contract;
-    const neverTier = (await combineTierFactory.deploy({
+    });
+    const neverTier = await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
       stackLength: 8,
       argumentsLength: 0,
-    })) as CombineTier & Contract;
+    });
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address), // right report
@@ -72,20 +65,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
+      ),
     ]);
 
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       stackLength: 8,
@@ -111,17 +104,13 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
-    const alwaysTier = (await combineTierFactory.deploy({
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
       stackLength: 8,
       argumentsLength: 0,
     })) as CombineTier & Contract;
-    const neverTier = (await combineTierFactory.deploy({
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
       stackLength: 8,
@@ -134,20 +123,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
+      ),
     ]);
 
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -173,17 +162,13 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
-    const alwaysTier = (await combineTierFactory.deploy({
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
       argumentsLength: 0,
       stackLength: 8,
     })) as CombineTier & Contract;
-    const neverTier = (await combineTierFactory.deploy({
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
       argumentsLength: 0,
@@ -196,20 +181,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
+      ),
     ]);
 
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -235,17 +220,13 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
-    const alwaysTier = (await combineTierFactory.deploy({
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
       argumentsLength: 0,
       stackLength: 8,
     })) as CombineTier & Contract;
-    const neverTier = (await combineTierFactory.deploy({
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
       argumentsLength: 0,
@@ -258,20 +239,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
+      ),
     ]);
 
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -297,17 +278,13 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
-    const alwaysTier = (await combineTierFactory.deploy({
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
       argumentsLength: 0,
       stackLength: 8,
     })) as CombineTier & Contract;
-    const neverTier = (await combineTierFactory.deploy({
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
       argumentsLength: 0,
@@ -320,20 +297,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
+      ),
     ]);
 
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -359,17 +336,13 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
-    const alwaysTier = (await combineTierFactory.deploy({
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
       argumentsLength: 0,
       stackLength: 8,
     })) as CombineTier & Contract;
-    const neverTier = (await combineTierFactory.deploy({
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
       argumentsLength: 0,
@@ -382,20 +355,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
+      ),
     ]);
 
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -421,17 +394,13 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-
-    const alwaysTier = (await combineTierFactory.deploy({
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
       argumentsLength: 0,
       stackLength: 2,
     })) as CombineTier & Contract;
-    const neverTier = (await combineTierFactory.deploy({
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
       argumentsLength: 0,
@@ -444,18 +413,18 @@ describe("CombineTier", async function () {
     ];
 
     const sourceAlwaysReport = concat([
-      op(Opcode.REPORT, 0),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT, 0),
+      op(Opcode.REPORT, 0),
     ]);
 
     const sourceNeverReport = concat([
-      op(Opcode.REPORT, 0),
       op(Opcode.VAL, 1),
       op(Opcode.ACCOUNT, 0),
+      op(Opcode.REPORT, 0),
     ]);
 
-    const combineTierAlways = (await combineTierFactory.deploy({
+    const combineTierAlways = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlwaysReport],
       constants,
       argumentsLength: 0,
@@ -474,7 +443,7 @@ describe("CombineTier", async function () {
       got       ${resultAlwaysReport}`
     );
 
-    const combineTierNever = (await combineTierFactory.deploy({
+    const combineTierNever = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNeverReport],
       constants,
       argumentsLength: 0,
@@ -497,12 +466,9 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const source = concat([bytify(0), bytify(Opcode.ACCOUNT)]);
+    const source = concat([bytify(Opcode.ACCOUNT)]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants: [],
       argumentsLength: 0,
@@ -538,23 +504,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
+      ),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -674,23 +637,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
+      ),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -812,23 +772,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
+      ),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -937,23 +894,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
+      ),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -1074,23 +1028,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
+      ),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,
@@ -1211,23 +1162,20 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(
-        Opcode.SELECT_LTE,
-        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
-      ),
+      op(Opcode.VAL, 1),
+      op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
       op(Opcode.VAL, 0),
       op(Opcode.ACCOUNT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
       op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
+      ),
     ]);
 
-    const combineTierFactory = (await ethers.getContractFactory(
-      "CombineTier"
-    )) as CombineTierFactory & ContractFactory;
-    const combineTier = (await combineTierFactory.deploy({
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
       argumentsLength: 0,

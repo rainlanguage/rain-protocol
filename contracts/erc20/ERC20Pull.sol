@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// Constructor config for `ERC20Pull`.
 struct ERC20PullConfig {
@@ -30,19 +30,38 @@ struct ERC20PullConfig {
 /// where anons can force the implementing contract to call an arbitrary
 /// external contract.
 contract ERC20Pull {
-
     using SafeERC20 for IERC20;
 
+    /// Emitted during initialization.
+    event ERC20PullInitialize(
+        /// `msg.sender` of initialize.
+        address sender,
+        /// Address that token can be pulled from.
+        address tokenSender,
+        /// Token that can be pulled.
+        address token
+    );
+
     /// The `sender` that this contract will attempt to pull tokens from.
-    address public immutable sender;
+    address private sender;
     /// The ERC20 token that this contract will attempt to pull to itself from
     /// `sender`.
-    address public immutable token;
+    address private token;
 
-    /// Constructor only copies config to immutables.
-    constructor(ERC20PullConfig memory config_) {
+    /// Initialize the sender and token.
+    /// @param config_ `ERC20PullConfig` to initialize.
+    function initializeERC20Pull(ERC20PullConfig memory config_) internal {
+        // Sender and token MUST be set in the config. MAY point at a known
+        // address that cannot approve the specified token to effectively
+        // disable pull functionality.
+        require(config_.sender != address(0), "ZERO_SENDER");
+        require(config_.token != address(0), "ZERO_TOKEN");
+        // Reinitialization is a bug.
+        assert(sender == address(0));
+        assert(token == address(0));
         sender = config_.sender;
         token = config_.token;
+        emit ERC20PullInitialize(msg.sender, config_.sender, config_.token);
     }
 
     /// Attempts to transfer `amount_` of `token` to this contract.
@@ -51,11 +70,7 @@ contract ERC20Pull {
     /// Also relies on `token` not being malicious.
     /// @param amount_ The amount to attempt to pull to the implementing
     /// contract.
-    function pullERC20(uint amount_) external {
-        IERC20(token).safeTransferFrom(
-            sender,
-            address(this),
-            amount_
-        );
+    function pullERC20(uint256 amount_) external {
+        IERC20(token).safeTransferFrom(sender, address(this), amount_);
     }
 }

@@ -1,20 +1,37 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import { Verify } from "../verify/Verify.sol";
-import { Factory } from "../factory/Factory.sol";
-import { VerifyTier } from "./VerifyTier.sol";
+import {Verify} from "../verify/Verify.sol";
+import {Factory} from "../factory/Factory.sol";
+import {VerifyTier} from "./VerifyTier.sol";
+
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title VerifyTierFactory
 /// @notice Factory for creating and deploying `VerifyTier` contracts.
 contract VerifyTierFactory is Factory {
+    /// Template contract to clone.
+    /// Deployed by the constructor.
+    address private immutable implementation;
+
+    /// Build the reference implementation to clone for each child.
+    constructor() {
+        address implementation_ = address(new VerifyTier());
+        emit Implementation(msg.sender, implementation_);
+        implementation = implementation_;
+    }
 
     /// @inheritdoc Factory
-    function _createChild(
-        bytes calldata data_
-    ) internal virtual override returns(address) {
-        (Verify verify_) = abi.decode(data_, (Verify));
-        return address(new VerifyTier(verify_));
+    function _createChild(bytes calldata data_)
+        internal
+        virtual
+        override
+        returns (address)
+    {
+        Verify verify_ = abi.decode(data_, (Verify));
+        address clone_ = Clones.clone(implementation);
+        VerifyTier(clone_).initialize(verify_);
+        return clone_;
     }
 
     /// Typed wrapper for `createChild` with `Verify`.
@@ -23,7 +40,7 @@ contract VerifyTierFactory is Factory {
     ///
     /// @param verify_ `Verify` of the `VerifyTier` logic.
     /// @return New `VerifyTier` child contract address.
-    function createChild(Verify verify_) external returns(address) {
-        return this.createChild(abi.encode(verify_));
+    function createChildTyped(Verify verify_) external returns (VerifyTier) {
+        return VerifyTier(this.createChild(abi.encode(verify_)));
     }
 }

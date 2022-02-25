@@ -1,20 +1,18 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, op, arg } from "../Util";
+import { bytify, callSize, op, arg, skip } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
+const { assert } = chai;
 
 const enum Opcode {
-  END,
+  SKIP,
   VAL,
+  DUP,
   ZIPMAP,
   BLOCK_NUMBER,
   ADD,
@@ -28,17 +26,25 @@ const enum Opcode {
 }
 
 describe("RainVM", async function () {
-  it("should return the maximum of a sequence of numbers", async () => {
+  it("should skip (conditional skip: true)", async () => {
     this.timeout(0);
 
-    const constants = [33, 11, 22];
+    const constants = [11, 22, 33, 44, 1];
+    const v11 = op(Opcode.VAL, 0);
+    const v22 = op(Opcode.VAL, 1);
+    const v33 = op(Opcode.VAL, 2);
+    const v44 = op(Opcode.VAL, 3);
+    const v1 = op(Opcode.VAL, 4);
 
     const source = concat([
-      // (max 22 11 33)
-      op(Opcode.MAX, 3),
-      op(Opcode.VAL, 2),
-      op(Opcode.VAL, 1),
-      op(Opcode.VAL, 0),
+      // (max 33 44 1 skip 22 11)
+      v44,
+      v33,
+      v1, // non-zero (true)
+      op(Opcode.SKIP, skip(1, true)),
+      v22,
+      v11,
+      op(Opcode.MAX, 2),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -46,7 +52,143 @@ describe("RainVM", async function () {
       sources: [source],
       constants,
       argumentsLength: 0,
-      stackLength: 8,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 33;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should skip (conditional skip: false)", async () => {
+    this.timeout(0);
+
+    const constants = [11, 22, 33, 44, 0];
+    const v11 = op(Opcode.VAL, 0);
+    const v22 = op(Opcode.VAL, 1);
+    const v33 = op(Opcode.VAL, 2);
+    const v44 = op(Opcode.VAL, 3);
+    const v0 = op(Opcode.VAL, 4);
+
+    const source = concat([
+      // (max 44 33 0 skip 22 11)
+      v44,
+      v33,
+      v0, // zero (false)
+      op(Opcode.SKIP, skip(1, true)),
+      v22,
+      v11,
+      op(Opcode.MAX, 4),
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 44;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should skip backwards (conditional skip: true)", async () => {
+    this.timeout(0);
+
+    const constants = [1, 2];
+    const v1 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+
+    // Loop from 2 subtracting 1 until we hit 0 then stop looping.
+    const source = concat([
+      v2,
+      v1,
+      op(Opcode.SUB, 2),
+      op(Opcode.DUP, 0),
+      op(Opcode.SKIP, skip(-3, true)),
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 6,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 0;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should skip (unconditional skip)", async () => {
+    this.timeout(0);
+
+    const constants = [11, 22, 33, 44];
+    const v11 = op(Opcode.VAL, 0);
+    const v22 = op(Opcode.VAL, 1);
+    const v33 = op(Opcode.VAL, 2);
+    const v44 = op(Opcode.VAL, 3);
+
+    const source = concat([
+      // (max 44 33 skip 22 11)
+      v44,
+      v33,
+      op(Opcode.SKIP, skip(1, false)),
+      v22,
+      v11,
+      op(Opcode.MAX, 3),
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 5,
+    })) as CalculatorTest & Contract;
+
+    const state = await calculator.runState();
+    console.log({ state });
+
+    const result = await calculator.run();
+    const expected = 44;
+    assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
+  });
+
+  it("should return the maximum of a sequence of numbers", async () => {
+    this.timeout(0);
+
+    const constants = [33, 11, 22];
+    const v33 = op(Opcode.VAL, 0);
+    const v11 = op(Opcode.VAL, 1);
+    const v22 = op(Opcode.VAL, 2);
+
+    const source = concat([
+      // (max 22 11 33)
+      v22,
+      v11,
+      v33,
+      op(Opcode.MAX, 3),
+    ]);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources: [source],
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -58,13 +200,16 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [33, 11, 22];
+    const v33 = op(Opcode.VAL, 0);
+    const v11 = op(Opcode.VAL, 1);
+    const v22 = op(Opcode.VAL, 2);
 
     const source = concat([
       // (min 22 11 33)
+      v22,
+      v11,
+      v33,
       op(Opcode.MIN, 3),
-      op(Opcode.VAL, 2),
-      op(Opcode.VAL, 1),
-      op(Opcode.VAL, 0),
     ]);
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -135,17 +280,17 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // val1
         op(Opcode.VAL, 1), // val0
+        op(Opcode.VAL, 0), // val1
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.ADD, 2),
         op(Opcode.VAL, arg(0)),
         op(Opcode.VAL, arg(1)),
         op(Opcode.MUL, 2),
         op(Opcode.VAL, arg(0)),
         op(Opcode.VAL, arg(1)),
+        op(Opcode.ADD, 2),
       ]),
     ];
 
@@ -212,13 +357,12 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // val2
-        op(Opcode.VAL, 1), // val1
         op(Opcode.VAL, 2), // val0
+        op(Opcode.VAL, 1), // val1
+        op(Opcode.VAL, 0), // val2
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.ADD, 3),
         op(Opcode.VAL, arg(0)),
         op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(2)),
@@ -226,6 +370,7 @@ describe("RainVM", async function () {
         op(Opcode.VAL, arg(0)),
         op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(2)),
+        op(Opcode.ADD, 3),
       ]),
     ];
 
@@ -288,81 +433,81 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // val7
-        op(Opcode.VAL, 1), // val6
-        op(Opcode.VAL, 2), // val5
-        op(Opcode.VAL, 3), // val4
-        op(Opcode.VAL, 4), // val3
-        op(Opcode.VAL, 5), // val2
-        op(Opcode.VAL, 6), // val1
         op(Opcode.VAL, 7), // val0
+        op(Opcode.VAL, 6), // val1
+        op(Opcode.VAL, 5), // val2
+        op(Opcode.VAL, 4), // val3
+        op(Opcode.VAL, 3), // val4
+        op(Opcode.VAL, 2), // val5
+        op(Opcode.VAL, 1), // val6
+        op(Opcode.VAL, 0), // val7
+        op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
       ]),
       concat([
-        op(Opcode.ADD, 30),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(7)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(3)),
+        op(Opcode.VAL, arg(4)),
+        op(Opcode.VAL, arg(5)),
         op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
         op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(3)),
+        op(Opcode.VAL, arg(4)),
+        op(Opcode.VAL, arg(5)),
+        op(Opcode.VAL, arg(6)),
         op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(3)),
+        op(Opcode.VAL, arg(4)),
+        op(Opcode.VAL, arg(5)),
+        op(Opcode.VAL, arg(6)),
+        op(Opcode.VAL, arg(7)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(3)),
+        op(Opcode.VAL, arg(4)),
+        op(Opcode.VAL, arg(5)),
+        op(Opcode.VAL, arg(6)),
+        op(Opcode.VAL, arg(7)),
         op(Opcode.ADD, 32), // max no. items
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
         op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(2)),
         op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(4)),
-        op(Opcode.VAL, arg(3)),
         op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(7)),
-        op(Opcode.VAL, arg(6)),
-        op(Opcode.VAL, arg(5)),
-        op(Opcode.VAL, arg(4)),
         op(Opcode.VAL, arg(3)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(4)),
+        op(Opcode.VAL, arg(5)),
+        op(Opcode.VAL, arg(6)),
+        op(Opcode.VAL, arg(7)),
         op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(3)),
+        op(Opcode.VAL, arg(4)),
+        op(Opcode.VAL, arg(5)),
+        op(Opcode.VAL, arg(6)),
+        op(Opcode.VAL, arg(7)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(3)),
+        op(Opcode.VAL, arg(4)),
+        op(Opcode.VAL, arg(5)),
+        op(Opcode.VAL, arg(6)),
+        op(Opcode.VAL, arg(7)),
+        op(Opcode.VAL, arg(0)),
+        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg(3)),
+        op(Opcode.VAL, arg(4)),
+        op(Opcode.VAL, arg(5)),
+        op(Opcode.ADD, 30),
       ]),
     ];
 
@@ -408,6 +553,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 1];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.VAL, 2);
+
+    const a3 = op(Opcode.VAL, arg(0));
+    const a2 = op(Opcode.VAL, arg(1));
+    const a1 = op(Opcode.VAL, arg(2));
 
     // zero-based counting
     const fnSize = 1;
@@ -416,34 +568,34 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
+        v3,
+        v2,
+        v1,
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0), // val2
-        op(Opcode.VAL, 1), // val1
-        op(Opcode.VAL, 2), // val0
       ]),
       concat([
+        // MUL
+        a3,
+        a2,
+        a1,
+        op(Opcode.MUL, 3),
         // ADD
         // 2 1, 3 2 1, 3 2 1, 3 2 1, 3 2 1 => 27
+        a2,
+        a1,
+        a3,
+        a2,
+        a1,
+        a3,
+        a2,
+        a1,
+        a3,
+        a2,
+        a1,
+        a3,
+        a2,
+        a1,
         op(Opcode.ADD, 14),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        // MUL
-        op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
       ]),
     ];
 
@@ -489,6 +641,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 4, 5];
+    const v3 = op(Opcode.VAL, 0);
+    const v4 = op(Opcode.VAL, 1);
+    const v5 = op(Opcode.VAL, 2);
+
+    const a3 = op(Opcode.VAL, arg(0));
+    const a4 = op(Opcode.VAL, arg(1));
+    const a5 = op(Opcode.VAL, arg(2));
 
     // zero-based counting
     const fnSize = 1;
@@ -497,21 +656,12 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
+        v3,
+        v4,
+        v5,
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 2),
       ]),
-      concat([
-        op(Opcode.ADD, 3),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg(2)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(0)),
-      ]),
+      concat([a3, a4, a5, op(Opcode.MUL, 3), a3, a4, a5, op(Opcode.ADD, 3)]),
     ];
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -556,6 +706,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [1, 2, 3];
+    const v1 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v3 = op(Opcode.VAL, 2);
+
+    const a1 = op(Opcode.VAL, arg(0));
+    const a2 = op(Opcode.VAL, arg(1));
+    const a3 = op(Opcode.VAL, arg(2));
 
     const fnSize = 1; // 1
     const loopSize = 0; // 1
@@ -563,17 +720,12 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
+        v1,
+        v2,
+        v3,
         op(Opcode.ZIPMAP, callSize(fnSize, loopSize, valSize)),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 2),
       ]),
-      concat([
-        op(Opcode.ADD, 3),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
-      ]),
+      concat([a1, a2, a3, op(Opcode.ADD, 3)]),
     ];
 
     const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
@@ -599,20 +751,27 @@ describe("RainVM", async function () {
 
     const constants = [1, 2, 3, 4, 6];
 
+    const one = op(Opcode.VAL, 0);
+    const two = op(Opcode.VAL, 1);
+    const three = op(Opcode.VAL, 2);
+    const four = op(Opcode.VAL, 3);
+    const six = op(Opcode.VAL, 4);
+
     const sources = [
       concat([
         // (* (+ 3 4 (- 2 1)) (/ 6 3) B)
-        op(Opcode.MUL, 3),
-        op(Opcode.ADD, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 3),
-        op(Opcode.SUB, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
-        op(Opcode.DIV, 2),
-        op(Opcode.VAL, 4),
-        op(Opcode.VAL, 2),
+        // B 6 3 /:2 3 4 2 1 -:2 +:3 *:3
         op(Opcode.BLOCK_NUMBER),
+        six,
+        three,
+        op(Opcode.DIV, 2),
+        three,
+        four,
+        two,
+        one,
+        op(Opcode.SUB, 2),
+        op(Opcode.ADD, 3),
+        op(Opcode.MUL, 3),
       ]),
     ];
 
@@ -662,19 +821,21 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [2, 3];
+    const v2 = op(Opcode.VAL, 0);
+    const v3 = op(Opcode.VAL, 1);
 
     const sources = [
       concat([
         // (/ (* (+ 2 2 2) 3) 2 3)
-        op(Opcode.DIV, 3),
-        op(Opcode.MUL, 2),
+        v2,
+        v2,
+        v2,
         op(Opcode.ADD, 3),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
+        v3,
+        op(Opcode.MUL, 2),
+        v2,
+        v3,
+        op(Opcode.DIV, 3),
       ]),
     ];
 
@@ -700,14 +861,17 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 13];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v13 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
         // (% 13 2 3)
+        v13,
+        v2,
+        v3,
         op(Opcode.MOD, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
       ]),
     ];
 
@@ -733,14 +897,17 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 12];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v12 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
         // (/ 12 2 3)
+        v12,
+        v2,
+        v3,
         op(Opcode.DIV, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
       ]),
     ];
 
@@ -766,14 +933,17 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [5, 4, 3];
+    const v5 = op(Opcode.VAL, 0);
+    const v4 = op(Opcode.VAL, 1);
+    const v3 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
         // (* 3 4 5)
+        v3,
+        v4,
+        v5,
         op(Opcode.MUL, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
       ]),
     ];
 
@@ -799,14 +969,17 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 10];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v10 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
         // (- 10 2 3)
+        v10,
+        v2,
+        v3,
         op(Opcode.SUB, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
       ]),
     ];
 
@@ -832,14 +1005,17 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 1];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.VAL, 2);
 
     const sources = [
       concat([
         // (+ 1 2 3)
+        v1,
+        v2,
+        v3,
         op(Opcode.ADD, 3),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
       ]),
     ];
 

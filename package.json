@@ -30,7 +30,6 @@
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@typechain/ethers-v5": "^8.0.5",
     "@typechain/hardhat": "^3.0.0",
     "@types/mocha": "^8.2.0",
@@ -43,6 +42,7 @@
     "hardhat": "^2.8.0",
     "hardhat-contract-sizer": "^2.1.1",
     "hardhat-gas-reporter": "^1.0.4",
+    "hardhat-storage-layout": "^0.1.6",
     "prettier": "^2.3.2",
     "pretty-quick": "^3.1.1",
     "solc-0.8": "npm:solc@^0.8.10",
@@ -54,10 +54,10 @@
     "typechain": "^6.0.2"
   },
   "dependencies": {
-    "@0xsequence/sstore2": "git+https://github.com/0xsequence/sstore2.git#b9233bcf1bbbbed37f9029e0355ac3026cd3563b",
     "@beehiveinnovation/balancer-core": "0.0.7",
     "@beehiveinnovation/configurable-rights-pool": "0.0.1",
-    "@openzeppelin/contracts": "^4.3.3"
+    "@openzeppelin/contracts": "^4.3.3",
+    "@openzeppelin/contracts-upgradeable": "^4.4.1"
   },
   "overrides": {
     "ethers": "5.5.2"

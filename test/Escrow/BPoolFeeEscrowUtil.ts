@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as Util from "../Util";
 import { ethers } from "hardhat";
-import type { BPoolFeeEscrow } from "../../typechain/BPoolFeeEscrow";
+import type { BPoolFeeEscrow, FeeEvent } from "../../typechain/BPoolFeeEscrow";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import type { TrustFactory } from "../../typechain/TrustFactory";
+import type {
+  ImplementationEvent as ImplementationEventTrustFactory,
+  TrustFactory,
+} from "../../typechain/TrustFactory";
 import type { BigNumber, Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
 import { getAddress } from "ethers/lib/utils";
-import { expect } from "chai";
+import { assert } from "chai";
 
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 const escrowJson = require("../../artifacts/contracts/escrow/BPoolFeeEscrow.sol/BPoolFeeEscrow.json");
@@ -33,10 +35,7 @@ export const deployGlobals = async () => {
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-  const { trustFactory, seedERC20Factory } = await Util.factoriesDeploy(
-    crpFactory,
-    bFactory
-  );
+  const { trustFactory } = await Util.factoriesDeploy(crpFactory, bFactory);
 
   return {
     crpFactory,
@@ -44,26 +43,36 @@ export const deployGlobals = async () => {
     tierFactory,
     tier,
     trustFactory,
-    seedERC20Factory,
   };
 };
 
 export const basicSetup = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
-  seedERC20Factory: SeedERC20Factory & Contract,
   tier: ReadWriteTier & Contract
 ) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
     Contract;
 
   const minimumTier = Tier.GOLD;
-  const erc20Config = { name: "Token", symbol: "TKN" };
-  const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+
+  const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+  const redeemableERC20Config = {
+    name: "Token",
+    symbol: "TKN",
+    distributor: Util.zeroAddress,
+    initialSupply: totalTokenSupply,
+  };
+  const seederUnits = 0;
+  const seedERC20Config = {
+    name: "SeedToken",
+    symbol: "SDT",
+    distributor: Util.zeroAddress,
+    initialSupply: seederUnits,
+  };
 
   const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
   const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-  const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
   const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
   const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
 
@@ -74,7 +83,6 @@ export const basicSetup = async (
   const signer1 = signers[4];
 
   const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-  const seederUnits = 0;
   const seederCooldownDuration = 0;
 
   const successLevel = reserveInit
@@ -103,17 +111,14 @@ export const basicSetup = async (
       minimumTradingDuration,
     },
     {
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalTokenSupply,
     },
     {
       seeder: seeder.address,
-      seederUnits,
-      seederCooldownDuration,
-      seedERC20Config,
-      seedERC20Factory: seedERC20Factory.address,
+      cooldownDuration: seederCooldownDuration,
+      erc20Config: seedERC20Config,
     },
     { gasLimit: 100000000 }
   );
@@ -136,8 +141,22 @@ export const basicSetup = async (
     tokenJson.abi,
     creator
   ) as RedeemableERC20 & Contract;
+
+  const { implementation } = (await Util.getEventArgs(
+    trustFactory.deployTransaction,
+    "Implementation",
+    trustFactory
+  )) as ImplementationEventTrustFactory["args"];
+
+  const { bPoolFeeEscrow: bPoolFeeEscrowAddress } = await Util.getEventArgs(
+    trustFactory.deployTransaction,
+    "Construction",
+    trust,
+    implementation
+  );
+
   const bPoolFeeEscrow = new ethers.Contract(
-    await trust.bPoolFeeEscrow(),
+    bPoolFeeEscrowAddress,
     escrowJson.abi,
     creator
   ) as BPoolFeeEscrow & Contract;
@@ -167,7 +186,6 @@ export const basicSetup = async (
 export const successfulRaise = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
-  seedERC20Factory: SeedERC20Factory & Contract,
   tier: ReadWriteTier & Contract
 ) => {
   const {
@@ -181,7 +199,7 @@ export const successfulRaise = async (
     minimumTradingDuration,
     redeemableERC20,
     bPoolFeeEscrow,
-  } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+  } = await basicSetup(signers, trustFactory, tier);
 
   const startBlock = await ethers.provider.getBlockNumber();
 
@@ -197,7 +215,7 @@ export const successfulRaise = async (
       .connect(signer)
       .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-    const buyTokenPromise = bPoolFeeEscrow
+    const buyTokenTx = await bPoolFeeEscrow
       .connect(signer)
       .buyToken(
         recipient.address,
@@ -209,14 +227,21 @@ export const successfulRaise = async (
       );
 
     // Fee event
-    await expect(buyTokenPromise)
-      .to.emit(bPoolFeeEscrow, "Fee")
-      .withArgs(
-        signer.address,
-        recipient.address,
-        getAddress(trust.address),
-        fee
-      );
+    const event = (await Util.getEventArgs(
+      buyTokenTx,
+      "Fee",
+      bPoolFeeEscrow
+    )) as FeeEvent["args"];
+
+    assert(event.sender === signer.address, "wrong sender");
+    assert(event.recipient === recipient.address, "wrong recipient");
+    assert(event.trust === getAddress(trust.address), "wrong trust");
+    assert(event.reserve === getAddress(reserve.address), "wrong reserve");
+    assert(
+      event.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(event.fee.eq(fee), "wrong fee");
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);
@@ -264,7 +289,6 @@ export const successfulRaise = async (
 export const failedRaise = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
-  seedERC20Factory: SeedERC20Factory & Contract,
   tier: ReadWriteTier & Contract
 ) => {
   const {
@@ -278,7 +302,7 @@ export const failedRaise = async (
     crp,
     redeemableERC20,
     bPoolFeeEscrow,
-  } = await basicSetup(signers, trustFactory, seedERC20Factory, tier);
+  } = await basicSetup(signers, trustFactory, tier);
 
   const startBlock = await ethers.provider.getBlockNumber();
 
@@ -294,7 +318,7 @@ export const failedRaise = async (
       .connect(signer)
       .approve(bPoolFeeEscrow.address, spend.add(fee));
 
-    const buyTokenPromise = bPoolFeeEscrow
+    const buyTokenTx = await bPoolFeeEscrow
       .connect(signer)
       .buyToken(
         recipient.address,
@@ -306,14 +330,21 @@ export const failedRaise = async (
       );
 
     // Fee event
-    await expect(buyTokenPromise)
-      .to.emit(bPoolFeeEscrow, "Fee")
-      .withArgs(
-        signer1.address,
-        recipient.address,
-        getAddress(trust.address),
-        fee
-      );
+    const event = (await Util.getEventArgs(
+      buyTokenTx,
+      "Fee",
+      bPoolFeeEscrow
+    )) as FeeEvent["args"];
+
+    assert(event.sender === signer.address, "wrong sender");
+    assert(event.recipient === recipient.address, "wrong recipient");
+    assert(event.trust === getAddress(trust.address), "wrong trust");
+    assert(event.reserve === getAddress(reserve.address), "wrong reserve");
+    assert(
+      event.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(event.fee.eq(fee), "wrong fee");
   };
 
   const spend = ethers.BigNumber.from("250" + Util.sixZeros);

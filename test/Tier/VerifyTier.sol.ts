@@ -1,23 +1,14 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
 import type { VerifyTier } from "../../typechain/VerifyTier";
 import type { Verify } from "../../typechain/Verify";
 import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 
-chai.use(solidity);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { expect, assert } = chai;
-
-let verifyFactory;
+const { assert } = chai;
 
 describe("VerifyTier", async function () {
-  before(async () => {
-    verifyFactory = await ethers.getContractFactory("Verify");
-  });
-
   it("should correctly verify tier", async function () {
     this.timeout(0);
 
@@ -27,12 +18,13 @@ describe("VerifyTier", async function () {
     const signer1 = signers[2];
     const newAdmin = signers[3];
 
-    const tierFactory = await ethers.getContractFactory("VerifyTier");
+    const verify = (await Util.verifyDeploy(
+      signers[0],
+      admin.address
+    )) as Verify & Contract;
 
-    const verify = (await verifyFactory.deploy(admin.address)) as Verify &
-      Contract;
-
-    const verifyTier = (await tierFactory.deploy(
+    const verifyTier = (await Util.verifyTierDeploy(
+      signers[0],
       verify.address
     )) as VerifyTier & Contract;
 

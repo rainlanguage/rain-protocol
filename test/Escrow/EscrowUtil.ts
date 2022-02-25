@@ -8,7 +8,7 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { TrustFactory } from "../../typechain/TrustFactory";
-import type { SeedERC20Factory } from "../../typechain/SeedERC20Factory";
+import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
@@ -30,18 +30,22 @@ export const deployGlobals = async () => {
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-  const { trustFactory, seedERC20Factory } = await Util.factoriesDeploy(
-    crpFactory,
-    bFactory
-  );
+  const { trustFactory } = await Util.factoriesDeploy(crpFactory, bFactory);
 
   // Deploy global Claim contract
   const claimFactory = await ethers.getContractFactory(
     "RedeemableERC20ClaimEscrow"
   );
-  const claim = (await claimFactory.deploy(
-    trustFactory.address
-  )) as RedeemableERC20ClaimEscrow & Contract;
+  const claim = (await claimFactory.deploy()) as RedeemableERC20ClaimEscrow &
+    Contract;
+
+  // Deploy wrapped Claim version (accessors)
+  const claimWrapperFactory = await ethers.getContractFactory(
+    "RedeemableERC20ClaimEscrowWrapper"
+  );
+  const claimWrapper =
+    (await claimWrapperFactory.deploy()) as RedeemableERC20ClaimEscrowWrapper &
+      Contract;
 
   return {
     crpFactory,
@@ -49,16 +53,16 @@ export const deployGlobals = async () => {
     tierFactory,
     tier,
     trustFactory,
-    seedERC20Factory,
     claimFactory,
     claim,
+    claimWrapperFactory,
+    claimWrapper,
   };
 };
 
 export const basicSetup = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
-  seedERC20Factory: SeedERC20Factory & Contract,
   tier: ReadWriteTier & Contract
 ) => {
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
@@ -66,12 +70,23 @@ export const basicSetup = async (
 
   const minimumTier = Tier.GOLD;
 
-  const erc20Config = { name: "Token", symbol: "TKN" };
-  const seedERC20Config = { name: "SeedToken", symbol: "SDT" };
+  const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+  const redeemableERC20Config = {
+    name: "Token",
+    symbol: "TKN",
+    distributor: Util.zeroAddress,
+    initialSupply: totalTokenSupply,
+  };
+  const seederUnits = 0;
+  const seedERC20Config = {
+    name: "SeedToken",
+    symbol: "SDT",
+    distributor: Util.zeroAddress,
+    initialSupply: seederUnits,
+  };
 
   const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
   const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
-  const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
   const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
   const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
 
@@ -80,7 +95,6 @@ export const basicSetup = async (
   const deployer = signers[2]; // deployer is not creator
 
   const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
-  const seederUnits = 0;
   const seederCooldownDuration = 0;
 
   const successLevel = reserveInit
@@ -107,17 +121,14 @@ export const basicSetup = async (
       minimumTradingDuration,
     },
     {
-      erc20Config,
+      erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
-      totalSupply: totalTokenSupply,
     },
     {
       seeder: seeder.address,
-      seederUnits,
-      seederCooldownDuration,
-      seedERC20Config,
-      seedERC20Factory: seedERC20Factory.address,
+      cooldownDuration: seederCooldownDuration,
+      erc20Config: seedERC20Config,
     },
     { gasLimit: 100000000 }
   );

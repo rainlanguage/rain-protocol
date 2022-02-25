@@ -1,13 +1,19 @@
 import chai from "chai";
-import { solidity } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type {
+  ReadWriteTier,
+  TierChangeEvent,
+} from "../../typechain/ReadWriteTier";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { tierReport, blockNumbersToReport, assertError } from "../Util";
+import {
+  tierReport,
+  blockNumbersToReport,
+  assertError,
+  getEventArgs,
+} from "../Util";
 import type { Contract } from "ethers";
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const { assert } = chai;
 
 const uninitializedReport =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -156,10 +162,18 @@ describe("Account tier", async function () {
 
   it("will emit the tier to which it was upgraded if it is upgraded for the first time", async function () {
     const [signers, readWriteTier] = await setup();
+
     // change the status to two and check if event emitted
-    await expect(readWriteTier.setTier(signers[0].address, 2, []))
-      .to.emit(readWriteTier, "TierChange")
-      .withArgs(signers[0].address, 0, 2);
+    const event0 = (await getEventArgs(
+      await readWriteTier.setTier(signers[0].address, 2, []),
+      "TierChange",
+      readWriteTier
+    )) as TierChangeEvent["args"];
+
+    assert(event0.sender === signers[0].address, "wrong sender in event0");
+    assert(event0.account === signers[0].address, "wrong account in event0");
+    assert(event0.startTier.eq(0), "wrong startTier in event0");
+    assert(event0.endTier.eq(2), "wrong endTier in event0");
   });
 
   it("will return the current block number from level 0 to the new account tier if updated for the first time", async function () {
@@ -170,9 +184,9 @@ describe("Account tier", async function () {
     const status = await readWriteTier.report(signers[0].address);
     const report = tierReport(status.toString());
     const currentBlock = await readWriteTier.provider.getBlockNumber();
-    expect(report[0]).to.equal(currentBlock);
-    expect(report[1]).to.equal(currentBlock);
-    expect(report[2]).to.equal(currentBlock);
+    assert(report[0] === currentBlock);
+    assert(report[1] === currentBlock);
+    assert(report[2] === currentBlock);
   });
 
   it("will output the previous tier and the new updated tier", async function () {
@@ -180,9 +194,16 @@ describe("Account tier", async function () {
     // change the status to one
     await readWriteTier.setTier(signers[0].address, 1, []);
     // change the status to three
-    await expect(readWriteTier.setTier(signers[0].address, 3, []))
-      .to.emit(readWriteTier, "TierChange")
-      .withArgs(signers[0].address, 1, 3);
+    const event0 = (await getEventArgs(
+      await readWriteTier.setTier(signers[0].address, 3, []),
+      "TierChange",
+      readWriteTier
+    )) as TierChangeEvent["args"];
+
+    assert(event0.sender === signers[0].address, "wrong sender in event0");
+    assert(event0.account === signers[0].address, "wrong account in event0");
+    assert(event0.startTier.eq(1), "wrong startTier in event0");
+    assert(event0.endTier.eq(3), "wrong endTier in event0");
   });
 
   it("will return the previous block number at the lower tier if it is updated to a higher tier", async function () {
@@ -195,7 +216,7 @@ describe("Account tier", async function () {
     // check with the contract
     const status = await readWriteTier.report(signers[0].address);
     const report = tierReport(status.toString());
-    expect(report[0]).to.equal(previousBlock);
+    assert(report[0] === previousBlock);
   });
 
   it("will change the tier from higher to lower", async function () {
@@ -203,9 +224,16 @@ describe("Account tier", async function () {
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3, []);
     // change the tier to one
-    await expect(readWriteTier.setTier(signers[0].address, 1, []))
-      .to.emit(readWriteTier, "TierChange")
-      .withArgs(signers[0].address, 3, 1);
+    const event0 = (await getEventArgs(
+      await readWriteTier.setTier(signers[0].address, 1, []),
+      "TierChange",
+      readWriteTier
+    )) as TierChangeEvent["args"];
+
+    assert(event0.sender === signers[0].address, "wrong sender in event0");
+    assert(event0.account === signers[0].address, "wrong account in event0");
+    assert(event0.startTier.eq(3), "wrong startTier in event0");
+    assert(event0.endTier.eq(1), "wrong endTier in event0");
   });
 
   it("will return the previous block number at the current level if updating from a higher to a lower tier", async function () {
@@ -218,7 +246,7 @@ describe("Account tier", async function () {
     // check with the contract
     const status = await readWriteTier.report(signers[0].address);
     const report = tierReport(status.toString());
-    expect(report[0]).to.equal(previousBlock);
+    assert(report[0] === previousBlock);
   });
 
   it("will be possible to know the previous tier from the current tier", async function () {
@@ -231,7 +259,7 @@ describe("Account tier", async function () {
     // check with the contract
     const status = await readWriteTier.report(signers[0].address);
     const report = tierReport(status.toString());
-    expect(report[0]).to.equal(previousBlock);
+    assert(report[0] === previousBlock);
   });
 
   it("will return the original block number if tier 1 is called again", async function () {
@@ -248,7 +276,7 @@ describe("Account tier", async function () {
     // check with the contract
     const status = await readWriteTier.report(signers[0].address);
     const report = tierReport(status.toString());
-    expect(report[0]).to.equal(originalBlock);
+    assert(report[0] === originalBlock);
   });
 
   it("will return original block number at current tier and the rest at uninitializedStatusAsNum after two continuous decrements", async function () {
@@ -265,9 +293,9 @@ describe("Account tier", async function () {
     // check with the contract
     const status = await readWriteTier.report(signers[0].address);
     const report = tierReport(status.toString());
-    expect(report[2]).to.equal(uninitializedStatusAsNum);
-    expect(report[1]).to.equal(uninitializedStatusAsNum);
-    expect(report[0]).to.equal(originalBlock);
+    assert(report[2] === uninitializedStatusAsNum);
+    assert(report[1] === uninitializedStatusAsNum);
+    assert(report[0] === originalBlock);
   });
 
   it("will return two different block numbers if two consecutive increments occur, the high bits will be uninitializedStatusAsNum", async function () {
@@ -284,9 +312,9 @@ describe("Account tier", async function () {
     assert(report[0] === report[1]);
     assert(report[1] < report[2]);
     assert(report[2] === report[3]);
-    expect(report[4]).to.equal(uninitializedStatusAsNum);
-    expect(report[5]).to.equal(uninitializedStatusAsNum);
-    expect(report[6]).to.equal(uninitializedStatusAsNum);
-    expect(report[7]).to.equal(uninitializedStatusAsNum);
+    assert(report[4] === uninitializedStatusAsNum);
+    assert(report[5] === uninitializedStatusAsNum);
+    assert(report[6] === uninitializedStatusAsNum);
+    assert(report[7] === uninitializedStatusAsNum);
   });
 });

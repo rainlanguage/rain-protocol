@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./libraries/VerifyConstants.sol";
 
@@ -9,8 +11,11 @@ import "./libraries/VerifyConstants.sol";
 /// Most accounts will never be banned so most accounts will never reach every
 /// status, which is a good thing.
 struct State {
+    /// Block the address was added else 0xFFFFFFFF.
     uint32 addedSince;
+    /// Block the address was approved else 0xFFFFFFFF.
     uint32 approvedSince;
+    /// Block the address was banned else 0xFFFFFFFF.
     uint32 bannedSince;
 }
 
@@ -135,34 +140,26 @@ struct State {
 /// Ideally the admin account assigned at deployment would renounce their admin
 /// rights after establishing a more granular and appropriate set of accounts
 /// with each specific role.
-contract Verify is AccessControl {
-
+contract Verify is AccessControl, Initializable {
     /// Any state never held is UNINITIALIZED.
     /// Note that as per default evm an unset state is 0 so always check the
     /// `addedSince` block on a `State` before trusting an equality check on
     /// any other block number.
     /// (i.e. removed or never added)
-    uint32 constant public UNINITIALIZED = 0xFFFFFFFF;
+    uint32 private constant UNINITIALIZED = type(uint32).max;
 
     /// Emitted when evidence is first submitted to approve an account.
     /// The requestor is always the `msg.sender` of the user calling `add`.
     /// @param sender The `msg.sender` that submitted its own evidence.
     /// @param data The evidence to support an approval.
     /// NOT written to contract storage.
-    event RequestApprove(
-        address sender,
-        bytes data
-    );
+    event RequestApprove(address sender, bytes data);
     /// Emitted when a previously added account is approved.
     /// @param sender The `msg.sender` that approved `account`.
     /// @param account The address that was approved.
     /// @param data Any additional data the `approver` deems relevant.
     /// NOT written to contract storage.
-    event Approve(
-        address sender,
-        address account,
-        bytes data
-    );
+    event Approve(address sender, address account, bytes data);
 
     /// Currently approved accounts can request that any account be banned.
     /// The requestor is expected to provide supporting data for the ban.
@@ -171,21 +168,13 @@ contract Verify is AccessControl {
     /// @param account The address that `requestor` wants to ban.
     /// @param data Any additional data the `requestor` feels will strengthen
     /// its case for the ban. NOT written to contract storage.
-    event RequestBan(
-        address sender,
-        address account,
-        bytes data
-    );
+    event RequestBan(address sender, address account, bytes data);
     /// Emitted when an added or approved account is banned.
     /// @param sender The `msg.sender` that banned `account`.
     /// @param account The address that `banner` has banned.
     /// @param data The evidence to support a ban.
     /// NOT written to contract storage.
-    event Ban(
-        address sender,
-        address account,
-        bytes data
-    );
+    event Ban(address sender, address account, bytes data);
 
     /// Currently approved accounts can request that any account be removed.
     /// The requestor is expected to provide supporting data for the removal.
@@ -194,22 +183,14 @@ contract Verify is AccessControl {
     /// @param account The address that `requestor` wants to ban.
     /// @param data Any additional data the `requestor` feels will strengthen
     /// its case for the ban. NOT written to contract storage.
-    event RequestRemove(
-        address sender,
-        address account,
-        bytes data
-    );
+    event RequestRemove(address sender, address account, bytes data);
     /// Emitted when an account is scrubbed from blockchain state.
     /// Historical logs still visible offchain of course.
     /// @param sender The `msg.sender` that removed `account`.
     /// @param account The address that `remover` has removed.
     /// @param data The evidence to support a remove.
     /// NOT written to contract storage.
-    event Remove(
-        address sender,
-        address account,
-        bytes data
-    );
+    event Remove(address sender, address account, bytes data);
 
     /// Admin role for `APPROVER`.
     bytes32 public constant APPROVER_ADMIN = keccak256("APPROVER_ADMIN");
@@ -227,13 +208,13 @@ contract Verify is AccessControl {
     bytes32 public constant BANNER = keccak256("BANNER");
 
     // Account => State
-    mapping (address => State) public states;
+    mapping(address => State) private states;
 
     /// Defines RBAC logic for each role under Open Zeppelin.
     /// @param admin_ The address to ASSIGN ALL ADMIN ROLES to initially. This
     /// address is free and encouraged to delegate fine grained permissions to
     /// many other sub-admin addresses, then revoke it's own "root" access.
-    constructor (address admin_) {
+    function initialize(address admin_) external initializer {
         require(admin_ != address(0), "0_ACCOUNT");
 
         // `APPROVER_ADMIN` can admin each other in addition to
@@ -268,10 +249,10 @@ contract Verify is AccessControl {
     /// Derives a single `Status` from a `State` and a reference block number.
     /// @param state_ The raw `State` to reduce into a `Status`.
     /// @param blockNumber_ The block number to compare `State` against.
-    function statusAtBlock(State memory state_, uint blockNumber_)
+    function statusAtBlock(State memory state_, uint256 blockNumber_)
         public
         pure
-        returns (uint)
+        returns (uint256)
     {
         // The state hasn't even been added so is picking up block zero as the
         // evm fallback value. In this case if we checked other blocks using
@@ -301,10 +282,10 @@ contract Verify is AccessControl {
     }
 
     /// Requires that `msg.sender` is approved as at the current block.
-    modifier onlyApproved {
+    modifier onlyApproved() {
         require(
-            statusAtBlock(states[msg.sender], block.number)
-                == VerifyConstants.STATUS_APPROVED,
+            statusAtBlock(states[msg.sender], block.number) ==
+                VerifyConstants.STATUS_APPROVED,
             "ONLY_APPROVED"
         );
         _;
@@ -345,16 +326,9 @@ contract Verify is AccessControl {
             states[account_].approvedSince == UNINITIALIZED,
             "PRIOR_APPROVE"
         );
-        require(
-            states[account_].bannedSince == UNINITIALIZED,
-            "PRIOR_BAN"
-        );
+        require(states[account_].bannedSince == UNINITIALIZED, "PRIOR_BAN");
         states[account_].approvedSince = uint32(block.number);
-        emit Approve(
-            msg.sender,
-            account_,
-            data_
-        );
+        emit Approve(msg.sender, account_, data_);
     }
 
     /// Any approved account can request some account be banned, along with
@@ -379,16 +353,9 @@ contract Verify is AccessControl {
         // `block.number` but in practise no code path produces a future
         // `addedSince`.
         require(states[account_].addedSince > 0, "NOT_ADDED");
-        require(
-            states[account_].bannedSince == UNINITIALIZED,
-            "PRIOR_BAN"
-        );
+        require(states[account_].bannedSince == UNINITIALIZED, "PRIOR_BAN");
         states[account_].bannedSince = uint32(block.number);
-        emit Ban(
-            msg.sender,
-            account_,
-            data_
-        );
+        emit Ban(msg.sender, account_, data_);
     }
 
     /// Any approved account can request some account be removed, along with
@@ -410,11 +377,7 @@ contract Verify is AccessControl {
     function remove(address account_, bytes calldata data_) external {
         require(account_ != address(0), "0_ADDRESS");
         require(hasRole(REMOVER, msg.sender), "ONLY_REMOVER");
-        delete(states[account_]);
-        emit Remove(
-            msg.sender,
-            account_,
-            data_
-        );
+        delete (states[account_]);
+        emit Remove(msg.sender, account_, data_);
     }
 }
