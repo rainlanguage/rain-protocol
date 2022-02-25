@@ -1,13 +1,23 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai from "chai";
 import type { Contract } from "ethers";
-import { ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import type {
   ERC20TransferTier,
   TierChangeEvent,
 } from "../../typechain/ERC20TransferTier";
+import type {
+  ERC20TransferTierFactory,
+  ImplementationEvent as ImplementationEventERC20TransferTierFactory,
+} from "../../typechain/ERC20TransferTierFactory";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { assertError, basicDeploy, eighteenZeros, getEventArgs } from "../Util";
+import {
+  assertError,
+  basicDeploy,
+  eighteenZeros,
+  getEventArgs,
+  zeroAddress,
+} from "../Util";
 
 const { assert } = chai;
 
@@ -34,22 +44,46 @@ describe("ERC20TransferTier", async function () {
   let reserve: ReserveTokenTest & Contract;
 
   beforeEach(async () => {
-    [, alice, bob] = await ethers.getSigners();
+    const signers = await ethers.getSigners();
+    [, alice, bob] = signers;
 
     reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
       Contract;
 
-    const erc20TransferTierFactory = await ethers.getContractFactory(
-      "ERC20TransferTier"
+    const erc20TransferTierFactoryFactory = await ethers.getContractFactory(
+      "ERC20TransferTierFactory"
+    );
+    const erc20TransferTierFactory =
+      (await erc20TransferTierFactoryFactory.deploy()) as ERC20TransferTierFactory &
+        Contract;
+    await erc20TransferTierFactory.deployed();
+
+    const { implementation } = (await getEventArgs(
+      erc20TransferTierFactory.deployTransaction,
+      "Implementation",
+      erc20TransferTierFactory
+    )) as ImplementationEventERC20TransferTierFactory["args"];
+    assert(
+      !(implementation === zeroAddress),
+      "implementation erc20TransferTier factory zero address"
     );
 
-    erc20TransferTier =
-      (await erc20TransferTierFactory.deploy()) as ERC20TransferTier & Contract;
-    await erc20TransferTier.deployed();
-    await erc20TransferTier.initialize({
+    const tx = await erc20TransferTierFactory.createChildTyped({
       erc20: reserve.address,
       tierValues: LEVELS,
     });
+    erc20TransferTier = new ethers.Contract(
+      ethers.utils.hexZeroPad(
+        ethers.utils.hexStripZeros(
+          (await getEventArgs(tx, "NewChild", erc20TransferTierFactory)).child
+        ),
+        20
+      ),
+      (await artifacts.readArtifact("ERC20TransferTier")).abi,
+      signers[0]
+    ) as ERC20TransferTier & Contract;
+
+    await erc20TransferTier.deployed();
   });
 
   it("should have no hysteresis on balance when repeatedly shifting tiers", async () => {

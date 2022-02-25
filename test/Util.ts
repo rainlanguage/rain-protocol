@@ -2,20 +2,38 @@ import { ethers, artifacts } from "hardhat";
 import type { CRPFactory } from "../typechain/CRPFactory";
 import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
-import type { TrustFactory } from "../typechain/TrustFactory";
+import type {
+  ImplementationEvent as ImplementationEventTrustFactory,
+  TrustFactory,
+} from "../typechain/TrustFactory";
 import type {
   RedeemableERC20,
   RedeemableERC20ConfigStruct,
 } from "../typechain/RedeemableERC20";
-import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
+import type {
+  ImplementationEvent as ImplementationEventRedeemableERC20Factory,
+  RedeemableERC20Factory,
+} from "../typechain/RedeemableERC20Factory";
 import type { CombineTier } from "../typechain/CombineTier";
-import type { CombineTierFactory } from "../typechain/CombineTierFactory";
+import type {
+  CombineTierFactory,
+  ImplementationEvent as ImplementationEventCombineTierFactory,
+} from "../typechain/CombineTierFactory";
 import type { Verify } from "../typechain/Verify";
-import type { VerifyFactory } from "../typechain/VerifyFactory";
+import type {
+  ImplementationEvent as ImplementationEventVerifyFactory,
+  VerifyFactory,
+} from "../typechain/VerifyFactory";
 import type { VerifyTier } from "../typechain/VerifyTier";
-import type { VerifyTierFactory } from "../typechain/VerifyTierFactory";
+import type {
+  ImplementationEvent as ImplementationEventVerifyTierFactory,
+  VerifyTierFactory,
+} from "../typechain/VerifyTierFactory";
 import type { SeedERC20, SeedERC20ConfigStruct } from "../typechain/SeedERC20";
-import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
+import type {
+  ImplementationEvent as ImplementationEventSeedERC20Factory,
+  SeedERC20Factory,
+} from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
 import type {
@@ -155,6 +173,16 @@ export const factoriesDeploy = async (
       Contract;
   await redeemableERC20Factory.deployed();
 
+  const { implementation: implementation0 } = (await getEventArgs(
+    redeemableERC20Factory.deployTransaction,
+    "Implementation",
+    redeemableERC20Factory
+  )) as ImplementationEventRedeemableERC20Factory["args"];
+  assert(
+    !(implementation0 === zeroAddress),
+    "implementation redeemableERC20 factory zero address"
+  );
+
   const seedERC20FactoryFactory = await ethers.getContractFactory(
     "SeedERC20Factory",
     {}
@@ -162,6 +190,16 @@ export const factoriesDeploy = async (
   const seedERC20Factory =
     (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
   await seedERC20Factory.deployed();
+
+  const { implementation: implementation1 } = (await getEventArgs(
+    seedERC20Factory.deployTransaction,
+    "Implementation",
+    seedERC20Factory
+  )) as ImplementationEventSeedERC20Factory["args"];
+  assert(
+    !(implementation1 === zeroAddress),
+    "implementation seedERC20 factory zero address"
+  );
 
   const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
   const trustFactory = (await trustFactoryFactory.deploy({
@@ -173,6 +211,16 @@ export const factoriesDeploy = async (
     maxRaiseDuration: MAX_RAISE_DURATION_TESTING,
   })) as TrustFactory & Contract;
   await trustFactory.deployed();
+
+  const { implementation: implementation2 } = (await getEventArgs(
+    trustFactory.deployTransaction,
+    "Implementation",
+    trustFactory
+  )) as ImplementationEventTrustFactory["args"];
+  assert(
+    !(implementation2 === zeroAddress),
+    "implementation trust factory zero address"
+  );
 
   return {
     redeemableERC20Factory,
@@ -243,6 +291,17 @@ export const verifyDeploy = async (deployer, config) => {
   const factoryFactory = await ethers.getContractFactory("VerifyFactory");
   const factory = (await factoryFactory.deploy()) as VerifyFactory;
   await factory.deployed();
+
+  const { implementation } = (await getEventArgs(
+    factory.deployTransaction,
+    "Implementation",
+    factory
+  )) as ImplementationEventVerifyFactory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation verify factory zero address"
+  );
+
   const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -274,6 +333,17 @@ export const verifyTierDeploy = async (deployer, config) => {
     deployer
   ) as VerifyTier & Contract;
   await contract.deployed();
+
+  const { implementation } = (await getEventArgs(
+    factory.deployTransaction,
+    "Implementation",
+    factory
+  )) as ImplementationEventVerifyTierFactory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation verifyTier factory zero address"
+  );
+
   return contract;
 };
 
@@ -281,6 +351,17 @@ export const combineTierDeploy = async (deployer, config) => {
   const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
   const factory = (await factoryFactory.deploy()) as CombineTierFactory;
   await factory.deployed();
+
+  const { implementation } = (await getEventArgs(
+    factory.deployTransaction,
+    "Implementation",
+    factory
+  )) as ImplementationEventCombineTierFactory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation combineTier factory zero address"
+  );
+
   const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -293,6 +374,7 @@ export const combineTierDeploy = async (deployer, config) => {
     deployer
   ) as CombineTier & Contract;
   await contract.deployed();
+
   return contract;
 };
 
@@ -306,6 +388,16 @@ export const redeemableERC20Deploy = async (
   const redeemableERC20Factory =
     (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
   await redeemableERC20Factory.deployed();
+
+  const { implementation } = (await getEventArgs(
+    redeemableERC20Factory.deployTransaction,
+    "Implementation",
+    redeemableERC20Factory
+  )) as ImplementationEventRedeemableERC20Factory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation redeemableERC20 factory zero address"
+  );
 
   const tx = await redeemableERC20Factory.createChildTyped(config);
   const redeemableERC20 = new ethers.Contract(
@@ -334,6 +426,16 @@ export const seedERC20Deploy = async (
   const seedERC20Factory =
     (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory;
   await seedERC20Factory.deployed();
+
+  const { implementation } = (await getEventArgs(
+    seedERC20Factory.deployTransaction,
+    "Implementation",
+    seedERC20Factory
+  )) as ImplementationEventSeedERC20Factory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation seedERC20 factory zero address"
+  );
 
   const tx = await seedERC20Factory.createChildTyped(config);
   const seedERC20 = new ethers.Contract(
