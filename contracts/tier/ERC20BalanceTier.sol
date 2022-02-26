@@ -12,12 +12,12 @@ import {ITier} from "./ITier.sol";
 import "./ReadOnlyTier.sol";
 
 /// Constructor config for ERC20BalanceTier.
+/// @param erc20 The erc20 token contract to check the balance of at `report`
+/// time.
+/// @param tierValues 8 values corresponding to minimum erc20 balances for
+/// tier 1 through tier 8.
 struct ERC20BalanceTierConfig {
-    /// The erc20 token contract to check the balance
-    /// of at `report` time.
     IERC20 erc20;
-    /// 8 values corresponding to minimum erc20
-    /// balances for tier 1 through tier 8.
     uint256[8] tierValues;
 }
 
@@ -49,12 +49,9 @@ struct ERC20BalanceTierConfig {
 ///   as little as possible.
 contract ERC20BalanceTier is ReadOnlyTier, ValueTier, Initializable {
     /// Result of initialize.
-    event Initialize(
-        /// `msg.sender` of the initialize.
-        address sender,
-        /// erc20 to check balance of.
-        address erc20
-    );
+    /// @param sender `msg.sender` of the initialize.
+    /// @param erc20 erc20 token to check balance of.
+    event Initialize(address sender, address erc20);
 
     /// The erc20 to check balances against.
     IERC20 internal erc20;

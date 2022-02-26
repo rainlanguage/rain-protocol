@@ -10,15 +10,21 @@ import "./libraries/VerifyConstants.sol";
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
 /// Most accounts will never be banned so most accounts will never reach every
 /// status, which is a good thing.
+/// @param addedSince Block the address was added else 0xFFFFFFFF.
+/// @param approvedSince Block the address was approved else 0xFFFFFFFF.
+/// @param bannedSince Block the address was banned else 0xFFFFFFFF.
 struct State {
-    /// Block the address was added else 0xFFFFFFFF.
     uint32 addedSince;
-    /// Block the address was approved else 0xFFFFFFFF.
     uint32 approvedSince;
-    /// Block the address was banned else 0xFFFFFFFF.
     uint32 bannedSince;
 }
 
+/// Structure of arbitrary evidence to support any action taken.
+/// Priviledged roles are expected to provide evidence just as applicants as an
+/// audit trail will be preserved permanently in the logs.
+/// @param account The account this evidence is relevant to.
+/// @param data Arbitrary bytes representing evidence. MAY be e.g. a reference
+/// to a sufficiently decentralised external system such as an IPFS hash.
 struct Evidence {
     address account;
     bytes data;

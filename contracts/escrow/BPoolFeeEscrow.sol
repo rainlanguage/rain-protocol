@@ -174,7 +174,7 @@ contract BPoolFeeEscrow is TrustEscrow {
     /// refund once. Subsequent calls will be a noop if there is `0` refundable
     /// value remaining.
     ///
-    /// @param trust_ The `Trust` to refund for. This MSHOULDUST be a child of
+    /// @param trust_ The `Trust` to refund for. This SHOULD be a child of
     /// a trusted `TrustFactory`.
     /// @return The total refund.
     function refundFees(address trust_) external returns (uint256) {
