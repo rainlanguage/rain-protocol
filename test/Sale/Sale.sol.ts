@@ -2660,7 +2660,7 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.end(),
-      "NOT_ACTIVE",
+      "CANT_END",
       "wrongly ended before started"
     );
 
@@ -2679,7 +2679,7 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.start(),
-      "NOT_PENDING",
+      "CANT_START",
       "wrongly re-started while with Status of ACTIVE"
     );
 
