@@ -186,6 +186,7 @@ describe("Sale", async function () {
     await readWriteTier.deployed();
 
     saleConstructorConfig = {
+      maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
     };
 
