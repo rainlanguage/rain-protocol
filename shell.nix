@@ -45,6 +45,10 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
+    rm -rf docusaurus/.docusaurus
+    rm -rf docusaurus/build
+    rm -rf docusaurus/node_modules
+    rm -rf docs/api
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -187,6 +191,6 @@ pkgs.stdenv.mkDerivation {
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
-    npm install --prefix docusaurus
+    npm install --prefix docusaurus --legacy-peer-deps
   '';
 }

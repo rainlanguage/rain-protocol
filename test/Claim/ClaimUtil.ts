@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as Util from "../Util";
+import chai from "chai";
 import { artifacts, ethers } from "hardhat";
 import type { Contract } from "ethers";
 import type {
   EmissionsERC20ConfigStruct,
   EmissionsERC20Factory,
+  ImplementationEvent as ImplementationEventEmissionsERC20Factory,
 } from "../../typechain/EmissionsERC20Factory";
 import type { EmissionsERC20 } from "../../typechain/EmissionsERC20";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { getEventArgs } from "../Util";
+
+const { assert } = chai;
 
 export interface ClaimFactories {
   emissionsERC20Factory: EmissionsERC20Factory & Contract;
@@ -23,6 +27,16 @@ export const claimFactoriesDeploy = async (): Promise<ClaimFactories> => {
     (await emissionsERC20FactoryFactory.deploy()) as EmissionsERC20Factory &
       Contract;
   await emissionsERC20Factory.deployed();
+
+  const { implementation } = (await getEventArgs(
+    emissionsERC20Factory.deployTransaction,
+    "Implementation",
+    emissionsERC20Factory
+  )) as ImplementationEventEmissionsERC20Factory["args"];
+  assert(
+    !(implementation === Util.zeroAddress),
+    "implementation emissionsERC20 factory zero address"
+  );
 
   return {
     emissionsERC20Factory,

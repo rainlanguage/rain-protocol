@@ -113,8 +113,8 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     event PendingDeposit(
         /// Anon `msg.sender` depositing the token.
         address sender,
-        /// `Sale` contract deposit is under.
-        address trust,
+        /// `ISale` contract deposit is under.
+        address sale,
         /// Redeemable token that can claim this deposit.
         /// Implicitly snapshots the redeemable so malicious `Trust` cannot
         /// redirect funds later.
@@ -125,13 +125,32 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         uint256 amount
     );
 
+    /// Emitted every time a pending deposit is swept to a full deposit.
+    event Sweep(
+        /// Anon `msg.sender` sweeping the deposit.
+        address sender,
+        /// Anon `msg.sender` who originally deposited the token.
+        address depositor,
+        /// `ISale` contract deposit is under.
+        address sale,
+        /// Redeemable token first reported by the trust.
+        address redeemable,
+        /// `IERC20` token being swept into a deposit.
+        address token,
+        /// Amount of token being swept into a deposit.
+        uint256 amount
+    );
+
     /// Emitted for every successful deposit.
     event Deposit(
+        /// Anon `msg.sender` triggering the deposit.
+        /// MAY NOT be the `depositor` in the case of a pending sweep.
+        address sender,
         /// Anon `msg.sender` who originally deposited the token.
-        /// May NOT be the current `msg.sender` in the case of a pending sweep.
+        /// MAY NOT be the current `msg.sender` in the case of a pending sweep.
         address depositor,
-        /// `Sale` contract deposit is under.
-        address trust,
+        /// `ISale` contract deposit is under.
+        address sale,
         /// Redeemable token that can claim this deposit.
         address redeemable,
         /// `IERC20` token being deposited.
@@ -146,8 +165,10 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     event Undeposit(
         /// Anon `msg.sender` undepositing the token.
         address sender,
-        /// `Sale` contract undeposit is from.
-        address trust,
+        /// `ISale` contract undeposit is from.
+        address sale,
+        /// Redeemable token that is being undeposited against.
+        address redeemable,
         /// `IERC20` token being undeposited.
         address token,
         /// rTKN supply at moment of deposit.
@@ -160,8 +181,8 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     event Withdraw(
         /// Anon `msg.sender` withdrawing the token.
         address withdrawer,
-        /// `Sale` contract withdrawal is from.
-        address trust,
+        /// `ISale` contract withdrawal is from.
+        address sale,
         /// Redeemable token used to withdraw.
         address redeemable,
         /// `IERC20` token being withdrawn.
@@ -268,7 +289,15 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         totalDeposits[sale_][token_][supply_] += amount_;
         remainingDeposits[sale_][token_][supply_] += amount_;
 
-        emit Deposit(depositor_, sale_, redeemable_, token_, supply_, amount_);
+        emit Deposit(
+            msg.sender,
+            depositor_,
+            sale_,
+            redeemable_,
+            token_,
+            supply_,
+            amount_
+        );
     }
 
     /// Anon can convert any existing pending deposit to a deposit with known
@@ -287,6 +316,14 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     ) external {
         uint256 amount_ = pendingDeposits[sale_][token_][depositor_];
         delete pendingDeposits[sale_][token_][depositor_];
+        emit Sweep(
+            msg.sender,
+            depositor_,
+            sale_,
+            token(sale_),
+            token_,
+            amount_
+        );
         registerDeposit(sale_, token_, depositor_, amount_);
     }
 
@@ -353,7 +390,17 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         totalDeposits[sale_][token_][supply_] -= amount_;
         remainingDeposits[sale_][token_][supply_] -= amount_;
 
-        emit Undeposit(msg.sender, sale_, token_, supply_, amount_);
+        emit Undeposit(
+            msg.sender,
+            sale_,
+            // Include this in the event so that indexer consumers see a
+            // consistent world view even if the trust_ changes its answer
+            // about the redeemable.
+            token(sale_),
+            token_,
+            supply_,
+            amount_
+        );
 
         IERC20(token_).safeTransfer(msg.sender, amount_);
     }
