@@ -6,22 +6,24 @@ pragma solidity ^0.8.10;
 /// will be modified by reference internally. This is important for gas
 /// efficiency; the stack, arguments and stackIndex will likely be mutated by
 /// the running script.
+/// @param stackIndex Opcodes write to the stack at the stack index and can
+/// consume from the stack by decrementing the index and reading between the
+/// old and new stack index.
+/// IMPORANT: The stack is never zeroed out so the index must be used to
+/// find the "top" of the stack as the result of an `eval`.
+/// @param stack Stack is the general purpose runtime state that opcodes can
+/// read from and write to according to their functionality.
+/// @param sources Sources available to be executed by `eval`.
+/// Notably `ZIPMAP` can also select a source to execute by index.
+/// @param constants Constants that can be copied to the stack by index by
+/// `VAL`.
+/// @param arguments `ZIPMAP` populates arguments which can be copied to the
+/// stack by `VAL`.
 struct State {
-    /// Opcodes write to the stack at the stack index and can consume from the
-    /// stack by decrementing the index and reading between the old and new
-    /// stack index.
-    /// IMPORANT: The stack is never zeroed out so the index must be used to
-    /// find the "top" of the stack as the result of an `eval`.
     uint256 stackIndex;
-    /// Stack is the general purpose runtime state that opcodes can read from
-    /// and write to according to their functionality.
     uint256[] stack;
-    /// Sources available to be executed by `eval`.
-    /// Notably `ZIPMAP` can also select a source to execute by index.
     bytes[] sources;
-    /// Constants that can be copied to the stack by index by `VAL`.
     uint256[] constants;
-    /// `ZIPMAP` populates arguments which can be copied to the stack by `VAL`.
     uint256[] arguments;
 }
 

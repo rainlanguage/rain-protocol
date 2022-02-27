@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import {Cooldown} from "../cooldown/Cooldown.sol";
-
 import "../vm/RainVM.sol";
 import {IERC20Ops} from "../vm/ops/IERC20Ops.sol";
 import {IERC721Ops} from "../vm/ops/IERC721Ops.sol";

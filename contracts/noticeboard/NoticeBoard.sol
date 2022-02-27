@@ -2,7 +2,10 @@
 pragma solidity ^0.8.10;
 
 struct Notice {
+    /// Every notice is assumed to be about some contract. If it isn't then
+    /// emitting `0` bytes for the address will likely be cheaper in gas.
     address subject;
+    /// Opaque bytes to be interpreted by the indexer/GUI.
     bytes data;
 }
 
@@ -24,7 +27,8 @@ contract NoticeBoard {
 
     /// Anyone can create notices about some subject.
     /// The notice is opaque bytes. The indexer/GUI is expected to understand
-    /// the context to decode/interpret it.
+    /// the context to decode/interpret it. The indexer/GUI is strongly
+    /// recommended to filter out untrusted content.
     /// @param notices_ All the notices to emit.
     function createNotices(Notice[] calldata notices_) external {
         for (uint256 i_ = 0; i_ < notices_.length; i_++) {

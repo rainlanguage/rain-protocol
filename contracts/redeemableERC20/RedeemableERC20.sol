@@ -15,15 +15,19 @@ import {Phased} from "../phased/Phased.sol";
 import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
+/// @param reserve Reserve token that the associated `Trust` or equivalent
+/// raise contract will be forwarding to the `RedeemableERC20` contract.
+/// @param erc20Config ERC20 config forwarded to the ERC20 constructor.
+/// @param tier Tier contract to compare statuses against on transfer.
+/// @param minimumTier Minimum tier required for transfers in `Phase.ZERO`.
+/// Can be `0`.
+/// @param distributionEndForwardingAddress Optional address to send rTKN to at
+/// the end of the distribution phase. If `0` address then all undistributed
+/// rTKN will burn itself at the end of the distribution.
 struct RedeemableERC20Config {
-    // Reserve token that the associated `Trust` or equivalent raise contract
-    // will be forwarding to the `RedeemableERC20` contract.
     address reserve;
-    // ERC20 config forwarded to the ERC20 constructor.
     ERC20Config erc20Config;
-    // Tier contract to compare statuses against on transfer.
     address tier;
-    // Minimum tier required for transfers in `Phase.ZERO`. Can be `0`.
     uint256 minimumTier;
     address distributionEndForwardingAddress;
 }
@@ -88,12 +92,7 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is
-    Initializable,
-    Phased,
-    ERC20Redeem,
-    ERC20Pull
-{
+contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
     using SafeERC20 for IERC20;
 
     /// Phase constants.
@@ -112,7 +111,7 @@ contract RedeemableERC20 is
     uint256 private constant SENDER = 0x3;
 
     /// To be clear, this admin is NOT intended to be an EOA.
-    /// This contract is designed assuming the admin is a `Trust` or equivalent
+    /// This contract is designed assuming the admin is a `Sale` or equivalent
     /// contract that itself does NOT have an admin key.
     address private admin;
     /// Tracks addresses that can always send/receive regardless of phase.
@@ -120,27 +119,18 @@ contract RedeemableERC20 is
     mapping(address => uint256) private access;
 
     /// Results of initializing.
-    event Initialize(
-        /// `msg.sender` of initialize.
-        address sender,
-        /// Initialization config.
-        RedeemableERC20Config config
-    );
+    /// @param sender `msg.sender` of initialize.
+    /// @param config Initialization config.
+    event Initialize(address sender, RedeemableERC20Config config);
 
     /// A new token sender has been added.
-    event Sender(
-        /// `msg.sender` that approved the token sender.
-        address sender,
-        /// address that is now a token sender.
-        address grantedSender
-    );
+    /// @param sender `msg.sender` that approved the token sender.
+    /// @param grantedSender address that is now a token sender.
+    event Sender(address sender, address grantedSender);
     /// A new token receiver has been added.
-    event Receiver(
-        /// `msg.sender` that approved the token receiver.
-        address sender,
-        /// address that is now a token receiver.
-        address grantedReceiver
-    );
+    /// @param sender `msg.sender` that approved the token receiver.
+    /// @param grantedReceiver address that is now a token receiver.
+    event Receiver(address sender, address grantedReceiver);
 
     /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
     /// The minimum supply enforced by the constructor is "one" token which is
@@ -160,6 +150,9 @@ contract RedeemableERC20 is
     /// Public so external contracts can interface with the required tier.
     uint256 public minimumTier;
 
+    /// Optional address to send rTKN to at the end of the distribution phase.
+    /// If `0` address then all undistributed rTKN will burn itself at the end
+    /// of the distribution.
     address private distributionEndForwardingAddress;
 
     /// Mint the full ERC20 token supply and configure basic transfer

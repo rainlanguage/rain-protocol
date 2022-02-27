@@ -42,8 +42,8 @@ contract SaleFactory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ `SeedERC20` constructor configuration.
-    /// @return New `SeedERC20` child contract.
+    /// @param config_ `SaleConfig` constructor configuration.
+    /// @return New `Sale` child contract.
     function createChildTyped(
         SaleConfig calldata config_,
         SaleRedeemableERC20Config calldata saleRedeemableERC20Config_

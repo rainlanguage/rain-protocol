@@ -7,7 +7,8 @@ interface IFactory {
     event NewChild(address sender, address child);
 
     /// Factories that clone a template contract MUST emit an event any time
-    /// they set the implementation being cloned.
+    /// they set the implementation being cloned. Factories that deploy new
+    /// contracts without cloning do NOT need to emit this.
     event Implementation(address sender, address implementation);
 
     /// Creates a new child contract.
