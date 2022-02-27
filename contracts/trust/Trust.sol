@@ -8,7 +8,7 @@ import {IBPool} from "../pool/IBPool.sol";
 import {ICRPFactory} from "../pool/ICRPFactory.sol";
 import {Rights} from "../pool/IRightsManager.sol";
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
