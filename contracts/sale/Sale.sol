@@ -175,20 +175,14 @@ contract Sale is
     uint256 private constant REMAINING_UNITS = 0;
     /// @dev local opcode to stack total reserve taken in so far.
     uint256 private constant TOTAL_RESERVE_IN = 1;
-    /// @dev local opcode to stack the most recent block of a buy.
-    uint256 private constant LAST_BUY_BLOCK = 2;
-    /// @dev local opcode to stack the last buy rTKN units/amount.
-    uint256 private constant LAST_BUY_UNITS = 3;
-    /// @dev local opcode to stack the last buy price denominated in reserve.
-    uint256 private constant LAST_BUY_PRICE = 4;
     /// @dev local opcode to stack the rTKN units/amount of the current buy.
-    uint256 private constant CURRENT_BUY_UNITS = 5;
+    uint256 private constant CURRENT_BUY_UNITS = 2;
     /// @dev local opcode to stack the address of the rTKN.
-    uint256 private constant TOKEN_ADDRESS = 6;
+    uint256 private constant TOKEN_ADDRESS = 3;
     /// @dev local opcode to stack the address of the reserve token.
-    uint256 private constant RESERVE_ADDRESS = 7;
+    uint256 private constant RESERVE_ADDRESS = 4;
     /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 8;
+    uint256 internal constant LOCAL_OPS_LENGTH = 5;
 
     /// @dev local offset for block ops.
     uint256 private immutable blockOpsStart;
@@ -208,7 +202,8 @@ contract Sale is
     uint256 private immutable ierc1155OpsStart;
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
-
+    /// @dev the cooldown duration cannot exceed this. Prevents "no refunds" in
+    /// a raise that never ends. Configured at the factory level upon deploy.
     uint256 private immutable maximumCooldownDuration;
 
     /// Factory responsible for minting rTKN.
@@ -241,15 +236,6 @@ contract Sale is
     /// include any reserve sent directly to the sale contract outside the
     /// standard buy/refund loop.
     uint256 private totalReserveIn;
-    /// @dev the most recent block in which a buy was successful for any buyer.
-    /// ZERO if there is no purchase history.
-    uint256 private lastBuyBlock;
-    /// @dev the size of the most recent buy for any buyer in rTKN units.
-    /// ZERO if there is no purchase history.
-    uint256 private lastBuyUnits;
-    /// @dev the price of the most recent buy for any buyer in reserve token.
-    /// ZERO if there is no purchase history.
-    uint256 private lastBuyPrice;
     /// @dev the current sale status exposed as `ISale.saleStatus`.
     SaleStatus private _saleStatus;
 
@@ -486,11 +472,6 @@ contract Sale is
         remainingUnits -= units_;
         totalReserveIn += cost_;
 
-        // Update buy related state.
-        lastBuyBlock = block.number;
-        lastBuyUnits = units_;
-        lastBuyPrice = price_;
-
         // This happens before `end` so that the transfer out happens before
         // the last transfer in.
         // `end` does state changes so `buy` needs to be nonReentrant.
@@ -641,12 +622,6 @@ contract Sale is
                     state_.stack[state_.stackIndex] = remainingUnits;
                 } else if (opcode_ == TOTAL_RESERVE_IN) {
                     state_.stack[state_.stackIndex] = totalReserveIn;
-                } else if (opcode_ == LAST_BUY_BLOCK) {
-                    state_.stack[state_.stackIndex] = lastBuyBlock;
-                } else if (opcode_ == LAST_BUY_UNITS) {
-                    state_.stack[state_.stackIndex] = lastBuyUnits;
-                } else if (opcode_ == LAST_BUY_PRICE) {
-                    state_.stack[state_.stackIndex] = lastBuyPrice;
                 } else if (opcode_ == CURRENT_BUY_UNITS) {
                     uint256 units_ = abi.decode(context_, (uint256));
                     state_.stack[state_.stackIndex] = units_;
