@@ -223,6 +223,53 @@ describe("Sale", async function () {
     );
   });
 
+  it("should limit maximum cooldown duration in the factory", async function() {
+    const signers = await ethers.getSigners();
+    const basePrice = ethers.BigNumber.from("100").mul(Util.RESERVE_ONE)
+    const constants = [basePrice]
+    const sources = [
+      concat([
+        op(Opcode.VAL, 0)
+      ])
+    ]
+    await Util.assertError(
+      async() => await saleDeploy(
+        signers,
+        signers[0],
+        saleFactory,
+        {
+          canStartStateConfig: afterBlockNumberConfig(50),
+          canEndStateConfig: afterBlockNumberConfig(50 + 1000000),
+          calculatePriceStateConfig: {
+            sources,
+            constants,
+            stackLength: 1,
+            argumentsLength: 0,
+          },
+          recipient: signers[1].address,
+          reserve: reserve.address,
+          cooldownDuration: 1000000,
+          minimumRaise: 100,
+          dustSize: 0
+        },
+        {
+          erc20Config: {
+            name: "foo",
+            symbol: "FOO",
+            distributor: Util.zeroAddress,
+            initialSupply: 100
+          },
+          tier: readWriteTier.address,
+          minimumTier: Tier.ZERO,
+          distributionEndForwardingAddress: ethers.constants.AddressZero,
+        }
+      ),
+      "MAX_COOLDOWN",
+      "did not prevent maximum cooldown on deploy"
+    )
+
+  })
+
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 token currently held by buyer)", async function () {
     this.timeout(0);
 
