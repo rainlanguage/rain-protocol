@@ -99,6 +99,123 @@ describe("Sale", async function () {
     );
   });
 
+  it("should respect cooldown when sale is active", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 5,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnits = totalTokenSupply;
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const saleStatusPending = await sale.saleStatus();
+
+    assert(
+      saleStatusPending === Status.PENDING,
+      `wrong status
+      expected  ${Status.PENDING}
+      got       ${saleStatusPending}`
+    );
+
+    await sale.start();
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+      expected  ${Status.ACTIVE}
+      got       ${saleStatusActive}`
+    );
+
+    await reserve.connect(signer1).approve(sale.address, signer1ReserveBalance);
+
+    // buy some units
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 10,
+      desiredUnits: 10,
+      maximumPrice: staticPrice,
+    });
+
+    // immediately buy some more units before cooldown end
+    await Util.assertError(
+      async () =>
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 10,
+          desiredUnits: 10,
+          maximumPrice: staticPrice,
+        }),
+      "COOLDOWN",
+      "successive buy did not trigger cooldown while Sale was Active"
+    );
+  });
+
   it("should limit maximum cooldown duration in the factory", async function () {
     const signers = await ethers.getSigners();
     const basePrice = ethers.BigNumber.from("100").mul(Util.RESERVE_ONE);
