@@ -2,14 +2,6 @@
   "name": "@beehiveinnovation/rain-protocol",
   "description": "Fair value capture for intangible or physical assets in a permissionless way in any decentralised environment",
   "version": "0.0.16",
-  "files": [
-    "/contracts/*.sol",
-    "/contracts/**/*.sol",
-    "/artifacts/*.json",
-    "/typechain/*.d.ts",
-    "/typechain/**/*.ts",
-    "/dist"
-  ],
   "author": "Beehive Innovation",
   "license": "CAL",
   "repository": {
