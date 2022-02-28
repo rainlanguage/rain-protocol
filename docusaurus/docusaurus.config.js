@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
@@ -23,12 +24,6 @@ module.exports = {
         {
           to: "/glossary",
           label: "Glossary",
-          position: "left",
-        },
-        {
-          to: "/api/trust/Trust",
-          // activeBasePath: "/API",
-          label: "API",
           position: "left",
         },
         {
@@ -59,11 +54,23 @@ module.exports = {
         docs: {
           path: "../docs",
           routeBasePath: "/",
-          exclude: [
-            "**/*/test/**/*.md",
-            "**/*/configurable-rights-pool/**/*.md",
-          ],
+          includeCurrentVersion: false,
+          exclude: ["**/*/test/**/*.md"],
           sidebarPath: require.resolve("./sidebars.js"),
+          async sidebarItemsGenerator({
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            isCategoryIndex: defaultCategoryIndexMatcher, // The default matcher implementation, given below
+            defaultSidebarItemsGenerator,
+            ...args
+          }) {
+            return defaultSidebarItemsGenerator({
+              isCategoryIndex() {
+                // No doc will be automatically picked as category index
+                return false;
+              },
+              ...args,
+            });
+          },
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -71,12 +78,5 @@ module.exports = {
       },
     ],
   ],
-  plugins: [
-    [
-      require.resolve("@cmfcmf/docusaurus-search-local"),
-      {
-        docsRouteBasePath: "/",
-      },
-    ],
-  ],
+  plugins: [require.resolve("@cmfcmf/docusaurus-search-local")],
 };

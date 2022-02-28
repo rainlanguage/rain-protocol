@@ -15,12 +15,9 @@ import "./libraries/TierReport.sol";
 /// block numbers defer to `State.since` returned from `Verify.state`.
 contract VerifyTier is ReadOnlyTier, Initializable {
     /// Result of initializing.
-    event Initialize(
-        /// `msg.sender` that initialized the contract.
-        address sender,
-        /// The `Verify` contract checked for reports.ww
-        address verify
-    );
+    /// @param sender `msg.sender` that initialized the contract.
+    /// @param verify The `Verify` contract checked for reports.ww
+    event Initialize(address sender, address verify);
     /// The contract to check to produce reports.
     Verify private verify;
 

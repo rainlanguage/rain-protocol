@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "./SaleEscrow.sol";
 import "../trust/Trust.sol";
 
-/// @title SaleEscrow
+/// @title TrustEscrow
 /// An escrow that is designed to work with untrusted `Trust` bytecode.
 /// `escrowStatus` wraps `Trust` functions to guarantee that results do not
 /// change. Reserve and token addresses never change for a given `Trust` and
@@ -16,18 +16,18 @@ contract TrustEscrow is SaleEscrow {
     mapping(address => address) private crps;
 
     /// Immutable wrapper around `Trust.crp`.
-    /// Once a `Trust` reports a crp address the `SaleEscrow` never asks
+    /// Once a `Trust` reports a crp address the `TrustEscrow` never asks
     /// again. Prevents a malicious `Trust` from changing the pool at some
     /// point to attack traders.
     /// @param trust_ The trust to fetch reserve for.
     function crp(address trust_) internal returns (address) {
-        address reserve_ = crps[trust_];
-        if (reserve_ == address(0)) {
-            address trustReserve_ = address(Trust(trust_).crp());
-            require(trustReserve_ != address(0), "0_CRP");
-            crps[trust_] = trustReserve_;
-            reserve_ = trustReserve_;
+        address crp_ = crps[trust_];
+        if (crp_ == address(0)) {
+            address trustCrp_ = address(Trust(trust_).crp());
+            require(trustCrp_ != address(0), "0_CRP");
+            crps[trust_] = trustCrp_;
+            crp_ = trustCrp_;
         }
-        return reserve_;
+        return crp_;
     }
 }

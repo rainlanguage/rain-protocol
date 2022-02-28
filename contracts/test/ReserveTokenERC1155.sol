@@ -22,10 +22,6 @@ contract ReserveTokenERC1155 is ERC1155, ERC1155Burnable {
         _mint(msg.sender, tokenCount, TOTAL_SUPPLY, "");
     }
 
-    function decimals() public pure returns (uint8) {
-        return uint8(DECIMALS);
-    }
-
     function mintNewToken() external {
         tokenCount++;
         _mint(msg.sender, tokenCount, TOTAL_SUPPLY, "");

@@ -54,6 +54,7 @@ describe("SaleUnchecked", async function () {
     await readWriteTier.deployed();
 
     saleConstructorConfig = {
+      maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
     };
 
@@ -144,6 +145,7 @@ describe("SaleUnchecked", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: Util.zeroAddress,
       }
     );
 
@@ -217,6 +219,7 @@ describe("SaleUnchecked", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: Util.zeroAddress,
       }
     );
 
@@ -290,6 +293,7 @@ describe("SaleUnchecked", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: Util.zeroAddress,
       }
     );
 
@@ -363,6 +367,7 @@ describe("SaleUnchecked", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: Util.zeroAddress,
       }
     );
 

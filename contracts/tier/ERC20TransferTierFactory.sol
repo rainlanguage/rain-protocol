@@ -15,7 +15,7 @@ contract ERC20TransferTierFactory is Factory {
     /// Build the reference implementation to clone for each child.
     constructor() {
         address implementation_ = address(new ERC20TransferTier());
-        emit Implementation(msg.sender, implementation);
+        emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
 

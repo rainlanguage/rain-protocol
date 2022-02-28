@@ -16,8 +16,8 @@ contract EmissionsERC20Factory is Factory {
     /// Build the reference implementation to clone for each child.
     constructor() {
         address implementation_ = address(new EmissionsERC20());
-        implementation = implementation_;
         emit Implementation(msg.sender, implementation_);
+        implementation = implementation_;
     }
 
     /// @inheritdoc Factory
