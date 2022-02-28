@@ -1,26 +1,18 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import "../vm/RainVM.sol";
-import {IERC20Ops} from "../vm/ops/IERC20Ops.sol";
-import {IERC721Ops} from "../vm/ops/IERC721Ops.sol";
-import {IERC1155Ops} from "../vm/ops/IERC1155Ops.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import "../../vm/RainVM.sol";
+import {TierOps} from "../../vm/ops/TierOps.sol";
+import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 
-contract TokenOpsTest is RainVM, VMState {
-    uint256 private immutable ierc20OpsStart;
-    uint256 private immutable ierc721OpsStart;
-    uint256 private immutable ierc1155OpsStart;
-    uint256 private immutable localOpsStart;
+contract TierOpsTest is RainVM, VMState {
+    uint256 private immutable tierOpsStart;
     address private immutable vmStatePointer;
 
     constructor(StateConfig memory config_) {
-        ierc20OpsStart = RainVM.OPS_LENGTH;
-        ierc721OpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
-        ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
-        localOpsStart = ierc1155OpsStart + IERC1155Ops.OPS_LENGTH;
+        tierOpsStart = RainVM.OPS_LENGTH;
 
         vmStatePointer = _snapshot(_newState(config_));
     }
@@ -64,28 +56,12 @@ contract TokenOpsTest is RainVM, VMState {
         uint256 operand_
     ) internal view override {
         unchecked {
-            if (opcode_ < ierc721OpsStart) {
-                IERC20Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc20OpsStart,
-                    operand_
-                );
-            } else if (opcode_ < ierc1155OpsStart) {
-                IERC721Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc721OpsStart,
-                    operand_
-                );
-            } else {
-                IERC1155Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc1155OpsStart,
-                    operand_
-                );
-            }
+            TierOps.applyOp(
+                context_,
+                state_,
+                opcode_ - tierOpsStart,
+                operand_
+            );
         }
     }
 }

@@ -15,7 +15,9 @@ contract TierReportTest {
         pure
         returns (uint256)
     {
-        return TierReport.tierAtBlockFromReport(report_, blockNumber_);
+        unchecked {
+            return TierReport.tierAtBlockFromReport(report_, blockNumber_);
+        }
     }
 
     /// Wraps `TierReport.tierBlock`.
@@ -26,7 +28,9 @@ contract TierReportTest {
         pure
         returns (uint256)
     {
-        return TierReport.tierBlock(report_, tier_);
+        unchecked {
+            return TierReport.tierBlock(report_, tier_);
+        }
     }
 
     /// Wraps `TierReport.truncateTiersAbove`.
@@ -37,7 +41,9 @@ contract TierReportTest {
         pure
         returns (uint256)
     {
-        return TierReport.truncateTiersAbove(report_, tier_);
+        unchecked {
+            return TierReport.truncateTiersAbove(report_, tier_);
+        }
     }
 
     /// Wraps `TierReport.updateBlocksForTierRange`.
@@ -51,13 +57,15 @@ contract TierReportTest {
         uint256 endTier_,
         uint256 blockNumber_
     ) external pure returns (uint256) {
-        return
-            TierReport.updateBlocksForTierRange(
-                report_,
-                startTier_,
-                endTier_,
-                blockNumber_
-            );
+        unchecked {
+            return
+                TierReport.updateBlocksForTierRange(
+                    report_,
+                    startTier_,
+                    endTier_,
+                    blockNumber_
+                );
+        }
     }
 
     /// Wraps `TierReport.updateReportWithTierAtBlock`.
@@ -71,12 +79,34 @@ contract TierReportTest {
         uint256 endTier_,
         uint256 blockNumber_
     ) external pure returns (uint256) {
-        return
-            TierReport.updateReportWithTierAtBlock(
-                report_,
-                startTier_,
-                endTier_,
-                blockNumber_
-            );
+        unchecked {
+            return
+                TierReport.updateReportWithTierAtBlock(
+                    report_,
+                    startTier_,
+                    endTier_,
+                    blockNumber_
+                );
+        }
+    }
+
+    /// Updates a report with a block number for a given tier.
+    /// More gas efficient than `updateBlocksForTierRange` if only a single
+    /// tier is being modified.
+    /// The tier at/above the given tier is updated. E.g. tier `0` will update
+    /// the block for tier `1`.
+    function updateBlockAtTier(
+        uint256 report_,
+        uint256 tier_,
+        uint256 blockNumber_
+    ) external pure returns (uint256) {
+        unchecked {
+            return
+                TierReport.updateBlockAtTier(
+                    report_,
+                    tier_,
+                    blockNumber_
+                );
+        }
     }
 }

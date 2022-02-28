@@ -35,7 +35,7 @@ const enum Opcode {
   MUL,
   DIV,
   MOD,
-  EXP,
+  POW,
   MIN,
   MAX,
   SCALE18_MUL,

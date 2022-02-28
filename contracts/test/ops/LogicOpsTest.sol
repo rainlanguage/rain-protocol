@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.10;
 
-import {RainVM, State} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {LogicOps} from "../vm/ops/LogicOps.sol";
+import {RainVM, State} from "../../vm/RainVM.sol";
+import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
+import {LogicOps} from "../../vm/ops/LogicOps.sol";
 
-/// @title LogicTest
+/// @title LogicOpsTest
 /// Simple contract that exposes logic ops for testing.
-contract LogicTest is RainVM, VMState {
+contract LogicOpsTest is RainVM, VMState {
     uint256 private immutable logicOpsStart;
     address private immutable vmStatePointer;
 
