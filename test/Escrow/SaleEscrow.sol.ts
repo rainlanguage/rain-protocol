@@ -1,7 +1,7 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { ethers } from "hardhat";
-import { op } from "../Util";
+import { artifacts, ethers } from "hardhat";
+import { getEventArgs, op } from "../Util";
 import {
   afterBlockNumberConfig,
   Opcode,
@@ -13,12 +13,16 @@ import { ReserveToken } from "../../typechain/ReserveToken";
 import { Contract, ContractFactory } from "ethers";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import { SaleConstructorConfigStruct } from "../../typechain/Sale";
-import { SaleFactory } from "../../typechain/SaleFactory";
+import {
+  SaleConfigStruct,
+  SaleConstructorConfigStruct,
+  SaleRedeemableERC20ConfigStruct,
+} from "../../typechain/Sale";
 import { SaleEscrowWrapper } from "../../typechain/SaleEscrowWrapper";
 import { SaleMutableAddressesTest } from "../../typechain/SaleMutableAddressesTest";
 import { SaleMutableAddressesTestFactory } from "../../typechain/SaleMutableAddressesTestFactory";
 import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const { assert } = chai;
 
@@ -47,7 +51,56 @@ let reserve: ReserveToken & Contract,
   readWriteTier: ReadWriteTier & Contract,
   saleConstructorConfig: SaleConstructorConfigStruct,
   saleFactoryFactory: ContractFactory,
-  saleFactory: SaleFactory & Contract;
+  saleFactory: SaleMutableAddressesTestFactory & Contract;
+
+const saleMutableAddressesTestDeploy = async (
+  signers: SignerWithAddress[],
+  deployer: SignerWithAddress,
+  saleTestFactory: SaleMutableAddressesTestFactory & Contract,
+  config: SaleConfigStruct,
+  saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
+  ...args
+): Promise<
+  [SaleMutableAddressesTest & Contract, RedeemableERC20 & Contract]
+> => {
+  const txDeploy = await saleTestFactory.createChildTyped(
+    config,
+    saleRedeemableERC20Config,
+    ...args
+  );
+
+  const saleMutableAddressesTest = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(txDeploy, "NewChild", saleTestFactory)).child
+      ),
+      20 // address bytes length
+    ),
+    (await artifacts.readArtifact("SaleMutableAddressesTest")).abi,
+    deployer
+  ) as SaleMutableAddressesTest & Contract;
+
+  if (!ethers.utils.isAddress(saleMutableAddressesTest.address)) {
+    throw new Error(
+      `invalid sale address: ${saleMutableAddressesTest.address} (${saleMutableAddressesTest.address.length} chars)`
+    );
+  }
+
+  await saleMutableAddressesTest.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  saleMutableAddressesTest.deployTransaction = txDeploy;
+
+  let token = new ethers.Contract(
+    await saleMutableAddressesTest.token(),
+    (await artifacts.readArtifact("RedeemableERC20")).abi
+  ) as RedeemableERC20 & Contract;
+
+  token = token.connect(signers[0]); // need to do this for some reason
+
+  return [saleMutableAddressesTest, token];
+};
 
 describe("SaleEscrow", async function () {
   beforeEach(async () => {
@@ -78,7 +131,7 @@ describe("SaleEscrow", async function () {
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
     saleFactory = (await saleFactoryFactory.deploy(
       saleConstructorConfig
-    )) as SaleFactory & Contract;
+    )) as SaleMutableAddressesTestFactory & Contract;
     await saleFactory.deployed();
   });
 
@@ -117,7 +170,7 @@ describe("SaleEscrow", async function () {
       )) as SaleMutableAddressesTestFactory & Contract;
     await saleMutableAddressesTestFactory.deployed();
 
-    const [saleMutableAddressesTest] = (await saleDeploy(
+    const [saleMutableAddressesTest] = await saleMutableAddressesTestDeploy(
       signers,
       deployer,
       saleMutableAddressesTestFactory,
@@ -142,7 +195,7 @@ describe("SaleEscrow", async function () {
         minimumTier: Tier.ZERO,
         distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
-    )) as [SaleMutableAddressesTest & Contract, RedeemableERC20 & Contract];
+    );
 
     const saleEscrowWrapper = (await Util.basicDeploy(
       "SaleEscrowWrapper",
@@ -154,14 +207,63 @@ describe("SaleEscrow", async function () {
     await saleEscrowWrapper.fetchToken(saleMutableAddressesTest.address);
     await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
 
+    const saleEscrowReserve0 = await saleEscrowWrapper.getReserve(
+      saleMutableAddressesTest.address
+    );
+    const saleEscrowToken0 = await saleEscrowWrapper.getToken(
+      saleMutableAddressesTest.address
+    );
+
     const newReserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
     )) as ReserveToken & Contract;
 
+    const newToken = await Util.redeemableERC20Deploy(signers[0], {
+      reserve: newReserve.address,
+      erc20Config: {
+        name: "Token",
+        symbol: "TKN",
+        distributor: saleEscrowWrapper.address,
+        initialSupply: totalTokenSupply,
+      },
+      tier: readWriteTier.address,
+      minimumTier: Tier.ZERO,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    });
+
     await saleMutableAddressesTest.updateReserve(newReserve.address);
+    await saleMutableAddressesTest.updateToken(newToken.address);
 
     await saleEscrowWrapper.fetchReserve(saleMutableAddressesTest.address);
+    await saleEscrowWrapper.fetchToken(saleMutableAddressesTest.address);
+
+    const saleEscrowReserve1 = await saleEscrowWrapper.getReserve(
+      saleMutableAddressesTest.address
+    );
+    const saleEscrowToken1 = await saleEscrowWrapper.getToken(
+      saleMutableAddressesTest.address
+    );
+
+    // sanity check
+    assert(
+      saleEscrowReserve0 !== newReserve.address,
+      "for some miraculous reason the new reserve has same address as original reserve"
+    );
+    assert(
+      saleEscrowReserve0 === saleEscrowReserve1,
+      "sale escrow wrongly updated reserve address"
+    );
+
+    // sanity check
+    assert(
+      saleEscrowToken0 !== newToken.address,
+      "for some miraculous reason the new token has same address as original token"
+    );
+    assert(
+      saleEscrowToken0 === saleEscrowToken1,
+      "sale escrow wrongly updated token address"
+    );
   });
 
   it("should return reserve and token addresses, and escrow status of Pending, after Sale initialisation", async function () {
