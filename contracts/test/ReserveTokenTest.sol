@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @title ReserveToken
+/// @title ReserveTokenTest
 /// An example token that can be used as a reserve asset.
 /// On mainnet this would likely be some stablecoin but can be anything.
 contract ReserveTokenTest is ERC20 {
