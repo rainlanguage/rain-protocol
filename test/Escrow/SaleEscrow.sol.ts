@@ -214,23 +214,8 @@ describe("SaleEscrow", async function () {
       saleMutableAddressesTest.address
     );
 
-    const newReserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
-    const newToken = await Util.redeemableERC20Deploy(signers[0], {
-      reserve: newReserve.address,
-      erc20Config: {
-        name: "Token",
-        symbol: "TKN",
-        distributor: saleEscrowWrapper.address,
-        initialSupply: totalTokenSupply,
-      },
-      tier: readWriteTier.address,
-      minimumTier: Tier.ZERO,
-      distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    const newReserve = ethers.Wallet.createRandom();
+    const newToken = ethers.Wallet.createRandom();
 
     await saleMutableAddressesTest.updateReserve(newReserve.address);
     await saleMutableAddressesTest.updateToken(newToken.address);
