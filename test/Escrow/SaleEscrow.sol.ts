@@ -135,6 +135,196 @@ describe("SaleEscrow", async function () {
     await saleFactory.deployed();
   });
 
+  it("should prevent 'malicious' sale contract from modifying fail status", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const saleMutableAddressesTestFactoryFactory =
+      await ethers.getContractFactory("SaleMutableAddressesTestFactory", {});
+    const saleMutableAddressesTestFactory =
+      (await saleMutableAddressesTestFactoryFactory.deploy(
+        saleConstructorConfig
+      )) as SaleMutableAddressesTestFactory & Contract;
+    await saleMutableAddressesTestFactory.deployed();
+
+    const [saleMutableAddressesTest] = await saleMutableAddressesTestDeploy(
+      signers,
+      deployer,
+      saleMutableAddressesTestFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const saleEscrowWrapper = (await Util.basicDeploy(
+      "SaleEscrowWrapper",
+      {}
+    )) as SaleEscrowWrapper & Contract;
+
+    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const saleEscrowStatus0: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+
+    await saleMutableAddressesTest.updateStatus(SaleStatus.Active);
+
+    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const saleEscrowStatus1: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+
+    await saleMutableAddressesTest.updateStatus(SaleStatus.Fail);
+
+    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const saleEscrowStatus2: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+
+    await saleMutableAddressesTest.updateStatus(SaleStatus.Success);
+
+    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const saleEscrowStatus3: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+
+    assert(saleEscrowStatus0 === EscrowStatus.Pending);
+    assert(saleEscrowStatus1 === EscrowStatus.Pending);
+    assert(saleEscrowStatus2 === EscrowStatus.Fail);
+    assert(saleEscrowStatus3 === EscrowStatus.Fail);
+  });
+
+  it("should prevent 'malicious' sale contract from modifying success status", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const saleMutableAddressesTestFactoryFactory =
+      await ethers.getContractFactory("SaleMutableAddressesTestFactory", {});
+    const saleMutableAddressesTestFactory =
+      (await saleMutableAddressesTestFactoryFactory.deploy(
+        saleConstructorConfig
+      )) as SaleMutableAddressesTestFactory & Contract;
+    await saleMutableAddressesTestFactory.deployed();
+
+    const [saleMutableAddressesTest] = await saleMutableAddressesTestDeploy(
+      signers,
+      deployer,
+      saleMutableAddressesTestFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const saleEscrowWrapper = (await Util.basicDeploy(
+      "SaleEscrowWrapper",
+      {}
+    )) as SaleEscrowWrapper & Contract;
+
+    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const saleEscrowStatus0: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+
+    await saleMutableAddressesTest.updateStatus(SaleStatus.Active);
+
+    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const saleEscrowStatus1: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+
+    await saleMutableAddressesTest.updateStatus(SaleStatus.Success);
+
+    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const saleEscrowStatus2: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+
+    await saleMutableAddressesTest.updateStatus(SaleStatus.Fail);
+
+    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const saleEscrowStatus3: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+
+    assert(saleEscrowStatus0 === EscrowStatus.Pending);
+    assert(saleEscrowStatus1 === EscrowStatus.Pending);
+    assert(saleEscrowStatus2 === EscrowStatus.Success);
+    assert(saleEscrowStatus3 === EscrowStatus.Success);
+  });
+
   it("should prevent 'malicious' sale contract from modifying reserve and token addresses", async function () {
     this.timeout(0);
 

@@ -166,6 +166,274 @@ const trustMutableAddressesTestDeploy = async (
 };
 
 describe("TrustEscrow", async function () {
+  it("should prevent 'malicious' trust contract from modifying fail status", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const creator = signers[0];
+    const seeder = signers[1];
+
+    const [crpFactory, balancerFactory] = await Util.balancerDeploy();
+
+    const { trustTestFactory } = await factoriesTestDeploy(
+      crpFactory,
+      balancerFactory
+    );
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const minimumTier = 0;
+
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seederUnits = 0;
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
+
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederCooldownDuration = 0;
+
+    const successLevel = reserveInit
+      .add(seederFee)
+      .add(redeemInit)
+      .add(minimumCreatorRaise);
+
+    const minimumTradingDuration = 100;
+
+    const readWriteTierFactory = await ethers.getContractFactory(
+      "ReadWriteTier"
+    );
+    const readWriteTier =
+      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+    await readWriteTier.deployed();
+
+    const trustMutableAddressesTest = await trustMutableAddressesTestDeploy(
+      trustTestFactory,
+      creator,
+      {
+        creator: creator.address,
+        minimumCreatorRaise,
+        seederFee,
+        redeemInit,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier,
+      },
+      {
+        seeder: seeder.address,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
+      },
+      { gasLimit: 100000000 }
+    );
+
+    const trustEscrowWrapper = (await Util.basicDeploy(
+      "TrustEscrowWrapper",
+      {}
+    )) as TrustEscrowWrapper & Contract;
+
+    await trustEscrowWrapper.fetchEscrowStatus(
+      trustMutableAddressesTest.address
+    );
+    const trustEscrowStatus0: EscrowStatus =
+      await trustEscrowWrapper.getEscrowStatus(
+        trustMutableAddressesTest.address
+      );
+
+    await trustMutableAddressesTest.updateStatus(SaleStatus.Active);
+
+    await trustEscrowWrapper.fetchEscrowStatus(
+      trustMutableAddressesTest.address
+    );
+    const trustEscrowStatus1: EscrowStatus =
+      await trustEscrowWrapper.getEscrowStatus(
+        trustMutableAddressesTest.address
+      );
+
+    await trustMutableAddressesTest.updateStatus(SaleStatus.Fail);
+
+    await trustEscrowWrapper.fetchEscrowStatus(
+      trustMutableAddressesTest.address
+    );
+    const trustEscrowStatus2: EscrowStatus =
+      await trustEscrowWrapper.getEscrowStatus(
+        trustMutableAddressesTest.address
+      );
+
+    await trustMutableAddressesTest.updateStatus(SaleStatus.Success);
+
+    await trustEscrowWrapper.fetchEscrowStatus(
+      trustMutableAddressesTest.address
+    );
+    const trustEscrowStatus3: EscrowStatus =
+      await trustEscrowWrapper.getEscrowStatus(
+        trustMutableAddressesTest.address
+      );
+
+    assert(trustEscrowStatus0 === EscrowStatus.Pending);
+    assert(trustEscrowStatus1 === EscrowStatus.Pending);
+    assert(trustEscrowStatus2 === EscrowStatus.Fail);
+    assert(trustEscrowStatus3 === EscrowStatus.Fail);
+  });
+
+  it("should prevent 'malicious' trust contract from modifying success status", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const creator = signers[0];
+    const seeder = signers[1];
+
+    const [crpFactory, balancerFactory] = await Util.balancerDeploy();
+
+    const { trustTestFactory } = await factoriesTestDeploy(
+      crpFactory,
+      balancerFactory
+    );
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const minimumTier = 0;
+
+    const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const seederUnits = 0;
+    const seedERC20Config = {
+      name: "SeedToken",
+      symbol: "SDT",
+      distributor: Util.zeroAddress,
+      initialSupply: seederUnits,
+    };
+
+    const reserveInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const redeemInit = ethers.BigNumber.from("2000" + Util.sixZeros);
+    const initialValuation = ethers.BigNumber.from("20000" + Util.sixZeros);
+    const minimumCreatorRaise = ethers.BigNumber.from("100" + Util.sixZeros);
+
+    const seederFee = ethers.BigNumber.from("100" + Util.sixZeros);
+    const seederCooldownDuration = 0;
+
+    const successLevel = reserveInit
+      .add(seederFee)
+      .add(redeemInit)
+      .add(minimumCreatorRaise);
+
+    const minimumTradingDuration = 100;
+
+    const readWriteTierFactory = await ethers.getContractFactory(
+      "ReadWriteTier"
+    );
+    const readWriteTier =
+      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+    await readWriteTier.deployed();
+
+    const trustMutableAddressesTest = await trustMutableAddressesTestDeploy(
+      trustTestFactory,
+      creator,
+      {
+        creator: creator.address,
+        minimumCreatorRaise,
+        seederFee,
+        redeemInit,
+        reserve: reserve.address,
+        reserveInit,
+        initialValuation,
+        finalValuation: successLevel,
+        minimumTradingDuration,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier,
+      },
+      {
+        seeder: seeder.address,
+        cooldownDuration: seederCooldownDuration,
+        erc20Config: seedERC20Config,
+      },
+      { gasLimit: 100000000 }
+    );
+
+    const trustEscrowWrapper = (await Util.basicDeploy(
+      "TrustEscrowWrapper",
+      {}
+    )) as TrustEscrowWrapper & Contract;
+
+    await trustEscrowWrapper.fetchEscrowStatus(
+      trustMutableAddressesTest.address
+    );
+    const trustEscrowStatus0: EscrowStatus =
+      await trustEscrowWrapper.getEscrowStatus(
+        trustMutableAddressesTest.address
+      );
+
+    await trustMutableAddressesTest.updateStatus(SaleStatus.Active);
+
+    await trustEscrowWrapper.fetchEscrowStatus(
+      trustMutableAddressesTest.address
+    );
+    const trustEscrowStatus1: EscrowStatus =
+      await trustEscrowWrapper.getEscrowStatus(
+        trustMutableAddressesTest.address
+      );
+
+    await trustMutableAddressesTest.updateStatus(SaleStatus.Success);
+
+    await trustEscrowWrapper.fetchEscrowStatus(
+      trustMutableAddressesTest.address
+    );
+    const trustEscrowStatus2: EscrowStatus =
+      await trustEscrowWrapper.getEscrowStatus(
+        trustMutableAddressesTest.address
+      );
+
+    await trustMutableAddressesTest.updateStatus(SaleStatus.Fail);
+
+    await trustEscrowWrapper.fetchEscrowStatus(
+      trustMutableAddressesTest.address
+    );
+    const trustEscrowStatus3: EscrowStatus =
+      await trustEscrowWrapper.getEscrowStatus(
+        trustMutableAddressesTest.address
+      );
+
+    assert(trustEscrowStatus0 === EscrowStatus.Pending);
+    assert(trustEscrowStatus1 === EscrowStatus.Pending);
+    assert(trustEscrowStatus2 === EscrowStatus.Success);
+    assert(trustEscrowStatus3 === EscrowStatus.Success);
+  });
+
   it("should prevent 'malicious' trust contract from modifying crp address", async function () {
     this.timeout(0);
 

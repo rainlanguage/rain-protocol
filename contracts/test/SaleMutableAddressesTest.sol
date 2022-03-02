@@ -680,4 +680,10 @@ contract SaleMutableAddressesTest is
     function updateToken(address token_) external {
       _token = RedeemableERC20(token_);
     }
+
+    // a 'malicious' function which allows the sale status to be modified
+    // arbitrarily
+    function updateStatus(SaleStatus saleStatus_) external {
+      _saleStatus = SaleStatus(saleStatus_);
+    }
 }

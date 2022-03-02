@@ -433,6 +433,9 @@ contract TrustMutableAddressesTest is Phased, ISale {
     /// either of the final token balances.
     uint256 private finalWeight;
 
+    /// ESCROW TESTING: sale status can be set arbitrarily
+    SaleStatus public saleStatus = SaleStatus.Pending;
+
     constructor(TrustConstructionConfig memory config_) {
         balancerFactory = config_.balancerFactory;
         crpFactory = config_.crpFactory;
@@ -761,19 +764,21 @@ contract TrustMutableAddressesTest is Phased, ISale {
         return address(_reserve);
     }
 
-    /// @inheritdoc ISale
-    function saleStatus() external view returns (SaleStatus) {
-        uint256 poolPhase_ = currentPhase();
-        if (poolPhase_ == PHASE_ENDED || poolPhase_ == PHASE_EMERGENCY) {
-            if (finalBalance >= successBalance) {
-                return SaleStatus.Success;
-            } else {
-                return SaleStatus.Fail;
-            }
-        } else {
-            return SaleStatus.Pending;
-        }
-    }
+    // ESCROW TESTING: Forgo this function in favour of public variable that
+    // can be set to any arbitary sale status.
+    // /// @inheritdoc ISale
+    // function saleStatus() external view returns (SaleStatus) {
+    //     uint256 poolPhase_ = currentPhase();
+    //     if (poolPhase_ == PHASE_ENDED || poolPhase_ == PHASE_EMERGENCY) {
+    //         if (finalBalance >= successBalance) {
+    //             return SaleStatus.Success;
+    //         } else {
+    //             return SaleStatus.Fail;
+    //         }
+    //     } else {
+    //         return SaleStatus.Pending;
+    //     }
+    // }
 
     /// Accessor for the `DistributionStatus` of this `Trust`.
     /// Some of the distribution statuses are derived from the state of the
@@ -1138,5 +1143,11 @@ contract TrustMutableAddressesTest is Phased, ISale {
     // after initialisation
     function updateCrp(address crp_) external {
       crp = IConfigurableRightsPool(crp_);
+    }
+
+    // a 'malicious' function which allows the sale status to be modified
+    // arbitrarily
+    function updateStatus(SaleStatus saleStatus_) external {
+      saleStatus = SaleStatus(saleStatus_);
     }
 }
