@@ -22,7 +22,12 @@ import { SaleEscrowWrapper } from "../../typechain/SaleEscrowWrapper";
 import { SaleMutableAddressesTest } from "../../typechain/SaleMutableAddressesTest";
 import { SaleMutableAddressesTestFactory } from "../../typechain/SaleMutableAddressesTestFactory";
 import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import { RedeemableERC20Unfreezable } from "../../typechain/RedeemableERC20Unfreezable";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import {
+  BuyEvent,
+  SaleWithUnfreezableToken,
+} from "../../typechain/SaleWithUnfreezableToken";
 
 const { assert } = chai;
 
@@ -52,6 +57,55 @@ let reserve: ReserveToken & Contract,
   saleConstructorConfig: SaleConstructorConfigStruct,
   saleFactoryFactory: ContractFactory,
   saleFactory: SaleMutableAddressesTestFactory & Contract;
+
+const saleWithUnfreezableTokenDeploy = async (
+  signers: SignerWithAddress[],
+  deployer: SignerWithAddress,
+  saleTestFactory: SaleMutableAddressesTestFactory & Contract,
+  config: SaleConfigStruct,
+  saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
+  ...args
+): Promise<
+  [SaleWithUnfreezableToken & Contract, RedeemableERC20Unfreezable & Contract]
+> => {
+  const txDeploy = await saleTestFactory.createChildTyped(
+    config,
+    saleRedeemableERC20Config,
+    ...args
+  );
+
+  const saleWithUnfreezableToken = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(txDeploy, "NewChild", saleTestFactory)).child
+      ),
+      20 // address bytes length
+    ),
+    (await artifacts.readArtifact("SaleWithUnfreezableToken")).abi,
+    deployer
+  ) as SaleWithUnfreezableToken & Contract;
+
+  if (!ethers.utils.isAddress(saleWithUnfreezableToken.address)) {
+    throw new Error(
+      `invalid sale address: ${saleWithUnfreezableToken.address} (${saleWithUnfreezableToken.address.length} chars)`
+    );
+  }
+
+  await saleWithUnfreezableToken.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  saleWithUnfreezableToken.deployTransaction = txDeploy;
+
+  let token = new ethers.Contract(
+    await saleWithUnfreezableToken.token(),
+    (await artifacts.readArtifact("RedeemableERC20Unfreezable")).abi
+  ) as RedeemableERC20Unfreezable & Contract;
+
+  token = token.connect(signers[0]); // need to do this for some reason
+
+  return [saleWithUnfreezableToken, token];
+};
 
 const saleMutableAddressesTestDeploy = async (
   signers: SignerWithAddress[],
@@ -133,6 +187,67 @@ describe("SaleEscrow", async function () {
       saleConstructorConfig
     )) as SaleMutableAddressesTestFactory & Contract;
     await saleFactory.deployed();
+  });
+
+  it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [saleWithUnfreezableToken, unfreezableToken] =
+      await saleWithUnfreezableTokenDeploy(
+        signers,
+        deployer,
+        saleFactory,
+        {
+          canStartStateConfig: afterBlockNumberConfig(startBlock),
+          canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+          calculatePriceStateConfig: {
+            sources,
+            constants,
+            stackLength: 1,
+            argumentsLength: 0,
+          },
+          recipient: recipient.address,
+          reserve: reserve.address,
+          cooldownDuration: 1,
+          minimumRaise,
+          dustSize: 0,
+        },
+        {
+          erc20Config: redeemableERC20Config,
+          tier: readWriteTier.address,
+          minimumTier: Tier.ZERO,
+          distributionEndForwardingAddress: ethers.constants.AddressZero,
+        }
+      );
+
+    // Do normal Sale things until we can start claiming via RedeemableERC20ClaimEscrow
+    throw new Error("incomplete");
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
