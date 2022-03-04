@@ -14,6 +14,8 @@ import {Phased} from "../phased/Phased.sol";
 
 import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
 
+import "hardhat/console.sol";
+
 /// Everything required by the `RedeemableERC20Unfreezable` constructor.
 /// @param reserve Reserve token that the associated `Trust` or equivalent
 /// raise contract will be forwarding to the `RedeemableERC20Unfreezable` contract.
@@ -315,9 +317,9 @@ contract RedeemableERC20Unfreezable is Initializable, Phased, ERC20Redeem, ERC20
 
         uint256 currentPhase_ = currentPhase();
 
-        if (currentPhase_ == PHASE_UNFROZEN) {
-            // TESTING: No restrictions
-        } else {
+        console.log(currentPhase_);
+
+        if (currentPhase_ != PHASE_UNFROZEN) {
             // Some contracts may attempt a preflight (e.g. Balancer) of a 0 amount
             // transfer.
             // We don't want to accidentally cause external errors due to zero

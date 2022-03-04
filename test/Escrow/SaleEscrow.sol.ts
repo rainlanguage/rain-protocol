@@ -28,6 +28,8 @@ import {
   BuyEvent,
   SaleWithUnfreezableToken,
 } from "../../typechain/SaleWithUnfreezableToken";
+import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
+import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 
 const { assert } = chai;
 
@@ -189,14 +191,22 @@ describe("SaleEscrow", async function () {
     await saleFactory.deployed();
   });
 
-  it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else", async function () {
+  it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else (in the case of failed Sale)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+    const signer2 = signers[4];
+
+    // Deploy global Claim contract
+    const claimFactory = await ethers.getContractFactory(
+      "RedeemableERC20ClaimEscrow"
+    );
+    const claim = (await claimFactory.deploy()) as RedeemableERC20ClaimEscrow &
+      Contract;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -246,8 +256,78 @@ describe("SaleEscrow", async function () {
         }
       );
 
-    // Do normal Sale things until we can start claiming via RedeemableERC20ClaimEscrow
-    throw new Error("incomplete");
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnits = totalTokenSupply.div(100);
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
+    await reserve
+      .connect(signer1)
+      .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
+
+    // give signer2 reserve to cover cost + fee
+    await reserve.transfer(signer2.address, cost.add(fee));
+    const signer2ReserveBalance = await reserve.balanceOf(signer2.address);
+    await reserve
+      .connect(signer2)
+      .approve(saleWithUnfreezableToken.address, signer2ReserveBalance);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await saleWithUnfreezableToken.start();
+
+    // buy redeemable tokens during sale
+    await saleWithUnfreezableToken.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+    await saleWithUnfreezableToken.connect(signer2).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await saleWithUnfreezableToken.end();
+
+    // signer1 deposit
+    await claim
+      .connect(signer1)
+      .deposit(
+        saleWithUnfreezableToken.address,
+        unfreezableToken.address,
+        await unfreezableToken.balanceOf(signer1.address)
+      );
+
+    // // signer2 deposit
+    // await claim
+    //   .connect(signer2)
+    //   .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
+
+    // // undeposit
+    // await claim
+    //   .connect(signer1)
+    //   .undeposit(
+    //     saleWithUnfreezableToken.address,
+    //     unfreezableToken.address,
+    //     totalTokenSupply,
+    //     10
+    //   );
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
