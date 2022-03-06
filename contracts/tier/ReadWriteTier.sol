@@ -48,7 +48,7 @@ contract ReadWriteTier is ITier {
     function setTier(
         address account_,
         uint256 endTier_,
-        bytes memory data_
+        bytes calldata data_
     ) external virtual override {
         // The user must move to at least tier 1.
         // The tier 0 status is reserved for users that have never
@@ -70,7 +70,7 @@ contract ReadWriteTier is ITier {
         );
 
         // Emit this event for ITier.
-        emit TierChange(msg.sender, account_, startTier_, endTier_);
+        emit TierChange(msg.sender, account_, startTier_, endTier_, data_);
 
         // Call the `_afterSetTier` hook to allow inheriting contracts
         // to enforce requirements.
@@ -93,6 +93,6 @@ contract ReadWriteTier is ITier {
         address account_,
         uint256 startTier_,
         uint256 endTier_,
-        bytes memory data_
+        bytes calldata data_
     ) internal virtual {} // solhint-disable-line no-empty-blocks
 }

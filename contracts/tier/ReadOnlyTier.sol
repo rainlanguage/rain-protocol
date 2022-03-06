@@ -22,7 +22,7 @@ abstract contract ReadOnlyTier is ITier {
     function setTier(
         address,
         uint256,
-        bytes memory
+        bytes calldata
     ) external pure override {
         revert("SET_TIER");
     }

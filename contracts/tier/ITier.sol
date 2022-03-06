@@ -60,7 +60,9 @@ interface ITier {
         /// The previous tier the account held.
         uint256 startTier,
         /// The newly acquired tier the account now holds.
-        uint256 endTier
+        uint256 endTier,
+        /// The associated data for the tier change.
+        bytes data
     );
 
     /// @notice Users can set their own tier by calling `setTier`.
@@ -118,7 +120,7 @@ interface ITier {
     function setTier(
         address account,
         uint256 endTier,
-        bytes memory data
+        bytes calldata data
     ) external;
 
     /// @notice A tier report is a `uint256` that contains each of the block
