@@ -259,7 +259,9 @@ contract EmissionsERC20 is
             msg.sender,
             claimant_,
             TierConstants.TIER_ZERO,
-            TierConstants.TIER_EIGHT
+            TierConstants.TIER_EIGHT,
+            // `data_` is emitted under `Claim`.
+            ""
         );
         emit Claim(msg.sender, claimant_, data_);
     }

@@ -56,11 +56,13 @@ interface ITier {
     /// @param account The account changing tier.
     /// @param startTier The previous tier the account held.
     /// @param endTier The newly acquired tier the account now holds.
+    /// @param data The associated data for the tier change.
     event TierChange(
         address sender,
         address account,
         uint256 startTier,
-        uint256 endTier
+        uint256 endTier,
+        bytes data
     );
 
     /// @notice Users can set their own tier by calling `setTier`.
@@ -118,7 +120,7 @@ interface ITier {
     function setTier(
         address account,
         uint256 endTier,
-        bytes memory data
+        bytes calldata data
     ) external;
 
     /// @notice A tier report is a `uint256` that contains each of the block
