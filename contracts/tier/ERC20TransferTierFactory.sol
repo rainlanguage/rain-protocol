@@ -41,7 +41,7 @@ contract ERC20TransferTierFactory is Factory {
     ///
     /// @param config_ Constructor config for `ERC20TransferTier`.
     /// @return New `ERC20TransferTier` child contract address.
-    function createChildTyped(ERC20TransferTierConfig memory config_)
+    function createChildTyped(ERC20TransferTierConfig calldata config_)
         external
         returns (ERC20TransferTier)
     {
