@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {Verify} from "../verify/Verify.sol";
 import {Factory} from "../factory/Factory.sol";
 import {VerifyTier} from "./VerifyTier.sol";
 
@@ -28,7 +27,7 @@ contract VerifyTierFactory is Factory {
         override
         returns (address)
     {
-        Verify verify_ = abi.decode(data_, (Verify));
+        address verify_ = abi.decode(data_, (address));
         address clone_ = Clones.clone(implementation);
         VerifyTier(clone_).initialize(verify_);
         return clone_;
@@ -40,7 +39,7 @@ contract VerifyTierFactory is Factory {
     ///
     /// @param verify_ `Verify` of the `VerifyTier` logic.
     /// @return New `VerifyTier` child contract address.
-    function createChildTyped(Verify verify_) external returns (VerifyTier) {
+    function createChildTyped(address verify_) external returns (VerifyTier) {
         return VerifyTier(this.createChild(abi.encode(verify_)));
     }
 }
