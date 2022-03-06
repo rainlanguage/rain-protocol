@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.0;
 
 interface IFactory {
     /// Whenever a new child contract is deployed, a `NewChild` event

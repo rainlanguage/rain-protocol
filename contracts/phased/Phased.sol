@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 /// @title Phased
 /// @notice `Phased` is an abstract contract that defines up to `9` phases that

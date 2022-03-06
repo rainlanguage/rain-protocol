@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.0;
 
 /// @title IClaim
 /// @notice Embodies the idea of processing a claim for some kind of reward.

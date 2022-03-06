@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {RainVM, State} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";

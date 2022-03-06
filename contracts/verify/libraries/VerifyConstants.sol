@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 /// Summary statuses derived from a `State` by comparing the `xSince` times
 /// against a specific block number.
