@@ -27,6 +27,6 @@ interface IClaim {
     /// Implementing contracts MAY allow `claim` to be called arbitrarily many
     /// times, or restrict themselves to a single or several calls only.
     /// @param claimant The address that will receive the result of this claim.
-    function claim(address claimant, bytes memory data) external;
+    function claim(address claimant, bytes calldata data) external;
 
 }
