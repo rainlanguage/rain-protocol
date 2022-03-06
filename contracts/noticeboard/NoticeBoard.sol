@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 struct Notice {
     /// Every notice is assumed to be about some contract. If it isn't then

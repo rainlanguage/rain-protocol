@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "../../vm/RainVM.sol";
 import {TierOps} from "../../vm/ops/TierOps.sol";

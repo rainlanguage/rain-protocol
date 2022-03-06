@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 /// An `ISale` can be in one of 4 possible states and a linear progression is
 /// expected from an "in flight" status to an immutable definitive outcome.
