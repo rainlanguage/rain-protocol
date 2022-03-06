@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so

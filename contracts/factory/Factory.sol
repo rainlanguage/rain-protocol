@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {IFactory} from "./IFactory.sol";
 // solhint-disable-next-line max-line-length

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {ITier} from "./ITier.sol";
 import {TierReport} from "./libraries/TierReport.sol";
