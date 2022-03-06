@@ -992,15 +992,15 @@ contract Trust is Phased {
         );
 
         if (seederPay_ > 0) {
-            reserve.safeApprove(seeder, seederPay_);
+            reserve.safeIncreaseAllowance(seeder, seederPay_);
         }
 
         if (creatorPay_ > 0) {
-            reserve.safeApprove(creator, creatorPay_);
+            reserve.safeIncreaseAllowance(creator, creatorPay_);
         }
 
         if (tokenPay_ > 0) {
-            reserve.safeApprove(address(token), tokenPay_);
+            reserve.safeIncreaseAllowance(address(token), tokenPay_);
         }
     }
 
