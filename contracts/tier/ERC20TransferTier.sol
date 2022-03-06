@@ -97,7 +97,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier, Initializable {
         address account_,
         uint256 startTier_,
         uint256 endTier_,
-        bytes memory
+        bytes calldata
     ) internal override {
         // As _anyone_ can call `setTier` we require that `msg.sender` and
         // `account_` are the same if the end tier is not an improvement.
