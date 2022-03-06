@@ -288,7 +288,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
 
     /// Wraps `_redeem` from `ERC20Redeem`.
     /// Very thin wrapper so be careful when calling!
-    function redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
+    function redeem(IERC20[] calldata treasuryAssets_, uint256 redeemAmount_)
         external
         onlyPhase(PHASE_FROZEN)
     {
