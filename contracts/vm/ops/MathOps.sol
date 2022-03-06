@@ -95,7 +95,7 @@ library MathOps {
                 unchecked {
                     cursor_++;
                 }
-                accumulator_**state_.stack[cursor_];
+                accumulator_ = accumulator_**state_.stack[cursor_];
             }
         }
         // Minimum.
