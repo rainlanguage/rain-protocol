@@ -41,7 +41,7 @@ contract ERC20BalanceTierFactory is Factory {
     ///
     /// @param config_ Constructor config for `ERC20BalanceTier`.
     /// @return New `ERC20BalanceTier` child contract address.
-    function createChildTyped(ERC20BalanceTierConfig memory config_)
+    function createChildTyped(ERC20BalanceTierConfig calldata config_)
         external
         returns (ERC20BalanceTier)
     {
