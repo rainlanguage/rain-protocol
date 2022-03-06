@@ -236,7 +236,7 @@ contract EmissionsERC20 is
     /// @param data_ NOT used onchain. Forwarded to `Claim` event for potential
     /// additional offchain processing.
     /// @inheritdoc IClaim
-    function claim(address claimant_, bytes memory data_) external {
+    function claim(address claimant_, bytes calldata data_) external {
         // Disallow delegated claims if appropriate.
         if (!allowDelegatedClaims) {
             require(msg.sender == claimant_, "DELEGATED_CLAIM");
