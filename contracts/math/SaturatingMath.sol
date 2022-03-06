@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 /// @title SaturatingMath
 /// @notice Sometimes we neither want math operations to error nor wrap around

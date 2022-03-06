@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {RedeemableERC20} from "../redeemableERC20/RedeemableERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
