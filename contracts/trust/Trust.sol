@@ -793,7 +793,7 @@ contract Trust is Phased {
     /// The notice is opaque bytes. The indexer/GUI is expected to understand
     /// the context to decode/interpret it.
     /// @param data_ The data associated with this notice.
-    function sendNotice(bytes memory data_) external {
+    function sendNotice(bytes calldata data_) external {
         emit Notice(msg.sender, data_);
     }
 
