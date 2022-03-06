@@ -1005,15 +1005,15 @@ contract Trust is Phased, ISale {
         );
 
         if (seederPay_ > 0) {
-            _reserve.safeApprove(seeder, seederPay_);
+            _reserve.safeIncreaseAllowance(seeder, seederPay_);
         }
 
         if (creatorPay_ > 0) {
-            _reserve.safeApprove(creator, creatorPay_);
+            _reserve.safeIncreaseAllowance(creator, creatorPay_);
         }
 
         if (tokenPay_ > 0) {
-            _reserve.safeApprove(address(_token), tokenPay_);
+            _reserve.safeIncreaseAllowance(address(_token), tokenPay_);
         }
     }
 
