@@ -233,8 +233,12 @@ contract Verify is AccessControl, Initializable {
         _setRoleAdmin(BANNER, BANNER_ADMIN);
 
         // It is STRONGLY RECOMMENDED that the `admin_` delegates specific
-        // admin roles then revokes the `DEFAULT_ADMIN_ROLE` and the `X_ADMIN`
-        // roles.
+        // admin roles then revokes the `X_ADMIN` roles. From themselves.
+        // It is ALSO RECOMMENDED that each of the sub-`X_ADMIN` roles revokes
+        // their admin rights once sufficient approvers/removers/banners have
+        // been assigned, if possible. Admins can instantly/atomically assign
+        // and revoke admin priviledges from each other, so a compromised key
+        // can irreperably damage a `Verify` contract instance.
         _setupRole(APPROVER_ADMIN, admin_);
         _setupRole(REMOVER_ADMIN, admin_);
         _setupRole(BANNER_ADMIN, admin_);
