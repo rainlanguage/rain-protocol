@@ -120,8 +120,8 @@ abstract contract RainVM {
     /// is correctly sized and populated for the mapped source.
     ///
     /// The `operand_` for the zipmap opcode is split into 3 components:
-    /// - 2 low bits: The index of the source to use from `sources`.
-    /// - 3 middle bits: The size of the loop, where 0 is 1 iteration
+    /// - 3 low bits: The index of the source to use from `sources`.
+    /// - 2 middle bits: The size of the loop, where 0 is 1 iteration
     /// - 3 high bits: The number of vals to be zipped from the stack where 0
     ///   is 1 value to be zipped.
     ///
