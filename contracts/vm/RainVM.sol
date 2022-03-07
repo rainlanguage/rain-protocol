@@ -47,8 +47,10 @@ struct State {
 /// then pass to `ImmutableSource` contracts deployed by a factory that then
 /// run `eval` to produce a final value.
 ///
-/// There are only 3 "core" opcodes for `RainVM`:
-/// - `0`: Skip self and optionally additional opcodes, `0 0` is a noop
+/// There are only 4 "core" opcodes for `RainVM`:
+/// - `0`: Skip self and optionally additional opcodes, `0 0` is a noop.
+///   DEPRECATED! DON'T USE SKIP!
+///   See https://github.com/beehive-innovation/rain-protocol/issues/262
 /// - `1`: Copy value from either `constants` or `arguments` at index `operand`
 ///   to the top of the stack. High bit of `operand` is `0` for `constants` and
 ///   `1` for `arguments`.
@@ -87,6 +89,7 @@ struct State {
 /// up very quickly. Implementing contracts and opcode packs SHOULD require
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
+    /// DEPRECATED! DONT USE SKIP!
     /// `0` is a skip as this is the fallback value for unset solidity bytes.
     /// Any additional "whitespace" in rain scripts will be noops as `0 0` is
     /// "skip self". The val can be used to skip additional opcodes but take
@@ -287,6 +290,7 @@ abstract contract RainVM {
                     } else if (opcode_ == OP_ZIPMAP) {
                         zipmap(context_, state_, operand_);
                     } else {
+                        // DEPRECATED! DON'T USE SKIP!
                         // if the high bit of the operand is nonzero then take
                         // the top of the stack and if it is zero we do NOT
                         // skip.
