@@ -38,8 +38,6 @@ contract TrustFactory is Factory {
     /// @param config_ All configuration for the `TrustFactory`.
     constructor(TrustConstructionConfig memory config_) {
         address implementation_ = address(new Trust(config_));
-        // This silences slither.
-        require(implementation_ != address(0), "TRUST_0");
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
