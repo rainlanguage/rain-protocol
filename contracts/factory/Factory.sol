@@ -48,6 +48,8 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     {
         // Create child contract using hook.
         address child_ = _createChild(data_);
+        // Ensure the child at this address has not previously been deployed.
+        require(!contracts[child_], "DUPLICATE_CHILD");
         // Register child contract address to `contracts` mapping.
         contracts[child_] = true;
         // Emit `NewChild` event with child contract address.
