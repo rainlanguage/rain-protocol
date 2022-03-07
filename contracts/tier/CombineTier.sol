@@ -43,6 +43,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     }
 
     function initialize(StateConfig memory config_) external initializer {
+        require(config_.sources.length > 0, "0_SOURCES");
         vmStatePointer = _snapshot(_newState(config_));
     }
 
