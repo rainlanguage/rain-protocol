@@ -322,7 +322,7 @@ contract RedeemableERC20 is
             }
             // There are no other phases.
             else {
-                assert(false);
+                revert("UNKNOWN_PHASE");
             }
         }
     }
