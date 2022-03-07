@@ -132,7 +132,7 @@ library TierReport {
         uint256 startTier_,
         uint256 endTier_,
         uint256 blockNumber_
-    ) internal pure maxTier(startTier_) maxTier(endTier_) returns (uint256) {
+    ) internal pure maxTier(endTier_) returns (uint256) {
         unchecked {
             uint256 offset_;
             for (uint256 i_ = startTier_; i_ < endTier_; i_++) {

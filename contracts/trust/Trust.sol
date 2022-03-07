@@ -481,7 +481,7 @@ contract Trust is Phased, ISale {
         );
         require(
             config_.initialValuation >= config_.finalValuation,
-            "MIN_INITIAL_VALUTION"
+            "MIN_INITIAL_VALUATION"
         );
 
         creator = config_.creator;

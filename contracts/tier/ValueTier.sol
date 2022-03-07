@@ -63,7 +63,9 @@ contract ValueTier {
         pure
         returns (uint256)
     {
-        return tier_ > TierConstants.TIER_ZERO ? tierValues_[tier_ - 1] : 0;
+        unchecked {
+            return tier_ > TierConstants.TIER_ZERO ? tierValues_[tier_ - 1] : 0;
+        }
     }
 
     /// Converts a value to the maximum Tier it qualifies for.
