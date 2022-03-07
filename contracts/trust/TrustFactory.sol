@@ -32,7 +32,7 @@ contract TrustFactory is Factory {
 
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address private immutable implementation;
+    address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     /// @param config_ All configuration for the `TrustFactory`.
