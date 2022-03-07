@@ -108,8 +108,8 @@ contract RedeemableERC20 is
 
     /// Bits for a receiver.
     uint256 private constant RECEIVER = 0x1;
-    /// Bits for a sender. Sender is also receiver.
-    uint256 private constant SENDER = 0x3;
+    /// Bits for a sender.
+    uint256 private constant SENDER = 0x2;
 
     /// To be clear, this admin is NOT intended to be an EOA.
     /// This contract is designed assuming the admin is a `Trust` or equivalent
@@ -225,14 +225,14 @@ contract RedeemableERC20 is
     /// @param maybeReceiver_ account to check.
     /// @return True if account is a receiver.
     function isReceiver(address maybeReceiver_) public view returns (bool) {
-        return access[maybeReceiver_] > 0;
+        return access[maybeReceiver_] & RECEIVER > 0;
     }
 
     /// Admin can grant an address receiver rights.
     /// @param newReceiver_ The account to grand receiver.
     function grantReceiver(address newReceiver_) external onlyAdmin {
         // Using `|` preserves sender if previously granted.
-        access[newReceiver_] = access[newReceiver_] | RECEIVER;
+        access[newReceiver_] |= RECEIVER;
         emit Receiver(msg.sender, newReceiver_);
     }
 
@@ -240,14 +240,14 @@ contract RedeemableERC20 is
     /// @param maybeSender_ account to check.
     /// @return True if account is a sender.
     function isSender(address maybeSender_) public view returns (bool) {
-        return access[maybeSender_] > 1;
+        return access[maybeSender_] & SENDER > 0;
     }
 
     /// Admin can grant an addres sender rights.
     /// @param newSender_ The account to grant sender.
     function grantSender(address newSender_) external onlyAdmin {
-        // Sender is also a receiver.
-        access[newSender_] = SENDER;
+        // Uinsg `|` preserves receiver if previously granted.
+        access[newSender_] |= SENDER;
         emit Sender(msg.sender, newSender_);
     }
 
