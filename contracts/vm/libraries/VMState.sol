@@ -43,6 +43,7 @@ library VMState {
         pure
         returns (State memory)
     {
+        require(config_.sources.length > 0, "0_SOURCES");
         return
             State(
                 0,
