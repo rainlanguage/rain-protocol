@@ -52,7 +52,9 @@ struct State {
 /// - `1`: Copy value from either `constants` or `arguments` at index `operand`
 ///   to the top of the stack. High bit of `operand` is `0` for `constants` and
 ///   `1` for `arguments`.
-/// - `2`: Zipmap takes N values from the stack, interprets each as an array of
+/// - `2`: Duplicates the value at stack index `operand_` to the top of the
+///   stack.
+/// - `3`: Zipmap takes N values from the stack, interprets each as an array of
 ///   configurable length, then zips them into `arguments` and maps a source
 ///   from `sources` over these. See `zipmap` for more details.
 ///
@@ -94,7 +96,7 @@ abstract contract RainVM {
     /// the stack. The high bit of the operand specifies which, `0` for
     /// `constants` and `1` for `arguments`.
     uint256 private constant OP_VAL = 1;
-    /// Duplicates the top of the stack.
+    /// Duplicates the value at index `operand_` to the top of the stack.
     uint256 private constant OP_DUP = 2;
     /// `2` takes N values off the stack, interprets them as an array then zips
     /// and maps a source from `sources` over them. The source has access to
