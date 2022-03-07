@@ -67,10 +67,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -159,10 +155,6 @@ describe("Verify", async function () {
     await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
 
     // defaultAdmin leaves. This removes a big risk
-    await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
     await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
@@ -256,10 +248,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -331,10 +319,6 @@ describe("Verify", async function () {
     await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
 
     // defaultAdmin leaves. This removes a big risk
-    await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
     await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
@@ -408,10 +392,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -479,10 +459,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -506,7 +482,7 @@ describe("Verify", async function () {
       .grantRole(await verify.BANNER_ADMIN(), banAdmin1.address);
   });
 
-  it("should allow admin to delegate admin roles and then renounce DEFAULT_ADMIN_ROLE", async function () {
+  it("should allow admin to delegate admin roles and then renounce them", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -529,10 +505,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -542,10 +514,6 @@ describe("Verify", async function () {
     );
     await verify.renounceRole(
       await verify.BANNER_ADMIN(),
-      defaultAdmin.address
-    );
-    const hasRoleDefaultAdmin = await verify.hasRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
       defaultAdmin.address
     );
     const hasRoleApproverAdmin = await verify.hasRole(
@@ -559,10 +527,6 @@ describe("Verify", async function () {
     const hasRoleBannerAdmin = await verify.hasRole(
       await verify.BANNER_ADMIN(),
       defaultAdmin.address
-    );
-    assert(
-      !hasRoleDefaultAdmin,
-      "default admin didn't renounce default admin role"
     );
     assert(
       !hasRoleApproverAdmin,
@@ -626,10 +590,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -692,10 +652,6 @@ describe("Verify", async function () {
     );
 
     // defaultAdmin leaves. This removes a big risk
-    await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
     await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
@@ -948,10 +904,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -1193,10 +1145,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -1276,10 +1224,6 @@ describe("Verify", async function () {
 
     // defaultAdmin leaves. This removes a big risk
     await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
-    await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
     );
@@ -1355,10 +1299,6 @@ describe("Verify", async function () {
     await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
 
     // defaultAdmin leaves. This removes a big risk
-    await verify.renounceRole(
-      await verify.DEFAULT_ADMIN_ROLE(),
-      defaultAdmin.address
-    );
     await verify.renounceRole(
       await verify.APPROVER_ADMIN(),
       defaultAdmin.address
