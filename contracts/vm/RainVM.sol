@@ -42,7 +42,7 @@ struct State {
 /// be mutated by reference rather than returned by `eval`, this is to make it
 /// very clear to implementers that the inline mutation is occurring.
 ///
-/// Rain scripts run "bottom to top", i.e. "right to left"!
+/// Rain scripts run "top to bottom", i.e. "left to right".
 /// See the tests for examples on how to construct rain script in JavaScript
 /// then pass to `ImmutableSource` contracts deployed by a factory that then
 /// run `eval` to produce a final value.
