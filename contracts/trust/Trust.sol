@@ -697,6 +697,7 @@ contract Trust is Phased {
             address(IConfigurableRightsPool(crp_).bFactory())
         );
         RedeemableERC20(config_.token).grantReceiver(address(this));
+        RedeemableERC20(config_.token).grantReceiver(crp_);
         RedeemableERC20(config_.token).grantSender(crp_);
 
         // Preapprove all tokens and reserve for the CRP.
