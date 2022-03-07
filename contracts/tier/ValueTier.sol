@@ -32,6 +32,16 @@ contract ValueTier {
     function initializeValueTier(uint256[8] memory tierValues_) internal {
         // Reinitialization is a bug.
         assert(tierValuesPointer == address(0));
+        unchecked {
+            uint256 accumulator_ = 0;
+            for (uint256 i_ = 0; i_ < 8; i_++) {
+                require(
+                    tierValues_[i_] >= accumulator_,
+                    "OUT_OF_ORDER_TIER_VALUES"
+                );
+                accumulator_ = tierValues_[i_];
+            }
+        }
         address tierValuesPointer_ = SSTORE2.write(abi.encode(tierValues_));
         emit InitializeValueTier(msg.sender, tierValuesPointer_);
         tierValuesPointer = tierValuesPointer_;

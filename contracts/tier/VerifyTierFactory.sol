@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 contract VerifyTierFactory is Factory {
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address private immutable implementation;
+    address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     constructor() {

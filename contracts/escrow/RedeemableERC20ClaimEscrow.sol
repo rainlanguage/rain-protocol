@@ -333,10 +333,11 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// and the trust in aggregate. The aggregate value is used by `withdraw`
     /// and the individual value by `undeposit`.
     /// The depositor is responsible for approving the token for this contract.
-    /// `deposit` is disabled when the distribution fails; only `undeposit` is
-    /// allowed in case of a fail. Multiple `deposit` calls before and after a
-    /// success result are supported. If a depositor deposits when a raise has
-    /// failed they will need to undeposit it again manually.
+    /// `deposit` is still enabled after the distribution ends; `undeposit` is
+    /// always allowed in case of a fail and disabled on success. Multiple
+    /// `deposit` calls before and after a success result are supported. If a
+    /// depositor deposits when a raise has failed they will need to undeposit
+    /// it again manually.
     /// Delegated `deposit` is not supported. Every depositor is directly
     /// responsible for every `deposit`.
     /// WARNING: As `undeposit` can only be called when the `Sale` reports
