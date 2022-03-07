@@ -5,12 +5,12 @@ pragma solidity =0.8.10;
 /// @notice `Phased` is an abstract contract that defines up to `9` phases that
 /// an implementing contract moves through.
 ///
-/// `Phase.ZERO` is always the first phase and does not, and cannot, be set
-/// expicitly. Effectively it is implied that `Phase.ZERO` has been active
+/// Phase `0` is always the first phase and does not, and cannot, be set
+/// expicitly. Effectively it is implied that phase `0` has been active
 /// since block zero.
 ///
-/// Each subsequent phase `Phase.ONE` through `Phase.EIGHT` must be
-/// scheduled sequentially and explicitly at a block number.
+/// Each subsequent phase `1` through `8` must be scheduled sequentially and
+/// explicitly at a block number.
 ///
 /// Only the immediate next phase can be scheduled with `scheduleNextPhase`,
 /// it is not possible to schedule multiple phases ahead.
@@ -25,9 +25,9 @@ pragma solidity =0.8.10;
 ///
 /// @dev `Phased` contracts have a defined timeline with available
 /// functionality grouped into phases.
-/// Every `Phased` contract starts at `Phase.ZERO` and moves sequentially
-/// through phases `ONE` to `EIGHT`.
-/// Every `Phase` other than `Phase.ZERO` is optional, there is no requirement
+/// Every `Phased` contract starts at `0` and moves sequentially
+/// through phases `1` to `8`.
+/// Every `Phase` other than `0` is optional, there is no requirement
 /// that all 9 phases are implemented.
 /// Phases can never be revisited, the inheriting contract always moves through
 /// each achieved phase linearly.
@@ -54,7 +54,7 @@ contract Phased {
     );
 
     /// 8 phases each as 32 bits to fit a single 32 byte word.
-    uint32[8] public phaseBlocks;
+    uint32[MAX_PHASE] public phaseBlocks;
 
     /// Initialize the blocks at "never".
     /// All phase blocks are initialized to `UNINITIALIZED`.
@@ -64,7 +64,7 @@ contract Phased {
         // Only need to check the first block as all blocks are about to be set
         // to `UNINITIALIZED`.
         assert(phaseBlocks[0] < 1);
-        uint32[8] memory phaseBlocks_ = [
+        uint32[MAX_PHASE] memory phaseBlocks_ = [
             UNINITIALIZED,
             UNINITIALIZED,
             UNINITIALIZED,
@@ -83,9 +83,9 @@ contract Phased {
     /// specific `Phase`.
     /// The phase will be the highest attained even if several phases have the
     /// same block number.
-    /// If every phase block is after the block number then `Phase.ZERO` is
+    /// If every phase block is after the block number then `0` is
     /// returned.
-    /// If every phase block is before the block number then `Phase.EIGHT` is
+    /// If every phase block is before the block number then `MAX_PHASE` is
     /// returned.
     /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
     /// @param blockNumber_ Determine the relevant phase relative to this block
@@ -93,7 +93,7 @@ contract Phased {
     /// @return The "current" phase relative to the block number and phase
     /// blocks list.
     function phaseAtBlockNumber(
-        uint32[8] memory phaseBlocks_,
+        uint32[MAX_PHASE] memory phaseBlocks_,
         uint256 blockNumber_
     ) public pure returns (uint256) {
         for (uint256 i_ = 0; i_ < MAX_PHASE; i_++) {
@@ -111,11 +111,10 @@ contract Phased {
     /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
     /// @param phase_ Determine the relevant block number for this phase.
     /// @return The block number for the phase according to `phaseBlocks_`.
-    function blockNumberForPhase(uint32[8] memory phaseBlocks_, uint256 phase_)
-        public
-        pure
-        returns (uint256)
-    {
+    function blockNumberForPhase(
+        uint32[MAX_PHASE] memory phaseBlocks_,
+        uint256 phase_
+    ) public pure returns (uint256) {
         return phase_ > 0 ? phaseBlocks_[phase_ - 1] : 0;
     }
 
@@ -167,7 +166,11 @@ contract Phased {
 
         require(UNINITIALIZED == phaseBlocks[index_], "NEXT_BLOCK_SET");
 
-        phaseBlocks[index_] = uint32(block_);
+        // Cannot exceed UNINITIALIZED (see above) so don't need to check
+        // overflow on downcast.
+        unchecked {
+            phaseBlocks[index_] = uint32(block_);
+        }
 
         emit PhaseScheduled(msg.sender, phase_, block_);
     }

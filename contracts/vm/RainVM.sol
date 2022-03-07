@@ -80,7 +80,7 @@ struct State {
 /// results only without modifying any state. The contract wrapping the VM is
 /// free to mutate as usual. This model encourages exposing only read-only
 /// functionality to end-user deployers who provide scripts to a VM factory.
-/// Removing all writes remotes a lot of potential foot-guns for rain script
+/// Removing all writes removes a lot of potential foot-guns for rain script
 /// authors and allows VM contract authors to reason more clearly about the
 /// input/output of the wrapping solidity code.
 ///
