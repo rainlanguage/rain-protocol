@@ -30,7 +30,7 @@ library SaturatingMath {
     /// Saturating subtraction.
     /// @param a_ Minuend.
     /// @param b_ Subtrahend.
-    /// @return a_ - b_ if a_ greater than b_, else 0.
+    /// @return Maximum of a_ - b_ and 0.
     function saturatingSub(uint256 a_, uint256 b_)
         internal
         pure
