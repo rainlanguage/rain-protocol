@@ -10,7 +10,7 @@ import "./ERC20TransferTier.sol";
 contract ERC20TransferTierFactory is Factory {
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address private implementation;
+    address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     constructor() {
