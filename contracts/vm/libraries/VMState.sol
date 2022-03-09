@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {State} from "../RainVM.sol";
 import "../../sstore2/SSTORE2.sol";
 
 /// Config required to build a new `State`.
+/// @param sources Sources verbatim.
+/// @param constants Constants verbatim.
+/// @param stackLength Sets the length of the uint256[] of the stack.
+/// @param argumentsLength Sets the length of the uint256[] of the arguments.
 struct StateConfig {
-    /// Sources verbatim.
     bytes[] sources;
-    /// Constants verbatim.
     uint256[] constants;
-    /// Sets the length of the uint256[] of the stack.
     uint256 stackLength;
-    /// Sets the length of the uint256[] of the arguments.
     uint256 argumentsLength;
 }
 
@@ -26,14 +26,10 @@ struct StateConfig {
 /// See https://github.com/0xsequence/sstore2
 contract VMState {
     /// A new shapshot has been deployed onchain.
-    event Snapshot(
-        /// `msg.sender` of the deployer.
-        address sender,
-        /// Pointer to the onchain snapshot contract.
-        address pointer,
-        /// `State` of the snapshot that was deployed.
-        State state_
-    );
+    /// @param sender `msg.sender` of the deployer.
+    /// @param pointer Pointer to the onchain snapshot contract.
+    /// @param state `State` of the snapshot that was deployed.
+    event Snapshot(address sender, address pointer, State state);
 
     /// Builds a new `State` from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
@@ -43,6 +39,7 @@ contract VMState {
         pure
         returns (State memory)
     {
+        require(config_.sources.length > 0, "0_SOURCES");
         return
             State(
                 0,

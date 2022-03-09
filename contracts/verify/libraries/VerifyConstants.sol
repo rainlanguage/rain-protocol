@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
-/// Summary statuses derived from a `State` by comparing the `xSince` times
+/// Summary statuses derived from a `State` by comparing the `Since` times
 /// against a specific block number.
 library VerifyConstants {
     /// Account has not interacted with the system yet or was removed.

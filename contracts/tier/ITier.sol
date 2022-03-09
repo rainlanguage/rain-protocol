@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.0;
 
 /// @title ITier
 /// @notice `ITier` is a simple interface that contracts can
@@ -52,15 +52,17 @@ interface ITier {
     /// external contract.
     /// The start tier MAY be lower than the current tier as at the block this
     /// event is emitted in.
+    /// @param sender The `msg.sender` that authorized the tier change.
+    /// @param account The account changing tier.
+    /// @param startTier The previous tier the account held.
+    /// @param endTier The newly acquired tier the account now holds.
+    /// @param data The associated data for the tier change.
     event TierChange(
-        /// The `msg.sender` that authorized the tier change.
         address sender,
-        /// The account changing tier.
         address account,
-        /// The previous tier the account held.
         uint256 startTier,
-        /// The newly acquired tier the account now holds.
-        uint256 endTier
+        uint256 endTier,
+        bytes data
     );
 
     /// @notice Users can set their own tier by calling `setTier`.
@@ -118,7 +120,7 @@ interface ITier {
     function setTier(
         address account,
         uint256 endTier,
-        bytes memory data
+        bytes calldata data
     ) external;
 
     /// @notice A tier report is a `uint256` that contains each of the block

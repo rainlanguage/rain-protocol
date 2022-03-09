@@ -3,12 +3,17 @@ import chai from "chai";
 import { ethers } from "hardhat";
 import { basicSetup, deployGlobals } from "./EscrowUtil";
 import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
+import type {
+  DepositEvent,
+  RedeemableERC20ClaimEscrow,
+  UndepositEvent,
+} from "../../typechain/RedeemableERC20ClaimEscrow";
 import type { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { Contract } from "ethers";
 import { getEventArgs } from "../Util";
+import { getAddress } from "ethers/lib/utils";
 
 const { assert } = chai;
 
@@ -782,42 +787,32 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     // undeposit claimable tokens
-    await claim.undeposit(
+    const undepositTx = await claim.undeposit(
       trust.address,
       claimableReserveToken.address,
       supply0,
       depositAmount0
     );
 
-    // // read registered value
-    // const deposited1 = await claim.deposits(
-    //   trust.address,
-    //   claimableReserveToken.address,
-    //   creator.address,
-    //   await redeemableERC20.totalSupply()
-    // );
+    // Undeposit event
+    const event = (await Util.getEventArgs(
+      undepositTx,
+      "Undeposit",
+      claim
+    )) as UndepositEvent["args"];
 
-    // assert(
-    //   deposited1.isZero(),
-    //   `should register that all tokens undeposited
-    //   expected  0
-    //   got       ${deposited1}`
-    // );
-
-    // const creatorTokensAfterUndeposit = await claimableReserveToken.balanceOf(
-    //   creator.address
-    // );
-
-    // assert(
-    //   creatorTokensAfterUndeposit
-    //     .sub(creatorTokensBeforeUndeposit)
-    //     .eq(depositAmount0),
-    //   `claimable token balance on creator was wrong
-    //   expected  ${depositAmount0}
-    //   got       ${creatorTokensAfterUndeposit.sub(
-    //     creatorTokensBeforeUndeposit
-    //   )}`
-    // );
+    assert(event.sender === signers[0].address, "wrong sender");
+    assert(event.sale === getAddress(trust.address), "wrong trust");
+    assert(
+      event.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(
+      event.token === getAddress(claimableReserveToken.address),
+      "wrong token"
+    );
+    assert(event.supply.eq(supply0), "wrong supply");
+    assert(event.amount.eq(depositAmount0), "wrong amount");
   });
 
   it("should allow depositing redeemable tokens on failed raise", async function () {
@@ -1056,13 +1051,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     const totalDepositedActual0 = deposited0.add(deposited1);
+    const totalDepositedExpected0 = depositAmount1.add(depositAmount0);
 
     assert(
-      totalDepositedActual0.eq(depositAmount1.add(depositAmount0)),
+      totalDepositedActual0.eq(totalDepositedExpected0),
       `actual tokens deposited by sender and registered amount do not match (1)
-      expected  ${depositAmount1.add(
-        depositAmount0
-      )} = ${depositAmount1} + ${depositAmount0}
+      expected  ${totalDepositedExpected0} = ${depositAmount1} + ${depositAmount0}
       got       ${totalDepositedActual0}`
     );
 
@@ -1081,11 +1075,33 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     await claimableReserveToken.approve(claim.address, depositAmount2);
 
-    await claim.sweepPending(
+    const txSweep0 = await claim.sweepPending(
       trust.address,
       claimableReserveToken.address,
       signers[0].address
     );
+
+    const {
+      sender,
+      depositor,
+      sale: trustAddress,
+      redeemable,
+      token,
+      amount,
+    } = await Util.getEventArgs(txSweep0, "Sweep", claim);
+
+    assert(sender === signers[0].address, "wrong sender");
+    assert(depositor === signers[0].address, "wrong depositor");
+    assert(trustAddress === getAddress(trust.address), "wrong trust address");
+    assert(
+      redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable address"
+    );
+    assert(
+      token === getAddress(claimableReserveToken.address),
+      "wrong token address"
+    );
+    assert(amount.eq(totalDepositedExpected0), "wrong amount");
 
     const txDeposit0 = await claim.deposit(
       trust.address,
@@ -1093,22 +1109,39 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       depositAmount2
     );
 
-    const { amount: deposited2 } = await Util.getEventArgs(
+    const eventDeposit0 = (await Util.getEventArgs(
       txDeposit0,
       "Deposit",
       claim
+    )) as DepositEvent["args"];
+
+    assert(eventDeposit0.depositor === signers[0].address, "wrong depositor");
+    assert(eventDeposit0.sale === getAddress(trust.address), "wrong trust");
+    assert(
+      eventDeposit0.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable address"
+    );
+    assert(
+      eventDeposit0.token === getAddress(claimableReserveToken.address),
+      "wrong token address"
+    );
+    assert(
+      eventDeposit0.supply.eq(await redeemableERC20.totalSupply()),
+      "wrong supply"
+    );
+    assert(eventDeposit0.amount.eq(depositAmount2), "wrong amount");
+
+    const totalDepositedActual1 = eventDeposit0.amount
+      .add(deposited1)
+      .add(deposited0);
+    const totalDepositedExpected1 = depositAmount2.add(
+      depositAmount1.add(depositAmount0)
     );
 
-    const totalDepositedActual1 = deposited2.add(deposited1).add(deposited0);
-
     assert(
-      totalDepositedActual1.eq(
-        depositAmount2.add(depositAmount1.add(depositAmount0))
-      ),
+      totalDepositedActual1.eq(totalDepositedExpected1),
       `actual tokens deposited by sender and registered amount do not match (2)
-      expected  ${depositAmount2.add(
-        depositAmount1.add(depositAmount0)
-      )} = ${depositAmount2} + ${depositAmount1} + ${depositAmount0}
+      expected  ${totalDepositedExpected1} = ${depositAmount2} + ${depositAmount1} + ${depositAmount0}
       got       ${totalDepositedActual1}`
     );
   });

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {State} from "../RainVM.sol";
 import "../../tier/libraries/TierReport.sol";
@@ -7,6 +7,10 @@ import "../../tier/libraries/TierwiseCombine.sol";
 
 /// @title TierOps
 /// @notice RainVM opcode pack to operate on tier reports.
+/// The opcodes all map to functions from `ITier` and associated libraries such
+/// as `TierConstants`, `TierwiseCombine`, and `TierReport`. For each, the
+/// order of consumed values on the stack corresponds to the order of arguments
+/// to interface/library functions.
 library TierOps {
     /// Opcode to call `report` on an `ITier` contract.
     uint256 private constant REPORT = 0;
@@ -33,8 +37,8 @@ library TierOps {
             require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
             uint256 baseIndex_;
             // Stack the report returned by an `ITier` contract.
-            // Top two stack vals are used as the address and `ITier` contract
-            // to check against.
+            // Top two stack vals are used as `ITier` contract and address
+            // to check the report for.
             if (opcode_ == REPORT) {
                 state_.stackIndex -= 1;
                 baseIndex_ = state_.stackIndex - 1;
@@ -70,8 +74,8 @@ library TierOps {
             // Stacks a report with updated blocks over tier range.
             // The start and end tier are taken from the low and high bits of
             // the `operand_` respectively.
-            // The block number to update to and the report to update over are
-            // both taken from the stack.
+            // The report to update and block number to update to are both
+            // taken from the stack.
             else if (opcode_ == UPDATE_BLOCKS_FOR_TIER_RANGE) {
                 uint256 startTier_ = operand_ & 0x0f; // & 00001111
                 uint256 endTier_ = (operand_ >> 4) & 0x0f; // & 00001111
@@ -89,8 +93,11 @@ library TierOps {
             }
             // Stacks the result of a `selectLte` combinator.
             // All `selectLte` share the same stack and argument handling.
-            // In the future these may be combined into a single opcode, taking
-            // the `logic_` and `mode_` from the `operand_` high bits.
+            // Takes the `logic_` and `mode_` from the `operand_` high bits.
+            // `logic_` is the highest bit.
+            // `mode_` is the 2 highest bits after `logic_`.
+            // The other bits specify how many values to take from the stack
+            // as reports to compare against each other and the block number.
             else if (opcode_ == SELECT_LTE) {
                 uint256 logic_ = operand_ >> 7;
                 uint256 mode_ = (operand_ >> 5) & 0x3; // & 00000011

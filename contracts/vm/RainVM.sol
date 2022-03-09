@@ -1,27 +1,29 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
 /// efficiency; the stack, arguments and stackIndex will likely be mutated by
 /// the running script.
+/// @param stackIndex Opcodes write to the stack at the stack index and can
+/// consume from the stack by decrementing the index and reading between the
+/// old and new stack index.
+/// IMPORANT: The stack is never zeroed out so the index must be used to
+/// find the "top" of the stack as the result of an `eval`.
+/// @param stack Stack is the general purpose runtime state that opcodes can
+/// read from and write to according to their functionality.
+/// @param sources Sources available to be executed by `eval`.
+/// Notably `ZIPMAP` can also select a source to execute by index.
+/// @param constants Constants that can be copied to the stack by index by
+/// `VAL`.
+/// @param arguments `ZIPMAP` populates arguments which can be copied to the
+/// stack by `VAL`.
 struct State {
-    /// Opcodes write to the stack at the stack index and can consume from the
-    /// stack by decrementing the index and reading between the old and new
-    /// stack index.
-    /// IMPORANT: The stack is never zeroed out so the index must be used to
-    /// find the "top" of the stack as the result of an `eval`.
     uint256 stackIndex;
-    /// Stack is the general purpose runtime state that opcodes can read from
-    /// and write to according to their functionality.
     uint256[] stack;
-    /// Sources available to be executed by `eval`.
-    /// Notably `ZIPMAP` can also select a source to execute by index.
     bytes[] sources;
-    /// Constants that can be copied to the stack by index by `VAL`.
     uint256[] constants;
-    /// `ZIPMAP` populates arguments which can be copied to the stack by `VAL`.
     uint256[] arguments;
 }
 
@@ -42,17 +44,21 @@ struct State {
 /// be mutated by reference rather than returned by `eval`, this is to make it
 /// very clear to implementers that the inline mutation is occurring.
 ///
-/// Rain scripts run "bottom to top", i.e. "right to left"!
+/// Rain scripts run "top to bottom", i.e. "left to right".
 /// See the tests for examples on how to construct rain script in JavaScript
 /// then pass to `ImmutableSource` contracts deployed by a factory that then
 /// run `eval` to produce a final value.
 ///
-/// There are only 3 "core" opcodes for `RainVM`:
-/// - `0`: Skip self and optionally additional opcodes, `0 0` is a noop
+/// There are only 4 "core" opcodes for `RainVM`:
+/// - `0`: Skip self and optionally additional opcodes, `0 0` is a noop.
+///   DEPRECATED! DON'T USE SKIP!
+///   See https://github.com/beehive-innovation/rain-protocol/issues/262
 /// - `1`: Copy value from either `constants` or `arguments` at index `operand`
 ///   to the top of the stack. High bit of `operand` is `0` for `constants` and
 ///   `1` for `arguments`.
-/// - `2`: Zipmap takes N values from the stack, interprets each as an array of
+/// - `2`: Duplicates the value at stack index `operand_` to the top of the
+///   stack.
+/// - `3`: Zipmap takes N values from the stack, interprets each as an array of
 ///   configurable length, then zips them into `arguments` and maps a source
 ///   from `sources` over these. See `zipmap` for more details.
 ///
@@ -76,7 +82,7 @@ struct State {
 /// results only without modifying any state. The contract wrapping the VM is
 /// free to mutate as usual. This model encourages exposing only read-only
 /// functionality to end-user deployers who provide scripts to a VM factory.
-/// Removing all writes remotes a lot of potential foot-guns for rain script
+/// Removing all writes removes a lot of potential foot-guns for rain script
 /// authors and allows VM contract authors to reason more clearly about the
 /// input/output of the wrapping solidity code.
 ///
@@ -85,6 +91,7 @@ struct State {
 /// up very quickly. Implementing contracts and opcode packs SHOULD require
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
+    /// DEPRECATED! DONT USE SKIP!
     /// `0` is a skip as this is the fallback value for unset solidity bytes.
     /// Any additional "whitespace" in rain scripts will be noops as `0 0` is
     /// "skip self". The val can be used to skip additional opcodes but take
@@ -94,7 +101,7 @@ abstract contract RainVM {
     /// the stack. The high bit of the operand specifies which, `0` for
     /// `constants` and `1` for `arguments`.
     uint256 private constant OP_VAL = 1;
-    /// Duplicates the top of the stack.
+    /// Duplicates the value at index `operand_` to the top of the stack.
     uint256 private constant OP_DUP = 2;
     /// `2` takes N values off the stack, interprets them as an array then zips
     /// and maps a source from `sources` over them. The source has access to
@@ -118,8 +125,8 @@ abstract contract RainVM {
     /// is correctly sized and populated for the mapped source.
     ///
     /// The `operand_` for the zipmap opcode is split into 3 components:
-    /// - 2 low bits: The index of the source to use from `sources`.
-    /// - 3 middle bits: The size of the loop, where 0 is 1 iteration
+    /// - 3 low bits: The index of the source to use from `sources`.
+    /// - 2 middle bits: The size of the loop, where 0 is 1 iteration
     /// - 3 high bits: The number of vals to be zipped from the stack where 0
     ///   is 1 value to be zipped.
     ///
@@ -285,6 +292,7 @@ abstract contract RainVM {
                     } else if (opcode_ == OP_ZIPMAP) {
                         zipmap(context_, state_, operand_);
                     } else {
+                        // DEPRECATED! DON'T USE SKIP!
                         // if the high bit of the operand is nonzero then take
                         // the top of the stack and if it is zero we do NOT
                         // skip.

@@ -66,7 +66,9 @@ describe("VerifyTier", async function () {
     );
 
     // Approve
-    await verify.connect(verifier).approve(signer1.address, evidenceApprove);
+    await verify
+      .connect(verifier)
+      .approve([{ account: signer1.address, data: evidenceApprove }]);
     const blockApproved = await ethers.provider.getBlockNumber();
     const tierReportApprovedActual = Util.zeroPad32(
       await verifyTier.report(signer1.address)
@@ -82,7 +84,9 @@ describe("VerifyTier", async function () {
     );
 
     // Ban
-    await verify.connect(verifier).ban(signer1.address, evidenceBan);
+    await verify
+      .connect(verifier)
+      .ban([{ account: signer1.address, data: evidenceBan }]);
     const tierReportBanned = await verifyTier.report(signer1.address);
     assert(
       tierReportBanned.eq(Util.max_uint256),
@@ -90,7 +94,9 @@ describe("VerifyTier", async function () {
     );
 
     // Remove
-    await verify.connect(verifier).remove(signer1.address, evidenceRemove);
+    await verify
+      .connect(verifier)
+      .remove([{ account: signer1.address, data: evidenceRemove }]);
     const tierReportRemoved = await verifyTier.report(signer1.address);
     assert(
       tierReportRemoved.eq(Util.max_uint256),

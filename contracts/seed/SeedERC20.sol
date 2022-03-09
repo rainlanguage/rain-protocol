@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 
@@ -15,26 +15,27 @@ import {Cooldown} from "../cooldown/Cooldown.sol";
 import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
 
 /// Everything required to construct a `SeedERC20` contract.
+/// @param reserve erc20 token contract used to purchase seed tokens.
+/// @param recipient address for all reserve funds raised when seeding is
+/// complete.
+/// @param seedPrice Price per seed unit denominated in reserve token.
+/// @param cooldownDuration Cooldown duration in blocks for seed/unseed cycles.
+/// Seeding requires locking funds for at least the cooldown period.
+/// Ideally `unseed` is never called and `seed` leaves funds in the contract
+/// until all seed tokens are sold out.
+/// A failed raise cannot make funds unrecoverable, so `unseed` does exist,
+/// but it should be called rarely.
+/// @param erc20Config ERC20 config.
+/// 100% of all supply must be sold for seeding to complete.
+/// Recommended to keep initial supply to a small value
+/// (single-triple digits).
+/// The ability for users to buy/sell or not buy/sell dust seed quantities
+/// is likely NOT desired.
 struct SeedERC20Config {
-    // Reserve erc20 token contract used to purchase seed tokens.
     IERC20 reserve;
-    // Recipient address for all reserve funds raised when seeding is complete.
     address recipient;
-    // Price per seed unit denominated in reserve token.
     uint256 seedPrice;
-    // Cooldown duration in blocks for seed/unseed cycles.
-    // Seeding requires locking funds for at least the cooldown period.
-    // Ideally `unseed` is never called and `seed` leaves funds in the contract
-    // until all seed tokens are sold out.
-    // A failed raise cannot make funds unrecoverable, so `unseed` does exist,
-    // but it should be called rarely.
     uint256 cooldownDuration;
-    // ERC20 config.
-    // 100% of all supply must be sold for seeding to complete.
-    // Recommended to keep initial supply to a small value
-    // (single-triple digits).
-    // The ability for users to buy/sell or not buy/sell dust seed quantities
-    // is likely NOT desired.
     ERC20Config erc20Config;
 }
 
@@ -104,34 +105,36 @@ contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
     uint256 private constant PHASE_REDEEMING = 2;
 
     /// Contract has initialized.
+    /// @param sender `msg.sender` that initialized the contract.
+    /// @param recipient Recipient of the seed funds, if/when seeding is
+    /// successful.
+    /// @param reserve The token seed funds are denominated in.
+    /// @param seedPrice The price of each seed unit denominated in reserve.
     event Initialize(
-        /// `msg.sender` that initialized the contract.
         address sender,
-        /// Recipient of the seed funds, if/when seeding is successful.
         address recipient,
-        /// The token seed funds are denominated in.
         address reserve,
-        /// The price of each seed unit denominated in reserve.
         uint256 seedPrice
     );
 
     /// Reserve was paid in exchange for seed tokens.
+    /// @param sender Anon `msg.sender` seeding.
+    /// @param tokensSeeded Number of seed tokens purchased.
+    /// @param reserveReceived Amount of reserve received by the seed contract
+    /// for the seed tokens.
     event Seed(
-        /// Anon `msg.sender` seeding.
         address sender,
-        /// Number of seed tokens purchased.
         uint256 tokensSeeded,
-        /// Amount of reserve received by the seed contract for the seed tokens.
         uint256 reserveReceived
     );
 
     /// Reserve was refunded for seed tokens.
+    /// @param sender Anon `msg.sender` unseeding.
+    /// @param tokensUnseeded Number of seed tokens returned.
+    /// @param reserveReturned Amount of reserve returned to the `msg.sender`.
     event Unseed(
-        /// Anon `msg.sender` unseeding.
         address sender,
-        /// Number of seed tokens returned.
         uint256 tokensUnseeded,
-        /// Amount of reserve returned to the `msg.sender`.
         uint256 reserveReturned
     );
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {ITier} from "./ITier.sol";
 import {TierReport} from "./libraries/TierReport.sol";
@@ -22,7 +22,7 @@ abstract contract ReadOnlyTier is ITier {
     function setTier(
         address,
         uint256,
-        bytes memory
+        bytes calldata
     ) external pure override {
         revert("SET_TIER");
     }
