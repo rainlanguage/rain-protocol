@@ -33,8 +33,8 @@ pragma solidity ^0.8.0;
 ///   - Tier `0` is NOT encoded in the report, it is simply the fallback value.
 ///   - If a tier is lost the block data is erased for that tier and will be
 ///     set if/when the tier is regained to the new block.
-///   - If the historical block information is not available the report MAY
-///     return `0x00000000` for all held tiers.
+///   - If a tier is held but the historical block information is not available
+///     the report MAY return `0x00000000` for all held tiers.
 ///   - Tiers that are lost or have never been held MUST return `0xFFFFFFFF`.
 /// - SHOULD implement `setTier`.
 ///   - Contracts SHOULD revert with `SET_TIER` error if they cannot
@@ -45,6 +45,12 @@ pragma solidity ^0.8.0;
 ///     if tier 0 is being set.
 /// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
 ///   - Contracts that cannot meaningfully set a tier are exempt.
+///
+/// So the four possible states and report values are:
+/// - Tier is held and block is known: Block is in the report
+/// - Tier is held but block is NOT known: `0` is in the report
+/// - Tier is NOT held: `0xFF..` is in the report
+/// - Tier is unknown: `0xFF..` is in the report
 interface ITier {
     /// Every time a tier changes we log start and end tier against the
     /// account.
