@@ -20,12 +20,46 @@ const enum Opcode {
   MUL,
   DIV,
   MOD,
-  POW,
+  EXP,
   MIN,
   MAX,
 }
 
 describe("RainVM", async function () {
+  it("should perform exponentiation correctly", async () => {
+    this.timeout(0);
+
+    const constants = [2, 4];
+    const v2 = op(Opcode.VAL, 0);
+    const v4 = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // (2 4 ^)
+        v2,
+        v4,
+        op(Opcode.EXP, 2),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 16;
+    assert(
+      result.eq(expected),
+      `wrong solution to (^ 2 4)
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
   it("should skip (conditional skip: true)", async () => {
     this.timeout(0);
 
