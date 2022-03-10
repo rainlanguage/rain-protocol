@@ -4,6 +4,7 @@ pragma solidity =0.8.10;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 /// Constructor config for `ERC20Pull`.
 struct ERC20PullConfig {
@@ -31,6 +32,7 @@ struct ERC20PullConfig {
 /// external contract.
 contract ERC20Pull {
     using SafeERC20 for IERC20;
+    using Address for address;
 
     /// Emitted during initialization.
     event ERC20PullInitialize(
@@ -54,12 +56,14 @@ contract ERC20Pull {
         // Sender and token MUST be set in the config. MAY point at a known
         // address that cannot approve the specified token to effectively
         // disable pull functionality.
-        require(config_.sender != address(0), "ZERO_SENDER");
+        // Sender MUST NOT be an EOA.
+        // See https://github.com/beehive-innovation/rain-protocol/issues/254
+        require(config_.sender.isContract(), "EOA_SENDER");
         require(config_.token != address(0), "ZERO_TOKEN");
         // Reinitialization is a bug.
-        // We know the sender is non-zero for an initialized contract so can
+        // We know the token is non-zero for an initialized contract so can
         // just check that.
-        assert(sender == address(0));
+        assert(token == address(0));
         sender = config_.sender;
         token = config_.token;
         emit ERC20PullInitialize(msg.sender, config_.sender, config_.token);
