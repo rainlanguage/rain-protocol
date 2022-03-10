@@ -321,14 +321,14 @@ describe("SaleEscrow", async function () {
 
     console.log({ signer1TokenBalance0 });
 
-    // since RedeemableERC20 is not frozen, transfers are still possible in addition to burns
-    await unfreezableToken.connect(signer1).transfer(signer2.address, 100);
+    // // since RedeemableERC20 is not frozen, transfers are still possible in addition to burns
+    // await unfreezableToken.connect(signer1).transfer(signer2.address, 100);
 
-    // signer1 deposit
-    await unfreezableToken.connect(signer1).approve(claim.address, 100);
-    await claim
-      .connect(signer1)
-      .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
+    // // signer1 deposit
+    // await unfreezableToken.connect(signer1).approve(claim.address, 100);
+    // await claim
+    //   .connect(signer1)
+    //   .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
 
     // const tokenSupply = await unfreezableToken.totalSupply();
 
@@ -341,6 +341,8 @@ describe("SaleEscrow", async function () {
     //     tokenSupply,
     //     100
     //   );
+
+    throw new Error("Incomplete test");
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
