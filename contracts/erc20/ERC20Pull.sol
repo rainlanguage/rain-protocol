@@ -16,7 +16,7 @@ struct ERC20PullConfig {
 /// @title ERC20Pull
 /// @notice Enables a contract to pull (transfer to self) some `IERC20` token
 /// from a sender. Both the sender and token must be known and trusted by the
-/// implementing contract at construction time, and are immutable.
+/// implementing contract during initialization, and cannot be changed.
 ///
 /// This enables the `sender` to merely approve the implementing contract then
 /// anon can call `pullERC20` to have those tokens transferred. In some cases
