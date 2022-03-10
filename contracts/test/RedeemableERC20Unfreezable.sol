@@ -317,8 +317,6 @@ contract RedeemableERC20Unfreezable is Initializable, Phased, ERC20Redeem, ERC20
 
         uint256 currentPhase_ = currentPhase();
 
-        console.log(currentPhase_);
-
         if (currentPhase_ != PHASE_UNFROZEN) {
             // Some contracts may attempt a preflight (e.g. Balancer) of a 0 amount
             // transfer.

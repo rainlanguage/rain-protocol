@@ -23,13 +23,11 @@ import { SaleMutableAddressesTest } from "../../typechain/SaleMutableAddressesTe
 import { SaleMutableAddressesTestFactory } from "../../typechain/SaleMutableAddressesTestFactory";
 import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { RedeemableERC20Unfreezable } from "../../typechain/RedeemableERC20Unfreezable";
+import { RedeemableERC20UnfreezableFactory } from "../../typechain/RedeemableERC20UnfreezableFactory";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import {
-  BuyEvent,
-  SaleWithUnfreezableToken,
-} from "../../typechain/SaleWithUnfreezableToken";
+import { SaleWithUnfreezableToken } from "../../typechain/SaleWithUnfreezableToken";
+import { SaleWithUnfreezableTokenFactory } from "../../typechain/SaleWithUnfreezableTokenFactory";
 import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
-import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 
 const { assert } = chai;
 
@@ -58,19 +56,19 @@ let reserve: ReserveToken & Contract,
   readWriteTier: ReadWriteTier & Contract,
   saleConstructorConfig: SaleConstructorConfigStruct,
   saleFactoryFactory: ContractFactory,
-  saleFactory: SaleMutableAddressesTestFactory & Contract;
+  saleUnfreezableFactory: SaleMutableAddressesTestFactory & Contract;
 
 const saleWithUnfreezableTokenDeploy = async (
   signers: SignerWithAddress[],
   deployer: SignerWithAddress,
-  saleTestFactory: SaleMutableAddressesTestFactory & Contract,
+  saleUnfreezableFactory: SaleWithUnfreezableTokenFactory & Contract,
   config: SaleConfigStruct,
   saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
   ...args
 ): Promise<
   [SaleWithUnfreezableToken & Contract, RedeemableERC20Unfreezable & Contract]
 > => {
-  const txDeploy = await saleTestFactory.createChildTyped(
+  const txDeploy = await saleUnfreezableFactory.createChildTyped(
     config,
     saleRedeemableERC20Config,
     ...args
@@ -79,7 +77,7 @@ const saleWithUnfreezableTokenDeploy = async (
   const saleWithUnfreezableToken = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", saleTestFactory)).child
+        (await getEventArgs(txDeploy, "NewChild", saleUnfreezableFactory)).child
       ),
       20 // address bytes length
     ),
@@ -185,10 +183,10 @@ describe("SaleEscrow", async function () {
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-    saleFactory = (await saleFactoryFactory.deploy(
+    saleUnfreezableFactory = (await saleFactoryFactory.deploy(
       saleConstructorConfig
     )) as SaleMutableAddressesTestFactory & Contract;
-    await saleFactory.deployed();
+    await saleUnfreezableFactory.deployed();
   });
 
   it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else (in the case of failed Sale)", async function () {
@@ -228,11 +226,32 @@ describe("SaleEscrow", async function () {
 
     const sources = [concat([vBasePrice])];
 
+    const redeemableERC20UnfreezableFactoryFactory =
+      await ethers.getContractFactory("RedeemableERC20UnfreezableFactory", {});
+    const redeemableERC20UnfreezableFactory =
+      (await redeemableERC20UnfreezableFactoryFactory.deploy()) as RedeemableERC20UnfreezableFactory &
+        Contract;
+    await redeemableERC20UnfreezableFactory.deployed();
+
+    const saleConstructorConfig = {
+      maximumCooldownDuration: 1000,
+      redeemableERC20Factory: redeemableERC20UnfreezableFactory.address,
+    };
+
+    const saleUnfreezableFactoryFactory = await ethers.getContractFactory(
+      "SaleWithUnfreezableTokenFactory",
+      {}
+    );
+    const saleUnfreezableFactory = (await saleUnfreezableFactoryFactory.deploy(
+      saleConstructorConfig
+    )) as SaleWithUnfreezableTokenFactory & Contract;
+    await saleUnfreezableFactory.deployed();
+
     const [saleWithUnfreezableToken, unfreezableToken] =
       await saleWithUnfreezableTokenDeploy(
         signers,
         deployer,
-        saleFactory,
+        saleUnfreezableFactory,
         {
           canStartStateConfig: afterBlockNumberConfig(startBlock),
           canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
@@ -258,7 +277,7 @@ describe("SaleEscrow", async function () {
 
     const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
 
-    const desiredUnits = totalTokenSupply.div(100);
+    const desiredUnits = 100;
     const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
 
     // give signer1 reserve to cover cost + fee
@@ -267,13 +286,6 @@ describe("SaleEscrow", async function () {
     await reserve
       .connect(signer1)
       .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
-
-    // give signer2 reserve to cover cost + fee
-    await reserve.transfer(signer2.address, cost.add(fee));
-    const signer2ReserveBalance = await reserve.balanceOf(signer2.address);
-    await reserve
-      .connect(signer2)
-      .approve(saleWithUnfreezableToken.address, signer2ReserveBalance);
 
     // wait until sale start
     await Util.createEmptyBlock(
@@ -290,34 +302,35 @@ describe("SaleEscrow", async function () {
       desiredUnits,
       maximumPrice: staticPrice,
     });
-    await saleWithUnfreezableToken.connect(signer2).buy({
-      feeRecipient: feeRecipient.address,
-      fee,
-      minimumUnits: desiredUnits,
-      desiredUnits,
-      maximumPrice: staticPrice,
-    });
 
     // wait until sale can end
     await Util.createEmptyBlock(
       saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
     );
 
+    // Sale.end() also moves RedeemableERC20 to FROZEN phase
+    // However in this test we instead move to unrestricted, non-frozen phase
     await saleWithUnfreezableToken.end();
 
+    const status: SaleStatus = await saleWithUnfreezableToken.saleStatus();
+    assert(status === SaleStatus.Fail);
+
+    const signer1TokenBalance0 = await unfreezableToken.balanceOf(
+      signer1.address
+    );
+
+    console.log({ signer1TokenBalance0 });
+
+    // since RedeemableERC20 is not frozen, transfers are still possible in addition to burns
+    await unfreezableToken.connect(signer1).transfer(signer2.address, 100);
+
     // signer1 deposit
+    await unfreezableToken.connect(signer1).approve(claim.address, 100);
     await claim
       .connect(signer1)
-      .deposit(
-        saleWithUnfreezableToken.address,
-        unfreezableToken.address,
-        await unfreezableToken.balanceOf(signer1.address)
-      );
+      .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
 
-    // // signer2 deposit
-    // await claim
-    //   .connect(signer2)
-    //   .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
+    // const tokenSupply = await unfreezableToken.totalSupply();
 
     // // undeposit
     // await claim
@@ -325,8 +338,8 @@ describe("SaleEscrow", async function () {
     //   .undeposit(
     //     saleWithUnfreezableToken.address,
     //     unfreezableToken.address,
-    //     totalTokenSupply,
-    //     10
+    //     tokenSupply,
+    //     100
     //   );
   });
 
@@ -666,7 +679,7 @@ describe("SaleEscrow", async function () {
     const [sale] = await saleDeploy(
       signers,
       deployer,
-      saleFactory,
+      saleUnfreezableFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
         canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
