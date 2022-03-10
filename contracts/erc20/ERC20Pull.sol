@@ -26,6 +26,10 @@ struct ERC20PullConfig {
 ///
 /// The `sender` is singular and bound at construction to avoid the situation
 /// where EOA accounts inadvertantly "infinite approve" and lose their tokens.
+/// For this reason EOA accounts are NOT supported as the `sender`. Approvals
+/// MUST expect the `ERC20Pull` contract to take any and all tokens up to the
+/// allowance at any moment. EOA accounts typically are not security conscious
+/// enough to be nominated as the `sender`.
 ///
 /// The token is singular and bound at construction to avoid the situation
 /// where anons can force the implementing contract to call an arbitrary
