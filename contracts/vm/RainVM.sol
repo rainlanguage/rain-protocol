@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import "hardhat/console.sol";
+
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -101,14 +103,16 @@ abstract contract RainVM {
     /// the stack. The high bit of the operand specifies which, `0` for
     /// `constants` and `1` for `arguments`.
     uint256 private constant OP_VAL = 1;
-    /// Duplicates the value at index `operand_` to the top of the stack.
+    /// `2` Duplicates the value at index `operand_` to the top of the stack.
     uint256 private constant OP_DUP = 2;
-    /// `2` takes N values off the stack, interprets them as an array then zips
+    /// `3` takes N values off the stack, interprets them as an array then zips
     /// and maps a source from `sources` over them. The source has access to
     /// the original constants using `1 0` and to zipped arguments as `1 1`.
     uint256 private constant OP_ZIPMAP = 3;
+    /// `4` ABI encodes the entire stack and logs it to the hardhat console.
+    uint256 private constant OP_DEBUG = 4;
     /// Number of provided opcodes for `RainVM`.
-    uint256 internal constant OPS_LENGTH = 4;
+    uint256 internal constant OPS_LENGTH = 5;
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -291,6 +295,8 @@ abstract contract RainVM {
                         }
                     } else if (opcode_ == OP_ZIPMAP) {
                         zipmap(context_, state_, operand_);
+                    } else if (opcode_ == OP_DEBUG) {
+                        console.logBytes(abi.encode(state_));
                     } else {
                         // DEPRECATED! DON'T USE SKIP!
                         // if the high bit of the operand is nonzero then take
