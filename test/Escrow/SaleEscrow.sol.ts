@@ -198,6 +198,7 @@ describe("SaleEscrow", async function () {
     const feeRecipient = signers[2];
     const signer1 = signers[3];
     const signer2 = signers[4];
+    const signer3 = signers[5];
 
     // Deploy global Claim contract
     const claimFactory = await ethers.getContractFactory(
@@ -286,6 +287,12 @@ describe("SaleEscrow", async function () {
     await reserve
       .connect(signer1)
       .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
+    // give signer2 reserve to cover cost + fee
+    await reserve.transfer(signer2.address, cost.add(fee));
+    const signer2ReserveBalance = await reserve.balanceOf(signer2.address);
+    await reserve
+      .connect(signer2)
+      .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
 
     // wait until sale start
     await Util.createEmptyBlock(
@@ -296,6 +303,14 @@ describe("SaleEscrow", async function () {
 
     // buy redeemable tokens during sale
     await saleWithUnfreezableToken.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+    // buy redeemable tokens during sale
+    await saleWithUnfreezableToken.connect(signer2).buy({
       feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: desiredUnits,
@@ -315,34 +330,57 @@ describe("SaleEscrow", async function () {
     const status: SaleStatus = await saleWithUnfreezableToken.saleStatus();
     assert(status === SaleStatus.Fail);
 
-    const signer1TokenBalance0 = await unfreezableToken.balanceOf(
+    // signer1 deposit
+    await unfreezableToken.connect(signer1).approve(claim.address, 100);
+    await claim
+      .connect(signer1)
+      .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
+    // signer2 deposit
+    await unfreezableToken.connect(signer2).approve(claim.address, 100);
+    await claim
+      .connect(signer2)
+      .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
+
+    const tokenSupply = await unfreezableToken.totalSupply();
+
+    // undeposit
+    await claim
+      .connect(signer1)
+      .undeposit(
+        saleWithUnfreezableToken.address,
+        unfreezableToken.address,
+        tokenSupply,
+        100
+      );
+
+    // since RedeemableERC20 is not frozen, transfers are still possible in addition to burns
+    await unfreezableToken.connect(signer1).transfer(signer3.address, 100);
+
+    const signer1TokenBalance = await unfreezableToken.balanceOf(
       signer1.address
     );
+    const escrowTokenBalance = await unfreezableToken.balanceOf(claim.address);
 
-    console.log({ signer1TokenBalance0 });
+    // at this point, signer1 transferred away their claimed tokens
+    // and escrow still holds funds
+    assert(signer1TokenBalance.isZero(), "wrong signer1 token balance");
+    assert(escrowTokenBalance.eq(100), "wrong escrow token balance");
 
-    // // since RedeemableERC20 is not frozen, transfers are still possible in addition to burns
-    // await unfreezableToken.connect(signer1).transfer(signer2.address, 100);
-
-    // // signer1 deposit
-    // await unfreezableToken.connect(signer1).approve(claim.address, 100);
-    // await claim
-    //   .connect(signer1)
-    //   .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
-
-    // const tokenSupply = await unfreezableToken.totalSupply();
-
-    // // undeposit
-    // await claim
-    //   .connect(signer1)
-    //   .undeposit(
-    //     saleWithUnfreezableToken.address,
-    //     unfreezableToken.address,
-    //     tokenSupply,
-    //     100
-    //   );
-
-    throw new Error("Incomplete test");
+    // undeposit again, attempting to drain escrow
+    // should underflow because signer1 cannot claim more than they deposited
+    await Util.assertError(
+      async () =>
+        await claim
+          .connect(signer1)
+          .undeposit(
+            saleWithUnfreezableToken.address,
+            unfreezableToken.address,
+            tokenSupply,
+            100
+          ),
+      "reverted with panic code 0x11",
+      "escrow claim exceeding deposited amount did not underflow"
+    );
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
