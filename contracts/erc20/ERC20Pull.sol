@@ -16,7 +16,7 @@ struct ERC20PullConfig {
 /// @title ERC20Pull
 /// @notice Enables a contract to pull (transfer to self) some `IERC20` token
 /// from a sender. Both the sender and token must be known and trusted by the
-/// implementing contract at construction time, and are immutable.
+/// implementing contract during initialization, and cannot be changed.
 ///
 /// This enables the `sender` to merely approve the implementing contract then
 /// anon can call `pullERC20` to have those tokens transferred. In some cases
@@ -57,8 +57,9 @@ contract ERC20Pull {
         require(config_.sender != address(0), "ZERO_SENDER");
         require(config_.token != address(0), "ZERO_TOKEN");
         // Reinitialization is a bug.
+        // We know the sender is non-zero for an initialized contract so can
+        // just check that.
         assert(sender == address(0));
-        assert(token == address(0));
         sender = config_.sender;
         token = config_.token;
         emit ERC20PullInitialize(msg.sender, config_.sender, config_.token);

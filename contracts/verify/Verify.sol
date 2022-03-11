@@ -246,9 +246,9 @@ contract Verify is AccessControl, Initializable {
         // been assigned, if possible. Admins can instantly/atomically assign
         // and revoke admin priviledges from each other, so a compromised key
         // can irreperably damage a `Verify` contract instance.
-        _setupRole(APPROVER_ADMIN, admin_);
-        _setupRole(REMOVER_ADMIN, admin_);
-        _setupRole(BANNER_ADMIN, admin_);
+        _grantRole(APPROVER_ADMIN, admin_);
+        _grantRole(REMOVER_ADMIN, admin_);
+        _grantRole(BANNER_ADMIN, admin_);
     }
 
     /// Typed accessor into states.

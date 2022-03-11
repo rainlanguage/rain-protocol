@@ -40,6 +40,13 @@ struct ERC20BalanceTierConfig {
 /// `setTier` will error as this contract has no ability to write to the erc20
 /// contract state.
 ///
+/// IMPORTANT: Simply checking the balance of an unrestricted token is
+/// typically INSECURE. If users can transfer tokens freely they can use it
+/// to exploit claim, access, voting, etc. by serially granting many accounts
+/// some tier simply by transferring or flash-loaning tokens underneath.
+/// `ERC20TransferTier` can be used as a partial solution to this problem.
+/// See https://github.com/beehive-innovation/rain-protocol/issues/252
+///
 /// Balance tiers are useful for:
 /// - Claim contracts that don't require backdated tier holding
 ///   (be wary of griefing!).
