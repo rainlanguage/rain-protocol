@@ -203,9 +203,11 @@ describe("TrustSeed", async function () {
 
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory("ERC20PulleeTest")
-    const erc20Pullee = await erc20PulleeFactory.deploy()
-    await erc20Pullee.deployed()
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",

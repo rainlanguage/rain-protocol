@@ -27,9 +27,11 @@ describe("RedeemableERC20Reentrant", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const erc20PulleeFactory = await ethers.getContractFactory("ERC20PulleeTest")
-    const erc20Pullee = await erc20PulleeFactory.deploy()
-    await erc20Pullee.deployed()
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -64,11 +66,21 @@ describe("RedeemableERC20Reentrant", async function () {
     await maliciousReserve.addReentrantTarget(redeemableERC20.address);
 
     // send redeemable tokens to alice
-    await erc20Pullee.transfer(redeemableERC20.address, alice.address, FIFTY_TOKENS);
+    await erc20Pullee.transfer(
+      redeemableERC20.address,
+      alice.address,
+      FIFTY_TOKENS
+    );
     // send redeemable tokens to bob
-    await erc20Pullee.transfer(redeemableERC20.address, bob.address, FIFTY_TOKENS);
+    await erc20Pullee.transfer(
+      redeemableERC20.address,
+      bob.address,
+      FIFTY_TOKENS
+    );
 
-    await erc20Pullee.burnDistributors(redeemableERC20.address, [Util.oneAddress]);
+    await erc20Pullee.burnDistributors(redeemableERC20.address, [
+      Util.oneAddress,
+    ]);
 
     // theoretical pool amount being sent to redeemable token
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
