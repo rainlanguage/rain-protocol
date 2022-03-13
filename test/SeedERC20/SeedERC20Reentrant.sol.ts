@@ -12,6 +12,10 @@ describe("SeedERC20Reentrant", async function () {
     const bob = signers[1];
     const dave = signers[3];
 
+    const erc20PulleeFactory = await ethers.getContractFactory("ERC20PulleeTest")
+    const erc20Pullee = await erc20PulleeFactory.deploy()
+    await erc20Pullee.deployed()
+
     const maliciousReserve = (await Util.basicDeploy(
       "SeedERC20Reentrant",
       {}
@@ -28,7 +32,7 @@ describe("SeedERC20Reentrant", async function () {
 
     const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
-      recipient: dave.address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -46,6 +50,9 @@ describe("SeedERC20Reentrant", async function () {
     // Bob fully seeds
     await bobReserve.approve(seedERC20.address, bobUnits * seedPrice);
     await bobSeed.seed(0, bobUnits);
+
+    // ERC20Pullee takes and sends to dave.
+    await erc20Pullee.transfer(maliciousReserve.address, dave.address, bobUnits * seedPrice)
 
     // Dave gets 10% extra reserve from somewhere.
     await maliciousReserve.transfer(
@@ -75,6 +82,10 @@ describe("SeedERC20Reentrant", async function () {
     const bob = signers[1];
     const dave = signers[3];
 
+    const erc20PulleeFactory = await ethers.getContractFactory("ERC20PulleeTest")
+    const erc20Pullee = await erc20PulleeFactory.deploy()
+    await erc20Pullee.deployed()
+
     const maliciousReserve = (await Util.basicDeploy(
       "SeedERC20Reentrant",
       {}
@@ -90,7 +101,7 @@ describe("SeedERC20Reentrant", async function () {
 
     const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
-      recipient: dave.address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -123,6 +134,10 @@ describe("SeedERC20Reentrant", async function () {
     const bob = signers[1];
     const dave = signers[3];
 
+    const erc20PulleeFactory = await ethers.getContractFactory("ERC20PulleeTest")
+    const erc20Pullee = await erc20PulleeFactory.deploy()
+    await erc20Pullee.deployed()
+
     const maliciousReserve = (await Util.basicDeploy(
       "SeedERC20Reentrant",
       {}
@@ -138,7 +153,7 @@ describe("SeedERC20Reentrant", async function () {
 
     const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: maliciousReserve.address,
-      recipient: dave.address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
