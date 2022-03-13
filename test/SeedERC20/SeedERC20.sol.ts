@@ -27,7 +27,6 @@ describe("SeedERC20", async function () {
     const alice = signers[0];
     const bob = signers[1];
     const carol = signers[2];
-    const dave = signers[3];
     const griefer = signers[4];
 
     const reserve = (await Util.basicDeploy(
@@ -41,7 +40,6 @@ describe("SeedERC20", async function () {
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
     const carolReserve = reserve.connect(carol);
-    const daveReserve = reserve.connect(dave);
 
     const seedPrice = 100;
     const seedUnits = 10;
@@ -50,9 +48,15 @@ describe("SeedERC20", async function () {
     const bobUnits = ethers.BigNumber.from(6);
     const carolUnits = ethers.BigNumber.from(4);
 
-    const [seedERC20, txSeedERC20] = await Util.seedERC20Deploy(dave, {
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
+    const [seedERC20, txSeedERC20] = await Util.seedERC20Deploy(alice, {
       reserve: reserve.address,
-      recipient: dave.address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -78,7 +82,7 @@ describe("SeedERC20", async function () {
       (await seedERC20.totalSupply()).eq(seedUnits),
       `seed total supply is wrong`
     );
-    assert(recipient == dave.address, `failed to set recipient`);
+    assert(recipient == erc20Pullee.address, `failed to set recipient`);
 
     await aliceReserve.transfer(bob.address, bobUnits.mul(seedPrice));
     await aliceReserve.transfer(carol.address, carolUnits.mul(seedPrice));
@@ -115,22 +119,28 @@ describe("SeedERC20", async function () {
       `seed contract did not transfer reserve to recipient`
     );
     assert(
-      (await reserve.balanceOf(dave.address)).gte(seedPrice * seedUnits),
+      (await reserve.balanceOf(erc20Pullee.address)).gte(seedPrice * seedUnits),
       `recipient did not receive transferred funds
       expected  ${seedPrice * seedUnits}
-      got       ${await reserve.balanceOf(dave.address)}`
+      got       ${await reserve.balanceOf(erc20Pullee.address)}`
     );
 
     // Dave gets 10% extra reserve from somewhere.
 
-    await aliceReserve.transfer(dave.address, seedPrice * seedUnits * 0.1);
+    await aliceReserve.transfer(
+      erc20Pullee.address,
+      seedPrice * seedUnits * 0.1
+    );
 
     // Dave sends reserve back to the seed contract.
 
-    await daveReserve.transfer(
+    const erc20PulleeBalance = await reserve.balanceOf(erc20Pullee.address);
+    await erc20Pullee.approve(
+      reserve.address,
       seedERC20.address,
-      await daveReserve.balanceOf(dave.address)
+      erc20PulleeBalance
     );
+    await seedERC20.pullERC20(erc20PulleeBalance);
 
     // Bob and carol can redeem their seed tokens.
     await bobSeed.redeem(bobUnits, 0);
@@ -157,7 +167,12 @@ describe("SeedERC20", async function () {
     const alice = signers[0];
     const bob = signers[1];
     const carol = signers[2];
-    const dave = signers[3];
+
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -167,7 +182,6 @@ describe("SeedERC20", async function () {
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
     const carolReserve = reserve.connect(carol);
-    const daveReserve = reserve.connect(dave);
 
     const seedPrice = ethers.BigNumber.from(100);
     const seedUnits = ethers.BigNumber.from(10);
@@ -176,9 +190,9 @@ describe("SeedERC20", async function () {
     const bobUnits = ethers.BigNumber.from(6);
     const carolUnits = ethers.BigNumber.from(4);
 
-    const [seedERC20] = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(alice, {
       reserve: reserve.address,
-      recipient: dave.address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -236,14 +250,20 @@ describe("SeedERC20", async function () {
 
     // Dave gets 10% extra reserve from somewhere.
 
-    await aliceReserve.transfer(dave.address, seedPrice.mul(seedUnits).div(10));
+    await aliceReserve.transfer(
+      erc20Pullee.address,
+      seedPrice.mul(seedUnits).div(10)
+    );
 
     // Dave sends reserve back to the seed contract.
 
-    await daveReserve.transfer(
+    const erc20PulleeBalance = await reserve.balanceOf(erc20Pullee.address);
+    await erc20Pullee.approve(
+      reserve.address,
       seedERC20.address,
-      await daveReserve.balanceOf(dave.address)
+      erc20PulleeBalance
     );
+    await seedERC20.pullERC20(erc20PulleeBalance);
 
     // Bob and carol can redeem their seed tokens.
 
@@ -295,7 +315,12 @@ describe("SeedERC20", async function () {
     const alice = signers[0];
     const bob = signers[1];
     const carol = signers[2];
-    const dave = signers[3];
+
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
@@ -312,9 +337,9 @@ describe("SeedERC20", async function () {
     const bobUnits = ethers.BigNumber.from(6);
     const carolUnits = ethers.BigNumber.from(4);
 
-    const [seedERC20] = await Util.seedERC20Deploy(dave, {
+    const [seedERC20] = await Util.seedERC20Deploy(alice, {
       reserve: reserve.address,
-      recipient: dave.address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -367,6 +392,12 @@ describe("SeedERC20", async function () {
   it("should have 0 decimals", async () => {
     const signers = await ethers.getSigners();
 
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
@@ -378,7 +409,7 @@ describe("SeedERC20", async function () {
 
     const [seedERC20] = await Util.seedERC20Deploy(signers[9], {
       reserve: reserve.address,
-      recipient: signers[9].address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -402,6 +433,12 @@ describe("SeedERC20", async function () {
     const carol = signers[2];
     const dave = signers[3];
 
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
@@ -417,7 +454,7 @@ describe("SeedERC20", async function () {
 
     const [seedERC20] = await Util.seedERC20Deploy(signers[9], {
       reserve: reserve.address,
-      recipient: signers[9].address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -508,6 +545,12 @@ describe("SeedERC20", async function () {
     const carol = signers[2];
     const dave = signers[3];
 
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
@@ -526,7 +569,7 @@ describe("SeedERC20", async function () {
 
     const [seedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
-      recipient: dave.address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -573,7 +616,7 @@ describe("SeedERC20", async function () {
       `seed contract did not transfer reserve to recipient`
     );
     assert(
-      (await reserve.balanceOf(dave.address)).eq(seedPrice * seedUnits),
+      (await reserve.balanceOf(erc20Pullee.address)).eq(seedPrice * seedUnits),
       `recipient did not receive transferred funds`
     );
   });
@@ -587,6 +630,12 @@ describe("SeedERC20", async function () {
     const carol = signers[2];
     const dave = signers[3];
 
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
@@ -595,7 +644,6 @@ describe("SeedERC20", async function () {
     const aliceReserve = reserve.connect(alice);
     const bobReserve = reserve.connect(bob);
     const carolReserve = reserve.connect(carol);
-    const daveReserve = reserve.connect(dave);
 
     const seedPrice = 100;
     const seedUnits = 10;
@@ -606,7 +654,7 @@ describe("SeedERC20", async function () {
 
     const [seedERC20, txSeedERC20] = await Util.seedERC20Deploy(dave, {
       reserve: reserve.address,
-      recipient: dave.address,
+      recipient: erc20Pullee.address,
       seedPrice,
       cooldownDuration,
       erc20Config: {
@@ -635,7 +683,7 @@ describe("SeedERC20", async function () {
       `seed total supply is wrong`
     );
 
-    assert(recipient == dave.address, `failed to set recipient`);
+    assert(recipient == erc20Pullee.address, `failed to set recipient`);
 
     await aliceReserve.transfer(bob.address, bobUnits.mul(seedPrice));
     await aliceReserve.transfer(carol.address, carolUnits.mul(seedPrice));
@@ -667,20 +715,22 @@ describe("SeedERC20", async function () {
       `seed contract did not transfer reserve to recipient`
     );
     assert(
-      (await reserve.balanceOf(dave.address)).eq(seedPrice * seedUnits),
+      (await reserve.balanceOf(erc20Pullee.address)).eq(seedPrice * seedUnits),
       `recipient did not receive transferred funds`
     );
 
     // Dave gets 10% extra reserve from somewhere.
 
-    await aliceReserve.transfer(dave.address, seedPrice * seedUnits * 0.1);
+    await aliceReserve.transfer(
+      erc20Pullee.address,
+      seedPrice * seedUnits * 0.1
+    );
 
     // Dave sends reserve back to the seed contract.
 
-    await daveReserve.transfer(
-      seedERC20.address,
-      await daveReserve.balanceOf(dave.address)
-    );
+    const erc20PulleeBalance = await reserve.balanceOf(erc20Pullee.address);
+    erc20Pullee.approve(reserve.address, seedERC20.address, erc20PulleeBalance);
+    await seedERC20.pullERC20(erc20PulleeBalance);
 
     // Bob and carol can redeem their seed tokens.
     await bobSeed.redeem(bobUnits, 0);
