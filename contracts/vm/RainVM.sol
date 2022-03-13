@@ -99,9 +99,9 @@ abstract contract RainVM {
     /// the stack. The high bit of the operand specifies which, `0` for
     /// `constants` and `1` for `arguments`.
     uint256 private constant OP_VAL = 1;
-    /// Duplicates the value at index `operand_` to the top of the stack.
+    /// `2` Duplicates the value at index `operand_` to the top of the stack.
     uint256 private constant OP_DUP = 2;
-    /// `2` takes N values off the stack, interprets them as an array then zips
+    /// `3` takes N values off the stack, interprets them as an array then zips
     /// and maps a source from `sources` over them. The source has access to
     /// the original constants using `1 0` and to zipped arguments as `1 1`.
     uint256 private constant OP_ZIPMAP = 3;
