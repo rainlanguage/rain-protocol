@@ -13,6 +13,7 @@ const enum Opcode {
   VAL,
   DUP,
   ZIPMAP,
+  DEBUG,
   BLOCK_NUMBER,
   BLOCK_TIMESTAMP,
   THIS_ADDRESS,

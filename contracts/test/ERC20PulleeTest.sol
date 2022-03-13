@@ -25,10 +25,10 @@ contract ERC20PulleeTest {
         IERC20(token_).transfer(recipient_, amount_);
     }
 
-    function burnDistributors(address token_, address[] calldata distributors_)
+    function endDistribution(address token_, address distributor_)
         external
     {
-        RedeemableERC20(token_).burnDistributors(distributors_);
+        RedeemableERC20(token_).endDistribution(distributor_);
     }
 
     function grantSender(address token_, address sender_) external {
