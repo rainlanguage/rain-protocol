@@ -20,12 +20,186 @@ const enum Opcode {
   MUL,
   DIV,
   MOD,
-  POW,
+  EXP,
   MIN,
   MAX,
 }
 
 describe("RainVM", async function () {
+  it("should return correct remainder when using modulo op on sequence of numbers", async () => {
+    this.timeout(0);
+
+    const constants = [7, 4, 2];
+    const v7 = op(Opcode.VAL, 0);
+    const v4 = op(Opcode.VAL, 1);
+    const v2 = op(Opcode.VAL, 2);
+
+    const sources = [
+      concat([
+        // (7 4 2 %)
+        v7,
+        v4, // -> r3
+        v2, // -> r1
+        op(Opcode.MOD, 3),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 1;
+    assert(
+      result.eq(expected),
+      `wrong solution to (7 4 2 %)
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should return correct remainder when using modulo op (zero rem)", async () => {
+    this.timeout(0);
+
+    const constants = [9, 3];
+    const v9 = op(Opcode.VAL, 0);
+    const v3 = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // (9 3 %)
+        v9,
+        v3,
+        op(Opcode.MOD, 2),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 0;
+    assert(
+      result.eq(expected),
+      `wrong solution to (9 3 %)
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should return correct remainder when using modulo op (non-zero rem)", async () => {
+    this.timeout(0);
+
+    const constants = [5, 2];
+    const v5 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // (5 2 %)
+        v5,
+        v2,
+        op(Opcode.MOD, 2),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 1;
+    assert(
+      result.eq(expected),
+      `wrong solution to (5 2 %)
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should perform exponentiation on a sequence of numbers", async () => {
+    this.timeout(0);
+
+    const constants = [2, 4, 3];
+    const v2 = op(Opcode.VAL, 0);
+    const v4 = op(Opcode.VAL, 1);
+    const v3 = op(Opcode.VAL, 2);
+
+    const sources = [
+      concat([
+        // (2 4 3 ^)
+        v2,
+        v4,
+        v3,
+        op(Opcode.EXP, 3),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 4096;
+    assert(
+      result.eq(expected),
+      `wrong solution to (2 4 3 ^)
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should perform exponentiation correctly", async () => {
+    this.timeout(0);
+
+    const constants = [2, 4];
+    const v2 = op(Opcode.VAL, 0);
+    const v4 = op(Opcode.VAL, 1);
+
+    const sources = [
+      concat([
+        // (2 4 ^)
+        v2,
+        v4,
+        op(Opcode.EXP, 2),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculator.run();
+    const expected = 16;
+    assert(
+      result.eq(expected),
+      `wrong solution to (2 4 ^)
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
   it("should skip (conditional skip: true)", async () => {
     this.timeout(0);
 
