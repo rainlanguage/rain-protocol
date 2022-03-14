@@ -39,6 +39,110 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
+  it("should grant alice sender (spoke) then receiver (hub) and remain as both", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const owner = signers[0];
+    const alice = signers[1];
+
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
+    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumTier = Tier.COPPER;
+
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: erc20Pullee.address,
+      initialSupply: totalSupply,
+    };
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const token = (await Util.redeemableERC20Deploy(owner, {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20Config,
+      tier: tier.address,
+      minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    })) as RedeemableERC20 & Contract;
+
+    await erc20Pullee.grantSender(token.address, alice.address);
+
+    assert(await token.isSender(alice.address));
+    assert(!(await token.isReceiver(alice.address)));
+
+    await erc20Pullee.grantReceiver(token.address, alice.address);
+
+    assert(await token.isReceiver(alice.address));
+    assert(await token.isSender(alice.address));
+  });
+
+  it("should grant alice receiver (hub) then sender (spoke) and remain as both", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const owner = signers[0];
+    const alice = signers[1];
+
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
+    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumTier = Tier.COPPER;
+
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: erc20Pullee.address,
+      initialSupply: totalSupply,
+    };
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const token = (await Util.redeemableERC20Deploy(owner, {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20Config,
+      tier: tier.address,
+      minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    })) as RedeemableERC20 & Contract;
+
+    await erc20Pullee.grantReceiver(token.address, alice.address);
+
+    assert(await token.isReceiver(alice.address));
+    assert(!(await token.isSender(alice.address)));
+
+    await erc20Pullee.grantSender(token.address, alice.address);
+
+    assert(await token.isReceiver(alice.address));
+    assert(await token.isSender(alice.address));
+  });
+
   it("should forward unsold RedeemableERC20 (pTKN) to non-zero forwarding address", async function () {
     this.timeout(0);
 
