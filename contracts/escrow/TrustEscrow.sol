@@ -13,7 +13,7 @@ import "../trust/Trust.sol";
 /// spending or otherwise changing the direction that it sends funds.
 contract TrustEscrow is SaleEscrow {
     /// Trust address => CRP address.
-    mapping(address => address) private crps;
+    mapping(address => address) internal crps;
 
     /// Immutable wrapper around `Trust.crp`.
     /// Once a `Trust` reports a crp address the `TrustEscrow` never asks

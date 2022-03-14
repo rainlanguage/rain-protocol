@@ -99,6 +99,514 @@ describe("Sale", async function () {
     );
   });
 
+  it("should prevent refunding with modified receipt", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnits = totalTokenSupply;
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const saleStatusPending = await sale.saleStatus();
+
+    assert(
+      saleStatusPending === Status.PENDING,
+      `wrong status
+      expected  ${Status.PENDING}
+      got       ${saleStatusPending}`
+    );
+
+    await sale.start();
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+      expected  ${Status.ACTIVE}
+      got       ${saleStatusActive}`
+    );
+
+    await reserve.connect(signer1).approve(sale.address, signer1ReserveBalance);
+
+    // buy some units
+    const txBuy = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 10,
+      desiredUnits: 10,
+      maximumPrice: staticPrice,
+    });
+
+    const { receipt } = (await Util.getEventArgs(
+      txBuy,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    await token.connect(signer1).approve(sale.address, receipt.units);
+
+    await Util.assertError(
+      async () =>
+        await sale
+          .connect(signer1)
+          .refund({ ...receipt, units: receipt.units.add(1) }),
+      "INVALID_RECEIPT",
+      "wrongly allowed accepted receipt with modified units for refund request"
+    );
+    await Util.assertError(
+      async () => await sale.connect(signer1).refund({ ...receipt, fee: 0 }),
+      "INVALID_RECEIPT",
+      "wrongly allowed accepted receipt with modified fee for refund request"
+    );
+    await Util.assertError(
+      async () =>
+        await sale
+          .connect(signer1)
+          .refund({ ...receipt, price: receipt.price.mul(2) }),
+      "INVALID_RECEIPT",
+      "wrongly allowed accepted receipt with modified price for refund request"
+    );
+  });
+
+  it("should prevent refunding with someone else's receipt", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+    const signer2 = signers[4];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnits = totalTokenSupply;
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signers reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+    await reserve.transfer(signer2.address, cost.add(fee));
+
+    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
+    const signer2ReserveBalance = await reserve.balanceOf(signer2.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const saleStatusPending = await sale.saleStatus();
+
+    assert(
+      saleStatusPending === Status.PENDING,
+      `wrong status
+      expected  ${Status.PENDING}
+      got       ${saleStatusPending}`
+    );
+
+    await sale.start();
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+      expected  ${Status.ACTIVE}
+      got       ${saleStatusActive}`
+    );
+
+    await reserve.connect(signer1).approve(sale.address, signer1ReserveBalance);
+    await reserve.connect(signer2).approve(sale.address, signer2ReserveBalance);
+
+    // buy some units
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 10,
+      desiredUnits: 10,
+      maximumPrice: staticPrice,
+    });
+    const txBuy2 = await sale.connect(signer2).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 10,
+      desiredUnits: 10,
+      maximumPrice: staticPrice,
+    });
+
+    const { receipt: receipt1 } = (await Util.getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+    const { receipt: receipt2 } = (await Util.getEventArgs(
+      txBuy2,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    await token.connect(signer1).approve(sale.address, receipt2.units);
+    await token.connect(signer2).approve(sale.address, receipt1.units);
+
+    await Util.assertError(
+      async () => await sale.connect(signer1).refund(receipt2),
+      "INVALID_RECEIPT",
+      "wrongly allowed signer1 to use signer2's receipt for refund"
+    );
+    await Util.assertError(
+      async () => await sale.connect(signer2).refund(receipt1),
+      "INVALID_RECEIPT",
+      "wrongly allowed signer2 to use signer1's receipt for refund"
+    );
+  });
+
+  it("should prevent refunding twice with same receipt", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnits = totalTokenSupply;
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const saleStatusPending = await sale.saleStatus();
+
+    assert(
+      saleStatusPending === Status.PENDING,
+      `wrong status
+      expected  ${Status.PENDING}
+      got       ${saleStatusPending}`
+    );
+
+    await sale.start();
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+      expected  ${Status.ACTIVE}
+      got       ${saleStatusActive}`
+    );
+
+    await reserve.connect(signer1).approve(sale.address, signer1ReserveBalance);
+
+    // buy some units
+    const txBuy = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 10,
+      desiredUnits: 10,
+      maximumPrice: staticPrice,
+    });
+
+    const { receipt } = (await Util.getEventArgs(
+      txBuy,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    await token.connect(signer1).approve(sale.address, receipt.units);
+
+    await sale.connect(signer1).refund(receipt);
+
+    await Util.assertError(
+      async () => await sale.connect(signer1).refund(receipt),
+      "INVALID_RECEIPT",
+      "wrongly allowed same receipt to be used twice for refund"
+    );
+  });
+
+  it("should respect cooldown when sale is active", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 5,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnits = totalTokenSupply;
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const saleStatusPending = await sale.saleStatus();
+
+    assert(
+      saleStatusPending === Status.PENDING,
+      `wrong status
+      expected  ${Status.PENDING}
+      got       ${saleStatusPending}`
+    );
+
+    await sale.start();
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+      expected  ${Status.ACTIVE}
+      got       ${saleStatusActive}`
+    );
+
+    await reserve.connect(signer1).approve(sale.address, signer1ReserveBalance);
+
+    // buy some units
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 10,
+      desiredUnits: 10,
+      maximumPrice: staticPrice,
+    });
+
+    // immediately buy some more units before cooldown end
+    await Util.assertError(
+      async () =>
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: 10,
+          desiredUnits: 10,
+          maximumPrice: staticPrice,
+        }),
+      "COOLDOWN",
+      "successive buy did not trigger cooldown while Sale was Active"
+    );
+  });
+
   it("should limit maximum cooldown duration in the factory", async function () {
     const signers = await ethers.getSigners();
     const basePrice = ethers.BigNumber.from("100").mul(Util.RESERVE_ONE);
