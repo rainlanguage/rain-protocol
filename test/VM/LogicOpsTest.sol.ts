@@ -13,6 +13,7 @@ const enum Opcode {
   VAL,
   DUP,
   ZIPMAP,
+  DEBUG,
   IS_ZERO,
   EAGER_IF,
   EQUAL_TO,

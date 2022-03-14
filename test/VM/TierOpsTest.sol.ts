@@ -14,6 +14,7 @@ const enum Opcode {
   VAL,
   DUP,
   ZIPMAP,
+  DEBUG,
   REPORT,
   NEVER,
   ALWAYS,

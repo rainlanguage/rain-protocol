@@ -18,6 +18,7 @@ const enum Opcode {
   VAL,
   DUP,
   ZIPMAP,
+  DEBUG,
   ERC20_BALANCE_OF,
   ERC20_TOTAL_SUPPLY,
   ERC721_BALANCE_OF,

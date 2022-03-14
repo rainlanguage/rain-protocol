@@ -14,6 +14,7 @@ const enum Opcode {
   VAL,
   DUP,
   ZIPMAP,
+  DEBUG,
   SCALE18_MUL,
   SCALE18_DIV,
   SCALE18,
