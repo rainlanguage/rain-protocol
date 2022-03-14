@@ -44,8 +44,13 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const distributor = signers[1];
     const forwardee = signers[2];
+
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
@@ -55,7 +60,7 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Config = {
       name: "RedeemableERC20",
       symbol: "RDX",
-      distributor: distributor.address,
+      distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
 
@@ -73,18 +78,19 @@ describe("RedeemableERC20", async function () {
     });
 
     const balanceDistributorBeforeBurn = await redeemableERC20.balanceOf(
-      distributor.address
+      erc20Pullee.address
     );
     const balanceForwardeeBeforeBurn = await redeemableERC20.balanceOf(
       forwardee.address
     );
 
-    await redeemableERC20
-      .connect(distributor)
-      .endDistribution(distributor.address);
+    await erc20Pullee.endDistribution(
+      redeemableERC20.address,
+      erc20Pullee.address
+    );
 
     const balanceDistributorAfterBurn = await redeemableERC20.balanceOf(
-      distributor.address
+      erc20Pullee.address
     );
     const balanceForwardeeAfterBurn = await redeemableERC20.balanceOf(
       forwardee.address
@@ -101,7 +107,11 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
-    const distributor = signers[1];
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
@@ -111,7 +121,7 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Config = {
       name: "RedeemableERC20",
       symbol: "RDX",
-      distributor: distributor.address,
+      distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
 
@@ -129,17 +139,18 @@ describe("RedeemableERC20", async function () {
     });
 
     const balanceDistributorBeforeBurn = await redeemableERC20.balanceOf(
-      distributor.address
+      erc20Pullee.address
     );
 
     assert(balanceDistributorBeforeBurn.eq(totalSupply));
 
-    await redeemableERC20
-      .connect(distributor)
-      .endDistribution(distributor.address);
+    await erc20Pullee.endDistribution(
+      redeemableERC20.address,
+      erc20Pullee.address
+    );
 
     const balanceDistributorAfterBurn = await redeemableERC20.balanceOf(
-      distributor.address
+      erc20Pullee.address
     );
 
     assert(balanceDistributorAfterBurn.isZero());
@@ -168,6 +179,12 @@ describe("RedeemableERC20", async function () {
     const carolSpoke = signers[3];
     const daveSpoke = signers[4];
 
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
@@ -184,7 +201,7 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Config = {
       name: "RedeemableERC20",
       symbol: "RDX",
-      distributor: signers[0].address,
+      distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
 
@@ -202,10 +219,14 @@ describe("RedeemableERC20", async function () {
     })) as RedeemableERC20 & Contract;
 
     // give some tokens
-    await token.transfer(aliceReceiver.address, TEN_TOKENS);
-    await token.transfer(bobReceiver.address, TEN_TOKENS);
-    await token.transfer(carolSpoke.address, TEN_TOKENS);
-    await token.transfer(daveSpoke.address, TEN_TOKENS);
+    await erc20Pullee.transfer(
+      token.address,
+      aliceReceiver.address,
+      TEN_TOKENS
+    );
+    await erc20Pullee.transfer(token.address, bobReceiver.address, TEN_TOKENS);
+    await erc20Pullee.transfer(token.address, carolSpoke.address, TEN_TOKENS);
+    await erc20Pullee.transfer(token.address, daveSpoke.address, TEN_TOKENS);
 
     await Util.assertError(
       async () =>
@@ -215,8 +236,8 @@ describe("RedeemableERC20", async function () {
     );
 
     // grant roles
-    await token.grantReceiver(aliceReceiver.address);
-    await token.grantReceiver(bobReceiver.address);
+    await erc20Pullee.grantReceiver(token.address, aliceReceiver.address);
+    await erc20Pullee.grantReceiver(token.address, bobReceiver.address);
 
     // 'hub' sends to 'spoke'
     await token.connect(aliceReceiver).transfer(carolSpoke.address, 1);
@@ -299,9 +320,7 @@ describe("RedeemableERC20", async function () {
     await erc20Pullee.transfer(redeemableERC20.address, alice.address, 10);
 
     // admin can burn all tokens of a single address to end `Phase.ZERO`
-    await erc20Pullee.endDistribution(redeemableERC20.address,
-      Util.oneAddress,
-    );
+    await erc20Pullee.endDistribution(redeemableERC20.address, Util.oneAddress);
 
     const aliceRedeemableERC20 = redeemableERC20.connect(alice);
     // owner is on the unfreezable list.
@@ -327,6 +346,12 @@ describe("RedeemableERC20", async function () {
 
     const signers = await ethers.getSigners();
 
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
@@ -343,7 +368,7 @@ describe("RedeemableERC20", async function () {
     const redeemableERC20Config = {
       name: "RedeemableERC20",
       symbol: "RDX",
-      distributor: signers[0].address,
+      distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
 
@@ -365,7 +390,7 @@ describe("RedeemableERC20", async function () {
     assert(config.reserve === reserve1.address, "wrong reserve");
     assert(
       JSON.stringify(config.erc20Config) ===
-      JSON.stringify(Object.values(redeemableERC20Config)),
+        JSON.stringify(Object.values(redeemableERC20Config)),
       "wrong config"
     );
     assert(config.tier === tier.address, "wrong tier");
@@ -629,10 +654,7 @@ describe("RedeemableERC20", async function () {
     assert(await token.isSender(alice.address), "sender status was wrong");
 
     await erc20Pullee.grantReceiver(token.address, bob.address);
-    assert(
-      await token.isReceiver(bob.address),
-      "receiver status was wrong"
-    );
+    assert(await token.isReceiver(bob.address), "receiver status was wrong");
 
     // sender needs tokens (actually needs permission to receive these tokens anyway)
     await erc20Pullee.grantReceiver(token.address, alice.address);
@@ -799,8 +821,9 @@ describe("RedeemableERC20", async function () {
     const now = await ethers.provider.getBlockNumber();
 
     const event0 = (await Util.getEventArgs(
-      await erc20Pullee.endDistribution(redeemableERC20.address,
-        Util.oneAddress,
+      await erc20Pullee.endDistribution(
+        redeemableERC20.address,
+        Util.oneAddress
       ),
       "PhaseScheduled",
       redeemableERC20
@@ -819,7 +842,8 @@ describe("RedeemableERC20", async function () {
 
     assert(
       (await redeemableERC20.currentPhase()).eq(Phase.TWO),
-      `wrong phase, expected ${Phase.TWO
+      `wrong phase, expected ${
+        Phase.TWO
       } got ${await redeemableERC20.currentPhase()}`
     );
 
@@ -1081,9 +1105,7 @@ describe("RedeemableERC20", async function () {
       "was wrongly able to set phase block with insuffient role permissions"
     );
 
-    await erc20Pullee.endDistribution(redeemableERC20.address,
-      Util.oneAddress,
-    );
+    await erc20Pullee.endDistribution(redeemableERC20.address, Util.oneAddress);
   });
 
   it("should set owner as unfreezable on construction", async function () {
@@ -1176,9 +1198,7 @@ describe("RedeemableERC20", async function () {
       "admin not made receiver during construction"
     );
 
-    await erc20Pullee.endDistribution(redeemableERC20.address,
-      Util.oneAddress,
-    );
+    await erc20Pullee.endDistribution(redeemableERC20.address, Util.oneAddress);
 
     await reserve.transfer(redeemableERC20.address, 1);
   });
@@ -1229,13 +1249,13 @@ describe("RedeemableERC20", async function () {
 
     await redeemableERC20.deployed();
 
-    const redeemableERC20_SILVER = new ethers.Contract(
-      redeemableERC20.address,
-      redeemableERC20.interface,
-      signers[2]
-    );
     await Util.assertError(
-      async () => await redeemableERC20.transfer(signers[2].address, 1),
+      async () =>
+        await erc20Pullee.transfer(
+          redeemableERC20.address,
+          signers[2].address,
+          1
+        ),
       "MIN_TIER",
       "user could receive transfers despite not meeting minimum status"
     );
@@ -1246,9 +1266,7 @@ describe("RedeemableERC20", async function () {
       totalSupply
     );
 
-    await erc20Pullee.endDistribution(redeemableERC20.address,
-      Util.oneAddress,
-    );
+    await erc20Pullee.endDistribution(redeemableERC20.address, Util.oneAddress);
 
     // pool exits and reserve tokens sent to redeemable ERC20 address
     const reserveTotal = ethers.BigNumber.from("1000" + Util.sixZeros);
@@ -1262,7 +1280,8 @@ describe("RedeemableERC20", async function () {
 
     // There is no way the SILVER user can receive tokens so they also cannot redeem tokens.
     await Util.assertError(
-      async () => await redeemableERC20_SILVER.redeem([reserve.address], 1),
+      async () =>
+        await redeemableERC20.connect(signers[2]).redeem([reserve.address], 1),
       "ZERO_AMOUNT",
       "user could transfer despite not meeting minimum status"
     );
@@ -1324,7 +1343,7 @@ describe("RedeemableERC20", async function () {
     // There are no reserve tokens in the redeemer on construction
     assert(
       (await reserve1.balanceOf(redeemableERC20.address)).eq(0) &&
-      (await reserve2.balanceOf(redeemableERC20.address)).eq(0),
+        (await reserve2.balanceOf(redeemableERC20.address)).eq(0),
       "reserve was not 0 on redeemable construction"
     );
 
@@ -1339,9 +1358,7 @@ describe("RedeemableERC20", async function () {
       TWENTY_TOKENS
     );
 
-    await erc20Pullee.endDistribution(redeemableERC20.address,
-      Util.oneAddress,
-    );
+    await erc20Pullee.endDistribution(redeemableERC20.address, Util.oneAddress);
 
     // at this point signer[1] should have 10 tokens
     assert(
@@ -1572,9 +1589,7 @@ describe("RedeemableERC20", async function () {
       TWENTY_TOKENS
     );
 
-    await erc20Pullee.endDistribution(redeemableERC20.address,
-      Util.oneAddress,
-    );
+    await erc20Pullee.endDistribution(redeemableERC20.address, Util.oneAddress);
 
     const redeemableSignerBalanceBefore = await redeemableERC20.balanceOf(
       signer1.address
