@@ -39,7 +39,7 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
-  it("should grant alice sender (spoke) then receiver (hub) and remain as both", async function () {
+  it("should grant alice sender then receiver and remain as both", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -91,7 +91,7 @@ describe("RedeemableERC20", async function () {
     assert(await token.isSender(alice.address));
   });
 
-  it("should grant alice receiver (hub) then sender (spoke) and remain as both", async function () {
+  it("should grant alice receiver then sender and remain as both", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -296,8 +296,8 @@ describe("RedeemableERC20", async function () {
     const minimumTier = Tier.COPPER;
 
     // all parties above min tier
-    await tier.setTier(aliceReceiver.address, Tier.SILVER, []);
-    await tier.setTier(bobReceiver.address, Tier.SILVER, []);
+    // await tier.setTier(aliceReceiver.address, Tier.SILVER, []);
+    // await tier.setTier(bobReceiver.address, Tier.SILVER, []);
     await tier.setTier(carolSpoke.address, Tier.SILVER, []);
     await tier.setTier(daveSpoke.address, Tier.SILVER, []);
 
@@ -339,7 +339,7 @@ describe("RedeemableERC20", async function () {
       "alice sent tokens despite not being a 'receiver'"
     );
 
-    // grant roles
+    // grant roles for receivers
     await erc20Pullee.grantReceiver(token.address, aliceReceiver.address);
     await erc20Pullee.grantReceiver(token.address, bobReceiver.address);
 
