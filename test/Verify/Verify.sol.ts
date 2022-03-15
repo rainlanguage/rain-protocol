@@ -22,12 +22,6 @@ enum Status {
   Banned,
 }
 
-enum Request {
-  APPROVE,
-  BAN,
-  REMOVE,
-}
-
 const APPROVER_ADMIN = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("APPROVER_ADMIN")
 );
@@ -43,7 +37,7 @@ const BANNER_ADMIN = ethers.utils.keccak256(
 );
 const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
-describe("Verify", async function () {
+describe.only("Verify", async function () {
   it("should allow anyone to submit data to support a request to ban an account", async function () {
     this.timeout(0);
 
@@ -114,7 +108,7 @@ describe("Verify", async function () {
       async () =>
         verify
           .connect(signer2)
-          .request(Request.BAN, [
+          .requestBan([
             { account: signer1.address, data: evidenceBanReq },
           ]),
       "ONLY_APPROVED",
@@ -134,7 +128,7 @@ describe("Verify", async function () {
     const event0 = (await Util.getEventArgs(
       await verify
         .connect(signer2)
-        .request(Request.BAN, [
+        .requestBan([
           { account: signer1.address, data: evidenceBanReq },
         ]),
       "RequestBan",
@@ -218,7 +212,7 @@ describe("Verify", async function () {
       async () =>
         verify
           .connect(signer2)
-          .request(Request.REMOVE, [
+          .requestRemove([
             { account: signer1.address, data: evidenceRemoveReq },
           ]),
       "ONLY_APPROVED",
@@ -238,7 +232,7 @@ describe("Verify", async function () {
     const event0 = (await Util.getEventArgs(
       await verify
         .connect(signer2)
-        .request(Request.REMOVE, [
+        .requestRemove([
           { account: signer1.address, data: evidenceRemoveReq },
         ]),
       "RequestRemove",

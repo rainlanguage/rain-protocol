@@ -195,10 +195,6 @@ contract Verify is AccessControl, Initializable {
     /// @param evidence `Evidence` to justify the removal.
     event Remove(address sender, Evidence evidence);
 
-    uint256 public constant REQUEST_APPROVE = 0;
-    uint256 public constant REQUEST_BAN = 1;
-    uint256 public constant REQUEST_REMOVE = 2;
-
     /// Admin role for `APPROVER`.
     bytes32 public constant APPROVER_ADMIN = keccak256("APPROVER_ADMIN");
     /// Role for `APPROVER`.
@@ -311,42 +307,37 @@ contract Verify is AccessControl, Initializable {
     /// Internally `msg.sender` is used; delegated `add` is not supported.
     /// @param data_ The evidence to support approving the `msg.sender`.
     function add(bytes calldata data_) external {
-        // Accounts may NOT change their application to be approved.
-        // This restriction is the main reason delegated add is not supported
-        // as it would lead to griefing.
-        // A mistaken add requires an appeal to a REMOVER to restart the
-        // process OR a new `msg.sender` (i.e. different wallet address).
-        // The awkward < 1 here is to silence slither complaining about
-        // equality checks against `0`. The intent is to ensure that
-        // `addedSince` is not already set before we set it.
-        require(states[msg.sender].addedSince < 1, "PRIOR_ADD");
-        states[msg.sender] = newState();
-        emit RequestApprove(msg.sender, Evidence(msg.sender, data_));
+        State memory state_ = states[msg.sender];
+        uint256 currentStatus_ = statusAtBlock(state_, block.number);
+        require(
+            currentStatus_ != VerifyConstants.STATUS_APPROVED &&
+                currentStatus_ != VerifyConstants.STATUS_BANNED,
+            "ALREADY_EXISTS"
+        );
+        // An account that hasn't already been added need a new state.
+        // If an account has already been added but not approved or banned
+        // they can emit many `RequestApprove` events without changing
+        // their state. This facilitates multi-step workflows for the KYC
+        // provider, e.g. to implement a commit+reveal scheme or simply
+        // request additional evidence from the applicant before final
+        // verdict.
+        if (currentStatus_ == VerifyConstants.STATUS_NIL) {
+            states[msg.sender] = newState();
+        }
+        Evidence memory evidence_ = Evidence(msg.sender, data_);
+        emit RequestApprove(msg.sender, evidence_);
+
+        // Call the `afterAdd_` hook to allow inheriting contracts to enforce
+        // requirements.
+        // The inheriting contract MUST `require` or otherwise enforce its
+        // needs to rollback a bad add.
+        _afterAdd(state_, evidence_);
     }
 
-    /// Any approved account can request an action be performed by some account
-    /// with appropriate access. The requestor is expected to provide
-    /// supporting evidence to justifty the request. Vexatious requstors may
-    /// find themselves banned, which will at the least remove their ability to
-    /// submit further requests.
-    function request(uint256 requestType_, Evidence[] calldata evidences_)
-        external
-        onlyApproved
-    {
-        if (requestType_ == REQUEST_APPROVE) {
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                emit RequestApprove(msg.sender, evidences_[i_]);
-            }
-        } else if (requestType_ == REQUEST_BAN) {
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                emit RequestBan(msg.sender, evidences_[i_]);
-            }
-        } else if (requestType_ == REQUEST_REMOVE) {
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                emit RequestRemove(msg.sender, evidences_[i_]);
-            }
-        }
-    }
+    function _afterAdd(State memory state_, Evidence memory evidence_)
+        internal
+        virtual
+    {}
 
     /// An `APPROVER` can review added evidence and approve accounts.
     /// Typically many approvals would be submitted in a single call which is
@@ -399,15 +390,28 @@ contract Verify is AccessControl, Initializable {
             // This ensures that supporting evidence hits the logs for offchain
             // review.
             emit Approve(msg.sender, evidences_[i_]);
+
+            _afterApprove(state_, evidences_[i_]);
         }
     }
 
+    function requestApprove(Evidence[] calldata evidences_)
+        external
+        onlyApproved
+    {
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            emit RequestApprove(msg.sender, evidences_[i_]);
+        }
+    }
+
+    function _afterApprove(State memory state_, Evidence memory evidence_)
+        internal
+        virtual
+    {}
+
     /// A `BANNER` can ban an added OR approved account.
     /// @param evidences_ All evidence appropriate for all bans.
-    function ban(Evidence[] calldata evidences_)
-        external
-        onlyRole(BANNER)
-    {
+    function ban(Evidence[] calldata evidences_) external onlyRole(BANNER) {
         uint256 dirty_ = 0;
         State memory state_;
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
@@ -436,19 +440,50 @@ contract Verify is AccessControl, Initializable {
             // ensures that supporting evidence hits the logs for offchain
             // review.
             emit Ban(msg.sender, evidences_[i_]);
+
+            _afterBan(state_, evidences_[i_]);
         }
     }
+
+    function requestBan(Evidence[] calldata evidences_) external onlyApproved {
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            emit RequestBan(msg.sender, evidences_[i_]);
+        }
+    }
+
+    function _afterBan(State memory state_, Evidence memory evidence_)
+        internal
+        virtual
+    {}
 
     /// A `REMOVER` can scrub state mapping from an account.
     /// A malicious account MUST be banned rather than removed.
     /// Removal is useful to reset the whole process in case of some mistake.
     /// @param evidences_ All evidence to suppor the removal.
     function remove(Evidence[] calldata evidences_) external onlyRole(REMOVER) {
-        for (uint i_ = 0; i_ < evidences_.length; i_++) {
-            if (states[evidences_[i_].account].addedSince > 0) {
-                delete(states[evidences_[i_].account]);
+        State memory state_;
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            state_ = states[evidences_[i_].account];
+            if (state_.addedSince > 0) {
+                delete (states[evidences_[i_].account]);
             }
             emit Remove(msg.sender, evidences_[i_]);
+
+            _afterRemove(state_, evidences_[i_]);
         }
     }
+
+    function requestRemove(Evidence[] calldata evidences_)
+        external
+        onlyApproved
+    {
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            emit RequestRemove(msg.sender, evidences_[i_]);
+        }
+    }
+
+    function _afterRemove(State memory state_, Evidence memory evidence_)
+        internal
+        virtual
+    {}
 }

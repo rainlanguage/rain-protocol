@@ -72,10 +72,10 @@ contract ReadWriteTier is ITier {
         // Emit this event for ITier.
         emit TierChange(msg.sender, account_, startTier_, endTier_, data_);
 
-        // Call the `_afterSetTier` hook to allow inheriting contracts
-        // to enforce requirements.
-        // The inheriting contract MUST `require` or otherwise
-        // enforce its needs to rollback a bad status change.
+        // Call the `_afterSetTier` hook to allow inheriting contracts to
+        // enforce requirements.
+        // The inheriting contract MUST `require` or otherwise enforce its
+        // needs to rollback a bad status change.
         _afterSetTier(account_, startTier_, endTier_, data_);
     }
 
