@@ -7,6 +7,7 @@ import type {
   DepositEvent,
   RedeemableERC20ClaimEscrow,
   UndepositEvent,
+  WithdrawEvent,
 } from "../../typechain/RedeemableERC20ClaimEscrow";
 import type { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
@@ -55,6 +56,375 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken & Contract;
+  });
+
+  it.only("if alice withdraws then burns then bob withdraws, bob does not receive more than his pro-rata share from deposit time due to the subsequent supply change", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const alice = signers[3];
+    const bob = signers[4];
+
+    await tier.setTier(alice.address, Tier.GOLD, []);
+    await tier.setTier(bob.address, Tier.GOLD, []);
+
+    const {
+      redeemableERC20,
+      trust,
+      reserve,
+      crp,
+      bPool,
+      minimumTradingDuration,
+      successLevel,
+    } = await basicSetup(signers, trustFactory, tier);
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
+    // signer1 buys some RedeemableERC20 tokens
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
+
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
+
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
+        reserve.address,
+        spend,
+        redeemableERC20.address,
+        ethers.BigNumber.from("1"),
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
+      );
+    };
+
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
+
+    // raise all necessary funds
+    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
+      await swapReserveForTokens(alice, spend);
+      await swapReserveForTokens(bob, spend);
+    }
+
+    const aliceRedeemableTokenBalance = await redeemableERC20.balanceOf(
+      alice.address
+    );
+    const bobRedeemableTokenBalance = await redeemableERC20.balanceOf(
+      bob.address
+    );
+
+    const soldRedeemableTokenSupply = aliceRedeemableTokenBalance.add(
+      bobRedeemableTokenBalance
+    );
+
+    const aliceProRataShare0 = aliceRedeemableTokenBalance
+      .mul(Util.ONE)
+      .div(soldRedeemableTokenSupply);
+    const bobProRataShare0 = bobRedeemableTokenBalance
+      .mul(Util.ONE)
+      .div(soldRedeemableTokenSupply);
+
+    // Distribution Status is Trading
+    assert(
+      (await trust.getDistributionStatus()) === DistributionStatus.TRADING,
+      "Distribution Status was not TRADING"
+    );
+
+    // deposit claimable tokens
+    const depositAmount0 = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableReserveToken.decimals())
+    );
+
+    // give signers claimable tokens to deposit
+    await claimableReserveToken.transfer(alice.address, depositAmount0);
+    await claimableReserveToken.transfer(bob.address, depositAmount0);
+
+    await claimableReserveToken
+      .connect(alice)
+      .approve(claim.address, depositAmount0);
+    await claimableReserveToken
+      .connect(bob)
+      .approve(claim.address, depositAmount0);
+
+    await claim
+      .connect(alice)
+      .depositPending(
+        trust.address,
+        claimableReserveToken.address,
+        depositAmount0
+      );
+    await claim
+      .connect(bob)
+      .depositPending(
+        trust.address,
+        claimableReserveToken.address,
+        depositAmount0
+      );
+
+    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
+
+    const emptyBlocks =
+      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+
+    // create empty blocks to end of raise duration
+    await Util.createEmptyBlock(emptyBlocks);
+
+    await trust.endDutchAuction();
+
+    // Distribution Status is Success
+    assert(
+      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
+      "Distribution Status was not SUCCESS"
+    );
+
+    await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      alice.address
+    );
+    const deposit1 = await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      bob.address
+    );
+
+    const { supply: supplyFinal } = await getEventArgs(
+      deposit1,
+      "Deposit",
+      claim
+    );
+
+    // alice withdraws tokens
+    await claim
+      .connect(alice)
+      .withdraw(trust.address, claimableReserveToken.address, supplyFinal);
+
+    const aliceTokenBalance = await claimableReserveToken.balanceOf(
+      alice.address
+    );
+
+    // alice burns her tokens
+    await claimableReserveToken.connect(alice).burn(aliceTokenBalance);
+
+    // bob withdraws tokens
+    await claim
+      .connect(bob)
+      .withdraw(trust.address, claimableReserveToken.address, supplyFinal);
+
+    const bobTokenBalance = await claimableReserveToken.balanceOf(bob.address);
+
+    const aliceProRataShare1 = aliceTokenBalance.mul(Util.ONE).div(supplyFinal);
+    const bobProRataShare1 = bobTokenBalance.mul(Util.ONE).div(supplyFinal);
+
+    console.log({
+      aliceProRataShare0,
+      bobProRataShare0,
+      aliceProRataShare1,
+      bobProRataShare1,
+    });
+  });
+
+  it("should ensure different depositors can both undeposit independently", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const signer1 = signers[3];
+    const signer2 = signers[4];
+
+    await tier.setTier(signer1.address, Tier.GOLD, []);
+    await tier.setTier(signer2.address, Tier.GOLD, []);
+
+    const {
+      redeemableERC20,
+      trust,
+      reserve,
+      crp,
+      bPool,
+      minimumTradingDuration,
+    } = await basicSetup(signers, trustFactory, tier);
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
+    // signer1 buys some RedeemableERC20 tokens
+    const swapReserveForTokens = async (signer, spend) => {
+      // give signer some reserve
+      await reserve.transfer(signer.address, spend);
+
+      const reserveSigner = reserve.connect(signer);
+      const crpSigner = crp.connect(signer);
+      const bPoolSigner = bPool.connect(signer);
+
+      await crpSigner.pokeWeights();
+      await reserveSigner.approve(bPool.address, spend);
+      await bPoolSigner.swapExactAmountIn(
+        reserve.address,
+        spend,
+        redeemableERC20.address,
+        ethers.BigNumber.from("1"),
+        ethers.BigNumber.from("1000000" + Util.sixZeros)
+      );
+    };
+
+    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
+
+    await swapReserveForTokens(signer1, spend);
+    await swapReserveForTokens(signer2, spend);
+
+    // Distribution Status is Trading
+    assert(
+      (await trust.getDistributionStatus()) === DistributionStatus.TRADING,
+      "Distribution Status was not TRADING"
+    );
+
+    // deposit claimable tokens
+    const depositAmount0 = ethers.BigNumber.from(
+      "100" + "0".repeat(await claimableReserveToken.decimals())
+    );
+
+    // give signers claimable tokens to deposit
+    await claimableReserveToken.transfer(signer1.address, depositAmount0);
+    await claimableReserveToken.transfer(signer2.address, depositAmount0);
+
+    await claimableReserveToken
+      .connect(signer1)
+      .approve(claim.address, depositAmount0);
+    await claimableReserveToken
+      .connect(signer2)
+      .approve(claim.address, depositAmount0);
+
+    const txDepositPending0 = await claim
+      .connect(signer1)
+      .depositPending(
+        trust.address,
+        claimableReserveToken.address,
+        depositAmount0
+      );
+    const txDepositPending1 = await claim
+      .connect(signer2)
+      .depositPending(
+        trust.address,
+        claimableReserveToken.address,
+        depositAmount0
+      );
+
+    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
+
+    const emptyBlocks =
+      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+
+    // create empty blocks to end of raise duration
+    await Util.createEmptyBlock(emptyBlocks);
+
+    await trust.endDutchAuction();
+
+    // Distribution Status is Fail
+    assert(
+      (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
+      "Distribution Status was not FAIL"
+    );
+
+    await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      signer1.address
+    );
+    const deposit1 = await claim.sweepPending(
+      trust.address,
+      claimableReserveToken.address,
+      signer2.address
+    );
+
+    const { supply: supplyFinal } = await getEventArgs(
+      deposit1,
+      "Deposit",
+      claim
+    );
+
+    const { amount: deposited0 } = await Util.getEventArgs(
+      txDepositPending0,
+      "PendingDeposit",
+      claim
+    );
+    const { amount: deposited1 } = await Util.getEventArgs(
+      txDepositPending1,
+      "PendingDeposit",
+      claim
+    );
+
+    assert(
+      deposited0.eq(depositAmount0),
+      "actual tokens signer1 deposited and registered amount do not match"
+    );
+    assert(
+      deposited1.eq(depositAmount0),
+      "actual tokens signer2 deposited and registered amount do not match"
+    );
+
+    // Distribution Status is Fail
+    assert(
+      (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
+      "Distribution Status was not FAIL"
+    );
+
+    // undeposit claimable tokens
+    const undepositTx0 = await claim
+      .connect(signer1)
+      .undeposit(
+        trust.address,
+        claimableReserveToken.address,
+        supplyFinal,
+        depositAmount0
+      );
+    const undepositTx1 = await claim
+      .connect(signer2)
+      .undeposit(
+        trust.address,
+        claimableReserveToken.address,
+        supplyFinal,
+        depositAmount0
+      );
+
+    // Undeposit events
+    const undepositEvent0 = (await Util.getEventArgs(
+      undepositTx0,
+      "Undeposit",
+      claim
+    )) as UndepositEvent["args"];
+    const undepositEvent1 = (await Util.getEventArgs(
+      undepositTx1,
+      "Undeposit",
+      claim
+    )) as UndepositEvent["args"];
+
+    // undepositEvent0
+    assert(undepositEvent0.sender === signer1.address, "wrong sender");
+    assert(undepositEvent0.sale === getAddress(trust.address), "wrong trust");
+    assert(
+      undepositEvent0.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(
+      undepositEvent0.token === getAddress(claimableReserveToken.address),
+      "wrong token"
+    );
+    assert(undepositEvent0.supply.eq(supplyFinal), "wrong supply");
+    assert(undepositEvent0.amount.eq(depositAmount0), "wrong amount");
+
+    // undepositEvent1
+    assert(undepositEvent1.sender === signer2.address, "wrong sender");
+    assert(undepositEvent1.sale === getAddress(trust.address), "wrong trust");
+    assert(
+      undepositEvent1.redeemable === getAddress(redeemableERC20.address),
+      "wrong redeemable"
+    );
+    assert(
+      undepositEvent1.token === getAddress(claimableReserveToken.address),
+      "wrong token"
+    );
+    assert(undepositEvent1.supply.eq(supplyFinal), "wrong supply");
+    assert(undepositEvent1.amount.eq(depositAmount0), "wrong amount");
   });
 
   it("should distribute correct withdrawal proportion if RedeemableERC20 tokens are burned", async function () {
