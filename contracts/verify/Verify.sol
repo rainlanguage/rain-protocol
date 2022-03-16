@@ -331,13 +331,10 @@ contract Verify is AccessControl, Initializable {
         // requirements.
         // The inheriting contract MUST `require` or otherwise enforce its
         // needs to rollback a bad add.
-        _afterAdd(state_, evidence_);
+        _afterAdd(evidence_);
     }
 
-    function _afterAdd(State memory state_, Evidence memory evidence_)
-        internal
-        virtual
-    {}
+    function _afterAdd(Evidence memory evidence_) internal virtual {}
 
     /// An `APPROVER` can review added evidence and approve accounts.
     /// Typically many approvals would be submitted in a single call which is
@@ -390,9 +387,8 @@ contract Verify is AccessControl, Initializable {
             // This ensures that supporting evidence hits the logs for offchain
             // review.
             emit Approve(msg.sender, evidences_[i_]);
-
-            _afterApprove(state_, evidences_[i_]);
         }
+        _afterApprove(evidences_);
     }
 
     function requestApprove(Evidence[] calldata evidences_)
@@ -404,10 +400,7 @@ contract Verify is AccessControl, Initializable {
         }
     }
 
-    function _afterApprove(State memory state_, Evidence memory evidence_)
-        internal
-        virtual
-    {}
+    function _afterApprove(Evidence[] calldata evidences_) internal virtual {}
 
     /// A `BANNER` can ban an added OR approved account.
     /// @param evidences_ All evidence appropriate for all bans.
@@ -440,9 +433,8 @@ contract Verify is AccessControl, Initializable {
             // ensures that supporting evidence hits the logs for offchain
             // review.
             emit Ban(msg.sender, evidences_[i_]);
-
-            _afterBan(state_, evidences_[i_]);
         }
+        _afterBan(evidences_);
     }
 
     function requestBan(Evidence[] calldata evidences_) external onlyApproved {
@@ -451,10 +443,7 @@ contract Verify is AccessControl, Initializable {
         }
     }
 
-    function _afterBan(State memory state_, Evidence memory evidence_)
-        internal
-        virtual
-    {}
+    function _afterBan(Evidence[] calldata evidences_) internal virtual {}
 
     /// A `REMOVER` can scrub state mapping from an account.
     /// A malicious account MUST be banned rather than removed.
@@ -468,9 +457,8 @@ contract Verify is AccessControl, Initializable {
                 delete (states[evidences_[i_].account]);
             }
             emit Remove(msg.sender, evidences_[i_]);
-
-            _afterRemove(state_, evidences_[i_]);
         }
+        _afterRemove(evidences_);
     }
 
     function requestRemove(Evidence[] calldata evidences_)
@@ -482,8 +470,5 @@ contract Verify is AccessControl, Initializable {
         }
     }
 
-    function _afterRemove(State memory state_, Evidence memory evidence_)
-        internal
-        virtual
-    {}
+    function _afterRemove(Evidence[] calldata evidences_) internal virtual {}
 }
