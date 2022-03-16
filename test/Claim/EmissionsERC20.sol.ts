@@ -316,7 +316,7 @@ describe("EmissionsERC20", async function () {
       .mul(sumBaseRewardByDuration)
       .div(BN_ONE_REWARD);
 
-    const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
+    const [claimantAddress,claimAmount] = await emissionsERC20.calculateClaim(claimer.address);
 
     console.log(`expectations:
     claimDuration                               ${claimDuration}
@@ -602,14 +602,14 @@ describe("EmissionsERC20", async function () {
     const expectedClaimAmountBrnz = fractionalClaimDurationRemoveExcessAddOneBN
       .mul(baseRewardByDurationBronze)
       .div(BN_ONE_REWARD);
-
+ 
     // 93480728701802416
     const expectedClaimAmount = expectedClaimAmountPlat
       .add(expectedClaimAmountGold)
       .add(expectedClaimAmountSilv)
       .add(expectedClaimAmountBrnz);
 
-    const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
+    const [claimantAddress,claimAmount] = await emissionsERC20.calculateClaim(claimer.address);
 
     console.log(`expectations:
     claimDuration                               ${claimDuration}
@@ -669,7 +669,7 @@ describe("EmissionsERC20", async function () {
       }
     );
 
-    const beforeClaimReport = await emissionsERC20.calculateClaim(
+    const [claimantAddress,beforeClaimReport] = await emissionsERC20.calculateClaim(
       claimer.address
     );
 
@@ -762,8 +762,9 @@ describe("EmissionsERC20", async function () {
 
     await Util.createEmptyBlock(5);
 
+    const [claimantAddress, amount] = await emissionsERC20.calculateClaim(claimer.address)
     const claimReport = paddedUInt256(
-      await emissionsERC20.calculateClaim(claimer.address)
+        amount
     );
     const expectedClaimReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -839,7 +840,7 @@ describe("EmissionsERC20", async function () {
     await Util.createEmptyBlock(5);
 
     const calculationBlock = await ethers.provider.getBlockNumber();
-    const diffResult = await emissionsERC20.calculateClaim(claimer.address);
+    const [claimantAddress,diffResult] = await emissionsERC20.calculateClaim(claimer.address);
 
     const expectedDiff = paddedUInt256(
       ethers.BigNumber.from(
@@ -1068,7 +1069,7 @@ describe("EmissionsERC20", async function () {
       }
     );
 
-    const claimAmountResult = await emissionsERC20.calculateClaim(
+    const [claimantAddress, claimAmountResult] = await emissionsERC20.calculateClaim(
       claimer.address
     );
 
