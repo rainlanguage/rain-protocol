@@ -58,7 +58,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     )) as ReserveToken & Contract;
   });
 
-  it.only("if alice withdraws then burns then bob withdraws, bob does not receive more than his pro-rata share from deposit time due to the subsequent supply change", async function () {
+  it("if alice withdraws then burns then bob withdraws, bob does not receive more than his pro-rata share from deposit time due to the subsequent supply change", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -107,24 +107,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       await swapReserveForTokens(alice, spend);
       await swapReserveForTokens(bob, spend);
     }
-
-    const aliceRedeemableTokenBalance = await redeemableERC20.balanceOf(
-      alice.address
-    );
-    const bobRedeemableTokenBalance = await redeemableERC20.balanceOf(
-      bob.address
-    );
-
-    const soldRedeemableTokenSupply = aliceRedeemableTokenBalance.add(
-      bobRedeemableTokenBalance
-    );
-
-    const aliceProRataShare0 = aliceRedeemableTokenBalance
-      .mul(Util.ONE)
-      .div(soldRedeemableTokenSupply);
-    const bobProRataShare0 = bobRedeemableTokenBalance
-      .mul(Util.ONE)
-      .div(soldRedeemableTokenSupply);
 
     // Distribution Status is Trading
     assert(
@@ -179,21 +161,35 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "Distribution Status was not SUCCESS"
     );
 
-    await claim.sweepPending(
+    const depositAlice = await claim.sweepPending(
       trust.address,
       claimableReserveToken.address,
       alice.address
     );
-    const deposit1 = await claim.sweepPending(
+    const depositBob = await claim.sweepPending(
       trust.address,
       claimableReserveToken.address,
       bob.address
     );
 
-    const { supply: supplyFinal } = await getEventArgs(
-      deposit1,
+    const { amount: aliceDeposited } = (await getEventArgs(
+      depositAlice,
       "Deposit",
       claim
+    )) as DepositEvent["args"];
+    const { supply: supplyFinal, amount: bobDeposited } = (await getEventArgs(
+      depositBob,
+      "Deposit",
+      claim
+    )) as DepositEvent["args"];
+
+    const totalDeposited = aliceDeposited.add(bobDeposited);
+
+    const supplyRedeemableBeforeBurn = await redeemableERC20.totalSupply();
+
+    assert(
+      supplyRedeemableBeforeBurn.eq(supplyFinal),
+      "registered RedeemableERC20 total supply was wrong"
     );
 
     // alice withdraws tokens
@@ -201,29 +197,61 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       .connect(alice)
       .withdraw(trust.address, claimableReserveToken.address, supplyFinal);
 
-    const aliceTokenBalance = await claimableReserveToken.balanceOf(
+    const aliceRedeemableERC20TokenBalance = await redeemableERC20.balanceOf(
       alice.address
     );
 
-    // alice burns her tokens
-    await claimableReserveToken.connect(alice).burn(aliceTokenBalance);
+    // alice burns her RedeemableERC20 tokens
+    await redeemableERC20.connect(alice).burn(aliceRedeemableERC20TokenBalance);
+
+    const supplyRedeemableAfterBurn = await redeemableERC20.totalSupply();
+
+    // withdrawing against new RedeemablERC20 supply, rather than registered amount, will revert
+    await Util.assertError(
+      async () =>
+        await claim
+          .connect(bob)
+          .withdraw(
+            trust.address,
+            claimableReserveToken.address,
+            supplyRedeemableAfterBurn
+          ),
+      "ZERO_WITHDRAW",
+      "wrongly withdrew against unregistered RedeemableERC20 total supply amount"
+    );
+
+    const bobWithdrawalAmountUsingNewSupply = totalDeposited
+      .mul(await redeemableERC20.balanceOf(bob.address))
+      .mul(Util.ONE)
+      .div(supplyRedeemableAfterBurn)
+      .div(Util.ONE);
+    const bobWithdrawalAmountExpected = totalDeposited
+      .mul(await redeemableERC20.balanceOf(bob.address))
+      .mul(Util.ONE)
+      .div(supplyFinal)
+      .div(Util.ONE);
 
     // bob withdraws tokens
-    await claim
+    const txWithdrawBob = await claim
       .connect(bob)
       .withdraw(trust.address, claimableReserveToken.address, supplyFinal);
 
-    const bobTokenBalance = await claimableReserveToken.balanceOf(bob.address);
+    const { amount: amountWithdrawnBob } = (await Util.getEventArgs(
+      txWithdrawBob,
+      "Withdraw",
+      claim
+    )) as WithdrawEvent["args"];
 
-    const aliceProRataShare1 = aliceTokenBalance.mul(Util.ONE).div(supplyFinal);
-    const bobProRataShare1 = bobTokenBalance.mul(Util.ONE).div(supplyFinal);
-
-    console.log({
-      aliceProRataShare0,
-      bobProRataShare0,
-      aliceProRataShare1,
-      bobProRataShare1,
-    });
+    assert(
+      !amountWithdrawnBob.eq(bobWithdrawalAmountUsingNewSupply),
+      "bob pro-rata share changed after alice burned her RedeemableERC20 tokens"
+    );
+    assert(
+      amountWithdrawnBob.eq(bobWithdrawalAmountExpected),
+      `bob withdrew wrong amount
+      expected  ${bobWithdrawalAmountExpected}
+      got       ${amountWithdrawnBob}`
+    );
   });
 
   it("should ensure different depositors can both undeposit independently", async function () {
@@ -1020,7 +1048,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       .withdraw(trust.address, claimableReserveToken.address, supply);
 
     const { amount: registeredWithdrawnAmountSigner1 } =
-      await Util.getEventArgs(txWithdraw0, "Withdraw", claim);
+      (await Util.getEventArgs(
+        txWithdraw0,
+        "Withdraw",
+        claim
+      )) as WithdrawEvent["args"];
 
     // total amount withdrawn and registered value should match
     assert(
