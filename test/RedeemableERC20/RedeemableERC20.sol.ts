@@ -39,6 +39,110 @@ enum Phase {
 }
 
 describe("RedeemableERC20", async function () {
+  it("should grant alice sender then receiver and remain as both", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const owner = signers[0];
+    const alice = signers[1];
+
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
+    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumTier = Tier.COPPER;
+
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: erc20Pullee.address,
+      initialSupply: totalSupply,
+    };
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const token = (await Util.redeemableERC20Deploy(owner, {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20Config,
+      tier: tier.address,
+      minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    })) as RedeemableERC20 & Contract;
+
+    await erc20Pullee.grantSender(token.address, alice.address);
+
+    assert(await token.isSender(alice.address));
+    assert(!(await token.isReceiver(alice.address)));
+
+    await erc20Pullee.grantReceiver(token.address, alice.address);
+
+    assert(await token.isReceiver(alice.address));
+    assert(await token.isSender(alice.address));
+  });
+
+  it("should grant alice receiver then sender and remain as both", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const owner = signers[0];
+    const alice = signers[1];
+
+    const erc20PulleeFactory = await ethers.getContractFactory(
+      "ERC20PulleeTest"
+    );
+    const erc20Pullee = await erc20PulleeFactory.deploy();
+    await erc20Pullee.deployed();
+
+    // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
+
+    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
+    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const minimumTier = Tier.COPPER;
+
+    const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
+    const redeemableERC20Config = {
+      name: "RedeemableERC20",
+      symbol: "RDX",
+      distributor: erc20Pullee.address,
+      initialSupply: totalSupply,
+    };
+
+    const reserve = (await Util.basicDeploy(
+      "ReserveToken",
+      {}
+    )) as ReserveToken & Contract;
+
+    const token = (await Util.redeemableERC20Deploy(owner, {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20Config,
+      tier: tier.address,
+      minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    })) as RedeemableERC20 & Contract;
+
+    await erc20Pullee.grantReceiver(token.address, alice.address);
+
+    assert(await token.isReceiver(alice.address));
+    assert(!(await token.isSender(alice.address)));
+
+    await erc20Pullee.grantSender(token.address, alice.address);
+
+    assert(await token.isReceiver(alice.address));
+    assert(await token.isSender(alice.address));
+  });
+
   it("should forward unsold RedeemableERC20 (pTKN) to non-zero forwarding address", async function () {
     this.timeout(0);
 
@@ -191,9 +295,7 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
     const minimumTier = Tier.COPPER;
 
-    // all parties above min tier
-    await tier.setTier(aliceReceiver.address, Tier.SILVER, []);
-    await tier.setTier(bobReceiver.address, Tier.SILVER, []);
+    // spokes above min tier
     await tier.setTier(carolSpoke.address, Tier.SILVER, []);
     await tier.setTier(daveSpoke.address, Tier.SILVER, []);
 
@@ -218,6 +320,17 @@ describe("RedeemableERC20", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     })) as RedeemableERC20 & Contract;
 
+    await Util.assertError(
+      async () =>
+        await token.connect(aliceReceiver).transfer(bobReceiver.address, 1),
+      "2SPOKE",
+      "alice sent tokens despite not being a 'receiver'"
+    );
+
+    // grant roles for receivers
+    await erc20Pullee.grantReceiver(token.address, aliceReceiver.address);
+    await erc20Pullee.grantReceiver(token.address, bobReceiver.address);
+
     // give some tokens
     await erc20Pullee.transfer(
       token.address,
@@ -227,17 +340,6 @@ describe("RedeemableERC20", async function () {
     await erc20Pullee.transfer(token.address, bobReceiver.address, TEN_TOKENS);
     await erc20Pullee.transfer(token.address, carolSpoke.address, TEN_TOKENS);
     await erc20Pullee.transfer(token.address, daveSpoke.address, TEN_TOKENS);
-
-    await Util.assertError(
-      async () =>
-        await token.connect(aliceReceiver).transfer(bobReceiver.address, 1),
-      "2SPOKE",
-      "alice sent tokens despite not being a 'receiver'"
-    );
-
-    // grant roles
-    await erc20Pullee.grantReceiver(token.address, aliceReceiver.address);
-    await erc20Pullee.grantReceiver(token.address, bobReceiver.address);
 
     // 'hub' sends to 'spoke'
     await token.connect(aliceReceiver).transfer(carolSpoke.address, 1);
