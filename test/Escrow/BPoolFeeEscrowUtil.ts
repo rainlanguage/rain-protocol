@@ -186,7 +186,8 @@ export const basicSetup = async (
 export const successfulRaise = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
-  tier: ReadWriteTier & Contract
+  tier: ReadWriteTier & Contract,
+  automaticallyEnd = true
 ) => {
   const {
     reserve,
@@ -265,7 +266,9 @@ export const successfulRaise = async (
   await Util.createEmptyBlock(emptyBlocks);
 
   // actually end raise
-  await trust.endDutchAuction();
+  if (automaticallyEnd) {
+    await trust.endDutchAuction();
+  }
 
   return {
     reserve,
@@ -289,7 +292,8 @@ export const successfulRaise = async (
 export const failedRaise = async (
   signers: SignerWithAddress[],
   trustFactory: TrustFactory & Contract,
-  tier: ReadWriteTier & Contract
+  tier: ReadWriteTier & Contract,
+  automaticallyEnd = true
 ) => {
   const {
     reserve,
@@ -361,7 +365,9 @@ export const failedRaise = async (
   await Util.createEmptyBlock(emptyBlocks);
 
   // actually end raise
-  await trust.endDutchAuction();
+  if (automaticallyEnd) {
+    await trust.endDutchAuction();
+  }
 
   return {
     reserve,
