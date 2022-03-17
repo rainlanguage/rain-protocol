@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
@@ -7,6 +7,7 @@ import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
 import {BlockOps} from "../vm/ops/BlockOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
+import {FixedPointMathOps} from "../vm/ops/FixedPointMathOps.sol";
 import {LogicOps} from "../vm/ops/LogicOps.sol";
 import {SenderOps} from "../vm/ops/SenderOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
@@ -192,6 +193,8 @@ contract Sale is
     uint256 private immutable logicOpsStart;
     /// @dev local offset for math ops.
     uint256 private immutable mathOpsStart;
+    /// @dev local offset for fixed point math ops.
+    uint256 private immutable fixedPointMathOpsStart;
     /// @dev local offset for tier ops.
     uint256 private immutable tierOpsStart;
     /// @dev local offset for erc20 ops.
@@ -259,7 +262,8 @@ contract Sale is
         senderOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
         logicOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
         mathOpsStart = logicOpsStart + LogicOps.OPS_LENGTH;
-        tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
+        fixedPointMathOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
+        tierOpsStart = fixedPointMathOpsStart + FixedPointMathOps.OPS_LENGTH;
         ierc20OpsStart = tierOpsStart + TierOps.OPS_LENGTH;
         ierc721OpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
         ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
@@ -580,11 +584,18 @@ contract Sale is
                     opcode_ - logicOpsStart,
                     operand_
                 );
-            } else if (opcode_ < tierOpsStart) {
+            } else if (opcode_ < fixedPointMathOpsStart) {
                 MathOps.applyOp(
                     context_,
                     state_,
                     opcode_ - mathOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < tierOpsStart) {
+                FixedPointMathOps.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - fixedPointMathOpsStart,
                     operand_
                 );
             } else if (opcode_ < ierc20OpsStart) {

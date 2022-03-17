@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 /// Constructor config for `ERC20Pull`.
 struct ERC20PullConfig {
@@ -16,7 +17,7 @@ struct ERC20PullConfig {
 /// @title ERC20Pull
 /// @notice Enables a contract to pull (transfer to self) some `IERC20` token
 /// from a sender. Both the sender and token must be known and trusted by the
-/// implementing contract at construction time, and are immutable.
+/// implementing contract during initialization, and cannot be changed.
 ///
 /// This enables the `sender` to merely approve the implementing contract then
 /// anon can call `pullERC20` to have those tokens transferred. In some cases
@@ -25,12 +26,17 @@ struct ERC20PullConfig {
 ///
 /// The `sender` is singular and bound at construction to avoid the situation
 /// where EOA accounts inadvertantly "infinite approve" and lose their tokens.
+/// For this reason EOA accounts are NOT supported as the `sender`. Approvals
+/// MUST expect the `ERC20Pull` contract to take any and all tokens up to the
+/// allowance at any moment. EOA accounts typically are not security conscious
+/// enough to be nominated as the `sender`.
 ///
 /// The token is singular and bound at construction to avoid the situation
 /// where anons can force the implementing contract to call an arbitrary
 /// external contract.
 contract ERC20Pull {
     using SafeERC20 for IERC20;
+    using Address for address;
 
     /// Emitted during initialization.
     event ERC20PullInitialize(
@@ -54,10 +60,13 @@ contract ERC20Pull {
         // Sender and token MUST be set in the config. MAY point at a known
         // address that cannot approve the specified token to effectively
         // disable pull functionality.
-        require(config_.sender != address(0), "ZERO_SENDER");
+        // Sender MUST NOT be an EOA.
+        // See https://github.com/beehive-innovation/rain-protocol/issues/254
+        require(config_.sender.isContract(), "EOA_SENDER");
         require(config_.token != address(0), "ZERO_TOKEN");
         // Reinitialization is a bug.
-        assert(sender == address(0));
+        // We know the token is non-zero for an initialized contract so can
+        // just check that.
         assert(token == address(0));
         sender = config_.sender;
         token = config_.token;

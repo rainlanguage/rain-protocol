@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
@@ -97,7 +97,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier, Initializable {
         address account_,
         uint256 startTier_,
         uint256 endTier_,
-        bytes memory
+        bytes calldata
     ) internal override {
         // As _anyone_ can call `setTier` we require that `msg.sender` and
         // `account_` are the same if the end tier is not an improvement.
@@ -115,20 +115,24 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier, Initializable {
         // Convert the end tier to an erc20 amount.
         uint256 endValue_ = tierToValue(tierValues_, endTier_);
 
-        // Short circuit if the values are the same for both tiers.
-        if (endValue_ == startValue_) {
-            return;
-        }
-        if (endValue_ > startValue_) {
-            // Going up, take ownership of erc20 from the `msg.sender`.
-            erc20.safeTransferFrom(
-                msg.sender,
-                address(this),
-                endValue_.saturatingSub(startValue_)
-            );
-        } else {
-            // Going down, process a refund for the tiered account.
-            erc20.safeTransfer(account_, startValue_.saturatingSub(endValue_));
+        unchecked {
+            // Short circuit if the values are the same for both tiers.
+            if (endValue_ == startValue_) {
+                return;
+            }
+            if (endValue_ > startValue_) {
+                // Going up, take ownership of erc20 from the `msg.sender`.
+                erc20.safeTransferFrom(
+                    msg.sender,
+                    address(this),
+                    endValue_ - startValue_
+                );
+            } else {
+                // Going down, process a refund for the tiered account.
+                // Guaranteed to be `msg.sender` for a tier loss (see above) and
+                // using `msg.sender` is cheaper gas than using `account_`.
+                erc20.safeTransfer(msg.sender, startValue_ - endValue_);
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
@@ -236,7 +236,7 @@ contract EmissionsERC20 is
     /// @param data_ NOT used onchain. Forwarded to `Claim` event for potential
     /// additional offchain processing.
     /// @inheritdoc IClaim
-    function claim(address claimant_, bytes memory data_) external {
+    function claim(address claimant_, bytes calldata data_) external {
         // Disallow delegated claims if appropriate.
         if (!allowDelegatedClaims) {
             require(msg.sender == claimant_, "DELEGATED_CLAIM");
@@ -259,7 +259,9 @@ contract EmissionsERC20 is
             msg.sender,
             claimant_,
             TierConstants.TIER_ZERO,
-            TierConstants.TIER_EIGHT
+            TierConstants.TIER_EIGHT,
+            // `data_` is emitted under `Claim`.
+            ""
         );
         emit Claim(msg.sender, claimant_, data_);
     }

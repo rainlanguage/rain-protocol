@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {SaturatingMath} from "../math/SaturatingMath.sol";
 
@@ -8,7 +8,7 @@ import {IBPool} from "../pool/IBPool.sol";
 import {ICRPFactory} from "../pool/ICRPFactory.sol";
 import {Rights} from "../pool/IRightsManager.sol";
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol" as ERC20;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -157,34 +157,22 @@ struct TrustRedeemableERC20Config {
 /// Balancer LBP are owned by the `Trust` and never touch an externally owned
 /// account.
 ///
-/// `RedeemableERC20Pool` has several phases:
+/// `Trust` has several phases:
 ///
-/// - `Phase.ZERO`: Deployed not trading but can be by owner calling
-/// `ownerStartDutchAuction`
-/// - `Phase.ONE`: Trading open
-/// - `Phase.TWO`: Trading open but can be closed by owner calling
-/// `ownerEndDutchAuction`
-/// - `Phase.THREE`: Trading closed
+/// - `PHASE_PENDING`: Deployed not trading but can be by anon calling
+/// `startDutchAuction`
+/// - `PHASE_TRADING`: Trading open
+/// - `PHASE_CAN_END`: Trading open but can be closed by anon calling
+/// `endDutchAuction`
+/// - `PHASE_ENDED`: Trading closed
+/// - `PHASE_EMERGENCY`: Something went very wrong and creator can pull funds
+/// and attempt to manually fix it.
 ///
-/// `RedeemableERC20Pool` expects the `Trust` to schedule the phases correctly
-/// and ensure proper guards around these library functions.
-///
-/// @dev Deployer and controller for a Balancer ConfigurableRightsPool.
-/// This library is intended for internal use by a `Trust`.
 /// @notice Coordinates the mediation and distribution of tokens
 /// between stakeholders.
 ///
-/// The `Trust` contract is responsible for configuring the
-/// `RedeemableERC20` token, `RedeemableERC20Pool` Balancer wrapper
-/// and the `SeedERC20` contract.
-///
-/// Internally the `TrustFactory` calls several admin/owner only
-/// functions on its children and these may impose additional
-/// restrictions such as `Phased` limits.
-///
-/// The `Trust` builds and references `RedeemableERC20`,
-/// `RedeemableERC20Pool` and `SeedERC20` contracts internally and
-/// manages all access-control functionality.
+/// The `Trust` contract is responsible for configuring and owning the
+/// `RedeemableERC20` token, and the `SeedERC20` contract.
 ///
 /// The major functions of the `Trust` contract, apart from building
 /// and configuring the other contracts, is to start and end the
@@ -196,8 +184,8 @@ struct TrustRedeemableERC20Config {
 /// - `startDutchAuction` can be called by anyone on `RedeemableERC20Pool` to
 ///   begin the Dutch Auction. This will revert if this is called before seeder
 ///   reserve funds are available on the `Trust`.
-/// - `anonEndDistribution` can be called by anyone (only when
-///   `RedeemableERC20Pool` is in `Phase.TWO`) to end the Dutch Auction
+/// - `endDutchAuction` can be called by anyone (only when
+///   `Trust` is in `PHASE_CAN_END`) to end the Dutch Auction
 ///   and distribute funds to the correct stakeholders, depending on
 ///   whether or not the auction met the fundraising target.
 ///   - On successful raise
@@ -493,7 +481,7 @@ contract Trust is Phased, ISale {
         );
         require(
             config_.initialValuation >= config_.finalValuation,
-            "MIN_INITIAL_VALUTION"
+            "MIN_INITIAL_VALUATION"
         );
 
         creator = config_.creator;
@@ -694,6 +682,7 @@ contract Trust is Phased, ISale {
             address(IConfigurableRightsPool(crp_).bFactory())
         );
         RedeemableERC20(config_.token).grantReceiver(address(this));
+        RedeemableERC20(config_.token).grantReceiver(crp_);
         RedeemableERC20(config_.token).grantSender(crp_);
 
         // Preapprove all tokens and reserve for the CRP.
@@ -793,7 +782,7 @@ contract Trust is Phased, ISale {
         } else if (poolPhase_ == PHASE_CAN_END) {
             return DistributionStatus.TradingCanEnd;
         }
-        /// Phase.FOUR is emergency funds release mode, which ideally will
+        /// PHASE_EMERGENCY is emergency funds release mode, which ideally will
         /// never happen. If it does we still use the final/success balance to
         /// calculate success/failure so that the escrows can action their own
         /// fund releases.
@@ -811,17 +800,13 @@ contract Trust is Phased, ISale {
     /// Allow anyone to start the Balancer style dutch auction.
     /// The auction won't start unless this contract owns enough of both the
     /// tokens for the pool, so it is safe for anon to call.
-    /// `Phase.ZERO` indicates the auction can start.
-    /// `Phase.ONE` indicates the auction has started.
-    /// `Phase.TWO` indicates the auction can be ended.
-    /// `Phase.THREE` indicates the auction has ended.
     /// Creates the pool via. the CRP contract and configures the weight change
     /// curve.
     function startDutchAuction() external onlyPhase(PHASE_PENDING) {
         uint256 finalAuctionBlock_ = minimumTradingDuration + block.number;
-        // Move to `Phase.ONE` immediately.
+        // Move to `PHASE_TRADING` immediately.
         schedulePhase(PHASE_TRADING, block.number);
-        // Schedule `Phase.TWO` for `1` block after auctions weights have
+        // Schedule `PHASE_CAN_END` for `1` block after auctions weights have
         // stopped changing.
         schedulePhase(PHASE_CAN_END, finalAuctionBlock_ + 1);
         // Define the weight curve.
@@ -886,7 +871,7 @@ contract Trust is Phased, ISale {
         uint256 minRedeemablePoolTokens_ = MIN_BALANCER_POOL_BALANCE
             .saturatingMul(totalPoolTokens_) /
             // It's important to use the balance in the opinion of the
-            // bPool tovbe sure that the pool token calculations are the
+            // bPool to be sure that the pool token calculations are the
             // same.
             // WARNING: As above, this will error if token balance in the
             // pool is `0`.
@@ -906,7 +891,7 @@ contract Trust is Phased, ISale {
         // This removes as much as is allowable which leaves behind some dust.
         // The reserve dust will be trapped.
         // The redeemable token will be burned when it moves to its own
-        // `Phase.ONE`.
+        // `PHASE_FROZEN`.
         crp.exitPool(
             // Exit the maximum allowable pool tokens.
             totalPoolTokens_.saturatingSub(minPoolSupply_).min(
@@ -919,13 +904,12 @@ contract Trust is Phased, ISale {
         );
     }
 
-    /// Allow the owner to end the Balancer style dutch auction.
-    /// Moves from `Phase.TWO` to `Phase.THREE` to indicate the auction has
+    /// Allow anon to end the Balancer style dutch auction.
+    /// Moves from `PHASE_CAN_END` to `PHASE_ENDED` to indicate the auction has
     /// ended.
-    /// `Phase.TWO` is scheduled by `startDutchAuction`.
+    /// `PHASE_CAN_END` is scheduled by `startDutchAuction`.
     /// Removes all LP tokens from the Balancer pool.
-    /// Burns all unsold redeemable tokens.
-    /// Forwards the reserve balance to the owner.
+    /// Moves the redeemable token to `PHASE_FROZEN`.
     // `SaturatingMath` is used in case there is somehow an edge case not
     // considered that causes overflow/underflow, we still want to approve
     // the final state so as not to trap funds with an underflow error.
@@ -938,7 +922,7 @@ contract Trust is Phased, ISale {
 
         address pool_ = crp.bPool();
 
-        // Burning the distributor moves the rTKN to its `Phase.ONE` and
+        // Burning the distributor moves the rTKN to its `PHASE_FROZEN` and
         // unlocks redemptions.
         // The distributor is the `bPool` itself and all unsold inventory.
         // First we send all exited rTKN back to the pool so it can be burned.
@@ -1005,15 +989,15 @@ contract Trust is Phased, ISale {
         );
 
         if (seederPay_ > 0) {
-            _reserve.safeApprove(seeder, seederPay_);
+            _reserve.safeIncreaseAllowance(seeder, seederPay_);
         }
 
         if (creatorPay_ > 0) {
-            _reserve.safeApprove(creator, creatorPay_);
+            _reserve.safeIncreaseAllowance(creator, creatorPay_);
         }
 
         if (tokenPay_ > 0) {
-            _reserve.safeApprove(address(_token), tokenPay_);
+            _reserve.safeIncreaseAllowance(address(_token), tokenPay_);
         }
     }
 
@@ -1066,7 +1050,7 @@ contract Trust is Phased, ISale {
     }
 
     /// `endDutchAuction` is apparently critically failing.
-    /// Move to PHASE_EMERGENCY immediately.
+    /// Move to `PHASE_EMERGENCY` immediately.
     /// This can ONLY be done when the contract has been in the current phase
     /// for at least `creatorFundsReleaseTimeout` blocks.
     /// Either it did not run at all, or somehow it failed to grant access
@@ -1092,7 +1076,7 @@ contract Trust is Phased, ISale {
 
     /// Anon can approve any amount of reserve, redeemable or CRP LP token for
     /// the creator to transfer to themselves. The `Trust` MUST ensure this is
-    /// only callable during `Phase.FOUR` (emergency funds release phase).
+    /// only callable during `PHASE_EMERGENCY` (emergency funds release phase).
     ///
     /// Tokens unknown to the `Trust` CANNOT be released in this way. We don't
     /// allow the `Trust` to call functions on arbitrary external contracts.

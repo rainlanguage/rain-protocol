@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 /// @title FixedPointMath
 /// @notice Sometimes we want to do math with decimal values but all we have

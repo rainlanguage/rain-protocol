@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "../sale/ISale.sol";
 
@@ -26,11 +26,11 @@ enum EscrowStatus {
 /// spending or otherwise changing the direction that it sends funds.
 contract SaleEscrow {
     /// ISale address => reserve address.
-    mapping(address => address) private reserves;
+    mapping(address => address) internal reserves;
     /// ISale address => token address.
-    mapping(address => address) private tokens;
+    mapping(address => address) internal tokens;
     /// ISale address => status.
-    mapping(address => EscrowStatus) private escrowStatuses;
+    mapping(address => EscrowStatus) internal escrowStatuses;
 
     /// Immutable wrapper around `ISale.reserve`.
     /// Once a `Sale` reports a reserve address the `SaleEscrow` never asks

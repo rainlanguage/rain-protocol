@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
@@ -48,6 +48,15 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
     /// or with an incorrect asset list. Implementing contracts are strongly
     /// encouraged to implement additional safety rails to prevent high value
     /// mistakes.
+    /// Only "vanilla" erc20 token balances are supported as treasury assets.
+    /// I.e. if the balance is changing such as due to a rebasing token or
+    /// other mechanism then the WRONG token amounts will be redeemed. The
+    /// redemption calculation is very simple and naive in that it takes the
+    /// current balance of this contract of the assets being claimed via
+    /// redemption to calculate the "prorata" entitlement. If the contract's
+    /// balance of the claimed token is changing between redemptions (other
+    /// than due to the redemption itself) then each redemption will send
+    /// incorrect amounts.
     /// @param treasuryAssets_ The list of assets to redeem.
     /// @param redeemAmount_ The amount of redeemable token to burn.
     function _redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)

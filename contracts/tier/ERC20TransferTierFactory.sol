@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import {Factory} from "../factory/Factory.sol";
@@ -10,7 +10,7 @@ import "./ERC20TransferTier.sol";
 contract ERC20TransferTierFactory is Factory {
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address private implementation;
+    address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     constructor() {
@@ -41,7 +41,7 @@ contract ERC20TransferTierFactory is Factory {
     ///
     /// @param config_ Constructor config for `ERC20TransferTier`.
     /// @return New `ERC20TransferTier` child contract address.
-    function createChildTyped(ERC20TransferTierConfig memory config_)
+    function createChildTyped(ERC20TransferTierConfig calldata config_)
         external
         returns (ERC20TransferTier)
     {

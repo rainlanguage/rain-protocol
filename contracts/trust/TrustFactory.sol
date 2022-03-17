@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -32,14 +32,12 @@ contract TrustFactory is Factory {
 
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address private immutable implementation;
+    address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     /// @param config_ All configuration for the `TrustFactory`.
     constructor(TrustConstructionConfig memory config_) {
         address implementation_ = address(new Trust(config_));
-        // This silences slither.
-        require(implementation_ != address(0), "TRUST_0");
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

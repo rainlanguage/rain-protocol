@@ -1,0 +1,354 @@
+// SPDX-License-Identifier: CAL
+pragma solidity ^0.8.10;
+
+import {ERC20Config} from "../erc20/ERC20Config.sol";
+import "../erc20/ERC20Redeem.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// solhint-disable-next-line max-line-length
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import {ITier} from "../tier/ITier.sol";
+import {TierReport} from "../tier/libraries/TierReport.sol";
+
+import {Phased} from "../phased/Phased.sol";
+
+import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
+
+import "hardhat/console.sol";
+
+/// Everything required by the `RedeemableERC20Unfreezable` constructor.
+/// @param reserve Reserve token that the associated `Trust` or equivalent
+/// raise contract will be forwarding to the `RedeemableERC20Unfreezable` contract.
+/// @param erc20Config ERC20 config forwarded to the ERC20 constructor.
+/// @param tier Tier contract to compare statuses against on transfer.
+/// @param minimumTier Minimum tier required for transfers in `Phase.ZERO`.
+/// Can be `0`.
+/// @param distributionEndForwardingAddress Optional address to send rTKN to at
+/// the end of the distribution phase. If `0` address then all undistributed
+/// rTKN will burn itself at the end of the distribution.
+struct RedeemableERC20Config {
+    address reserve;
+    ERC20Config erc20Config;
+    address tier;
+    uint256 minimumTier;
+    address distributionEndForwardingAddress;
+}
+
+/// @title RedeemableERC20Unfreezable
+/// @notice This is the ERC20 token that is minted and distributed.
+///
+/// During `Phase.ZERO` the token can be traded and so compatible with the
+/// Balancer pool mechanics.
+///
+/// During `Phase.ONE` the token is frozen and no longer able to be traded on
+/// any AMM or transferred directly.
+///
+/// The token can be redeemed during `Phase.ONE` which burns the token in
+/// exchange for pro-rata erc20 tokens held by the `RedeemableERC20Unfreezable` contract
+/// itself.
+///
+/// The token balances can be used indirectly for other claims, promotions and
+/// events as a proof of participation in the original distribution by token
+/// holders.
+///
+/// The token can optionally be restricted by the `ITier` contract to only
+/// allow receipients with a specified membership status.
+///
+/// @dev `RedeemableERC20Unfreezable` is an ERC20 with 2 phases.
+///
+/// `Phase.ZERO` is the distribution phase where the token can be freely
+/// transfered but not redeemed.
+/// `Phase.ONE` is the redemption phase where the token can be redeemed but no
+/// longer transferred.
+///
+/// Redeeming some amount of `RedeemableERC20Unfreezable` burns the token in exchange for
+/// some other tokens held by the contract. For example, if the
+/// `RedeemableERC20Unfreezable` token contract holds 100 000 USDC then a holder of the
+/// redeemable token can burn some of their tokens to receive a % of that USDC.
+/// If they redeemed (burned) an amount equal to 10% of the redeemable token
+/// supply then they would receive 10 000 USDC.
+///
+/// To make the treasury assets discoverable anyone can call `newTreasuryAsset`
+/// to emit an event containing the treasury asset address. As malicious and/or
+/// spam users can emit many treasury events there is a need for sensible
+/// indexing and filtering of asset events to only trusted users. This contract
+/// is agnostic to how that trust relationship is defined for each user.
+///
+/// Users must specify all the treasury assets they wish to redeem to the
+/// `redeem` function. After `redeem` is called the redeemed tokens are burned
+/// so all treasury assets must be specified and claimed in a batch atomically.
+/// Note: The same amount of `RedeemableERC20Unfreezable` is burned, regardless of which
+/// treasury assets were specified. Specifying fewer assets will NOT increase
+/// the proportion of each that is returned.
+///
+/// `RedeemableERC20Unfreezable` has several owner administrative functions:
+/// - Owner can add senders and receivers that can send/receive tokens even
+///   during `Phase.ONE`
+/// - Owner can end `Phase.ONE` during `Phase.ZERO` by specifying the address
+///   of a distributor, which will have any undistributed tokens burned.
+/// The owner should be a `Trust` not an EOA.
+///
+/// The redeem functions MUST be used to redeem and burn RedeemableERC20s
+/// (NOT regular transfers).
+///
+/// `redeem` will simply revert if called outside `Phase.ONE`.
+/// A `Redeem` event is emitted on every redemption (per treasury asset) as
+/// `(redeemer, asset, redeemAmount)`.
+contract RedeemableERC20Unfreezable is Initializable, Phased, ERC20Redeem, ERC20Pull {
+    using SafeERC20 for IERC20;
+
+    /// Phase constants.
+    /// Contract is not yet initialized.
+    uint256 private constant PHASE_UNINITIALIZED = 0;
+    /// Token is in the distribution phase and can be transferred freely
+    /// subject to tier requirements.
+    uint256 private constant PHASE_DISTRIBUTING = 1;
+    /// TESTING: 'Malicious' RedeemableERC20 which does not freeze
+    /// Token is frozen and cannot be transferred unless the sender/receiver is
+    /// authorized as a sender/receiver.
+    uint256 private constant PHASE_UNFROZEN = 2;
+
+    /// Bits for a receiver.
+    uint256 private constant RECEIVER = 0x1;
+    /// Bits for a sender. Sender is also receiver.
+    uint256 private constant SENDER = 0x3;
+
+    /// To be clear, this admin is NOT intended to be an EOA.
+    /// This contract is designed assuming the admin is a `Sale` or equivalent
+    /// contract that itself does NOT have an admin key.
+    address private admin;
+    /// Tracks addresses that can always send/receive regardless of phase.
+    /// sender/receiver => access bits
+    mapping(address => uint256) private access;
+
+    /// Results of initializing.
+    /// @param sender `msg.sender` of initialize.
+    /// @param config Initialization config.
+    event Initialize(address sender, RedeemableERC20Config config);
+
+    /// A new token sender has been added.
+    /// @param sender `msg.sender` that approved the token sender.
+    /// @param grantedSender address that is now a token sender.
+    event Sender(address sender, address grantedSender);
+    /// A new token receiver has been added.
+    /// @param sender `msg.sender` that approved the token receiver.
+    /// @param grantedReceiver address that is now a token receiver.
+    event Receiver(address sender, address grantedReceiver);
+
+    /// RedeemableERC20Unfreezable uses the standard/default 18 ERC20 decimals.
+    /// The minimum supply enforced by the constructor is "one" token which is
+    /// `10 ** 18`.
+    /// The minimum supply does not prevent subsequent redemption/burning.
+    uint256 private constant MINIMUM_INITIAL_SUPPLY = 10**18;
+
+    /// Tier contract that produces the report that `minimumTier` is checked
+    /// against.
+    /// Public so external contracts can interface with the required tier.
+    ITier public tier;
+
+    /// The minimum status that a user must hold to receive transfers during
+    /// `Phase.ZERO`.
+    /// The tier contract passed to `TierByConstruction` determines if
+    /// the status is held during `_beforeTokenTransfer`.
+    /// Public so external contracts can interface with the required tier.
+    uint256 public minimumTier;
+
+    /// Optional address to send rTKN to at the end of the distribution phase.
+    /// If `0` address then all undistributed rTKN will burn itself at the end
+    /// of the distribution.
+    address private distributionEndForwardingAddress;
+
+    /// Mint the full ERC20 token supply and configure basic transfer
+    /// restrictions. Initializes all base contracts.
+    /// @param config_ Initialized configuration.
+    function initialize(RedeemableERC20Config memory config_)
+        external
+        initializer
+    {
+        initializePhased();
+
+        tier = ITier(config_.tier);
+        __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
+        initializeERC20Pull(
+            ERC20PullConfig(config_.erc20Config.distributor, config_.reserve)
+        );
+
+        require(
+            config_.erc20Config.initialSupply >= MINIMUM_INITIAL_SUPPLY,
+            "MINIMUM_INITIAL_SUPPLY"
+        );
+        minimumTier = config_.minimumTier;
+        distributionEndForwardingAddress = config_
+            .distributionEndForwardingAddress;
+
+        // Minting and burning must never fail.
+        access[address(0)] = SENDER;
+
+        // Admin receives full supply.
+        access[config_.erc20Config.distributor] = RECEIVER;
+
+        // Forwarding address must be able to receive tokens.
+        if (distributionEndForwardingAddress != address(0)) {
+            access[distributionEndForwardingAddress] = RECEIVER;
+        }
+
+        admin = config_.erc20Config.distributor;
+
+        // Need to mint after assigning access.
+        _mint(
+            config_.erc20Config.distributor,
+            config_.erc20Config.initialSupply
+        );
+
+        // The reserve must always be one of the treasury assets.
+        newTreasuryAsset(config_.reserve);
+
+        emit Initialize(msg.sender, config_);
+
+        // Smoke test on whatever is on the other side of `config_.tier`.
+        // It is a common mistake to pass in a contract without the `ITier`
+        // interface and brick transfers. We want to discover that ASAP.
+        // E.g. `Verify` instead of `VerifyTier`.
+        // Slither does not like this unused return, but we're not looking for
+        // any specific return value, just trying to avoid something that
+        // blatantly errors out.
+        // slither-disable-next-line unused-return
+        ITier(config_.tier).report(msg.sender);
+
+        schedulePhase(PHASE_DISTRIBUTING, block.number);
+    }
+
+    /// Require a function is only admin callable.
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "ONLY_ADMIN");
+        _;
+    }
+
+    /// Check that an address is a receiver.
+    /// A sender is also a receiver.
+    /// @param maybeReceiver_ account to check.
+    /// @return True if account is a receiver.
+    function isReceiver(address maybeReceiver_) public view returns (bool) {
+        return access[maybeReceiver_] > 0;
+    }
+
+    /// Admin can grant an address receiver rights.
+    /// @param newReceiver_ The account to grand receiver.
+    function grantReceiver(address newReceiver_) external onlyAdmin {
+        // Using `|` preserves sender if previously granted.
+        access[newReceiver_] |= RECEIVER;
+        emit Receiver(msg.sender, newReceiver_);
+    }
+
+    /// Check that an address is a sender.
+    /// @param maybeSender_ account to check.
+    /// @return True if account is a sender.
+    function isSender(address maybeSender_) public view returns (bool) {
+        return access[maybeSender_] > 1;
+    }
+
+    /// Admin can grant an addres sender rights.
+    /// @param newSender_ The account to grant sender.
+    function grantSender(address newSender_) external onlyAdmin {
+        // Sender is also a receiver.
+        access[newSender_] = SENDER;
+        emit Sender(msg.sender, newSender_);
+    }
+
+    /// The admin can forward or burn all tokens of a single address to end
+    /// `Phase.ZERO`.
+    /// The intent is that during `Phase.ZERO` there is some contract
+    /// responsible for distributing the tokens.
+    /// The admin specifies the distributor to end `Phase.ZERO` and the
+    /// forwarding address set during initialization is used. If the forwarding
+    /// address is `0` the rTKN will be burned, otherwise the entire balance of
+    /// the distributor is forwarded to the nominated address. In practical
+    /// terms the forwarding allows for escrow depositors to receive a prorata
+    /// claim on unsold rTKN if they forward it to themselves, otherwise raise
+    /// participants will receive a greater share of the final escrowed tokens
+    /// due to the burn reducing the total supply.
+    /// The distributor is NOT set during the constructor because it may not
+    /// exist at that point. For example, Balancer needs the paired erc20
+    /// tokens to exist before the trading pool can be built.
+    /// @param distributor_ The distributor according to the admin.
+    /// BURN the tokens if `address(0)`.
+    function endDistribution(address distributor_)
+        external
+        onlyPhase(PHASE_DISTRIBUTING)
+        onlyAdmin
+    {
+        schedulePhase(PHASE_UNFROZEN, block.number);
+        address forwardTo_ = distributionEndForwardingAddress;
+        uint256 distributorBalance_ = balanceOf(distributor_);
+        if (distributorBalance_ > 0) {
+            if (forwardTo_ == address(0)) {
+                _burn(distributor_, distributorBalance_);
+            } else {
+                _transfer(distributor_, forwardTo_, distributorBalance_);
+            }
+        }
+    }
+
+    /// Wraps `_redeem` from `ERC20Redeem`.
+    /// Very thin wrapper so be careful when calling!
+    function redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
+        external
+        onlyPhase(PHASE_UNFROZEN)
+    {
+        _redeem(treasuryAssets_, redeemAmount_);
+    }
+
+    /// Apply phase sensitive transfer restrictions.
+    /// During `Phase.ZERO` only tier requirements apply.
+    /// During `Phase.ONE` all transfers except burns are prevented.
+    /// If a transfer involves either a sender or receiver with the SENDER
+    /// or RECEIVER role, respectively, it will bypass these restrictions.
+    /// @inheritdoc ERC20Upgradeable
+    function _beforeTokenTransfer(
+        address sender_,
+        address receiver_,
+        uint256 amount_
+    ) internal virtual override {
+        super._beforeTokenTransfer(sender_, receiver_, amount_);
+
+        // Sending tokens to this contract (e.g. instead of redeeming) is
+        // always an error.
+        require(receiver_ != address(this), "TOKEN_SEND_SELF");
+
+        uint256 currentPhase_ = currentPhase();
+
+        if (currentPhase_ != PHASE_UNFROZEN) {
+            // Some contracts may attempt a preflight (e.g. Balancer) of a 0 amount
+            // transfer.
+            // We don't want to accidentally cause external errors due to zero
+            // value transfers.
+            if (
+                amount_ > 0 &&
+                // The sender and receiver lists bypass all access restrictions.
+                !(isSender(sender_) || isReceiver(receiver_))
+            ) {
+                // During `Phase.ZERO` transfers are only restricted by the
+                // tier of the recipient.
+                if (currentPhase_ == PHASE_DISTRIBUTING) {
+                    // Receivers act as "hubs" that can send to "spokes".
+                    // i.e. any address of the minimum tier.
+                    // Spokes cannot send tokens another "hop" e.g. to each other.
+                    // Spokes can only send back to a receiver (doesn't need to be
+                    // the same receiver they received from).
+                    require(isReceiver(sender_), "2SPOKE");
+                    require(
+                        TierReport.tierAtBlockFromReport(
+                            tier.report(receiver_),
+                            block.number
+                        ) >= minimumTier,
+                        "MIN_TIER"
+                    );
+                }
+                // There are no other phases.
+                else {
+                    assert(false);
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {State} from "../RainVM.sol";
 
@@ -95,7 +95,7 @@ library MathOps {
                 unchecked {
                     cursor_++;
                 }
-                accumulator_**state_.stack[cursor_];
+                accumulator_ = accumulator_**state_.stack[cursor_];
             }
         }
         // Minimum.

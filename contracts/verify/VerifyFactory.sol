@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {Factory} from "../factory/Factory.sol";
 import {Verify} from "./Verify.sol";
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 contract VerifyFactory is Factory {
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address private immutable implementation;
+    address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     constructor() {

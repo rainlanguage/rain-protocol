@@ -1205,7 +1205,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "MIN_INITIAL_VALUTION",
+      "MIN_INITIAL_VALUATION",
       "did not enforce valuation difference restriction (example 1)"
     );
 
@@ -1244,7 +1244,7 @@ describe("TrustConstruction", async function () {
           },
           { gasLimit: 100000000 }
         ),
-      "MIN_INITIAL_VALUTION",
+      "MIN_INITIAL_VALUATION",
       "did not enforce valuation difference restriction (example 2)"
     );
   });

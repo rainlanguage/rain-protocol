@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {State} from "../RainVM.sol";
 import "../../sstore2/SSTORE2.sol";
@@ -39,6 +39,7 @@ contract VMState {
         pure
         returns (State memory)
     {
+        require(config_.sources.length > 0, "0_SOURCES");
         return
             State(
                 0,
