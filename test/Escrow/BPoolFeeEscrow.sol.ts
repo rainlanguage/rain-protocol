@@ -255,6 +255,9 @@ describe("BPoolFeeEscrow", async function () {
         signer1,
         bPoolFeeEscrow,
         fee,
+        redeemableERC20,
+        bPool,
+        spend,
         buyCount,
       } = await successfulRaise(signers, trustFactory, tier, false); // don't end raise
 
@@ -269,42 +272,90 @@ describe("BPoolFeeEscrow", async function () {
       // Move to emergency phase
       await trust.enableCreatorFundsRelease();
 
-      // Attempting refund on successful raise should revert
+      // While the raise should've been 'successful', since we did not properly close the raise it is effectively an invalid raise. Hence, we default to a 'failed' state.
+
+      // attempting claim fees on failed raise should revert.
       await Util.assertError(
         async () =>
-          await bPoolFeeEscrow.connect(signer1).refundFees(trust.address),
-        "NOT_FAIL",
-        "wrongly refunded fees after successful raise"
+          bPoolFeeEscrow
+            .connect(recipient)
+            .claimFees(recipient.address, trust.address),
+        "NOT_SUCCESS",
+        "wrongly claimed fees after failed raise"
       );
 
-      const claimFeesTx = await bPoolFeeEscrow
-        .connect(recipient)
-        .claimFees(recipient.address, trust.address);
+      const reserveRedeemableERC20_1 = await reserve.balanceOf(
+        redeemableERC20.address
+      );
 
-      // ClaimFees event
+      // anyone can trigger refund.
+      const refundFeesTx = await bPoolFeeEscrow
+        .connect(signer1)
+        .refundFees(trust.address);
+
+      // RefundFees event
       const event = (await Util.getEventArgs(
-        claimFeesTx,
-        "ClaimFees",
+        refundFeesTx,
+        "RefundFees",
         bPoolFeeEscrow
-      )) as ClaimFeesEvent["args"];
+      )) as RefundFeesEvent["args"];
 
-      assert(event.sender === recipient.address, "wrong sender");
-      assert(event.recipient === recipient.address, "wrong recipient");
+      assert(event.sender === signer1.address, "wrong sender");
       assert(event.trust === getAddress(trust.address), "wrong trust");
       assert(event.reserve === getAddress(reserve.address), "wrong reserve");
-      assert(event.claimedFees.eq(90000000), "wrong claimed fees");
-
-      const reserveBalanceRecipient2 = await reserve.balanceOf(
-        recipient.address
+      assert(
+        event.redeemable === getAddress(redeemableERC20.address),
+        "wrong redeemable"
+      );
+      assert(
+        event.refundedFees.eq(90000000),
+        `wrong refundedFees, got ${event.refundedFees}`
       );
 
-      // recipient should have claimed fees after calling `claimFees` after successful raise
+      const reserveRedeemableERC20_2 = await reserve.balanceOf(
+        redeemableERC20.address
+      );
+
+      const reserveOnTokenDifference = reserveRedeemableERC20_2.sub(
+        reserveRedeemableERC20_1
+      );
+
       assert(
-        reserveBalanceRecipient2.eq(fee.mul(buyCount)),
-        `wrong recipient claim amount
-          expected      ${fee.mul(buyCount)}
-          got           ${reserveBalanceRecipient2}
-          reserveEscrow ${await reserve.balanceOf(bPoolFeeEscrow.address)}`
+        reserveOnTokenDifference.eq(fee.mul(buyCount)),
+        `wrong fee amount refunded
+          expected  ${fee.mul(buyCount)}
+          got       ${reserveOnTokenDifference}`
+      );
+
+      const signer1Reserve_1 = await reserve.balanceOf(signer1.address);
+
+      assert(
+        signer1Reserve_1.isZero(),
+        "signer1 should have spent all their reserve when buying tokens"
+      );
+
+      const redeemableERC20ReserveBalance = await reserve.balanceOf(
+        redeemableERC20.address
+      );
+      console.log({ redeemableERC20ReserveBalance });
+
+      // signer1 can redeem token for this refunded reserve
+      await redeemableERC20
+        .connect(signer1)
+        .redeem(
+          [reserve.address],
+          await redeemableERC20.balanceOf(signer1.address)
+        );
+
+      const signer1Reserve_2 = await reserve.balanceOf(signer1.address);
+
+      const poolDust = await reserve.balanceOf(bPool.address);
+
+      assert(
+        signer1Reserve_2.eq(spend.add(fee.mul(buyCount)).sub(poolDust)),
+        `signer1 should get full refund (spend AND fee from escrow contract)
+          expected  ${spend.add(fee.mul(buyCount)).sub(poolDust)}
+          got       ${signer1Reserve_2}`
       );
     });
 
@@ -436,6 +487,11 @@ describe("BPoolFeeEscrow", async function () {
         signer1Reserve_1.isZero(),
         "signer1 should have spent all their reserve when buying tokens"
       );
+
+      const redeemableERC20ReserveBalance = await reserve.balanceOf(
+        redeemableERC20.address
+      );
+      console.log({ redeemableERC20ReserveBalance });
 
       // signer1 can redeem token for this refunded reserve
       await redeemableERC20
