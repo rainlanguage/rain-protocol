@@ -6,6 +6,7 @@ import "../erc20/ERC20Redeem.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {ITier} from "../tier/ITier.sol";
 import {TierReport} from "../tier/libraries/TierReport.sol";
@@ -79,7 +80,7 @@ struct RedeemableERC20Config {
 /// treasury assets were specified. Specifying fewer assets will NOT increase
 /// the proportion of each that is returned.
 ///
-/// `RedeemableERC20` has several owner administrative functions:
+/// `RedeemableERC20` has several owner functions:
 /// - Owner can add senders and receivers that can send/receive tokens even
 ///   during `Phase.ONE`
 /// - Owner can end `Phase.ONE` during `Phase.ZERO` by specifying the address
@@ -92,7 +93,13 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
+contract RedeemableERC20 is
+    Initializable,
+    OwnableUpgradeable,
+    Phased,
+    ERC20Redeem,
+    ERC20Pull
+{
     using SafeERC20 for IERC20;
 
     /// Phase constants.
@@ -110,10 +117,6 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
     /// Bits for a sender.
     uint256 private constant SENDER = 0x2;
 
-    /// To be clear, this admin is NOT intended to be an EOA.
-    /// This contract is designed assuming the admin is a `Sale` or equivalent
-    /// contract that itself does NOT have an admin key.
-    address private admin;
     /// Tracks addresses that can always send/receive regardless of phase.
     /// sender/receiver => access bits
     mapping(address => uint256) private access;
@@ -181,7 +184,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
         // Minting and burning must never fail.
         access[address(0)] = SENDER;
 
-        // Admin receives full supply.
+        // Owner receives full supply.
         access[config_.erc20Config.distributor] = RECEIVER;
 
         // Forwarding address must be able to receive tokens.
@@ -189,7 +192,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
             access[distributionEndForwardingAddress] = RECEIVER;
         }
 
-        admin = config_.erc20Config.distributor;
+        _transferOwnership(config_.erc20Config.distributor);
 
         // Need to mint after assigning access.
         _mint(
@@ -215,12 +218,6 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
         schedulePhase(PHASE_DISTRIBUTING, block.number);
     }
 
-    /// Require a function is only admin callable.
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "ONLY_ADMIN");
-        _;
-    }
-
     /// Check that an address is a receiver.
     /// A sender is also a receiver.
     /// @param maybeReceiver_ account to check.
@@ -229,9 +226,9 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
         return access[maybeReceiver_] & RECEIVER > 0;
     }
 
-    /// Admin can grant an address receiver rights.
+    /// Owner can grant an address receiver rights.
     /// @param newReceiver_ The account to grand receiver.
-    function grantReceiver(address newReceiver_) external onlyAdmin {
+    function grantReceiver(address newReceiver_) external onlyOwner {
         // Using `|` preserves sender if previously granted.
         access[newReceiver_] |= RECEIVER;
         emit Receiver(msg.sender, newReceiver_);
@@ -244,19 +241,19 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
         return access[maybeSender_] & SENDER > 0;
     }
 
-    /// Admin can grant an addres sender rights.
+    /// Owner can grant an addres sender rights.
     /// @param newSender_ The account to grant sender.
-    function grantSender(address newSender_) external onlyAdmin {
+    function grantSender(address newSender_) external onlyOwner {
         // Uinsg `|` preserves receiver if previously granted.
         access[newSender_] |= SENDER;
         emit Sender(msg.sender, newSender_);
     }
 
-    /// The admin can forward or burn all tokens of a single address to end
+    /// The owner can forward or burn all tokens of a single address to end
     /// `Phase.ZERO`.
     /// The intent is that during `Phase.ZERO` there is some contract
     /// responsible for distributing the tokens.
-    /// The admin specifies the distributor to end `Phase.ZERO` and the
+    /// The owner specifies the distributor to end `Phase.ZERO` and the
     /// forwarding address set during initialization is used. If the forwarding
     /// address is `0` the rTKN will be burned, otherwise the entire balance of
     /// the distributor is forwarded to the nominated address. In practical
@@ -267,12 +264,12 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
     /// The distributor is NOT set during the constructor because it may not
     /// exist at that point. For example, Balancer needs the paired erc20
     /// tokens to exist before the trading pool can be built.
-    /// @param distributor_ The distributor according to the admin.
+    /// @param distributor_ The distributor according to the owner.
     /// BURN the tokens if `address(0)`.
     function endDistribution(address distributor_)
         external
         onlyPhase(PHASE_DISTRIBUTING)
-        onlyAdmin
+        onlyOwner
     {
         schedulePhase(PHASE_FROZEN, block.number);
         address forwardTo_ = distributionEndForwardingAddress;

@@ -1070,6 +1070,19 @@ contract Trust is Phased, ISale {
         // Move to `PHASE_EMERGENCY` immediately.
         if (startPhase_ == PHASE_CAN_END) {
             schedulePhase(PHASE_ENDED, block.number);
+            // This is an extreme situation. Something went so wrong that the
+            // Trust cannot even end, which means that the pool failed to exit
+            // and the redeemable token therefore never completed distribution.
+            // We can't simply end the distribution at this point as it would
+            // burn the rTKN straight out of the balancer pool which would make
+            // it even less likely that the LP tokens can safely
+            // fully/partially exit, even when handled manually.
+            // So here we are, setting the creator as token owner, which means
+            // that not only can the creator end the token distribution
+            // but they can set arbitrary senders and receivers (carefully!).
+            // This SHOULD NEVER happen, hopefully trusts only ever move to the
+            // emergency phase from `PHASE_ENDED` and NOT from `PHASE_CAN_END`.
+            _token.transferOwnership(creator);
         }
         schedulePhase(PHASE_EMERGENCY, block.number);
     }
