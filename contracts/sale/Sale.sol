@@ -60,9 +60,7 @@ struct SaleConstructorConfig {
 /// contract unless it is all purchased, clearing the raise to 0 stock and thus
 /// ending the raise.
 struct SaleConfig {
-    StateConfig canStartStateConfig;
-    StateConfig canEndStateConfig;
-    StateConfig calculatePriceStateConfig;
+    StateConfig stateConfig;
     address recipient;
     IERC20 reserve;
     uint256 cooldownDuration;
@@ -172,6 +170,13 @@ contract Sale is
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
 
+    /// @dev source index to determine whether the sale can start.
+    uint256 private constant SOURCE_INDEX_CAN_START = 0;
+    /// @dev source index to determine whether the sale can end.
+    uint256 private constant SOURCE_INDEX_CAN_END = 1;
+    /// @dev source index to determine the price for a buy.
+    uint256 private constant SOURCE_INDEX_CALCULATE_PRICE = 2;
+
     /// @dev local opcode to stack remaining rTKN units.
     uint256 private constant REMAINING_UNITS = 0;
     /// @dev local opcode to stack total reserve taken in so far.
@@ -217,12 +222,8 @@ contract Sale is
 
     /// @dev as per `SaleConfig`.
     address private recipient;
-    /// @dev as per `SaleConfig`.
-    address private canStartStatePointer;
-    /// @dev as per `SaleConfig`.
-    address private canEndStatePointer;
-    /// @dev as per `SaleConfig`.
-    address private calculatePriceStatePointer;
+    /// @dev the pointer to the `stateConfig` deployed as VM state.
+    address private statePointer;
     /// @dev as per `SaleConfig`.
     uint256 private minimumRaise;
     /// @dev as per `SaleConfig`.
@@ -286,13 +287,7 @@ contract Sale is
         );
         initializeCooldown(config_.cooldownDuration);
 
-        canStartStatePointer = _snapshot(
-            _newState(config_.canStartStateConfig)
-        );
-        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
-        calculatePriceStatePointer = _snapshot(
-            _newState(config_.calculatePriceStateConfig)
-        );
+        statePointer = _snapshot(_newState(config_.stateConfig));
 
         recipient = config_.recipient;
 
@@ -370,8 +365,8 @@ contract Sale is
         if (_saleStatus != SaleStatus.Pending) {
             return false;
         }
-        State memory state_ = _restore(canStartStatePointer);
-        eval("", state_, 0);
+        State memory state_ = _restore(statePointer);
+        eval("", state_, SOURCE_INDEX_CAN_START);
         return state_.stack[state_.stackIndex - 1] > 0;
     }
 
@@ -389,8 +384,8 @@ contract Sale is
         if (remainingUnits < 1) {
             return true;
         }
-        State memory state_ = _restore(canEndStatePointer);
-        eval("", state_, 0);
+        State memory state_ = _restore(statePointer);
+        eval("", state_, SOURCE_INDEX_CAN_END);
         return state_.stack[state_.stackIndex - 1] > 0;
     }
 
@@ -399,41 +394,59 @@ contract Sale is
     /// @param units_ Amount of rTKN to quote a price for, will be available to
     /// the price script from CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = _restore(calculatePriceStatePointer);
-        eval(abi.encode(units_), state_, 0);
+        State memory state_ = _restore(statePointer);
+        eval(abi.encode(units_), state_, SOURCE_INDEX_CALCULATE_PRICE);
 
         return state_.stack[state_.stackIndex - 1];
     }
 
+    function _start() internal returns (bool) {
+        if (canStart()) {
+            _saleStatus = SaleStatus.Active;
+            emit Start(msg.sender);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function _end() internal returns (bool) {
+        if (canEnd()) {
+            remainingUnits = 0;
+
+            bool success_ = totalReserveIn >= minimumRaise;
+            SaleStatus endStatus_ = success_
+                ? SaleStatus.Success
+                : SaleStatus.Fail;
+            emit End(msg.sender, endStatus_);
+            _saleStatus = endStatus_;
+
+            // Let the rTKN handle its own distribution end logic.
+            _token.endDistribution(address(this));
+
+            // Only send reserve to recipient if the raise is a success.
+            // If the raise is NOT a success then everyone can refund their reserve
+            // deposited individually.
+            if (success_) {
+                _reserve.safeTransfer(recipient, totalReserveIn);
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /// Start the sale (move from pending to active).
     /// `canStart` MUST return true.
-    function start() external {
-        require(canStart(), "CANT_START");
-        _saleStatus = SaleStatus.Active;
-        emit Start(msg.sender);
+    function start() external nonReentrant {
+        require(_start(), "CANT_START");
     }
 
     /// End the sale (move from active to success or fail).
     /// `canEnd` MUST return true.
-    function end() public {
-        require(canEnd(), "CANT_END");
-
-        remainingUnits = 0;
-
-        bool success_ = totalReserveIn >= minimumRaise;
-        SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
-        emit End(msg.sender, endStatus_);
-        _saleStatus = endStatus_;
-
-        // Let the rTKN handle its own distribution end logic.
-        _token.endDistribution(address(this));
-
-        // Only send reserve to recipient if the raise is a success.
-        // If the raise is NOT a success then everyone can refund their reserve
-        // deposited individually.
-        if (success_) {
-            _reserve.safeTransfer(recipient, totalReserveIn);
-        }
+    function end() external nonReentrant {
+        require(_end(), "CANT_END");
     }
 
     /// Main entrypoint to the sale. Sells rTKN in exchange for reserve token.
@@ -456,59 +469,65 @@ contract Sale is
             "MINIMUM_OVER_DESIRED"
         );
 
-        require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-
-        uint256 units_ = config_.desiredUnits.min(remainingUnits);
-        require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
-
-        uint256 price_ = calculatePrice(units_);
-
-        require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
-        uint256 cost_ = price_.fixedPointMul(units_);
-
-        Receipt memory receipt_ = Receipt(
-            nextReceiptId,
-            config_.feeRecipient,
-            config_.fee,
-            units_,
-            price_
-        );
-        nextReceiptId++;
-        bytes32 receiptKeccak_ = keccak256(abi.encode(receipt_));
-        // This should never be possible due to the id counter but if it
-        // happens we have to rollback because duplicate receipts mean
-        // potentially lost funds.
-        require(receipts[msg.sender][receiptKeccak_] < 1, "DUPLICATE_RECEIPT");
-        receipts[msg.sender][receiptKeccak_] = 1;
-
-        fees[config_.feeRecipient] += config_.fee;
-
-        // We ignore any rTKN or reserve that is sent to the contract directly
-        // outside of a `buy` call. This also means we don't support reserve
-        // tokens with balances that can change outside of transfers
-        // (e.g. rebase).
-        remainingUnits -= units_;
-        totalReserveIn += cost_;
-
-        // This happens before `end` so that the transfer from happens before
-        // the transfer to.
-        // `end` changes state so `buy` needs to be nonReentrant.
-        _reserve.safeTransferFrom(
-            msg.sender,
-            address(this),
-            cost_ + config_.fee
-        );
-        // This happens before `end` so that the transfer happens before the
-        // distributor is burned and token is frozen.
-        IERC20(address(_token)).safeTransfer(msg.sender, units_);
-
-        if (remainingUnits < 1) {
-            end();
-        } else {
-            require(remainingUnits >= dustSize, "DUST");
+        // Attempt to start an eligible pending sale.
+        if (!_start()) {
+            // If we didn't just start the sale ensure that it is active.
+            require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
         }
 
-        emit Buy(msg.sender, config_, receipt_);
+        if (!_end()) {
+            uint256 units_ = config_.desiredUnits.min(remainingUnits);
+            require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
+
+            uint256 price_ = calculatePrice(units_);
+
+            require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
+            uint256 cost_ = price_.fixedPointMul(units_);
+
+            Receipt memory receipt_ = Receipt(
+                nextReceiptId,
+                config_.feeRecipient,
+                config_.fee,
+                units_,
+                price_
+            );
+            nextReceiptId++;
+            bytes32 receiptKeccak_ = keccak256(abi.encode(receipt_));
+            // This should never be possible due to the id counter but if it
+            // happens we have to rollback because duplicate receipts mean
+            // potentially lost funds.
+            require(
+                receipts[msg.sender][receiptKeccak_] < 1,
+                "DUPLICATE_RECEIPT"
+            );
+            receipts[msg.sender][receiptKeccak_] = 1;
+
+            fees[config_.feeRecipient] += config_.fee;
+
+            // We ignore any rTKN or reserve that is sent to the contract directly
+            // outside of a `buy` call. This also means we don't support reserve
+            // tokens with balances that can change outside of transfers
+            // (e.g. rebase).
+            remainingUnits -= units_;
+            totalReserveIn += cost_;
+
+            // This happens before `end` so that the transfer from happens before
+            // the transfer to.
+            // `end` changes state so `buy` needs to be nonReentrant.
+            _reserve.safeTransferFrom(
+                msg.sender,
+                address(this),
+                cost_ + config_.fee
+            );
+            // This happens before `end` so that the transfer happens before the
+            // distributor is burned and token is frozen.
+            IERC20(address(_token)).safeTransfer(msg.sender, units_);
+            emit Buy(msg.sender, config_, receipt_);
+
+            if (!_end()) {
+                require(remainingUnits >= dustSize, "DUST");
+            }
+        }
     }
 
     /// @dev This is here so we can use a modifier like a function call.
