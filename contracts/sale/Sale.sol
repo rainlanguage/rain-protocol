@@ -293,6 +293,7 @@ contract Sale is
         calculatePriceStatePointer = _snapshot(
             _newState(config_.calculatePriceStateConfig)
         );
+
         recipient = config_.recipient;
 
         // If the raise really does have a minimum of `0` and `0` trading
@@ -310,11 +311,19 @@ contract Sale is
         minimumRaise = config_.minimumRaise;
 
         dustSize = config_.dustSize;
+
         // just making this explicit during initialization in case it ever
         // takes a nonzero value somehow due to refactor.
         _saleStatus = SaleStatus.Pending;
 
         _reserve = config_.reserve;
+
+        // The distributor of the rTKN is always set to the sale contract.
+        // It is an error for the deployer to attempt to set the distributor.
+        require(
+            saleRedeemableERC20Config_.erc20Config.distributor == address(0),
+            "DISTRIBUTOR_SET"
+        );
         saleRedeemableERC20Config_.erc20Config.distributor = address(this);
         RedeemableERC20 token_ = RedeemableERC20(
             redeemableERC20Factory.createChild(
@@ -420,6 +429,8 @@ contract Sale is
         _token.endDistribution(address(this));
 
         // Only send reserve to recipient if the raise is a success.
+        // If the raise is NOT a success then everyone can refund their reserve
+        // deposited individually.
         if (success_) {
             _reserve.safeTransfer(recipient, totalReserveIn);
         }
@@ -447,10 +458,8 @@ contract Sale is
 
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
-        uint256 units_ = config_.desiredUnits.min(remainingUnits).max(
-            config_.minimumUnits
-        );
-        require(units_ <= remainingUnits, "INSUFFICIENT_STOCK");
+        uint256 units_ = config_.desiredUnits.min(remainingUnits);
+        require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
 
         uint256 price_ = calculatePrice(units_);
 
@@ -465,7 +474,12 @@ contract Sale is
             price_
         );
         nextReceiptId++;
-        receipts[msg.sender][keccak256(abi.encode(receipt_))] = 1;
+        bytes32 receiptKeccak_ = keccak256(abi.encode(receipt_));
+        // This should never be possible due to the id counter but if it
+        // happens we have to rollback because duplicate receipts mean
+        // potentially lost funds.
+        require(receipts[msg.sender][receiptKeccak_] < 1, "DUPLICATE_RECEIPT");
+        receipts[msg.sender][receiptKeccak_] = 1;
 
         fees[config_.feeRecipient] += config_.fee;
 
@@ -476,9 +490,9 @@ contract Sale is
         remainingUnits -= units_;
         totalReserveIn += cost_;
 
-        // This happens before `end` so that the transfer out happens before
-        // the last transfer in.
-        // `end` does state changes so `buy` needs to be nonReentrant.
+        // This happens before `end` so that the transfer from happens before
+        // the transfer to.
+        // `end` changes state so `buy` needs to be nonReentrant.
         _reserve.safeTransferFrom(
             msg.sender,
             address(this),
@@ -551,8 +565,10 @@ contract Sale is
     function claimFees(address recipient_) external {
         require(_saleStatus == SaleStatus.Success, "NOT_SUCCESS");
         uint256 amount_ = fees[recipient_];
-        delete fees[recipient_];
-        _reserve.safeTransfer(recipient_, amount_);
+        if (amount_ > 0) {
+            delete fees[recipient_];
+            _reserve.safeTransfer(recipient_, amount_);
+        }
     }
 
     /// @inheritdoc RainVM
