@@ -284,6 +284,7 @@ contract Sale is
             config_.cooldownDuration <= maximumCooldownDuration,
             "MAX_COOLDOWN"
         );
+        initializeCooldown(config_.cooldownDuration);
 
         // If the raise really does have a minimum of `0` and `0` trading
         // happens then the raise will be considered a "success", burning all
@@ -298,8 +299,6 @@ contract Sale is
             require(config_.minimumRaise > 0, "MIN_RAISE_0");
         }
         minimumRaise = config_.minimumRaise;
-
-        initializeCooldown(config_.cooldownDuration);
 
         canStartStatePointer = _snapshot(
             _newState(config_.canStartStateConfig)
