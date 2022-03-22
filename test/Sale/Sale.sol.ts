@@ -156,7 +156,7 @@ describe("Sale", async function () {
             },
             recipient: recipient.address,
             reserve: maliciousReserve.address,
-            cooldownDuration: 0,
+            cooldownDuration: 0, // zero
             minimumRaise,
             dustSize: 0,
           },
