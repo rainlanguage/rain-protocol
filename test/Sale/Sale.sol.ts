@@ -2534,6 +2534,8 @@ describe("Sale", async function () {
       .connect(signer1)
       .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
 
+    const initialBalance = await reserve.balanceOf(signer1.address)
+
     // buy _some_ units; insufficient raise amount
     const txBuy = await sale.connect(signer1).buy({
       feeRecipient: feeRecipient.address,
@@ -2589,8 +2591,12 @@ describe("Sale", async function () {
       "wrongly processed refund with invalid receipt"
     );
 
+    const balanceBeforeRefund = await reserve.balanceOf(signer1.address)
+
     // signer1 gets refund
     const refundTx = await sale.connect(signer1).refund(receipt);
+
+    const balanceAfterRefund = await reserve.balanceOf(signer1.address)
 
     const { sender, receipt: eventReceipt } = (await Util.getEventArgs(
       refundTx,
@@ -2598,14 +2604,21 @@ describe("Sale", async function () {
       sale
     )) as RefundEvent["args"];
 
+    assert(balanceAfterRefund.sub(balanceBeforeRefund).eq(initialBalance), "wrong refund amount")
     assert(sender === signer1.address, "wrong sender in Refund event");
     assert(
       JSON.stringify(eventReceipt) === JSON.stringify(receipt),
       "wrong receipt in Refund event"
     );
+
+    await Util.assertError(
+      async () => await sale.connect(signer1).refund(receipt),
+      "INVALID_RECEIPT",
+      "sender1 refunded same receipt twice",
+    )
   });
 
-  it("should allow recipient to claim fees on successful raise", async function () {
+  it("should allow fees recipient to claim fees on successful raise", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -2715,7 +2728,7 @@ describe("Sale", async function () {
     assert(feeRecipientBalance2.eq(feeRecipientBalance1));
   });
 
-  it("should have status of Success if minimum raise met", async function () {
+  it("should have status of Success if minimum raise met and refund is disallowed", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
