@@ -286,15 +286,6 @@ contract Sale is
         );
         initializeCooldown(config_.cooldownDuration);
 
-        canStartStatePointer = _snapshot(
-            _newState(config_.canStartStateConfig)
-        );
-        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
-        calculatePriceStatePointer = _snapshot(
-            _newState(config_.calculatePriceStateConfig)
-        );
-        recipient = config_.recipient;
-
         // If the raise really does have a minimum of `0` and `0` trading
         // happens then the raise will be considered a "success", burning all
         // rTKN, which would trap any escrowed or deposited funds that nobody
@@ -309,6 +300,15 @@ contract Sale is
         }
         minimumRaise = config_.minimumRaise;
 
+        canStartStatePointer = _snapshot(
+            _newState(config_.canStartStateConfig)
+        );
+        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
+        calculatePriceStatePointer = _snapshot(
+            _newState(config_.calculatePriceStateConfig)
+        );
+        recipient = config_.recipient;
+
         dustSize = config_.dustSize;
         // just making this explicit during initialization in case it ever
         // takes a nonzero value somehow due to refactor.
@@ -316,6 +316,9 @@ contract Sale is
 
         _reserve = config_.reserve;
         saleRedeemableERC20Config_.erc20Config.distributor = address(this);
+
+        remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
+
         RedeemableERC20 token_ = RedeemableERC20(
             redeemableERC20Factory.createChild(
                 abi.encode(
@@ -331,8 +334,6 @@ contract Sale is
             )
         );
         _token = token_;
-
-        remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
 
         emit Initialize(msg.sender, config_, address(token_));
     }
