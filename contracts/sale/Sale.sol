@@ -474,12 +474,10 @@ contract Sale is
             price_
         );
         nextReceiptId++;
-        bytes32 receiptKeccak_ = keccak256(abi.encode(receipt_));
-        // This should never be possible due to the id counter but if it
-        // happens we have to rollback because duplicate receipts mean
-        // potentially lost funds.
-        require(receipts[msg.sender][receiptKeccak_] < 1, "DUPLICATE_RECEIPT");
-        receipts[msg.sender][receiptKeccak_] = 1;
+        // There should never be more than one of the same key due to the ID
+        // counter but we can use checked math to easily cover the case of
+        // potential duplicate receipts.
+        receipts[msg.sender][keccak256(abi.encode(receipt_))]++;
 
         fees[config_.feeRecipient] += config_.fee;
 
@@ -536,9 +534,9 @@ contract Sale is
             refundCooldown();
         }
 
-        bytes32 receiptKeccak_ = keccak256(abi.encode(receipt_));
-        require(receipts[msg.sender][receiptKeccak_] > 0, "INVALID_RECEIPT");
-        delete receipts[msg.sender][receiptKeccak_];
+        // Checked math here will prevent consuming a receipt that doesn't
+        // exist or was already refunded as it will underflow.
+        receipts[msg.sender][keccak256(abi.encode(receipt_))]--;
 
         uint256 cost_ = receipt_.price.fixedPointMul(receipt_.units);
 
