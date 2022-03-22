@@ -179,7 +179,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
             .distributionEndForwardingAddress;
 
         // Minting and burning must never fail.
-        access[address(0)] = SENDER;
+        access[address(0)] = RECEIVER | SENDER;
 
         // Admin receives full supply.
         access[config_.erc20Config.distributor] = RECEIVER;
@@ -321,32 +321,24 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
             // The sender and receiver lists bypass all access restrictions.
             !(isSender(sender_) || isReceiver(receiver_))
         ) {
-            // During `Phase.ZERO` transfers are only restricted by the
-            // tier of the recipient.
-            uint256 currentPhase_ = currentPhase();
-            if (currentPhase_ == PHASE_DISTRIBUTING) {
-                // Receivers act as "hubs" that can send to "spokes".
-                // i.e. any address of the minimum tier.
-                // Spokes cannot send tokens another "hop" e.g. to each other.
-                // Spokes can only send back to a receiver (doesn't need to be
-                // the same receiver they received from).
-                require(isReceiver(sender_), "2SPOKE");
-                require(
-                    TierReport.tierAtBlockFromReport(
-                        tier.report(receiver_),
-                        block.number
-                    ) >= minimumTier,
-                    "MIN_TIER"
-                );
-            }
-            // During `Phase.ONE` only token burns are allowed.
-            else if (currentPhase_ == PHASE_FROZEN) {
-                require(receiver_ == address(0), "FROZEN");
-            }
-            // There are no other phases.
-            else {
-                revert("UNKNOWN_PHASE");
-            }
+            // During `PHASE_DISTRIBUTING` transfers are only restricted by the
+            // tier of the recipient. Every other phase only allows senders and
+            // receivers as above.
+            require(currentPhase() == PHASE_DISTRIBUTING, "FROZEN");
+
+            // Receivers act as "hubs" that can send to "spokes".
+            // i.e. any address of the minimum tier.
+            // Spokes cannot send tokens another "hop" e.g. to each other.
+            // Spokes can only send back to a receiver (doesn't need to be
+            // the same receiver they received from).
+            require(isReceiver(sender_), "2SPOKE");
+            require(
+                TierReport.tierAtBlockFromReport(
+                    tier.report(receiver_),
+                    block.number
+                ) >= minimumTier,
+                "MIN_TIER"
+            );
         }
     }
 }

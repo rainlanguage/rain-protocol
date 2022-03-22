@@ -214,12 +214,12 @@ describe("Sale", async function () {
         await sale
           .connect(signer1)
           .refund({ ...receipt, units: receipt.units.add(1) }),
-      "INVALID_RECEIPT",
+      "underflowed",
       "wrongly allowed accepted receipt with modified units for refund request"
     );
     await Util.assertError(
       async () => await sale.connect(signer1).refund({ ...receipt, fee: 0 }),
-      "INVALID_RECEIPT",
+      "underflowed",
       "wrongly allowed accepted receipt with modified fee for refund request"
     );
     await Util.assertError(
@@ -227,7 +227,7 @@ describe("Sale", async function () {
         await sale
           .connect(signer1)
           .refund({ ...receipt, price: receipt.price.mul(2) }),
-      "INVALID_RECEIPT",
+      "underflowed",
       "wrongly allowed accepted receipt with modified price for refund request"
     );
   });
@@ -361,12 +361,12 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund(receipt2),
-      "INVALID_RECEIPT",
+      "underflowed",
       "wrongly allowed signer1 to use signer2's receipt for refund"
     );
     await Util.assertError(
       async () => await sale.connect(signer2).refund(receipt1),
-      "INVALID_RECEIPT",
+      "underflowed",
       "wrongly allowed signer2 to use signer1's receipt for refund"
     );
   });
@@ -485,7 +485,7 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund(receipt),
-      "INVALID_RECEIPT",
+      "underflowed",
       "wrongly allowed same receipt to be used twice for refund"
     );
   });
@@ -2083,7 +2083,7 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund({ ...receipt, id: 123 }),
-      "INVALID_RECEIPT",
+      "underflowed",
       "wrongly processed refund with invalid receipt"
     );
 
