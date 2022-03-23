@@ -37,9 +37,12 @@ contract VerifyFactory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param admin_ `address` of the `Verify` admin.
+    /// @param config_ Initialization config for the new `Verify` child.
     /// @return New `Verify` child contract address.
-    function createChildTyped(address admin_) external returns (Verify) {
-        return Verify(this.createChild(abi.encode(admin_)));
+    function createChildTyped(VerifyConfig calldata config_)
+        external
+        returns (Verify)
+    {
+        return Verify(this.createChild(abi.encode(config_)));
     }
 }
