@@ -2,7 +2,7 @@
 pragma solidity =0.8.10;
 
 import {Factory} from "../factory/Factory.sol";
-import {Verify} from "./Verify.sol";
+import {Verify, VerifyConfig} from "./Verify.sol";
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
@@ -27,9 +27,9 @@ contract VerifyFactory is Factory {
         override
         returns (address)
     {
-        address admin_ = abi.decode(data_, (address));
+        VerifyConfig memory config_ = abi.decode(data_, (VerifyConfig));
         address clone_ = Clones.clone(implementation);
-        Verify(clone_).initialize(admin_);
+        Verify(clone_).initialize(config_);
         return clone_;
     }
 

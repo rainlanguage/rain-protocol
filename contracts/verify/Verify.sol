@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import "./IVerifyCallback.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -28,6 +29,17 @@ struct State {
 struct Evidence {
     address account;
     bytes data;
+}
+
+/// Config to initialize a Verify contract with.
+/// @param admin The address to ASSIGN ALL ADMIN ROLES to initially. This
+/// address is free and encouraged to delegate fine grained permissions to
+/// many other sub-admin addresses, then revoke it's own "root" access.
+/// @param callback The address of the `IVerifyCallback` contract if it exists.
+/// MAY be `address(0)` to signify that callbacks should NOT run.
+struct VerifyConfig {
+    address admin;
+    address callback;
 }
 
 /// @title Verify
@@ -159,6 +171,9 @@ contract Verify is AccessControl, Initializable {
     /// (i.e. removed or never added)
     uint32 private constant UNINITIALIZED = type(uint32).max;
 
+    /// Emitted when the `Verify` contract is initialized.
+    event Initialize(address sender, VerifyConfig config);
+
     /// Emitted when evidence is first submitted to approve an account.
     /// The requestor is always the `msg.sender` of the user calling `add`.
     /// @param sender The `msg.sender` that submitted its own evidence.
@@ -210,15 +225,17 @@ contract Verify is AccessControl, Initializable {
     /// Role for `BANNER`.
     bytes32 public constant BANNER = keccak256("BANNER");
 
-    // Account => State
+    /// Account => State
     mapping(address => State) private states;
 
-    /// Defines RBAC logic for each role under Open Zeppelin.
-    /// @param admin_ The address to ASSIGN ALL ADMIN ROLES to initially. This
-    /// address is free and encouraged to delegate fine grained permissions to
-    /// many other sub-admin addresses, then revoke it's own "root" access.
-    function initialize(address admin_) external initializer {
-        require(admin_ != address(0), "0_ACCOUNT");
+    /// Optional IVerifyCallback contract.
+    /// MAY be address 0.
+    IVerifyCallback public callback = IVerifyCallback(address(0));
+
+    /// Initializes the `Verify` contract e.g. as cloned by a factory.
+    /// @param config_ The config required to initialize the contract.
+    function initialize(VerifyConfig calldata config_) external initializer {
+        require(config_.admin != address(0), "0_ACCOUNT");
 
         // `APPROVER_ADMIN` can admin each other in addition to
         // `APPROVER` addresses underneath.
@@ -242,9 +259,13 @@ contract Verify is AccessControl, Initializable {
         // been assigned, if possible. Admins can instantly/atomically assign
         // and revoke admin priviledges from each other, so a compromised key
         // can irreperably damage a `Verify` contract instance.
-        _grantRole(APPROVER_ADMIN, admin_);
-        _grantRole(REMOVER_ADMIN, admin_);
-        _grantRole(BANNER_ADMIN, admin_);
+        _grantRole(APPROVER_ADMIN, config_.admin);
+        _grantRole(REMOVER_ADMIN, config_.admin);
+        _grantRole(BANNER_ADMIN, config_.admin);
+
+        callback = IVerifyCallback(config_.callback);
+
+        emit Initialize(msg.sender, config_);
     }
 
     /// Typed accessor into states.
@@ -331,10 +352,10 @@ contract Verify is AccessControl, Initializable {
         // requirements.
         // The inheriting contract MUST `require` or otherwise enforce its
         // needs to rollback a bad add.
-        _afterAdd(evidence_);
+        if (address(callback) != address(0)) {
+            callback.afterAdd(msg.sender, evidence_);
+        }
     }
-
-    function _afterAdd(Evidence memory evidence_) internal virtual {}
 
     /// An `APPROVER` can review added evidence and approve accounts.
     /// Typically many approvals would be submitted in a single call which is
@@ -388,9 +409,14 @@ contract Verify is AccessControl, Initializable {
             // review.
             emit Approve(msg.sender, evidences_[i_]);
         }
-        _afterApprove(evidences_);
+        if (address(callback) != address(0)) {
+            callback.afterApprove(msg.sender, evidences_);
+        }
     }
 
+    /// Any approved address can request some other address be approved.
+    /// Frivolous requestors SHOULD expect to find themselves banned.
+    /// @param evidences_ Array of evidences to request approvals for.
     function requestApprove(Evidence[] calldata evidences_)
         external
         onlyApproved
@@ -399,8 +425,6 @@ contract Verify is AccessControl, Initializable {
             emit RequestApprove(msg.sender, evidences_[i_]);
         }
     }
-
-    function _afterApprove(Evidence[] calldata evidences_) internal virtual {}
 
     /// A `BANNER` can ban an added OR approved account.
     /// @param evidences_ All evidence appropriate for all bans.
@@ -434,16 +458,20 @@ contract Verify is AccessControl, Initializable {
             // review.
             emit Ban(msg.sender, evidences_[i_]);
         }
-        _afterBan(evidences_);
+
+        if (address(callback) != address(0)) {
+            callback.afterBan(msg.sender, evidences_);
+        }
     }
 
+    /// Any approved address can request some other address be banned.
+    /// Frivolous requestors SHOULD expect to find themselves banned.
+    /// @param evidences_ Array of evidences to request banning for.
     function requestBan(Evidence[] calldata evidences_) external onlyApproved {
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             emit RequestBan(msg.sender, evidences_[i_]);
         }
     }
-
-    function _afterBan(Evidence[] calldata evidences_) internal virtual {}
 
     /// A `REMOVER` can scrub state mapping from an account.
     /// A malicious account MUST be banned rather than removed.
@@ -458,9 +486,15 @@ contract Verify is AccessControl, Initializable {
             }
             emit Remove(msg.sender, evidences_[i_]);
         }
-        _afterRemove(evidences_);
+
+        if (address(callback) != address(0)) {
+            callback.afterRemove(msg.sender, evidences_);
+        }
     }
 
+    /// Any approved address can request some other address be removed.
+    /// Frivolous requestors SHOULD expect to find themselves banned.
+    /// @param evidences_ Array of evidences to request removal of.
     function requestRemove(Evidence[] calldata evidences_)
         external
         onlyApproved
@@ -469,6 +503,4 @@ contract Verify is AccessControl, Initializable {
             emit RequestRemove(msg.sender, evidences_[i_]);
         }
     }
-
-    function _afterRemove(Evidence[] calldata evidences_) internal virtual {}
 }
