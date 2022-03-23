@@ -57,7 +57,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -157,7 +160,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -258,7 +264,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -334,7 +343,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -410,7 +422,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -482,7 +497,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
@@ -528,7 +546,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
@@ -612,7 +633,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -664,7 +688,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -813,7 +840,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -908,7 +938,7 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
 
     await Util.assertError(
-      async () => await Util.verifyDeploy(signers[0], Util.zeroAddress),
+      async () => await Util.verifyDeploy(signers[0], { admin: Util.zeroAddress, callback: Util.zeroAddress }),
       "0_ACCOUNT",
       "wrongly constructed Verify with admin as zero address"
     );
@@ -932,7 +962,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin roles
@@ -1099,7 +1132,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     assert(
@@ -1131,7 +1167,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add0")]);
@@ -1205,7 +1244,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin role
@@ -1292,7 +1334,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin role
@@ -1387,7 +1432,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin role
@@ -1470,7 +1518,10 @@ describe("Verify", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      defaultAdmin.address
+      {
+        admin: defaultAdmin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify;
 
     // defaultAdmin grants admin role
