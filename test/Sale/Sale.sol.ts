@@ -521,12 +521,12 @@ describe("Sale", async function () {
         await sale
           .connect(signer1)
           .refund({ ...receipt, units: receipt.units.add(1) }),
-      "underflowed",
+      "reverted with panic code 0x11",
       "wrongly allowed accepted receipt with modified units for refund request"
     );
     await Util.assertError(
       async () => await sale.connect(signer1).refund({ ...receipt, fee: 0 }),
-      "underflowed",
+      "reverted with panic code 0x11",
       "wrongly allowed accepted receipt with modified fee for refund request"
     );
     await Util.assertError(
@@ -534,7 +534,7 @@ describe("Sale", async function () {
         await sale
           .connect(signer1)
           .refund({ ...receipt, price: receipt.price.mul(2) }),
-      "underflowed",
+      "reverted with panic code 0x11",
       "wrongly allowed accepted receipt with modified price for refund request"
     );
   });
@@ -668,12 +668,12 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund(receipt2),
-      "underflowed",
+      "reverted with panic code 0x11",
       "wrongly allowed signer1 to use signer2's receipt for refund"
     );
     await Util.assertError(
       async () => await sale.connect(signer2).refund(receipt1),
-      "underflowed",
+      "reverted with panic code 0x11",
       "wrongly allowed signer2 to use signer1's receipt for refund"
     );
   });
@@ -792,7 +792,7 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund(receipt),
-      "underflowed",
+      "reverted with panic code 0x11",
       "wrongly allowed same receipt to be used twice for refund"
     );
   });
@@ -2534,7 +2534,7 @@ describe("Sale", async function () {
       .connect(signer1)
       .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
 
-    const initialBalance = await reserve.balanceOf(signer1.address)
+    const initialBalance = await reserve.balanceOf(signer1.address);
 
     // buy _some_ units; insufficient raise amount
     const txBuy = await sale.connect(signer1).buy({
@@ -2587,16 +2587,16 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund({ ...receipt, id: 123 }),
-      "underflowed",
+      "reverted with panic code 0x11",
       "wrongly processed refund with invalid receipt"
     );
 
-    const balanceBeforeRefund = await reserve.balanceOf(signer1.address)
+    const balanceBeforeRefund = await reserve.balanceOf(signer1.address);
 
     // signer1 gets refund
     const refundTx = await sale.connect(signer1).refund(receipt);
 
-    const balanceAfterRefund = await reserve.balanceOf(signer1.address)
+    const balanceAfterRefund = await reserve.balanceOf(signer1.address);
 
     const { sender, receipt: eventReceipt } = (await Util.getEventArgs(
       refundTx,
@@ -2604,7 +2604,10 @@ describe("Sale", async function () {
       sale
     )) as RefundEvent["args"];
 
-    assert(balanceAfterRefund.sub(balanceBeforeRefund).eq(initialBalance), "wrong refund amount")
+    assert(
+      balanceAfterRefund.sub(balanceBeforeRefund).eq(initialBalance),
+      "wrong refund amount"
+    );
     assert(sender === signer1.address, "wrong sender in Refund event");
     assert(
       JSON.stringify(eventReceipt) === JSON.stringify(receipt),
@@ -2613,9 +2616,9 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund(receipt),
-      "INVALID_RECEIPT",
-      "sender1 refunded same receipt twice",
-    )
+      "reverted with panic code 0x11",
+      "sender1 refunded same receipt twice"
+    );
   });
 
   it("should allow fees recipient to claim fees on successful raise", async function () {
