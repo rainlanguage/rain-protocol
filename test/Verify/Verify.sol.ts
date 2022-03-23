@@ -37,7 +37,7 @@ const BANNER_ADMIN = ethers.utils.keccak256(
 );
 const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
-describe.only("Verify", async function () {
+describe("Verify", async function () {
   it("should allow anyone to submit data to support a request to ban an account", async function () {
     this.timeout(0);
 
@@ -108,9 +108,7 @@ describe.only("Verify", async function () {
       async () =>
         verify
           .connect(signer2)
-          .requestBan([
-            { account: signer1.address, data: evidenceBanReq },
-          ]),
+          .requestBan([{ account: signer1.address, data: evidenceBanReq }]),
       "ONLY_APPROVED",
       "signer2 requested ban despite not being an approved account"
     );
@@ -128,9 +126,7 @@ describe.only("Verify", async function () {
     const event0 = (await Util.getEventArgs(
       await verify
         .connect(signer2)
-        .requestBan([
-          { account: signer1.address, data: evidenceBanReq },
-        ]),
+        .requestBan([{ account: signer1.address, data: evidenceBanReq }]),
       "RequestBan",
       verify
     )) as RequestBanEvent["args"];
@@ -232,9 +228,7 @@ describe.only("Verify", async function () {
     const event0 = (await Util.getEventArgs(
       await verify
         .connect(signer2)
-        .requestRemove([
-          { account: signer1.address, data: evidenceRemoveReq },
-        ]),
+        .requestRemove([{ account: signer1.address, data: evidenceRemoveReq }]),
       "RequestRemove",
       verify
     )) as RequestRemoveEvent["args"];
@@ -394,7 +388,7 @@ describe.only("Verify", async function () {
           .connect(approver)
           .ban([{ account: signer1.address, data: evidenceBan }]),
       `AccessControl: account ${approver.address.toLowerCase()} is missing role ${await verify.BANNER()}`,
-      "non-banner wrongly banned session"
+      "non-banner wrongly banned account"
     );
   });
 
@@ -470,7 +464,7 @@ describe.only("Verify", async function () {
           .connect(approver)
           .ban([{ account: signer1.address, data: evidenceBan }]),
       `AccessControl: account ${approver.address.toLowerCase()} is missing role ${await verify.BANNER()}`,
-      "non-banner wrongly banned session"
+      "non-banner wrongly banned account"
     );
   });
 
@@ -1140,30 +1134,40 @@ describe.only("Verify", async function () {
       defaultAdmin.address
     )) as Verify;
 
-    const evidenceAdd = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add")]);
 
     // signer1 submits evidence
     const event0 = (await Util.getEventArgs(
-      await verify.connect(signer1).add(evidenceAdd),
+      await verify.connect(signer1).add(evidenceAdd0),
       "RequestApprove",
       verify
     )) as RequestApproveEvent["args"];
     assert(event0.sender === signer1.address, "wrong sender in event0");
-    assert(event0.evidence.data === evidenceAdd, "wrong data in event0");
+    assert(event0.evidence.data === evidenceAdd0, "wrong data in event0");
 
     const state0 = await verify.state(signer1.address);
 
-    // signer1 cannot overwrite previous submission
-    await Util.assertError(
-      async () => await verify.connect(signer1).add(evidenceAdd),
-      "PRIOR_ADD",
-      "signer1 wiped their own state"
-    );
+    const evidenceAdd1 = hexlify([...Buffer.from("Evidence for add override")]);
+
+    // signer1 can call `add()` again to submit new evidence, but it does not override state
+    await verify.connect(signer1).add(evidenceAdd1);
+
+    const state1 = await verify.state(signer1.address);
+
+    // signer1 adding more evidence should not wipe their state
+    for (let index = 0; index < state0.length; index++) {
+      const propertyLeft = `${state0[index]}`;
+      const propertyRight = `${state1[index]}`;
+      assert(
+        propertyLeft === propertyRight,
+        `state not equivalent at position ${index}. Left ${propertyLeft}, Right ${propertyRight}`
+      );
+    }
 
     // another signer should be able to submit identical evidence
-    await verify.connect(signer2).add(evidenceAdd);
+    await verify.connect(signer2).add(evidenceAdd0);
 
-    // signer2 adding should not wipe state for signer1
+    // signer2 adding evidence should not wipe state for signer1
     const state2 = await verify.state(signer1.address);
     for (let index = 0; index < state0.length; index++) {
       const propertyLeft = `${state0[index]}`;
@@ -1348,6 +1352,13 @@ describe.only("Verify", async function () {
       stateApproved.approvedSince === (await ethers.provider.getBlockNumber()),
       "not approved"
     );
+
+    // attempt another add when status is STATUS_APPROVED
+    await Util.assertError(
+      async () => await verify.connect(signer1).add(evidenceAdd),
+      "ALREADY_EXISTS",
+      "wrongly added when status was STATUS_APPROVED"
+    );
   });
 
   it("should allow only remover to remove accounts", async function () {
@@ -1433,7 +1444,7 @@ describe.only("Verify", async function () {
     assert(stateRemoved.bannedSince === 0, "not removed");
   });
 
-  it("should allow only banner to ban sessions", async function () {
+  it("should allow only banner to ban accounts", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1475,23 +1486,13 @@ describe.only("Verify", async function () {
 
     await verify.connect(signer1).add(evidenceAdd);
 
-    // // prevent banning zero address
-    // await Util.assertError(
-    //   async () =>
-    //     await verify
-    //       .connect(banner)
-    //       .ban([{ account: Util.zeroAddress, data: evidenceBan }]),
-    //   "0_ADDRESS",
-    //   "wrongly banning zero address"
-    // );
-
     await Util.assertError(
       async () =>
         await verify
           .connect(nonBanner)
           .ban([{ account: signer1.address, data: evidenceBan }]),
       `AccessControl: account ${nonBanner.address.toLowerCase()} is missing role ${await verify.BANNER()}`,
-      "non-banner wrongly banned session"
+      "non-banner wrongly banned account"
     );
 
     // admin bans account
@@ -1514,6 +1515,13 @@ describe.only("Verify", async function () {
     assert(
       stateBanned.bannedSince === (await ethers.provider.getBlockNumber()),
       "not banned"
+    );
+
+    // attempt another add when status is STATUS_BANNED
+    await Util.assertError(
+      async () => await verify.connect(signer1).add(evidenceAdd),
+      "ALREADY_EXISTS",
+      "wrongly added when status was STATUS_BANNED"
     );
   });
 });
