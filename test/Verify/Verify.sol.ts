@@ -1134,7 +1134,7 @@ describe("Verify", async function () {
       defaultAdmin.address
     )) as Verify;
 
-    const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add")]);
+    const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add0")]);
 
     // signer1 submits evidence
     const event0 = (await Util.getEventArgs(
@@ -1147,10 +1147,16 @@ describe("Verify", async function () {
 
     const state0 = await verify.state(signer1.address);
 
-    const evidenceAdd1 = hexlify([...Buffer.from("Evidence for add override")]);
+    const evidenceAdd1 = hexlify([...Buffer.from("Evidence for add1")]);
 
     // signer1 can call `add()` again to submit new evidence, but it does not override state
-    await verify.connect(signer1).add(evidenceAdd1);
+    const event1 = (await Util.getEventArgs(
+      await verify.connect(signer1).add(evidenceAdd1),
+      "RequestApprove",
+      verify
+    )) as RequestApproveEvent["args"];
+    assert(event1.sender === signer1.address, "wrong sender in event1");
+    assert(event1.evidence.data === evidenceAdd1, "wrong data in event1");
 
     const state1 = await verify.state(signer1.address);
 
@@ -1164,8 +1170,16 @@ describe("Verify", async function () {
       );
     }
 
+    const evidenceAdd2 = hexlify([...Buffer.from("Evidence for add2")]);
+
     // another signer should be able to submit identical evidence
-    await verify.connect(signer2).add(evidenceAdd0);
+    const event2 = (await Util.getEventArgs(
+      await verify.connect(signer2).add(evidenceAdd2),
+      "RequestApprove",
+      verify
+    )) as RequestApproveEvent["args"];
+    assert(event2.sender === signer2.address, "wrong sender in event2");
+    assert(event2.evidence.data === evidenceAdd2, "wrong data in event2");
 
     // signer2 adding evidence should not wipe state for signer1
     const state2 = await verify.state(signer1.address);
