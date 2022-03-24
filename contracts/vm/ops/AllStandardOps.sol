@@ -14,9 +14,7 @@ import {ThisOps, THIS_OPS_LENGTH} from "./ThisOps.sol";
 import {TierOps, TIER_OPS_LENGTH} from "./TierOps.sol";
 
 uint256 constant ALL_STANDARD_OPS_START = RAIN_VM_OPS_LENGTH;
-uint256 constant BLOCK_OPS_START = ALL_STANDARD_OPS_START;
-uint256 constant FIXED_POINT_MATH_OPS_START = BLOCK_OPS_START +
-    BLOCK_OPS_LENGTH;
+uint256 constant FIXED_POINT_MATH_OPS_START = BLOCK_OPS_LENGTH;
 uint256 constant IERC20_OPS_START = FIXED_POINT_MATH_OPS_START +
     FIXED_POINT_MATH_OPS_LENGTH;
 uint256 constant IERC721_OPS_START = IERC20_OPS_START + IERC20_OPS_LENGTH;
@@ -38,7 +36,7 @@ library AllStandardOps {
     ) internal view {
         unchecked {
             if (opcode_ < FIXED_POINT_MATH_OPS_START) {
-                BlockOps.applyOp(state_, opcode_ - BLOCK_OPS_START, operand_);
+                BlockOps.applyOp(state_, opcode_, operand_);
             } else if (opcode_ < IERC20_OPS_START) {
                 FixedPointMathOps.applyOp(
                     state_,
