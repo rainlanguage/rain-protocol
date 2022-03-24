@@ -158,7 +158,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @param config_ Initialized configuration.
-    function initialize(RedeemableERC20Config memory config_)
+    function initialize(RedeemableERC20Config calldata config_)
         external
         initializer
     {
@@ -253,10 +253,10 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
     }
 
     /// The admin can forward or burn all tokens of a single address to end
-    /// `Phase.ZERO`.
-    /// The intent is that during `Phase.ZERO` there is some contract
+    /// `PHASE_DISTRIBUTING`.
+    /// The intent is that during `PHASE_DISTRIBUTING` there is some contract
     /// responsible for distributing the tokens.
-    /// The admin specifies the distributor to end `Phase.ZERO` and the
+    /// The admin specifies the distributor to end `PHASE_DISTRIBUTING` and the
     /// forwarding address set during initialization is used. If the forwarding
     /// address is `0` the rTKN will be burned, otherwise the entire balance of
     /// the distributor is forwarded to the nominated address. In practical

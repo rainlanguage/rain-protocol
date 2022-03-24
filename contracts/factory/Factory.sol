@@ -28,8 +28,7 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     function _createChild(bytes calldata data_)
         internal
         virtual
-        returns (address)
-    {} // solhint-disable-line no-empty-blocks
+        returns (address);
 
     /// Implements `IFactory`.
     ///
