@@ -4,12 +4,11 @@ pragma solidity =0.8.10;
 import {Cooldown} from "../../cooldown/Cooldown.sol";
 
 import "../../vm/RainVM.sol";
-import {IERC20Ops} from "../../vm/ops/IERC20Ops.sol";
-import {IERC721Ops} from "../../vm/ops/IERC721Ops.sol";
-import {IERC1155Ops} from "../../vm/ops/IERC1155Ops.sol";
+import {IERC20Ops, IERC20_OPS_LENGTH} from "../../vm/ops/IERC20Ops.sol";
+import {IERC721Ops, IERC721_OPS_LENGTH} from "../../vm/ops/IERC721Ops.sol";
+import {IERC1155Ops, IERC1155_OPS_LENGTH} from "../../vm/ops/IERC1155Ops.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
 
 contract TokenOpsTest is RainVM, VMState {
     uint256 private immutable ierc20OpsStart;
@@ -19,8 +18,8 @@ contract TokenOpsTest is RainVM, VMState {
 
     constructor(StateConfig memory config_) {
         ierc20OpsStart = RAIN_VM_OPS_LENGTH;
-        ierc721OpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
-        ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
+        ierc721OpsStart = ierc20OpsStart + IERC20_OPS_LENGTH;
+        ierc1155OpsStart = ierc721OpsStart + IERC721_OPS_LENGTH;
 
         vmStatePointer = _snapshot(_newState(config_));
     }
@@ -34,9 +33,11 @@ contract TokenOpsTest is RainVM, VMState {
 
     /// Wraps `runState` and returns top `length_` values on the stack.
     /// @return top `length_` values on `runState` stack.
-    function runLength(
-        uint256 length_
-    ) external view returns (uint256[] memory) {
+    function runLength(uint256 length_)
+        external
+        view
+        returns (uint256[] memory)
+    {
         State memory state_ = runState();
 
         uint256[] memory stackArray = new uint256[](length_);
@@ -65,17 +66,9 @@ contract TokenOpsTest is RainVM, VMState {
     ) internal view override {
         unchecked {
             if (opcode_ < ierc721OpsStart) {
-                IERC20Ops.applyOp(
-                    state_,
-                    opcode_ - ierc20OpsStart,
-                    operand_
-                );
+                IERC20Ops.applyOp(state_, opcode_ - ierc20OpsStart, operand_);
             } else if (opcode_ < ierc1155OpsStart) {
-                IERC721Ops.applyOp(
-                    state_,
-                    opcode_ - ierc721OpsStart,
-                    operand_
-                );
+                IERC721Ops.applyOp(state_, opcode_ - ierc721OpsStart, operand_);
             } else {
                 IERC1155Ops.applyOp(
                     state_,

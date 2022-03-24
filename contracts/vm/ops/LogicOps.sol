@@ -3,21 +3,21 @@ pragma solidity =0.8.10;
 
 import {State} from "../RainVM.sol";
 
+/// @dev Number of provided opcodes for `LogicOps`.
+/// The opcodes are NOT listed on the library as they are all internal to
+/// the assembly and yul doesn't seem to support using solidity constants
+/// as switch case values.
+uint256 constant LOGIC_OPS_LENGTH = 7;
+
 /// @title LogicOps
 /// @notice RainVM opcode pack to perform some basic logic operations.
 library LogicOps {
-    /// Number of provided opcodes for `LogicOps`.
-    /// The opcodes are NOT listed on the library as they are all internal to
-    /// the assembly and yul doesn't seem to support using solidity constants
-    /// as switch case values.
-    uint256 internal constant OPS_LENGTH = 7;
-
     function applyOp(
         State memory state_,
         uint256 opcode_,
         uint256 operand_
     ) internal pure {
-        require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
+        require(opcode_ < LOGIC_OPS_LENGTH, "MAX_OPCODE");
         assembly {
             let stackIndex_ := mload(state_)
             // This is the start of the stack, adjusted for the leading length
@@ -115,7 +115,6 @@ library LogicOps {
                             mstore(location_, 0)
                         }
                     }
-
                 }
             }
             // ANY
