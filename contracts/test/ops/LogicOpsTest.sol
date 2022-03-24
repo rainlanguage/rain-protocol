@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {RainVM, State} from "../../vm/RainVM.sol";
+import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../../vm/RainVM.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import {LogicOps} from "../../vm/ops/LogicOps.sol";
 
@@ -17,24 +17,19 @@ contract LogicOpsTest is RainVM, VMState {
         /// imported libraries and contracts. These are calculated at
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
-        logicOpsStart = RainVM.OPS_LENGTH;
+        logicOpsStart = RAIN_VM_OPS_LENGTH;
         vmStatePointer = _snapshot(_newState(config_));
     }
 
     /// @inheritdoc RainVM
     function applyOp(
-        bytes memory context_,
+        bytes memory,
         State memory state_,
         uint256 opcode_,
         uint256 operand_
     ) internal view override {
         unchecked {
-            LogicOps.applyOp(
-                context_,
-                state_,
-                opcode_ - logicOpsStart,
-                operand_
-            );
+            LogicOps.applyOp(state_, opcode_ - logicOpsStart, operand_);
         }
     }
 

@@ -16,7 +16,6 @@ library IERC1155Ops {
     uint256 internal constant OPS_LENGTH = 2;
 
     function applyOp(
-        bytes memory,
         State memory state_,
         uint256 opcode_,
         uint256 operand_

@@ -18,7 +18,7 @@ contract TokenOpsTest is RainVM, VMState {
     address private immutable vmStatePointer;
 
     constructor(StateConfig memory config_) {
-        ierc20OpsStart = RainVM.OPS_LENGTH;
+        ierc20OpsStart = RAIN_VM_OPS_LENGTH;
         ierc721OpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
         ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
 
@@ -58,7 +58,7 @@ contract TokenOpsTest is RainVM, VMState {
 
     /// @inheritdoc RainVM
     function applyOp(
-        bytes memory context_,
+        bytes memory,
         State memory state_,
         uint256 opcode_,
         uint256 operand_
@@ -66,21 +66,18 @@ contract TokenOpsTest is RainVM, VMState {
         unchecked {
             if (opcode_ < ierc721OpsStart) {
                 IERC20Ops.applyOp(
-                    context_,
                     state_,
                     opcode_ - ierc20OpsStart,
                     operand_
                 );
             } else if (opcode_ < ierc1155OpsStart) {
                 IERC721Ops.applyOp(
-                    context_,
                     state_,
                     opcode_ - ierc721OpsStart,
                     operand_
                 );
             } else {
                 IERC1155Ops.applyOp(
-                    context_,
                     state_,
                     opcode_ - ierc1155OpsStart,
                     operand_

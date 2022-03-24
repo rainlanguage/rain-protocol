@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {RainVM, State} from "../vm/RainVM.sol";
+import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {BlockOps} from "../vm/ops/BlockOps.sol";
+import {BlockOps, BLOCK_OPS_LENGTH} from "../vm/ops/BlockOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
 
 /// @title CalculatorTest
@@ -19,14 +19,14 @@ contract CalculatorTest is RainVM, VMState {
         /// imported libraries and contracts. These are calculated at
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
-        blockOpsStart = RainVM.OPS_LENGTH;
-        mathOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
+        blockOpsStart = RAIN_VM_OPS_LENGTH;
+        mathOpsStart = blockOpsStart + BLOCK_OPS_LENGTH;
         vmStatePointer = _snapshot(_newState(config_));
     }
 
     /// @inheritdoc RainVM
     function applyOp(
-        bytes memory context_,
+        bytes memory,
         State memory state_,
         uint256 opcode_,
         uint256 operand_
@@ -34,14 +34,12 @@ contract CalculatorTest is RainVM, VMState {
         unchecked {
             if (opcode_ < mathOpsStart) {
                 BlockOps.applyOp(
-                    context_,
                     state_,
                     opcode_ - blockOpsStart,
                     operand_
                 );
             } else {
                 MathOps.applyOp(
-                    context_,
                     state_,
                     opcode_ - mathOpsStart,
                     operand_

@@ -29,6 +29,9 @@ struct State {
     uint256[] arguments;
 }
 
+/// @dev Number of provided opcodes for `RainVM`.
+uint256 constant RAIN_VM_OPS_LENGTH = 5;
+
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
 /// Libraries and contracts map opcodes to `view` functionality then RainVM
@@ -111,8 +114,7 @@ abstract contract RainVM {
     uint256 private constant OP_ZIPMAP = 3;
     /// `4` ABI encodes the entire stack and logs it to the hardhat console.
     uint256 private constant OP_DEBUG = 4;
-    /// Number of provided opcodes for `RainVM`.
-    uint256 internal constant OPS_LENGTH = 5;
+
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -249,7 +251,7 @@ abstract contract RainVM {
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
                 }
-                if (opcode_ < OPS_LENGTH) {
+                if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ == OP_VAL) {
                         assembly {
                             let location_ := argumentsLocation_

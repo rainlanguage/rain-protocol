@@ -13,7 +13,6 @@ library LogicOps {
     uint256 internal constant OPS_LENGTH = 7;
 
     function applyOp(
-        bytes memory,
         State memory state_,
         uint256 opcode_,
         uint256 operand_
