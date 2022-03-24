@@ -10,6 +10,7 @@ import type {
   RequestRemoveEvent,
   Verify,
 } from "../../typechain/Verify";
+import type { VerifyCallbackTest } from "../../typechain/VerifyCallbackTest";
 import { max_uint32 } from "../Util";
 import { hexlify } from "ethers/lib/utils";
 
@@ -38,6 +39,149 @@ const BANNER_ADMIN = ethers.utils.keccak256(
 const BANNER = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("BANNER"));
 
 describe("Verify", async function () {
+  it("should trigger verify callback contract hooks after adding, approving, banning and removing", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const defaultAdmin = signers[0];
+    // admins
+    const aprAdmin = signers[1];
+    const rmvAdmin = signers[2];
+    const banAdmin = signers[3];
+    // verifiers
+    const approver = signers[4];
+    const remover = signers[5];
+    const banner = signers[6];
+    // other signers
+    const signer1 = signers[7];
+
+    const verifyCallback = (await Util.basicDeploy(
+      "VerifyCallbackTest",
+      {}
+    )) as VerifyCallbackTest;
+
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: verifyCallback.address,
+    })) as Verify;
+
+    // defaultAdmin grants admin roles
+    await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
+    await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
+
+    // defaultAdmin leaves. This removes a big risk
+    await verify.renounceRole(
+      await verify.APPROVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.REMOVER_ADMIN(),
+      defaultAdmin.address
+    );
+    await verify.renounceRole(
+      await verify.BANNER_ADMIN(),
+      defaultAdmin.address
+    );
+
+    // admins grant verifiers roles
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), approver.address);
+    await verify
+      .connect(rmvAdmin)
+      .grantRole(await verify.REMOVER(), remover.address);
+    await verify
+      .connect(banAdmin)
+      .grantRole(await verify.BANNER(), banner.address);
+
+    const badEvidenceAdd = hexlify([...Buffer.from("Bad")]);
+    const badEvidenceApprove = hexlify([...Buffer.from("Bad")]);
+    const badEvidenceBan = hexlify([...Buffer.from("Bad")]);
+    const badEvidenceRemove = hexlify([...Buffer.from("Bad")]);
+
+    const goodEvidenceAdd = hexlify([...Buffer.from("Good")]);
+    const goodEvidenceApprove = hexlify([...Buffer.from("Good")]);
+    const goodEvidenceBan = hexlify([...Buffer.from("Good")]);
+    const goodEvidenceRemove = hexlify([...Buffer.from("Good")]);
+
+    // add account
+    await Util.assertError(
+      async () => await verify.connect(signer1).add(badEvidenceAdd),
+      "BAD_EVIDENCE",
+      "afterAdd hook did not require Good evidence"
+    );
+    await verify.connect(signer1).add(goodEvidenceAdd);
+    await Util.assertError(
+      async () => await verify.connect(signer1).add(goodEvidenceAdd),
+      "PRIOR_ADD",
+      "afterAdd hook did not prevent 2nd add"
+    );
+
+    // approve account
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(approver)
+          .approve([{ account: signer1.address, data: badEvidenceApprove }]),
+      "BAD_EVIDENCE",
+      "afterApprove hook did not require Good evidence"
+    );
+    await verify
+      .connect(approver)
+      .approve([{ account: signer1.address, data: goodEvidenceApprove }]);
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(approver)
+          .approve([{ account: signer1.address, data: goodEvidenceApprove }]),
+      "PRIOR_APPROVE",
+      "afterApprove hook did not prevent 2nd approval"
+    );
+
+    // ban account
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(banner)
+          .ban([{ account: signer1.address, data: badEvidenceBan }]),
+      "BAD_EVIDENCE",
+      "afterBan hook did not require Good evidence"
+    );
+    await verify
+      .connect(banner)
+      .ban([{ account: signer1.address, data: goodEvidenceBan }]);
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(banner)
+          .ban([{ account: signer1.address, data: goodEvidenceBan }]),
+      "PRIOR_BAN",
+      "afterBan hook did not prevent 2nd ban"
+    );
+
+    // remove account
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(remover)
+          .remove([{ account: signer1.address, data: badEvidenceRemove }]),
+      "BAD_EVIDENCE",
+      "afterRemove hook did not require Good evidence"
+    );
+    await verify
+      .connect(remover)
+      .remove([{ account: signer1.address, data: goodEvidenceRemove }]);
+    await Util.assertError(
+      async () =>
+        await verify
+          .connect(remover)
+          .remove([{ account: signer1.address, data: goodEvidenceRemove }]),
+      "PRIOR_REMOVE",
+      "afterRemove hook did not prevent 2nd remove"
+    );
+  });
+
   it("should allow anyone to submit data to support a request to ban an account", async function () {
     this.timeout(0);
 
@@ -55,13 +199,10 @@ describe("Verify", async function () {
     const signer1 = signers[7];
     const signer2 = signers[8];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -158,13 +299,10 @@ describe("Verify", async function () {
     const signer1 = signers[7];
     const signer2 = signers[8];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -262,13 +400,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -341,13 +476,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -420,13 +552,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -495,13 +624,10 @@ describe("Verify", async function () {
     const rmvAdmin1 = signers[5];
     const banAdmin1 = signers[6];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
@@ -544,13 +670,10 @@ describe("Verify", async function () {
     const rmvAdmin1 = signers[5];
     const banAdmin1 = signers[6];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
@@ -631,13 +754,10 @@ describe("Verify", async function () {
     const remover = signers[5];
     const banner = signers[6];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -686,13 +806,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -838,13 +955,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -938,7 +1052,11 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
 
     await Util.assertError(
-      async () => await Util.verifyDeploy(signers[0], { admin: Util.zeroAddress, callback: Util.zeroAddress }),
+      async () =>
+        await Util.verifyDeploy(signers[0], {
+          admin: Util.zeroAddress,
+          callback: Util.zeroAddress,
+        }),
       "0_ACCOUNT",
       "wrongly constructed Verify with admin as zero address"
     );
@@ -960,13 +1078,10 @@ describe("Verify", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -1130,13 +1245,10 @@ describe("Verify", async function () {
     const signers = await ethers.getSigners();
     const defaultAdmin = signers[0];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     assert(
       (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
@@ -1165,13 +1277,10 @@ describe("Verify", async function () {
     const signer1 = signers[1];
     const signer2 = signers[2];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add0")]);
 
@@ -1242,13 +1351,10 @@ describe("Verify", async function () {
     const approver = signers[3];
     const nonApprover = signers[4];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -1332,13 +1438,10 @@ describe("Verify", async function () {
     const approver = signers[3];
     const nonApprover = signers[4];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -1430,13 +1533,10 @@ describe("Verify", async function () {
     const remover = signers[3];
     const nonRemover = signers[4];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin.address);
@@ -1516,13 +1616,10 @@ describe("Verify", async function () {
     const banner = signers[3];
     const nonBanner = signers[4];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: defaultAdmin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: defaultAdmin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify;
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
