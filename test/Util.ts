@@ -237,8 +237,10 @@ export const fourZeros = "0000";
 export const sixZeros = "000000";
 export const nineZeros = "000000000";
 export const tenZeros = "0000000000";
+export const sixteenZeros = "0000000000000000";
 
 export const ONE = ethers.BigNumber.from("1" + eighteenZeros);
+export const RESERVE_ONE = ethers.BigNumber.from("1" + sixZeros);
 
 export const RESERVE_MIN_BALANCE = ethers.BigNumber.from("1" + sixZeros);
 
@@ -399,11 +401,11 @@ export const redeemableERC20Deploy = async (
     "implementation redeemableERC20 factory zero address"
   );
 
-  const tx = await redeemableERC20Factory.createChildTyped(config);
+  const txDeploy = await redeemableERC20Factory.createChildTyped(config);
   const redeemableERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", redeemableERC20Factory)).child
+        (await getEventArgs(txDeploy, "NewChild", redeemableERC20Factory)).child
       ),
       20
     ),
@@ -412,6 +414,10 @@ export const redeemableERC20Deploy = async (
   ) as RedeemableERC20 & Contract;
 
   await redeemableERC20.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  redeemableERC20.deployTransaction = txDeploy;
 
   return redeemableERC20;
 };
@@ -437,11 +443,11 @@ export const seedERC20Deploy = async (
     "implementation seedERC20 factory zero address"
   );
 
-  const tx = await seedERC20Factory.createChildTyped(config);
+  const txDeploy = await seedERC20Factory.createChildTyped(config);
   const seedERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", seedERC20Factory)).child
+        (await getEventArgs(txDeploy, "NewChild", seedERC20Factory)).child
       ),
       20
     ),
@@ -451,7 +457,11 @@ export const seedERC20Deploy = async (
 
   await seedERC20.deployed();
 
-  return [seedERC20, tx];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  seedERC20.deployTransaction = txDeploy;
+
+  return [seedERC20, txDeploy];
 };
 
 export const trustDeploy = async (
@@ -531,13 +541,16 @@ export function tierReport(report: string): number[] {
   return parsedReport;
 }
 
-export function blockNumbersToReport(blockNos: number[]): string {
+export function blockNumbersToReport(blockNos: number[]): BigNumber {
   assert(blockNos.length === 8);
 
-  return [...blockNos]
-    .reverse()
-    .map((i) => BigInt(i).toString(16).padStart(8, "0"))
-    .join("");
+  return ethers.BigNumber.from(
+    "0x" +
+      [...blockNos]
+        .reverse()
+        .map((i) => BigInt(i).toString(16).padStart(8, "0"))
+        .join("")
+  );
 }
 
 /**
@@ -623,7 +636,10 @@ export function skip(places: number, conditional = false): number {
  * @param code - the opcode
  * @param erand - the operand, currently limited to 1 byte (defaults to 0)
  */
-export function op(code: number, erand = 0): Uint8Array {
+export function op(
+  code: number,
+  erand: number | BytesLike | Hexable = 0
+): Uint8Array {
   return concat([bytify(code), bytify(erand)]);
 }
 

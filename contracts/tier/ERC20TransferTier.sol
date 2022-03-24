@@ -11,12 +11,12 @@ import {TierReport} from "./libraries/TierReport.sol";
 import {ValueTier} from "./ValueTier.sol";
 import "./ReadWriteTier.sol";
 
+/// @param erc20_ The erc20 token contract to transfer balances
+/// from/to during `setTier`.
+/// @param tierValues_ 8 values corresponding to minimum erc20
+/// balances for tiers ONE through EIGHT.
 struct ERC20TransferTierConfig {
-    /// @param erc20_ The erc20 token contract to transfer balances
-    /// from/to during `setTier`.
     IERC20 erc20;
-    /// @param tierValues_ 8 values corresponding to minimum erc20
-    /// balances for tiers ONE through EIGHT.
     uint256[8] tierValues;
 }
 
@@ -64,10 +64,10 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier, Initializable {
     using SaturatingMath for uint256;
 
     /// Result of initialize.
+    /// @param sender `msg.sender` of the initialize.
+    /// @param erc20 erc20 to transfer.
     event Initialize(
-        /// `msg.sender` of the initialize.
         address sender,
-        /// erc20 to transfer.
         address erc20
     );
 

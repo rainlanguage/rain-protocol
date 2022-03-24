@@ -11,6 +11,7 @@ import {BlockOps} from "../vm/ops/BlockOps.sol";
 import {ThisOps} from "../vm/ops/ThisOps.sol";
 import {MathOps} from "../vm/ops/MathOps.sol";
 import {TierOps} from "../vm/ops/TierOps.sol";
+import {FixedPointMathOps} from "../vm/ops/FixedPointMathOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /// Constructor config.
@@ -41,6 +42,7 @@ struct EmissionsERC20Config {
 contract EmissionsERC20 is
     Initializable,
     RainVM,
+    VMState,
     ERC20Upgradeable,
     IClaim,
     ReadOnlyTier
@@ -63,10 +65,12 @@ contract EmissionsERC20 is
     uint256 private immutable blockOpsStart;
     /// @dev local offest for this ops.
     uint256 private immutable thisOpsStart;
-    /// @dev local offset for math ops.
-    uint256 private immutable mathOpsStart;
     /// @dev local offset for tier ops.
     uint256 private immutable tierOpsStart;
+    /// @dev local offset for math ops.
+    uint256 private immutable mathOpsStart;
+    /// @dev local offset for fixed point math ops.
+    uint private immutable fixedPointMathOpsStart;
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
 
@@ -104,9 +108,10 @@ contract EmissionsERC20 is
         /// added/removed and potentially breaking the offsets here.
         blockOpsStart = RainVM.OPS_LENGTH;
         thisOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
-        mathOpsStart = thisOpsStart + ThisOps.OPS_LENGTH;
-        tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
-        localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        tierOpsStart = thisOpsStart + ThisOps.OPS_LENGTH;
+        mathOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        fixedPointMathOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
+        localOpsStart = fixedPointMathOpsStart + FixedPointMathOps.OPS_LENGTH;
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
@@ -120,8 +125,8 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = VMState.snapshot(
-            VMState.newState(config_.vmStateConfig)
+        vmStatePointer = _snapshot(
+            _newState(config_.vmStateConfig)
         );
 
         /// Log some deploy state for use by claim/opcodes.
@@ -146,14 +151,21 @@ contract EmissionsERC20 is
                     opcode_ - blockOpsStart,
                     operand_
                 );
-            } else if (opcode_ < mathOpsStart) {
+            } else if (opcode_ < tierOpsStart) {
                 ThisOps.applyOp(
                     context_,
                     state_,
                     opcode_ - thisOpsStart,
                     operand_
                 );
-            } else if (opcode_ < tierOpsStart) {
+            } else if (opcode_ < mathOpsStart) {
+                TierOps.applyOp(
+                    context_,
+                    state_,
+                    opcode_ - tierOpsStart,
+                    operand_
+                );
+            } else if (opcode_ < fixedPointMathOpsStart) {
                 MathOps.applyOp(
                     context_,
                     state_,
@@ -161,10 +173,10 @@ contract EmissionsERC20 is
                     operand_
                 );
             } else if (opcode_ < localOpsStart) {
-                TierOps.applyOp(
+                FixedPointMathOps.applyOp(
                     context_,
                     state_,
-                    opcode_ - tierOpsStart,
+                    opcode_ - fixedPointMathOpsStart,
                     operand_
                 );
             } else {
@@ -208,7 +220,7 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        State memory state_ = VMState.restore(vmStatePointer);
+        State memory state_ = _restore(vmStatePointer);
         eval(abi.encode(claimant_), state_, 0);
         return state_.stack[state_.stackIndex - 1];
     }

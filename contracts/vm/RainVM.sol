@@ -1,27 +1,31 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import "hardhat/console.sol";
+
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
 /// efficiency; the stack, arguments and stackIndex will likely be mutated by
 /// the running script.
+/// @param stackIndex Opcodes write to the stack at the stack index and can
+/// consume from the stack by decrementing the index and reading between the
+/// old and new stack index.
+/// IMPORANT: The stack is never zeroed out so the index must be used to
+/// find the "top" of the stack as the result of an `eval`.
+/// @param stack Stack is the general purpose runtime state that opcodes can
+/// read from and write to according to their functionality.
+/// @param sources Sources available to be executed by `eval`.
+/// Notably `ZIPMAP` can also select a source to execute by index.
+/// @param constants Constants that can be copied to the stack by index by
+/// `VAL`.
+/// @param arguments `ZIPMAP` populates arguments which can be copied to the
+/// stack by `VAL`.
 struct State {
-    /// Opcodes write to the stack at the stack index and can consume from the
-    /// stack by decrementing the index and reading between the old and new
-    /// stack index.
-    /// IMPORANT: The stack is never zeroed out so the index must be used to
-    /// find the "top" of the stack as the result of an `eval`.
     uint256 stackIndex;
-    /// Stack is the general purpose runtime state that opcodes can read from
-    /// and write to according to their functionality.
     uint256[] stack;
-    /// Sources available to be executed by `eval`.
-    /// Notably `ZIPMAP` can also select a source to execute by index.
     bytes[] sources;
-    /// Constants that can be copied to the stack by index by `VAL`.
     uint256[] constants;
-    /// `ZIPMAP` populates arguments which can be copied to the stack by `VAL`.
     uint256[] arguments;
 }
 
@@ -105,8 +109,10 @@ abstract contract RainVM {
     /// and maps a source from `sources` over them. The source has access to
     /// the original constants using `1 0` and to zipped arguments as `1 1`.
     uint256 private constant OP_ZIPMAP = 3;
+    /// `4` ABI encodes the entire stack and logs it to the hardhat console.
+    uint256 private constant OP_DEBUG = 4;
     /// Number of provided opcodes for `RainVM`.
-    uint256 internal constant OPS_LENGTH = 4;
+    uint256 internal constant OPS_LENGTH = 5;
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -289,6 +295,8 @@ abstract contract RainVM {
                         }
                     } else if (opcode_ == OP_ZIPMAP) {
                         zipmap(context_, state_, operand_);
+                    } else if (opcode_ == OP_DEBUG) {
+                        console.logBytes(abi.encode(state_));
                     } else {
                         // DEPRECATED! DON'T USE SKIP!
                         // if the high bit of the operand is nonzero then take

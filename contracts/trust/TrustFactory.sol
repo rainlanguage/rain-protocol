@@ -49,10 +49,9 @@ contract TrustFactory is Factory {
     /// parameters are already encoded.
     ///
     /// @param trustConfig_ Trust constructor configuration.
-    /// @param trustRedeemableERC20Config_ RedeemableERC20
-    /// constructor configuration.
-    /// @param trustSeedERC20Config_ SeedERC20
-    /// constructor configuration.
+    /// @param trustRedeemableERC20Config_ RedeemableERC20 constructor
+    /// configuration.
+    /// @param trustSeedERC20Config_ SeedERC20 constructor configuration.
     /// @return New Trust child contract address.
     function createChildTyped(
         TrustConfig calldata trustConfig_,

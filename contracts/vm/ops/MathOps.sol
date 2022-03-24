@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import {State} from "../RainVM.sol";
 
-/// @title BlockOps
+/// @title MathOps
 /// @notice RainVM opcode pack to perform basic checked math operations.
 /// Underflow and overflow will error as per default solidity behaviour.
 library MathOps {
@@ -33,12 +33,12 @@ library MathOps {
         uint256 operand_
     ) internal pure {
         require(opcode_ < OPS_LENGTH, "MAX_OPCODE");
+        uint256 baseIndex_;
         uint256 top_;
         unchecked {
+            baseIndex_ = state_.stackIndex - operand_;
             top_ = state_.stackIndex - 1;
-            state_.stackIndex -= operand_;
         }
-        uint256 baseIndex_ = state_.stackIndex;
         uint256 cursor_ = baseIndex_;
         uint256 accumulator_ = state_.stack[cursor_];
 
@@ -127,7 +127,7 @@ library MathOps {
 
         unchecked {
             state_.stack[baseIndex_] = accumulator_;
-            state_.stackIndex++;
+            state_.stackIndex = baseIndex_ + 1;
         }
     }
 }

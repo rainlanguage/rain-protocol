@@ -16,7 +16,7 @@ import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
 /// construction.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
-contract CombineTier is ReadOnlyTier, RainVM, Initializable {
+contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     /// @dev local opcode to put tier report account on the stack.
     uint256 private constant ACCOUNT = 0;
     /// @dev local opcodes length.
@@ -43,7 +43,7 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
     }
 
     function initialize(StateConfig memory config_) external initializer {
-        vmStatePointer = VMState.snapshot(VMState.newState(config_));
+        vmStatePointer = _snapshot(_newState(config_));
     }
 
     /// @inheritdoc RainVM
@@ -90,7 +90,7 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
         override
         returns (uint256)
     {
-        State memory state_ = VMState.restore(vmStatePointer);
+        State memory state_ = _restore(vmStatePointer);
         eval(abi.encode(account_), state_, 0);
         return state_.stack[state_.stackIndex - 1];
     }
