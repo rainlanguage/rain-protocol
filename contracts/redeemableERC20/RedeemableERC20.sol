@@ -160,7 +160,7 @@ contract RedeemableERC20 is
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @param config_ Initialized configuration.
-    function initialize(RedeemableERC20Config memory config_)
+    function initialize(RedeemableERC20Config calldata config_)
         external
         initializer
     {
@@ -260,7 +260,7 @@ contract RedeemableERC20 is
     /// doesn't exist at that point. For example, Balancer needs the paired
     /// erc20 tokens to exist before the trading pool can be built.
     /// @param distributors_ The distributor according to the admin.
-    function burnDistributors(address[] memory distributors_)
+    function burnDistributors(address[] calldata distributors_)
         external
         onlyPhase(PHASE_DISTRIBUTING)
         onlyAdmin
