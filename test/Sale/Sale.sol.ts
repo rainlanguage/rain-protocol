@@ -100,6 +100,67 @@ describe("Sale", async function () {
     );
   });
 
+  it("should fail to initialize when deployer attempts to set a distributor", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const distributor = signers[2];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: distributor.address,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    await Util.assertError(
+      async () =>
+        await saleDeploy(
+          signers,
+          deployer,
+          saleFactory,
+          {
+            canStartStateConfig: afterBlockNumberConfig(startBlock),
+            canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+            calculatePriceStateConfig: {
+              sources,
+              constants,
+              stackLength: 1,
+              argumentsLength: 0,
+            },
+            recipient: recipient.address,
+            reserve: reserve.address,
+            cooldownDuration: 1,
+            minimumRaise,
+            dustSize: 0,
+          },
+          {
+            erc20Config: redeemableERC20Config,
+            tier: readWriteTier.address,
+            minimumTier: Tier.ZERO,
+            distributionEndForwardingAddress: ethers.constants.AddressZero,
+          }
+        ),
+      "DISTRIBUTOR_SET",
+      "did not alert deployer about setting custom distributor, since Sale will override this to automatically set the distributor to itself"
+    );
+  });
+
   it("should prevent reentrant buys", async function () {
     this.timeout(0);
 
