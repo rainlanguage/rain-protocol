@@ -25,7 +25,11 @@ import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { RedeemableERC20Unfreezable } from "../../typechain/RedeemableERC20Unfreezable";
 import { RedeemableERC20UnfreezableFactory } from "../../typechain/RedeemableERC20UnfreezableFactory";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { SaleWithUnfreezableToken } from "../../typechain/SaleWithUnfreezableToken";
+import {
+  SaleWithUnfreezableToken,
+  SaleConfigStruct as SaleWithUnfreezableTokenConfigStruct,
+  SaleRedeemableERC20ConfigStruct as SaleWithUnfreezableTokenRedeemableERC20ConfigStruct,
+} from "../../typechain/SaleWithUnfreezableToken";
 import { SaleWithUnfreezableTokenFactory } from "../../typechain/SaleWithUnfreezableTokenFactory";
 import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
 
@@ -62,8 +66,8 @@ const saleWithUnfreezableTokenDeploy = async (
   signers: SignerWithAddress[],
   deployer: SignerWithAddress,
   saleUnfreezableFactory: SaleWithUnfreezableTokenFactory & Contract,
-  config: SaleConfigStruct,
-  saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
+  config: SaleWithUnfreezableTokenConfigStruct,
+  saleRedeemableERC20Config: SaleWithUnfreezableTokenRedeemableERC20ConfigStruct,
   ...args
 ): Promise<
   [SaleWithUnfreezableToken & Contract, RedeemableERC20Unfreezable & Contract]
@@ -195,10 +199,9 @@ describe("SaleEscrow", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
-    const signer2 = signers[4];
-    const signer3 = signers[5];
+    const signer1 = signers[2];
+    const signer2 = signers[3];
+    const signer3 = signers[4];
 
     // Deploy global Claim contract
     const claimFactory = await ethers.getContractFactory(
@@ -221,11 +224,6 @@ describe("SaleEscrow", async function () {
     };
 
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
-
-    const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
-
-    const sources = [concat([vBasePrice])];
 
     const redeemableERC20UnfreezableFactoryFactory =
       await ethers.getContractFactory("RedeemableERC20UnfreezableFactory", {});
@@ -254,24 +252,12 @@ describe("SaleEscrow", async function () {
         deployer,
         saleUnfreezableFactory,
         {
-          canStartStateConfig: afterBlockNumberConfig(startBlock),
-          canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-          calculatePriceStateConfig: {
-            sources,
-            constants,
-            stackLength: 1,
-            argumentsLength: 0,
-          },
           recipient: recipient.address,
           reserve: reserve.address,
-          cooldownDuration: 1,
           minimumRaise,
-          dustSize: 0,
         },
         {
           erc20Config: redeemableERC20Config,
-          tier: readWriteTier.address,
-          minimumTier: Tier.ZERO,
           distributionEndForwardingAddress: ethers.constants.AddressZero,
         }
       );
@@ -303,19 +289,15 @@ describe("SaleEscrow", async function () {
 
     // buy redeemable tokens during sale
     await saleWithUnfreezableToken.connect(signer1).buy({
-      feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: desiredUnits,
       desiredUnits,
-      maximumPrice: staticPrice,
     });
     // buy redeemable tokens during sale
     await saleWithUnfreezableToken.connect(signer2).buy({
-      feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: desiredUnits,
       desiredUnits,
-      maximumPrice: staticPrice,
     });
 
     // wait until sale can end
