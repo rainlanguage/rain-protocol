@@ -32,6 +32,7 @@ import {
 } from "../../typechain/SaleWithUnfreezableToken";
 import { SaleWithUnfreezableTokenFactory } from "../../typechain/SaleWithUnfreezableTokenFactory";
 import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
+import { SaleFactory } from "../../typechain/SaleFactory";
 
 const { assert } = chai;
 
@@ -60,7 +61,7 @@ let reserve: ReserveToken & Contract,
   readWriteTier: ReadWriteTier & Contract,
   saleConstructorConfig: SaleConstructorConfigStruct,
   saleFactoryFactory: ContractFactory,
-  saleUnfreezableFactory: SaleMutableAddressesTestFactory & Contract;
+  saleFactory: SaleFactory & Contract;
 
 const saleWithUnfreezableTokenDeploy = async (
   signers: SignerWithAddress[],
@@ -187,10 +188,10 @@ describe("SaleEscrow", async function () {
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-    saleUnfreezableFactory = (await saleFactoryFactory.deploy(
+    saleFactory = (await saleFactoryFactory.deploy(
       saleConstructorConfig
-    )) as SaleMutableAddressesTestFactory & Contract;
-    await saleUnfreezableFactory.deployed();
+    )) as SaleFactory & Contract;
+    await saleFactory.deployed();
   });
 
   it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else (in the case of failed Sale)", async function () {
@@ -701,7 +702,7 @@ describe("SaleEscrow", async function () {
     const [sale] = await saleDeploy(
       signers,
       deployer,
-      saleUnfreezableFactory,
+      saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
         canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
