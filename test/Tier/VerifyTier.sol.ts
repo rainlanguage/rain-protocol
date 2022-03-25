@@ -20,7 +20,10 @@ describe("VerifyTier", async function () {
 
     const verify = (await Util.verifyDeploy(
       signers[0],
-      admin.address
+      {
+        admin: admin.address,
+        callback: ethers.constants.AddressZero,
+      }
     )) as Verify & Contract;
 
     const verifyTier = (await Util.verifyTierDeploy(

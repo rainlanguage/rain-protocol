@@ -100,6 +100,67 @@ describe("Sale", async function () {
     );
   });
 
+  it("should fail to initialize when deployer attempts to set a distributor", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const distributor = signers[2];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: distributor.address,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    await Util.assertError(
+      async () =>
+        await saleDeploy(
+          signers,
+          deployer,
+          saleFactory,
+          {
+            canStartStateConfig: afterBlockNumberConfig(startBlock),
+            canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+            calculatePriceStateConfig: {
+              sources,
+              constants,
+              stackLength: 1,
+              argumentsLength: 0,
+            },
+            recipient: recipient.address,
+            reserve: reserve.address,
+            cooldownDuration: 1,
+            minimumRaise,
+            dustSize: 0,
+          },
+          {
+            erc20Config: redeemableERC20Config,
+            tier: readWriteTier.address,
+            minimumTier: Tier.ZERO,
+            distributionEndForwardingAddress: ethers.constants.AddressZero,
+          }
+        ),
+      "DISTRIBUTOR_SET",
+      "did not alert deployer about setting custom distributor, since Sale will override this to automatically set the distributor to itself"
+    );
+  });
+
   it("should prevent reentrant buys", async function () {
     this.timeout(0);
 
@@ -521,12 +582,12 @@ describe("Sale", async function () {
         await sale
           .connect(signer1)
           .refund({ ...receipt, units: receipt.units.add(1) }),
-      "INVALID_RECEIPT",
+      "reverted with panic code 0x11",
       "wrongly allowed accepted receipt with modified units for refund request"
     );
     await Util.assertError(
       async () => await sale.connect(signer1).refund({ ...receipt, fee: 0 }),
-      "INVALID_RECEIPT",
+      "reverted with panic code 0x11",
       "wrongly allowed accepted receipt with modified fee for refund request"
     );
     await Util.assertError(
@@ -534,7 +595,7 @@ describe("Sale", async function () {
         await sale
           .connect(signer1)
           .refund({ ...receipt, price: receipt.price.mul(2) }),
-      "INVALID_RECEIPT",
+      "reverted with panic code 0x11",
       "wrongly allowed accepted receipt with modified price for refund request"
     );
   });
@@ -668,12 +729,12 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund(receipt2),
-      "INVALID_RECEIPT",
+      "reverted with panic code 0x11",
       "wrongly allowed signer1 to use signer2's receipt for refund"
     );
     await Util.assertError(
       async () => await sale.connect(signer2).refund(receipt1),
-      "INVALID_RECEIPT",
+      "reverted with panic code 0x11",
       "wrongly allowed signer2 to use signer1's receipt for refund"
     );
   });
@@ -792,7 +853,7 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund(receipt),
-      "INVALID_RECEIPT",
+      "reverted with panic code 0x11",
       "wrongly allowed same receipt to be used twice for refund"
     );
   });
@@ -2534,7 +2595,7 @@ describe("Sale", async function () {
       .connect(signer1)
       .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
 
-    const initialBalance = await reserve.balanceOf(signer1.address)
+    const initialBalance = await reserve.balanceOf(signer1.address);
 
     // buy _some_ units; insufficient raise amount
     const txBuy = await sale.connect(signer1).buy({
@@ -2587,16 +2648,16 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund({ ...receipt, id: 123 }),
-      "INVALID_RECEIPT",
+      "reverted with panic code 0x11",
       "wrongly processed refund with invalid receipt"
     );
 
-    const balanceBeforeRefund = await reserve.balanceOf(signer1.address)
+    const balanceBeforeRefund = await reserve.balanceOf(signer1.address);
 
     // signer1 gets refund
     const refundTx = await sale.connect(signer1).refund(receipt);
 
-    const balanceAfterRefund = await reserve.balanceOf(signer1.address)
+    const balanceAfterRefund = await reserve.balanceOf(signer1.address);
 
     const { sender, receipt: eventReceipt } = (await Util.getEventArgs(
       refundTx,
@@ -2604,7 +2665,10 @@ describe("Sale", async function () {
       sale
     )) as RefundEvent["args"];
 
-    assert(balanceAfterRefund.sub(balanceBeforeRefund).eq(initialBalance), "wrong refund amount")
+    assert(
+      balanceAfterRefund.sub(balanceBeforeRefund).eq(initialBalance),
+      "wrong refund amount"
+    );
     assert(sender === signer1.address, "wrong sender in Refund event");
     assert(
       JSON.stringify(eventReceipt) === JSON.stringify(receipt),
@@ -2613,9 +2677,9 @@ describe("Sale", async function () {
 
     await Util.assertError(
       async () => await sale.connect(signer1).refund(receipt),
-      "INVALID_RECEIPT",
-      "sender1 refunded same receipt twice",
-    )
+      "reverted with panic code 0x11",
+      "sender1 refunded same receipt twice"
+    );
   });
 
   it("should allow fees recipient to claim fees on successful raise", async function () {
