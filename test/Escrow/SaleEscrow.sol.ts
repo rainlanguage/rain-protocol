@@ -289,7 +289,7 @@ describe("SaleEscrow", async function () {
       .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
     // give signer2 reserve to cover cost + fee
     await reserve.transfer(signer2.address, cost.add(fee));
-    const signer2ReserveBalance = await reserve.balanceOf(signer2.address);
+
     await reserve
       .connect(signer2)
       .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
