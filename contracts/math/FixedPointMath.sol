@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+/// @dev The scale of all fixed point math. This is adopting the conventions of
+/// both ETH (wei) and most ERC20 tokens, so is hopefully uncontroversial.
+uint256 constant FP_DECIMALS = 18;
+/// @dev The number `1` in the standard fixed point math scaling. Most of the
+/// differences between fixed point math and regular math is multiplying or
+/// dividing by `ONE` after the appropriate scaling has been applied.
+uint256 constant FP_ONE = 10**FP_DECIMALS;
+
 /// @title FixedPointMath
 /// @notice Sometimes we want to do math with decimal values but all we have
 /// are integers, typically uint256 integers. Floats are very complex so we
@@ -8,9 +16,6 @@ pragma solidity =0.8.10;
 /// "one" as 10 ** 18 and scale everything up/down to this as fixed point math.
 /// Overflows are errors as per Solidity.
 library FixedPointMath {
-    uint256 public constant DECIMALS = 18;
-    uint256 public constant ONE = 10**DECIMALS;
-
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
     /// @param a_ Some fixed point decimal value.
     /// @param aDecimals_ The number of fixed decimals of `a_`.
@@ -20,12 +25,12 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
-        if (DECIMALS == aDecimals_) {
+        if (FP_DECIMALS == aDecimals_) {
             return a_;
-        } else if (DECIMALS > aDecimals_) {
-            return a_ * 10**(DECIMALS - aDecimals_);
+        } else if (FP_DECIMALS > aDecimals_) {
+            return a_ * 10**(FP_DECIMALS - aDecimals_);
         } else {
-            return a_ / 10**(aDecimals_ - DECIMALS);
+            return a_ / 10**(aDecimals_ - FP_DECIMALS);
         }
     }
 
@@ -38,12 +43,12 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
-        if (targetDecimals_ == DECIMALS) {
+        if (targetDecimals_ == FP_DECIMALS) {
             return a_;
-        } else if (DECIMALS > targetDecimals_) {
-            return a_ / 10**(DECIMALS - targetDecimals_);
+        } else if (FP_DECIMALS > targetDecimals_) {
+            return a_ / 10**(FP_DECIMALS - targetDecimals_);
         } else {
-            return a_ * 10**(targetDecimals_ - DECIMALS);
+            return a_ * 10**(targetDecimals_ - FP_DECIMALS);
         }
     }
 
@@ -79,7 +84,7 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
-        return (a_ * b_) / ONE;
+        return (a_ * b_) / FP_ONE;
     }
 
     /// Fixed point division in native scale decimals.
@@ -92,6 +97,6 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
-        return (a_ * ONE) / b_;
+        return (a_ * FP_ONE) / b_;
     }
 }

@@ -67,10 +67,10 @@ library FixedPointMathOps {
                 }
             } else {
                 if (opcode_ == ONE) {
-                    state_.stack[state_.stackIndex] = FixedPointMath.ONE;
+                    state_.stack[state_.stackIndex] = FP_ONE;
                     state_.stackIndex++;
                 } else if (opcode_ == DECIMALS) {
-                    state_.stack[state_.stackIndex] = FixedPointMath.DECIMALS;
+                    state_.stack[state_.stackIndex] = FP_DECIMALS;
                     state_.stackIndex++;
                 }
             }
