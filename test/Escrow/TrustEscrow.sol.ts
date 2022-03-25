@@ -434,7 +434,7 @@ describe("TrustEscrow", async function () {
     assert(trustEscrowStatus3 === EscrowStatus.Success);
   });
 
-  it("should prevent 'malicious' trust contract from modifying crp address", async function () {
+  it("should prevent 'malicious' trust contract from modifying reserve, token and crp addresses", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();

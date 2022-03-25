@@ -33,8 +33,6 @@ contract RedeemableERC20Unfreezable is Initializable, Phased, ERC20Redeem, ERC20
 
     mapping(address => uint256) private access;
 
-    uint256 private constant MINIMUM_INITIAL_SUPPLY = 10**18;
-
     address private distributionEndForwardingAddress;
 
     function initialize(RedeemableERC20Config memory config_)
@@ -48,10 +46,6 @@ contract RedeemableERC20Unfreezable is Initializable, Phased, ERC20Redeem, ERC20
             ERC20PullConfig(config_.erc20Config.distributor, config_.reserve)
         );
 
-        require(
-            config_.erc20Config.initialSupply >= MINIMUM_INITIAL_SUPPLY,
-            "MINIMUM_INITIAL_SUPPLY"
-        );
         distributionEndForwardingAddress = config_
             .distributionEndForwardingAddress;
 
@@ -119,8 +113,6 @@ contract RedeemableERC20Unfreezable is Initializable, Phased, ERC20Redeem, ERC20
         uint256 amount_
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
-
-        require(receiver_ != address(this), "TOKEN_SEND_SELF");
 
         uint256 currentPhase_ = currentPhase();
 

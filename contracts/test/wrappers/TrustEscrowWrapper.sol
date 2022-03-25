@@ -5,9 +5,9 @@ pragma solidity ^0.8.10;
 import {TrustEscrow, EscrowStatus} from "../../escrow/TrustEscrow.sol";
 
 /// @title TrustEscrowWrapper
-/// Thin wrapper around the `TrustEscrow` contract with
-/// accessors to facilitate hardhat unit testing of `internal` functions
-/// and variables.
+/// Thin wrapper around the `TrustEscrow` contract (and, implicitly, also
+/// `TrustMutableAddressesTest`) with accessors to facilitate hardhat unit
+/// testing of `internal` functions and variables.
 contract TrustEscrowWrapper is TrustEscrow {
     function getReserve(address trust_) external view returns (address) {
         return reserves[trust_];

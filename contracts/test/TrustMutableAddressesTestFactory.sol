@@ -26,22 +26,11 @@ import {BPoolFeeEscrow} from "../escrow/BPoolFeeEscrow.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 
 /// @title TrustMutableAddressesTestFactory
-/// @notice The `TrustMutableAddressesTestFactory` contract is the only
-/// contract that the deployer uses to deploy all contracts for a single project
-/// fundraising event. It takes references to
-/// `RedeemableERC20Factory`, `RedeemableERC20PoolFactory` and
-/// `SeedERC20Factory` contracts, and builds a new `Trust` contract.
-/// @dev Factory for creating and registering new Trust contracts.
 contract TrustMutableAddressesTestFactory is Factory {
     using SafeERC20 for RedeemableERC20;
 
-    /// Template contract to clone.
-    /// Deployed by the constructor.
     address private immutable implementation;
 
-    /// Build the reference implementation to clone for each child.
-    /// @param config_ All configuration for the
-    /// `TrustMutableAddressesTestFactory`.
     constructor(TrustConstructionConfig memory config_) {
         address implementation_ =
             address(new TrustMutableAddressesTest(config_));
@@ -51,17 +40,6 @@ contract TrustMutableAddressesTestFactory is Factory {
         implementation = implementation_;
     }
 
-    /// Allows calling `createChild` with TrustConfig,
-    /// TrustRedeemableERC20Config and
-    /// TrustRedeemableERC20PoolConfig parameters.
-    /// Can use original Factory `createChild` function signature if function
-    /// parameters are already encoded.
-    ///
-    /// @param trustConfig_ Trust constructor configuration.
-    /// @param trustRedeemableERC20Config_ RedeemableERC20 constructor
-    /// configuration.
-    /// @param trustSeedERC20Config_ SeedERC20 constructor configuration.
-    /// @return New Trust child contract address.
     function createChildTyped(
         TrustConfig calldata trustConfig_,
         TrustRedeemableERC20Config calldata trustRedeemableERC20Config_,
@@ -88,19 +66,17 @@ contract TrustMutableAddressesTestFactory is Factory {
     {
         (
             TrustConfig memory trustConfig_,
-            TrustRedeemableERC20Config memory trustRedeemableERC20Config_,
-            TrustSeedERC20Config memory trustSeedERC20Config_
+            TrustRedeemableERC20Config memory trustRedeemableERC20Config_
         ) = abi.decode(
                 data_,
-                (TrustConfig, TrustRedeemableERC20Config, TrustSeedERC20Config)
+                (TrustConfig, TrustRedeemableERC20Config)
             );
 
         address clone_ = Clones.clone(implementation);
 
         TrustMutableAddressesTest(clone_).initialize(
             trustConfig_,
-            trustRedeemableERC20Config_,
-            trustSeedERC20Config_
+            trustRedeemableERC20Config_
         );
 
         return clone_;
