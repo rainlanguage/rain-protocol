@@ -61,14 +61,18 @@ contract SaleWithUnfreezableToken is
         SaleConfig memory config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external initializer {
-        recipient = config_.recipient;
-
         minimumRaise = config_.minimumRaise;
+
+        recipient = config_.recipient;
 
         _saleStatus = SaleStatus.Pending;
 
         _reserve = config_.reserve;
+
         saleRedeemableERC20Config_.erc20Config.distributor = address(this);
+
+        remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
+
         RedeemableERC20Unfreezable token_ = RedeemableERC20Unfreezable(
             redeemableERC20Factory.createChild(
                 abi.encode(
@@ -82,8 +86,6 @@ contract SaleWithUnfreezableToken is
             )
         );
         _token = token_;
-
-        remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
     }
 
     /// @inheritdoc ISale
@@ -120,9 +122,7 @@ contract SaleWithUnfreezableToken is
     }
 
     function buy(BuyConfig memory config_) external {
-        uint256 units_ = config_.desiredUnits.min(remainingUnits).max(
-            config_.minimumUnits
-        );
+        uint256 units_ = config_.desiredUnits.min(remainingUnits);
 
         uint256 price_ = 75000000; // fixed price for testing
 
