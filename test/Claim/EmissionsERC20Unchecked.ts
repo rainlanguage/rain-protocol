@@ -4,43 +4,10 @@ import { ethers } from "hardhat";
 import * as claimUtil from "./ClaimUtil";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
+import { Opcode } from "./EmissionsERC20.sol";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { assert } = chai;
-
-const enum Opcode {
-  SKIP,
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  BLOCK_NUMBER,
-  BLOCK_TIMESTAMP,
-  THIS_ADDRESS,
-  REPORT,
-  NEVER,
-  ALWAYS,
-  SATURATING_DIFF,
-  UPDATE_BLOCKS_FOR_TIER_RANGE,
-  SELECT_LTE,
-  ADD,
-  SUB,
-  MUL,
-  DIV,
-  MOD,
-  POW,
-  MIN,
-  MAX,
-  SCALE18_MUL,
-  SCALE18_DIV,
-  SCALE18,
-  SCALEN,
-  SCALE_BY,
-  SCALE18_ONE,
-  SCALE18_DECIMALS,
-  CLAIMANT_ACCOUNT,
-  CONSTRUCTION_BLOCK_NUMBER,
-}
 
 describe("EmissionsERC20Unchecked", async function () {
   it("should panic when accumulator overflows with exponentiation op", async () => {
@@ -55,7 +22,7 @@ describe("EmissionsERC20Unchecked", async function () {
     const source0 = concat([
         vHalfMaxUInt256,
         vTwo,
-      op(Opcode.POW, 2)
+      op(Opcode.EXP, 2)
     ]);
 
     const signers = await ethers.getSigners();

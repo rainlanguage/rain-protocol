@@ -5,14 +5,7 @@ import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
-import {BlockOps} from "../vm/ops/BlockOps.sol";
-import {MathOps} from "../vm/ops/MathOps.sol";
-import {LogicOps} from "../vm/ops/LogicOps.sol";
-import {SenderOps} from "../vm/ops/SenderOps.sol";
-import {TierOps} from "../vm/ops/TierOps.sol";
-import {IERC20Ops} from "../vm/ops/IERC20Ops.sol";
-import {IERC721Ops} from "../vm/ops/IERC721Ops.sol";
-import {IERC1155Ops} from "../vm/ops/IERC1155Ops.sol";
+import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "../sale/ISale.sol";
@@ -190,22 +183,6 @@ contract SaleWithUnfreezableToken is
     /// @dev local opcodes length.
     uint256 internal constant LOCAL_OPS_LENGTH = 8;
 
-    /// @dev local offset for block ops.
-    uint256 private immutable blockOpsStart;
-    /// @dev local offset for sender ops.
-    uint256 private immutable senderOpsStart;
-    /// @dev local offset for logic ops.
-    uint256 private immutable logicOpsStart;
-    /// @dev local offset for math ops.
-    uint256 private immutable mathOpsStart;
-    /// @dev local offset for tier ops.
-    uint256 private immutable tierOpsStart;
-    /// @dev local offset for erc20 ops.
-    uint256 private immutable ierc20OpsStart;
-    /// @dev local offset for erc721 ops.
-    uint256 private immutable ierc721OpsStart;
-    /// @dev local offset for erc1155 ops.
-    uint256 private immutable ierc1155OpsStart;
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
 
@@ -269,15 +246,7 @@ contract SaleWithUnfreezableToken is
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_) {
-        blockOpsStart = RainVM.OPS_LENGTH;
-        senderOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
-        logicOpsStart = senderOpsStart + SenderOps.OPS_LENGTH;
-        mathOpsStart = logicOpsStart + LogicOps.OPS_LENGTH;
-        tierOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
-        ierc20OpsStart = tierOpsStart + TierOps.OPS_LENGTH;
-        ierc721OpsStart = ierc20OpsStart + IERC20Ops.OPS_LENGTH;
-        ierc1155OpsStart = ierc721OpsStart + IERC721Ops.OPS_LENGTH;
-        localOpsStart = ierc1155OpsStart + IERC1155Ops.OPS_LENGTH;
+        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
 
         maximumCooldownDuration = config_.maximumCooldownDuration;
 
@@ -578,60 +547,10 @@ contract SaleWithUnfreezableToken is
         uint256 operand_
     ) internal view override {
         unchecked {
-            if (opcode_ < senderOpsStart) {
-                BlockOps.applyOp(
-                    context_,
+            if (opcode_ < localOpsStart) {
+                AllStandardOps.applyOp(
                     state_,
-                    opcode_ - blockOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < logicOpsStart) {
-                SenderOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - senderOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < mathOpsStart) {
-                LogicOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - logicOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < tierOpsStart) {
-                MathOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - mathOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < ierc20OpsStart) {
-                TierOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - tierOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < ierc721OpsStart) {
-                IERC20Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc20OpsStart,
-                    operand_
-                );
-            } else if (opcode_ < ierc1155OpsStart) {
-                IERC721Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc721OpsStart,
-                    operand_
-                );
-            } else if (opcode_ < localOpsStart) {
-                IERC1155Ops.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - ierc1155OpsStart,
+                    opcode_ - ALL_STANDARD_OPS_START,
                     operand_
                 );
             } else {
@@ -641,12 +560,6 @@ contract SaleWithUnfreezableToken is
                     state_.stack[state_.stackIndex] = remainingUnits;
                 } else if (opcode_ == TOTAL_RESERVE_IN) {
                     state_.stack[state_.stackIndex] = totalReserveIn;
-                } else if (opcode_ == LAST_BUY_BLOCK) {
-                    state_.stack[state_.stackIndex] = lastBuyBlock;
-                } else if (opcode_ == LAST_BUY_UNITS) {
-                    state_.stack[state_.stackIndex] = lastBuyUnits;
-                } else if (opcode_ == LAST_BUY_PRICE) {
-                    state_.stack[state_.stackIndex] = lastBuyPrice;
                 } else if (opcode_ == CURRENT_BUY_UNITS) {
                     uint256 units_ = abi.decode(context_, (uint256));
                     state_.stack[state_.stackIndex] = units_;

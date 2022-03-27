@@ -5,8 +5,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {RainVM, State} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {BlockOps} from "../vm/ops/BlockOps.sol";
-import {TierOps} from "../vm/ops/TierOps.sol";
+import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
 
@@ -22,24 +21,13 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     /// @dev local opcodes length.
     uint256 internal constant LOCAL_OPS_LENGTH = 1;
 
-    /// @dev local offset for block ops.
-    uint256 private immutable blockOpsStart;
-    /// @dev local offset for tier ops.
-    uint256 private immutable tierOpsStart;
     /// @dev local offset for combine tier ops.
     uint256 private immutable localOpsStart;
 
     address private vmStatePointer;
 
     constructor() {
-        /// These local opcode offsets are calculated as immutable but are
-        /// really just compile time constants. They only depend on the
-        /// imported libraries and contracts. These are calculated at
-        /// construction to future-proof against underlying ops being
-        /// added/removed and potentially breaking the offsets here.
-        blockOpsStart = RainVM.OPS_LENGTH;
-        tierOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
-        localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
     }
 
     function initialize(StateConfig memory config_) external initializer {
@@ -54,18 +42,10 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         uint256 operand_
     ) internal view override {
         unchecked {
-            if (opcode_ < tierOpsStart) {
-                BlockOps.applyOp(
-                    context_,
+            if (opcode_ < localOpsStart) {
+                AllStandardOps.applyOp(
                     state_,
-                    opcode_ - blockOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < localOpsStart) {
-                TierOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - tierOpsStart,
+                    opcode_ - ALL_STANDARD_OPS_START,
                     operand_
                 );
             } else {
