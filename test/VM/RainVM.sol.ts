@@ -17,6 +17,8 @@ const enum Opcode {
   DEBUG,
   BLOCK_NUMBER,
   BLOCK_TIMESTAMP,
+  SENDER,
+  THIS,
   ADD,
   SUB,
   MUL,
@@ -27,7 +29,7 @@ const enum Opcode {
   MAX,
 }
 
-describe("RainVM", async function () {
+describe.only("RainVM", async function () {
   it("should support source scripts with leading zeroes", async () => {
     this.timeout(0);
 

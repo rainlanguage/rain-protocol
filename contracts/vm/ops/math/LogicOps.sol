@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {State} from "../RainVM.sol";
+import {State} from "../../RainVM.sol";
 
 /// @dev Number of provided opcodes for `LogicOps`.
 /// The opcodes are NOT listed on the library as they are all internal to

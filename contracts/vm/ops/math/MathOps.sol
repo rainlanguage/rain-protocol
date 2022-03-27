@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {State} from "../RainVM.sol";
+import {State} from "../../RainVM.sol";
 
 /// @dev Opcode for addition.
 uint256 constant OPCODE_ADD = 0;

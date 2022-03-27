@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {FixedPointMathOps} from "../vm/ops/FixedPointMathOps.sol";
+import {FixedPointMathOps} from "../vm/ops/math/FixedPointMathOps.sol";
 
 /// @title FixedPointMathOpsTest
 /// Simple contract that exposes fixed point math ops for testing.

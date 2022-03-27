@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {State} from "../RainVM.sol";
-import "../../math/FixedPointMath.sol";
+import {State} from "../../RainVM.sol";
+import "../../../math/FixedPointMath.sol";
 
 /// @dev Opcode for multiplication.
 uint256 constant OPCODE_SCALE18_MUL = 0;

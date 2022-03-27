@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {State} from "../RainVM.sol";
-import "../../tier/libraries/TierReport.sol";
-import "../../tier/libraries/TierwiseCombine.sol";
+import {State} from "../../RainVM.sol";
+import "../../../tier/libraries/TierReport.sol";
+import "../../../tier/libraries/TierwiseCombine.sol";
 
 /// @dev Opcode to call `report` on an `ITier` contract.
 uint256 constant OPCODE_REPORT = 0;

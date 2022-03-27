@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../../vm/RainVM.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
-import {LogicOps} from "../../vm/ops/LogicOps.sol";
+import {LogicOps} from "../../vm/ops/math/LogicOps.sol";
 
 /// @title LogicOpsTest
 /// Simple contract that exposes logic ops for testing.

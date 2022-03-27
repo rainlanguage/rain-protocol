@@ -18,6 +18,8 @@ const enum Opcode {
   DEBUG,
   BLOCK_NUMBER,
   BLOCK_TIMESTAMP,
+  SENDER,
+  THIS,
   ADD,
   SUB,
   MUL,

@@ -2,7 +2,7 @@
 pragma solidity =0.8.10;
 
 import "../../vm/RainVM.sol";
-import {TierOps} from "../../vm/ops/TierOps.sol";
+import {TierOps} from "../../vm/ops/tier/TierOps.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 

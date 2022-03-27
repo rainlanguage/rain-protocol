@@ -4,9 +4,9 @@ pragma solidity =0.8.10;
 import {Cooldown} from "../../cooldown/Cooldown.sol";
 
 import "../../vm/RainVM.sol";
-import {IERC20Ops, IERC20_OPS_LENGTH} from "../../vm/ops/IERC20Ops.sol";
-import {IERC721Ops, IERC721_OPS_LENGTH} from "../../vm/ops/IERC721Ops.sol";
-import {IERC1155Ops, IERC1155_OPS_LENGTH} from "../../vm/ops/IERC1155Ops.sol";
+import {IERC20Ops, IERC20_OPS_LENGTH} from "../../vm/ops/token/IERC20Ops.sol";
+import {IERC721Ops, IERC721_OPS_LENGTH} from "../../vm/ops/token/IERC721Ops.sol";
+import {IERC1155Ops, IERC1155_OPS_LENGTH} from "../../vm/ops/token/IERC1155Ops.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 

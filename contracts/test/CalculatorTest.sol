@@ -3,8 +3,8 @@ pragma solidity =0.8.10;
 
 import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {EVMConstantOps, EVM_CONSTANT_OPS_LENGTH} from "../vm/ops/EVMConstantOps.sol";
-import {MathOps} from "../vm/ops/MathOps.sol";
+import {EVMConstantOps, EVM_CONSTANT_OPS_LENGTH} from "../vm/ops/evm/EVMConstantOps.sol";
+import {MathOps} from "../vm/ops/math/MathOps.sol";
 
 /// @title CalculatorTest
 /// Simple calculator that exposes basic math ops and block ops for testing.
