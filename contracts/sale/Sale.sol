@@ -22,6 +22,9 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /// Everything required to construct a Sale (not initialize).
+/// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
+/// this. Avoids downstream escrows and similar trapping funds due to sales
+/// that never end, or perhaps never even start.
 /// @param maximumCooldownDuration The cooldown duration set in initialize
 /// cannot exceed this. Avoids the "no refunds" situation where someone sets an
 /// infinite cooldown, then accidentally or maliciously the sale ends up in a
@@ -29,6 +32,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 /// @param redeemableERC20Factory The factory contract that creates redeemable
 /// erc20 tokens that the `Sale` can mint, sell and burn.
 struct SaleConstructorConfig {
+    uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
 }
@@ -57,6 +61,7 @@ struct SaleConfig {
     StateConfig calculatePriceStateConfig;
     address recipient;
     IERC20 reserve;
+    uint256 saleTimeout;
     uint256 cooldownDuration;
     uint256 minimumRaise;
     uint256 dustSize;
@@ -153,6 +158,9 @@ contract Sale is
     /// @param sender `msg.sender` that ended the sale.
     /// @param saleStatus The final success/fail state of the sale.
     event End(address sender, SaleStatus saleStatus);
+    /// Sale has failed due to a timeout (failed to even start/end).
+    /// @param sender `msg.sender` that timed out the sale.
+    event Timeout(address sender);
     /// rTKN being bought.
     /// Importantly includes the receipt that sender can use to apply for a
     /// refund later if they wish.
@@ -179,6 +187,10 @@ contract Sale is
 
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
+    /// @dev the saleTimeout cannot exceed this. Prevents downstream contracts
+    /// that require a finalization such as escrows from getting permanently
+    /// stuck in a pending or active status due to buggy scripts.
+    uint256 private immutable maximumSaleTimeout;
     /// @dev the cooldown duration cannot exceed this. Prevents "no refunds" in
     /// a raise that never ends. Configured at the factory level upon deploy.
     uint256 private immutable maximumCooldownDuration;
@@ -205,6 +217,12 @@ contract Sale is
     /// Exposed via. `ISale.reserve()`.
     IERC20 private _reserve;
 
+    /// @dev the current sale status exposed as `ISale.saleStatus`.
+    SaleStatus private _saleStatus;
+    /// @dev the current sale can always end in failure at this block even if
+    /// it did not start. Provided it did not already end of course.
+    uint256 private saleTimeout;
+
     /// @dev remaining rTKN units to sell. MAY NOT be the rTKN balance of the
     /// Sale contract if rTKN has been sent directly to the sale contract
     /// outside the standard buy/refund loop.
@@ -213,8 +231,6 @@ contract Sale is
     /// include any reserve sent directly to the sale contract outside the
     /// standard buy/refund loop.
     uint256 private totalReserveIn;
-    /// @dev the current sale status exposed as `ISale.saleStatus`.
-    SaleStatus private _saleStatus;
 
     /// @dev Binding buyers to receipt hashes to maybe a non-zero value.
     /// A receipt will only be honoured if the mapping resolves to non-zero.
@@ -234,6 +250,7 @@ contract Sale is
     constructor(SaleConstructorConfig memory config_) {
         localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
 
+        maximumSaleTimeout = config_.maximumSaleTimeout;
         maximumCooldownDuration = config_.maximumCooldownDuration;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
@@ -250,6 +267,9 @@ contract Sale is
             "MAX_COOLDOWN"
         );
         initializeCooldown(config_.cooldownDuration);
+
+        require(config_.saleTimeout <= maximumSaleTimeout, "MAX_TIMEOUT");
+        saleTimeout = block.number + config_.saleTimeout;
 
         // 0 minimum raise is ambiguous as to how it should be handled. It
         // literally means "the raise succeeds without any trades", which
@@ -394,6 +414,27 @@ contract Sale is
         if (success_) {
             _reserve.safeTransfer(recipient, totalReserveIn);
         }
+    }
+
+    /// Timeout the sale (move from pending or active to fail).
+    /// The ONLY condition for a timeout is that the `saleTimeout` block sent
+    /// during initialize is in the past. This means that regardless of what
+    /// happens re: starting, ending, buying, etc. if the sale does NOT manage
+    /// to unambiguously end by the timeout block then it can timeout to a fail
+    /// state. This means that any downstream escrows or similar can always
+    /// expect that eventually they will see a pass/fail state and so are safe
+    /// to lock funds while a Sale is active.
+    function timeout() external {
+        require(saleTimeout < block.number, "EARLY_TIMEOUT");
+        require(
+            _saleStatus == SaleStatus.Pending ||
+                _saleStatus == SaleStatus.Active,
+            "ALREADY_ENDED"
+        );
+        remainingUnits = 0;
+        _saleStatus = SaleStatus.Fail;
+        emit Timeout(msg.sender);
+        _token.endDistribution(address(this));
     }
 
     /// Main entrypoint to the sale. Sells rTKN in exchange for reserve token.
