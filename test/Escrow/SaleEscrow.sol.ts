@@ -33,6 +33,8 @@ import {
 import { SaleWithUnfreezableTokenFactory } from "../../typechain/SaleWithUnfreezableTokenFactory";
 import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
 import { SaleFactory } from "../../typechain/SaleFactory";
+import { MockISale } from "../../typechain/MockISale";
+import { IERC20 } from "../../typechain/IERC20";
 
 const { assert } = chai;
 
@@ -198,171 +200,98 @@ describe("SaleEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const signer2 = signers[3];
-    const signer3 = signers[4];
 
     // Deploy global Claim contract
-    const claimFactory = await ethers.getContractFactory(
+    const escrowFactory = await ethers.getContractFactory(
       "RedeemableERC20ClaimEscrow"
     );
-    const claim = (await claimFactory.deploy()) as RedeemableERC20ClaimEscrow &
-      Contract;
+    const escrow =
+      (await escrowFactory.deploy()) as RedeemableERC20ClaimEscrow & Contract;
 
-    // 5 blocks from now
-    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+    const tokenFactory = await ethers.getContractFactory("ReserveToken");
+    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
+    const token = (await tokenFactory.deploy()) as Contract & IERC20;
 
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-    const redeemableERC20Config = {
-      name: "Token",
-      symbol: "TKN",
-      distributor: Util.zeroAddress,
-      initialSupply: totalTokenSupply,
-    };
+    await reserve.deployed();
+    await token.deployed();
 
-    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale1 = (await saleFactory.deploy()) as Contract & MockISale;
+    const sale2 = (await saleFactory.deploy()) as Contract & MockISale;
 
-    const redeemableERC20UnfreezableFactoryFactory =
-      await ethers.getContractFactory("RedeemableERC20UnfreezableFactory", {});
-    const redeemableERC20UnfreezableFactory =
-      (await redeemableERC20UnfreezableFactoryFactory.deploy()) as RedeemableERC20UnfreezableFactory &
-        Contract;
-    await redeemableERC20UnfreezableFactory.deployed();
+    // Two identical successful sales with some tokens to distribute.
+    let sales: Array<MockISale> = [sale1, sale2];
+    for (let sale of sales) {
+      await sale.deployed();
+      await sale.setReserve(reserve.address);
+      await sale.setToken(token.address);
+      await sale.setSaleStatus(SaleStatus.Success);
+      await reserve.approve(escrow.address, 1000);
+      await escrow.deposit(sale.address, reserve.address, 1000);
+    }
 
-    const saleConstructorConfig = {
-      maximumCooldownDuration: 1000,
-      redeemableERC20Factory: redeemableERC20UnfreezableFactory.address,
-    };
-
-    const saleUnfreezableFactoryFactory = await ethers.getContractFactory(
-      "SaleWithUnfreezableTokenFactory",
-      {}
+    assert(
+      (await token.balanceOf(signers[1].address)).eq(0),
+      "signer 1 had token balance prematurely"
     );
-    const saleUnfreezableFactory = (await saleUnfreezableFactoryFactory.deploy(
-      saleConstructorConfig
-    )) as SaleWithUnfreezableTokenFactory & Contract;
-    await saleUnfreezableFactory.deployed();
+    // If signers[1] has all the token they should get all deposited reserve.
+    token.transfer(signers[1].address, await token.totalSupply());
 
-    const [saleWithUnfreezableToken, unfreezableToken] =
-      await saleWithUnfreezableTokenDeploy(
-        signers,
-        deployer,
-        saleUnfreezableFactory,
-        {
-          recipient: recipient.address,
-          reserve: reserve.address,
-          minimumRaise,
-        },
-        {
-          erc20Config: redeemableERC20Config,
-          distributionEndForwardingAddress: ethers.constants.AddressZero,
-        }
-      );
+    await escrow
+      .connect(signers[1])
+      .withdraw(sale1.address, reserve.address, await token.totalSupply());
 
-    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
-
-    const desiredUnits = 100;
-    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
-
-    // give signer1 reserve to cover cost + fee
-    await reserve.transfer(signer1.address, cost.add(fee));
-    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
-    await reserve
-      .connect(signer1)
-      .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
-    // give signer2 reserve to cover cost + fee
-    await reserve.transfer(signer2.address, cost.add(fee));
-
-    await reserve
-      .connect(signer2)
-      .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
-
-    // wait until sale start
-    await Util.createEmptyBlock(
-      startBlock - (await ethers.provider.getBlockNumber())
+    assert(
+      (await reserve.balanceOf(signers[1].address)).eq(1000),
+      `signer 1 did not withdraw the deposited reserve`
     );
 
-    await saleWithUnfreezableToken.start();
-
-    // buy redeemable tokens during sale
-    await saleWithUnfreezableToken.connect(signer1).buy({
-      fee,
-      minimumUnits: desiredUnits,
-      desiredUnits,
-    });
-    // buy redeemable tokens during sale
-    await saleWithUnfreezableToken.connect(signer2).buy({
-      fee,
-      minimumUnits: desiredUnits,
-      desiredUnits,
-    });
-
-    // wait until sale can end
-    await Util.createEmptyBlock(
-      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
-    );
-
-    // Sale.end() also moves RedeemableERC20 to FROZEN phase
-    // However in this test we instead move to unrestricted, non-frozen phase
-    await saleWithUnfreezableToken.end();
-
-    const status: SaleStatus = await saleWithUnfreezableToken.saleStatus();
-    assert(status === SaleStatus.Fail);
-
-    // signer1 deposit
-    await unfreezableToken.connect(signer1).approve(claim.address, 100);
-    await claim
-      .connect(signer1)
-      .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
-    // signer2 deposit
-    await unfreezableToken.connect(signer2).approve(claim.address, 100);
-    await claim
-      .connect(signer2)
-      .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
-
-    const tokenSupply = await unfreezableToken.totalSupply();
-
-    // undeposit
-    await claim
-      .connect(signer1)
-      .undeposit(
-        saleWithUnfreezableToken.address,
-        unfreezableToken.address,
-        tokenSupply,
-        100
-      );
-
-    // since RedeemableERC20 is not frozen, transfers are still possible in addition to burns
-    await unfreezableToken.connect(signer1).transfer(signer3.address, 100);
-
-    const signer1TokenBalance = await unfreezableToken.balanceOf(
-      signer1.address
-    );
-    const escrowTokenBalance = await unfreezableToken.balanceOf(claim.address);
-
-    // at this point, signer1 transferred away their claimed tokens
-    // and escrow still holds funds
-    assert(signer1TokenBalance.isZero(), "wrong signer1 token balance");
-    assert(escrowTokenBalance.eq(100), "wrong escrow token balance");
-
-    // undeposit again, attempting to drain escrow
-    // should underflow because signer1 cannot claim more than they deposited
+    // At this point signer 1 has withdrawn all they can for sale1.
     await Util.assertError(
       async () =>
-        await claim
-          .connect(signer1)
-          .undeposit(
-            saleWithUnfreezableToken.address,
-            unfreezableToken.address,
-            tokenSupply,
-            100
-          ),
-      "reverted with panic code 0x11",
-      "escrow claim exceeding deposited amount did not underflow"
+        await escrow
+          .connect(signers[1])
+          .withdraw(sale1.address, reserve.address, await token.totalSupply()),
+      "ZERO_WITHDRAW",
+      "didn't prevent signer 1 from withdrawing a second time"
+    );
+
+    // At this point there is still 1000 reserve in the escrow (for sale2).
+    // We want to prevent signer 1 from colluding with signer 2 to withdraw
+    // more funds from sale1 than were ever deposited for it. If this were
+    // possible then malicious ISale contracts can steal from honest contracts.
+    await token
+      .connect(signers[1])
+      .transfer(signers[2].address, await token.totalSupply());
+    // This has to underflow here as signers[2] is now trying to withdraw 1000
+    // reserve tokens, which means 2000 reserve tokens total withdrawn from
+    // sale1 vs. 1000 tokens deposited for sale1.
+    await Util.assertError(
+      async () =>
+        await escrow
+          .connect(signers[2])
+          .withdraw(sale1.address, reserve.address, await token.totalSupply()),
+      "underflowed",
+      "didn't prevent signer 2 from withdrawing from sale1 what was already withdrawn"
+    );
+
+    // However, it's entirely possible for signer[2] to withdraw 1000 tokens
+    // from sale2 as sale1 and sale2 share the same non-reserve token.
+    await escrow
+      .connect(signers[2])
+      .withdraw(sale2.address, reserve.address, await token.totalSupply());
+
+    assert(
+      (await reserve.balanceOf(signers[1].address)).eq(1000),
+      `signer 1 has incorrect reserve.`
+    );
+    assert(
+      (await reserve.balanceOf(signers[2].address)).eq(1000),
+      `signer 2 has incorrect reserve.`
+    );
+    assert(
+      (await reserve.balanceOf(escrow.address)).eq(0),
+      `escrow has incorrect reserve.`
     );
   });
 
