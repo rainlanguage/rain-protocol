@@ -29,7 +29,7 @@ const enum Opcode {
   MAX,
 }
 
-describe.only("RainVM", async function () {
+describe("RainVM", async function () {
   it("should support source scripts with leading zeroes", async () => {
     this.timeout(0);
 
