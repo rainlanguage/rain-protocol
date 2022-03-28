@@ -14,6 +14,7 @@ import type {
   RefundEvent,
   Sale,
   StartEvent,
+  TimeoutEvent,
 } from "../../typechain/Sale";
 import { op } from "../Util";
 import { ReserveToken } from "../../typechain/ReserveToken";
@@ -28,6 +29,13 @@ import {
   Status,
   Tier,
 } from "./SaleUtil";
+import { PhaseScheduledEvent } from "../../typechain/RedeemableERC20";
+
+enum PhaseToken {
+  UNINITIALIZED,
+  DISTRIBUTING,
+  FROZEN,
+}
 
 const { assert } = chai;
 
@@ -63,6 +71,7 @@ describe("Sale", async function () {
     await readWriteTier.deployed();
 
     saleConstructorConfig = {
+      maximumSaleTimeout: 10000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
     };
@@ -100,6 +109,181 @@ describe("Sale", async function () {
     );
   });
 
+  it("should correctly timeout sale if it does not end naturally", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    await Util.assertError(
+      async () =>
+        await saleDeploy(
+          signers,
+          deployer,
+          saleFactory,
+          {
+            canStartStateConfig: afterBlockNumberConfig(startBlock),
+            canEndStateConfig: afterBlockNumberConfig(
+              startBlock + saleDuration
+            ),
+            calculatePriceStateConfig: {
+              sources,
+              constants,
+              stackLength: 1,
+              argumentsLength: 0,
+            },
+            recipient: recipient.address,
+            reserve: reserve.address,
+            cooldownDuration: 1,
+            minimumRaise,
+            dustSize: 0,
+            saleTimeout: 10001,
+          },
+          {
+            erc20Config: redeemableERC20Config,
+            tier: readWriteTier.address,
+            minimumTier: Tier.ZERO,
+            distributionEndForwardingAddress: ethers.constants.AddressZero,
+          }
+        ),
+      "MAX_TIMEOUT",
+      "did not prevent a sale timeout that exceeds maximum timeout, which was set by the sale factory"
+    );
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    await Util.assertError(
+      async () => await sale.timeout(),
+      "EARLY_TIMEOUT",
+      "wrongly timed out sale early"
+    );
+
+    // wait for sale timeout
+    // should be relative to initialise so we aren't even going to start the sale
+    await Util.createEmptyBlock(99);
+
+    await Util.assertError(
+      async () => await sale.timeout(),
+      "EARLY_TIMEOUT",
+      "wrongly timed out sale 1 block early"
+    );
+
+    await Util.createEmptyBlock();
+
+    assert((await sale.saleStatus()) === Status.PENDING);
+
+    const txTimeout = await sale.timeout();
+
+    // timeout should set status to Fail
+    assert((await sale.saleStatus()) === Status.FAIL);
+
+    const { sender: sender0 } = (await Util.getEventArgs(
+      txTimeout,
+      "Timeout",
+      sale
+    )) as TimeoutEvent["args"];
+
+    assert(sender0 === signers[0].address, "wrong sender in Timeout event");
+
+    // Should have ended distribution via rTKN contract.
+    // A simple way to tell is that the rTKN phase should have changed to FROZEN.
+    const {
+      sender: sender1,
+      newPhase,
+      scheduledBlock,
+    } = (await Util.getEventArgs(
+      txTimeout,
+      "PhaseScheduled",
+      token
+    )) as PhaseScheduledEvent["args"];
+
+    assert(
+      sender1 === sale.address,
+      "wrong sender for endDistribution call, expected sale address"
+    );
+    assert(newPhase.eq(PhaseToken.FROZEN), "wrong token phase after timeout");
+    assert(
+      scheduledBlock.eq(await ethers.provider.getBlockNumber()),
+      "expected scheduled block"
+    );
+
+    // Sale is now functionally in a Fail state
+    // Cannot start, end or buy from sale
+    await Util.assertError(
+      async () => await sale.start(),
+      "CANT_START",
+      "wrongly started in Fail state"
+    );
+    await Util.assertError(
+      async () => await sale.end(),
+      "CANT_END",
+      "wrongly ended in Fail state"
+    );
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+    const desiredUnits = totalTokenSupply;
+    await Util.assertError(
+      async () => {
+        await sale.buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: desiredUnits,
+          desiredUnits,
+          maximumPrice: staticPrice,
+        });
+      },
+      "NOT_ACTIVE",
+      "wrongly bought units when sale is in Fail state"
+    );
+  });
+
   it("should prevent configuring zero minimumRaise, including case when distributionEndForwardingAddress is set", async function () {
     this.timeout(0);
 
@@ -110,7 +294,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = 0;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -136,7 +320,9 @@ describe("Sale", async function () {
           saleFactory,
           {
             canStartStateConfig: afterBlockNumberConfig(startBlock),
-            canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+            canEndStateConfig: afterBlockNumberConfig(
+              startBlock + saleDuration
+            ),
             calculatePriceStateConfig: {
               sources,
               constants,
@@ -148,6 +334,7 @@ describe("Sale", async function () {
             cooldownDuration: 1,
             minimumRaise,
             dustSize: 0,
+            saleTimeout: 100,
           },
           {
             erc20Config: redeemableERC20Config,
@@ -172,7 +359,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -198,7 +385,9 @@ describe("Sale", async function () {
           saleFactory,
           {
             canStartStateConfig: afterBlockNumberConfig(startBlock),
-            canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+            canEndStateConfig: afterBlockNumberConfig(
+              startBlock + saleDuration
+            ),
             calculatePriceStateConfig: {
               sources,
               constants,
@@ -210,6 +399,7 @@ describe("Sale", async function () {
             cooldownDuration: 1,
             minimumRaise,
             dustSize: 0,
+            saleTimeout: 100,
           },
           {
             erc20Config: redeemableERC20Config,
@@ -234,7 +424,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -270,7 +460,9 @@ describe("Sale", async function () {
           saleFactory,
           {
             canStartStateConfig: afterBlockNumberConfig(startBlock),
-            canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+            canEndStateConfig: afterBlockNumberConfig(
+              startBlock + saleDuration
+            ),
             calculatePriceStateConfig: {
               sources,
               constants,
@@ -282,6 +474,7 @@ describe("Sale", async function () {
             cooldownDuration: 0, // zero
             minimumRaise,
             dustSize: 0,
+            saleTimeout: 100,
           },
           {
             erc20Config: redeemableERC20Config,
@@ -300,7 +493,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -312,6 +505,7 @@ describe("Sale", async function () {
         cooldownDuration,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -392,7 +586,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -416,7 +610,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -428,6 +622,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -540,7 +735,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -564,7 +759,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -576,6 +771,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -674,7 +870,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -698,7 +894,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -710,6 +906,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -812,7 +1009,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -836,7 +1033,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -848,6 +1045,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -931,7 +1129,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -957,7 +1155,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -969,6 +1167,7 @@ describe("Sale", async function () {
         cooldownDuration,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1126,7 +1325,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1150,7 +1349,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1162,6 +1361,7 @@ describe("Sale", async function () {
         cooldownDuration: 5,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1257,6 +1457,7 @@ describe("Sale", async function () {
             cooldownDuration: 1000000,
             minimumRaise: 100,
             dustSize: 0,
+            saleTimeout: 100,
           },
           {
             erc20Config: {
@@ -1286,7 +1487,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1328,7 +1529,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1340,6 +1541,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1445,7 +1647,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1487,7 +1689,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1499,6 +1701,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1600,7 +1803,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1622,7 +1825,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1634,6 +1837,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1663,7 +1867,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1688,7 +1892,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1700,6 +1904,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1753,7 +1958,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1789,7 +1994,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1801,6 +2006,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1897,7 +2103,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1933,7 +2139,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1945,6 +2151,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -2190,7 +2397,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2226,7 +2433,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2238,6 +2445,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -2336,7 +2544,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2372,7 +2580,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2384,6 +2592,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -2451,7 +2660,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2482,7 +2691,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2494,6 +2703,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -2593,7 +2803,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2617,7 +2827,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2629,6 +2839,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -2676,7 +2887,7 @@ describe("Sale", async function () {
 
     // wait until sale can end
     await Util.createEmptyBlock(
-      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
     );
 
     // recipient cannot claim before sale ended with status of success
@@ -2755,7 +2966,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2779,7 +2990,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2791,6 +3002,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -2865,7 +3077,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2883,13 +3095,15 @@ describe("Sale", async function () {
 
     const sources = [concat([vBasePrice])];
 
+    const saleTimeout = 100;
+
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2901,6 +3115,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -2909,6 +3124,8 @@ describe("Sale", async function () {
         distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
+
+    const afterInitializeBlock = await ethers.provider.getBlockNumber();
 
     const saleToken = await sale.token();
     const saleReserve = await sale.reserve();
@@ -3067,6 +3284,43 @@ describe("Sale", async function () {
       "REFUND_SUCCESS",
       "signer1 wrongly refunded when raise was Successful"
     );
+
+    await Util.createEmptyBlock(
+      saleTimeout +
+        afterInitializeBlock -
+        (await ethers.provider.getBlockNumber())
+    );
+
+    await Util.assertError(
+      async () => await sale.timeout(),
+      "ALREADY_ENDED",
+      "wrongly timed out sale with sale status of Success"
+    );
+
+    // Cannot start, end or buy from sale
+    await Util.assertError(
+      async () => await sale.start(),
+      "CANT_START",
+      "wrongly started in Success state"
+    );
+    await Util.assertError(
+      async () => await sale.end(),
+      "CANT_END",
+      "wrongly ended in Success state"
+    );
+    await Util.assertError(
+      async () => {
+        await sale.buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: desiredUnits,
+          desiredUnits,
+          maximumPrice: staticPrice,
+        });
+      },
+      "NOT_ACTIVE",
+      "wrongly bought units when sale is in Success state"
+    );
   });
 
   it("should have status of Fail if minimum raise not met", async function () {
@@ -3075,10 +3329,11 @@ describe("Sale", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
+    const feeRecipient = signers[2];
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -3096,13 +3351,15 @@ describe("Sale", async function () {
 
     const sources = [concat([vBasePrice])];
 
+    const saleTimeout = 100;
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -3114,6 +3371,7 @@ describe("Sale", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -3122,6 +3380,8 @@ describe("Sale", async function () {
         distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
+
+    const afterInitializeBlock = await ethers.provider.getBlockNumber();
 
     const { sender, config, token } = (await Util.getEventArgs(
       sale.deployTransaction,
@@ -3197,7 +3457,7 @@ describe("Sale", async function () {
 
     // wait until sale can end
     await Util.createEmptyBlock(
-      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
     );
 
     const canEnd = await sale.canEnd();
@@ -3223,6 +3483,45 @@ describe("Sale", async function () {
       `wrong status in getter
       expected  ${Status.FAIL}
       got       ${saleStatusFail}`
+    );
+
+    // Cannot start, end or buy from sale
+    await Util.assertError(
+      async () => await sale.start(),
+      "CANT_START",
+      "wrongly started in Fail state"
+    );
+    await Util.assertError(
+      async () => await sale.end(),
+      "CANT_END",
+      "wrongly ended in Fail state"
+    );
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+    const desiredUnits = totalTokenSupply;
+    await Util.assertError(
+      async () => {
+        await sale.buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: desiredUnits,
+          desiredUnits,
+          maximumPrice: staticPrice,
+        });
+      },
+      "NOT_ACTIVE",
+      "wrongly bought units when sale is in Fail state"
+    );
+
+    await Util.createEmptyBlock(
+      saleTimeout +
+        afterInitializeBlock -
+        (await ethers.provider.getBlockNumber())
+    );
+
+    await Util.assertError(
+      async () => await sale.timeout(),
+      "ALREADY_ENDED",
+      "wrongly timed out sale with sale status of Fail"
     );
   });
 });
