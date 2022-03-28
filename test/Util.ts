@@ -827,5 +827,5 @@ export enum AllStandardOps {
   IERC721_OWNER_OF,
   IERC1155_BALANCE_OF,
   IERC1155_BALANCE_OF_BATCH,
-  length
+  length,
 }
