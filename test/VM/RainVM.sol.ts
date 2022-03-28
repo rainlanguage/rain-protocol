@@ -85,7 +85,10 @@ describe("RainVM", async function () {
 
     const result = await calculatorSat.run();
     const expected = Util.max_uint256;
-    assert(result.eq(expected), `wrong multiplication ${expected} ${result}`);
+    assert(
+      result.eq(expected),
+      `wrong saturating multiplication ${expected} ${result}`
+    );
   });
 
   it("should perform saturating subtraction", async () => {
@@ -97,7 +100,7 @@ describe("RainVM", async function () {
     const v10 = op(Opcode.VAL, 0);
     const v20 = op(Opcode.VAL, 1);
 
-    // test case with normal addition
+    // test case with normal subtraction
     const sourcesUnsat = [
       concat([
         // (10 20 -)
@@ -140,7 +143,7 @@ describe("RainVM", async function () {
     const expected = 0;
     assert(
       result.eq(expected),
-      `wrong saturating summation ${expected} ${result}`
+      `wrong saturating subtraction ${expected} ${result}`
     );
   });
 
@@ -196,7 +199,7 @@ describe("RainVM", async function () {
     const expected = Util.max_uint256;
     assert(
       result.eq(expected),
-      `wrong saturating summation ${expected} ${result}`
+      `wrong saturating addition ${expected} ${result}`
     );
   });
 
