@@ -10,7 +10,7 @@ import { getEventArgs, op } from "../Util";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import * as Util from "../Util"
+import * as Util from "../Util";
 
 export enum Tier {
   ZERO,
@@ -40,8 +40,9 @@ export enum SaleOps {
 }
 
 export const Opcode = {
-  ...Util.AllStandardOps, ...SaleOps
-}
+  ...Util.AllStandardOps,
+  ...SaleOps,
+};
 
 export const saleDeploy = async (
   signers: SignerWithAddress[],

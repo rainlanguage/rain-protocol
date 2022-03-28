@@ -27,8 +27,9 @@ enum CombineTierOps {
 }
 
 export const Opcode = {
-  ...Util.AllStandardOps, ...CombineTierOps
-}
+  ...Util.AllStandardOps,
+  ...CombineTierOps,
+};
 
 const sourceAlways = concat([op(Opcode.ALWAYS)]);
 const sourceNever = concat([op(Opcode.NEVER)]);

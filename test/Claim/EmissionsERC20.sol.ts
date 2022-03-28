@@ -22,8 +22,9 @@ export enum EmissionsERC20Ops {
 }
 
 export const Opcode = {
-  ...Util.AllStandardOps, ...EmissionsERC20Ops
-}
+  ...Util.AllStandardOps,
+  ...EmissionsERC20Ops,
+};
 
 enum Tier {
   ZERO,

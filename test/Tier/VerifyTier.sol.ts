@@ -18,13 +18,10 @@ describe("VerifyTier", async function () {
     const signer1 = signers[2];
     const newAdmin = signers[3];
 
-    const verify = (await Util.verifyDeploy(
-      signers[0],
-      {
-        admin: admin.address,
-        callback: ethers.constants.AddressZero,
-      }
-    )) as Verify & Contract;
+    const verify = (await Util.verifyDeploy(signers[0], {
+      admin: admin.address,
+      callback: ethers.constants.AddressZero,
+    })) as Verify & Contract;
 
     const verifyTier = (await Util.verifyTierDeploy(
       signers[0],

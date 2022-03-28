@@ -54,6 +54,7 @@ describe("SaleUnchecked", async function () {
     await readWriteTier.deployed();
 
     saleConstructorConfig = {
+      maximumSaleTimeout: 1000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
     };
@@ -140,6 +141,7 @@ describe("SaleUnchecked", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -214,6 +216,7 @@ describe("SaleUnchecked", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -288,6 +291,7 @@ describe("SaleUnchecked", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -362,6 +366,7 @@ describe("SaleUnchecked", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
