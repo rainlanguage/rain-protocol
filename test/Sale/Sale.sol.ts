@@ -1938,7 +1938,7 @@ describe("Sale", async function () {
         await sale.connect(signer1).buy({
           feeRecipient: feeRecipient.address,
           fee,
-          minimumUnits: 0, // user configures ANY minimum
+          minimumUnits: 1, // user configures ANY minimum
           desiredUnits: desiredUnits,
           maximumPrice: expectedPrice,
         }),
@@ -3177,13 +3177,13 @@ describe("Sale", async function () {
         await sale.connect(signer1).buy({
           feeRecipient: feeRecipient.address,
           fee,
-          minimumUnits: desiredUnits,
-          desiredUnits: 0,
+          minimumUnits: 0,
+          desiredUnits: desiredUnits,
           maximumPrice: staticPrice,
         });
       },
-      "0_DESIRED",
-      "bought with 0 desired units"
+      "0_MINIMUM",
+      "bought with 0 minimum units"
     );
 
     await Util.assertError(

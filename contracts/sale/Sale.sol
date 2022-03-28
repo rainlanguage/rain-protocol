@@ -5,6 +5,7 @@ import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
+// solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
@@ -48,6 +49,9 @@ struct SaleConstructorConfig {
 /// @param recipient The recipient of the proceeds of a Sale, if/when the Sale
 /// is successful.
 /// @param reserve The reserve token the Sale is deonominated in.
+/// @param saleTimeout The number of blocks before this sale can timeout.
+/// SHOULD be well after the expected end time as a timeout will fail an active
+/// or pending sale regardless of any funds raised.
 /// @param cooldownDuration forwarded to `Cooldown` contract initialization.
 /// @param minimumRaise defines the amount of reserve required to raise that
 /// defines success/fail of the sale. Reaching the minimum raise DOES NOT cause
@@ -173,15 +177,15 @@ contract Sale is
     event Refund(address sender, Receipt receipt);
 
     /// @dev local opcode to stack remaining rTKN units.
-    uint256 private constant REMAINING_UNITS = 0;
+    uint256 private constant OPCODE_REMAINING_UNITS = 0;
     /// @dev local opcode to stack total reserve taken in so far.
-    uint256 private constant TOTAL_RESERVE_IN = 1;
+    uint256 private constant OPCODE_TOTAL_RESERVE_IN = 1;
     /// @dev local opcode to stack the rTKN units/amount of the current buy.
-    uint256 private constant CURRENT_BUY_UNITS = 2;
+    uint256 private constant OPCODE_CURRENT_BUY_UNITS = 2;
     /// @dev local opcode to stack the address of the rTKN.
-    uint256 private constant TOKEN_ADDRESS = 3;
+    uint256 private constant OPCODE_TOKEN_ADDRESS = 3;
     /// @dev local opcode to stack the address of the reserve token.
-    uint256 private constant RESERVE_ADDRESS = 4;
+    uint256 private constant OPCODE_RESERVE_ADDRESS = 4;
     /// @dev local opcodes length.
     uint256 internal constant LOCAL_OPS_LENGTH = 5;
 
@@ -236,7 +240,7 @@ contract Sale is
     /// A receipt will only be honoured if the mapping resolves to non-zero.
     /// The receipt hashing ensures that receipts cannot be manipulated before
     /// redemption. Each mapping is deleted if/when receipt is used for refund.
-    /// Buyer => keccak receipt => exists (1 or 0).
+    /// Buyer => keccak receipt => exists (1+ or 0).
     mapping(address => mapping(bytes32 => uint256)) private receipts;
     /// @dev simple incremental counter to keep all receipts unique so that
     /// receipt hashes bound to buyers never collide.
@@ -347,12 +351,15 @@ contract Sale is
     /// the sale will both always fail if the sale never started.
     /// The sale can ONLY start if it is currently in pending status.
     function canStart() public view returns (bool) {
-        if (_saleStatus != SaleStatus.Pending) {
+        // Only a pending sale can start. Starting a sale more than once would
+        // always be a bug.
+        if (_saleStatus == SaleStatus.Pending) {
+            State memory state_ = _restore(canStartStatePointer);
+            eval("", state_, 0);
+            return state_.stack[state_.stackIndex - 1] > 0;
+        } else {
             return false;
         }
-        State memory state_ = _restore(canStartStatePointer);
-        eval("", state_, 0);
-        return state_.stack[state_.stackIndex - 1] > 0;
     }
 
     /// Can the sale end?
@@ -363,21 +370,33 @@ contract Sale is
     /// will NOT eval the "can end" script.
     /// The sale can ONLY end if it is currently in active status.
     function canEnd() public view returns (bool) {
-        if (_saleStatus != SaleStatus.Active) {
+        // Only an active sale can end. Ending an ended or pending sale would
+        // always be a bug.
+        if (_saleStatus == SaleStatus.Active) {
+            // It is always possible to end an out of stock sale because at
+            // this point the only further buys that can happen are after a
+            // refund, and it makes no sense that someone would refund at a low
+            // price to buy at a high price. Therefore we should end the sale
+            // and tally the final result as soon as we sell out.
+            if (remainingUnits < 1) {
+                return true;
+            }
+            // The raise is active and still has stock remaining so we delegate
+            // to the appropriate script for an answer.
+            else {
+                State memory state_ = _restore(canEndStatePointer);
+                eval("", state_, 0);
+                return state_.stack[state_.stackIndex - 1] > 0;
+            }
+        } else {
             return false;
         }
-        if (remainingUnits < 1) {
-            return true;
-        }
-        State memory state_ = _restore(canEndStatePointer);
-        eval("", state_, 0);
-        return state_.stack[state_.stackIndex - 1] > 0;
     }
 
     /// Calculates the current reserve price quoted for 1 unit of rTKN.
     /// Used internally to process `buy`.
     /// @param units_ Amount of rTKN to quote a price for, will be available to
-    /// the price script from CURRENT_BUY_UNITS.
+    /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = _restore(calculatePriceStatePointer);
         eval(abi.encode(units_), state_, 0);
@@ -398,14 +417,12 @@ contract Sale is
     function end() public {
         require(canEnd(), "CANT_END");
 
-        remainingUnits = 0;
-
         bool success_ = totalReserveIn >= minimumRaise;
         SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
-        emit End(msg.sender, endStatus_);
-        _saleStatus = endStatus_;
 
-        // Let the rTKN handle its own distribution end logic.
+        remainingUnits = 0;
+        _saleStatus = endStatus_;
+        emit End(msg.sender, endStatus_);
         _token.endDistribution(address(this));
 
         // Only send reserve to recipient if the raise is a success.
@@ -417,7 +434,7 @@ contract Sale is
     }
 
     /// Timeout the sale (move from pending or active to fail).
-    /// The ONLY condition for a timeout is that the `saleTimeout` block sent
+    /// The ONLY condition for a timeout is that the `saleTimeout` block set
     /// during initialize is in the past. This means that regardless of what
     /// happens re: starting, ending, buying, etc. if the sale does NOT manage
     /// to unambiguously end by the timeout block then it can timeout to a fail
@@ -431,6 +448,8 @@ contract Sale is
                 _saleStatus == SaleStatus.Active,
             "ALREADY_ENDED"
         );
+
+        // Mimic `end` with a failed state but `Timeout` event.
         remainingUnits = 0;
         _saleStatus = SaleStatus.Fail;
         emit Timeout(msg.sender);
@@ -451,7 +470,7 @@ contract Sale is
         onlyAfterCooldown
         nonReentrant
     {
-        require(config_.desiredUnits > 0, "0_DESIRED");
+        require(0 < config_.minimumUnits, "0_MINIMUM");
         require(
             config_.minimumUnits <= config_.desiredUnits,
             "MINIMUM_OVER_DESIRED"
@@ -477,7 +496,7 @@ contract Sale is
         nextReceiptId++;
         // There should never be more than one of the same key due to the ID
         // counter but we can use checked math to easily cover the case of
-        // potential duplicate receipts.
+        // potential duplicate receipts due to some bug.
         receipts[msg.sender][keccak256(abi.encode(receipt_))]++;
 
         fees[config_.feeRecipient] += config_.fee;
@@ -587,18 +606,18 @@ contract Sale is
             } else {
                 opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                if (opcode_ == REMAINING_UNITS) {
+                if (opcode_ == OPCODE_REMAINING_UNITS) {
                     state_.stack[state_.stackIndex] = remainingUnits;
-                } else if (opcode_ == TOTAL_RESERVE_IN) {
+                } else if (opcode_ == OPCODE_TOTAL_RESERVE_IN) {
                     state_.stack[state_.stackIndex] = totalReserveIn;
-                } else if (opcode_ == CURRENT_BUY_UNITS) {
+                } else if (opcode_ == OPCODE_CURRENT_BUY_UNITS) {
                     uint256 units_ = abi.decode(context_, (uint256));
                     state_.stack[state_.stackIndex] = units_;
-                } else if (opcode_ == TOKEN_ADDRESS) {
+                } else if (opcode_ == OPCODE_TOKEN_ADDRESS) {
                     state_.stack[state_.stackIndex] = uint256(
                         uint160(address(_token))
                     );
-                } else if (opcode_ == RESERVE_ADDRESS) {
+                } else if (opcode_ == OPCODE_RESERVE_ADDRESS) {
                     state_.stack[state_.stackIndex] = uint256(
                         uint160(address(_reserve))
                     );

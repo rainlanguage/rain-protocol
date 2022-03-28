@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {RainVM, State} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+// solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
@@ -17,7 +18,7 @@ import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
 /// used as the return of `report`.
 contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     /// @dev local opcode to put tier report account on the stack.
-    uint256 private constant ACCOUNT = 0;
+    uint256 private constant OPCODE_ACCOUNT = 0;
     /// @dev local opcodes length.
     uint256 internal constant LOCAL_OPS_LENGTH = 1;
 
@@ -30,6 +31,8 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
     }
 
+    /// @param config_ The StateConfig will be deployed as a pointer under
+    /// `vmStatePointer`.
     function initialize(StateConfig memory config_) external initializer {
         vmStatePointer = _snapshot(_newState(config_));
     }
@@ -51,13 +54,12 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
             } else {
                 opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                if (opcode_ == ACCOUNT) {
-                    address account_ = abi.decode(context_, (address));
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(account_)
-                    );
-                    state_.stackIndex++;
-                }
+                // There's only one opcode, which stacks the address to report.
+                address account_ = abi.decode(context_, (address));
+                state_.stack[state_.stackIndex] = uint256(
+                    uint160(account_)
+                );
+                state_.stackIndex++;
             }
         }
     }

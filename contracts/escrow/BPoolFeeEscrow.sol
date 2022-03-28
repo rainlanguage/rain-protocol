@@ -10,11 +10,11 @@ import "./TrustEscrow.sol";
 /// Represents fees as they are claimed by a recipient on a per-trust basis.
 /// Used to work around a limitation in the EVM i.e. return values must be
 /// structured this way in a dynamic length array when bulk-claiming.
+/// @param trust The trust that fees were claimed for.
+/// @param claimedFees The amount of fees that were claimed.
+/// This is denominated in the token claimed.
 struct ClaimedFees {
-    // The trust that fees were claimed for.
     address trust;
-    // The amount of fees that were claimed.
-    // This is denominated in the token claimed.
     uint256 claimedFees;
 }
 
@@ -65,46 +65,49 @@ contract BPoolFeeEscrow is TrustEscrow {
 
     /// A claim has been processed for a recipient.
     /// ONLY emitted if non-zero fees were claimed.
+    /// @param sender Anon `msg.sender` who processed the claim.
+    /// @param recipient Recipient of the fees.
+    /// @param trust Trust the fees were collected for.
+    /// @param reserve Reserve token first reported by the `Trust`.
+    /// @param claimedFees Amount of fees claimed.
     event ClaimFees(
-        /// Anon who processed the claim.
         address sender,
-        /// Recipient of the fees.
         address recipient,
-        /// Trust the fees were collected for.
         address trust,
-        /// Reserve token first reported by the `Trust`.
         address reserve,
-        /// Amount of fees claimed.
         uint256 claimedFees
     );
+
     /// A refund has been processed for a `Trust`.
     /// ONLY emitted if non-zero fees were refunded.
+    /// @param sender Anon `msg.sender` who processed the refund.
+    /// @param trust `Trust` the fees were refunded to.
+    /// Fees go to the redeemable token, not the `Trust` itself.
+    /// @param reserve Reserve token first reported by the `Trust`.
+    /// @param redeemable Redeemable token first reported by the `Trust`.
+    /// @param refundedFees Amount of fees refunded.
     event RefundFees(
-        /// Anon who processed the refund.
         address sender,
-        /// `Trust` the fees were refunded to.
-        /// Fees go to the redeemable token, not the `Trust` itself.
         address trust,
-        /// Reserve token first reported by the `Trust`.
         address reserve,
-        /// Redeemable token first reported by the `Trust`.
         address redeemable,
-        /// Amount of fees refunded.
         uint256 refundedFees
     );
+
     /// A fee has been set aside for a recipient.
+    /// @param sender Anon `msg.sender` who sent fees.
+    /// @param recipient Recipient of the fee.
+    /// @param trust `Trust` the fee was set aside for.
+    /// @param reserve Reserve token first reported by the `Trust`.
+    /// @param redeemable Redeemable token first reported by the `Trust`.
+    /// @param fee Amount of fee denominated in the reserve asset of the
+    /// `Trust`.
     event Fee(
-        /// Anon who sent fees.
         address sender,
-        /// Recipient of the fee.
         address recipient,
-        /// `Trust` the fee was set aside for.
         address trust,
-        /// Reserve token first reported by the `Trust`.
         address reserve,
-        /// Redeemable token first reported by the `Trust`.
         address redeemable,
-        /// Amount of fee denominated in the reserve asset of the `trust`.
         uint256 fee
     );
 
@@ -273,14 +276,7 @@ contract BPoolFeeEscrow is TrustEscrow {
         IConfigurableRightsPool crp_ = IConfigurableRightsPool(crp(trust_));
         address pool_ = crp_.bPool();
 
-        emit Fee(
-            msg.sender,
-            feeRecipient_,
-            trust_,
-            reserve_,
-            token_,
-            fee_
-        );
+        emit Fee(msg.sender, feeRecipient_, trust_, reserve_, token_, fee_);
 
         crp_.pokeWeights();
 
