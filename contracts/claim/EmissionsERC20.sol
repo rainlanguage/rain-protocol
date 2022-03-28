@@ -7,11 +7,7 @@ import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
 import {RainVM, State} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {BlockOps} from "../vm/ops/BlockOps.sol";
-import {ThisOps} from "../vm/ops/ThisOps.sol";
-import {MathOps} from "../vm/ops/MathOps.sol";
-import {TierOps} from "../vm/ops/TierOps.sol";
-import {FixedPointMathOps} from "../vm/ops/FixedPointMathOps.sol";
+import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /// Constructor config.
@@ -61,16 +57,6 @@ contract EmissionsERC20 is
     /// @dev local opcodes length.
     uint256 internal constant LOCAL_OPS_LENGTH = 2;
 
-    /// @dev local offset for block ops.
-    uint256 private immutable blockOpsStart;
-    /// @dev local offest for this ops.
-    uint256 private immutable thisOpsStart;
-    /// @dev local offset for tier ops.
-    uint256 private immutable tierOpsStart;
-    /// @dev local offset for math ops.
-    uint256 private immutable mathOpsStart;
-    /// @dev local offset for fixed point math ops.
-    uint private immutable fixedPointMathOpsStart;
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
 
@@ -101,17 +87,7 @@ contract EmissionsERC20 is
 
     /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
     constructor() {
-        /// These local opcode offsets are calculated as immutable but are
-        /// really just compile time constants. They only depend on the
-        /// imported libraries and contracts. These are calculated at
-        /// construction to future-proof against underlying ops being
-        /// added/removed and potentially breaking the offsets here.
-        blockOpsStart = RainVM.OPS_LENGTH;
-        thisOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
-        tierOpsStart = thisOpsStart + ThisOps.OPS_LENGTH;
-        mathOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
-        fixedPointMathOpsStart = mathOpsStart + MathOps.OPS_LENGTH;
-        localOpsStart = fixedPointMathOpsStart + FixedPointMathOps.OPS_LENGTH;
+        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
@@ -125,9 +101,7 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = _snapshot(
-            _newState(config_.vmStateConfig)
-        );
+        vmStatePointer = _snapshot(_newState(config_.vmStateConfig));
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -144,39 +118,10 @@ contract EmissionsERC20 is
         uint256 operand_
     ) internal view override {
         unchecked {
-            if (opcode_ < thisOpsStart) {
-                BlockOps.applyOp(
-                    context_,
+            if (opcode_ < localOpsStart) {
+                AllStandardOps.applyOp(
                     state_,
-                    opcode_ - blockOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < tierOpsStart) {
-                ThisOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - thisOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < mathOpsStart) {
-                TierOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - tierOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < fixedPointMathOpsStart) {
-                MathOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - mathOpsStart,
-                    operand_
-                );
-            } else if (opcode_ < localOpsStart) {
-                FixedPointMathOps.applyOp(
-                    context_,
-                    state_,
-                    opcode_ - fixedPointMathOpsStart,
+                    opcode_ - ALL_STANDARD_OPS_START,
                     operand_
                 );
             } else {

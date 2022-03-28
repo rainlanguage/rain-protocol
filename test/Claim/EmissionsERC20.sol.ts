@@ -16,38 +16,13 @@ import { BigNumber, Contract } from "ethers";
 
 const { assert } = chai;
 
-const enum Opcode {
-  SKIP,
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  BLOCK_NUMBER,
-  BLOCK_TIMESTAMP,
-  THIS_ADDRESS,
-  REPORT,
-  NEVER,
-  ALWAYS,
-  SATURATING_DIFF,
-  UPDATE_BLOCKS_FOR_TIER_RANGE,
-  SELECT_LTE,
-  ADD,
-  SUB,
-  MUL,
-  DIV,
-  MOD,
-  POW,
-  MIN,
-  MAX,
-  SCALE18_MUL,
-  SCALE18_DIV,
-  SCALE18,
-  SCALEN,
-  SCALE_BY,
-  SCALE18_ONE,
-  SCALE18_DECIMALS,
-  CLAIMANT_ACCOUNT,
-  CONSTRUCTION_BLOCK_NUMBER,
+export enum EmissionsERC20Ops {
+  CLAIMANT_ACCOUNT = 0 + Util.AllStandardOps.length,
+  CONSTRUCTION_BLOCK_NUMBER = 1 + Util.AllStandardOps.length,
+}
+
+export const Opcode = {
+  ...Util.AllStandardOps, ...EmissionsERC20Ops
 }
 
 enum Tier {

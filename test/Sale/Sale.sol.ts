@@ -100,6 +100,68 @@ describe("Sale", async function () {
     );
   });
 
+  it("should prevent configuring zero minimumRaise, including case when distributionEndForwardingAddress is set", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const distributionEndForwardingAddress = signers[2];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = 0;
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    await Util.assertError(
+      async () =>
+        await saleDeploy(
+          signers,
+          deployer,
+          saleFactory,
+          {
+            canStartStateConfig: afterBlockNumberConfig(startBlock),
+            canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+            calculatePriceStateConfig: {
+              sources,
+              constants,
+              stackLength: 1,
+              argumentsLength: 0,
+            },
+            recipient: recipient.address,
+            reserve: reserve.address,
+            cooldownDuration: 1,
+            minimumRaise,
+            dustSize: 0,
+          },
+          {
+            erc20Config: redeemableERC20Config,
+            tier: readWriteTier.address,
+            minimumTier: Tier.ZERO,
+            distributionEndForwardingAddress:
+              distributionEndForwardingAddress.address,
+          }
+        ),
+      "MIN_RAISE_0",
+      "wrongly initialized sale with minimumRaise set to 0"
+    );
+  });
+
   it("should fail to initialize when deployer attempts to set a distributor", async function () {
     this.timeout(0);
 
@@ -1251,10 +1313,10 @@ describe("Sale", async function () {
               vFractionMultiplier,
                 op(Opcode.TOKEN_ADDRESS),
                 op(Opcode.SENDER),
-              op(Opcode.ERC20_BALANCE_OF),
+              op(Opcode.IERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
               op(Opcode.TOKEN_ADDRESS),
-            op(Opcode.ERC20_TOTAL_SUPPLY),
+            op(Opcode.IERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
       ]),
@@ -1410,10 +1472,10 @@ describe("Sale", async function () {
               vFractionMultiplier,
                 op(Opcode.RESERVE_ADDRESS),
                 op(Opcode.SENDER),
-              op(Opcode.ERC20_BALANCE_OF),
+              op(Opcode.IERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
               op(Opcode.RESERVE_ADDRESS),
-            op(Opcode.ERC20_TOTAL_SUPPLY),
+            op(Opcode.IERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
       ]),

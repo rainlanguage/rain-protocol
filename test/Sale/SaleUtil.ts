@@ -10,6 +10,7 @@ import { getEventArgs, op } from "../Util";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import * as Util from "../Util"
 
 export enum Tier {
   ZERO,
@@ -30,54 +31,16 @@ export enum Status {
   FAIL,
 }
 
-export enum Opcode {
-  SKIP,
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  BLOCK_NUMBER,
-  BLOCK_TIMESTAMP,
-  SENDER,
-  IS_ZERO,
-  EAGER_IF,
-  EQUAL_TO,
-  LESS_THAN,
-  GREATER_THAN,
-  EVERY,
-  ANY,
-  ADD,
-  SUB,
-  MUL,
-  DIV,
-  MOD,
-  POW,
-  MIN,
-  MAX,
-  SCALE18_MUL,
-  SCALE18_DIV,
-  SCALE18,
-  SCALEN,
-  SCALE_BY,
-  SCALE18_ONE,
-  SCALE18_DECIMALS,
-  REPORT,
-  NEVER,
-  ALWAYS,
-  SATURATING_DIFF,
-  UPDATE_BLOCKS_FOR_TIER_RANGE,
-  SELECT_LTE,
-  ERC20_BALANCE_OF,
-  ERC20_TOTAL_SUPPLY,
-  ERC721_BALANCE_OF,
-  ERC721_OWNER_OF,
-  ERC1155_BALANCE_OF,
-  ERC1155_BALANCE_OF_BATCH,
-  REMAINING_UNITS,
-  TOTAL_RESERVE_IN,
-  CURRENT_BUY_UNITS,
-  TOKEN_ADDRESS,
-  RESERVE_ADDRESS,
+export enum SaleOps {
+  REMAINING_UNITS = 0 + Util.AllStandardOps.length,
+  TOTAL_RESERVE_IN = 1 + Util.AllStandardOps.length,
+  CURRENT_BUY_UNITS = 2 + Util.AllStandardOps.length,
+  TOKEN_ADDRESS = 3 + Util.AllStandardOps.length,
+  RESERVE_ADDRESS = 4 + Util.AllStandardOps.length,
+}
+
+export const Opcode = {
+  ...Util.AllStandardOps, ...SaleOps
 }
 
 export const saleDeploy = async (

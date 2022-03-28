@@ -119,7 +119,7 @@ describe("SaleUnchecked", async function () {
     const source0 = concat([
         vHalfMaxUInt256,
         vTwo,
-      op(Opcode.POW, 2)
+      op(Opcode.EXP, 2)
     ]);
 
     const [sale] = await saleDeploy(
