@@ -347,12 +347,15 @@ contract Sale is
     /// the sale will both always fail if the sale never started.
     /// The sale can ONLY start if it is currently in pending status.
     function canStart() public view returns (bool) {
-        if (_saleStatus != SaleStatus.Pending) {
+        // Only a pending sale can start. Starting a sale more than once would
+        // always be a bug.
+        if (_saleStatus == SaleStatus.Pending) {
+            State memory state_ = _restore(canStartStatePointer);
+            eval("", state_, 0);
+            return state_.stack[state_.stackIndex - 1] > 0;
+        } else {
             return false;
         }
-        State memory state_ = _restore(canStartStatePointer);
-        eval("", state_, 0);
-        return state_.stack[state_.stackIndex - 1] > 0;
     }
 
     /// Can the sale end?
@@ -363,15 +366,27 @@ contract Sale is
     /// will NOT eval the "can end" script.
     /// The sale can ONLY end if it is currently in active status.
     function canEnd() public view returns (bool) {
-        if (_saleStatus != SaleStatus.Active) {
+        // Only an active sale can end. Ending an ended or pending sale would
+        // always be a bug.
+        if (_saleStatus == SaleStatus.Active) {
+            // It is always possible to end an out of stock sale because at
+            // this point the only further buys that can happen are after a
+            // refund, and it makes no sense that someone would refund at a low
+            // price to buy at a high price. Therefore we should end the sale
+            // and tally the final result as soon as we sell out.
+            if (remainingUnits < 1) {
+                return true;
+            }
+            // The raise is active and still has stock remaining so we delegate
+            // to the appropriate script for an answer.
+            else {
+                State memory state_ = _restore(canEndStatePointer);
+                eval("", state_, 0);
+                return state_.stack[state_.stackIndex - 1] > 0;
+            }
+        } else {
             return false;
         }
-        if (remainingUnits < 1) {
-            return true;
-        }
-        State memory state_ = _restore(canEndStatePointer);
-        eval("", state_, 0);
-        return state_.stack[state_.stackIndex - 1] > 0;
     }
 
     /// Calculates the current reserve price quoted for 1 unit of rTKN.
