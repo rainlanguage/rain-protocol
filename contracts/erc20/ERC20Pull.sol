@@ -7,10 +7,10 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "@openzeppelin/contracts/utils/Address.sol";
 
 /// Constructor config for `ERC20Pull`.
+/// @param sender Token sender to bind to `pullERC20`.
+/// @param token ERC20 token to bind to `pullERC20`.
 struct ERC20PullConfig {
-    /// Token sender to bind to `pullERC20`.
     address sender;
-    /// ERC20 token to bind to `pullERC20`.
     address token;
 }
 
@@ -39,19 +39,19 @@ contract ERC20Pull {
     using Address for address;
 
     /// Emitted during initialization.
+    /// @param sender `msg.sender` of initialize.
+    /// @param tokenSender Address that token can be pulled from.
+    /// @param token Token that can be pulled.
     event ERC20PullInitialize(
-        /// `msg.sender` of initialize.
         address sender,
-        /// Address that token can be pulled from.
         address tokenSender,
-        /// Token that can be pulled.
         address token
     );
 
-    /// The `sender` that this contract will attempt to pull tokens from.
+    /// @dev The `sender` that this contract will attempt to pull tokens from.
     address private sender;
-    /// The ERC20 token that this contract will attempt to pull to itself from
-    /// `sender`.
+    /// @dev The ERC20 token that this contract will attempt to pull to itself
+    /// from `sender`.
     address private token;
 
     /// Initialize the sender and token.

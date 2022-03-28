@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, op, arg, skip } from "../Util";
+import { bytify, callSize, op, arg } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";

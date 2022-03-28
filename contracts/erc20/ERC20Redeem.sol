@@ -12,19 +12,21 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
 
     /// Anon has burned their tokens in exchange for some treasury assets.
     /// Emitted once per redeemed asset.
+    /// @param sender `msg.sender` is burning.
+    /// @param treasuryAsset Treasury asset being sent to redeemer.
+    /// @param redeemAmount Amount of token being burned.
+    /// @param assetAmount Amount of treasury asset being sent.
     event Redeem(
-        /// `msg.sender` is burning.
         address sender,
-        /// Treasury asset being sent to redeemer.
         address treasuryAsset,
-        /// Amount of token being burned.
         uint256 redeemAmount,
-        /// Amount of treasury asset being sent.
         uint256 assetAmount
     );
 
     /// Anon can notify the world that they are adding treasury assets to the
     /// contract. Indexers are strongly encouraged to ignore untrusted anons.
+    /// @param sender `msg.sender` adding a treasury asset.
+    /// @param asset The treasury asset being added.
     event TreasuryAsset(address sender, address asset);
 
     /// Anon can emit a `TreasuryAsset` event to notify token holders that

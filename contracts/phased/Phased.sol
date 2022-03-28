@@ -41,12 +41,16 @@ pragma solidity =0.8.10;
 /// The full history of each phase shift block is recorded as a fixed size
 /// array of `uint32`.
 contract Phased {
-    /// Every phase block starts uninitialized.
+    /// @dev Every phase block starts uninitialized.
     /// Only uninitialized blocks can be set by the phase scheduler.
     uint32 private constant UNINITIALIZED = type(uint32).max;
+    /// @dev This is how many phases can fit in a `uint256`.
     uint256 private constant MAX_PHASE = 8;
 
     /// `PhaseScheduled` is emitted when the next phase is scheduled.
+    /// @param sender `msg.sender` that scheduled the next phase.
+    /// @param newPhase The next phase being scheduled.
+    /// @param scheduledBlock The block the phase will be achieved.
     event PhaseScheduled(
         address sender,
         uint256 newPhase,

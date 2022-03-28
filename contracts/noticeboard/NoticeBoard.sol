@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+/// @param subject Every notice is assumed to be about some contract.
+/// If it isn't then emitting `0` bytes for the address is valid.
+/// @param data Opaque bytes to be interpreted by the indexer/GUI.
 struct Notice {
-    /// Every notice is assumed to be about some contract. If it isn't then
-    /// emitting `0` bytes for the address will likely be cheaper in gas.
     address subject;
-    /// Opaque bytes to be interpreted by the indexer/GUI.
     bytes data;
 }
 
@@ -18,12 +18,9 @@ contract NoticeBoard {
     /// - Simple onchain voting/signalling
     /// GUIs/tooling/indexers reading this data are expected to know how to
     /// interpret it in context because the `NoticeBoard` contract does not.
-    event NewNotice(
-        /// The `msg.sender` that emitted the `Notice`.
-        address sender,
-        /// The notice data.
-        Notice notice
-    );
+    /// @param sender The anon `msg.sender` that emitted the `Notice`.
+    /// @param notice The notice data.
+    event NewNotice(address sender, Notice notice);
 
     /// Anyone can create notices about some subject.
     /// The notice is opaque bytes. The indexer/GUI is expected to understand

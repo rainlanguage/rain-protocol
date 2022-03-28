@@ -7,18 +7,20 @@ import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
 import {RainVM, State} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+// solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /// Constructor config.
+/// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
+/// another account.
+/// @param Constructor config for the ERC20 token minted according to emissions
+/// schedule in `claim`.
+/// @param Constructor config for the `ImmutableSource` that defines the
+/// emissions schedule for claiming.
 struct EmissionsERC20Config {
-    /// True if accounts can call `claim` on behalf of another account.
     bool allowDelegatedClaims;
-    /// Constructor config for the ERC20 token minted according to emissions
-    /// schedule in `claim`.
     ERC20Config erc20Config;
-    /// Constructor config for the `ImmutableSource` that defines the emissions
-    /// schedule for claiming.
     StateConfig vmStateConfig;
 }
 
@@ -44,28 +46,18 @@ contract EmissionsERC20 is
     ReadOnlyTier
 {
     /// Contract has initialized.
-    event Initialize(
-        address sender,
-        bool allowDelegatedClaims,
-        uint256 constructionBlockNumber
-    );
+    /// @param sender `msg.sender` initializing the contract (factory).
+    /// @param allowDelegatedClaims True if accounts can call `claim` on behalf
+    /// of another account.
+    event Initialize(address sender, bool allowDelegatedClaims);
 
     /// @dev local opcode to put claimant account on the stack.
-    uint256 private constant CLAIMANT_ACCOUNT = 0;
-    /// @dev local opcode to put this contract's deploy block on the stack.
-    uint256 private constant CONSTRUCTION_BLOCK_NUMBER = 1;
+    uint256 private constant OPCODE_CLAIMANT_ACCOUNT = 0;
     /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 2;
+    uint256 internal constant LOCAL_OPS_LENGTH = 1;
 
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
-
-    /// @dev Block this contract was constructed.
-    /// Can be used to calculate claim entitlements relative to the deployment
-    /// of the emissions contract itself.
-    /// This is internal to `EmissionsERC20` but is available via a local
-    /// opcode, and so can be used in rainVM scripts.
-    uint256 private constructionBlockNumber;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
@@ -105,9 +97,8 @@ contract EmissionsERC20 is
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
-        constructionBlockNumber = block.number;
 
-        emit Initialize(msg.sender, config_.allowDelegatedClaims, block.number);
+        emit Initialize(msg.sender, config_.allowDelegatedClaims);
     }
 
     /// @inheritdoc RainVM
@@ -125,18 +116,11 @@ contract EmissionsERC20 is
                     operand_
                 );
             } else {
-                opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                if (opcode_ == CLAIMANT_ACCOUNT) {
-                    address account_ = abi.decode(context_, (address));
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(account_)
-                    );
-                    state_.stackIndex++;
-                } else if (opcode_ == CONSTRUCTION_BLOCK_NUMBER) {
-                    state_.stack[state_.stackIndex] = constructionBlockNumber;
-                    state_.stackIndex++;
-                }
+                // There's only one opcode, which stacks the account address.
+                address account_ = abi.decode(context_, (address));
+                state_.stack[state_.stackIndex] = uint256(uint160(account_));
+                state_.stackIndex++;
             }
         }
     }
