@@ -116,6 +116,7 @@ contract EmissionsERC20 is
                     operand_
                 );
             } else {
+                opcode_ -= localOpsStart;
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 // There's only one opcode, which stacks the account address.
                 address account_ = abi.decode(context_, (address));
