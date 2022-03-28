@@ -1,7 +1,7 @@
 import * as Util from "../Util";
 import chai from "chai";
-import { artifacts, ethers } from "hardhat";
-import { getEventArgs, op } from "../Util";
+import { ethers } from "hardhat";
+import { op } from "../Util";
 import {
   afterBlockNumberConfig,
   Opcode,
@@ -13,21 +13,12 @@ import { ReserveToken } from "../../typechain/ReserveToken";
 import { Contract, ContractFactory } from "ethers";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import {
-  SaleConfigStruct,
-  SaleConstructorConfigStruct,
-  SaleRedeemableERC20ConfigStruct,
-} from "../../typechain/Sale";
+import { SaleConstructorConfigStruct } from "../../typechain/Sale";
 import { SaleEscrowWrapper } from "../../typechain/SaleEscrowWrapper";
-import { SaleMutableAddressesTest } from "../../typechain/SaleMutableAddressesTest";
-import { SaleMutableAddressesTestFactory } from "../../typechain/SaleMutableAddressesTestFactory";
-import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import { RedeemableERC20Unfreezable } from "../../typechain/RedeemableERC20Unfreezable";
-import { RedeemableERC20UnfreezableFactory } from "../../typechain/RedeemableERC20UnfreezableFactory";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { SaleWithUnfreezableToken } from "../../typechain/SaleWithUnfreezableToken";
-import { SaleWithUnfreezableTokenFactory } from "../../typechain/SaleWithUnfreezableTokenFactory";
 import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
+import { SaleFactory } from "../../typechain/SaleFactory";
+import { MockISale } from "../../typechain/MockISale";
+import { IERC20 } from "../../typechain/IERC20";
 
 const { assert } = chai;
 
@@ -56,105 +47,7 @@ let reserve: ReserveToken & Contract,
   readWriteTier: ReadWriteTier & Contract,
   saleConstructorConfig: SaleConstructorConfigStruct,
   saleFactoryFactory: ContractFactory,
-  saleUnfreezableFactory: SaleMutableAddressesTestFactory & Contract;
-
-const saleWithUnfreezableTokenDeploy = async (
-  signers: SignerWithAddress[],
-  deployer: SignerWithAddress,
-  saleUnfreezableFactory: SaleWithUnfreezableTokenFactory & Contract,
-  config: SaleConfigStruct,
-  saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
-  ...args
-): Promise<
-  [SaleWithUnfreezableToken & Contract, RedeemableERC20Unfreezable & Contract]
-> => {
-  const txDeploy = await saleUnfreezableFactory.createChildTyped(
-    config,
-    saleRedeemableERC20Config,
-    ...args
-  );
-
-  const saleWithUnfreezableToken = new ethers.Contract(
-    ethers.utils.hexZeroPad(
-      ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", saleUnfreezableFactory)).child
-      ),
-      20 // address bytes length
-    ),
-    (await artifacts.readArtifact("SaleWithUnfreezableToken")).abi,
-    deployer
-  ) as SaleWithUnfreezableToken & Contract;
-
-  if (!ethers.utils.isAddress(saleWithUnfreezableToken.address)) {
-    throw new Error(
-      `invalid sale address: ${saleWithUnfreezableToken.address} (${saleWithUnfreezableToken.address.length} chars)`
-    );
-  }
-
-  await saleWithUnfreezableToken.deployed();
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  saleWithUnfreezableToken.deployTransaction = txDeploy;
-
-  let token = new ethers.Contract(
-    await saleWithUnfreezableToken.token(),
-    (await artifacts.readArtifact("RedeemableERC20Unfreezable")).abi
-  ) as RedeemableERC20Unfreezable & Contract;
-
-  token = token.connect(signers[0]); // need to do this for some reason
-
-  return [saleWithUnfreezableToken, token];
-};
-
-const saleMutableAddressesTestDeploy = async (
-  signers: SignerWithAddress[],
-  deployer: SignerWithAddress,
-  saleTestFactory: SaleMutableAddressesTestFactory & Contract,
-  config: SaleConfigStruct,
-  saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
-  ...args
-): Promise<
-  [SaleMutableAddressesTest & Contract, RedeemableERC20 & Contract]
-> => {
-  const txDeploy = await saleTestFactory.createChildTyped(
-    config,
-    saleRedeemableERC20Config,
-    ...args
-  );
-
-  const saleMutableAddressesTest = new ethers.Contract(
-    ethers.utils.hexZeroPad(
-      ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", saleTestFactory)).child
-      ),
-      20 // address bytes length
-    ),
-    (await artifacts.readArtifact("SaleMutableAddressesTest")).abi,
-    deployer
-  ) as SaleMutableAddressesTest & Contract;
-
-  if (!ethers.utils.isAddress(saleMutableAddressesTest.address)) {
-    throw new Error(
-      `invalid sale address: ${saleMutableAddressesTest.address} (${saleMutableAddressesTest.address.length} chars)`
-    );
-  }
-
-  await saleMutableAddressesTest.deployed();
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  saleMutableAddressesTest.deployTransaction = txDeploy;
-
-  let token = new ethers.Contract(
-    await saleMutableAddressesTest.token(),
-    (await artifacts.readArtifact("RedeemableERC20")).abi
-  ) as RedeemableERC20 & Contract;
-
-  token = token.connect(signers[0]); // need to do this for some reason
-
-  return [saleMutableAddressesTest, token];
-};
+  saleFactory: SaleFactory & Contract;
 
 describe("SaleEscrow", async function () {
   beforeEach(async () => {
@@ -183,294 +76,158 @@ describe("SaleEscrow", async function () {
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-    saleUnfreezableFactory = (await saleFactoryFactory.deploy(
+    saleFactory = (await saleFactoryFactory.deploy(
       saleConstructorConfig
-    )) as SaleMutableAddressesTestFactory & Contract;
-    await saleUnfreezableFactory.deployed();
+    )) as SaleFactory & Contract;
+    await saleFactory.deployed();
   });
 
   it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else (in the case of failed Sale)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
-    const signer2 = signers[4];
-    const signer3 = signers[5];
+
+    const signer1 = signers[1];
+    const signer2 = signers[2];
 
     // Deploy global Claim contract
-    const claimFactory = await ethers.getContractFactory(
+    const rTKNClaimEscrowFactory = await ethers.getContractFactory(
       "RedeemableERC20ClaimEscrow"
     );
-    const claim = (await claimFactory.deploy()) as RedeemableERC20ClaimEscrow &
-      Contract;
-
-    // 5 blocks from now
-    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
-
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-    const redeemableERC20Config = {
-      name: "Token",
-      symbol: "TKN",
-      distributor: Util.zeroAddress,
-      initialSupply: totalTokenSupply,
-    };
-
-    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
-
-    const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
-
-    const sources = [concat([vBasePrice])];
-
-    const redeemableERC20UnfreezableFactoryFactory =
-      await ethers.getContractFactory("RedeemableERC20UnfreezableFactory", {});
-    const redeemableERC20UnfreezableFactory =
-      (await redeemableERC20UnfreezableFactoryFactory.deploy()) as RedeemableERC20UnfreezableFactory &
+    const rTKNClaimEscrow =
+      (await rTKNClaimEscrowFactory.deploy()) as RedeemableERC20ClaimEscrow &
         Contract;
-    await redeemableERC20UnfreezableFactory.deployed();
 
-    const saleConstructorConfig = {
-      maximumCooldownDuration: 1000,
-      redeemableERC20Factory: redeemableERC20UnfreezableFactory.address,
-    };
+    const tokenFactory = await ethers.getContractFactory("ReserveToken");
+    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
+    const rTKN = (await tokenFactory.deploy()) as Contract & IERC20;
 
-    const saleUnfreezableFactoryFactory = await ethers.getContractFactory(
-      "SaleWithUnfreezableTokenFactory",
-      {}
+    await reserve.deployed();
+    await rTKN.deployed();
+
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale1 = (await saleFactory.deploy()) as Contract & MockISale;
+    const sale2 = (await saleFactory.deploy()) as Contract & MockISale;
+
+    // Two identical successful sales with some tokens to distribute.
+    const sales: Array<Contract & MockISale> = [sale1, sale2];
+    for (const sale of sales) {
+      await sale.deployed();
+      await sale.setReserve(reserve.address);
+      await sale.setToken(rTKN.address);
+      await sale.setSaleStatus(SaleStatus.Success);
+      await reserve.approve(rTKNClaimEscrow.address, 1000);
+      await rTKNClaimEscrow.deposit(sale.address, reserve.address, 1000);
+    }
+
+    assert(
+      (await rTKN.balanceOf(signer1.address)).eq(0),
+      "signer 1 had token balance prematurely"
     );
-    const saleUnfreezableFactory = (await saleUnfreezableFactoryFactory.deploy(
-      saleConstructorConfig
-    )) as SaleWithUnfreezableTokenFactory & Contract;
-    await saleUnfreezableFactory.deployed();
+    // If signer1 has all the token they should get all deposited reserve.
+    await rTKN.transfer(signer1.address, await rTKN.totalSupply());
 
-    const [saleWithUnfreezableToken, unfreezableToken] =
-      await saleWithUnfreezableTokenDeploy(
-        signers,
-        deployer,
-        saleUnfreezableFactory,
-        {
-          canStartStateConfig: afterBlockNumberConfig(startBlock),
-          canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-          calculatePriceStateConfig: {
-            sources,
-            constants,
-            stackLength: 1,
-            argumentsLength: 0,
-          },
-          recipient: recipient.address,
-          reserve: reserve.address,
-          cooldownDuration: 1,
-          minimumRaise,
-          dustSize: 0,
-        },
-        {
-          erc20Config: redeemableERC20Config,
-          tier: readWriteTier.address,
-          minimumTier: Tier.ZERO,
-          distributionEndForwardingAddress: ethers.constants.AddressZero,
-        }
-      );
-
-    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
-
-    const desiredUnits = 100;
-    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
-
-    // give signer1 reserve to cover cost + fee
-    await reserve.transfer(signer1.address, cost.add(fee));
-    const signer1ReserveBalance = await reserve.balanceOf(signer1.address);
-    await reserve
+    await rTKNClaimEscrow
       .connect(signer1)
-      .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
-    // give signer2 reserve to cover cost + fee
-    await reserve.transfer(signer2.address, cost.add(fee));
-    const signer2ReserveBalance = await reserve.balanceOf(signer2.address);
-    await reserve
-      .connect(signer2)
-      .approve(saleWithUnfreezableToken.address, signer1ReserveBalance);
+      .withdraw(sale1.address, reserve.address, await rTKN.totalSupply());
 
-    // wait until sale start
-    await Util.createEmptyBlock(
-      startBlock - (await ethers.provider.getBlockNumber())
+    assert(
+      (await reserve.balanceOf(signer1.address)).eq(1000),
+      `signer 1 did not withdraw the deposited reserve`
     );
 
-    await saleWithUnfreezableToken.start();
-
-    // buy redeemable tokens during sale
-    await saleWithUnfreezableToken.connect(signer1).buy({
-      feeRecipient: feeRecipient.address,
-      fee,
-      minimumUnits: desiredUnits,
-      desiredUnits,
-      maximumPrice: staticPrice,
-    });
-    // buy redeemable tokens during sale
-    await saleWithUnfreezableToken.connect(signer2).buy({
-      feeRecipient: feeRecipient.address,
-      fee,
-      minimumUnits: desiredUnits,
-      desiredUnits,
-      maximumPrice: staticPrice,
-    });
-
-    // wait until sale can end
-    await Util.createEmptyBlock(
-      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
-    );
-
-    // Sale.end() also moves RedeemableERC20 to FROZEN phase
-    // However in this test we instead move to unrestricted, non-frozen phase
-    await saleWithUnfreezableToken.end();
-
-    const status: SaleStatus = await saleWithUnfreezableToken.saleStatus();
-    assert(status === SaleStatus.Fail);
-
-    // signer1 deposit
-    await unfreezableToken.connect(signer1).approve(claim.address, 100);
-    await claim
-      .connect(signer1)
-      .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
-    // signer2 deposit
-    await unfreezableToken.connect(signer2).approve(claim.address, 100);
-    await claim
-      .connect(signer2)
-      .deposit(saleWithUnfreezableToken.address, unfreezableToken.address, 100);
-
-    const tokenSupply = await unfreezableToken.totalSupply();
-
-    // undeposit
-    await claim
-      .connect(signer1)
-      .undeposit(
-        saleWithUnfreezableToken.address,
-        unfreezableToken.address,
-        tokenSupply,
-        100
-      );
-
-    // since RedeemableERC20 is not frozen, transfers are still possible in addition to burns
-    await unfreezableToken.connect(signer1).transfer(signer3.address, 100);
-
-    const signer1TokenBalance = await unfreezableToken.balanceOf(
-      signer1.address
-    );
-    const escrowTokenBalance = await unfreezableToken.balanceOf(claim.address);
-
-    // at this point, signer1 transferred away their claimed tokens
-    // and escrow still holds funds
-    assert(signer1TokenBalance.isZero(), "wrong signer1 token balance");
-    assert(escrowTokenBalance.eq(100), "wrong escrow token balance");
-
-    // undeposit again, attempting to drain escrow
-    // should underflow because signer1 cannot claim more than they deposited
+    // At this point signer 1 has withdrawn all they can for sale1.
     await Util.assertError(
       async () =>
-        await claim
+        await rTKNClaimEscrow
           .connect(signer1)
-          .undeposit(
-            saleWithUnfreezableToken.address,
-            unfreezableToken.address,
-            tokenSupply,
-            100
-          ),
-      "reverted with panic code 0x11",
-      "escrow claim exceeding deposited amount did not underflow"
+          .withdraw(sale1.address, reserve.address, await rTKN.totalSupply()),
+      "ZERO_WITHDRAW",
+      "didn't prevent signer 1 from withdrawing a second time"
+    );
+
+    // At this point there is still 1000 reserve in the escrow (for sale2).
+    // We want to prevent signer 1 from colluding with signer 2 to withdraw
+    // more funds from sale1 than were ever deposited for it. If this were
+    // possible then malicious ISale contracts can steal from honest contracts.
+    await rTKN
+      .connect(signer1)
+      .transfer(signer2.address, await rTKN.totalSupply());
+    // This has to underflow here as signer2 is now trying to withdraw 1000
+    // reserve tokens, which means 2000 reserve tokens total withdrawn from
+    // sale1 vs. 1000 tokens deposited for sale1.
+    await Util.assertError(
+      async () =>
+        await rTKNClaimEscrow
+          .connect(signer2)
+          .withdraw(sale1.address, reserve.address, await rTKN.totalSupply()),
+      "underflowed",
+      "didn't prevent signer 2 from withdrawing from sale1 what was already withdrawn"
+    );
+
+    // However, it's entirely possible for signer2 to withdraw 1000 tokens
+    // from sale2 as sale1 and sale2 share the same non-reserve token.
+    await rTKNClaimEscrow
+      .connect(signer2)
+      .withdraw(sale2.address, reserve.address, await rTKN.totalSupply());
+
+    assert(
+      (await reserve.balanceOf(signer1.address)).eq(1000),
+      `signer 1 has incorrect reserve.`
+    );
+    assert(
+      (await reserve.balanceOf(signer2.address)).eq(1000),
+      `signer 2 has incorrect reserve.`
+    );
+    assert(
+      (await reserve.balanceOf(rTKNClaimEscrow.address)).eq(0),
+      `escrow has incorrect reserve.`
     );
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
     this.timeout(0);
 
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-
-    // 5 blocks from now
-    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
-
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-    const redeemableERC20Config = {
-      name: "Token",
-      symbol: "TKN",
-      distributor: Util.zeroAddress,
-      initialSupply: totalTokenSupply,
-    };
-
-    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
-
-    const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
-
-    const sources = [concat([vBasePrice])];
-
-    const saleMutableAddressesTestFactoryFactory =
-      await ethers.getContractFactory("SaleMutableAddressesTestFactory", {});
-    const saleMutableAddressesTestFactory =
-      (await saleMutableAddressesTestFactoryFactory.deploy(
-        saleConstructorConfig
-      )) as SaleMutableAddressesTestFactory & Contract;
-    await saleMutableAddressesTestFactory.deployed();
-
-    const [saleMutableAddressesTest] = await saleMutableAddressesTestDeploy(
-      signers,
-      deployer,
-      saleMutableAddressesTestFactory,
-      {
-        canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-        calculatePriceStateConfig: {
-          sources,
-          constants,
-          stackLength: 1,
-          argumentsLength: 0,
-        },
-        recipient: recipient.address,
-        reserve: reserve.address,
-        cooldownDuration: 1,
-        minimumRaise,
-        dustSize: 0,
-      },
-      {
-        erc20Config: redeemableERC20Config,
-        tier: readWriteTier.address,
-        minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: ethers.constants.AddressZero,
-      }
-    );
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale = (await saleFactory.deploy()) as Contract & MockISale;
 
     const saleEscrowWrapper = (await Util.basicDeploy(
       "SaleEscrowWrapper",
       {}
     )) as SaleEscrowWrapper & Contract;
 
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const tokenFactory = await ethers.getContractFactory("ReserveToken");
+    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
+    const rTKN = (await tokenFactory.deploy()) as Contract & IERC20;
+
+    await reserve.deployed();
+    await rTKN.deployed();
+
+    await sale.setReserve(reserve.address);
+    await sale.setToken(rTKN.address);
+    await sale.setSaleStatus(SaleStatus.Pending);
+
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
     const saleEscrowStatus0: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
 
-    await saleMutableAddressesTest.updateStatus(SaleStatus.Active);
+    await sale.setSaleStatus(SaleStatus.Active);
 
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
     const saleEscrowStatus1: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
 
-    await saleMutableAddressesTest.updateStatus(SaleStatus.Fail);
+    await sale.setSaleStatus(SaleStatus.Fail);
 
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
     const saleEscrowStatus2: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
 
-    await saleMutableAddressesTest.updateStatus(SaleStatus.Success);
+    await sale.setSaleStatus(SaleStatus.Success);
 
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
     const saleEscrowStatus3: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
 
     assert(saleEscrowStatus0 === EscrowStatus.Pending);
     assert(saleEscrowStatus1 === EscrowStatus.Pending);
@@ -481,91 +238,46 @@ describe("SaleEscrow", async function () {
   it("should prevent 'malicious' sale contract from modifying success status", async function () {
     this.timeout(0);
 
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-
-    // 5 blocks from now
-    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
-
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-    const redeemableERC20Config = {
-      name: "Token",
-      symbol: "TKN",
-      distributor: Util.zeroAddress,
-      initialSupply: totalTokenSupply,
-    };
-
-    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
-
-    const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
-
-    const sources = [concat([vBasePrice])];
-
-    const saleMutableAddressesTestFactoryFactory =
-      await ethers.getContractFactory("SaleMutableAddressesTestFactory", {});
-    const saleMutableAddressesTestFactory =
-      (await saleMutableAddressesTestFactoryFactory.deploy(
-        saleConstructorConfig
-      )) as SaleMutableAddressesTestFactory & Contract;
-    await saleMutableAddressesTestFactory.deployed();
-
-    const [saleMutableAddressesTest] = await saleMutableAddressesTestDeploy(
-      signers,
-      deployer,
-      saleMutableAddressesTestFactory,
-      {
-        canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-        calculatePriceStateConfig: {
-          sources,
-          constants,
-          stackLength: 1,
-          argumentsLength: 0,
-        },
-        recipient: recipient.address,
-        reserve: reserve.address,
-        cooldownDuration: 1,
-        minimumRaise,
-        dustSize: 0,
-      },
-      {
-        erc20Config: redeemableERC20Config,
-        tier: readWriteTier.address,
-        minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: ethers.constants.AddressZero,
-      }
-    );
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale = (await saleFactory.deploy()) as Contract & MockISale;
 
     const saleEscrowWrapper = (await Util.basicDeploy(
       "SaleEscrowWrapper",
       {}
     )) as SaleEscrowWrapper & Contract;
 
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const tokenFactory = await ethers.getContractFactory("ReserveToken");
+    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
+    const rTKN = (await tokenFactory.deploy()) as Contract & IERC20;
+
+    await reserve.deployed();
+    await rTKN.deployed();
+
+    await sale.setReserve(reserve.address);
+    await sale.setToken(rTKN.address);
+    await sale.setSaleStatus(SaleStatus.Pending);
+
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
     const saleEscrowStatus0: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
 
-    await saleMutableAddressesTest.updateStatus(SaleStatus.Active);
+    await sale.setSaleStatus(SaleStatus.Active);
 
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
     const saleEscrowStatus1: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
 
-    await saleMutableAddressesTest.updateStatus(SaleStatus.Success);
+    await sale.setSaleStatus(SaleStatus.Success);
 
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
     const saleEscrowStatus2: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
 
-    await saleMutableAddressesTest.updateStatus(SaleStatus.Fail);
+    await sale.setSaleStatus(SaleStatus.Fail);
 
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
     const saleEscrowStatus3: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(saleMutableAddressesTest.address);
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
 
     assert(saleEscrowStatus0 === EscrowStatus.Pending);
     assert(saleEscrowStatus1 === EscrowStatus.Pending);
@@ -576,97 +288,44 @@ describe("SaleEscrow", async function () {
   it("should prevent 'malicious' sale contract from modifying reserve and token addresses", async function () {
     this.timeout(0);
 
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-
-    // 5 blocks from now
-    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
-
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-    const redeemableERC20Config = {
-      name: "Token",
-      symbol: "TKN",
-      distributor: Util.zeroAddress,
-      initialSupply: totalTokenSupply,
-    };
-
-    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
-
-    const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
-
-    const sources = [concat([vBasePrice])];
-
-    const saleMutableAddressesTestFactoryFactory =
-      await ethers.getContractFactory("SaleMutableAddressesTestFactory", {});
-    const saleMutableAddressesTestFactory =
-      (await saleMutableAddressesTestFactoryFactory.deploy(
-        saleConstructorConfig
-      )) as SaleMutableAddressesTestFactory & Contract;
-    await saleMutableAddressesTestFactory.deployed();
-
-    const [saleMutableAddressesTest] = await saleMutableAddressesTestDeploy(
-      signers,
-      deployer,
-      saleMutableAddressesTestFactory,
-      {
-        canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-        calculatePriceStateConfig: {
-          sources,
-          constants,
-          stackLength: 1,
-          argumentsLength: 0,
-        },
-        recipient: recipient.address,
-        reserve: reserve.address,
-        cooldownDuration: 1,
-        minimumRaise,
-        dustSize: 0,
-      },
-      {
-        erc20Config: redeemableERC20Config,
-        tier: readWriteTier.address,
-        minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: ethers.constants.AddressZero,
-      }
-    );
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale = (await saleFactory.deploy()) as Contract & MockISale;
 
     const saleEscrowWrapper = (await Util.basicDeploy(
       "SaleEscrowWrapper",
       {}
     )) as SaleEscrowWrapper & Contract;
 
-    // sale escrow indexes reserve and token addresses, and escrow status
-    await saleEscrowWrapper.fetchReserve(saleMutableAddressesTest.address);
-    await saleEscrowWrapper.fetchToken(saleMutableAddressesTest.address);
-    await saleEscrowWrapper.fetchEscrowStatus(saleMutableAddressesTest.address);
+    const tokenFactory = await ethers.getContractFactory("ReserveToken");
+    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
+    const rTKN = (await tokenFactory.deploy()) as Contract & IERC20;
 
-    const saleEscrowReserve0 = await saleEscrowWrapper.getReserve(
-      saleMutableAddressesTest.address
-    );
-    const saleEscrowToken0 = await saleEscrowWrapper.getToken(
-      saleMutableAddressesTest.address
-    );
+    await reserve.deployed();
+    await rTKN.deployed();
+
+    await sale.setReserve(reserve.address);
+    await sale.setToken(rTKN.address);
+    await sale.setSaleStatus(SaleStatus.Success);
+
+    // sale escrow indexes reserve and token addresses, and escrow status
+    await saleEscrowWrapper.fetchReserve(sale.address);
+    await saleEscrowWrapper.fetchToken(sale.address);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+
+    const saleEscrowReserve0 = await saleEscrowWrapper.getReserve(sale.address);
+    const saleEscrowToken0 = await saleEscrowWrapper.getToken(sale.address);
 
     const newReserve = ethers.Wallet.createRandom();
     const newToken = ethers.Wallet.createRandom();
 
-    await saleMutableAddressesTest.updateReserve(newReserve.address);
-    await saleMutableAddressesTest.updateToken(newToken.address);
+    await sale.setReserve(newReserve.address);
+    await sale.setToken(newToken.address);
 
-    await saleEscrowWrapper.fetchReserve(saleMutableAddressesTest.address);
-    await saleEscrowWrapper.fetchToken(saleMutableAddressesTest.address);
+    await saleEscrowWrapper.fetchReserve(sale.address);
+    await saleEscrowWrapper.fetchToken(sale.address);
 
-    const saleEscrowReserve1 = await saleEscrowWrapper.getReserve(
-      saleMutableAddressesTest.address
-    );
-    const saleEscrowToken1 = await saleEscrowWrapper.getToken(
-      saleMutableAddressesTest.address
-    );
+    const saleEscrowReserve1 = await saleEscrowWrapper.getReserve(sale.address);
+    const saleEscrowToken1 = await saleEscrowWrapper.getToken(sale.address);
 
     // sanity check
     assert(
@@ -719,7 +378,7 @@ describe("SaleEscrow", async function () {
     const [sale] = await saleDeploy(
       signers,
       deployer,
-      saleUnfreezableFactory,
+      saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
         canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
