@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, op, arg, skip } from "../Util";
+import { bytify, callSize, op, arg } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
@@ -32,7 +32,174 @@ const enum Opcode {
   MAX,
 }
 
+// Contains tests for RainVM, the constant RainVM ops as well as Math ops via CalculatorTest contract.
+// For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM", async function () {
+  it("should perform saturating multiplication", async () => {
+    this.timeout(0);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+
+    const constants = [Util.max_uint256, 2];
+    const vMaxUInt256 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+
+    // test case with normal multiplication
+    const sourcesUnsat = [
+      concat([
+        // (max_uint256 2 *)
+        vMaxUInt256,
+        v2,
+        op(Opcode.MUL, 2),
+      ]),
+    ];
+
+    const calculatorUnsat = (await calculatorFactory.deploy({
+      sources: sourcesUnsat,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculatorUnsat.run(),
+      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "normal multiplication overflow did not error"
+    );
+
+    const sourcesSat = [
+      concat([
+        // (max_uint256 2 SAT_MUL)
+        vMaxUInt256,
+        v2,
+        op(Opcode.SATURATING_MUL, 2),
+      ]),
+    ];
+
+    const calculatorSat = (await calculatorFactory.deploy({
+      sources: sourcesSat,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculatorSat.run();
+    const expected = Util.max_uint256;
+    assert(result.eq(expected), `wrong multiplication ${expected} ${result}`);
+  });
+
+  it("should perform saturating subtraction", async () => {
+    this.timeout(0);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+
+    const constants = [10, 20];
+    const v10 = op(Opcode.VAL, 0);
+    const v20 = op(Opcode.VAL, 1);
+
+    // test case with normal addition
+    const sourcesUnsat = [
+      concat([
+        // (10 20 -)
+        v10,
+        v20,
+        op(Opcode.SUB, 2),
+      ]),
+    ];
+
+    const calculatorUnsat = (await calculatorFactory.deploy({
+      sources: sourcesUnsat,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculatorUnsat.run(),
+      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "normal subtraction overflow did not error"
+    );
+
+    const sourcesSat = [
+      concat([
+        // (10 20 SAT_SUB)
+        v10,
+        v20,
+        op(Opcode.SATURATING_SUB, 2),
+      ]),
+    ];
+
+    const calculatorSat = (await calculatorFactory.deploy({
+      sources: sourcesSat,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculatorSat.run();
+    const expected = 0;
+    assert(
+      result.eq(expected),
+      `wrong saturating summation ${expected} ${result}`
+    );
+  });
+
+  it("should perform saturating addition", async () => {
+    this.timeout(0);
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+
+    const constants = [Util.max_uint256, 10];
+    const vMaxUInt256 = op(Opcode.VAL, 0);
+    const v10 = op(Opcode.VAL, 1);
+
+    // test case with normal addition
+    const sourcesUnsat = [
+      concat([
+        // (max_uint256 10 +)
+        vMaxUInt256,
+        v10,
+        op(Opcode.ADD, 2),
+      ]),
+    ];
+
+    const calculatorUnsat = (await calculatorFactory.deploy({
+      sources: sourcesUnsat,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculatorUnsat.run(),
+      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "normal addition overflow did not error"
+    );
+
+    const sourcesSat = [
+      concat([
+        // (max_uint256 1 SAT_ADD)
+        vMaxUInt256,
+        v10,
+        op(Opcode.SATURATING_ADD, 2),
+      ]),
+    ];
+
+    const calculatorSat = (await calculatorFactory.deploy({
+      sources: sourcesSat,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    const result = await calculatorSat.run();
+    const expected = Util.max_uint256;
+    assert(
+      result.eq(expected),
+      `wrong saturating summation ${expected} ${result}`
+    );
+  });
+
   it("should support source scripts with leading zeroes", async () => {
     this.timeout(0);
 
