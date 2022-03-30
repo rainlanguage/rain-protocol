@@ -53,10 +53,7 @@ contract Stake is ERC20Upgradeable {
     }
 
     function withdraw(uint256 amount_) external {
-        token.safeTransfer(
-            msg.sender,
-            (amount_ * token.balanceOf(address(this))) / totalSupply()
-        );
+        require(amount_ > 0, "0_AMOUNT");
         _burn(msg.sender, amount_);
         // MUST revert if length is 0 so we're guaranteed to have some amount
         // for the old highwater. Users without deposits can't withdraw.
@@ -83,6 +80,10 @@ contract Stake is ERC20Upgradeable {
                 Deposit(uint32(block.number), newHighwater_.toUint224())
             );
         }
+        token.safeTransfer(
+            msg.sender,
+            (amount_ * token.balanceOf(address(this))) / totalSupply()
+        );
     }
 
     function report(address account_, bytes calldata data_)
