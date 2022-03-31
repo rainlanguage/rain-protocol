@@ -832,3 +832,37 @@ export enum AllStandardOps {
   IERC1155_BALANCE_OF_BATCH,
   length,
 }
+
+/**
+ * Compares a Solidity struct and JavaScript object by checking whether the values for each property are equivalent (==).
+ * @param solArray - Solidity struct, returned from something such as an emitted solidity Event. This should have an array-like structure, and it is expected that solArray is an array-object hybrid (e.g. `solStruct: ['foo', 'bar', prop1: 'foo', prop2: 'bar']`).
+ * @param jsObj - JavaScript object literal to use as comparison.
+ */
+export const compareStructs = (
+  solArray: unknown[],
+  jsObj: Record<string, unknown>
+) => {
+  const sEntries = Object.entries(solArray).splice(
+    solArray.length // actually half the solArray size
+  );
+
+  if (!sEntries.length) {
+    throw new Error(
+      `Could not generate entries from a solArray of length ${solArray.length}. Ensure you are using a Solidity struct for solArray.`
+    );
+  }
+
+  const s = Object.fromEntries(sEntries);
+
+  Object.keys(s).forEach((key) => {
+    const expectedValue = jsObj[key];
+    const actualValue = s[key];
+
+    assert(
+      actualValue == expectedValue,
+      `wrong value for property: '${key}'
+      expected  ${expectedValue}
+      got       ${actualValue}`
+    );
+  });
+};
