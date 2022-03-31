@@ -35,6 +35,8 @@ contract Stake is ERC20Upgradeable {
     mapping(address => Deposit[]) private deposits;
 
     function initialize(StakeConfig calldata config_) external initializer {
+        require(config_.token != address(0), "0_TOKEN");
+        require(config_.initialRatio > 0, "0_RATIO");
         __ERC20_init(config_.name, config_.symbol);
         token = IERC20(config_.token);
         initialRatio = config_.initialRatio;
@@ -43,12 +45,18 @@ contract Stake is ERC20Upgradeable {
 
     function deposit(uint256 amount_) external {
         require(amount_ > 0, "0_AMOUNT");
-        token.safeTransferFrom(msg.sender, address(this), amount_);
-        uint256 mintAmount_ = (totalSupply() * amount_) /
-            token.balanceOf(address(this));
-        if (mintAmount_ == 0) {
+        // MUST check token balance before receiving additional tokens.
+        uint256 tokenPoolSize_ = token.balanceOf(address(this));
+        // MUST use supply from before the mint.
+        uint256 supply_ = totalSupply();
+
+        uint256 mintAmount_;
+        if (tokenPoolSize_ == 0 || supply_ == 0) {
             mintAmount_ = amount_.fixedPointMul(initialRatio);
+        } else {
+            mintAmount_ = (supply_ * amount_) / tokenPoolSize_;
         }
+        require(mintAmount_ > 0, "0_MINT");
         _mint(msg.sender, mintAmount_);
 
         uint224 highwater_ = deposits[msg.sender].length > 0
@@ -57,11 +65,12 @@ contract Stake is ERC20Upgradeable {
         deposits[msg.sender].push(
             Deposit(uint32(block.number), highwater_ + amount_.toUint224())
         );
+        token.safeTransferFrom(msg.sender, address(this), amount_);
     }
 
     function withdraw(uint256 amount_) external {
         require(amount_ > 0, "0_AMOUNT");
-        _burn(msg.sender, amount_);
+
         // MUST revert if length is 0 so we're guaranteed to have some amount
         // for the old highwater. Users without deposits can't withdraw.
         uint256 i_ = deposits[msg.sender].length - 1;
@@ -87,9 +96,13 @@ contract Stake is ERC20Upgradeable {
                 Deposit(uint32(block.number), newHighwater_.toUint224())
             );
         }
+
+        // MUST calculate withdrawal amount against pre-burn supply.
+        uint256 supply_ = totalSupply();
+        _burn(msg.sender, amount_);
         token.safeTransfer(
             msg.sender,
-            (amount_ * token.balanceOf(address(this))) / totalSupply()
+            (amount_ * token.balanceOf(address(this))) / supply_
         );
     }
 
