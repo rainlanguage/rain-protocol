@@ -8,10 +8,12 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
+import "../math/FixedPointMath.sol";
 import "../tier/libraries/TierReport.sol";
 
 struct StakeConfig {
     address token;
+    uint256 iniitalRatio;
     string name;
     string symbol;
 }
@@ -25,8 +27,10 @@ contract Stake is ERC20Upgradeable {
     event Initialize(address sender, StakeConfig config);
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
+    using FixedPointMath for uint256;
 
     IERC20 private token;
+    uint256 private initialRatio;
 
     mapping(address => Deposit[]) private deposits;
 
@@ -39,10 +43,12 @@ contract Stake is ERC20Upgradeable {
     function deposit(uint256 amount_) external {
         require(amount_ > 0, "0_AMOUNT");
         token.safeTransferFrom(msg.sender, address(this), amount_);
-        _mint(
-            msg.sender,
-            (totalSupply() * amount_) / token.balanceOf(address(this))
-        );
+        uint256 mintAmount_ = (totalSupply() * amount_) /
+            token.balanceOf(address(this));
+        if (mintAmount_ == 0) {
+            mintAmount_ = amount_.fixedPointMul(initialRatio);
+        }
+        _mint(msg.sender, mintAmount_);
 
         uint224 highwater_ = deposits[msg.sender].length > 0
             ? deposits[msg.sender][deposits[msg.sender].length - 1].amount
