@@ -106,7 +106,7 @@ contract OrderBook is RainVM {
                 askPaysAmount_ -
                 bidWantsAmount_;
             claimable[bid_.sender][bid_.wants] += bidWantsAmount_;
-            claimable[ask_.sender][ask_.wants] += askWantsAmount_;
+            claimable[ask_.sender][ask_.wants] += bidOffersAmount_;
         }
         emit Execute(msg.sender, bid_, ask_);
     }
