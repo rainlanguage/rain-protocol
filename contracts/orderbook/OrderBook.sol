@@ -84,13 +84,14 @@ contract OrderBook is RainVM {
             uint256 bidPaysAmount_ = askOffersAmount_.fixedPointDiv(bidPrice_);
             delete asks[asksKey_];
             bids[bidsKey_] -= bidPaysAmount_;
+
             // This needs to rollback on overflow as it implies that the bid
             // pays amount is insufficient to cover what ask wants.
-            claimable[msg.sender][bid_.offers] +=
+            claimable[msg.sender][ask_.wants] +=
                 bidPaysAmount_ -
                 askWantsAmount_;
-            claimable[bid_.sender][bid_.wants] += askOffersAmount_;
             claimable[ask_.sender][ask_.wants] += askWantsAmount_;
+            claimable[bid_.sender][bid_.wants] += askOffersAmount_;
         }
         // Ask is offering more than bid wants, so bid is cleared out of the
         // system. Ask will pay their price for the amount that bid wants which
