@@ -859,7 +859,7 @@ export const compareStructs = (
     const actualValue = s[key];
 
     assert(
-      actualValue == expectedValue,
+      actualValue == expectedValue || actualValue['eq'](expectedValue),
       `wrong value for property: '${key}'
       expected  ${expectedValue}
       got       ${actualValue}`

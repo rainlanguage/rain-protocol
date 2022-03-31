@@ -13,7 +13,7 @@ import "../tier/libraries/TierReport.sol";
 
 struct StakeConfig {
     address token;
-    uint256 iniitalRatio;
+    uint256 initialRatio;
     string name;
     string symbol;
 }
@@ -37,6 +37,7 @@ contract Stake is ERC20Upgradeable {
     function initialize(StakeConfig calldata config_) external initializer {
         __ERC20_init(config_.name, config_.symbol);
         token = IERC20(config_.token);
+        initialRatio = config_.initialRatio;
         emit Initialize(msg.sender, config_);
     }
 

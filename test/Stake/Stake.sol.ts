@@ -69,6 +69,7 @@ describe("Stake", async function () {
       name: "Stake Token",
       symbol: "STKN",
       token: token.address,
+      initialRatio: Util.ONE,
     };
 
     const stake = await stakeDeploy(deployer, stakeConfigStruct);
@@ -121,6 +122,7 @@ describe("Stake", async function () {
       name: "Stake Token",
       symbol: "STKN",
       token: token.address,
+      initialRatio: Util.ONE,
     };
 
     const stake = await stakeDeploy(deployer, stakeConfigStruct);
