@@ -4,12 +4,12 @@ pragma solidity =0.8.10;
 import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
-import "../tier/ReadOnlyTier.sol";
 import {RainVM, State} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "../tier/ITierV2.sol";
 
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
@@ -43,7 +43,7 @@ contract EmissionsERC20 is
     VMState,
     ERC20Upgradeable,
     IClaim,
-    ReadOnlyTier
+    ITierV2
 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
