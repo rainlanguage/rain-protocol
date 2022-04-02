@@ -8,7 +8,7 @@ import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
-import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
+import "./ITierV2.sol";
 
 /// @title CombineTier
 /// @notice Implements `ReadOnlyTier` over RainVM. Allows combining the reports
@@ -16,7 +16,7 @@ import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
 /// construction.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
-contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
+contract CombineTier is ITierV2, RainVM, VMState, Initializable {
     /// @dev local opcode to put tier report account on the stack.
     uint256 private constant OPCODE_ACCOUNT = 0;
     /// @dev local opcodes length.

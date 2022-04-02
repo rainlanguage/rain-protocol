@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
-constant uint ITIER_UNIT_BLOCKS = 0;
-constant uint ITIER_UNIT_TIMESTAMP = 1;
+uint256 constant ITIER_UNIT_BLOCKS = 0;
+uint256 constant ITIER_UNIT_TIMESTAMP = 1;
 
 interface ITierV2 {
     /// Return `0` for blocks and `1` for unix timestamps in seconds.

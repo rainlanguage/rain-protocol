@@ -41,7 +41,7 @@ library TierOps {
             if (opcode_ == OPCODE_REPORT) {
                 state_.stackIndex -= 1;
                 baseIndex_ = state_.stackIndex - 1;
-                state_.stack[baseIndex_] = ITier(
+                state_.stack[baseIndex_] = ITierV2(
                     address(uint160(state_.stack[baseIndex_]))
                 ).report(address(uint160(state_.stack[baseIndex_ + 1])));
             }
