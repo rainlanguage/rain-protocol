@@ -23,10 +23,21 @@ contract OrderBook is RainVM {
     event Bid(address sender, Order bid);
     event Ask(address sender, Order ask);
     event Execute(address sender, Order bid, Order ask);
+
+    uint256 private constant OPCODE_COUNTERPARTY = 0;
+
+    uint256 internal constant LOCAL_OPS_LENGTH = 1;
+
+    uint256 private immutable localOpsStart;
+
     mapping(bytes32 => uint256) private bids;
     mapping(bytes32 => uint256) private asks;
     // account => token => amount
     mapping(address => mapping(address => uint256)) private claimable;
+
+    constructor() {
+        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+    }
 
     function claim(address token_) external {
         uint256 amount_ = claimable[msg.sender][token_];
@@ -68,8 +79,8 @@ contract OrderBook is RainVM {
         uint256 askOffersAmount_ = asks[asksKey_];
 
         // Price is want/offer for both bids and asks.
-        eval("", bid_.price, 0);
-        eval("", ask_.price, 0);
+        eval(abi.encode(ask_.sender), bid_.price, 0);
+        eval(abi.encode(bid_.sender), ask_.price, 0);
         uint256 bidPrice_ = bid_.price.stack[bid_.price.stackIndex];
         uint256 askPrice_ = ask_.price.stack[ask_.price.stackIndex];
 
@@ -114,15 +125,23 @@ contract OrderBook is RainVM {
 
     /// @inheritdoc RainVM
     function applyOp(
-        bytes memory,
+        bytes memory context_,
         State memory state_,
         uint256 opcode_,
         uint256 operand_
     ) internal view override {
-        AllStandardOps.applyOp(
-            state_,
-            opcode_ - ALL_STANDARD_OPS_START,
-            operand_
-        );
+        if (opcode_ < localOpsStart) {
+            AllStandardOps.applyOp(
+                state_,
+                opcode_ - ALL_STANDARD_OPS_START,
+                operand_
+            );
+        } else {
+            opcode_ -= localOpsStart;
+            require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
+            address counterparty_ = abi.decode(context_, (address));
+            state_.stack[state_.stackIndex] = uint256(uint160(counterparty_));
+            state_.stackIndex++;
+        }
     }
 }
