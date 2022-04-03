@@ -45,6 +45,13 @@ struct CounterpartyContext {
     uint256 fundsCleared;
 }
 
+struct ClearStateChange {
+    uint256 aOutput;
+    uint256 bOutput;
+    uint256 aInput;
+    uint256 bInput;
+}
+
 uint256 constant VM_SOURCE_INDEX = 0;
 uint256 constant OPCODE_COUNTERPARTY = 0;
 uint256 constant OPCODE_COUNTERPARTY_FUNDS_CLEARED = 1;
@@ -61,7 +68,13 @@ contract OrderBook is RainVM {
     event Withdraw(address sender, WithdrawConfig config);
     event OrderLive(address sender, OrderConfig config);
     event OrderDead(address sender, OrderConfig config);
-    event Clear(address sender, OrderConfig a_, OrderConfig b_);
+    event Clear(
+        address sender,
+        OrderConfig a_,
+        OrderConfig b_,
+        BountyConfig bountyConfig,
+        ClearStateChange stateChange
+    );
 
     uint256 private immutable localOpsStart;
 
@@ -152,11 +165,11 @@ contract OrderBook is RainVM {
         OrderConfig calldata b_,
         BountyConfig calldata bountyConfig_
     ) external {
+        OrderHash aHash_ = _orderHash(a_);
+        OrderHash bHash_ = _orderHash(b_);
         {
             require(a_.outputToken == b_.inputToken, "TOKEN_MISMATCH");
             require(b_.outputToken == a_.inputToken, "TOKEN_MISMATCH");
-            OrderHash aHash_ = _orderHash(a_);
-            OrderHash bHash_ = _orderHash(b_);
             require(
                 OrderLiveness.unwrap(orders[aHash_]) ==
                     OrderLiveness.unwrap(ORDER_LIVE),
@@ -185,12 +198,7 @@ contract OrderBook is RainVM {
             );
         }
 
-        uint256 aOutput_;
-        uint256 bOutput_;
-        uint256 aInput_;
-        uint256 bInput_;
-        uint256 aBounty_;
-        uint256 bBounty_;
+        ClearStateChange memory stateChange_;
 
         {
             uint256 aPrice_;
@@ -202,12 +210,12 @@ contract OrderBook is RainVM {
                 // Price is input per output for both a_ and b_.
                 aPrice_ = a_.vmState.stack[a_.vmState.stackIndex - 1];
                 bPrice_ = b_.vmState.stack[b_.vmState.stackIndex - 1];
+                // a_ and b_ can both set a maximum output from the VM.
                 aOutputMax_ = a_.vmState.stack[a_.vmState.stackIndex - 2];
                 bOutputMax_ = a_.vmState.stack[b_.vmState.stackIndex - 2];
             }
 
-            // a_ and b_ can both set a maximum output from the VM and are both
-            // limited to the remaining funds in their output vault.
+            // outputs are capped by the remaining funds in their output vault.
             {
                 aOutputMax_ = aOutputMax_.min(
                     vaults[a_.owner][a_.outputToken][a_.outputVaultId]
@@ -217,40 +225,54 @@ contract OrderBook is RainVM {
                 );
             }
 
-            aOutput_ = aOutputMax_.min(bOutputMax_ * bPrice_);
-            bOutput_ = bOutputMax_.min(aOutputMax_ * aPrice_);
+            stateChange_.aOutput = aOutputMax_.min(
+                bOutputMax_.fixedPointMul(bPrice_)
+            );
+            stateChange_.bOutput = bOutputMax_.min(
+                aOutputMax_.fixedPointMul(aPrice_)
+            );
 
-            aInput_ = aOutput_ * aPrice_;
-            bInput_ = bOutput_ * bPrice_;
+            stateChange_.aInput = stateChange_.aOutput.fixedPointMul(aPrice_);
+            stateChange_.bInput = stateChange_.bOutput.fixedPointMul(bPrice_);
+        }
 
+        if (stateChange_.aOutput > 0) {
+            vaults[a_.owner][a_.outputToken][a_.outputVaultId] -= stateChange_
+                .aOutput;
+            // A counts funds paid to cover the bounty as cleared for B.
+            cleared[aHash_][b_.owner] += stateChange_.aOutput;
+        }
+        if (stateChange_.bOutput > 0) {
+            vaults[b_.owner][b_.outputToken][b_.outputVaultId] -= stateChange_
+                .bOutput;
+            // B counts funds paid to cover the bounty as cleared for A.
+            cleared[bHash_][a_.owner] += stateChange_.bOutput;
+        }
+        if (stateChange_.aInput > 0) {
+            vaults[a_.owner][a_.inputToken][a_.inputVaultId] += stateChange_
+                .aInput;
+        }
+        if (stateChange_.bInput > 0) {
+            vaults[b_.owner][b_.inputToken][b_.inputVaultId] += stateChange_
+                .bInput;
+        }
+        {
             // At least one of these will overflow due to negative bounties if
             // there is a spread between the orders.
-            aBounty_ = aOutput_ - bInput_;
-            bBounty_ = bOutput_ - aInput_;
+            uint256 aBounty_ = stateChange_.aOutput - stateChange_.bInput;
+            uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
+            if (aBounty_ > 0) {
+                vaults[msg.sender][a_.outputToken][
+                    bountyConfig_.aVaultId
+                ] += aBounty_;
+            }
+            if (bBounty_ > 0) {
+                vaults[msg.sender][b_.outputToken][
+                    bountyConfig_.bVaultId
+                ] += bBounty_;
+            }
         }
-
-        if (aOutput_ > 0) {
-            vaults[a_.owner][a_.outputToken][a_.outputVaultId] -= aOutput_;
-        }
-        if (bOutput_ > 0) {
-            vaults[b_.owner][b_.outputToken][b_.outputVaultId] -= bOutput_;
-        }
-        if (aInput_ > 0) {
-            vaults[a_.owner][a_.inputToken][a_.inputVaultId] += aInput_;
-        }
-        if (bInput_ > 0) {
-            vaults[b_.owner][b_.inputToken][b_.inputVaultId] += bInput_;
-        }
-        if (aBounty_ > 0) {
-            vaults[msg.sender][a_.outputToken][
-                bountyConfig_.aVaultId
-            ] += aBounty_;
-        }
-        if (bBounty_ > 0) {
-            vaults[msg.sender][b_.outputToken][
-                bountyConfig_.bVaultId
-            ] += bBounty_;
-        }
+        emit Clear(msg.sender, a_, b_, bountyConfig_, stateChange_);
     }
 
     /// @inheritdoc RainVM
