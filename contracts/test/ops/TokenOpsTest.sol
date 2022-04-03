@@ -4,24 +4,24 @@ pragma solidity =0.8.10;
 import {Cooldown} from "../../cooldown/Cooldown.sol";
 
 import "../../vm/RainVM.sol";
-import {IERC20Ops, IERC20_OPS_LENGTH} from "../../vm/ops/token/IERC20Ops.sol";
+import {ERC20Ops, ERC20_OPS_LENGTH} from "../../vm/ops/token/ERC20Ops.sol";
 // solhint-disable-next-line max-line-length
-import {IERC721Ops, IERC721_OPS_LENGTH} from "../../vm/ops/token/IERC721Ops.sol";
+import {ERC721Ops, ERC721_OPS_LENGTH} from "../../vm/ops/token/ERC721Ops.sol";
 // solhint-disable-next-line max-line-length
-import {IERC1155Ops, IERC1155_OPS_LENGTH} from "../../vm/ops/token/IERC1155Ops.sol";
+import {ERC1155Ops, ERC1155_OPS_LENGTH} from "../../vm/ops/token/ERC1155Ops.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 contract TokenOpsTest is RainVM, VMState {
-    uint256 private immutable ierc20OpsStart;
-    uint256 private immutable ierc721OpsStart;
-    uint256 private immutable ierc1155OpsStart;
+    uint256 private immutable erc20OpsStart;
+    uint256 private immutable erc721OpsStart;
+    uint256 private immutable erc1155OpsStart;
     address private immutable vmStatePointer;
 
     constructor(StateConfig memory config_) {
-        ierc20OpsStart = RAIN_VM_OPS_LENGTH;
-        ierc721OpsStart = ierc20OpsStart + IERC20_OPS_LENGTH;
-        ierc1155OpsStart = ierc721OpsStart + IERC721_OPS_LENGTH;
+        erc20OpsStart = RAIN_VM_OPS_LENGTH;
+        erc721OpsStart = erc20OpsStart + ERC20_OPS_LENGTH;
+        erc1155OpsStart = erc721OpsStart + ERC721_OPS_LENGTH;
 
         vmStatePointer = _snapshot(_newState(config_));
     }
@@ -67,14 +67,14 @@ contract TokenOpsTest is RainVM, VMState {
         uint256 operand_
     ) internal view override {
         unchecked {
-            if (opcode_ < ierc721OpsStart) {
-                IERC20Ops.applyOp(state_, opcode_ - ierc20OpsStart, operand_);
-            } else if (opcode_ < ierc1155OpsStart) {
-                IERC721Ops.applyOp(state_, opcode_ - ierc721OpsStart, operand_);
+            if (opcode_ < erc721OpsStart) {
+                ERC20Ops.applyOp(state_, opcode_ - erc20OpsStart, operand_);
+            } else if (opcode_ < erc1155OpsStart) {
+                ERC721Ops.applyOp(state_, opcode_ - erc721OpsStart, operand_);
             } else {
-                IERC1155Ops.applyOp(
+                ERC1155Ops.applyOp(
                     state_,
-                    opcode_ - ierc1155OpsStart,
+                    opcode_ - erc1155OpsStart,
                     operand_
                 );
             }
