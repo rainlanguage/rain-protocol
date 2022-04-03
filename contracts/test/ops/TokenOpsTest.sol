@@ -72,11 +72,7 @@ contract TokenOpsTest is RainVM, VMState {
             } else if (opcode_ < erc1155OpsStart) {
                 ERC721Ops.applyOp(state_, opcode_ - erc721OpsStart, operand_);
             } else {
-                ERC1155Ops.applyOp(
-                    state_,
-                    opcode_ - erc1155OpsStart,
-                    operand_
-                );
+                ERC1155Ops.applyOp(state_, opcode_ - erc1155OpsStart, operand_);
             }
         }
     }

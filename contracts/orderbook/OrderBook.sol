@@ -10,20 +10,20 @@ import "../math/FixedPointMath.sol";
 import "../vm/ops/AllStandardOps.sol";
 
 type VaultId is int256;
-type OrderHash is uint;
-type OrderLiveness is uint;
+type OrderHash is uint256;
+type OrderLiveness is uint256;
 
 struct DepositConfig {
     address depositor;
     address token;
     VaultId vaultId;
-    uint amount;
+    uint256 amount;
 }
 
 struct WithdrawConfig {
     address token;
     VaultId vaultId;
-    uint amount;
+    uint256 amount;
 }
 
 struct OrderConfig {
@@ -42,13 +42,13 @@ struct BountyConfig {
 
 struct CounterpartyContext {
     address counterparty;
-    uint fundsCleared;
+    uint256 fundsCleared;
 }
 
-uint constant VM_SOURCE_INDEX = 0;
-uint constant OPCODE_COUNTERPARTY = 0;
-uint constant OPCODE_COUNTERPARTY_FUNDS_CLEARED = 1;
-uint constant LOCAL_OPS_LENGTH = 2;
+uint256 constant VM_SOURCE_INDEX = 0;
+uint256 constant OPCODE_COUNTERPARTY = 0;
+uint256 constant OPCODE_COUNTERPARTY_FUNDS_CLEARED = 1;
+uint256 constant LOCAL_OPS_LENGTH = 2;
 
 OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
 OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
@@ -63,17 +63,17 @@ contract OrderBook is RainVM {
     event OrderDead(address sender, OrderConfig config);
     event Clear(address sender, OrderConfig a_, OrderConfig b_);
 
-    uint private immutable localOpsStart;
+    uint256 private immutable localOpsStart;
 
     // order hash => order liveness
     mapping(OrderHash => OrderLiveness) private orders;
     // depositor => token => vault => token amount.
-    mapping(address => mapping(address => mapping(VaultId => uint)))
+    mapping(address => mapping(address => mapping(VaultId => uint256)))
         private vaults;
     // funds were cleared from the owner of the hashed order.
     // order owner is the counterparty funds were cleared to.
     // order hash => order owner => token amount
-    mapping(OrderHash => mapping(address => uint)) private cleared;
+    mapping(OrderHash => mapping(address => uint256)) private cleared;
 
     constructor() {
         localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
@@ -89,8 +89,12 @@ contract OrderBook is RainVM {
         _;
     }
 
-    function _orderHash(OrderConfig calldata config_) internal pure returns (OrderHash) {
-        return OrderHash.wrap(uint(keccak256(abi.encode(config_))));
+    function _orderHash(OrderConfig calldata config_)
+        internal
+        pure
+        returns (OrderHash)
+    {
+        return OrderHash.wrap(uint256(keccak256(abi.encode(config_))));
     }
 
     function deposit(DepositConfig calldata config_) external {
@@ -104,66 +108,95 @@ contract OrderBook is RainVM {
         );
     }
 
-    function withdraw(WithdrawConfig calldata config_) external notAppendOnlyVaultId(config_.vaultId) {
+    function withdraw(WithdrawConfig calldata config_)
+        external
+        notAppendOnlyVaultId(config_.vaultId)
+    {
         vaults[msg.sender][config_.token][config_.vaultId] -= config_.amount;
         emit Withdraw(msg.sender, config_);
         IERC20(config_.token).safeTransfer(msg.sender, config_.amount);
     }
 
-    function addOrder(OrderConfig calldata config_) external onlyOrderOwner(config_) {
+    function addOrder(OrderConfig calldata config_)
+        external
+        onlyOrderOwner(config_)
+    {
         OrderHash orderHash_ = _orderHash(config_);
-        if (OrderLiveness.unwrap(orders[orderHash_]) == OrderLiveness.unwrap(ORDER_DEAD)) {
+        if (
+            OrderLiveness.unwrap(orders[orderHash_]) ==
+            OrderLiveness.unwrap(ORDER_DEAD)
+        ) {
             orders[_orderHash(config_)] = ORDER_LIVE;
             emit OrderLive(msg.sender, config_);
         }
     }
 
-    function removeOrder(OrderConfig calldata config_) external onlyOrderOwner(config_) notAppendOnlyVaultId(config_.inputVaultId) notAppendOnlyVaultId(config_.outputVaultId) {
+    function removeOrder(OrderConfig calldata config_)
+        external
+        onlyOrderOwner(config_)
+        notAppendOnlyVaultId(config_.inputVaultId)
+        notAppendOnlyVaultId(config_.outputVaultId)
+    {
         OrderHash orderHash_ = _orderHash(config_);
-        if (OrderLiveness.unwrap(orders[orderHash_]) == OrderLiveness.unwrap(ORDER_LIVE)) {
-        orders[_orderHash(config_)] = ORDER_DEAD;
-        emit OrderDead(msg.sender, config_);
+        if (
+            OrderLiveness.unwrap(orders[orderHash_]) ==
+            OrderLiveness.unwrap(ORDER_LIVE)
+        ) {
+            orders[_orderHash(config_)] = ORDER_DEAD;
+            emit OrderDead(msg.sender, config_);
         }
     }
 
-    function clear(OrderConfig calldata a_, OrderConfig calldata b_, BountyConfig calldata bountyConfig_) external {
+    function clear(
+        OrderConfig calldata a_,
+        OrderConfig calldata b_,
+        BountyConfig calldata bountyConfig_
+    ) external {
         {
             require(a_.outputToken == b_.inputToken, "TOKEN_MISMATCH");
             require(b_.outputToken == a_.inputToken, "TOKEN_MISMATCH");
-        OrderHash aHash_ = _orderHash(a_);
-        OrderHash bHash_ = _orderHash(b_);
-        require(OrderLiveness.unwrap(orders[aHash_]) == OrderLiveness.unwrap(ORDER_LIVE), "A_NOT_LIVE");
-        require(OrderLiveness.unwrap(orders[bHash_]) == OrderLiveness.unwrap(ORDER_LIVE), "B_NOT_LIVE");
+            OrderHash aHash_ = _orderHash(a_);
+            OrderHash bHash_ = _orderHash(b_);
+            require(
+                OrderLiveness.unwrap(orders[aHash_]) ==
+                    OrderLiveness.unwrap(ORDER_LIVE),
+                "A_NOT_LIVE"
+            );
+            require(
+                OrderLiveness.unwrap(orders[bHash_]) ==
+                    OrderLiveness.unwrap(ORDER_LIVE),
+                "B_NOT_LIVE"
+            );
 
-        // Eval the VM for both orders.
-        eval(
-            abi.encode(
-                CounterpartyContext(b_.owner, cleared[aHash_][b_.owner])
-            ),
-            a_.vmState,
-            VM_SOURCE_INDEX
-        );
-        eval(
-            abi.encode(
-                CounterpartyContext(a_.owner, cleared[bHash_][a_.owner])
-            ),
-            b_.vmState,
-            VM_SOURCE_INDEX
-        );
-}
+            // Eval the VM for both orders.
+            eval(
+                abi.encode(
+                    CounterpartyContext(b_.owner, cleared[aHash_][b_.owner])
+                ),
+                a_.vmState,
+                VM_SOURCE_INDEX
+            );
+            eval(
+                abi.encode(
+                    CounterpartyContext(a_.owner, cleared[bHash_][a_.owner])
+                ),
+                b_.vmState,
+                VM_SOURCE_INDEX
+            );
+        }
 
-        uint aOutput_;
-        uint bOutput_;
-        uint aInput_;
-        uint bInput_;
-        uint aBounty_;
-        uint bBounty_;
+        uint256 aOutput_;
+        uint256 bOutput_;
+        uint256 aInput_;
+        uint256 bInput_;
+        uint256 aBounty_;
+        uint256 bBounty_;
 
         {
-            uint aPrice_;
-            uint bPrice_;
-            uint aOutputMax_;
-            uint bOutputMax_;
+            uint256 aPrice_;
+            uint256 bPrice_;
+            uint256 aOutputMax_;
+            uint256 bOutputMax_;
 
             {
                 // Price is input per output for both a_ and b_.
@@ -171,14 +204,17 @@ contract OrderBook is RainVM {
                 bPrice_ = b_.vmState.stack[b_.vmState.stackIndex - 1];
                 aOutputMax_ = a_.vmState.stack[a_.vmState.stackIndex - 2];
                 bOutputMax_ = a_.vmState.stack[b_.vmState.stackIndex - 2];
-
             }
 
             // a_ and b_ can both set a maximum output from the VM and are both
             // limited to the remaining funds in their output vault.
             {
-                aOutputMax_ = aOutputMax_.min(vaults[a_.owner][a_.outputToken][a_.outputVaultId]);
-                bOutputMax_ = bOutputMax_.min(vaults[b_.owner][b_.outputToken][b_.outputVaultId]);
+                aOutputMax_ = aOutputMax_.min(
+                    vaults[a_.owner][a_.outputToken][a_.outputVaultId]
+                );
+                bOutputMax_ = bOutputMax_.min(
+                    vaults[b_.owner][b_.outputToken][b_.outputVaultId]
+                );
             }
 
             aOutput_ = aOutputMax_.min(bOutputMax_ * bPrice_);
@@ -206,12 +242,15 @@ contract OrderBook is RainVM {
             vaults[b_.owner][b_.inputToken][b_.inputVaultId] += bInput_;
         }
         if (aBounty_ > 0) {
-            vaults[msg.sender][a_.outputToken][bountyConfig_.aVaultId] += aBounty_;
+            vaults[msg.sender][a_.outputToken][
+                bountyConfig_.aVaultId
+            ] += aBounty_;
         }
         if (bBounty_ > 0) {
-            vaults[msg.sender][b_.outputToken][bountyConfig_.bVaultId] += bBounty_;
+            vaults[msg.sender][b_.outputToken][
+                bountyConfig_.bVaultId
+            ] += bBounty_;
         }
-
     }
 
     /// @inheritdoc RainVM
@@ -239,7 +278,8 @@ contract OrderBook is RainVM {
                     uint160(counterpartyContext_.counterparty)
                 );
             } else if (opcode_ == OPCODE_COUNTERPARTY_FUNDS_CLEARED) {
-                state_.stack[state_.stackIndex] = counterpartyContext_.fundsCleared;
+                state_.stack[state_.stackIndex] = counterpartyContext_
+                    .fundsCleared;
             }
             state_.stackIndex++;
         }
