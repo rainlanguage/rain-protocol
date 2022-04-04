@@ -1,7 +1,7 @@
 import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
-import { basicSetup, deployGlobals } from "./EscrowUtil";
+import { deployGlobals } from "./EscrowUtil";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type {
   DepositEvent,
@@ -11,164 +11,211 @@ import type {
 } from "../../typechain/RedeemableERC20ClaimEscrow";
 import type { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type { TrustFactory } from "../../typechain/TrustFactory";
 import type { Contract } from "ethers";
-import { getEventArgs } from "../Util";
-import { getAddress } from "ethers/lib/utils";
+import { getEventArgs, op } from "../Util";
+import { concat, getAddress } from "ethers/lib/utils";
+import { SaleFactory } from "../../typechain/SaleFactory";
+import {
+  afterBlockNumberConfig,
+  Opcode,
+  saleDeploy,
+  Status,
+} from "../Sale/SaleUtil";
+import { EndEvent } from "../../typechain/Sale";
 
 const { assert } = chai;
 
 enum Tier {
-  NIL,
-  COPPER,
-  BRONZE,
-  SILVER,
-  GOLD,
-  PLATINUM,
-  DIAMOND,
-  CHAD,
-  JAWAD,
-}
-
-enum DistributionStatus {
-  PENDING,
-  SEEDED,
-  TRADING,
-  TRADINGCANEND,
-  SUCCESS,
-  FAIL,
+  ZERO,
+  ONE,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT,
 }
 
 let claim: RedeemableERC20ClaimEscrow & Contract,
   claimWrapper: RedeemableERC20ClaimEscrowWrapper & Contract,
-  trustFactory: TrustFactory,
-  tier: ReadWriteTier,
-  claimableReserveToken: ReserveToken & Contract;
+  saleFactory: SaleFactory & Contract,
+  readWriteTier: ReadWriteTier & Contract,
+  reserve: ReserveToken & Contract;
 
 describe("RedeemableERC20ClaimEscrow", async function () {
   before(async () => {
-    ({ claim, claimWrapper, trustFactory, tier } = await deployGlobals());
+    ({ claim, claimWrapper, saleFactory, readWriteTier } =
+      await deployGlobals());
   });
 
   beforeEach(async () => {
     // some other token to put into the escrow
-    claimableReserveToken = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
+    reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
+      Contract;
   });
 
   it("if alice withdraws then burns then bob withdraws, bob does not receive more than his pro-rata share from deposit time due to the subsequent supply change", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const alice = signers[3];
-    const bob = signers[4];
-
-    await tier.setTier(alice.address, Tier.GOLD, []);
-    await tier.setTier(bob.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      minimumTradingDuration,
-      successLevel,
-    } = await basicSetup(signers, trustFactory, tier);
+    const deployer = signers[1];
+    const recipient = signers[2];
+    const feeRecipient = signers[3];
+    const alice = signers[4];
+    const bob = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    // signer1 buys some RedeemableERC20 tokens
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    // raise all necessary funds
-    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(alice, spend);
-      await swapReserveForTokens(bob, spend);
-    }
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    // Distribution Status is Trading
+    const sources = [concat([vBasePrice])];
+
+    const [sale, redeemableERC20] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply.div(2);
+    const desiredUnitsBob = totalTokenSupply.div(2);
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+    const costBob = staticPrice.mul(desiredUnitsBob).div(Util.ONE);
+
+    // give alice reserve to cover cost + (fee * 2)
+    await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+    // give bob reserve to cover cost + (fee * 2)
+    await reserve.transfer(bob.address, costBob.add(fee.mul(2)));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+    const bobReserveBalance = await reserve.balanceOf(bob.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+    await reserve.connect(bob).approve(sale.address, bobReserveBalance);
+
+    // alice buys 1/4 available units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(2),
+      desiredUnits: desiredUnitsAlice.div(2),
+      maximumPrice: staticPrice,
+    });
+    // bob buys 1/4 available units
+    await sale.connect(bob).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsBob.div(2),
+      desiredUnits: desiredUnitsBob.div(2),
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
     assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.TRADING,
-      "Distribution Status was not TRADING"
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
     );
 
     // deposit claimable tokens
     const depositAmount0 = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
     // give signers claimable tokens to deposit
-    await claimableReserveToken.transfer(alice.address, depositAmount0);
-    await claimableReserveToken.transfer(bob.address, depositAmount0);
+    await reserve.transfer(alice.address, depositAmount0);
+    await reserve.transfer(bob.address, depositAmount0);
 
-    await claimableReserveToken
-      .connect(alice)
-      .approve(claim.address, depositAmount0);
-    await claimableReserveToken
-      .connect(bob)
-      .approve(claim.address, depositAmount0);
+    await reserve.connect(alice).approve(claim.address, depositAmount0);
+    await reserve.connect(bob).approve(claim.address, depositAmount0);
 
     await claim
       .connect(alice)
-      .depositPending(
-        trust.address,
-        claimableReserveToken.address,
-        depositAmount0
-      );
+      .depositPending(sale.address, reserve.address, depositAmount0);
     await claim
       .connect(bob)
-      .depositPending(
-        trust.address,
-        claimableReserveToken.address,
-        depositAmount0
-      );
+      .depositPending(sale.address, reserve.address, depositAmount0);
 
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
+    // alice buys 1/4 available units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(2),
+      desiredUnits: desiredUnitsAlice.div(2),
+      maximumPrice: staticPrice,
+    });
+    // bob buys 1/4 available units
+    await sale.connect(bob).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsBob.div(2),
+      desiredUnits: desiredUnitsBob.div(2),
+      maximumPrice: staticPrice,
+    });
 
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+    const saleStatusSuccess = await sale.saleStatus();
 
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    await trust.endDutchAuction();
-
-    // Distribution Status is Success
     assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      "Distribution Status was not SUCCESS"
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status
+        expected  ${Status.SUCCESS}
+        got       ${saleStatusSuccess}`
     );
 
     const depositAlice = await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       alice.address
     );
     const depositBob = await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       bob.address
     );
 
@@ -195,7 +242,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // alice withdraws tokens
     await claim
       .connect(alice)
-      .withdraw(trust.address, claimableReserveToken.address, supplyFinal);
+      .withdraw(sale.address, reserve.address, supplyFinal);
 
     const aliceRedeemableERC20TokenBalance = await redeemableERC20.balanceOf(
       alice.address
@@ -206,16 +253,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const supplyRedeemableAfterBurn = await redeemableERC20.totalSupply();
 
-    // withdrawing against new RedeemablERC20 supply, rather than registered amount, will revert
+    // withdrawing against new RedeemableERC20 supply, rather than registered amount, will revert
     await Util.assertError(
       async () =>
         await claim
           .connect(bob)
-          .withdraw(
-            trust.address,
-            claimableReserveToken.address,
-            supplyRedeemableAfterBurn
-          ),
+          .withdraw(sale.address, reserve.address, supplyRedeemableAfterBurn),
       "ZERO_WITHDRAW",
       "wrongly withdrew against unregistered RedeemableERC20 total supply amount"
     );
@@ -234,7 +277,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // bob withdraws tokens
     const txWithdrawBob = await claim
       .connect(bob)
-      .withdraw(trust.address, claimableReserveToken.address, supplyFinal);
+      .withdraw(sale.address, reserve.address, supplyFinal);
 
     const { amount: amountWithdrawnBob } = (await Util.getEventArgs(
       txWithdrawBob,
@@ -258,110 +301,153 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const signer1 = signers[3];
-    const signer2 = signers[4];
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-    await tier.setTier(signer2.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      minimumTradingDuration,
-    } = await basicSetup(signers, trustFactory, tier);
+    const deployer = signers[1];
+    const recipient = signers[2];
+    const alice = signers[3];
+    const bob = signers[4];
+    const feeRecipient = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    // signer1 buys some RedeemableERC20 tokens
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    await swapReserveForTokens(signer1, spend);
-    await swapReserveForTokens(signer2, spend);
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    // Distribution Status is Trading
+    const sources = [concat([vBasePrice])];
+
+    const [sale, redeemableERC20] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply.div(2);
+    const desiredUnitsBob = totalTokenSupply.div(2);
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+    const costBob = staticPrice.mul(desiredUnitsBob).div(Util.ONE);
+
+    // give alice reserve to cover cost + (fee * 2)
+    await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+    // give bob reserve to cover cost + (fee * 2)
+    await reserve.transfer(bob.address, costBob.add(fee.mul(2)));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+    const bobReserveBalance = await reserve.balanceOf(bob.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+    await reserve.connect(bob).approve(sale.address, bobReserveBalance);
+
+    // alice buys 1/4 available units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(2),
+      desiredUnits: desiredUnitsAlice.div(2),
+      maximumPrice: staticPrice,
+    });
+    // bob buys 1/4 available units
+    await sale.connect(bob).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsBob.div(2),
+      desiredUnits: desiredUnitsBob.div(2),
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
     assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.TRADING,
-      "Distribution Status was not TRADING"
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
     );
 
     // deposit claimable tokens
     const depositAmount0 = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
     // give signers claimable tokens to deposit
-    await claimableReserveToken.transfer(signer1.address, depositAmount0);
-    await claimableReserveToken.transfer(signer2.address, depositAmount0);
+    await reserve.transfer(alice.address, depositAmount0);
+    await reserve.transfer(bob.address, depositAmount0);
 
-    await claimableReserveToken
-      .connect(signer1)
-      .approve(claim.address, depositAmount0);
-    await claimableReserveToken
-      .connect(signer2)
-      .approve(claim.address, depositAmount0);
+    await reserve.connect(alice).approve(claim.address, depositAmount0);
+    await reserve.connect(bob).approve(claim.address, depositAmount0);
 
     const txDepositPending0 = await claim
-      .connect(signer1)
-      .depositPending(
-        trust.address,
-        claimableReserveToken.address,
-        depositAmount0
-      );
+      .connect(alice)
+      .depositPending(sale.address, reserve.address, depositAmount0);
     const txDepositPending1 = await claim
-      .connect(signer2)
-      .depositPending(
-        trust.address,
-        claimableReserveToken.address,
-        depositAmount0
-      );
+      .connect(bob)
+      .depositPending(sale.address, reserve.address, depositAmount0);
 
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
+    );
 
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+    const canEnd = await sale.canEnd();
+    assert(canEnd);
 
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
+    await sale.end();
 
-    await trust.endDutchAuction();
+    const saleStatusFail = await sale.saleStatus();
 
-    // Distribution Status is Fail
     assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
-      "Distribution Status was not FAIL"
+      saleStatusFail === Status.FAIL,
+      `wrong status in getter
+      expected  ${Status.FAIL}
+      got       ${saleStatusFail}`
     );
 
-    await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
-      signer1.address
-    );
+    await claim.sweepPending(sale.address, reserve.address, alice.address);
     const deposit1 = await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
-      signer2.address
+      sale.address,
+      reserve.address,
+      bob.address
     );
 
     const { supply: supplyFinal } = await getEventArgs(
@@ -390,29 +476,13 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "actual tokens signer2 deposited and registered amount do not match"
     );
 
-    // Distribution Status is Fail
-    assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
-      "Distribution Status was not FAIL"
-    );
-
     // undeposit claimable tokens
     const undepositTx0 = await claim
-      .connect(signer1)
-      .undeposit(
-        trust.address,
-        claimableReserveToken.address,
-        supplyFinal,
-        depositAmount0
-      );
+      .connect(alice)
+      .undeposit(sale.address, reserve.address, supplyFinal, depositAmount0);
     const undepositTx1 = await claim
-      .connect(signer2)
-      .undeposit(
-        trust.address,
-        claimableReserveToken.address,
-        supplyFinal,
-        depositAmount0
-      );
+      .connect(bob)
+      .undeposit(sale.address, reserve.address, supplyFinal, depositAmount0);
 
     // Undeposit events
     const undepositEvent0 = (await Util.getEventArgs(
@@ -427,28 +497,28 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     )) as UndepositEvent["args"];
 
     // undepositEvent0
-    assert(undepositEvent0.sender === signer1.address, "wrong sender");
-    assert(undepositEvent0.sale === getAddress(trust.address), "wrong trust");
+    assert(undepositEvent0.sender === alice.address, "wrong sender");
+    assert(undepositEvent0.sale === getAddress(sale.address), "wrong sale");
     assert(
       undepositEvent0.redeemable === getAddress(redeemableERC20.address),
       "wrong redeemable"
     );
     assert(
-      undepositEvent0.token === getAddress(claimableReserveToken.address),
+      undepositEvent0.token === getAddress(reserve.address),
       "wrong token"
     );
     assert(undepositEvent0.supply.eq(supplyFinal), "wrong supply");
     assert(undepositEvent0.amount.eq(depositAmount0), "wrong amount");
 
     // undepositEvent1
-    assert(undepositEvent1.sender === signer2.address, "wrong sender");
-    assert(undepositEvent1.sale === getAddress(trust.address), "wrong trust");
+    assert(undepositEvent1.sender === bob.address, "wrong sender");
+    assert(undepositEvent1.sale === getAddress(sale.address), "wrong sale");
     assert(
       undepositEvent1.redeemable === getAddress(redeemableERC20.address),
       "wrong redeemable"
     );
     assert(
-      undepositEvent1.token === getAddress(claimableReserveToken.address),
+      undepositEvent1.token === getAddress(reserve.address),
       "wrong token"
     );
     assert(undepositEvent1.supply.eq(supplyFinal), "wrong supply");
@@ -459,110 +529,148 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const signer1 = signers[3];
-    const signer2 = signers[4];
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-    await tier.setTier(signer2.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      minimumTradingDuration,
-      successLevel,
-    } = await basicSetup(signers, trustFactory, tier);
+    const alice = signers[1];
+    const bob = signers[2];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend1 = ethers.BigNumber.from("50" + Util.sixZeros);
-    const spend2 = ethers.BigNumber.from("50" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    // raise all necessary funds
-    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(signer1, spend1);
-      await swapReserveForTokens(signer2, spend2);
-    }
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+    const sources = [concat([vBasePrice])];
 
-    // cover the dust amount
-    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+    const [sale, redeemableERC20] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply.div(2);
+    const desiredUnitsBob = totalTokenSupply.div(2);
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+    const costBob = staticPrice.mul(desiredUnitsBob).div(Util.ONE);
+
+    // give alice reserve to cover cost + fee
+    await reserve.transfer(alice.address, costAlice.add(fee));
+    // give bob reserve to cover cost + fee
+    await reserve.transfer(bob.address, costBob.add(fee));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+    const bobReserveBalance = await reserve.balanceOf(bob.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+    await reserve.connect(bob).approve(sale.address, bobReserveBalance);
+
+    // alice buys 1/2 available units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice,
+      desiredUnits: desiredUnitsAlice,
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
+    );
+
+    // bob buys 1/2 available units
+    await sale.connect(bob).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsBob,
+      desiredUnits: desiredUnitsBob,
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status
+        expected  ${Status.SUCCESS}
+        got       ${saleStatusSuccess}`
+    );
 
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claim.address, depositAmount);
+    await reserve.approve(claim.address, depositAmount);
     // creator deposits claimable tokens
-    await claim.depositPending(
-      trust.address,
-      claimableReserveToken.address,
+    const txDeposit0 = await claim.deposit(
+      sale.address,
+      reserve.address,
       depositAmount
     );
 
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
-
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    await trust.endDutchAuction();
-
-    const sweep0 = await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
-      signers[0].address
-    );
-
-    const supply0 = (await getEventArgs(sweep0, "Deposit", claim)).supply;
-
-    // Distribution Status is Success
-    assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
-    );
+    const supply0 = (await getEventArgs(txDeposit0, "Deposit", claim)).supply;
 
     // calculate real RedeemableERC20 proportions
-    const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
+    const signer1Prop = (await redeemableERC20.balanceOf(alice.address))
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
 
     // signer1 should withdraw roughly 50% of claimable tokens in escrow
-    await claim
-      .connect(signer1)
-      .withdraw(trust.address, claimableReserveToken.address, supply0);
+    await claim.connect(alice).withdraw(sale.address, reserve.address, supply0);
 
     const expectedSigner1Withdrawal0 = depositAmount
       .mul(signer1Prop)
       .div(Util.ONE);
 
-    const actualSigner1Withdrawal0 = await claimableReserveToken.balanceOf(
-      signer1.address
-    );
+    const actualSigner1Withdrawal0 = await reserve.balanceOf(alice.address);
 
     assert(
       expectedSigner1Withdrawal0.eq(actualSigner1Withdrawal0),
@@ -577,17 +685,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     // signer2 burns their RedeemableERC20 token balance for some reserve
     reserve.transfer(redeemableERC20.address, "1" + Util.sixZeros);
     await redeemableERC20
-      .connect(signer2)
-      .redeem(
-        [reserve.address],
-        await redeemableERC20.balanceOf(signer2.address)
-      );
+      .connect(bob)
+      .redeem([reserve.address], await redeemableERC20.balanceOf(bob.address));
 
     // more claimable tokens are deposited by creator
-    await claimableReserveToken.approve(claim.address, depositAmount);
+    await reserve.approve(claim.address, depositAmount);
     const deposit1 = await claim.deposit(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       depositAmount
     );
 
@@ -595,22 +700,20 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     // recalculate real RedeemableERC20 proportions
     const signer1PropAfterBurn = (
-      await redeemableERC20.balanceOf(signer1.address)
+      await redeemableERC20.balanceOf(alice.address)
     )
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
 
     // signer1 2nd withdraw
-    await claim
-      .connect(signer1)
-      .withdraw(trust.address, claimableReserveToken.address, supply1);
+    await claim.connect(alice).withdraw(sale.address, reserve.address, supply1);
 
     const expectedSigner1Withdrawal1 = depositAmount
       .mul(signer1PropAfterBurn)
       .div(Util.ONE);
 
     const actualSigner1Withdrawal1 = (
-      await claimableReserveToken.balanceOf(signer1.address)
+      await reserve.balanceOf(alice.address)
     ).sub(actualSigner1Withdrawal0);
 
     assert(
@@ -628,110 +731,150 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const signer1 = signers[3];
-    const signer2 = signers[4];
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-    await tier.setTier(signer2.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      minimumTradingDuration,
-      successLevel,
-    } = await basicSetup(signers, trustFactory, tier);
+    const alice = signers[1];
+    const bob = signers[2];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend1 = ethers.BigNumber.from("25" + Util.sixZeros);
-    const spend2 = ethers.BigNumber.from("75" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    // raise all necessary funds
-    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(signer1, spend1);
-      await swapReserveForTokens(signer2, spend2);
-    }
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+    const sources = [concat([vBasePrice])];
 
-    // cover the dust amount
-    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+    const [sale, redeemableERC20] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply.div(4); // 25%
+    const desiredUnitsBob = totalTokenSupply.mul(3).div(4); // 75%
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+    const costBob = staticPrice.mul(desiredUnitsBob).div(Util.ONE);
+
+    // give alice reserve to cover cost + fee
+    await reserve.transfer(alice.address, costAlice.add(fee));
+    // give bob reserve to cover cost + fee
+    await reserve.transfer(bob.address, costBob.add(fee));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+    const bobReserveBalance = await reserve.balanceOf(bob.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+    await reserve.connect(bob).approve(sale.address, bobReserveBalance);
+
+    // alice buys 1/4 available units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice,
+      desiredUnits: desiredUnitsAlice,
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
+    );
+
+    // bob buys 3/4 available units
+    await sale.connect(bob).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsBob,
+      desiredUnits: desiredUnitsBob,
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status
+        expected  ${Status.SUCCESS}
+        got       ${saleStatusSuccess}`
+    );
 
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claimWrapper.address, depositAmount);
+    await reserve.approve(claimWrapper.address, depositAmount);
     // creator deposits claimable tokens
-    await claimWrapper.depositPending(
-      trust.address,
-      claimableReserveToken.address,
+    const txDeposit0 = await claimWrapper.deposit(
+      sale.address,
+      reserve.address,
       depositAmount
     );
-
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
-
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    await trust.endDutchAuction();
-
-    const deposit0 = await claimWrapper.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
-      signers[0].address
-    );
-    const supply0 = (await getEventArgs(deposit0, "Deposit", claimWrapper))
+    const supply0 = (await getEventArgs(txDeposit0, "Deposit", claimWrapper))
       .supply;
 
-    // Distribution Status is Success
-    assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
-    );
-
     // calculate real RedeemableERC20 proportions
-    const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
+    const signer1Prop = (await redeemableERC20.balanceOf(alice.address))
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
 
     // signer1 should withdraw roughly 25% of claimable tokens in escrow
     await claimWrapper
-      .connect(signer1)
-      .withdraw(trust.address, claimableReserveToken.address, supply0);
+      .connect(alice)
+      .withdraw(sale.address, reserve.address, supply0);
 
     const expectedSigner1Withdrawal0 = depositAmount
       .mul(signer1Prop)
       .div(Util.ONE);
 
-    const actualSigner1Withdrawal0 = await claimableReserveToken.balanceOf(
-      signer1.address
-    );
+    const actualSigner1Withdrawal0 = await reserve.balanceOf(alice.address);
 
     assert(
       expectedSigner1Withdrawal0.eq(actualSigner1Withdrawal0),
@@ -748,39 +891,39 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     await Util.assertError(
       async () =>
         await claimWrapper
-          .connect(signer1)
-          .withdraw(trust.address, claimableReserveToken.address, supply0),
+          .connect(alice)
+          .withdraw(sale.address, reserve.address, supply0),
       "ZERO_WITHDRAW",
       "Failed to error on zero withdraw"
     );
 
     // more claimable tokens are deposited by creator
-    await claimableReserveToken.approve(claimWrapper.address, depositAmount);
+    await reserve.approve(claimWrapper.address, depositAmount);
     const deposit1 = await claimWrapper.deposit(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       depositAmount
     );
     const supply1 = (await getEventArgs(deposit1, "Deposit", claimWrapper))
       .supply;
 
     const claimableTokensInEscrowDeposit1 = await claimWrapper.getTotalDeposits(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       await redeemableERC20.totalSupply()
     );
 
     // signer1 3rd withdraw
     await claimWrapper
-      .connect(signer1)
-      .withdraw(trust.address, claimableReserveToken.address, supply1);
+      .connect(alice)
+      .withdraw(sale.address, reserve.address, supply1);
 
     const expectedSigner1Withdrawal1 = depositAmount
       .mul(signer1Prop)
       .div(Util.ONE);
 
     const actualSigner1Withdrawal1 = (
-      await claimableReserveToken.balanceOf(signer1.address)
+      await reserve.balanceOf(alice.address)
     ).sub(actualSigner1Withdrawal0);
 
     assert(
@@ -799,107 +942,146 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const signer1 = signers[3];
-    const signer2 = signers[4];
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-    await tier.setTier(signer2.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      minimumTradingDuration,
-      successLevel,
-    } = await basicSetup(signers, trustFactory, tier);
+    const alice = signers[1];
+    const bob = signers[2];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend1 = ethers.BigNumber.from("25" + Util.sixZeros);
-    const spend2 = ethers.BigNumber.from("75" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    // raise all necessary funds
-    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(signer1, spend1);
-      await swapReserveForTokens(signer2, spend2);
-    }
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+    const sources = [concat([vBasePrice])];
 
-    // cover the dust amount
-    await swapReserveForTokens(signer1, dustAtSuccessLevel);
+    const [sale, redeemableERC20] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply.div(4); // 25%
+    const desiredUnitsBob = totalTokenSupply.mul(3).div(4); // 75%
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+    const costBob = staticPrice.mul(desiredUnitsBob).div(Util.ONE);
+
+    // give alice reserve to cover cost + fee
+    await reserve.transfer(alice.address, costAlice.add(fee));
+    // give bob reserve to cover cost + fee
+    await reserve.transfer(bob.address, costBob.add(fee));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+    const bobReserveBalance = await reserve.balanceOf(bob.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+    await reserve.connect(bob).approve(sale.address, bobReserveBalance);
+
+    // alice buys 1/4 available units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice,
+      desiredUnits: desiredUnitsAlice,
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
+    );
+
+    // bob buys 3/4 available units
+    await sale.connect(bob).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsBob,
+      desiredUnits: desiredUnitsBob,
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status
+        expected  ${Status.SUCCESS}
+        got       ${saleStatusSuccess}`
+    );
 
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claim.address, depositAmount);
+    await reserve.approve(claim.address, depositAmount);
 
     // creator deposits claimable tokens
-    await claim.depositPending(
-      trust.address,
-      claimableReserveToken.address,
+    const txDeposit = await claim.deposit(
+      sale.address,
+      reserve.address,
       depositAmount
     );
 
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
+    const supply = (await getEventArgs(txDeposit, "Deposit", claim)).supply;
 
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    await trust.endDutchAuction();
-
-    const deposit = await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
-      signers[0].address
-    );
-    const supply = (await getEventArgs(deposit, "Deposit", claim)).supply;
-
-    // Distribution Status is Success
-    assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
-    );
-
-    const signer1Prop = (await redeemableERC20.balanceOf(signer1.address))
+    const signer1Prop = (await redeemableERC20.balanceOf(alice.address))
       .mul(Util.ONE)
       .div(await redeemableERC20.totalSupply());
 
     const expectedWithdrawal = depositAmount.mul(signer1Prop).div(Util.ONE);
 
     // signer1 should withdraw roughly 25% of claimable tokens in escrow
-    await claim
-      .connect(signer1)
-      .withdraw(trust.address, claimableReserveToken.address, supply);
+    await claim.connect(alice).withdraw(sale.address, reserve.address, supply);
 
-    const actualWithdrawal = await claimableReserveToken.balanceOf(
-      signer1.address
-    );
+    const actualWithdrawal = await reserve.balanceOf(alice.address);
 
     assert(
       expectedWithdrawal.eq(actualWithdrawal),
@@ -912,12 +1094,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     // signer2 should withdraw remaining claimable tokens in escrow
-    await claim
-      .connect(signer2)
-      .withdraw(trust.address, claimableReserveToken.address, supply);
+    await claim.connect(bob).withdraw(sale.address, reserve.address, supply);
 
-    const finalEscrowClaimableTokenBalance =
-      await claimableReserveToken.balanceOf(claim.address);
+    const finalEscrowClaimableTokenBalance = await reserve.balanceOf(
+      claim.address
+    );
 
     assert(
       finalEscrowClaimableTokenBalance.eq(0) ||
@@ -930,122 +1111,144 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const signer1 = signers[3];
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      minimumTradingDuration,
-      successLevel,
-    } = await basicSetup(signers, trustFactory, tier);
+    const alice = signers[1];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    // signer1 buys some RedeemableERC20 tokens
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    await swapReserveForTokens(signer1, spend);
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    // Distribution Status is Trading
+    const sources = [concat([vBasePrice])];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply;
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+
+    // give alice reserve to cover cost + (fee * 2)
+    await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+
+    // alice buys some units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(10),
+      desiredUnits: desiredUnitsAlice.div(10),
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
     assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.TRADING,
-      "Distribution Status was not TRADING"
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
     );
 
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claim.address, depositAmount);
+    await reserve.approve(claim.address, depositAmount);
 
-    await claim.depositPending(
-      trust.address,
-      claimableReserveToken.address,
-      depositAmount
-    );
+    await claim.depositPending(sale.address, reserve.address, depositAmount);
 
-    const preSupply = await claimableReserveToken.totalSupply();
+    const preSupply = await reserve.totalSupply();
 
     // prevent withdraw until status Success
     await Util.assertError(
       async () =>
         await claim
-          .connect(signer1)
-          .withdraw(trust.address, claimableReserveToken.address, preSupply),
+          .connect(alice)
+          .withdraw(sale.address, reserve.address, preSupply),
       "NOT_SUCCESS",
       "wrongly withrew during Trading"
     );
 
-    // raise all necessary funds
-    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(signer1, spend);
-    }
+    // alice buys rest of units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 0,
+      desiredUnits: desiredUnitsAlice,
+      maximumPrice: staticPrice,
+    });
 
-    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
+    const saleStatusSuccess = await sale.saleStatus();
 
-    // cover the dust amount
-    await swapReserveForTokens(signer1, dustAtSuccessLevel);
-
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
-
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    // prevent withdraw until status Success
-    await Util.assertError(
-      async () =>
-        await claim
-          .connect(signer1)
-          .withdraw(trust.address, claimableReserveToken.address, preSupply),
-      "NOT_SUCCESS",
-      "wrongly withdrew during TradingCanEnd"
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status
+      expected  ${Status.SUCCESS}
+      got       ${saleStatusSuccess}`
     );
 
-    await trust.endDutchAuction();
-
-    const deposit = await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
+    const txDeposit = await claim.sweepPending(
+      sale.address,
+      reserve.address,
       signers[0].address
     );
-    const { supply } = await getEventArgs(deposit, "Deposit", claim);
-
-    // Distribution Status is Success
-    assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
-    );
+    const { supply } = await getEventArgs(txDeposit, "Deposit", claim);
 
     const txWithdraw0 = await claim
-      .connect(signer1)
-      .withdraw(trust.address, claimableReserveToken.address, supply);
+      .connect(alice)
+      .withdraw(sale.address, reserve.address, supply);
 
     const { amount: registeredWithdrawnAmountSigner1 } =
       (await Util.getEventArgs(
@@ -1067,74 +1270,116 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const signer1 = signers[3];
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      minimumTradingDuration,
-    } = await basicSetup(signers, trustFactory, tier);
+    const alice = signers[1];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    // signer1 buys some RedeemableERC20 tokens
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    await swapReserveForTokens(signer1, spend);
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    // Distribution Status is Trading
+    const sources = [concat([vBasePrice])];
+
+    const [sale, redeemableERC20] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply;
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+
+    // give alice reserve to cover cost + (fee * 2)
+    await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+
+    // alice buys some units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(10),
+      desiredUnits: desiredUnitsAlice.div(10),
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
     assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.TRADING,
-      "Distribution Status was not TRADING"
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
     );
 
     // deposit claimable tokens
     const depositAmount0 = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claim.address, depositAmount0);
+    await reserve.approve(claim.address, depositAmount0);
 
     const txDepositPending0 = await claim.depositPending(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       depositAmount0
     );
 
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
-
-    const preSupply = await claimableReserveToken.totalSupply();
+    const preSupply = await reserve.totalSupply();
 
     // prevent undeposit until status Fail
     await Util.assertError(
       async () =>
         await claim.undeposit(
-          trust.address,
-          claimableReserveToken.address,
+          sale.address,
+          reserve.address,
           preSupply,
           await redeemableERC20.balanceOf(signers[0].address)
         ),
@@ -1142,30 +1387,16 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "wrongly undeposited during Trading"
     );
 
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
-
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    // prevent undeposit until status Fail
-    await Util.assertError(
-      async () =>
-        await claim.undeposit(
-          trust.address,
-          claimableReserveToken.address,
-          preSupply,
-          await redeemableERC20.balanceOf(signers[0].address)
-        ),
-      "NOT_FAIL",
-      "wrongly undeposited during TradingCanEnd"
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    await trust.endDutchAuction();
+    await sale.end();
 
     const deposit0 = await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       signers[0].address
     );
 
@@ -1182,16 +1413,10 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "actual tokens deposited and registered amount do not match"
     );
 
-    // Distribution Status is Fail
-    assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
-      "Distribution Status was not FAIL"
-    );
-
     // undeposit claimable tokens
     const undepositTx = await claim.undeposit(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       supply0,
       depositAmount0
     );
@@ -1204,15 +1429,12 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     )) as UndepositEvent["args"];
 
     assert(event.sender === signers[0].address, "wrong sender");
-    assert(event.sale === getAddress(trust.address), "wrong trust");
+    assert(event.sale === getAddress(sale.address), "wrong sale");
     assert(
       event.redeemable === getAddress(redeemableERC20.address),
       "wrong redeemable"
     );
-    assert(
-      event.token === getAddress(claimableReserveToken.address),
-      "wrong token"
-    );
+    assert(event.token === getAddress(reserve.address), "wrong token");
     assert(event.supply.eq(supply0), "wrong supply");
     assert(event.amount.eq(depositAmount0), "wrong amount");
   });
@@ -1221,78 +1443,116 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const signer1 = signers[3];
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      minimumTradingDuration,
-    } = await basicSetup(signers, trustFactory, tier);
+    const alice = signers[1];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    // signer1 buys some RedeemableERC20 tokens
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    await swapReserveForTokens(signer1, spend);
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    // Distribution Status is Trading
+    const sources = [concat([vBasePrice])];
+
+    const [sale, redeemableERC20] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply;
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+
+    // give alice reserve to cover cost + (fee * 2)
+    await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+
+    // alice buys some units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(10),
+      desiredUnits: desiredUnitsAlice.div(10),
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
     assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.TRADING,
-      "Distribution Status was not TRADING"
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
     );
 
     // deposit claimable tokens
     const depositAmount0 = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claim.address, depositAmount0);
+    await reserve.approve(claim.address, depositAmount0);
 
     const txDepositPending0 = await claim.depositPending(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       depositAmount0
     );
 
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
-
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    await trust.endDutchAuction();
-
-    await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
-      signers[0].address
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.end();
+
+    await claim.sweepPending(sale.address, reserve.address, signers[0].address);
 
     const supply = await redeemableERC20.totalSupply();
 
@@ -1307,28 +1567,18 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "actual tokens deposited and registered amount do not match"
     );
 
-    // Distribution Status is Fail
-    assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.FAIL,
-      "Distribution Status was not FAIL"
-    );
-
     const depositAmount1 = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claim.address, depositAmount1);
+    await reserve.approve(claim.address, depositAmount1);
 
     // can deposit and undeposit when fail
-    await claim.deposit(
-      trust.address,
-      claimableReserveToken.address,
-      depositAmount1
-    );
+    await claim.deposit(sale.address, reserve.address, depositAmount1);
 
     await claim.undeposit(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       supply,
       depositAmount1
     );
@@ -1338,62 +1588,105 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-    const signer1 = signers[3];
-
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-
-    const {
-      redeemableERC20,
-      trust,
-      reserve,
-      crp,
-      bPool,
-      successLevel,
-      minimumTradingDuration,
-    } = await basicSetup(signers, trustFactory, tier);
+    const alice = signers[1];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    // signer1 buys some RedeemableERC20 tokens
-    const swapReserveForTokens = async (signer, spend) => {
-      // give signer some reserve
-      await reserve.transfer(signer.address, spend);
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-      const reserveSigner = reserve.connect(signer);
-      const crpSigner = crp.connect(signer);
-      const bPoolSigner = bPool.connect(signer);
-
-      await crpSigner.pokeWeights();
-      await reserveSigner.approve(bPool.address, spend);
-      await bPoolSigner.swapExactAmountIn(
-        reserve.address,
-        spend,
-        redeemableERC20.address,
-        ethers.BigNumber.from("1"),
-        ethers.BigNumber.from("1000000" + Util.sixZeros)
-      );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
     };
 
-    const spend = ethers.BigNumber.from("200" + Util.sixZeros);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-    await swapReserveForTokens(signer1, spend);
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
 
-    // Distribution Status is Trading
+    const sources = [concat([vBasePrice])];
+
+    const [sale, redeemableERC20] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply;
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+
+    // give alice reserve to cover cost + (fee * 2)
+    await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+
+    // alice buys some units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(10),
+      desiredUnits: desiredUnitsAlice.div(10),
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
     assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.TRADING,
-      "Distribution Status was not TRADING"
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
     );
 
     // deposit some claimable tokens
     const depositAmount0 = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claim.address, depositAmount0);
+    await reserve.approve(claim.address, depositAmount0);
 
     const txDepositPending0 = await claim.depositPending(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       depositAmount0
     );
 
@@ -1408,85 +1701,42 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "actual tokens deposited and registered amount do not match (0)"
     );
 
-    // succeed raise
-    while ((await reserve.balanceOf(bPool.address)).lt(successLevel)) {
-      await swapReserveForTokens(signer1, spend);
-    }
+    // alice buys rest of units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 0,
+      desiredUnits: desiredUnitsAlice,
+      maximumPrice: staticPrice,
+    });
 
-    const dustAtSuccessLevel = Util.determineReserveDust(successLevel).add(2); // rounding error
-
-    // cover the dust amount
-    await swapReserveForTokens(signer1, dustAtSuccessLevel);
-
-    const beginEmptyBlocksBlock = await ethers.provider.getBlockNumber();
-    const emptyBlocks =
-      startBlock + minimumTradingDuration - beginEmptyBlocksBlock + 1;
-
-    // create empty blocks to end of raise duration
-    await Util.createEmptyBlock(emptyBlocks);
-
-    // Distribution Status is TradingCanEnd
-    assert(
-      (await trust.getDistributionStatus()) ===
-        DistributionStatus.TRADINGCANEND,
-      "Distribution Status was not TRADINGCANEND"
-    );
-
-    // deposit some claimable tokens
-    const depositAmount1 = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
-    );
-
-    // creator deposits some tokens for claiming
-    await claimableReserveToken.approve(claim.address, depositAmount1);
-
-    const txDepositPending1 = await claim.depositPending(
-      trust.address,
-      claimableReserveToken.address,
-      depositAmount1
-    );
-
-    const { amount: deposited1 } = await Util.getEventArgs(
-      txDepositPending1,
-      "PendingDeposit",
-      claim
-    );
-
-    const totalDepositedActual0 = deposited0.add(deposited1);
-    const totalDepositedExpected0 = depositAmount1.add(depositAmount0);
+    const totalDepositedActual0 = deposited0;
+    const totalDepositedExpected0 = depositAmount0;
 
     assert(
       totalDepositedActual0.eq(totalDepositedExpected0),
       `actual tokens deposited by sender and registered amount do not match (1)
-      expected  ${totalDepositedExpected0} = ${depositAmount1} + ${depositAmount0}
+      expected  ${totalDepositedExpected0}
       got       ${totalDepositedActual0}`
     );
 
-    await trust.endDutchAuction();
-
-    // Distribution Status is Success
-    assert(
-      (await trust.getDistributionStatus()) === DistributionStatus.SUCCESS,
-      `Distribution Status was not SUCCESS, got ${await trust.getDistributionStatus()}`
-    );
-
     // deposit some claimable tokens
-    const depositAmount2 = ethers.BigNumber.from(
-      "100" + "0".repeat(await claimableReserveToken.decimals())
+    const depositAmount1 = ethers.BigNumber.from(
+      "100" + "0".repeat(await reserve.decimals())
     );
 
-    await claimableReserveToken.approve(claim.address, depositAmount2);
+    await reserve.approve(claim.address, depositAmount1);
 
     const txSweep0 = await claim.sweepPending(
-      trust.address,
-      claimableReserveToken.address,
+      sale.address,
+      reserve.address,
       signers[0].address
     );
 
     const {
       sender,
       depositor,
-      sale: trustAddress,
+      sale: saleAddress,
       redeemable,
       token,
       amount,
@@ -1494,21 +1744,18 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     assert(sender === signers[0].address, "wrong sender");
     assert(depositor === signers[0].address, "wrong depositor");
-    assert(trustAddress === getAddress(trust.address), "wrong trust address");
+    assert(saleAddress === getAddress(sale.address), "wrong sale address");
     assert(
       redeemable === getAddress(redeemableERC20.address),
       "wrong redeemable address"
     );
-    assert(
-      token === getAddress(claimableReserveToken.address),
-      "wrong token address"
-    );
+    assert(token === getAddress(reserve.address), "wrong token address");
     assert(amount.eq(totalDepositedExpected0), "wrong amount");
 
     const txDeposit0 = await claim.deposit(
-      trust.address,
-      claimableReserveToken.address,
-      depositAmount2
+      sale.address,
+      reserve.address,
+      depositAmount1
     );
 
     const eventDeposit0 = (await Util.getEventArgs(
@@ -1518,32 +1765,28 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     )) as DepositEvent["args"];
 
     assert(eventDeposit0.depositor === signers[0].address, "wrong depositor");
-    assert(eventDeposit0.sale === getAddress(trust.address), "wrong trust");
+    assert(eventDeposit0.sale === getAddress(sale.address), "wrong sale");
     assert(
       eventDeposit0.redeemable === getAddress(redeemableERC20.address),
       "wrong redeemable address"
     );
     assert(
-      eventDeposit0.token === getAddress(claimableReserveToken.address),
+      eventDeposit0.token === getAddress(reserve.address),
       "wrong token address"
     );
     assert(
       eventDeposit0.supply.eq(await redeemableERC20.totalSupply()),
       "wrong supply"
     );
-    assert(eventDeposit0.amount.eq(depositAmount2), "wrong amount");
+    assert(eventDeposit0.amount.eq(depositAmount1), "wrong amount");
 
-    const totalDepositedActual1 = eventDeposit0.amount
-      .add(deposited1)
-      .add(deposited0);
-    const totalDepositedExpected1 = depositAmount2.add(
-      depositAmount1.add(depositAmount0)
-    );
+    const totalDepositedActual1 = eventDeposit0.amount.add(deposited0);
+    const totalDepositedExpected1 = depositAmount1.add(depositAmount0);
 
     assert(
       totalDepositedActual1.eq(totalDepositedExpected1),
       `actual tokens deposited by sender and registered amount do not match (2)
-      expected  ${totalDepositedExpected1} = ${depositAmount2} + ${depositAmount1} + ${depositAmount0}
+      expected  ${totalDepositedExpected1} = ${depositAmount1} + ${depositAmount0}
       got       ${totalDepositedActual1}`
     );
   });
