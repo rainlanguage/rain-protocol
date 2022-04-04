@@ -10,18 +10,18 @@ uint256 constant OPCODE_BALANCE_OF = 0;
 /// @dev Opcode for `IERC721` `ownerOf`.
 uint256 constant OPCODE_OWNER_OF = 1;
 /// @dev Number of provided opcodes for `IERC721Ops`.
-uint256 constant IERC721_OPS_LENGTH = 2;
+uint256 constant ERC721_OPS_LENGTH = 2;
 
 /// @title IERC721Ops
 /// @notice RainVM opcode pack to read the IERC721 interface.
-library IERC721Ops {
+library ERC721Ops {
     function applyOp(
         State memory state_,
         uint256 opcode_,
         uint256
     ) internal view {
         unchecked {
-            require(opcode_ < IERC721_OPS_LENGTH, "MAX_OPCODE");
+            require(opcode_ < ERC721_OPS_LENGTH, "MAX_OPCODE");
 
             state_.stackIndex--;
             // Stack the return of `balanceOf`.

@@ -40,11 +40,7 @@ contract CalculatorTest is RainVM, VMState {
                     operand_
                 );
             } else {
-                MathOps.applyOp(
-                    state_,
-                    opcode_ - mathOpsStart,
-                    operand_
-                );
+                MathOps.applyOp(state_, opcode_ - mathOpsStart, operand_);
             }
         }
     }

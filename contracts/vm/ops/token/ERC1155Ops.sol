@@ -10,18 +10,18 @@ uint256 constant OPCODE_BALANCE_OF = 0;
 /// @dev Opcode for `IERC1155` `balanceOfBatch`.
 uint256 constant OPCODE_BALANCE_OF_BATCH = 1;
 /// @dev Number of provided opcodes for `IERC1155Ops`.
-uint256 constant IERC1155_OPS_LENGTH = 2;
+uint256 constant ERC1155_OPS_LENGTH = 2;
 
 /// @title IERC1155Ops
 /// @notice RainVM opcode pack to read the IERC1155 interface.
-library IERC1155Ops {
+library ERC1155Ops {
     function applyOp(
         State memory state_,
         uint256 opcode_,
         uint256 operand_
     ) internal view {
         unchecked {
-            require(opcode_ < IERC1155_OPS_LENGTH, "MAX_OPCODE");
+            require(opcode_ < ERC1155_OPS_LENGTH, "MAX_OPCODE");
 
             // Stack the return of `balanceOf`.
             if (opcode_ == OPCODE_BALANCE_OF) {
