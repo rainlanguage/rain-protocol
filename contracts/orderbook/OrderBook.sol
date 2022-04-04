@@ -32,6 +32,7 @@ struct OrderConfig {
     VaultId inputVaultId;
     address outputToken;
     VaultId outputVaultId;
+    uint256 tracking;
     State vmState;
 }
 
@@ -40,9 +41,9 @@ struct BountyConfig {
     VaultId bVaultId;
 }
 
-struct CounterpartyContext {
+struct EvalContext {
+    OrderHash orderHash;
     address counterparty;
-    uint256 fundsCleared;
 }
 
 struct ClearStateChange {
@@ -55,10 +56,14 @@ struct ClearStateChange {
 uint256 constant VM_SOURCE_INDEX = 0;
 uint256 constant OPCODE_COUNTERPARTY = 0;
 uint256 constant OPCODE_COUNTERPARTY_FUNDS_CLEARED = 1;
-uint256 constant LOCAL_OPS_LENGTH = 2;
+uint256 constant OPCODE_ORDER_FUNDS_CLEARED = 2;
+uint256 constant LOCAL_OPS_LENGTH = 3;
 
 OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
 OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
+
+uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
+uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
 
 contract OrderBook is RainVM {
     using SafeERC20 for IERC20;
@@ -83,10 +88,14 @@ contract OrderBook is RainVM {
     // depositor => token => vault => token amount.
     mapping(address => mapping(address => mapping(VaultId => uint256)))
         private vaults;
+
+    // funds were cleared from the hashed order to anyone.
+    mapping(OrderHash => uint256) private clearedOrder;
     // funds were cleared from the owner of the hashed order.
     // order owner is the counterparty funds were cleared to.
     // order hash => order owner => token amount
-    mapping(OrderHash => mapping(address => uint256)) private cleared;
+    mapping(OrderHash => mapping(address => uint256))
+        private clearedCounterparty;
 
     constructor() {
         localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
@@ -100,6 +109,14 @@ contract OrderBook is RainVM {
     modifier notAppendOnlyVaultId(VaultId vaultId_) {
         require(VaultId.unwrap(vaultId_) >= 0, "APPEND_ONLY_VAULT_ID");
         _;
+    }
+
+    function _isTracked(uint256 tracking_, uint256 mask_)
+        internal
+        pure
+        returns (bool)
+    {
+        return (tracking_ & mask_) > 0;
     }
 
     function _orderHash(OrderConfig calldata config_)
@@ -183,16 +200,12 @@ contract OrderBook is RainVM {
 
             // Eval the VM for both orders.
             eval(
-                abi.encode(
-                    CounterpartyContext(b_.owner, cleared[aHash_][b_.owner])
-                ),
+                abi.encode(EvalContext(aHash_, b_.owner)),
                 a_.vmState,
                 VM_SOURCE_INDEX
             );
             eval(
-                abi.encode(
-                    CounterpartyContext(a_.owner, cleared[bHash_][a_.owner])
-                ),
+                abi.encode(EvalContext(bHash_, a_.owner)),
                 b_.vmState,
                 VM_SOURCE_INDEX
             );
@@ -239,14 +252,23 @@ contract OrderBook is RainVM {
         if (stateChange_.aOutput > 0) {
             vaults[a_.owner][a_.outputToken][a_.outputVaultId] -= stateChange_
                 .aOutput;
-            // A counts funds paid to cover the bounty as cleared for B.
-            cleared[aHash_][b_.owner] += stateChange_.aOutput;
+            if (_isTracked(a_.tracking, TRACKING_MASK_CLEARED_ORDER)) {
+                clearedOrder[aHash_] += stateChange_.aOutput;
+            }
+            if (_isTracked(a_.tracking, TRACKING_MASK_CLEARED_COUNTERPARTY)) {
+                // A counts funds paid to cover the bounty as cleared for B.
+                clearedCounterparty[aHash_][b_.owner] += stateChange_.aOutput;
+            }
         }
         if (stateChange_.bOutput > 0) {
             vaults[b_.owner][b_.outputToken][b_.outputVaultId] -= stateChange_
                 .bOutput;
-            // B counts funds paid to cover the bounty as cleared for A.
-            cleared[bHash_][a_.owner] += stateChange_.bOutput;
+            if (_isTracked(b_.tracking, TRACKING_MASK_CLEARED_ORDER)) {
+                clearedOrder[bHash_] += stateChange_.bOutput;
+            }
+            if (_isTracked(b_.tracking, TRACKING_MASK_CLEARED_COUNTERPARTY)) {
+                clearedCounterparty[bHash_][a_.owner] += stateChange_.bOutput;
+            }
         }
         if (stateChange_.aInput > 0) {
             vaults[a_.owner][a_.inputToken][a_.inputVaultId] += stateChange_
@@ -291,17 +313,22 @@ contract OrderBook is RainVM {
         } else {
             opcode_ -= localOpsStart;
             require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-            CounterpartyContext memory counterpartyContext_ = abi.decode(
+            EvalContext memory evalContext_ = abi.decode(
                 context_,
-                (CounterpartyContext)
+                (EvalContext)
             );
             if (opcode_ == OPCODE_COUNTERPARTY) {
                 state_.stack[state_.stackIndex] = uint256(
-                    uint160(counterpartyContext_.counterparty)
+                    uint160(evalContext_.counterparty)
                 );
             } else if (opcode_ == OPCODE_COUNTERPARTY_FUNDS_CLEARED) {
-                state_.stack[state_.stackIndex] = counterpartyContext_
-                    .fundsCleared;
+                state_.stack[state_.stackIndex] = clearedCounterparty[
+                    evalContext_.orderHash
+                ][evalContext_.counterparty];
+            } else if (opcode_ == OPCODE_ORDER_FUNDS_CLEARED) {
+                state_.stack[state_.stackIndex] = clearedOrder[
+                    evalContext_.orderHash
+                ];
             }
             state_.stackIndex++;
         }
