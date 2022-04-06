@@ -21,7 +21,7 @@ import { ReserveToken } from "../../typechain/ReserveToken";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import { SaleReentrant } from "../../typechain/SaleReentrant";
-import { concat } from "ethers/lib/utils";
+import { concat, hexlify } from "ethers/lib/utils";
 import {
   afterBlockNumberConfig,
   saleDeploy,
@@ -29,13 +29,9 @@ import {
   Status,
   Tier,
 } from "./SaleUtil";
+import { Phase } from "../RedeemableERC20/RedeemableERC20Util";
+import { NoticeBoard } from "../../typechain/NoticeBoard";
 import { PhaseScheduledEvent } from "../../typechain/RedeemableERC20";
-
-enum PhaseToken {
-  UNINITIALIZED,
-  DISTRIBUTING,
-  FROZEN,
-}
 
 const { assert } = chai;
 
@@ -109,13 +105,15 @@ describe("Sale", async function () {
     );
   });
 
-  it("should correctly timeout sale if it does not end naturally", async function () {
+  it("should configure tier correctly", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
-    const feeRecipient = signers[2];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+    const forwardingAddress = signers[4];
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -137,40 +135,142 @@ describe("Sale", async function () {
 
     const sources = [concat([vBasePrice])];
 
+    const minimumTier = Tier.FOUR;
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier,
+        distributionEndForwardingAddress: forwardingAddress.address,
+      }
+    );
+
+    assert(
+      (await token.minimumTier()).eq(minimumTier),
+      "wrong tier level set on token"
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply.div(2); // not all
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    // attempt to buy all units
     await Util.assertError(
       async () =>
-        await saleDeploy(
-          signers,
-          deployer,
-          saleFactory,
-          {
-            canStartStateConfig: afterBlockNumberConfig(startBlock),
-            canEndStateConfig: afterBlockNumberConfig(
-              startBlock + saleDuration
-            ),
-            calculatePriceStateConfig: {
-              sources,
-              constants,
-              stackLength: 1,
-              argumentsLength: 0,
-            },
-            recipient: recipient.address,
-            reserve: reserve.address,
-            cooldownDuration: 1,
-            minimumRaise,
-            dustSize: 0,
-            saleTimeout: 10001,
-          },
-          {
-            erc20Config: redeemableERC20Config,
-            tier: readWriteTier.address,
-            minimumTier: Tier.ZERO,
-            distributionEndForwardingAddress: ethers.constants.AddressZero,
-          }
-        ),
-      "MAX_TIMEOUT",
-      "did not prevent a sale timeout that exceeds maximum timeout, which was set by the sale factory"
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: desiredUnits,
+          desiredUnits,
+          maximumPrice: staticPrice,
+        }),
+      "MIN_TIER",
+      "singer1 bought units from Sale without meeting minimum tier requirement"
     );
+
+    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+
+    // buy all units
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const forwardingAddressTokenBalance0 = await token.balanceOf(
+      forwardingAddress.address
+    );
+
+    await sale.end();
+
+    const forwardingAddressTokenBalance1 = await token.balanceOf(
+      forwardingAddress.address
+    );
+
+    assert(
+      forwardingAddressTokenBalance1.gt(forwardingAddressTokenBalance0),
+      "forwarding address should bypass tier restrictions"
+    );
+  });
+
+  it("should work happily if griefer sends small amount of reserve to contracts and signers", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+    const forwardingAddress = signers[4];
+    const griefer = signers[5];
+
+    // griefer acquires 1m reserve somehow
+    await reserve.transfer(
+      griefer.address,
+      ethers.BigNumber.from("1000000" + Util.sixZeros)
+    );
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
 
     const [sale, token] = await saleDeploy(
       signers,
@@ -196,92 +296,265 @@ describe("Sale", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: ethers.constants.AddressZero,
+        distributionEndForwardingAddress: forwardingAddress.address,
       }
     );
 
-    await Util.assertError(
-      async () => await sale.timeout(),
-      "EARLY_TIMEOUT",
-      "wrongly timed out sale early"
-    );
+    // attempt to grief contracts and signers
+    await reserve.connect(griefer).transfer(sale.address, "10" + Util.sixZeros);
+    await reserve
+      .connect(griefer)
+      .transfer(token.address, "10" + Util.sixZeros);
+    await reserve
+      .connect(griefer)
+      .transfer(deployer.address, "10" + Util.sixZeros);
+    await reserve
+      .connect(griefer)
+      .transfer(recipient.address, "10" + Util.sixZeros);
+    await reserve
+      .connect(griefer)
+      .transfer(signer1.address, "10" + Util.sixZeros);
+    await reserve
+      .connect(griefer)
+      .transfer(feeRecipient.address, "10" + Util.sixZeros);
+    await reserve
+      .connect(griefer)
+      .transfer(forwardingAddress.address, "10" + Util.sixZeros);
 
-    // wait for sale timeout
-    // should be relative to initialise so we aren't even going to start the sale
-    await Util.createEmptyBlock(99);
-
-    await Util.assertError(
-      async () => await sale.timeout(),
-      "EARLY_TIMEOUT",
-      "wrongly timed out sale 1 block early"
-    );
-
-    await Util.createEmptyBlock();
-
-    assert((await sale.saleStatus()) === Status.PENDING);
-
-    const txTimeout = await sale.timeout();
-
-    // timeout should set status to Fail
-    assert((await sale.saleStatus()) === Status.FAIL);
-
-    const { sender: sender0 } = (await Util.getEventArgs(
-      txTimeout,
-      "Timeout",
-      sale
-    )) as TimeoutEvent["args"];
-
-    assert(sender0 === signers[0].address, "wrong sender in Timeout event");
-
-    // Should have ended distribution via rTKN contract.
-    // A simple way to tell is that the rTKN phase should have changed to FROZEN.
-    const {
-      sender: sender1,
-      newPhase,
-      scheduledBlock,
-    } = (await Util.getEventArgs(
-      txTimeout,
-      "PhaseScheduled",
-      token
-    )) as PhaseScheduledEvent["args"];
-
-    assert(
-      sender1 === sale.address,
-      "wrong sender for endDistribution call, expected sale address"
-    );
-    assert(newPhase.eq(PhaseToken.FROZEN), "wrong token phase after timeout");
-    assert(
-      scheduledBlock.eq(await ethers.provider.getBlockNumber()),
-      "expected scheduled block"
-    );
-
-    // Sale is now functionally in a Fail state
-    // Cannot start, end or buy from sale
-    await Util.assertError(
-      async () => await sale.start(),
-      "CANT_START",
-      "wrongly started in Fail state"
-    );
-    await Util.assertError(
-      async () => await sale.end(),
-      "CANT_END",
-      "wrongly ended in Fail state"
-    );
     const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
-    const desiredUnits = totalTokenSupply;
-    await Util.assertError(
-      async () => {
-        await sale.buy({
-          feeRecipient: feeRecipient.address,
-          fee,
-          minimumUnits: desiredUnits,
-          desiredUnits,
-          maximumPrice: staticPrice,
-        });
-      },
-      "NOT_ACTIVE",
-      "wrongly bought units when sale is in Fail state"
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
     );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply; // all
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    // buy all units
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    // sale should have ended
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status in getter
+      expected  ${Status.SUCCESS}
+      got       ${saleStatusSuccess}`
+    );
+
+    await sale.claimFees(feeRecipient.address);
+  });
+
+  it("should allow anon to add to NoticeBoard and associate a NewNotice with this sale", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const forwardingAddress = signers[4];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: forwardingAddress.address,
+      }
+    );
+
+    const noticeboardFactory = await ethers.getContractFactory("NoticeBoard");
+    const noticeboard = (await noticeboardFactory.deploy()) as NoticeBoard &
+      Contract;
+
+    const message = "foo";
+    const notice = {
+      subject: sale.address,
+      data: hexlify([...Buffer.from(message)]),
+    };
+
+    const event0 = await Util.getEventArgs(
+      await noticeboard.connect(signer1).createNotices([notice]),
+      "NewNotice",
+      noticeboard
+    );
+
+    assert(event0.sender === signer1.address, "wrong sender in event0");
+    assert(
+      JSON.stringify(event0.notice) === JSON.stringify(Object.values(notice)),
+      "wrong notice in event0"
+    );
+  });
+
+  it("should set correct phases for token", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+    const forwardingAddress = signers[4];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: forwardingAddress.address,
+      }
+    );
+
+    const saleStatus0 = await sale.saleStatus();
+    const tokenPhase0 = await token.currentPhase();
+
+    assert(saleStatus0 === Status.PENDING);
+    assert(tokenPhase0.eq(Phase.DISTRIBUTING));
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const saleStatus1 = await sale.saleStatus();
+    const tokenPhase1 = await token.currentPhase();
+
+    assert(saleStatus1 === Status.ACTIVE);
+    assert(tokenPhase1.eq(Phase.DISTRIBUTING));
+
+    const desiredUnits = totalTokenSupply; // all
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    // buy all units
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    // sale should have ended
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status in getter
+      expected  ${Status.SUCCESS}
+      got       ${saleStatusSuccess}`
+    );
+
+    const saleStatus2 = await sale.saleStatus();
+    const tokenPhase2 = await token.currentPhase();
+
+    assert(saleStatus2 === Status.SUCCESS);
+    assert(tokenPhase2.eq(Phase.FROZEN));
   });
 
   it("should prevent configuring zero minimumRaise, including case when distributionEndForwardingAddress is set", async function () {
@@ -359,7 +632,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -385,9 +658,7 @@ describe("Sale", async function () {
           saleFactory,
           {
             canStartStateConfig: afterBlockNumberConfig(startBlock),
-            canEndStateConfig: afterBlockNumberConfig(
-              startBlock + saleDuration
-            ),
+            canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
             calculatePriceStateConfig: {
               sources,
               constants,
@@ -871,7 +1142,7 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -1010,7 +1281,7 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -1326,7 +1597,7 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -1487,7 +1758,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1529,7 +1800,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1647,7 +1918,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1689,7 +1960,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1803,7 +2074,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1825,7 +2096,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1867,7 +2138,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1892,7 +2163,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1938,7 +2209,7 @@ describe("Sale", async function () {
         await sale.connect(signer1).buy({
           feeRecipient: feeRecipient.address,
           fee,
-          minimumUnits: 1, // user configures ANY minimum
+          minimumUnits: 1, // user configures ANY minimum > 0
           desiredUnits: desiredUnits,
           maximumPrice: expectedPrice,
         }),
@@ -1958,7 +2229,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1994,7 +2265,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2103,7 +2374,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2139,7 +2410,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2397,7 +2668,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2433,7 +2704,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2544,7 +2815,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2580,7 +2851,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2660,7 +2931,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2691,7 +2962,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2803,7 +3074,7 @@ describe("Sale", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleTimeout = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -2827,7 +3098,7 @@ describe("Sale", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -2887,7 +3158,7 @@ describe("Sale", async function () {
 
     // wait until sale can end
     await Util.createEmptyBlock(
-      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
+      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
     );
 
     // recipient cannot claim before sale ended with status of success
@@ -2955,7 +3226,886 @@ describe("Sale", async function () {
     );
   });
 
-  it("should allow fees recipient to claim fees on successful raise", async function () {
+  it("should allow only token admin (Sale) to set senders/receivers", async () => {
+    // At the time of writing this test, Sale does not currently implement any logic which grants sender or receiver roles.
+    // However, it is still important that only the token admin can grant these roles.
+
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    // deployer cannot add receiver
+    await Util.assertError(
+      async () => await token.connect(deployer).grantReceiver(deployer.address),
+      "ONLY_ADMIN",
+      "deployer added receiver, despite not being token admin"
+    );
+    // deployer cannot add sender
+    await Util.assertError(
+      async () => await token.connect(deployer).grantSender(deployer.address),
+      "ONLY_ADMIN",
+      "deployer added sender, despite not being token admin"
+    );
+
+    // anon cannot add receiver
+    await Util.assertError(
+      async () => await token.connect(signer1).grantReceiver(signer1.address),
+      "ONLY_ADMIN",
+      "anon added receiver, despite not being token admin"
+    );
+    // anon cannot add sender
+    await Util.assertError(
+      async () => await token.connect(signer1).grantSender(signer1.address),
+      "ONLY_ADMIN",
+      "anon added sender, despite not being token admin"
+    );
+  });
+
+  it("should transfer correct value to all stakeholders after successful sale (with forward address)", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+    const forwardingAddress = signers[4];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: forwardingAddress.address,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply; // all
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    const tokenSupply0 = await token.totalSupply();
+    const saleTokenBalance0 = await token.balanceOf(sale.address);
+    const signer1TokenBalance0 = await token.balanceOf(signer1.address);
+    const saleReserveBalance0 = await reserve.balanceOf(sale.address);
+    const recipientReserveBalance0 = await reserve.balanceOf(recipient.address);
+    const feeRecipientReserveBalance0 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+
+    assert(tokenSupply0.eq(totalTokenSupply));
+    assert(
+      saleTokenBalance0.eq(tokenSupply0),
+      "sale should initially hold all rTKN"
+    );
+    assert(signer1TokenBalance0.isZero());
+    assert(saleReserveBalance0.isZero());
+    assert(recipientReserveBalance0.isZero());
+    assert(feeRecipientReserveBalance0.isZero());
+
+    // buy all units
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    // sale should have ended
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status in getter
+      expected  ${Status.SUCCESS}
+      got       ${saleStatusSuccess}`
+    );
+
+    // if distributionEndForwardingAddress, should forward distributor (sale) rTKN balance
+    //// else, should burn distributor (sale) rTKN balance
+
+    // if successful sale, transfer all reserve to recipient
+
+    const tokenSupply1 = await token.totalSupply();
+    const saleTokenBalance1 = await token.balanceOf(sale.address);
+    const signer1TokenBalance1 = await token.balanceOf(signer1.address);
+    const saleReserveBalance1 = await reserve.balanceOf(sale.address);
+    const recipientReserveBalance1 = await reserve.balanceOf(recipient.address);
+    const feeRecipientReserveBalance1 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+
+    assert(
+      tokenSupply1.eq(tokenSupply0),
+      "total rTKN supply should be unchanged as signer1 bought all units, hence none was transferred to forwarding address"
+    );
+    assert(saleTokenBalance1.isZero(), "all rTKN units should have been sold");
+    assert(
+      signer1TokenBalance1.eq(saleTokenBalance0),
+      "signer1 should hold all sold rTKN units"
+    );
+    assert(saleReserveBalance1.eq(fee));
+    assert(recipientReserveBalance1.eq(cost));
+    assert(
+      feeRecipientReserveBalance1.isZero(),
+      "fee recipient should not have received fees before claiming"
+    );
+
+    await sale.claimFees(feeRecipient.address);
+
+    const saleReserveBalance2 = await reserve.balanceOf(sale.address);
+    const feeRecipientReserveBalance2 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+
+    assert(
+      saleReserveBalance2.isZero(),
+      "sale should have transferred all claimed reserve to fee recipient"
+    );
+    assert(
+      feeRecipientReserveBalance2.eq(fee),
+      "fee recipient should have received fees after claiming"
+    );
+  });
+
+  it("should transfer correct value to all stakeholders after successful sale (no forward address)", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply; // all
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    const tokenSupply0 = await token.totalSupply();
+    const saleTokenBalance0 = await token.balanceOf(sale.address);
+    const signer1TokenBalance0 = await token.balanceOf(signer1.address);
+    const saleReserveBalance0 = await reserve.balanceOf(sale.address);
+    const recipientReserveBalance0 = await reserve.balanceOf(recipient.address);
+    const feeRecipientReserveBalance0 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+
+    assert(tokenSupply0.eq(totalTokenSupply));
+    assert(
+      saleTokenBalance0.eq(tokenSupply0),
+      "sale should initially hold all rTKN"
+    );
+    assert(signer1TokenBalance0.isZero());
+    assert(saleReserveBalance0.isZero());
+    assert(recipientReserveBalance0.isZero());
+    assert(feeRecipientReserveBalance0.isZero());
+
+    // buy all units
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    // sale should have ended
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status in getter
+      expected  ${Status.SUCCESS}
+      got       ${saleStatusSuccess}`
+    );
+
+    //// if distributionEndForwardingAddress, should forward distributor (sale) rTKN balance
+    // else, should burn distributor (sale) rTKN balance
+
+    // if successful sale, transfer all reserve to recipient
+
+    const tokenSupply1 = await token.totalSupply();
+    const saleTokenBalance1 = await token.balanceOf(sale.address);
+    const signer1TokenBalance1 = await token.balanceOf(signer1.address);
+    const saleReserveBalance1 = await reserve.balanceOf(sale.address);
+    const recipientReserveBalance1 = await reserve.balanceOf(recipient.address);
+    const feeRecipientReserveBalance1 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+
+    assert(
+      tokenSupply1.eq(tokenSupply0),
+      "total rTKN supply should be unchanged as signer1 bought all units, hence none was burned"
+    );
+    assert(saleTokenBalance1.isZero(), "all rTKN units should have been sold");
+    assert(
+      signer1TokenBalance1.eq(saleTokenBalance0),
+      "signer1 should hold all sold rTKN units"
+    );
+    assert(saleReserveBalance1.eq(fee));
+    assert(recipientReserveBalance1.eq(cost));
+    assert(
+      feeRecipientReserveBalance1.isZero(),
+      "fee recipient should not have received fees before claiming"
+    );
+
+    await sale.claimFees(feeRecipient.address);
+
+    const saleReserveBalance2 = await reserve.balanceOf(sale.address);
+    const feeRecipientReserveBalance2 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+
+    assert(
+      saleReserveBalance2.isZero(),
+      "sale should have transferred all claimed reserve to fee recipient"
+    );
+    assert(
+      feeRecipientReserveBalance2.eq(fee),
+      "fee recipient should have received fees after claiming"
+    );
+  });
+
+  it("should transfer correct value to all stakeholders after failed sale (with forward address)", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+    const forwardingAddress = signers[4];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: forwardingAddress.address,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply.div(2); // not all
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    // buy some units
+    const txBuy = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    const { receipt } = (await Util.getEventArgs(
+      txBuy,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const tokenSupply0 = await token.totalSupply();
+    const saleTokenBalance0 = await token.balanceOf(sale.address);
+    const saleReserveBalance0 = await reserve.balanceOf(sale.address);
+    const recipientReserveBalance0 = await reserve.balanceOf(recipient.address);
+    const feeRecipientReserveBalance0 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+    const forwardingAddressTokenBalance0 = await token.balanceOf(
+      forwardingAddress.address
+    );
+
+    assert(
+      saleReserveBalance0.eq(cost.add(fee)),
+      "sale should only hold reserve that signer1 transferred during buy"
+    );
+    assert(
+      recipientReserveBalance0.isZero(),
+      "recipient should have no initial reserve balance"
+    );
+    assert(
+      feeRecipientReserveBalance0.isZero(),
+      "fee recipient should not hold any reserve until claiming fees"
+    );
+    assert(
+      forwardingAddressTokenBalance0.isZero(),
+      "forwarding address should have no initial reserve balance"
+    );
+
+    await sale.end();
+
+    // if distributionEndForwardingAddress, should forward distributor (sale) rTKN balance to distributionEndForwardingAddress
+    //// else, should burn distributor (sale) rTKN balance
+
+    // if failed sale, do not transfer all reserve to recipient
+
+    const tokenSupply1 = await token.totalSupply();
+    const saleTokenBalance1 = await token.balanceOf(sale.address);
+    const saleReserveBalance1 = await reserve.balanceOf(sale.address);
+    const recipientReserveBalance1 = await reserve.balanceOf(recipient.address);
+    const feeRecipientReserveBalance1 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+    const forwardingAddressTokenBalance1 = await token.balanceOf(
+      forwardingAddress.address
+    );
+
+    assert(
+      tokenSupply0.eq(tokenSupply1),
+      "no rTKN supply should have been burned"
+    );
+    assert(
+      saleTokenBalance1.isZero(),
+      "sale did not transfer entire rTKN balance"
+    );
+    assert(
+      forwardingAddressTokenBalance1.eq(saleTokenBalance0),
+      "forwarding address did not receive sale rTKN balance"
+    );
+
+    assert(
+      saleReserveBalance1.eq(saleReserveBalance0),
+      "sale reserve balance should remain the same on failed sale, ready to be refunded"
+    );
+    assert(
+      recipientReserveBalance1.isZero(),
+      "sale should not transfer reserve to recipient on failed sale"
+    );
+    assert(
+      feeRecipientReserveBalance1.isZero(),
+      "fee recipient should still not hold any reserve until claiming fees"
+    );
+
+    await Util.assertError(
+      async () => await sale.claimFees(feeRecipient.address),
+      "NOT_SUCCESS",
+      "should not allow fee recipient to claim fees"
+    );
+
+    const signer1ReserveBalance0 = await reserve.balanceOf(signer1.address);
+
+    assert(
+      signer1ReserveBalance0.isZero(),
+      "signer1 should not automatically receive any refund at end of sale"
+    );
+
+    // signer1 refund
+    await token.connect(signer1).approve(sale.address, desiredUnits);
+    await sale.connect(signer1).refund(receipt);
+
+    const signer1ReserveBalance1 = await reserve.balanceOf(signer1.address);
+
+    assert(
+      signer1ReserveBalance1.eq(cost.add(fee)),
+      "signer1 should receive full refund on failed raise"
+    );
+  });
+
+  it("should transfer correct value to all stakeholders after failed sale (no forward address)", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply.div(2); // not all
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
+
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+
+    // buy some units
+    const txBuy = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
+
+    const { receipt } = (await Util.getEventArgs(
+      txBuy,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const tokenSupply0 = await token.totalSupply();
+    const saleTokenBalance0 = await token.balanceOf(sale.address);
+    const saleReserveBalance0 = await reserve.balanceOf(sale.address);
+    const recipientReserveBalance0 = await reserve.balanceOf(recipient.address);
+    const feeRecipientReserveBalance0 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+
+    assert(
+      saleReserveBalance0.eq(cost.add(fee)),
+      "sale should only hold reserve that signer1 transferred during buy"
+    );
+    assert(
+      recipientReserveBalance0.isZero(),
+      "recipient should have no initial reserve balance"
+    );
+    assert(
+      feeRecipientReserveBalance0.isZero(),
+      "fee recipient should not hold any reserve until claiming fees"
+    );
+
+    await sale.end();
+
+    //// if distributionEndForwardingAddress, should forward distributor (sale) rTKN balance
+    // else, should burn distributor (sale) rTKN balance
+
+    // if failed sale, do not transfer all reserve to recipient
+
+    const tokenSupply1 = await token.totalSupply();
+    const saleTokenBalance1 = await token.balanceOf(sale.address);
+    const saleReserveBalance1 = await reserve.balanceOf(sale.address);
+    const recipientReserveBalance1 = await reserve.balanceOf(recipient.address);
+    const feeRecipientReserveBalance1 = await reserve.balanceOf(
+      feeRecipient.address
+    );
+
+    assert(
+      tokenSupply0.sub(tokenSupply1).eq(saleTokenBalance0),
+      "wrong amount of rTKN supply burned"
+    );
+    assert(saleTokenBalance1.isZero(), "sale did not burn entire rTKN balance");
+
+    assert(
+      saleReserveBalance1.eq(saleReserveBalance0),
+      "sale reserve balance should remain the same on failed sale, ready to be refunded"
+    );
+    assert(
+      recipientReserveBalance1.isZero(),
+      "sale should not transfer reserve to recipient on failed sale"
+    );
+    assert(
+      feeRecipientReserveBalance1.isZero(),
+      "fee recipient should still not hold any reserve until claiming fees"
+    );
+
+    await Util.assertError(
+      async () => await sale.claimFees(feeRecipient.address),
+      "NOT_SUCCESS",
+      "should not allow fee recipient to claim fees"
+    );
+
+    const signer1ReserveBalance0 = await reserve.balanceOf(signer1.address);
+
+    assert(
+      signer1ReserveBalance0.isZero(),
+      "signer1 should not automatically receive any refund at end of sale"
+    );
+
+    // signer1 refund
+    await token.connect(signer1).approve(sale.address, desiredUnits);
+    await sale.connect(signer1).refund(receipt);
+
+    const signer1ReserveBalance1 = await reserve.balanceOf(signer1.address);
+
+    assert(
+      signer1ReserveBalance1.eq(cost.add(fee)),
+      "signer1 should receive full refund on failed raise"
+    );
+  });
+
+  it("should be able to end failed sale if creator does not end it", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await Util.assertError(
+      async () => await sale.connect(signer1).end(),
+      "CANT_END",
+      "wrongly ended before configured block number"
+    );
+
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    const canEnd = await sale.canEnd();
+    assert(canEnd);
+
+    const endTx = await sale.connect(signer1).end();
+
+    const { sender: senderEnd, saleStatus: saleStatusEnd } =
+      (await Util.getEventArgs(endTx, "End", sale)) as EndEvent["args"];
+
+    assert(senderEnd === signer1.address, "wrong End sender");
+    assert(
+      saleStatusEnd === Status.FAIL,
+      `wrong status in event
+      expected  ${Status.FAIL}
+      got       ${saleStatusEnd}`
+    );
+
+    const saleStatusFail = await sale.saleStatus();
+
+    assert(
+      saleStatusFail === Status.FAIL,
+      `wrong status in getter
+      expected  ${Status.FAIL}
+      got       ${saleStatusFail}`
+    );
+  });
+
+  it("should allow fees recipient to claim fees on successful raise, and prevent buyers from refunding their tokens", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -3032,13 +4182,19 @@ describe("Sale", async function () {
       .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
 
     // buy all units to meet minimum raise amount
-    await sale.connect(signer1).buy({
+    const txBuy = await sale.connect(signer1).buy({
       feeRecipient: feeRecipient.address,
       fee,
       minimumUnits: desiredUnits,
       desiredUnits,
       maximumPrice: staticPrice,
     });
+
+    const { receipt } = (await Util.getEventArgs(
+      txBuy,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
 
     // sale should automatically have ended after all units bought
     const saleStatusSuccess = await sale.saleStatus();
@@ -3048,6 +4204,12 @@ describe("Sale", async function () {
       `wrong status
       expected  ${Status.SUCCESS}
       got       ${saleStatusSuccess}`
+    );
+
+    await Util.assertError(
+      async () => await sale.connect(signer1).refund(receipt),
+      "REFUND_SUCCESS",
+      "signer1 wrongly refunded when raise was Successful"
     );
 
     const feeRecipientBalance0 = await reserve.balanceOf(feeRecipient.address);
@@ -3066,7 +4228,7 @@ describe("Sale", async function () {
     assert(feeRecipientBalance2.eq(feeRecipientBalance1));
   });
 
-  it("should have status of Success if minimum raise met and refund is disallowed", async function () {
+  it("should have status of Success if minimum raise met, and also ensure that refunding is disallowed", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -3329,7 +4491,8 @@ describe("Sale", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
-    const feeRecipient = signers[2];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -3389,6 +4552,7 @@ describe("Sale", async function () {
       sale
     )) as InitializeEvent["args"];
 
+    // TODO: Use compareStruct util fn to test equivalence
     console.log({ initializeConfig: config }); // just eyeball the log I can't be bothered to test object equivalence
 
     assert(sender === saleFactory.address, "wrong sender in Initialize event");
@@ -3427,7 +4591,8 @@ describe("Sale", async function () {
       "wrongly ended before started"
     );
 
-    const startTx = await sale.start();
+    // anon can start sale
+    const startTx = await sale.connect(signer1).start();
 
     const { sender: senderStart } = (await Util.getEventArgs(
       startTx,
@@ -3435,7 +4600,7 @@ describe("Sale", async function () {
       sale
     )) as StartEvent["args"];
 
-    assert(senderStart === signers[0].address, "wrong Start sender");
+    assert(senderStart === signer1.address, "wrong Start sender");
 
     const saleStatusActive = await sale.saleStatus();
     assert(saleStatusActive === Status.ACTIVE);
@@ -3463,12 +4628,13 @@ describe("Sale", async function () {
     const canEnd = await sale.canEnd();
     assert(canEnd);
 
-    const endTx = await sale.end();
+    // anon can end sale
+    const endTx = await sale.connect(signer1).end();
 
     const { sender: senderEnd, saleStatus: saleStatusEnd } =
       (await Util.getEventArgs(endTx, "End", sale)) as EndEvent["args"];
 
-    assert(senderEnd === signers[0].address, "wrong End sender");
+    assert(senderEnd === signer1.address, "wrong End sender");
     assert(
       saleStatusEnd === Status.FAIL,
       `wrong status in event
@@ -3522,6 +4688,181 @@ describe("Sale", async function () {
       async () => await sale.timeout(),
       "ALREADY_ENDED",
       "wrongly timed out sale with sale status of Fail"
+    );
+  });
+
+  it("should correctly timeout sale if it does not end naturally", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    await Util.assertError(
+      async () =>
+        await saleDeploy(
+          signers,
+          deployer,
+          saleFactory,
+          {
+            canStartStateConfig: afterBlockNumberConfig(startBlock),
+            canEndStateConfig: afterBlockNumberConfig(
+              startBlock + saleDuration
+            ),
+            calculatePriceStateConfig: {
+              sources,
+              constants,
+              stackLength: 1,
+              argumentsLength: 0,
+            },
+            recipient: recipient.address,
+            reserve: reserve.address,
+            cooldownDuration: 1,
+            minimumRaise,
+            dustSize: 0,
+            saleTimeout: 10001,
+          },
+          {
+            erc20Config: redeemableERC20Config,
+            tier: readWriteTier.address,
+            minimumTier: Tier.ZERO,
+            distributionEndForwardingAddress: ethers.constants.AddressZero,
+          }
+        ),
+      "MAX_TIMEOUT",
+      "did not prevent a sale timeout that exceeds maximum timeout, which was set by the sale factory"
+    );
+
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+          stackLength: 1,
+          argumentsLength: 0,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    await Util.assertError(
+      async () => await sale.timeout(),
+      "EARLY_TIMEOUT",
+      "wrongly timed out sale early"
+    );
+
+    // wait for sale timeout
+    // should be relative to initialise so we aren't even going to start the sale
+    await Util.createEmptyBlock(99);
+
+    await Util.assertError(
+      async () => await sale.timeout(),
+      "EARLY_TIMEOUT",
+      "wrongly timed out sale 1 block early"
+    );
+
+    await Util.createEmptyBlock();
+
+    assert((await sale.saleStatus()) === Status.PENDING);
+
+    const txTimeout = await sale.timeout();
+
+    // timeout should set status to Fail
+    assert((await sale.saleStatus()) === Status.FAIL);
+
+    const { sender: sender0 } = (await Util.getEventArgs(
+      txTimeout,
+      "Timeout",
+      sale
+    )) as TimeoutEvent["args"];
+
+    assert(sender0 === signers[0].address, "wrong sender in Timeout event");
+
+    // Should have ended distribution via rTKN contract.
+    // A simple way to tell is that the rTKN phase should have changed to FROZEN.
+    const {
+      sender: sender1,
+      newPhase,
+      scheduledBlock,
+    } = (await Util.getEventArgs(
+      txTimeout,
+      "PhaseScheduled",
+      token
+    )) as PhaseScheduledEvent["args"];
+
+    assert(
+      sender1 === sale.address,
+      "wrong sender for endDistribution call, expected sale address"
+    );
+    assert(newPhase.eq(Phase.FROZEN), "wrong token phase after timeout");
+    assert(
+      scheduledBlock.eq(await ethers.provider.getBlockNumber()),
+      "expected scheduled block"
+    );
+
+    // Sale is now functionally in a Fail state
+    // Cannot start, end or buy from sale
+    await Util.assertError(
+      async () => await sale.start(),
+      "CANT_START",
+      "wrongly started in Fail state"
+    );
+    await Util.assertError(
+      async () => await sale.end(),
+      "CANT_END",
+      "wrongly ended in Fail state"
+    );
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+    const desiredUnits = totalTokenSupply;
+    await Util.assertError(
+      async () => {
+        await sale.buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: desiredUnits,
+          desiredUnits,
+          maximumPrice: staticPrice,
+        });
+      },
+      "NOT_ACTIVE",
+      "wrongly bought units when sale is in Fail state"
     );
   });
 });

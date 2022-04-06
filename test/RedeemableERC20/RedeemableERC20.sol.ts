@@ -11,6 +11,7 @@ import type {
   TreasuryAssetEvent,
 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
+import { Phase } from "./RedeemableERC20Util";
 
 const { assert } = chai;
 
@@ -24,12 +25,6 @@ enum Tier {
   SIX,
   SEVEN,
   EIGHT,
-}
-
-enum Phase {
-  UNINITIALIZED,
-  DISTRIBUTING,
-  FROZEN,
 }
 
 describe("RedeemableERC20", async function () {
