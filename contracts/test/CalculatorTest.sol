@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
-import {RainVM, State} from "../vm/RainVM.sol";
+import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {BlockOps} from "../vm/ops/BlockOps.sol";
-import {MathOps} from "../vm/ops/MathOps.sol";
+// solhint-disable-next-line max-line-length
+import {EVMConstantOps, EVM_CONSTANT_OPS_LENGTH} from "../vm/ops/evm/EVMConstantOps.sol";
+import {MathOps} from "../vm/ops/math/MathOps.sol";
 
 /// @title CalculatorTest
 /// Simple calculator that exposes basic math ops and block ops for testing.
 contract CalculatorTest is RainVM, VMState {
-    uint256 private immutable blockOpsStart;
+    uint256 private immutable evmConstantOpsStart;
     uint256 private immutable mathOpsStart;
     address private immutable vmStatePointer;
 
@@ -19,8 +20,8 @@ contract CalculatorTest is RainVM, VMState {
         /// imported libraries and contracts. These are calculated at
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
-        blockOpsStart = RainVM.OPS_LENGTH;
-        mathOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
+        evmConstantOpsStart = RAIN_VM_OPS_LENGTH;
+        mathOpsStart = evmConstantOpsStart + EVM_CONSTANT_OPS_LENGTH;
         vmStatePointer = _snapshot(_newState(RainVM(this), config_));
     }
 
@@ -34,7 +35,7 @@ contract CalculatorTest is RainVM, VMState {
         unchecked {
             if (opcode_ < mathOpsStart) {
                 return
-                    BlockOps.stackIndexDiff(opcode_ - blockOpsStart, operand_);
+                    EVMConstantOps.stackIndexDiff(opcode_ - evmConstantOpsStart, operand_);
             } else {
                 return MathOps.stackIndexDiff(opcode_ - mathOpsStart, operand_);
             }
@@ -43,7 +44,7 @@ contract CalculatorTest is RainVM, VMState {
 
     /// @inheritdoc RainVM
     function applyOp(
-        bytes memory context_,
+        bytes memory,
         uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
@@ -51,16 +52,14 @@ contract CalculatorTest is RainVM, VMState {
         unchecked {
             if (opcode_ < mathOpsStart) {
                 return
-                    BlockOps.applyOp(
-                        context_,
+                    EVMConstantOps.applyOp(
                         stackTopLocation_,
-                        opcode_ - blockOpsStart,
+                        opcode_ - evmConstantOpsStart,
                         operand_
                     );
             } else {
                 return
                     MathOps.applyOp(
-                        context_,
                         stackTopLocation_,
                         opcode_ - mathOpsStart,
                         operand_

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {RedeemableERC20} from "../redeemableERC20/RedeemableERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -110,65 +110,86 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     using SafeERC20 for IERC20;
 
     /// Emitted for every successful pending deposit.
+    /// @param sender Anon `msg.sender` depositing the token.
+    /// @param sale `ISale` contract deposit is under.
+    /// @param redeemable Redeemable token that can claim this deposit.
+    /// Implicitly snapshots the redeemable so malicious `Trust` cannot
+    /// redirect funds later.
+    /// @param token `IERC20` token being deposited.
+    /// @param amount Amount of token deposited.
     event PendingDeposit(
-        /// Anon `msg.sender` depositing the token.
         address sender,
-        /// `Sale` contract deposit is under.
-        address trust,
-        /// Redeemable token that can claim this deposit.
-        /// Implicitly snapshots the redeemable so malicious `Trust` cannot
-        /// redirect funds later.
+        address sale,
         address redeemable,
-        /// `IERC20` token being deposited.
         address token,
-        /// Amount of token deposited.
+        uint256 amount
+    );
+
+    /// Emitted every time a pending deposit is swept to a full deposit.
+    /// @param sender Anon `msg.sender` sweeping the deposit.
+    /// @param depositor Anon `msg.sender` who originally deposited the token.
+    /// @param sale `ISale` contract deposit is under.
+    /// @param redeemable Redeemable token first reported by the trust.
+    /// @param token `IERC20` token being swept into a deposit.
+    /// @param amount Amount of token being swept into a deposit.
+    event Sweep(
+        address sender,
+        address depositor,
+        address sale,
+        address redeemable,
+        address token,
         uint256 amount
     );
 
     /// Emitted for every successful deposit.
+    /// @param sender Anon `msg.sender` triggering the deposit.
+    /// MAY NOT be the `depositor` in the case of a pending sweep.
+    /// @param depositor Anon `msg.sender` who originally deposited the token.
+    /// MAY NOT be the current `msg.sender` in the case of a pending sweep.
+    /// @param sale `ISale` contract deposit is under.
+    /// @param redeemable Redeemable token that can claim this deposit.
+    /// @param token `IERC20` token being deposited.
+    /// @param supply rTKN supply at moment of deposit.
+    /// @param amount Amount of token deposited.
     event Deposit(
-        /// Anon `msg.sender` who originally deposited the token.
-        /// May NOT be the current `msg.sender` in the case of a pending sweep.
+        address sender,
         address depositor,
-        /// `Sale` contract deposit is under.
-        address trust,
-        /// Redeemable token that can claim this deposit.
+        address sale,
         address redeemable,
-        /// `IERC20` token being deposited.
         address token,
-        /// rTKN supply at moment of deposit.
         uint256 supply,
-        /// Amount of token deposited.
         uint256 amount
     );
 
     /// Emitted for every successful undeposit.
+    /// @param sender Anon `msg.sender` undepositing the token.
+    /// @param sale `ISale` contract undeposit is from.
+    /// @param redeemable Redeemable token that is being undeposited against.
+    /// @param token `IERC20` token being undeposited.
+    /// @param supply rTKN supply at moment of deposit.
+    /// @param amount Amount of token undeposited.
     event Undeposit(
-        /// Anon `msg.sender` undepositing the token.
         address sender,
-        /// `Sale` contract undeposit is from.
-        address trust,
-        /// `IERC20` token being undeposited.
+        address sale,
+        address redeemable,
         address token,
-        /// rTKN supply at moment of deposit.
         uint256 supply,
-        /// Amount of token undeposited.
         uint256 amount
     );
 
     /// Emitted for every successful withdrawal.
+    /// @param withdrawer Anon `msg.sender` withdrawing the token.
+    /// @param sale `ISale` contract withdrawal is from.
+    /// @param redeemable Redeemable token used to withdraw.
+    /// @param token `IERC20` token being withdrawn.
+    /// @param supply rTKN supply at moment of deposit.
+    /// @param amount Amount of token withdrawn.
     event Withdraw(
-        /// Anon `msg.sender` withdrawing the token.
         address withdrawer,
-        /// `Sale` contract withdrawal is from.
-        address trust,
-        /// Redeemable token used to withdraw.
+        address sale,
         address redeemable,
-        /// `IERC20` token being withdrawn.
         address token,
-        /// rTKN supply at moment of deposit.
         uint256 supply,
-        /// Amount of token withdrawn.
         uint256 amount
     );
 
@@ -252,6 +273,10 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
 
     /// Internal accounting for a deposit.
     /// Identical for both a direct deposit and sweeping a pending deposit.
+    /// @param sale_ The sale to register a deposit under.
+    /// @param token_ The token being deposited.
+    /// @param depositor_ The depositor address to register the deposit under.
+    /// @param amount_ The size of the deposit denominated in `token_`.
     function registerDeposit(
         address sale_,
         address token_,
@@ -268,7 +293,15 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         totalDeposits[sale_][token_][supply_] += amount_;
         remainingDeposits[sale_][token_][supply_] += amount_;
 
-        emit Deposit(depositor_, sale_, redeemable_, token_, supply_, amount_);
+        emit Deposit(
+            msg.sender,
+            depositor_,
+            sale_,
+            redeemable_,
+            token_,
+            supply_,
+            amount_
+        );
     }
 
     /// Anon can convert any existing pending deposit to a deposit with known
@@ -280,6 +313,9 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// `withdraw` to be called subsequently.
     /// Partial sweeps are NOT supported, to avoid griefers splitting a deposit
     /// across many different `supply_` values.
+    /// @param sale_ The sale to sweep all pending deposits for.
+    /// @param token_ The token to sweep into registered deposits.
+    /// @param depositor_ The depositor to sweep registered deposits under.
     function sweepPending(
         address sale_,
         address token_,
@@ -287,6 +323,14 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     ) external {
         uint256 amount_ = pendingDeposits[sale_][token_][depositor_];
         delete pendingDeposits[sale_][token_][depositor_];
+        emit Sweep(
+            msg.sender,
+            depositor_,
+            sale_,
+            token(sale_),
+            token_,
+            amount_
+        );
         registerDeposit(sale_, token_, depositor_, amount_);
     }
 
@@ -296,10 +340,11 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// and the trust in aggregate. The aggregate value is used by `withdraw`
     /// and the individual value by `undeposit`.
     /// The depositor is responsible for approving the token for this contract.
-    /// `deposit` is disabled when the distribution fails; only `undeposit` is
-    /// allowed in case of a fail. Multiple `deposit` calls before and after a
-    /// success result are supported. If a depositor deposits when a raise has
-    /// failed they will need to undeposit it again manually.
+    /// `deposit` is still enabled after the distribution ends; `undeposit` is
+    /// always allowed in case of a fail and disabled on success. Multiple
+    /// `deposit` calls before and after a success result are supported. If a
+    /// depositor deposits when a raise has failed they will need to undeposit
+    /// it again manually.
     /// Delegated `deposit` is not supported. Every depositor is directly
     /// responsible for every `deposit`.
     /// WARNING: As `undeposit` can only be called when the `Sale` reports
@@ -337,6 +382,9 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// process an `undeposit`.
     /// @param sale_ The `Sale` to undeposit from.
     /// @param token_ The token to undeposit.
+    /// @param supply_ The total supply of the sale token associated with the
+    /// deposit being undeposited.
+    /// @param amount_ The amount to undeposit.
     function undeposit(
         address sale_,
         address token_,
@@ -353,7 +401,17 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
         totalDeposits[sale_][token_][supply_] -= amount_;
         remainingDeposits[sale_][token_][supply_] -= amount_;
 
-        emit Undeposit(msg.sender, sale_, token_, supply_, amount_);
+        emit Undeposit(
+            msg.sender,
+            sale_,
+            // Include this in the event so that indexer consumers see a
+            // consistent world view even if the trust_ changes its answer
+            // about the redeemable.
+            token(sale_),
+            token_,
+            supply_,
+            amount_
+        );
 
         IERC20(token_).safeTransfer(msg.sender, amount_);
     }
@@ -380,6 +438,8 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// equivalent to a single withdraw after all relevant deposits.
     /// @param sale_ The trust to `withdraw` against.
     /// @param token_ The token to `withdraw`.
+    /// @param supply_ The total supply of the sale token at time of deposit
+    /// to process this withdrawal against.
     function withdraw(
         address sale_,
         address token_,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "../sale/ISale.sol";
 
@@ -26,11 +26,11 @@ enum EscrowStatus {
 /// spending or otherwise changing the direction that it sends funds.
 contract SaleEscrow {
     /// ISale address => reserve address.
-    mapping(address => address) private reserves;
+    mapping(address => address) internal reserves;
     /// ISale address => token address.
-    mapping(address => address) private tokens;
+    mapping(address => address) internal tokens;
     /// ISale address => status.
-    mapping(address => EscrowStatus) private escrowStatuses;
+    mapping(address => EscrowStatus) internal escrowStatuses;
 
     /// Immutable wrapper around `ISale.reserve`.
     /// Once a `Sale` reports a reserve address the `SaleEscrow` never asks
@@ -71,6 +71,7 @@ contract SaleEscrow {
     /// that is obviously bad as the escrow will release funds in the wrong
     /// direction. But if we were to change our opinion that would be worse as
     /// claims/refunds could potentially be "double spent" somehow.
+    /// @param sale_ The sale to get the escrow status for.
     function escrowStatus(address sale_) internal returns (EscrowStatus) {
         EscrowStatus escrowStatus_ = escrowStatuses[sale_];
         // Short circuit and ignore the `ISale` if we previously saved a value.

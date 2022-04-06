@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./TierReport.sol";
@@ -52,6 +52,11 @@ library TierwiseCombine {
     /// `blockNumber_`.
     /// Mode can be "min", "max", "first" which selects between all the block
     /// numbers for a given tier that meet the lte criteria.
+    /// IMPORTANT: If the output of `selectLte` is used to write to storage
+    /// care must be taken to ensure that "upcoming" tiers relative to the
+    /// `blockNumber_` are not overwritten inappropriately. Typically this
+    /// function should be used as a filter over reads only from an upstream
+    /// source of truth.
     /// @param reports_ The list of reports to select over.
     /// @param blockNumber_ The block number that tier blocks must be lte.
     /// @param logic_ `LOGIC_EVERY` or `LOGIC_ANY`.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.0;
 
 /// @title ITier
 /// @notice `ITier` is a simple interface that contracts can
@@ -33,8 +33,8 @@ pragma solidity ^0.8.10;
 ///   - Tier `0` is NOT encoded in the report, it is simply the fallback value.
 ///   - If a tier is lost the block data is erased for that tier and will be
 ///     set if/when the tier is regained to the new block.
-///   - If the historical block information is not available the report MAY
-///     return `0x00000000` for all held tiers.
+///   - If a tier is held but the historical block information is not available
+///     the report MAY return `0x00000000` for all held tiers.
 ///   - Tiers that are lost or have never been held MUST return `0xFFFFFFFF`.
 /// - SHOULD implement `setTier`.
 ///   - Contracts SHOULD revert with `SET_TIER` error if they cannot
@@ -45,6 +45,12 @@ pragma solidity ^0.8.10;
 ///     if tier 0 is being set.
 /// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
 ///   - Contracts that cannot meaningfully set a tier are exempt.
+///
+/// So the four possible states and report values are:
+/// - Tier is held and block is known: Block is in the report
+/// - Tier is held but block is NOT known: `0` is in the report
+/// - Tier is NOT held: `0xFF..` is in the report
+/// - Tier is unknown: `0xFF..` is in the report
 interface ITier {
     /// Every time a tier changes we log start and end tier against the
     /// account.
@@ -52,15 +58,17 @@ interface ITier {
     /// external contract.
     /// The start tier MAY be lower than the current tier as at the block this
     /// event is emitted in.
+    /// @param sender The `msg.sender` that authorized the tier change.
+    /// @param account The account changing tier.
+    /// @param startTier The previous tier the account held.
+    /// @param endTier The newly acquired tier the account now holds.
+    /// @param data The associated data for the tier change.
     event TierChange(
-        /// The `msg.sender` that authorized the tier change.
         address sender,
-        /// The account changing tier.
         address account,
-        /// The previous tier the account held.
         uint256 startTier,
-        /// The newly acquired tier the account now holds.
-        uint256 endTier
+        uint256 endTier,
+        bytes data
     );
 
     /// @notice Users can set their own tier by calling `setTier`.
@@ -118,7 +126,7 @@ interface ITier {
     function setTier(
         address account,
         uint256 endTier,
-        bytes memory data
+        bytes calldata data
     ) external;
 
     /// @notice A tier report is a `uint256` that contains each of the block

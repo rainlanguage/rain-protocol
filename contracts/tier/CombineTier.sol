@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {RainVM, State} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {BlockOps} from "../vm/ops/BlockOps.sol";
-import {TierOps} from "../vm/ops/TierOps.sol";
+// solhint-disable-next-line max-line-length
+import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
 
@@ -18,30 +18,21 @@ import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
 /// used as the return of `report`.
 contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     /// @dev local opcode to put tier report account on the stack.
-    uint256 private constant ACCOUNT = 0;
+    uint256 private constant OPCODE_ACCOUNT = 0;
     /// @dev local opcodes length.
     uint256 internal constant LOCAL_OPS_LENGTH = 1;
 
-    /// @dev local offset for block ops.
-    uint256 private immutable blockOpsStart;
-    /// @dev local offset for tier ops.
-    uint256 private immutable tierOpsStart;
     /// @dev local offset for combine tier ops.
     uint256 private immutable localOpsStart;
 
     address private vmStatePointer;
 
     constructor() {
-        /// These local opcode offsets are calculated as immutable but are
-        /// really just compile time constants. They only depend on the
-        /// imported libraries and contracts. These are calculated at
-        /// construction to future-proof against underlying ops being
-        /// added/removed and potentially breaking the offsets here.
-        blockOpsStart = RainVM.OPS_LENGTH;
-        tierOpsStart = blockOpsStart + BlockOps.OPS_LENGTH;
-        localOpsStart = tierOpsStart + TierOps.OPS_LENGTH;
+        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
     }
 
+    /// @param config_ The StateConfig will be deployed as a pointer under
+    /// `vmStatePointer`.
     function initialize(StateConfig memory config_) external initializer {
         vmStatePointer = _snapshot(_newState(RainVM(this), config_));
     }
@@ -74,32 +65,19 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         uint256 operand_
     ) internal view override returns (uint256) {
         unchecked {
-            if (opcode_ < tierOpsStart) {
-                return
-                    BlockOps.applyOp(
-                        context_,
-                        stackTopLocation_,
-                        opcode_ - blockOpsStart,
-                        operand_
-                    );
-            } else if (opcode_ < localOpsStart) {
-                return
-                    TierOps.applyOp(
-                        context_,
-                        stackTopLocation_,
-                        opcode_ - tierOpsStart,
-                        operand_
-                    );
-            } else {
-                opcode_ -= localOpsStart;
-                uint256 account_ = uint256(
-                    uint160(address(abi.decode(context_, (address))))
+            if (opcode_ < localOpsStart) {
+                AllStandardOps.applyOp(
+                    state_,
+                    opcode_ - ALL_STANDARD_OPS_START,
+                    operand_
                 );
+            } else {
+                // There's only one opcode, which stacks the address to report.
+                uint account_ = uint(uint160(address(abi.decode(context_, (address)))));
                 assembly {
                     mstore(stackTopLocation_, account_)
-                    stackTopLocation_ := add(stackTopLocation_, 0x20)
                 }
-                return stackTopLocation_;
+                return stackTopLocation_ + 0x20;
             }
         }
     }

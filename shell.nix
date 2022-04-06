@@ -2,8 +2,8 @@ let
   pkgs = import
     (builtins.fetchTarball {
       name = "nixos-unstable-2021-10-01";
-      url = "https://github.com/nixos/nixpkgs/archive/fa5e153653a1b48e4a21a14b341e2e01835ba8b5.tar.gz";
-      sha256 = "1yvqxrw0ila4y6mryhpf32c8ydljfmfbvijxra2dawvhcfbbm2rw";
+      url = "https://github.com/nixos/nixpkgs/archive/d3d2c44a26b693293e8c79da0c3e3227fc212882.tar.gz";
+      sha256 = "0vi4r7sxzfdaxzlhpmdkvkn3fjg533fcwsy3yrcj5fiyqip2p3kl";
     })
     { };
 
@@ -45,6 +45,10 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
+    rm -rf docusaurus/.docusaurus
+    rm -rf docusaurus/build
+    rm -rf docusaurus/node_modules
+    rm -rf docs/api
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -160,7 +164,7 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [
     pkgs.nixpkgs-fmt
     pkgs.yarn
-    pkgs.nodejs-16_x
+    pkgs.nodejs-17_x
     pkgs.slither-analyzer
     local-node
     local-fork
@@ -187,6 +191,6 @@ pkgs.stdenv.mkDerivation {
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
-    npm install --prefix docusaurus
+    npm install --prefix docusaurus --legacy-peer-deps
   '';
 }

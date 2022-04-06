@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {Factory} from "../factory/Factory.sol";
-import {Verify} from "./Verify.sol";
+import {Verify, VerifyConfig} from "./Verify.sol";
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 contract VerifyFactory is Factory {
     /// Template contract to clone.
     /// Deployed by the constructor.
-    address private immutable implementation;
+    address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
     constructor() {
@@ -27,9 +27,9 @@ contract VerifyFactory is Factory {
         override
         returns (address)
     {
-        address admin_ = abi.decode(data_, (address));
+        VerifyConfig memory config_ = abi.decode(data_, (VerifyConfig));
         address clone_ = Clones.clone(implementation);
-        Verify(clone_).initialize(admin_);
+        Verify(clone_).initialize(config_);
         return clone_;
     }
 
@@ -37,9 +37,12 @@ contract VerifyFactory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param admin_ `address` of the `Verify` admin.
+    /// @param config_ Initialization config for the new `Verify` child.
     /// @return New `Verify` child contract address.
-    function createChildTyped(address admin_) external returns (Verify) {
-        return Verify(this.createChild(abi.encode(admin_)));
+    function createChildTyped(VerifyConfig calldata config_)
+        external
+        returns (Verify)
+    {
+        return Verify(this.createChild(abi.encode(config_)));
     }
 }

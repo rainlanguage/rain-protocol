@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
+import "./IVerifyCallback.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -10,13 +11,35 @@ import "./libraries/VerifyConstants.sol";
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
 /// Most accounts will never be banned so most accounts will never reach every
 /// status, which is a good thing.
+/// @param addedSince Block the address was added else 0xFFFFFFFF.
+/// @param approvedSince Block the address was approved else 0xFFFFFFFF.
+/// @param bannedSince Block the address was banned else 0xFFFFFFFF.
 struct State {
-    /// Block the address was added else 0xFFFFFFFF.
     uint32 addedSince;
-    /// Block the address was approved else 0xFFFFFFFF.
     uint32 approvedSince;
-    /// Block the address was banned else 0xFFFFFFFF.
     uint32 bannedSince;
+}
+
+/// Structure of arbitrary evidence to support any action taken.
+/// Priviledged roles are expected to provide evidence just as applicants as an
+/// audit trail will be preserved permanently in the logs.
+/// @param account The account this evidence is relevant to.
+/// @param data Arbitrary bytes representing evidence. MAY be e.g. a reference
+/// to a sufficiently decentralised external system such as an IPFS hash.
+struct Evidence {
+    address account;
+    bytes data;
+}
+
+/// Config to initialize a Verify contract with.
+/// @param admin The address to ASSIGN ALL ADMIN ROLES to initially. This
+/// address is free and encouraged to delegate fine grained permissions to
+/// many other sub-admin addresses, then revoke it's own "root" access.
+/// @param callback The address of the `IVerifyCallback` contract if it exists.
+/// MAY be `address(0)` to signify that callbacks should NOT run.
+struct VerifyConfig {
+    address admin;
+    address callback;
 }
 
 /// @title Verify
@@ -148,49 +171,44 @@ contract Verify is AccessControl, Initializable {
     /// (i.e. removed or never added)
     uint32 private constant UNINITIALIZED = type(uint32).max;
 
+    /// Emitted when the `Verify` contract is initialized.
+    event Initialize(address sender, VerifyConfig config);
+
     /// Emitted when evidence is first submitted to approve an account.
     /// The requestor is always the `msg.sender` of the user calling `add`.
     /// @param sender The `msg.sender` that submitted its own evidence.
-    /// @param data The evidence to support an approval.
+    /// @param evidence The evidence to support an approval.
     /// NOT written to contract storage.
-    event RequestApprove(address sender, bytes data);
+    event RequestApprove(address sender, Evidence evidence);
     /// Emitted when a previously added account is approved.
     /// @param sender The `msg.sender` that approved `account`.
-    /// @param account The address that was approved.
-    /// @param data Any additional data the `approver` deems relevant.
-    /// NOT written to contract storage.
-    event Approve(address sender, address account, bytes data);
+    /// @param evidence The approval data.
+    event Approve(address sender, Evidence evidence);
 
     /// Currently approved accounts can request that any account be banned.
     /// The requestor is expected to provide supporting data for the ban.
     /// The requestor MAY themselves be banned if vexatious.
     /// @param sender The `msg.sender` requesting a ban of `account`.
-    /// @param account The address that `requestor` wants to ban.
-    /// @param data Any additional data the `requestor` feels will strengthen
+    /// @param evidence Account + data the `requestor` feels will strengthen
     /// its case for the ban. NOT written to contract storage.
-    event RequestBan(address sender, address account, bytes data);
+    event RequestBan(address sender, Evidence evidence);
     /// Emitted when an added or approved account is banned.
     /// @param sender The `msg.sender` that banned `account`.
-    /// @param account The address that `banner` has banned.
-    /// @param data The evidence to support a ban.
+    /// @param evidence Account + the evidence to support a ban.
     /// NOT written to contract storage.
-    event Ban(address sender, address account, bytes data);
+    event Ban(address sender, Evidence evidence);
 
     /// Currently approved accounts can request that any account be removed.
     /// The requestor is expected to provide supporting data for the removal.
     /// The requestor MAY themselves be banned if vexatious.
     /// @param sender The `msg.sender` requesting a removal of `account`.
-    /// @param account The address that `requestor` wants to ban.
-    /// @param data Any additional data the `requestor` feels will strengthen
-    /// its case for the ban. NOT written to contract storage.
-    event RequestRemove(address sender, address account, bytes data);
+    /// @param evidence `Evidence` to justify a removal.
+    event RequestRemove(address sender, Evidence evidence);
     /// Emitted when an account is scrubbed from blockchain state.
     /// Historical logs still visible offchain of course.
     /// @param sender The `msg.sender` that removed `account`.
-    /// @param account The address that `remover` has removed.
-    /// @param data The evidence to support a remove.
-    /// NOT written to contract storage.
-    event Remove(address sender, address account, bytes data);
+    /// @param evidence `Evidence` to justify the removal.
+    event Remove(address sender, Evidence evidence);
 
     /// Admin role for `APPROVER`.
     bytes32 public constant APPROVER_ADMIN = keccak256("APPROVER_ADMIN");
@@ -207,15 +225,17 @@ contract Verify is AccessControl, Initializable {
     /// Role for `BANNER`.
     bytes32 public constant BANNER = keccak256("BANNER");
 
-    // Account => State
+    /// Account => State
     mapping(address => State) private states;
 
-    /// Defines RBAC logic for each role under Open Zeppelin.
-    /// @param admin_ The address to ASSIGN ALL ADMIN ROLES to initially. This
-    /// address is free and encouraged to delegate fine grained permissions to
-    /// many other sub-admin addresses, then revoke it's own "root" access.
-    function initialize(address admin_) external initializer {
-        require(admin_ != address(0), "0_ACCOUNT");
+    /// Optional IVerifyCallback contract.
+    /// MAY be address 0.
+    IVerifyCallback public callback = IVerifyCallback(address(0));
+
+    /// Initializes the `Verify` contract e.g. as cloned by a factory.
+    /// @param config_ The config required to initialize the contract.
+    function initialize(VerifyConfig calldata config_) external initializer {
+        require(config_.admin != address(0), "0_ACCOUNT");
 
         // `APPROVER_ADMIN` can admin each other in addition to
         // `APPROVER` addresses underneath.
@@ -233,11 +253,19 @@ contract Verify is AccessControl, Initializable {
         _setRoleAdmin(BANNER, BANNER_ADMIN);
 
         // It is STRONGLY RECOMMENDED that the `admin_` delegates specific
-        // admin roles then revokes the `DEFAULT_ADMIN_ROLE` and the `X_ADMIN`
-        // roles.
-        _setupRole(APPROVER_ADMIN, admin_);
-        _setupRole(REMOVER_ADMIN, admin_);
-        _setupRole(BANNER_ADMIN, admin_);
+        // admin roles then revokes the `X_ADMIN` roles. From themselves.
+        // It is ALSO RECOMMENDED that each of the sub-`X_ADMIN` roles revokes
+        // their admin rights once sufficient approvers/removers/banners have
+        // been assigned, if possible. Admins can instantly/atomically assign
+        // and revoke admin priviledges from each other, so a compromised key
+        // can irreperably damage a `Verify` contract instance.
+        _grantRole(APPROVER_ADMIN, config_.admin);
+        _grantRole(REMOVER_ADMIN, config_.admin);
+        _grantRole(BANNER_ADMIN, config_.admin);
+
+        callback = IVerifyCallback(config_.callback);
+
+        emit Initialize(msg.sender, config_);
     }
 
     /// Typed accessor into states.
@@ -291,93 +319,188 @@ contract Verify is AccessControl, Initializable {
         _;
     }
 
+    /// @dev Builds a new `State` for use by `add` and `approve`.
+    function newState() private view returns (State memory) {
+        return State(uint32(block.number), UNINITIALIZED, UNINITIALIZED);
+    }
+
     /// An account adds their own verification evidence.
     /// Internally `msg.sender` is used; delegated `add` is not supported.
     /// @param data_ The evidence to support approving the `msg.sender`.
     function add(bytes calldata data_) external {
-        // Accounts may NOT change their application to be approved.
-        // This restriction is the main reason delegated add is not supported
-        // as it would lead to griefing.
-        // A mistaken add requires an appeal to a REMOVER to restart the
-        // process OR a new `msg.sender` (i.e. different wallet address).
-        // The awkward < 1 here is to silence slither complaining about
-        // equality checks against `0`. The intent is to ensure that
-        // `addedSince` is not already set before we set it.
-        require(states[msg.sender].addedSince < 1, "PRIOR_ADD");
-        states[msg.sender] = State(
-            uint32(block.number),
-            UNINITIALIZED,
-            UNINITIALIZED
-        );
-        emit RequestApprove(msg.sender, data_);
-    }
-
-    /// An `APPROVER` can review added evidence and approve the account.
-    /// @param account_ The account to be approved.
-    /// @param data_ Additional evidence provided by the approver.
-    function approve(address account_, bytes calldata data_) external {
-        require(account_ != address(0), "0_ADDRESS");
-        require(hasRole(APPROVER, msg.sender), "ONLY_APPROVER");
-        // In theory we should also check the `addedSince` is lte the current
-        // `block.number` but in practise no code path produces a future
-        // `addedSince`.
-        require(states[account_].addedSince > 0, "NOT_ADDED");
+        State memory state_ = states[msg.sender];
+        uint256 currentStatus_ = statusAtBlock(state_, block.number);
         require(
-            states[account_].approvedSince == UNINITIALIZED,
-            "PRIOR_APPROVE"
+            currentStatus_ != VerifyConstants.STATUS_APPROVED &&
+                currentStatus_ != VerifyConstants.STATUS_BANNED,
+            "ALREADY_EXISTS"
         );
-        require(states[account_].bannedSince == UNINITIALIZED, "PRIOR_BAN");
-        states[account_].approvedSince = uint32(block.number);
-        emit Approve(msg.sender, account_, data_);
+        // An account that hasn't already been added need a new state.
+        // If an account has already been added but not approved or banned
+        // they can emit many `RequestApprove` events without changing
+        // their state. This facilitates multi-step workflows for the KYC
+        // provider, e.g. to implement a commit+reveal scheme or simply
+        // request additional evidence from the applicant before final
+        // verdict.
+        if (currentStatus_ == VerifyConstants.STATUS_NIL) {
+            states[msg.sender] = newState();
+        }
+        Evidence memory evidence_ = Evidence(msg.sender, data_);
+        emit RequestApprove(msg.sender, evidence_);
+
+        // Call the `afterAdd_` hook to allow inheriting contracts to enforce
+        // requirements.
+        // The inheriting contract MUST `require` or otherwise enforce its
+        // needs to rollback a bad add.
+        if (address(callback) != address(0)) {
+            callback.afterAdd(msg.sender, evidence_);
+        }
     }
 
-    /// Any approved account can request some account be banned, along with
-    /// supporting evidence. Banners are free to ban the originator of
-    /// vexatious ban requests.
-    /// @param account_ The account to be banned.
-    /// @param data_ The supporting evidence.
-    function requestBan(address account_, bytes calldata data_)
+    /// An `APPROVER` can review added evidence and approve accounts.
+    /// Typically many approvals would be submitted in a single call which is
+    /// more convenient and gas efficient than sending individual transactions
+    /// for every approval. However, as there are many individual agents
+    /// acting concurrently and independently this requires that the approval
+    /// process be infallible so that no individual approval can rollback the
+    /// entire batch due to the actions of some other approver/banner. It is
+    /// possible to approve an already approved or banned account. The
+    /// `Approve` event will always emit but the approved block will only be
+    /// set if it was previously uninitialized. A banned account will always
+    /// be seen as banned when calling `statusAtBlock` regardless of the
+    /// approval block, even if the approval is more recent than the ban. The
+    /// only way to reset a ban is to remove and reapprove the account.
+    /// @param evidences_ All evidence for all approvals.
+    function approve(Evidence[] calldata evidences_)
+        external
+        onlyRole(APPROVER)
+    {
+        uint256 dirty_ = 0;
+        State memory state_;
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            state_ = states[evidences_[i_].account];
+            // If the account hasn't been added an approver can still add and
+            // approve it on their behalf.
+            if (state_.addedSince < 1) {
+                state_ = newState();
+                dirty_ = 1;
+            }
+            // If the account hasn't been approved we approve it. As there are
+            // many approvers operating independently and concurrently we do
+            // NOT `require` the approval be unique, but we also do NOT change
+            // the block as the oldest approval is most important. However we
+            // emit an event for every approval even if the state does not
+            // change.
+            // It is possible to approve a banned account but `statusAtBlock`
+            // will ignore the approval time for any banned account and use the
+            // banned block only.
+            if (state_.approvedSince == UNINITIALIZED) {
+                state_.approvedSince = uint32(block.number);
+                dirty_ = 1;
+            }
+
+            if (dirty_ > 0) {
+                states[evidences_[i_].account] = state_;
+                dirty_ = 0;
+            }
+
+            // Always emit an `Approve` event even if we didn't write state.
+            // This ensures that supporting evidence hits the logs for offchain
+            // review.
+            emit Approve(msg.sender, evidences_[i_]);
+        }
+        if (address(callback) != address(0)) {
+            callback.afterApprove(msg.sender, evidences_);
+        }
+    }
+
+    /// Any approved address can request some other address be approved.
+    /// Frivolous requestors SHOULD expect to find themselves banned.
+    /// @param evidences_ Array of evidences to request approvals for.
+    function requestApprove(Evidence[] calldata evidences_)
         external
         onlyApproved
     {
-        emit RequestBan(msg.sender, account_, data_);
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            emit RequestApprove(msg.sender, evidences_[i_]);
+        }
     }
 
     /// A `BANNER` can ban an added OR approved account.
-    /// @param account_ The account to be banned.
-    /// @param data_ Additional evidence provided by the banner.
-    function ban(address account_, bytes calldata data_) external {
-        require(account_ != address(0), "0_ADDRESS");
-        require(hasRole(BANNER, msg.sender), "ONLY_BANNER");
-        // In theory we should also check the `addedSince` is lte the current
-        // `block.number` but in practise no code path produces a future
-        // `addedSince`.
-        require(states[account_].addedSince > 0, "NOT_ADDED");
-        require(states[account_].bannedSince == UNINITIALIZED, "PRIOR_BAN");
-        states[account_].bannedSince = uint32(block.number);
-        emit Ban(msg.sender, account_, data_);
+    /// @param evidences_ All evidence appropriate for all bans.
+    function ban(Evidence[] calldata evidences_) external onlyRole(BANNER) {
+        uint256 dirty_ = 0;
+        State memory state_;
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            state_ = states[evidences_[i_].account];
+
+            // There is no requirement that an account be formally added before
+            // it is banned. For example some fraud may be detected in an
+            // affiliated `Verify` contract and the evidence can be used to ban
+            // the same address in the current contract.
+            if (state_.addedSince < 1) {
+                state_ = newState();
+                dirty_ = 1;
+            }
+            // Respect prior bans by leaving the older block number in place.
+            if (state_.bannedSince == UNINITIALIZED) {
+                state_.bannedSince = uint32(block.number);
+                dirty_ = 1;
+            }
+
+            if (dirty_ > 0) {
+                states[evidences_[i_].account] = state_;
+                dirty_ = 0;
+            }
+
+            // Always emit a `Ban` event even if we didn't write state. This
+            // ensures that supporting evidence hits the logs for offchain
+            // review.
+            emit Ban(msg.sender, evidences_[i_]);
+        }
+
+        if (address(callback) != address(0)) {
+            callback.afterBan(msg.sender, evidences_);
+        }
     }
 
-    /// Any approved account can request some account be removed, along with
-    /// supporting evidence.
-    /// @param account_ The account to be removed.
-    /// @param data_ The supporting evidence.
-    function requestRemove(address account_, bytes calldata data_)
-        external
-        onlyApproved
-    {
-        emit RequestRemove(msg.sender, account_, data_);
+    /// Any approved address can request some other address be banned.
+    /// Frivolous requestors SHOULD expect to find themselves banned.
+    /// @param evidences_ Array of evidences to request banning for.
+    function requestBan(Evidence[] calldata evidences_) external onlyApproved {
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            emit RequestBan(msg.sender, evidences_[i_]);
+        }
     }
 
     /// A `REMOVER` can scrub state mapping from an account.
     /// A malicious account MUST be banned rather than removed.
     /// Removal is useful to reset the whole process in case of some mistake.
-    /// @param account_ The account to be removed.
-    /// @param data_ Additional evidence provided by the remover.
-    function remove(address account_, bytes calldata data_) external {
-        require(account_ != address(0), "0_ADDRESS");
-        require(hasRole(REMOVER, msg.sender), "ONLY_REMOVER");
-        delete (states[account_]);
-        emit Remove(msg.sender, account_, data_);
+    /// @param evidences_ All evidence to suppor the removal.
+    function remove(Evidence[] calldata evidences_) external onlyRole(REMOVER) {
+        State memory state_;
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            state_ = states[evidences_[i_].account];
+            if (state_.addedSince > 0) {
+                delete (states[evidences_[i_].account]);
+            }
+            emit Remove(msg.sender, evidences_[i_]);
+        }
+
+        if (address(callback) != address(0)) {
+            callback.afterRemove(msg.sender, evidences_);
+        }
+    }
+
+    /// Any approved address can request some other address be removed.
+    /// Frivolous requestors SHOULD expect to find themselves banned.
+    /// @param evidences_ Array of evidences to request removal of.
+    function requestRemove(Evidence[] calldata evidences_)
+        external
+        onlyApproved
+    {
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            emit RequestRemove(msg.sender, evidences_[i_]);
+        }
     }
 }

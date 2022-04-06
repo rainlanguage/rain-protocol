@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 // solhint-disable-next-line max-line-length
@@ -20,10 +20,6 @@ contract ReserveTokenERC1155 is ERC1155, ERC1155Burnable {
     constructor() ERC1155("") {
         tokenCount = 0;
         _mint(msg.sender, tokenCount, TOTAL_SUPPLY, "");
-    }
-
-    function decimals() public pure returns (uint8) {
-        return uint8(DECIMALS);
     }
 
     function mintNewToken() external {

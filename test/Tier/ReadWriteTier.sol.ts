@@ -119,11 +119,19 @@ describe("Account tier", async function () {
         expectedReport = blockNumbersToReport(expected);
         i++;
       }
-      const actualReport = (await readWriteTier.report(signers[0].address))
-        .toHexString()
-        .substring(2)
-        .padStart(64, "0");
-      assert(expectedReport === actualReport);
+      const actualReport =
+        "0x" +
+        (await readWriteTier.report(signers[0].address))
+          .toHexString()
+          .substring(2)
+          .padStart(64, "0");
+
+      assert(
+        expectedReport.eq(actualReport),
+        `wrong report
+        expected  ${expectedReport}
+        got       ${actualReport}`
+      );
     }
   });
 
@@ -145,15 +153,23 @@ describe("Account tier", async function () {
         n - 1 >= index && index > o - 1 && n != o ? block : item
       );
       expectedReport = blockNumbersToReport(expected);
-      if (expectedReport == uninitializedReport) {
+      if (expectedReport.eq(uninitializedReport)) {
         expected[0] = block;
         expectedReport = blockNumbersToReport(expected);
       }
-      const actualReport = (await readWriteTier.report(signers[0].address))
-        .toHexString()
-        .substring(2)
-        .padStart(64, "0");
-      assert(expectedReport === actualReport);
+      const actualReport =
+        "0x" +
+        (await readWriteTier.report(signers[0].address))
+          .toHexString()
+          .substring(2)
+          .padStart(64, "0");
+
+      assert(
+        expectedReport.eq(actualReport),
+        `wrong report
+          expected  ${expectedReport}
+          got       ${actualReport}`
+      );
       o = n;
 
       if (o === tiers.length - 1) break;

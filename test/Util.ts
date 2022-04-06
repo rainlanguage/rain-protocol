@@ -1,23 +1,28 @@
 import { ethers, artifacts } from "hardhat";
-import type { CRPFactory } from "../typechain/CRPFactory";
-import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
-import type { TrustFactory } from "../typechain/TrustFactory";
 import type {
   RedeemableERC20,
   RedeemableERC20ConfigStruct,
 } from "../typechain/RedeemableERC20";
-import type { RedeemableERC20Factory } from "../typechain/RedeemableERC20Factory";
+import type {
+  ImplementationEvent as ImplementationEventRedeemableERC20Factory,
+  RedeemableERC20Factory,
+} from "../typechain/RedeemableERC20Factory";
 import type { CombineTier } from "../typechain/CombineTier";
-import type { CombineTierFactory } from "../typechain/CombineTierFactory";
+import type {
+  CombineTierFactory,
+  ImplementationEvent as ImplementationEventCombineTierFactory,
+} from "../typechain/CombineTierFactory";
 import type { Verify } from "../typechain/Verify";
-import type { VerifyFactory } from "../typechain/VerifyFactory";
+import type {
+  ImplementationEvent as ImplementationEventVerifyFactory,
+  VerifyFactory,
+} from "../typechain/VerifyFactory";
 import type { VerifyTier } from "../typechain/VerifyTier";
-import type { VerifyTierFactory } from "../typechain/VerifyTierFactory";
-import type { SeedERC20, SeedERC20ConfigStruct } from "../typechain/SeedERC20";
-import type { SeedERC20Factory } from "../typechain/SeedERC20Factory";
-import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
-import type { BPool } from "../typechain/BPool";
+import type {
+  ImplementationEvent as ImplementationEventVerifyTierFactory,
+  VerifyTierFactory,
+} from "../typechain/VerifyTierFactory";
 import type {
   BigNumber,
   Contract,
@@ -25,13 +30,6 @@ import type {
   BigNumberish,
   ContractTransaction,
 } from "ethers";
-import type {
-  Trust,
-  TrustConfigStruct,
-  TrustRedeemableERC20ConfigStruct,
-  TrustSeedERC20ConfigStruct,
-} from "../typechain/Trust";
-import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -73,79 +71,11 @@ export const basicDeploy = async (name, libs) => {
   return contract;
 };
 
-export const balancerDeploy = async (): Promise<
-  [CRPFactory & Contract, BFactory & Contract]
-> => {
-  let rightsManager;
-  if (rightsManagerAddress) {
-    rightsManager = new ethers.Contract(
-      rightsManagerAddress,
-      (await artifacts.readArtifact("RightsManager")).abi
-    );
-  } else {
-    rightsManager = await basicDeploy("RightsManager", {});
-  }
-
-  let balancerSafeMath;
-  if (balancerSafeMathAddress) {
-    balancerSafeMath = new ethers.Contract(
-      balancerSafeMathAddress,
-      (await artifacts.readArtifact("BalancerSafeMath")).abi
-    );
-  } else {
-    balancerSafeMath = await basicDeploy("BalancerSafeMath", {});
-  }
-
-  let smartPoolManager: SmartPoolManager & Contract;
-  if (smartPoolManagerAddress) {
-    smartPoolManager = new ethers.Contract(
-      smartPoolManagerAddress,
-      (await artifacts.readArtifact("SmartPoolManager")).abi
-    ) as SmartPoolManager & Contract;
-  } else {
-    smartPoolManager = (await basicDeploy(
-      "SmartPoolManager",
-      {}
-    )) as SmartPoolManager & Contract;
-  }
-
-  let crpFactory: CRPFactory & Contract;
-  if (crpFactoryAddress) {
-    crpFactory = new ethers.Contract(
-      crpFactoryAddress,
-      (await artifacts.readArtifact("CRPFactory")).abi
-    ) as CRPFactory & Contract;
-  } else {
-    crpFactory = (await basicDeploy("CRPFactory", {
-      RightsManager: rightsManager.address,
-      BalancerSafeMath: balancerSafeMath.address,
-      SmartPoolManager: smartPoolManager.address,
-    })) as CRPFactory & Contract;
-  }
-
-  let bFactory;
-  if (bFactoryAddress) {
-    bFactory = new ethers.Contract(
-      bFactoryAddress,
-      (await artifacts.readArtifact("BFactory")).abi
-    ) as BFactory & Contract;
-  } else {
-    bFactory = (await basicDeploy("BFactory", {})) as BFactory & Contract;
-  }
-
-  return [crpFactory, bFactory];
-};
-
 export interface Factories {
   redeemableERC20Factory: RedeemableERC20Factory & Contract;
-  seedERC20Factory: SeedERC20Factory & Contract;
-  trustFactory: TrustFactory & Contract;
 }
 
-export const factoriesDeploy = async (
-  crpFactory: CRPFactory & Contract,
-  balancerFactory: BFactory & Contract
-): Promise<Factories> => {
+export const factoriesDeploy = async (): Promise<Factories> => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory",
     {}
@@ -155,29 +85,18 @@ export const factoriesDeploy = async (
       Contract;
   await redeemableERC20Factory.deployed();
 
-  const seedERC20FactoryFactory = await ethers.getContractFactory(
-    "SeedERC20Factory",
-    {}
+  const { implementation: implementation0 } = (await getEventArgs(
+    redeemableERC20Factory.deployTransaction,
+    "Implementation",
+    redeemableERC20Factory
+  )) as ImplementationEventRedeemableERC20Factory["args"];
+  assert(
+    !(implementation0 === zeroAddress),
+    "implementation redeemableERC20 factory zero address"
   );
-  const seedERC20Factory =
-    (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
-  await seedERC20Factory.deployed();
-
-  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
-  const trustFactory = (await trustFactoryFactory.deploy({
-    redeemableERC20Factory: redeemableERC20Factory.address,
-    seedERC20Factory: seedERC20Factory.address,
-    crpFactory: crpFactory.address,
-    balancerFactory: balancerFactory.address,
-    creatorFundsReleaseTimeout: CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING,
-    maxRaiseDuration: MAX_RAISE_DURATION_TESTING,
-  })) as TrustFactory & Contract;
-  await trustFactory.deployed();
 
   return {
     redeemableERC20Factory,
-    seedERC20Factory,
-    trustFactory,
   };
 };
 
@@ -224,27 +143,21 @@ export const assertError = async (f, s: string, e: string) => {
   assert(didError, e);
 };
 
-export const poolContracts = async (
-  signers: SignerWithAddress[],
-  trust: Trust & Contract
-): Promise<[ConfigurableRightsPool & Contract, BPool & Contract]> => {
-  const crp = new ethers.Contract(
-    await trust.crp(),
-    (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
-    signers[0]
-  ) as ConfigurableRightsPool & Contract;
-  const bPool = new ethers.Contract(
-    await crp.bPool(),
-    (await artifacts.readArtifact("BPool")).abi,
-    signers[0]
-  ) as BPool & Contract;
-  return [crp, bPool];
-};
-
 export const verifyDeploy = async (deployer, config) => {
   const factoryFactory = await ethers.getContractFactory("VerifyFactory");
   const factory = (await factoryFactory.deploy()) as VerifyFactory;
   await factory.deployed();
+
+  const { implementation } = (await getEventArgs(
+    factory.deployTransaction,
+    "Implementation",
+    factory
+  )) as ImplementationEventVerifyFactory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation verify factory zero address"
+  );
+
   const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -276,6 +189,17 @@ export const verifyTierDeploy = async (deployer, config) => {
     deployer
   ) as VerifyTier & Contract;
   await contract.deployed();
+
+  const { implementation } = (await getEventArgs(
+    factory.deployTransaction,
+    "Implementation",
+    factory
+  )) as ImplementationEventVerifyTierFactory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation verifyTier factory zero address"
+  );
+
   return contract;
 };
 
@@ -283,6 +207,17 @@ export const combineTierDeploy = async (deployer, config) => {
   const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
   const factory = (await factoryFactory.deploy()) as CombineTierFactory;
   await factory.deployed();
+
+  const { implementation } = (await getEventArgs(
+    factory.deployTransaction,
+    "Implementation",
+    factory
+  )) as ImplementationEventCombineTierFactory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation combineTier factory zero address"
+  );
+
   const tx = await factory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -295,6 +230,7 @@ export const combineTierDeploy = async (deployer, config) => {
     deployer
   ) as CombineTier & Contract;
   await contract.deployed();
+
   return contract;
 };
 
@@ -309,11 +245,21 @@ export const redeemableERC20Deploy = async (
     (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
   await redeemableERC20Factory.deployed();
 
-  const tx = await redeemableERC20Factory.createChildTyped(config);
+  const { implementation } = (await getEventArgs(
+    redeemableERC20Factory.deployTransaction,
+    "Implementation",
+    redeemableERC20Factory
+  )) as ImplementationEventRedeemableERC20Factory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation redeemableERC20 factory zero address"
+  );
+
+  const txDeploy = await redeemableERC20Factory.createChildTyped(config);
   const redeemableERC20 = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", redeemableERC20Factory)).child
+        (await getEventArgs(txDeploy, "NewChild", redeemableERC20Factory)).child
       ),
       20
     ),
@@ -323,76 +269,11 @@ export const redeemableERC20Deploy = async (
 
   await redeemableERC20.deployed();
 
-  return redeemableERC20;
-};
-
-export const seedERC20Deploy = async (
-  deployer: SignerWithAddress,
-  config: SeedERC20ConfigStruct
-): Promise<[SeedERC20 & Contract, ContractTransaction]> => {
-  const seedERC20FactoryFactory = await ethers.getContractFactory(
-    "SeedERC20Factory"
-  );
-  const seedERC20Factory =
-    (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory;
-  await seedERC20Factory.deployed();
-
-  const tx = await seedERC20Factory.createChildTyped(config);
-  const seedERC20 = new ethers.Contract(
-    ethers.utils.hexZeroPad(
-      ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", seedERC20Factory)).child
-      ),
-      20
-    ),
-    (await artifacts.readArtifact("SeedERC20")).abi,
-    deployer
-  ) as SeedERC20 & Contract;
-
-  await seedERC20.deployed();
-
-  return [seedERC20, tx];
-};
-
-export const trustDeploy = async (
-  trustFactory: TrustFactory & Contract,
-  creator: SignerWithAddress,
-  trustConfig: TrustConfigStruct,
-  trustRedeemableERC20Config: TrustRedeemableERC20ConfigStruct,
-  trustSeedERC20Config: TrustSeedERC20ConfigStruct,
-  ...args
-): Promise<Trust & Contract> => {
-  const txDeploy = await trustFactory.createChildTyped(
-    trustConfig,
-    trustRedeemableERC20Config,
-    trustSeedERC20Config,
-    ...args
-  );
-
-  const trust = new ethers.Contract(
-    ethers.utils.hexZeroPad(
-      ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", trustFactory)).child
-      ),
-      20 // address bytes length
-    ),
-    (await artifacts.readArtifact("Trust")).abi,
-    creator
-  ) as Trust & Contract;
-
-  if (!ethers.utils.isAddress(trust.address)) {
-    throw new Error(
-      `invalid trust address: ${trust.address} (${trust.address.length} chars)`
-    );
-  }
-
-  await trust.deployed();
-
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  trust.deployTransaction = txDeploy;
+  redeemableERC20.deployTransaction = txDeploy;
 
-  return trust;
+  return redeemableERC20;
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
@@ -431,13 +312,16 @@ export function tierReport(report: string): number[] {
   return parsedReport;
 }
 
-export function blockNumbersToReport(blockNos: number[]): string {
+export function blockNumbersToReport(blockNos: number[]): BigNumber {
   assert(blockNos.length === 8);
 
-  return [...blockNos]
-    .reverse()
-    .map((i) => BigInt(i).toString(16).padStart(8, "0"))
-    .join("");
+  return ethers.BigNumber.from(
+    "0x" +
+      [...blockNos]
+        .reverse()
+        .map((i) => BigInt(i).toString(16).padStart(8, "0"))
+        .join("")
+  );
 }
 
 /**
@@ -516,7 +400,10 @@ export function skip(places: number, conditional = false): number {
  * @param code - the opcode
  * @param erand - the operand, currently limited to 1 byte (defaults to 0)
  */
-export function op(code: number, erand = 0): Uint8Array {
+export function op(
+  code: number,
+  erand: number | BytesLike | Hexable = 0
+): Uint8Array {
   return concat([bytify(code), bytify(erand)]);
 }
 
@@ -658,4 +545,54 @@ export enum selectLteMode {
   min,
   max,
   first,
+}
+
+export enum AllStandardOps {
+  SKIP,
+  VAL,
+  DUP,
+  ZIPMAP,
+  DEBUG,
+  BLOCK_NUMBER,
+  BLOCK_TIMESTAMP,
+  SENDER,
+  THIS_ADDRESS,
+  SCALE18_MUL,
+  SCALE18_DIV,
+  SCALE18,
+  SCALEN,
+  SCALE_BY,
+  SCALE18_ONE,
+  SCALE18_DECIMALS,
+  ADD,
+  SATURATING_ADD,
+  SUB,
+  SATURATING_SUB,
+  MUL,
+  SATURATING_MUL,
+  DIV,
+  MOD,
+  EXP,
+  MIN,
+  MAX,
+  ISZERO,
+  EAGER_IF,
+  EQUAL_TO,
+  LESS_THAN,
+  GREATER_THAN,
+  EVERY,
+  ANY,
+  REPORT,
+  NEVER,
+  ALWAYS,
+  SATURATING_DIFF,
+  UPDATE_BLOCKS_FOR_TIER_RANGE,
+  SELECT_LTE,
+  IERC20_BALANCE_OF,
+  IERC20_TOTAL_SUPPLY,
+  IERC721_BALANCE_OF,
+  IERC721_OWNER_OF,
+  IERC1155_BALANCE_OF,
+  IERC1155_BALANCE_OF_BATCH,
+  length,
 }

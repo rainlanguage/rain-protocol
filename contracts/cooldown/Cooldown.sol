@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 /// @title Cooldown
 /// @notice `Cooldown` is a base contract that rate limits functions on
@@ -42,7 +42,7 @@ contract Cooldown {
     event CooldownInitialize(address sender, uint256 cooldownDuration);
     event CooldownTriggered(address caller, uint256 cooldown);
     /// Time in blocks to restrict access to modified functions.
-    uint256 internal cooldownDuration;
+    uint256 internal cooldownDuration = 0;
 
     /// Every caller has its own cooldown, the minimum block that the caller
     /// call another function sharing the same cooldown state.

@@ -22,20 +22,14 @@ enum Tier {
   EIGHT,
 }
 
-const enum Opcode {
-  VAL,
-  DUP,
-  ZIPMAP,
-  BLOCK_NUMBER,
-  BLOCK_TIMESTAMP,
-  REPORT,
-  NEVER,
-  ALWAYS,
-  DIFF,
-  UPDATE_BLOCKS_FOR_TIER_RANGE,
-  SELECT_LTE,
-  ACCOUNT,
+enum CombineTierOps {
+  ACCOUNT = 0 + Util.AllStandardOps.length,
 }
+
+export const Opcode = {
+  ...Util.AllStandardOps,
+  ...CombineTierOps,
+};
 
 const sourceAlways = concat([op(Opcode.ALWAYS)]);
 const sourceNever = concat([op(Opcode.NEVER)]);

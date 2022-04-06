@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import {ITier} from "../ITier.sol";
 import "./TierConstants.sol";
@@ -20,6 +20,7 @@ import "./TierConstants.sol";
 /// factors that out.
 library TierReport {
     /// Enforce upper limit on tiers so we can do unchecked math.
+    /// @param tier_ The tier to enforce bounds on.
     modifier maxTier(uint256 tier_) {
         require(tier_ <= TierConstants.MAX_TIER, "MAX_TIER");
         _;
@@ -104,6 +105,9 @@ library TierReport {
     /// tier is being modified.
     /// The tier at/above the given tier is updated. E.g. tier `0` will update
     /// the block for tier `1`.
+    /// @param report_ Report to use as the baseline for the updated report.
+    /// @param tier_ The tier level to update.
+    /// @param blockNumber_ The new block number for `tier_`.
     function updateBlockAtTier(
         uint256 report_,
         uint256 tier_,
@@ -132,7 +136,7 @@ library TierReport {
         uint256 startTier_,
         uint256 endTier_,
         uint256 blockNumber_
-    ) internal pure maxTier(startTier_) maxTier(endTier_) returns (uint256) {
+    ) internal pure maxTier(endTier_) returns (uint256) {
         unchecked {
             uint256 offset_;
             for (uint256 i_ = startTier_; i_ < endTier_; i_++) {

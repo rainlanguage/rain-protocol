@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.10;
+pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
@@ -15,20 +15,18 @@ import "./libraries/TierReport.sol";
 /// block numbers defer to `State.since` returned from `Verify.state`.
 contract VerifyTier is ReadOnlyTier, Initializable {
     /// Result of initializing.
-    event Initialize(
-        /// `msg.sender` that initialized the contract.
-        address sender,
-        /// The `Verify` contract checked for reports.ww
-        address verify
-    );
+    /// @param sender `msg.sender` that initialized the contract.
+    /// @param verify The `Verify` contract checked for reports.ww
+    event Initialize(address sender, address verify);
     /// The contract to check to produce reports.
     Verify private verify;
 
     /// Sets the `verify` contract.
     /// @param verify_ The contract to check to produce reports.
-    function initialize(Verify verify_) external initializer {
-        verify = verify_;
-        emit Initialize(msg.sender, address(verify_));
+    function initialize(address verify_) external initializer {
+        require(verify_ != address(0), "0_ADDRESS");
+        verify = Verify(verify_);
+        emit Initialize(msg.sender, verify_);
     }
 
     /// Every tier will be the `State.since` block if `account_` is approved
