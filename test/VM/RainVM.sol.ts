@@ -722,14 +722,14 @@ describe("RainVM", async function () {
       stackLength: 6,
     })) as CalculatorTest & Contract;
 
-    console.log(sources)
+    console.log(sources);
 
-    const stackUB = await calculator.analyzeSources(sources, 0, 0)
+    const stackUB = await calculator.analyzeSources(sources, 0, 0);
 
-    console.log(stackUB)
+    console.log(stackUB);
 
     const resultState = await calculator.runState();
-    console.log(resultState)
+    console.log(resultState);
 
     const expectedMul1 = 6;
     const actualMul1 = resultState.stack[0];

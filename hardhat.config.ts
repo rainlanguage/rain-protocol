@@ -27,7 +27,7 @@ const config: HardhatUserConfig = {
             useLiteralContent: true,
           },
         },
-      }
+      },
     ],
   },
 };

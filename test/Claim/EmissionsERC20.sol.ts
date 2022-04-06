@@ -381,8 +381,8 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.VAL, 5)
-    const valBaseReward = op(Opcode.VAL, 6)
+    const valDuration = op(Opcode.VAL, 5);
+    const valBaseReward = op(Opcode.VAL, 6);
 
     // END zipmap args
 
