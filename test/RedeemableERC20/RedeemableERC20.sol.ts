@@ -11,6 +11,7 @@ import type {
   TreasuryAssetEvent,
 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
+import { Phase } from "./RedeemableERC20Util";
 
 const { assert } = chai;
 
@@ -24,18 +25,6 @@ enum Tier {
   DIAMOND,
   CHAD,
   JAWAD,
-}
-
-enum Phase {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
 }
 
 describe("RedeemableERC20", async function () {
@@ -889,8 +878,8 @@ describe("RedeemableERC20", async function () {
 
     // The phase is not set (i.e. contract is blocked)
     assert(
-      (await redeemableERC20.currentPhase()).eq(Phase.ONE),
-      `phase was not ${Phase.ONE} in construction`
+      (await redeemableERC20.currentPhase()).eq(Phase.DISTRIBUTING),
+      `phase was not ${Phase.DISTRIBUTING} in construction`
     );
 
     // Normal ERC20 labelling applies
@@ -932,7 +921,7 @@ describe("RedeemableERC20", async function () {
     )) as PhaseScheduledEvent["args"];
 
     assert(event0.sender === erc20Pullee.address, "wrong sender in event0");
-    assert(event0.newPhase.eq(Phase.TWO), "wrong newPhase in event0");
+    assert(event0.newPhase.eq(Phase.FROZEN), "wrong newPhase in event0");
     assert(event0.scheduledBlock.eq(now + 1), "wrong scheduledBlock in event0");
 
     // Funds need to be frozen once redemption phase begins.
@@ -943,9 +932,9 @@ describe("RedeemableERC20", async function () {
     );
 
     assert(
-      (await redeemableERC20.currentPhase()).eq(Phase.TWO),
+      (await redeemableERC20.currentPhase()).eq(Phase.FROZEN),
       `wrong phase, expected ${
-        Phase.TWO
+        Phase.FROZEN
       } got ${await redeemableERC20.currentPhase()}`
     );
 
@@ -1191,7 +1180,7 @@ describe("RedeemableERC20", async function () {
     });
 
     assert(
-      (await redeemableERC20.currentPhase()).eq(Phase.ONE),
+      (await redeemableERC20.currentPhase()).eq(Phase.DISTRIBUTING),
       `default phase was not phase ONE, got ${await redeemableERC20.currentPhase()}`
     );
 
