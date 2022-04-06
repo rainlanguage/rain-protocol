@@ -93,26 +93,26 @@ struct RedeemableERC20Config {
 contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     using SafeERC20 for IERC20;
 
-    /// Phase constants.
+    /// @dev Phase constants.
     /// Contract is not yet initialized.
     uint256 private constant PHASE_UNINITIALIZED = 0;
-    /// Token is in the distribution phase and can be transferred freely
+    /// @dev Token is in the distribution phase and can be transferred freely
     /// subject to tier requirements.
     uint256 private constant PHASE_DISTRIBUTING = 1;
-    /// Token is frozen and cannot be transferred unless the sender/receiver is
-    /// authorized as a sender/receiver.
+    /// @dev Token is frozen and cannot be transferred unless the
+    /// sender/receiver is authorized as a sender/receiver.
     uint256 private constant PHASE_FROZEN = 2;
 
-    /// Bits for a receiver.
+    /// @dev Bits for a receiver.
     uint256 private constant RECEIVER = 0x1;
-    /// Bits for a sender.
+    /// @dev Bits for a sender.
     uint256 private constant SENDER = 0x2;
 
-    /// To be clear, this admin is NOT intended to be an EOA.
+    /// @dev To be clear, this admin is NOT intended to be an EOA.
     /// This contract is designed assuming the admin is a `Sale` or equivalent
     /// contract that itself does NOT have an admin key.
     address private admin;
-    /// Tracks addresses that can always send/receive regardless of phase.
+    /// @dev Tracks addresses that can always send/receive regardless of phase.
     /// sender/receiver => access bits
     mapping(address => uint256) private access;
 
@@ -125,6 +125,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// @param sender `msg.sender` that approved the token sender.
     /// @param grantedSender address that is now a token sender.
     event Sender(address sender, address grantedSender);
+
     /// A new token receiver has been added.
     /// @param sender `msg.sender` that approved the token receiver.
     /// @param grantedReceiver address that is now a token receiver.
@@ -283,6 +284,10 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
 
     /// Wraps `_redeem` from `ERC20Redeem`.
     /// Very thin wrapper so be careful when calling!
+    /// @param treasuryAssets_ The treasury assets to redeem for. If this is
+    /// empty or incomplete then tokens will be permanently burned for no
+    /// reason by the caller and the remaining funds will be effectively
+    /// redistributed to everyone else.
     function redeem(IERC20[] calldata treasuryAssets_, uint256 redeemAmount_)
         external
         onlyPhase(PHASE_FROZEN)

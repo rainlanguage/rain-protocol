@@ -5,7 +5,9 @@ import {Cooldown} from "../../cooldown/Cooldown.sol";
 
 import "../../vm/RainVM.sol";
 import {IERC20Ops, IERC20_OPS_LENGTH} from "../../vm/ops/token/IERC20Ops.sol";
+// solhint-disable-next-line max-line-length
 import {IERC721Ops, IERC721_OPS_LENGTH} from "../../vm/ops/token/IERC721Ops.sol";
+// solhint-disable-next-line max-line-length
 import {IERC1155Ops, IERC1155_OPS_LENGTH} from "../../vm/ops/token/IERC1155Ops.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";

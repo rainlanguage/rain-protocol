@@ -71,6 +71,7 @@ contract SaleEscrow {
     /// that is obviously bad as the escrow will release funds in the wrong
     /// direction. But if we were to change our opinion that would be worse as
     /// claims/refunds could potentially be "double spent" somehow.
+    /// @param sale_ The sale to get the escrow status for.
     function escrowStatus(address sale_) internal returns (EscrowStatus) {
         EscrowStatus escrowStatus_ = escrowStatuses[sale_];
         // Short circuit and ignore the `ISale` if we previously saved a value.

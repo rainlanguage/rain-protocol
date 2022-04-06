@@ -16,15 +16,15 @@ import { Phase } from "./RedeemableERC20Util";
 const { assert } = chai;
 
 enum Tier {
-  NIL,
-  COPPER,
-  BRONZE,
-  SILVER,
-  GOLD,
-  PLATINUM,
-  DIAMOND,
-  CHAD,
-  JAWAD,
+  ZERO,
+  ONE,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT,
 }
 
 describe("RedeemableERC20", async function () {
@@ -46,7 +46,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.COPPER;
+    const minimumTier = Tier.ONE;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -98,7 +98,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.COPPER;
+    const minimumTier = Tier.ONE;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -147,7 +147,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -208,7 +208,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -282,11 +282,11 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.COPPER;
+    const minimumTier = Tier.ONE;
 
     // spokes above min tier
-    await tier.setTier(carolSpoke.address, Tier.SILVER, []);
-    await tier.setTier(daveSpoke.address, Tier.SILVER, []);
+    await tier.setTier(carolSpoke.address, Tier.THREE, []);
+    await tier.setTier(daveSpoke.address, Tier.THREE, []);
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -380,7 +380,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -390,7 +390,7 @@ describe("RedeemableERC20", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(alice.address, Tier.GOLD, []);
+    await tier.setTier(alice.address, Tier.FOUR, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -453,7 +453,7 @@ describe("RedeemableERC20", async function () {
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -513,7 +513,7 @@ describe("RedeemableERC20", async function () {
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -574,7 +574,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -707,10 +707,10 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
-    await tier.setTier(alice.address, Tier.COPPER, []);
-    await tier.setTier(bob.address, Tier.COPPER, []);
+    await tier.setTier(alice.address, Tier.ONE, []);
+    await tier.setTier(bob.address, Tier.ONE, []);
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -785,7 +785,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -842,7 +842,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -852,7 +852,7 @@ describe("RedeemableERC20", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(alice.address, Tier.GOLD, []);
+    await tier.setTier(alice.address, Tier.FOUR, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -1156,7 +1156,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -1212,7 +1212,7 @@ describe("RedeemableERC20", async function () {
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -1263,9 +1263,9 @@ describe("RedeemableERC20", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
     // Set owner to COPPER status, lower than minimum status of DIAMOND
-    await tier.setTier(erc20Pullee.address, Tier.COPPER, []);
+    await tier.setTier(erc20Pullee.address, Tier.ONE, []);
 
-    const minimumTier = Tier.DIAMOND;
+    const minimumTier = Tier.SIX;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -1315,7 +1315,7 @@ describe("RedeemableERC20", async function () {
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -1326,9 +1326,9 @@ describe("RedeemableERC20", async function () {
     };
 
     // grant second signer GOLD status so they can receive transferred tokens
-    await tier.setTier(signers[1].address, Tier.GOLD, []);
+    await tier.setTier(signers[1].address, Tier.FOUR, []);
     // grant third signer SILVER status which is NOT enough to receive transfers
-    await tier.setTier(signers[2].address, Tier.SILVER, []);
+    await tier.setTier(signers[2].address, Tier.THREE, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -1410,7 +1410,7 @@ describe("RedeemableERC20", async function () {
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -1420,8 +1420,8 @@ describe("RedeemableERC20", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-    await tier.setTier(signer2.address, Tier.GOLD, []);
+    await tier.setTier(signer1.address, Tier.FOUR, []);
+    await tier.setTier(signer2.address, Tier.FOUR, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve1.address,
@@ -1635,7 +1635,7 @@ describe("RedeemableERC20", async function () {
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -1645,8 +1645,8 @@ describe("RedeemableERC20", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(signer1.address, Tier.GOLD, []);
-    await tier.setTier(signer2.address, Tier.GOLD, []);
+    await tier.setTier(signer1.address, Tier.FOUR, []);
+    await tier.setTier(signer2.address, Tier.FOUR, []);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve1.address,
@@ -1743,7 +1743,7 @@ describe("RedeemableERC20", async function () {
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
 
-    const minimumTier = Tier.GOLD;
+    const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -1753,7 +1753,7 @@ describe("RedeemableERC20", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(signer1.address, Tier.GOLD, []);
+    await tier.setTier(signer1.address, Tier.FOUR, []);
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",

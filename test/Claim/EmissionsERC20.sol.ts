@@ -18,12 +18,12 @@ const { assert } = chai;
 
 export enum EmissionsERC20Ops {
   CLAIMANT_ACCOUNT = 0 + Util.AllStandardOps.length,
-  CONSTRUCTION_BLOCK_NUMBER = 1 + Util.AllStandardOps.length,
 }
 
 export const Opcode = {
-  ...Util.AllStandardOps, ...EmissionsERC20Ops
-}
+  ...Util.AllStandardOps,
+  ...EmissionsERC20Ops,
+};
 
 enum Tier {
   ZERO,

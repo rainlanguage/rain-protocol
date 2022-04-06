@@ -21,7 +21,6 @@ import {
   saleDeploy,
   Status,
 } from "../Sale/SaleUtil";
-import { EndEvent } from "../../typechain/Sale";
 
 const { assert } = chai;
 
@@ -67,7 +66,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -91,7 +90,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -103,6 +102,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -345,6 +345,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -573,6 +574,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -775,6 +777,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -986,6 +989,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1118,7 +1122,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1142,7 +1146,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1154,6 +1158,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1225,7 +1230,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     await sale.connect(alice).buy({
       feeRecipient: feeRecipient.address,
       fee,
-      minimumUnits: 0,
+      minimumUnits: 1,
       desiredUnits: desiredUnitsAlice,
       maximumPrice: staticPrice,
     });
@@ -1313,6 +1318,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1486,6 +1492,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1595,7 +1602,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const startBlock = await ethers.provider.getBlockNumber();
 
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -1619,7 +1626,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       saleFactory,
       {
         canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
         calculatePriceStateConfig: {
           sources,
           constants,
@@ -1631,6 +1638,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         cooldownDuration: 1,
         minimumRaise,
         dustSize: 0,
+        saleTimeout: 100,
       },
       {
         erc20Config: redeemableERC20Config,
@@ -1705,7 +1713,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     await sale.connect(alice).buy({
       feeRecipient: feeRecipient.address,
       fee,
-      minimumUnits: 0,
+      minimumUnits: 1,
       desiredUnits: desiredUnitsAlice,
       maximumPrice: staticPrice,
     });

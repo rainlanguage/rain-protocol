@@ -4,7 +4,10 @@ import { ethers } from "hardhat";
 import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { Contract } from "ethers";
-import type { SaleFactory } from "../../typechain/SaleFactory";
+import type {
+  SaleConstructorConfigStruct,
+  SaleFactory,
+} from "../../typechain/SaleFactory";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 
@@ -22,7 +25,8 @@ export const deployGlobals = async () => {
       Contract;
   await redeemableERC20Factory.deployed();
 
-  const saleConstructorConfig = {
+  const saleConstructorConfig: SaleConstructorConfigStruct = {
+    maximumSaleTimeout: 1000,
     maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
   };
