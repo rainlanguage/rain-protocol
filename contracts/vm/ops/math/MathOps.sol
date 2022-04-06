@@ -82,17 +82,17 @@ library MathOps {
                 }
             }
         }
-        // Saturating addition.
-        else if (opcode_ == OPCODE_SATURATING_ADD) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
-                    accumulator_ = accumulator_.saturatingAdd(
-                        state_.stack[cursor_]
-                    );
-                }
-            }
-        }
+        // // Saturating addition.
+        // else if (opcode_ == OPCODE_SATURATING_ADD) {
+        //     while (cursor_ < top_) {
+        //         unchecked {
+        //             cursor_++;
+        //             accumulator_ = accumulator_.saturatingAdd(
+        //                 state_.stack[cursor_]
+        //             );
+        //         }
+        //     }
+        // }
         // Subtraction.
         else if (opcode_ == OPCODE_SUB) {
             assembly {
@@ -111,17 +111,17 @@ library MathOps {
                 }
             }
         }
-        // Saturating subtraction.
-        else if (opcode_ == OPCODE_SATURATING_SUB) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
-                    accumulator_ = accumulator_.saturatingSub(
-                        state_.stack[cursor_]
-                    );
-                }
-            }
-        }
+        // // Saturating subtraction.
+        // else if (opcode_ == OPCODE_SATURATING_SUB) {
+        //     while (cursor_ < top_) {
+        //         unchecked {
+        //             cursor_++;
+        //             accumulator_ = accumulator_.saturatingSub(
+        //                 state_.stack[cursor_]
+        //             );
+        //         }
+        //     }
+        // }
         // Multiplication.
         // Slither false positive here complaining about dividing before
         // multiplying but both are mututally exclusive according to `opcode_`.
@@ -146,17 +146,17 @@ library MathOps {
                 }
             }
         }
-        // Saturating multiplication.
-        else if (opcode_ == OPCODE_SATURATING_MUL) {
-            while (cursor_ < top_) {
-                unchecked {
-                    cursor_++;
-                    accumulator_ = accumulator_.saturatingMul(
-                        state_.stack[cursor_]
-                    );
-                }
-            }
-        }
+        // // Saturating multiplication.
+        // else if (opcode_ == OPCODE_SATURATING_MUL) {
+        //     while (cursor_ < top_) {
+        //         unchecked {
+        //             cursor_++;
+        //             accumulator_ = accumulator_.saturatingMul(
+        //                 state_.stack[cursor_]
+        //             );
+        //         }
+        //     }
+        // }
         // Division.
         else if (opcode_ == OPCODE_DIV) {
             assembly {

@@ -27,50 +27,62 @@ uint256 constant FIXED_POINT_MATH_OPS_LENGTH = 7;
 library FixedPointMathOps {
     using FixedPointMath for uint256;
 
-    function applyOp(
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal pure {
-        unchecked {
-            require(opcode_ < FIXED_POINT_MATH_OPS_LENGTH, "MAX_OPCODE");
+    function stackIndexDiff(uint256, uint256 operand_)
+        internal
+        pure
+        returns (int256)
+    {
+        // Zero length math ops not supported.
+        require(operand_ > 0, "BAD_OPERAND");
+        // All operations take operand_ as length inputs and have 1 output.
+        return 1 - int256(operand_);
+    }
 
-            if (opcode_ < OPCODE_SCALE18) {
-                uint256 baseIndex_ = state_.stackIndex - 2;
-                if (opcode_ == OPCODE_SCALE18_MUL) {
-                    state_.stack[baseIndex_] =
-                        state_.stack[baseIndex_].scale18(operand_) *
-                        state_.stack[baseIndex_ + 1];
-                } else if (opcode_ == OPCODE_SCALE18_DIV) {
-                    state_.stack[baseIndex_] =
-                        state_.stack[baseIndex_].scale18(operand_) /
-                        state_.stack[baseIndex_ + 1];
-                }
-                state_.stackIndex--;
-            } else if (opcode_ < OPCODE_ONE) {
-                uint256 baseIndex_ = state_.stackIndex - 1;
-                if (opcode_ == OPCODE_SCALE18) {
-                    state_.stack[baseIndex_] = state_.stack[baseIndex_].scale18(
-                        operand_
-                    );
-                } else if (opcode_ == OPCODE_SCALEN) {
-                    state_.stack[baseIndex_] = state_.stack[baseIndex_].scaleN(
-                        operand_
-                    );
-                } else if (opcode_ == OPCODE_SCALE_BY) {
-                    state_.stack[baseIndex_] = state_.stack[baseIndex_].scaleBy(
-                        int8(uint8(operand_))
-                    );
-                }
-            } else {
-                if (opcode_ == OPCODE_ONE) {
-                    state_.stack[state_.stackIndex] = FP_ONE;
-                    state_.stackIndex++;
-                } else if (opcode_ == OPCODE_DECIMALS) {
-                    state_.stack[state_.stackIndex] = FP_DECIMALS;
-                    state_.stackIndex++;
-                }
-            }
+    function applyOp(
+        uint stackTopLocation_,
+        uint256,
+        uint256
+    ) internal pure returns (uint) {
+        unchecked {
+            // require(opcode_ < FIXED_POINT_MATH_OPS_LENGTH, "MAX_OPCODE");
+
+            // if (opcode_ < OPCODE_SCALE18) {
+            //     uint256 baseIndex_ = state_.stackIndex - 2;
+            //     if (opcode_ == OPCODE_SCALE18_MUL) {
+            //         state_.stack[baseIndex_] =
+            //             state_.stack[baseIndex_].scale18(operand_) *
+            //             state_.stack[baseIndex_ + 1];
+            //     } else if (opcode_ == OPCODE_SCALE18_DIV) {
+            //         state_.stack[baseIndex_] =
+            //             state_.stack[baseIndex_].scale18(operand_) /
+            //             state_.stack[baseIndex_ + 1];
+            //     }
+            //     state_.stackIndex--;
+            // } else if (opcode_ < OPCODE_ONE) {
+            //     uint256 baseIndex_ = state_.stackIndex - 1;
+            //     if (opcode_ == OPCODE_SCALE18) {
+            //         state_.stack[baseIndex_] = state_.stack[baseIndex_].scale18(
+            //             operand_
+            //         );
+            //     } else if (opcode_ == OPCODE_SCALEN) {
+            //         state_.stack[baseIndex_] = state_.stack[baseIndex_].scaleN(
+            //             operand_
+            //         );
+            //     } else if (opcode_ == OPCODE_SCALE_BY) {
+            //         state_.stack[baseIndex_] = state_.stack[baseIndex_].scaleBy(
+            //             int8(uint8(operand_))
+            //         );
+            //     }
+            // } else {
+            //     if (opcode_ == OPCODE_ONE) {
+            //         state_.stack[state_.stackIndex] = FP_ONE;
+            //         state_.stackIndex++;
+            //     } else if (opcode_ == OPCODE_DECIMALS) {
+            //         state_.stack[state_.stackIndex] = FP_DECIMALS;
+            //         state_.stackIndex++;
+            //     }
+            // }
+            return stackTopLocation_;
         }
     }
 }

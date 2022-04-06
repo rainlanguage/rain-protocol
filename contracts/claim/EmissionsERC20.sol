@@ -129,15 +129,16 @@ contract EmissionsERC20 is
     ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
+                return AllStandardOps.applyOp(
                     stackTopLocation_,
                     opcode_ - ALL_STANDARD_OPS_START,
                     operand_
                 );
             } else {
                 // There's only one opcode, which stacks the account address.
+                uint account_ = uint(uint160(address(abi.decode(context_, (address)))));
                 assembly {
-                    mstore(stackTopLocation_, uint(uint160(address(abi.decode(context_, (address))))))
+                    mstore(stackTopLocation_, account_)
                     stackTopLocation_ := add(stackTopLocation_, 0x20)
                 }
                 return stackTopLocation_ + 0x20;

@@ -46,11 +46,9 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         returns (int256)
     {
         unchecked {
-            if (opcode_ < tierOpsStart) {
+            if (opcode_ < localOpsStart) {
                 return
-                    BlockOps.stackIndexDiff(opcode_ - blockOpsStart, operand_);
-            } else if (opcode_ < localOpsStart) {
-                return TierOps.stackIndexDiff(opcode_ - tierOpsStart, operand_);
+                    AllStandardOps.stackIndexDiff(opcode_ - ALL_STANDARD_OPS_START, operand_);
             } else {
                 return 1;
             }
@@ -66,8 +64,8 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
+                return AllStandardOps.applyOp(
+                    stackTopLocation_,
                     opcode_ - ALL_STANDARD_OPS_START,
                     operand_
                 );

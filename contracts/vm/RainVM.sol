@@ -428,6 +428,7 @@ abstract contract RainVM {
                             stackTopLocation_,
                             argumentsBottomLocation_,
                             operand_
+                        );
                     } else {
                         console.logBytes(abi.encode(state_));
                     }

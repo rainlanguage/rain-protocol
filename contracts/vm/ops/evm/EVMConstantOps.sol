@@ -23,10 +23,10 @@ library EVMConstantOps {
     }
 
     function applyOp(
-        State memory state_,
+        uint stackTopLocation_,
         uint256 opcode_,
         uint256
-    ) internal view {
+    ) internal view returns(uint) {
         unchecked {
             assembly {
                 switch opcode_

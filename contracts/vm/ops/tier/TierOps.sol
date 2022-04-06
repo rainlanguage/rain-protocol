@@ -32,7 +32,7 @@ library TierOps {
         pure
         returns (int256)
     {
-        if (opcode_ == REPORT) {
+        if (opcode_ == OPCODE_REPORT) {
             return -1;
         } else if (opcode_ < OPCODE_SATURATING_DIFF) {
             return 1;

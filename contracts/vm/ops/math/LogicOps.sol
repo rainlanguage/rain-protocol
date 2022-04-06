@@ -10,7 +10,7 @@ import {State} from "../../RainVM.sol";
     uint256 constant OPCODE_GREATER_THAN = 4;
     uint256 constant OPCODE_EVERY = 5;
     uint256 constant OPCODE_ANY = 6;
-    /// Number of provided opcodes for `LogicOps`.
+    /// @dev Number of provided opcodes for `LogicOps`.
     /// The opcodes are NOT listed on the library as they are all internal to
     /// the assembly and yul doesn't seem to support using solidity constants
     /// as switch case values.

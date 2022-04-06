@@ -28,48 +28,67 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = IERC1155_OPS_START +
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
+    function stackIndexDiff(uint256 opcode_, uint256 operand_) internal pure returns (int256) {
+        if (opcode_ < FIXED_POINT_MATH_OPS_START) {
+            return EVMConstantOps.stackIndexDiff(opcode_, operand_);
+        } else if (opcode_ < MATH_OPS_START) {
+            return FixedPointMathOps.stackIndexDiff(opcode_ - FIXED_POINT_MATH_OPS_START, operand_);
+        } else if (opcode_ < LOGIC_OPS_START) {
+            return MathOps.stackIndexDiff(opcode_ - MATH_OPS_START, operand_);
+        } else if (opcode_ < TIER_OPS_START) {
+            return LogicOps.stackIndexDiff(opcode_ - LOGIC_OPS_START, operand_);
+        } else if (opcode_ < IERC20_OPS_START) {
+            return TierOps.stackIndexDiff(opcode_ - TIER_OPS_START, operand_);
+        } else if (opcode_ < IERC721_OPS_START) {
+            return IERC20Ops.stackIndexDiff(opcode_ - IERC20_OPS_START, operand_);
+        } else if (opcode_ < IERC1155_OPS_START) {
+            return IERC721Ops.stackIndexDiff(opcode_ - IERC721_OPS_START, operand_);
+        } else {
+            return IERC1155Ops.stackIndexDiff(opcode_ - IERC1155_OPS_START, operand_);
+        }
+    }
     function applyOp(
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view {
+    ) internal view returns(uint) {
         unchecked {
             if (opcode_ < FIXED_POINT_MATH_OPS_START) {
-                EVMConstantOps.applyOp(state_, opcode_, operand_);
+                return EVMConstantOps.applyOp(stackTopLocation_, opcode_, operand_);
             } else if (opcode_ < TIER_OPS_START) {
                 if (opcode_ < MATH_OPS_START) {
-                    FixedPointMathOps.applyOp(
-                        state_,
+                    return FixedPointMathOps.applyOp(
+                        stackTopLocation_,
                         opcode_ - FIXED_POINT_MATH_OPS_START,
                         operand_
                     );
                 } else if (opcode_ < LOGIC_OPS_START) {
-                    MathOps.applyOp(state_, opcode_ - MATH_OPS_START, operand_);
+                    return MathOps.applyOp(stackTopLocation_, opcode_ - MATH_OPS_START, operand_);
                 } else {
-                    LogicOps.applyOp(
-                        state_,
+                    return LogicOps.applyOp(
+                        stackTopLocation_,
                         opcode_ - LOGIC_OPS_START,
                         operand_
                     );
                 }
             } else if (opcode_ < IERC20_OPS_START) {
-                TierOps.applyOp(state_, opcode_ - TIER_OPS_START, operand_);
+                return TierOps.applyOp(stackTopLocation_, opcode_ - TIER_OPS_START, operand_);
             } else {
                 if (opcode_ < IERC721_OPS_START) {
-                    IERC20Ops.applyOp(
-                        state_,
+                    return IERC20Ops.applyOp(
+                        stackTopLocation_,
                         opcode_ - IERC20_OPS_START,
                         operand_
                     );
                 } else if (opcode_ < IERC1155_OPS_START) {
-                    IERC721Ops.applyOp(
-                        state_,
+                    return IERC721Ops.applyOp(
+                        stackTopLocation_,
                         opcode_ - IERC721_OPS_START,
                         operand_
                     );
                 } else {
-                    IERC1155Ops.applyOp(
-                        state_,
+                    return IERC1155Ops.applyOp(
+                        stackTopLocation_,
                         opcode_ - IERC1155_OPS_START,
                         operand_
                     );

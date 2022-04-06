@@ -18,19 +18,19 @@ contract FixedPointMathOpsTest is RainVM, VMState {
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
         fixedPointMathOpsStart = RAIN_VM_OPS_LENGTH;
-        vmStatePointer = _snapshot(_newState(config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
     }
 
     /// @inheritdoc RainVM
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint) {
         unchecked {
-            FixedPointMathOps.applyOp(
-                state_,
+            return FixedPointMathOps.applyOp(
+                stackTopLocation_,
                 opcode_ - fixedPointMathOpsStart,
                 operand_
             );

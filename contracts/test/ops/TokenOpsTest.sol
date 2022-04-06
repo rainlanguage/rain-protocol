@@ -99,12 +99,12 @@ contract TokenOpsTest is RainVM, VMState {
     ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < ierc721OpsStart) {
-                IERC20Ops.applyOp(state_, opcode_ - ierc20OpsStart, operand_);
+                return IERC20Ops.applyOp(stackTopLocation_, opcode_ - ierc20OpsStart, operand_);
             } else if (opcode_ < ierc1155OpsStart) {
-                IERC721Ops.applyOp(state_, opcode_ - ierc721OpsStart, operand_);
+                return IERC721Ops.applyOp(stackTopLocation_, opcode_ - ierc721OpsStart, operand_);
             } else {
-                IERC1155Ops.applyOp(
-                    state_,
+                return IERC1155Ops.applyOp(
+                    stackTopLocation_,
                     opcode_ - ierc1155OpsStart,
                     operand_
                 );

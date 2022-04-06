@@ -616,7 +616,7 @@ contract Sale is
     ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
+                return AllStandardOps.applyOp(
                     stackTopLocation_,
                     opcode_ - ALL_STANDARD_OPS_START,
                     operand_

@@ -13,7 +13,7 @@ contract TierOpsTest is RainVM, VMState {
     constructor(StateConfig memory config_) {
         tierOpsStart = RAIN_VM_OPS_LENGTH;
 
-        vmStatePointer = _snapshot(_newState(config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -50,14 +50,14 @@ contract TierOpsTest is RainVM, VMState {
     }
 
     /// @inheritdoc RainVM
-    function applyOp(
+        function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint) {
         unchecked {
-            TierOps.applyOp(state_, opcode_ - tierOpsStart, operand_);
+            return TierOps.applyOp(stackTopLocation_, opcode_ - tierOpsStart, operand_);
         }
     }
 }
