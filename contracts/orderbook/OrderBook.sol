@@ -251,6 +251,11 @@ contract OrderBook is RainVM {
                 aOutputMax_.fixedPointMul(aPrice_)
             );
 
+            require(
+                stateChange_.aOutput > 0 || stateChange_.bOutput > 0,
+                "0_CLEAR"
+            );
+
             stateChange_.aInput = stateChange_.aOutput.fixedPointMul(aPrice_);
             stateChange_.bInput = stateChange_.bOutput.fixedPointMul(bPrice_);
         }
