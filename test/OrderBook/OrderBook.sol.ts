@@ -5,6 +5,7 @@ import { Contract, ContractFactory } from "ethers";
 import type {
   BountyConfigStruct,
   ClearEvent,
+  ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderBook,
@@ -25,7 +26,7 @@ let orderBookFactory: ContractFactory,
   tokenA: ReserveToken18 & Contract,
   tokenB: ReserveToken18 & Contract;
 
-describe.only("OrderBook", async function () {
+describe("OrderBook", async function () {
   beforeEach(async () => {
     tokenA = (await Util.basicDeploy("ReserveToken18", {})) as ReserveToken18 &
       Contract;
@@ -57,7 +58,6 @@ describe.only("OrderBook", async function () {
 
     // ASK ORDER
 
-    // const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askConstants = [Util.max_uint256, askPrice];
     const vAskOutputMax = op(Opcode.VAL, 0);
@@ -98,11 +98,6 @@ describe.only("OrderBook", async function () {
 
     // BID ORDER
 
-    // const bidPrice = ethers.BigNumber.from(
-    //   ethers.FixedNumber.from(1, "ufixed256x18").divUnsafe(
-    //     ethers.FixedNumber.from(89, "ufixed256x18")
-    //   )
-    // );
     const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [Util.max_uint256, bidPrice];
     const vBidOutputMax = op(Opcode.VAL, 0);
@@ -219,18 +214,29 @@ describe.only("OrderBook", async function () {
       orderBook
     )) as ClearEvent["args"];
 
-    console.log({
-      clearSender,
-      clearA_,
-      clearB_,
-      clearBountyConfig,
-      clearStateChange,
-    });
+    const aOutputMaxExpected = amountA;
+    const bOutputMaxExpected = amountB;
+
+    const aOutputExpected = Util.minBN(
+      aOutputMaxExpected,
+      Util.fixedPointMul(bidPrice, amountA)
+    );
+    const bOutputExpected = Util.minBN(
+      bOutputMaxExpected,
+      Util.fixedPointMul(askPrice, amountB)
+    );
+
+    const expectedClearStateChange: ClearStateChangeStruct = {
+      aOutput: aOutputExpected,
+      bOutput: bOutputExpected,
+      aInput: Util.fixedPointMul(askPrice, aOutputExpected),
+      bInput: Util.fixedPointMul(bidPrice, bOutputExpected),
+    };
 
     assert(clearSender === bountyBot.address);
     Util.compareSolStructs(clearA_, askConfig);
     Util.compareSolStructs(clearB_, bidConfig);
     Util.compareStructs(clearBountyConfig, bountyConfig);
-    assert(clearStateChange);
+    Util.compareStructs(clearStateChange, expectedClearStateChange);
   });
 });
