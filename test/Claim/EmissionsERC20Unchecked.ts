@@ -45,8 +45,6 @@ describe("EmissionsERC20Unchecked", async function () {
         vmStateConfig: {
           sources: [source0],
           constants,
-          argumentsLength: 0,
-          stackLength: 10,
         },
       }
     );
@@ -93,8 +91,6 @@ describe("EmissionsERC20Unchecked", async function () {
         vmStateConfig: {
           sources: [source0],
           constants,
-          argumentsLength: 0,
-          stackLength: 10,
         },
       }
     );
@@ -141,8 +137,6 @@ describe("EmissionsERC20Unchecked", async function () {
         vmStateConfig: {
           sources: [source0],
           constants,
-          argumentsLength: 0,
-          stackLength: 10,
         },
       }
     );
@@ -189,8 +183,6 @@ describe("EmissionsERC20Unchecked", async function () {
         vmStateConfig: {
           sources: [source0],
           constants,
-          argumentsLength: 0,
-          stackLength: 10,
         },
       }
     );

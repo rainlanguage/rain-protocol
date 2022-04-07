@@ -6,6 +6,8 @@ import {TierOps} from "../../vm/ops/tier/TierOps.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
+uint constant SOURCE_INDEX = 0;
+
 contract TierOpsTest is RainVM, VMState {
     uint256 private immutable tierOpsStart;
     address private immutable vmStatePointer;
@@ -13,7 +15,7 @@ contract TierOpsTest is RainVM, VMState {
     constructor(StateConfig memory config_) {
         tierOpsStart = RAIN_VM_OPS_LENGTH;
 
-        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_, SOURCE_INDEX));
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -45,7 +47,7 @@ contract TierOpsTest is RainVM, VMState {
     /// @return `State` after running own immutable source.
     function runState() public view returns (State memory) {
         State memory state_ = _restore(vmStatePointer);
-        eval("", state_, 0);
+        eval("", state_, SOURCE_INDEX);
         return state_;
     }
 

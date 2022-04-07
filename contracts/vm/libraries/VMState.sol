@@ -7,13 +7,9 @@ import "../../sstore2/SSTORE2.sol";
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
 /// @param constants Constants verbatim.
-/// @param stackLength Sets the length of the uint256[] of the stack.
-/// @param argumentsLength Sets the length of the uint256[] of the arguments.
 struct StateConfig {
     bytes[] sources;
     uint256[] constants;
-    /// Analyze the source from this index as entrypoint.
-    uint256 analyzeSourceIndex;
 }
 
 /// @title StateSnapshot
@@ -34,14 +30,14 @@ contract VMState {
     /// Builds a new `State` from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
-    function _newState(RainVM analyzer_, StateConfig memory config_)
+    function _newState(RainVM analyzer_, StateConfig memory config_, uint entrypoint_)
         internal
         view
         returns (State memory)
     {
         require(config_.sources.length > 0, "0_SOURCES");
         (, uint256 stackUpperBound_, uint256 argumentsUpperBound_) = analyzer_
-            .analyzeSources(config_.sources, config_.analyzeSourceIndex, 0);
+            .analyzeSources(config_.sources, entrypoint_, 0);
         uint256[] memory constants_ = new uint256[](
             config_.constants.length + argumentsUpperBound_
         );

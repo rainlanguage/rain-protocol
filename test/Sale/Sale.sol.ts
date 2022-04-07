@@ -147,8 +147,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -282,8 +280,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -401,8 +397,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -482,8 +476,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -599,8 +591,6 @@ describe("Sale", async function () {
             calculatePriceStateConfig: {
               sources,
               constants,
-              stackLength: 1,
-              argumentsLength: 0,
             },
             recipient: recipient.address,
             reserve: reserve.address,
@@ -662,8 +652,6 @@ describe("Sale", async function () {
             calculatePriceStateConfig: {
               sources,
               constants,
-              stackLength: 1,
-              argumentsLength: 0,
             },
             recipient: recipient.address,
             reserve: reserve.address,
@@ -737,8 +725,6 @@ describe("Sale", async function () {
             calculatePriceStateConfig: {
               sources,
               constants,
-              stackLength: 1,
-              argumentsLength: 0,
             },
             recipient: recipient.address,
             reserve: maliciousReserve.address,
@@ -768,8 +754,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: maliciousReserve.address,
@@ -885,8 +869,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1034,8 +1016,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1169,8 +1149,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1308,8 +1286,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1430,8 +1406,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1624,8 +1598,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1720,8 +1692,6 @@ describe("Sale", async function () {
             calculatePriceStateConfig: {
               sources,
               constants,
-              stackLength: 1,
-              argumentsLength: 0,
             },
             recipient: signers[1].address,
             reserve: reserve.address,
@@ -1804,8 +1774,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 6,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1964,8 +1932,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 6,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -2100,8 +2066,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 3,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -2167,8 +2131,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 3,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -2269,8 +2231,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 3,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -2414,8 +2374,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 3,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -2708,8 +2666,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 3,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -2855,8 +2811,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 3,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -2966,8 +2920,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 3,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -3102,8 +3054,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -3267,8 +3217,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -3352,8 +3300,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -3513,8 +3459,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -3675,8 +3619,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -3868,8 +3810,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -4043,8 +3983,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -4144,8 +4082,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -4269,8 +4205,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -4526,8 +4460,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -4733,8 +4665,6 @@ describe("Sale", async function () {
             calculatePriceStateConfig: {
               sources,
               constants,
-              stackLength: 1,
-              argumentsLength: 0,
             },
             recipient: recipient.address,
             reserve: reserve.address,
@@ -4764,8 +4694,6 @@ describe("Sale", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,

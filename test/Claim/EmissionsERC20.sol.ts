@@ -219,8 +219,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [SOURCE(), FN()],
           constants,
-          argumentsLength: 2,
-          stackLength: SOURCE().length / 2,
         },
       }
     );
@@ -501,8 +499,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [SOURCE(), FN()],
           constants,
-          argumentsLength: 2,
-          stackLength: SOURCE().length / 2,
         },
       }
     );
@@ -630,8 +626,6 @@ describe("EmissionsERC20", async function () {
             ]),
           ],
           constants: [],
-          argumentsLength: 0,
-          stackLength: 16,
         },
       }
     );
@@ -716,8 +710,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
           constants: [readWriteTier.address],
-          argumentsLength: 0,
-          stackLength: 8,
         },
       }
     );
@@ -794,8 +786,6 @@ describe("EmissionsERC20", async function () {
             ]),
           ],
           constants: [readWriteTier.address],
-          argumentsLength: 0,
-          stackLength: 8,
         },
       }
     );
@@ -847,8 +837,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -904,8 +892,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -944,8 +930,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -990,8 +974,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -1029,8 +1011,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -1069,8 +1049,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );

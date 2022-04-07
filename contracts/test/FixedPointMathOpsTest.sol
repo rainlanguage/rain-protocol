@@ -5,6 +5,8 @@ import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {FixedPointMathOps} from "../vm/ops/math/FixedPointMathOps.sol";
 
+uint constant SOURCE_INDEX = 0;
+
 /// @title FixedPointMathOpsTest
 /// Simple contract that exposes fixed point math ops for testing.
 contract FixedPointMathOpsTest is RainVM, VMState {
@@ -18,7 +20,7 @@ contract FixedPointMathOpsTest is RainVM, VMState {
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
         fixedPointMathOpsStart = RAIN_VM_OPS_LENGTH;
-        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_, SOURCE_INDEX));
     }
 
     /// @inheritdoc RainVM
@@ -48,7 +50,7 @@ contract FixedPointMathOpsTest is RainVM, VMState {
     /// @return `State` after running own immutable source.
     function runState() public view returns (State memory) {
         State memory state_ = _restore(vmStatePointer);
-        eval("", state_, 0);
+        eval("", state_, SOURCE_INDEX);
         return state_;
     }
 }

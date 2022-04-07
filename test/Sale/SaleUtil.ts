@@ -102,7 +102,5 @@ export const afterBlockNumberConfig = (blockNumber) => {
       ]),
     ],
     constants: [blockNumber - 1],
-    stackLength: 3,
-    argumentsLength: 0,
   };
 };

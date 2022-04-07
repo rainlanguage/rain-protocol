@@ -134,6 +134,8 @@ struct Receipt {
     uint256 price;
 }
 
+uint constant SOURCE_INDEX = 0;
+
 // solhint-disable-next-line max-states-count
 contract Sale is
     Initializable,
@@ -285,13 +287,13 @@ contract Sale is
         minimumRaise = config_.minimumRaise;
 
         canStartStatePointer = _snapshot(
-            _newState(RainVM(this), config_.canStartStateConfig)
+            _newState(RainVM(this), config_.canStartStateConfig, SOURCE_INDEX)
         );
         canEndStatePointer = _snapshot(
-            _newState(RainVM(this), config_.canEndStateConfig)
+            _newState(RainVM(this), config_.canEndStateConfig, SOURCE_INDEX)
         );
         calculatePriceStatePointer = _snapshot(
-            _newState(RainVM(this), config_.calculatePriceStateConfig)
+            _newState(RainVM(this), config_.calculatePriceStateConfig, SOURCE_INDEX)
         );
         recipient = config_.recipient;
 
@@ -357,7 +359,7 @@ contract Sale is
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
             State memory state_ = _restore(canStartStatePointer);
-            eval("", state_, 0);
+            eval("", state_, SOURCE_INDEX);
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
             return false;
@@ -387,7 +389,7 @@ contract Sale is
             // to the appropriate script for an answer.
             else {
                 State memory state_ = _restore(canEndStatePointer);
-                eval("", state_, 0);
+                eval("", state_, SOURCE_INDEX);
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
         } else {
@@ -401,7 +403,7 @@ contract Sale is
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = _restore(calculatePriceStatePointer);
-        eval(abi.encode(units_), state_, 0);
+        eval(abi.encode(units_), state_, SOURCE_INDEX);
 
         return state_.stack[state_.stackIndex - 1];
     }

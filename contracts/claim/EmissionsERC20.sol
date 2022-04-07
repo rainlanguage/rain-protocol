@@ -24,6 +24,14 @@ struct EmissionsERC20Config {
     StateConfig vmStateConfig;
 }
 
+/// @dev Source index for VM eval.
+uint constant SOURCE_INDEX = 0;
+
+    /// @dev local opcode to put claimant account on the stack.
+    uint256 constant OPCODE_CLAIMANT_ACCOUNT = 0;
+    /// @dev local opcodes length.
+    uint256 constant LOCAL_OPS_LENGTH = 1;
+
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
 /// expressed as a rainVM script and the `claim` function is world-callable.
@@ -50,11 +58,6 @@ contract EmissionsERC20 is
     /// @param allowDelegatedClaims True if accounts can call `claim` on behalf
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
-
-    /// @dev local opcode to put claimant account on the stack.
-    uint256 private constant OPCODE_CLAIMANT_ACCOUNT = 0;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 1;
 
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
@@ -94,7 +97,7 @@ contract EmissionsERC20 is
         );
 
         vmStatePointer = _snapshot(
-            _newState(RainVM(this), config_.vmStateConfig)
+            _newState(RainVM(this), config_.vmStateConfig, SOURCE_INDEX)
         );
 
         /// Log some deploy state for use by claim/opcodes.
@@ -171,7 +174,7 @@ contract EmissionsERC20 is
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
         State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(claimant_), state_, 0);
+        eval(abi.encode(claimant_), state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
     }
 

@@ -10,6 +10,8 @@ import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from ".
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
 
+uint constant SOURCE_INDEX = 0;
+
 /// @title CombineTier
 /// @notice Implements `ReadOnlyTier` over RainVM. Allows combining the reports
 /// from any other `ITier` contracts referenced in the `ImmutableSource` set at
@@ -34,7 +36,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     /// @param config_ The StateConfig will be deployed as a pointer under
     /// `vmStatePointer`.
     function initialize(StateConfig memory config_) external initializer {
-        vmStatePointer = _snapshot(_newState(RainVM(this), config_));
+        vmStatePointer = _snapshot(_newState(RainVM(this), config_, SOURCE_INDEX));
     }
 
     /// @inheritdoc RainVM
@@ -89,7 +91,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         returns (uint256)
     {
         State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(account_), state_, 0);
+        eval(abi.encode(account_), state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
     }
 }

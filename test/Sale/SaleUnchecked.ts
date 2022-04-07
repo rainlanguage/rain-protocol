@@ -133,8 +133,6 @@ describe("SaleUnchecked", async function () {
         calculatePriceStateConfig: {
           sources: [source0],
           constants,
-          stackLength: 10,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -208,8 +206,6 @@ describe("SaleUnchecked", async function () {
         calculatePriceStateConfig: {
           sources: [source0],
           constants,
-          stackLength: 10,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -283,8 +279,6 @@ describe("SaleUnchecked", async function () {
         calculatePriceStateConfig: {
           sources: [source0],
           constants,
-          stackLength: 10,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -358,8 +352,6 @@ describe("SaleUnchecked", async function () {
         calculatePriceStateConfig: {
           sources: [source0],
           constants,
-          stackLength: 10,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,

@@ -386,8 +386,6 @@ describe("SaleEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,

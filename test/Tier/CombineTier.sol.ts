@@ -43,14 +43,10 @@ describe("CombineTier", async function () {
     const alwaysTier = await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
-      stackLength: 8,
-      argumentsLength: 0,
     });
     const neverTier = await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
-      stackLength: 8,
-      argumentsLength: 0,
     });
 
     const constants = [

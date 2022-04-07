@@ -94,8 +94,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -337,8 +335,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -566,8 +562,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -769,8 +763,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -981,8 +973,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1150,8 +1140,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1310,8 +1298,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1484,8 +1470,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -1630,8 +1614,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         calculatePriceStateConfig: {
           sources,
           constants,
-          stackLength: 1,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
