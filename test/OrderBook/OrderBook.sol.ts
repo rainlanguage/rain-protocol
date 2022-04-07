@@ -66,7 +66,7 @@ describe("OrderBook", async function () {
       tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
       vmState: {
         stackIndex: 0,
-        stack: [],
+        stack: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         sources: [askSource],
         constants: askConstants,
         arguments: [],
@@ -106,7 +106,7 @@ describe("OrderBook", async function () {
       tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
       vmState: {
         stackIndex: 0,
-        stack: [],
+        stack: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         sources: [bidSource],
         constants: bidConstants,
         arguments: [],
