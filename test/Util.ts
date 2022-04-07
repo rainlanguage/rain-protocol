@@ -832,3 +832,117 @@ export enum AllStandardOps {
   IERC1155_BALANCE_OF_BATCH,
   length,
 }
+
+const testStructs = (
+  solObj: Record<string, unknown>,
+  jsObj: Record<string, unknown>
+) => {
+  Object.keys(solObj).forEach((key) => {
+    let expectedValue = jsObj[key];
+    const actualValue = solObj[key];
+
+    if (
+      // skip if any of the following conditions apply
+      !(key === "_hex" || key === "_isBigNumber" || expectedValue === undefined)
+    ) {
+      if (expectedValue instanceof Uint8Array) {
+        expectedValue = hexlify(expectedValue);
+      }
+
+      if (
+        typeof actualValue === "object" ||
+        typeof expectedValue === "object"
+      ) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // recursive call for nested structs
+        testStructs(actualValue, expectedValue);
+      } else {
+        assert(
+          actualValue == expectedValue || actualValue["eq"](expectedValue),
+          `wrong value for property: '${key}'
+          expected  ${expectedValue}
+          got       ${actualValue}`
+        );
+      }
+    }
+  });
+};
+
+/**
+ * Uses chai `assert` to compare a Solidity struct with a JavaScript object by checking whether the values for each property are equivalent.
+ * Will safely recurse over nested structs and compare nested properties.
+ * Throws an error if any comparisons fail.
+ * @param solArray - Solidity struct, returned from something such as an emitted solidity Event. This should have an array-like structure, and it is expected that solArray is an array-object hybrid (e.g. `solStruct: ['foo', 'bar', prop1: 'foo', prop2: 'bar']`).
+ * @param jsObj - JavaScript object literal to use as comparison.
+ */
+export const compareStructs = (
+  solArray: unknown[],
+  jsObj: Record<string, unknown>
+) => {
+  const solEntries = Object.entries(solArray).splice(
+    solArray.length // actually half the solArray size
+  );
+
+  if (!solEntries.length) {
+    throw new Error(
+      `Could not generate entries from a solArray of length ${solArray.length}. Ensure you are using a Solidity struct for solArray.`
+    );
+  }
+
+  const solObj = Object.fromEntries(solEntries);
+
+  testStructs(solObj, jsObj);
+};
+
+const testSolStructs = (
+  solActualObj: Record<string, unknown>,
+  solExpectedObj: Record<string, unknown>
+) => {
+  Object.keys(solActualObj).forEach((key) => {
+    const actualValue = solActualObj[key];
+    const expectedValue = solExpectedObj[key];
+
+    if (typeof actualValue === "object" || typeof expectedValue === "object") {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      // recursive call for nested structs
+      testSolStructs(actualValue, expectedValue);
+    } else {
+      assert(
+        actualValue == expectedValue || actualValue["eq"](expectedValue),
+        `wrong value for property: '${key}'
+          expected  ${expectedValue}
+          got       ${actualValue}`
+      );
+    }
+  });
+};
+
+export const compareSolStructs = (
+  solArrayActual: unknown[],
+  solArrayExpected: unknown[]
+) => {
+  const solActualEntries = Object.entries(solArrayActual).splice(
+    solArrayActual.length // actually half the solArray size
+  );
+  const solExpectedEntries = Object.entries(solArrayExpected).splice(
+    solArrayExpected.length // actually half the solArray size
+  );
+
+  if (!solActualEntries.length) {
+    throw new Error(
+      `Could not generate entries from a solArrayActual of length ${solArrayActual.length}. Ensure you are using a Solidity struct for solArrayActual.`
+    );
+  }
+  if (!solExpectedEntries.length) {
+    throw new Error(
+      `Could not generate entries from a solArrayExpected of length ${solArrayExpected.length}. Ensure you are using a Solidity struct for solArrayExpected.`
+    );
+  }
+
+  const solAObj = Object.fromEntries(solActualEntries);
+  const solBObj = Object.fromEntries(solExpectedEntries);
+
+  testSolStructs(solAObj, solBObj);
+};
