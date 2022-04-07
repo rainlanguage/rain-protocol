@@ -48,8 +48,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -78,8 +76,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -113,8 +109,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -148,8 +142,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -183,8 +175,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -218,8 +208,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -255,8 +243,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -293,8 +279,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -328,8 +312,6 @@ describe("FixedPointMathOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();

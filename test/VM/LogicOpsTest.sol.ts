@@ -48,8 +48,6 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run();
@@ -66,8 +64,6 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run();
@@ -85,8 +81,6 @@ describe("LogicOpsTest", async function () {
     const logic2 = (await logicFactory.deploy({
       sources: [source2],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result2 = await logic2.run();
@@ -117,8 +111,6 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run();
@@ -136,8 +128,6 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run();
@@ -154,8 +144,6 @@ describe("LogicOpsTest", async function () {
     const logic2 = (await logicFactory.deploy({
       sources: [source2],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result2 = await logic2.run();
@@ -187,8 +175,6 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run();
@@ -207,8 +193,6 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run();
@@ -227,8 +211,6 @@ describe("LogicOpsTest", async function () {
     const logic2 = (await logicFactory.deploy({
       sources: [source2],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result2 = await logic2.run();
@@ -253,8 +235,6 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run(); // expect 1
@@ -271,8 +251,6 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run(); // expect 0
@@ -297,8 +275,6 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run(); // expect 0
@@ -315,8 +291,6 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run(); // expect 1
@@ -341,8 +315,6 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run(); // expect 1
@@ -359,8 +331,6 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run(); // expect 0
@@ -384,8 +354,6 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result0 = await logic0.run(); // expect 1
@@ -401,8 +369,6 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as LogicOpsTest & Contract;
 
     const result1 = await logic1.run(); // expect 0

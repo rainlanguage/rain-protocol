@@ -54,8 +54,6 @@ describe("CalculatorTestUnchecked", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 10,
     })) as CalculatorTest & Contract;
 
     await Util.assertError(
@@ -85,8 +83,6 @@ describe("CalculatorTestUnchecked", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 10,
     })) as CalculatorTest & Contract;
 
     await Util.assertError(
@@ -116,8 +112,6 @@ describe("CalculatorTestUnchecked", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 10,
     })) as CalculatorTest & Contract;
 
     await Util.assertError(
@@ -147,8 +141,6 @@ describe("CalculatorTestUnchecked", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 10,
     })) as CalculatorTest & Contract;
 
     await Util.assertError(

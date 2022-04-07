@@ -71,8 +71,6 @@ describe("TierOpsTest", async function () {
     const tierOps0 = (await tierOpsFactory.deploy({
       sources: [source0],
       constants: constants0,
-      argumentsLength: 0,
-      stackLength: 10,
     })) as TierOpsTest & Contract;
 
     await Util.assertError(
@@ -107,8 +105,6 @@ describe("TierOpsTest", async function () {
     const tierOps0 = (await tierOpsFactory.deploy({
       sources: [source0],
       constants: constants0,
-      argumentsLength: 0,
-      stackLength: 10,
     })) as TierOpsTest & Contract;
 
     const result0 = await tierOps0.run();
@@ -150,8 +146,6 @@ describe("TierOpsTest", async function () {
     const tierOps0 = (await tierOpsFactory.deploy({
       sources: [source0],
       constants: constants0,
-      argumentsLength: 0,
-      stackLength: 10,
     })) as TierOpsTest & Contract;
 
     const result0 = await tierOps0.run();
@@ -190,8 +184,6 @@ describe("TierOpsTest", async function () {
     const tierOps0 = (await tierOpsFactory.deploy({
       sources: [source0],
       constants: constants0,
-      argumentsLength: 0,
-      stackLength: 10,
     })) as TierOpsTest & Contract;
 
     const result0 = await tierOps0.run();

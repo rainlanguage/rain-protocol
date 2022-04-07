@@ -92,8 +92,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 5,
     })) as TokenOpsTest & Contract;
 
     const transferAmount = 100;
@@ -151,8 +149,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -209,8 +205,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -241,8 +235,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -277,8 +269,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -308,8 +298,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();

@@ -71,8 +71,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      stackLength: 8,
-      argumentsLength: 0,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -97,14 +95,10 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
-      stackLength: 8,
-      argumentsLength: 0,
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
-      stackLength: 8,
-      argumentsLength: 0,
     })) as CombineTier & Contract;
 
     const constants = [
@@ -129,8 +123,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -155,14 +147,10 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const constants = [
@@ -187,8 +175,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -213,14 +199,10 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const constants = [
@@ -245,8 +227,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -271,14 +251,10 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const constants = [
@@ -303,8 +279,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -329,14 +303,10 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const constants = [
@@ -361,8 +331,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -387,14 +355,10 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlways],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 2,
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNever],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 2,
     })) as CombineTier & Contract;
 
     const constants = [
@@ -417,8 +381,6 @@ describe("CombineTier", async function () {
     const combineTierAlways = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlwaysReport],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const resultAlwaysReport = await combineTierAlways.report(
@@ -436,8 +398,6 @@ describe("CombineTier", async function () {
     const combineTierNever = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNeverReport],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const resultNeverReport = await combineTierNever.report(signers[1].address);
@@ -461,8 +421,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[1].address);
@@ -510,8 +468,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -643,8 +599,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -778,8 +732,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -900,8 +852,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -1034,8 +984,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -1168,8 +1116,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
