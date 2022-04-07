@@ -23,7 +23,7 @@ let orderBookFactory: ContractFactory,
   tokenA: ReserveToken & Contract,
   tokenB: ReserveToken & Contract;
 
-describe("OrderBook", async function () {
+describe.only("OrderBook", async function () {
   beforeEach(async () => {
     tokenA = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
       Contract;
@@ -54,8 +54,8 @@ describe("OrderBook", async function () {
     const vAskOutputMax = op(Opcode.VAL, 1);
     // prettier-ignore
     const askSource = concat([
+      vAskOutputMax,
       vAskPrice,
-      vAskOutputMax
     ]);
     const askOrderConfig: OrderConfigStruct = {
       owner: alice.address,
@@ -94,8 +94,8 @@ describe("OrderBook", async function () {
     const vBidOutputMax = op(Opcode.VAL, 1);
     // prettier-ignore
     const bidSource = concat([
+      vBidOutputMax,
       vBidPrice,
-      vBidOutputMax
     ]);
     const bidOrderConfig: OrderConfigStruct = {
       owner: bob.address,

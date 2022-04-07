@@ -197,35 +197,41 @@ contract OrderBook is RainVM {
                     OrderLiveness.unwrap(ORDER_LIVE),
                 "B_NOT_LIVE"
             );
-
-            // Eval the VM for both orders.
-            eval(
-                abi.encode(EvalContext(aHash_, b_.owner)),
-                a_.vmState,
-                VM_SOURCE_INDEX
-            );
-            eval(
-                abi.encode(EvalContext(bHash_, a_.owner)),
-                b_.vmState,
-                VM_SOURCE_INDEX
-            );
         }
 
         ClearStateChange memory stateChange_;
 
         {
+            // Price is input per output for both a_ and b_.
             uint256 aPrice_;
             uint256 bPrice_;
+            // a_ and b_ can both set a maximum output from the VM.
             uint256 aOutputMax_;
             uint256 bOutputMax_;
 
-            {
-                // Price is input per output for both a_ and b_.
-                aPrice_ = a_.vmState.stack[a_.vmState.stackIndex - 1];
-                bPrice_ = b_.vmState.stack[b_.vmState.stackIndex - 1];
-                // a_ and b_ can both set a maximum output from the VM.
-                aOutputMax_ = a_.vmState.stack[a_.vmState.stackIndex - 2];
-                bOutputMax_ = a_.vmState.stack[b_.vmState.stackIndex - 2];
+            unchecked {
+                State memory vmState_;
+                {
+                    vmState_ = a_.vmState;
+                    eval(
+                        abi.encode(EvalContext(aHash_, b_.owner)),
+                        vmState_,
+                        VM_SOURCE_INDEX
+                    );
+                    aPrice_ = vmState_.stack[vmState_.stackIndex - 1];
+                    aOutputMax_ = vmState_.stack[vmState_.stackIndex - 2];
+                }
+
+                {
+                    vmState_ = b_.vmState;
+                    eval(
+                        abi.encode(EvalContext(bHash_, a_.owner)),
+                        vmState_,
+                        VM_SOURCE_INDEX
+                    );
+                    bPrice_ = vmState_.stack[vmState_.stackIndex - 1];
+                    bOutputMax_ = vmState_.stack[vmState_.stackIndex - 2];
+                }
             }
 
             // outputs are capped by the remaining funds in their output vault.
