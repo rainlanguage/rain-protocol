@@ -57,7 +57,8 @@ describe("OrderBook", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
+    // const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
+    const askPrice = ethers.BigNumber.from("1" + Util.eighteenZeros);
     const askConstants = [Util.max_uint256, askPrice];
     const vAskOutputMax = op(Opcode.VAL, 0);
     const vAskPrice = op(Opcode.VAL, 1);
@@ -97,14 +98,12 @@ describe("OrderBook", async function () {
 
     // BID ORDER
 
-    const bidPrice = ethers.BigNumber.from(
-      ethers.FixedNumber.from(1, "ufixed256x18").divUnsafe(
-        ethers.FixedNumber.from(89, "ufixed256x18")
-      )
-    );
-
-    console.log({ askPrice, bidPrice });
-
+    // const bidPrice = ethers.BigNumber.from(
+    //   ethers.FixedNumber.from(1, "ufixed256x18").divUnsafe(
+    //     ethers.FixedNumber.from(89, "ufixed256x18")
+    //   )
+    // );
+    const bidPrice = ethers.BigNumber.from("1" + Util.eighteenZeros);
     const bidConstants = [Util.max_uint256, bidPrice];
     const vBidOutputMax = op(Opcode.VAL, 0);
     const vBidPrice = op(Opcode.VAL, 1);
