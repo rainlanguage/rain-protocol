@@ -32,8 +32,18 @@ struct State {
     uint256 argumentsIndex;
 }
 
+    /// @dev Copies a value either off `constants` to the top of the stack.
+    uint256 constant OPCODE_VAL = 0;
+    /// @dev Duplicates any value in the stack to the top of the stack. The operand
+    /// specifies the index to copy from.
+    uint256 constant OPCODE_DUP = 1;
+    /// @dev Takes N values off the stack, interprets them as an array then zips
+    /// and maps a source from `sources` over them.
+    uint256 constant OPCODE_ZIPMAP = 2;
+    /// @dev ABI encodes the entire stack and logs it to the hardhat console.
+    uint constant OPCODE_DEBUG = 3;
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 5;
+uint256 constant RAIN_VM_OPS_LENGTH = 4;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -99,18 +109,6 @@ uint256 constant RAIN_VM_OPS_LENGTH = 5;
 /// up very quickly. Implementing contracts and opcode packs SHOULD require
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
-    /// Copies a value either off `constants` to the top of the stack.
-    uint256 private constant OP_VAL = 0;
-    /// Duplicates any value in the stack to the top of the stack. The operand
-    /// specifies the index to copy from.
-    uint256 private constant OP_DUP = 1;
-    /// Takes N values off the stack, interprets them as an array then zips
-    /// and maps a source from `sources` over them.
-    uint256 private constant OP_ZIPMAP = 2;
-    /// ABI encodes the entire stack and logs it to the hardhat console.
-    uint private constant OP_DEBUG = 3;
-    /// Number of provided opcodes for `RainVM`.
-    uint256 internal constant OPS_LENGTH = 4;
 
     function analyzeZipmap(
         bytes[] memory sources_,
@@ -190,8 +188,8 @@ abstract contract RainVM {
                     operand_ := byte(31, op_)
                 }
 
-                if (opcode_ < OPS_LENGTH) {
-                    if (opcode_ < OP_ZIPMAP) {
+                if (opcode_ < RAIN_VM_OPS_LENGTH) {
+                    if (opcode_ < OPCODE_ZIPMAP) {
                         stackIndex_++;
                     } else {
                         (
@@ -395,7 +393,7 @@ abstract contract RainVM {
                     operand_ := byte(31, op_)
                 }
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ == OP_VAL) {
+                    if (opcode_ == OPCODE_VAL) {
                         assembly {
                             mstore(
                                 stackTopLocation_,
@@ -408,7 +406,7 @@ abstract contract RainVM {
                             )
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
-                    } else if (opcode_ == OP_DUP) {
+                    } else if (opcode_ == OPCODE_DUP) {
                         assembly {
                             mstore(
                                 stackTopLocation_,
@@ -421,7 +419,7 @@ abstract contract RainVM {
                             )
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
-                    } else if (opcode_ == OP_ZIPMAP) {
+                    } else if (opcode_ == OPCODE_ZIPMAP) {
                         stackTopLocation_ = zipmap(
                             context_,
                             state_,

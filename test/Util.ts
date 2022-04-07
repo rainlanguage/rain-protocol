@@ -548,7 +548,6 @@ export enum selectLteMode {
 }
 
 export enum AllStandardOps {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,
