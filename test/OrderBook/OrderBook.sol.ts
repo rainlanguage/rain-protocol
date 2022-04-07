@@ -25,7 +25,7 @@ let orderBookFactory: ContractFactory,
   tokenA: ReserveToken18 & Contract,
   tokenB: ReserveToken18 & Contract;
 
-describe("OrderBook", async function () {
+describe.only("OrderBook", async function () {
   beforeEach(async () => {
     tokenA = (await Util.basicDeploy("ReserveToken18", {})) as ReserveToken18 &
       Contract;
@@ -58,7 +58,7 @@ describe("OrderBook", async function () {
     // ASK ORDER
 
     // const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
-    const askPrice = ethers.BigNumber.from("1" + Util.eighteenZeros);
+    const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askConstants = [Util.max_uint256, askPrice];
     const vAskOutputMax = op(Opcode.VAL, 0);
     const vAskPrice = op(Opcode.VAL, 1);
@@ -103,7 +103,7 @@ describe("OrderBook", async function () {
     //     ethers.FixedNumber.from(89, "ufixed256x18")
     //   )
     // );
-    const bidPrice = ethers.BigNumber.from("1" + Util.eighteenZeros);
+    const bidPrice = Util.ONE.mul(Util.ONE).div(askPrice);
     const bidConstants = [Util.max_uint256, bidPrice];
     const vBidOutputMax = op(Opcode.VAL, 0);
     const vBidPrice = op(Opcode.VAL, 1);
