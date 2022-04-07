@@ -11,7 +11,7 @@ import type {
   OrderConfigStruct,
   OrderLiveEvent,
 } from "../../typechain/OrderBook";
-import { ReserveToken } from "../../typechain/ReserveToken";
+import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { Opcode } from "./OrderBookUtil";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
@@ -22,14 +22,14 @@ const TRACK_CLEARED_ORDER = 0x1;
 const TRACK_CLEARED_COUNTERPARTY = 0x2;
 
 let orderBookFactory: ContractFactory,
-  tokenA: ReserveToken & Contract,
-  tokenB: ReserveToken & Contract;
+  tokenA: ReserveToken18 & Contract,
+  tokenB: ReserveToken18 & Contract;
 
 describe("OrderBook", async function () {
   beforeEach(async () => {
-    tokenA = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
+    tokenA = (await Util.basicDeploy("ReserveToken18", {})) as ReserveToken18 &
       Contract;
-    tokenB = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
+    tokenB = (await Util.basicDeploy("ReserveToken18", {})) as ReserveToken18 &
       Contract;
   });
 
@@ -57,7 +57,7 @@ describe("OrderBook", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + Util.sixZeros);
+    const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askConstants = [Util.max_uint256, askPrice];
     const vAskOutputMax = op(Opcode.VAL, 0);
     const vAskPrice = op(Opcode.VAL, 1);
@@ -98,8 +98,8 @@ describe("OrderBook", async function () {
     // BID ORDER
 
     const bidPrice = ethers.BigNumber.from(
-      ethers.FixedNumber.from(1, "ufixed256x6").divUnsafe(
-        ethers.FixedNumber.from(89, "ufixed256x6")
+      ethers.FixedNumber.from(1, "ufixed256x18").divUnsafe(
+        ethers.FixedNumber.from(89, "ufixed256x18")
       )
     );
 
@@ -144,8 +144,8 @@ describe("OrderBook", async function () {
 
     // DEPOSITS
 
-    const amountB = ethers.BigNumber.from("1000" + Util.sixZeros);
-    const amountA = ethers.BigNumber.from("1000" + Util.sixZeros);
+    const amountB = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + Util.eighteenZeros);
 
     await tokenB.transfer(alice.address, amountB);
     await tokenA.transfer(bob.address, amountA);
