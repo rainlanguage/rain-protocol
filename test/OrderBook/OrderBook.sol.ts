@@ -5,6 +5,8 @@ import { Contract, ContractFactory } from "ethers";
 import type {
   BountyConfigStruct,
   ClearEvent,
+  DepositConfigStruct,
+  DepositEvent,
   OrderBook,
   OrderConfigStruct,
   OrderLiveEvent,
@@ -23,7 +25,7 @@ let orderBookFactory: ContractFactory,
   tokenA: ReserveToken & Contract,
   tokenB: ReserveToken & Contract;
 
-describe.only("OrderBook", async function () {
+describe("OrderBook", async function () {
   beforeEach(async () => {
     tokenA = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
       Contract;
@@ -46,12 +48,19 @@ describe.only("OrderBook", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
 
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(3);
+    const bobOutputVault = ethers.BigNumber.from(4);
+    const bountyBotVaultA = ethers.BigNumber.from(5);
+    const bountyBotVaultB = ethers.BigNumber.from(6);
+
     // ASK ORDER
 
     const askPrice = ethers.BigNumber.from("90" + Util.sixZeros);
-    const askConstants = [askPrice, Util.max_uint256];
-    const vAskPrice = op(Opcode.VAL, 0);
-    const vAskOutputMax = op(Opcode.VAL, 1);
+    const askConstants = [Util.max_uint256, askPrice];
+    const vAskOutputMax = op(Opcode.VAL, 0);
+    const vAskPrice = op(Opcode.VAL, 1);
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -60,13 +69,13 @@ describe.only("OrderBook", async function () {
     const askOrderConfig: OrderConfigStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
-      inputVaultId: ethers.BigNumber.from(1),
+      inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
-      outputVaultId: ethers.BigNumber.from(2),
+      outputVaultId: aliceOutputVault,
       tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
       vmState: {
         stackIndex: 0,
-        stack: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        stack: [0, 0],
         sources: [askSource],
         constants: askConstants,
         arguments: [],
@@ -88,10 +97,17 @@ describe.only("OrderBook", async function () {
 
     // BID ORDER
 
-    const bidPrice = ethers.BigNumber.from("90" + Util.sixZeros);
-    const bidConstants = [bidPrice, Util.max_uint256];
-    const vBidPrice = op(Opcode.VAL, 0);
-    const vBidOutputMax = op(Opcode.VAL, 1);
+    const bidPrice = ethers.BigNumber.from(
+      ethers.FixedNumber.from(1, "ufixed256x6").divUnsafe(
+        ethers.FixedNumber.from(89, "ufixed256x6")
+      )
+    );
+
+    console.log({ askPrice, bidPrice });
+
+    const bidConstants = [Util.max_uint256, bidPrice];
+    const vBidOutputMax = op(Opcode.VAL, 0);
+    const vBidPrice = op(Opcode.VAL, 1);
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -100,13 +116,13 @@ describe.only("OrderBook", async function () {
     const bidOrderConfig: OrderConfigStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
-      inputVaultId: ethers.BigNumber.from(3),
+      inputVaultId: bobInputVault,
       outputToken: tokenA.address,
-      outputVaultId: ethers.BigNumber.from(4),
+      outputVaultId: bobOutputVault,
       tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
       vmState: {
         stackIndex: 0,
-        stack: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        stack: [0, 0],
         sources: [bidSource],
         constants: bidConstants,
         arguments: [],
@@ -126,11 +142,66 @@ describe.only("OrderBook", async function () {
     assert(bidSender === bob.address, "wrong sender");
     Util.compareStructs(bidConfig, bidOrderConfig);
 
+    // DEPOSITS
+
+    const amountB = ethers.BigNumber.from("1000" + Util.sixZeros);
+    const amountA = ethers.BigNumber.from("1000" + Util.sixZeros);
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenA.transfer(bob.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      depositor: alice.address,
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      depositor: bob.address,
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+    // Bob deposits tokenA into his output vault
+    const txDepositOrderBob = await orderBook
+      .connect(bob)
+      .deposit(depositConfigStructBob);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await Util.getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositBobSender, config: depositBobConfig } =
+      (await Util.getEventArgs(
+        txDepositOrderBob,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    Util.compareStructs(depositAliceConfig, depositConfigStructAlice);
+    assert(depositBobSender === bob.address);
+    Util.compareStructs(depositBobConfig, depositConfigStructBob);
+
     // BOUNTY BOT CLEARS THE ORDER
 
     const bountyConfig: BountyConfigStruct = {
-      aVaultId: ethers.BigNumber.from(5),
-      bVaultId: ethers.BigNumber.from(6),
+      aVaultId: bountyBotVaultA,
+      bVaultId: bountyBotVaultB,
     };
 
     const txClearOrder = await orderBook
@@ -158,8 +229,8 @@ describe.only("OrderBook", async function () {
     });
 
     assert(clearSender === bountyBot.address);
-    Util.compareSolStructs(clearA_, askConfig); // util fn may not work
-    Util.compareSolStructs(clearB_, bidConfig); // util fn may not work
+    Util.compareSolStructs(clearA_, askConfig);
+    Util.compareSolStructs(clearB_, bidConfig);
     Util.compareStructs(clearBountyConfig, bountyConfig);
     assert(clearStateChange);
   });
