@@ -253,6 +253,9 @@ export const max_uint16 = ethers.BigNumber.from("0xffff");
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
 
+export const fixedPointMul = (a: BigNumber, b: BigNumber):BigNumber => a.mul(b).div(ONE);
+export const fixedPointDiv = (a: BigNumber, b: BigNumber):BigNumber => a.mul(ONE).div(b);
+
 export const determineReserveDust = (bPoolReserveBalance: BigNumber) => {
   let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
   if (dust.lt(RESERVE_MIN_BALANCE)) {

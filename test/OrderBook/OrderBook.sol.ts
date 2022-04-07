@@ -103,7 +103,7 @@ describe.only("OrderBook", async function () {
     //     ethers.FixedNumber.from(89, "ufixed256x18")
     //   )
     // );
-    const bidPrice = Util.ONE.mul(Util.ONE).div(askPrice);
+    const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [Util.max_uint256, bidPrice];
     const vBidOutputMax = op(Opcode.VAL, 0);
     const vBidPrice = op(Opcode.VAL, 1);
