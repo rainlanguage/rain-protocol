@@ -10,6 +10,7 @@ import type {
   DepositEvent,
   OrderBook,
   OrderConfigStruct,
+  OrderDeadEvent,
   OrderLiveEvent,
   WithdrawConfigStruct,
   WithdrawEvent,
@@ -38,6 +39,128 @@ describe("OrderBook", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+  });
+
+  it("should support removing orders iff they interface with non-append-only vaults", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(3);
+    const bobOutputVault = ethers.BigNumber.from(-4);
+
+    // ASK ORDER
+
+    const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
+    const askConstants = [Util.max_uint256, askPrice];
+    const vAskOutputMax = op(Opcode.VAL, 0);
+    const vAskPrice = op(Opcode.VAL, 1);
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig: OrderConfigStruct = {
+      owner: alice.address,
+      inputToken: tokenA.address,
+      inputVaultId: aliceInputVault,
+      outputToken: tokenB.address,
+      outputVaultId: aliceOutputVault,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0],
+        sources: [askSource],
+        constants: askConstants,
+        arguments: [],
+      },
+    };
+
+    const txAskOrderLive = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { sender: askLiveSender, config: askLiveConfig } =
+      (await Util.getEventArgs(
+        txAskOrderLive,
+        "OrderLive",
+        orderBook
+      )) as OrderLiveEvent["args"];
+
+    assert(askLiveSender === alice.address, "wrong sender");
+    Util.compareStructs(askLiveConfig, askOrderConfig);
+
+    // REMOVE ASK ORDER (only non-append-only vaults)
+
+    const txAskOrderDead = await orderBook
+      .connect(alice)
+      .removeOrder(askOrderConfig);
+
+    const { sender: askDeadSender, config: askDeadConfig } =
+      (await Util.getEventArgs(
+        txAskOrderDead,
+        "OrderDead",
+        orderBook
+      )) as OrderDeadEvent["args"];
+
+    assert(askDeadSender === alice.address, "wrong sender");
+    Util.compareStructs(askDeadConfig, askOrderConfig);
+
+    // BID ORDER
+
+    const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
+    const bidConstants = [Util.max_uint256, bidPrice];
+    const vBidOutputMax = op(Opcode.VAL, 0);
+    const vBidPrice = op(Opcode.VAL, 1);
+    // prettier-ignore
+    const bidSource = concat([
+      vBidOutputMax,
+      vBidPrice,
+    ]);
+    const bidOrderConfig: OrderConfigStruct = {
+      owner: bob.address,
+      inputToken: tokenB.address,
+      inputVaultId: bobInputVault,
+      outputToken: tokenA.address,
+      outputVaultId: bobOutputVault,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0],
+        sources: [bidSource],
+        constants: bidConstants,
+        arguments: [],
+      },
+    };
+
+    const txBidOrderLive = await orderBook
+      .connect(bob)
+      .addOrder(bidOrderConfig);
+
+    const { sender: bidLiveSender, config: bidLiveConfig } =
+      (await Util.getEventArgs(
+        txBidOrderLive,
+        "OrderLive",
+        orderBook
+      )) as OrderLiveEvent["args"];
+
+    assert(bidLiveSender === bob.address, "wrong sender");
+    Util.compareStructs(bidLiveConfig, bidOrderConfig);
+
+    // REMOVE BID ORDER (has append-only output vault)
+
+    await Util.assertError(
+      async () => await orderBook.connect(bob).removeOrder(bidOrderConfig),
+      "APPEND_ONLY_VAULT_ID",
+      "wrongly removed order with append-only output vault"
+    );
   });
 
   it("should allow withdrawals from non-append-only vault, and prevent withdrawals from append-only vaults", async function () {
