@@ -1,7 +1,15 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import "@openzeppelin/contracts/utils/math/Math.sol";
+
 import "hardhat/console.sol";
+
+struct SourceAnalysis {
+    int stackIndex;
+    uint stackUpperBound;
+    uint argumentsUpperBound;
+}
 
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
@@ -110,56 +118,32 @@ uint256 constant RAIN_VM_OPS_LENGTH = 4;
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
 
+    using Math for uint;
+
     function analyzeZipmap(
+        SourceAnalysis memory sourceAnalysis_,
         bytes[] memory sources_,
-        int256 stackIndex_,
-        uint256 stackUpperBound_,
-        uint256 argumentsUpperBound_,
         uint256 operand_
     )
         private
         view
-        returns (
-            int256,
-            uint256,
-            uint256
-        )
     {
         uint256 valLength_ = (operand_ >> 5) + 1;
-        if (valLength_ > argumentsUpperBound_) {
-            argumentsUpperBound_ = valLength_;
-        }
-        stackIndex_ -= int256(valLength_);
+        sourceAnalysis_.argumentsUpperBound = sourceAnalysis_.argumentsUpperBound.max(valLength_);
+        sourceAnalysis_.stackIndex -= int256(valLength_);
         uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
         for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-            (
-                uint256 localStackIndex_,
-                uint256 localStackUpperBound_,
-                uint256 localArgumentsUpperBound_
-            ) = analyzeSources(sources_, operand_ & 0x07, stackIndex_);
-            stackIndex_ = int256(localStackIndex_);
-            if (localStackUpperBound_ > stackUpperBound_) {
-                stackUpperBound_ = localStackUpperBound_;
-            }
-            if (localArgumentsUpperBound_ > argumentsUpperBound_) {
-                argumentsUpperBound_ = localArgumentsUpperBound_;
-            }
+            analyzeSources(sourceAnalysis_, sources_, operand_ & 0x07);
         }
-        return (stackIndex_, stackUpperBound_, argumentsUpperBound_);
     }
 
     function analyzeSources(
+        SourceAnalysis memory sourceAnalysis_,
         bytes[] memory sources_,
-        uint256 sourceIndex_,
-        int256 stackIndex_
+        uint256 entrypoint_
     )
         public
         view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
     {
         unchecked {
             uint256 i_ = 0;
@@ -167,14 +151,14 @@ abstract contract RainVM {
             uint256 opcode_;
             uint256 operand_;
             uint256 sourceLocation_;
-            uint256 stackUpperBound_ = uint256(stackIndex_);
-            uint256 argumentsUpperBound_;
+            // uint256 stackUpperBound_ = uint256(stackIndex_);
+            // uint256 argumentsUpperBound_;
             uint256 d_;
 
             assembly {
                 d_ := mload(add(sources_, 0x20))
                 sourceLocation_ := mload(
-                    add(sources_, add(0x20, mul(sourceIndex_, 0x20)))
+                    add(sources_, add(0x20, mul(entrypoint_, 0x20)))
                 )
 
                 sourceLen_ := mload(sourceLocation_)
@@ -190,34 +174,20 @@ abstract contract RainVM {
 
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ < OPCODE_ZIPMAP) {
-                        stackIndex_++;
+                        sourceAnalysis_.stackIndex++;
                     } else {
-                        (
-                            stackIndex_,
-                            stackUpperBound_,
-                            argumentsUpperBound_
-                        ) = analyzeZipmap(
+                        analyzeZipmap(
+                            sourceAnalysis_,
                             sources_,
-                            stackIndex_,
-                            stackUpperBound_,
-                            argumentsUpperBound_,
                             operand_
                         );
                     }
                 } else {
-                    stackIndex_ += stackIndexDiff(opcode_, operand_);
+                    sourceAnalysis_.stackIndex += stackIndexDiff(opcode_, operand_);
                 }
-                require(stackIndex_ >= 0, "STACK_UNDERFLOW");
-                if (uint256(stackIndex_) > stackUpperBound_) {
-                    stackUpperBound_ = uint256(stackIndex_);
-                }
+                require(sourceAnalysis_.stackIndex >= 0, "STACK_UNDERFLOW");
+                sourceAnalysis_.stackUpperBound = sourceAnalysis_.stackUpperBound.max(uint(sourceAnalysis_.stackIndex));
             }
-
-            return (
-                uint256(stackIndex_),
-                stackUpperBound_,
-                argumentsUpperBound_
-            );
         }
     }
 

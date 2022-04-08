@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {RainVM, State} from "../RainVM.sol";
+import {RainVM, State, SourceAnalysis} from "../RainVM.sol";
 import "../../sstore2/SSTORE2.sol";
+
+import "hardhat/console.sol";
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
@@ -30,16 +32,14 @@ contract VMState {
     /// Builds a new `State` from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
-    function _newState(RainVM analyzer_, StateConfig memory config_, uint entrypoint_)
+    function _newState(StateConfig calldata config_, SourceAnalysis calldata sourceAnalysis_)
         internal
         view
         returns (State memory)
     {
         require(config_.sources.length > 0, "0_SOURCES");
-        (, uint256 stackUpperBound_, uint256 argumentsUpperBound_) = analyzer_
-            .analyzeSources(config_.sources, entrypoint_, 0);
         uint256[] memory constants_ = new uint256[](
-            config_.constants.length + argumentsUpperBound_
+            config_.constants.length + sourceAnalysis_.argumentsUpperBound
         );
         for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
             constants_[i_] = config_.constants[i_];
@@ -47,7 +47,7 @@ contract VMState {
         return
             State(
                 0,
-                new uint256[](stackUpperBound_),
+                new uint256[](sourceAnalysis_.stackUpperBound),
                 config_.sources,
                 constants_,
                 config_.constants.length

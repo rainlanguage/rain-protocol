@@ -27,13 +27,13 @@ uint256 constant FIXED_POINT_MATH_OPS_LENGTH = 7;
 library FixedPointMathOps {
     using FixedPointMath for uint256;
 
-    function stackIndexDiff(uint256, uint256 operand_)
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
         internal
         pure
         returns (int256)
     {
         // Zero length math ops not supported.
-        require(operand_ > 0, "BAD_OPERAND");
+        require(opcode_ > OPCODE_SCALE_BY || operand_ > 0, "BAD_OPERAND");
         // All operations take operand_ as length inputs and have 1 output.
         return 1 - int256(operand_);
     }

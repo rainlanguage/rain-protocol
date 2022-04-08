@@ -12,6 +12,8 @@ import {IERC1155Ops, IERC1155_OPS_LENGTH} from "../../vm/ops/token/IERC1155Ops.s
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
+import "hardhat/console.sol";
+
 uint constant SOURCE_INDEX = 0;
 
 contract TokenOpsTest is RainVM, VMState {
@@ -25,7 +27,11 @@ contract TokenOpsTest is RainVM, VMState {
         ierc721OpsStart = ierc20OpsStart + IERC20_OPS_LENGTH;
         ierc1155OpsStart = ierc721OpsStart + IERC721_OPS_LENGTH;
 
-        vmStatePointer = _snapshot(_newState(RainVM(this), config_, SOURCE_INDEX));
+        (uint finalIndex_, uint256 stackUpperBound_, uint256 argumentsUpperBound_) = analyzeSources(config_.sources, SOURCE_INDEX, 0);
+        console.log("analyze: %s %s %s", finalIndex_, stackUpperBound_, argumentsUpperBound_);
+
+        // vmStatePointer = _snapshot(_newState(RainVM(address(this)), config_, SOURCE_INDEX));
+        vmStatePointer = address(0);
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -69,6 +75,7 @@ contract TokenOpsTest is RainVM, VMState {
         override
         returns (int256)
     {
+        console.log("stack index diff: %s %s", opcode_, operand_);
         unchecked {
             if (opcode_ < ierc721OpsStart) {
                 return
@@ -84,7 +91,7 @@ contract TokenOpsTest is RainVM, VMState {
                     );
             } else {
                 return
-                    IERC721Ops.stackIndexDiff(
+                    IERC1155Ops.stackIndexDiff(
                         opcode_ - ierc1155OpsStart,
                         operand_
                     );
