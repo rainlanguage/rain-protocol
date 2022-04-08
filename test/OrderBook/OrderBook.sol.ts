@@ -11,6 +11,8 @@ import type {
   OrderBook,
   OrderConfigStruct,
   OrderLiveEvent,
+  WithdrawConfigStruct,
+  WithdrawEvent,
 } from "../../typechain/OrderBook";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { Opcode } from "./OrderBookUtil";
@@ -36,6 +38,117 @@ describe("OrderBook", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+  });
+
+  it("should allow withdrawals from non-append-only vault, and prevent withdrawals from append-only vaults", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+
+    const appendVault = ethers.BigNumber.from(-1);
+    const nonAppendVault = ethers.BigNumber.from(1);
+
+    // DEPOSITS
+
+    const amountAppend = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const amountNonAppend = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+
+    await tokenA.transfer(alice.address, amountAppend);
+    await tokenB.transfer(alice.address, amountNonAppend);
+
+    const depositConfigStructAppend: DepositConfigStruct = {
+      depositor: alice.address,
+      token: tokenA.address,
+      vaultId: appendVault,
+      amount: amountAppend,
+    };
+    const depositConfigStructNonAppend: DepositConfigStruct = {
+      depositor: alice.address,
+      token: tokenB.address,
+      vaultId: nonAppendVault,
+      amount: amountNonAppend,
+    };
+
+    await tokenA
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAppend.amount);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructNonAppend.amount);
+
+    // Alice deposits tokenA into her append-only vault
+    const txDepositAppend = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAppend);
+    // Alice deposits tokenB into her non-append-only vault
+    const txDepositNonAppend = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructNonAppend);
+
+    const { sender: depositAppendSender, config: depositAppendConfig } =
+      (await Util.getEventArgs(
+        txDepositAppend,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositNonAppendSender, config: depositNonAppendConfig } =
+      (await Util.getEventArgs(
+        txDepositNonAppend,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAppendSender === alice.address);
+    Util.compareStructs(depositAppendConfig, depositConfigStructAppend);
+    assert(depositNonAppendSender === alice.address);
+    Util.compareStructs(depositNonAppendConfig, depositConfigStructNonAppend);
+
+    const aliceTokenABalance0 = await tokenA.balanceOf(alice.address);
+    const aliceTokenBBalance0 = await tokenB.balanceOf(alice.address);
+
+    const withdrawConfigAppend: WithdrawConfigStruct = {
+      token: tokenA.address,
+      vaultId: appendVault,
+      amount: amountAppend,
+    };
+    const withdrawConfigNonAppend: WithdrawConfigStruct = {
+      token: tokenB.address,
+      vaultId: nonAppendVault,
+      amount: amountNonAppend,
+    };
+
+    await Util.assertError(
+      async () => await orderBook.connect(alice).withdraw(withdrawConfigAppend),
+      "APPEND_ONLY_VAULT_ID",
+      "alice wrongly withdrew from append-only vault"
+    );
+
+    const txWithdraw = await orderBook
+      .connect(alice)
+      .withdraw(withdrawConfigNonAppend);
+
+    const { sender: withdrawSender, config: withdrawConfig } =
+      (await Util.getEventArgs(
+        txWithdraw,
+        "Withdraw",
+        orderBook
+      )) as WithdrawEvent["args"];
+
+    assert(withdrawSender === alice.address);
+    Util.compareStructs(withdrawConfig, withdrawConfigNonAppend);
+
+    const aliceTokenABalance1 = await tokenA.balanceOf(alice.address);
+    const aliceTokenBBalance1 = await tokenB.balanceOf(alice.address);
+
+    assert(aliceTokenABalance0.isZero());
+    assert(aliceTokenABalance1.isZero());
+
+    assert(aliceTokenBBalance0.isZero());
+    assert(aliceTokenBBalance1.eq(amountNonAppend));
   });
 
   it("should add ask and bid orders and clear the order", async function () {
