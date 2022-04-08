@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../../vm/RainVM.sol";
+import {RainVM, State, RAIN_VM_OPS_LENGTH, SourceAnalysis} from "../../vm/RainVM.sol";
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import {LogicOps} from "../../vm/ops/math/LogicOps.sol";
 
-uint constant SOURCE_INDEX = 0;
+uint256 constant SOURCE_INDEX = 0;
 
 /// @title LogicOpsTest
 /// Simple contract that exposes logic ops for testing.
@@ -20,7 +20,9 @@ contract LogicOpsTest is RainVM, VMState {
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
         logicOpsStart = RAIN_VM_OPS_LENGTH;
-        vmStatePointer = _snapshot(_newState(RainVM(this), config_, SOURCE_INDEX));
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
+        vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
     }
 
     /// @inheritdoc RainVM

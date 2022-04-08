@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 /// @title IClaim
 /// @notice Embodies the idea of processing a claim for some kind of reward.
 interface IClaim {
-
     /// `Claim` is emitted whenever `claim` is called to signify that the claim
     /// has been processed. Makes no assumptions about what is being claimed,
     /// not even requiring an "amount" or similar. Instead there is a generic
@@ -13,11 +12,7 @@ interface IClaim {
     /// @param sender `msg.sender` authorizing the claim.
     /// @param claimant The claimant receiving the `Claim`.
     /// @param data Associated data for the claim call.
-    event Claim(
-        address sender,
-        address claimant,
-        bytes data
-    );
+    event Claim(address sender, address claimant, bytes data);
 
     /// Process a claim for `claimant`.
     /// It is up to the implementing contract to define what a "claim" is, but
@@ -28,5 +23,4 @@ interface IClaim {
     /// times, or restrict themselves to a single or several calls only.
     /// @param claimant The address that will receive the result of this claim.
     function claim(address claimant, bytes calldata data) external;
-
 }

@@ -10,7 +10,6 @@ import type { FixedPointMathOpsTest } from "../../typechain/FixedPointMathOpsTes
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,
@@ -24,16 +23,16 @@ const enum Opcode {
   DECIMALS,
 }
 
-let tokenOpsTestFactory: ContractFactory;
+let fixedPointMathOpsTestFactory: ContractFactory;
 
-describe.only("FixedPointMathOpsTest", async function () {
+describe("FixedPointMathOpsTest", async function () {
   before(async () => {
-    tokenOpsTestFactory = await ethers.getContractFactory(
+    fixedPointMathOpsTestFactory = await ethers.getContractFactory(
       "FixedPointMathOpsTest"
     );
   });
 
-  it.only("should return DECIMALS", async () => {
+  it("should return DECIMALS", async () => {
     this.timeout(0);
 
     const constants = [];
@@ -45,20 +44,20 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    // const result0 = await tokenOpsTest.run();
-    // const expected0 = 18;
+    const result0 = await fixedPointOpsTest.run();
+    const expected0 = 18;
 
-    // assert(
-    //   result0.eq(expected0),
-    //   `wrong result
-    //   expected  ${expected0}
-    //   got       ${result0}`
-    // );
+    assert(
+      result0.eq(expected0),
+      `wrong result
+      expected  ${expected0}
+      got       ${result0}`
+    );
   });
 
   it("should return ONE", async () => {
@@ -73,12 +72,12 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    const result0 = await tokenOpsTest.run();
+    const result0 = await fixedPointOpsTest.run();
     const expected0 = ethers.BigNumber.from(1 + Util.eighteenZeros);
 
     assert(
@@ -106,12 +105,12 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    const result0 = await tokenOpsTest.run();
+    const result0 = await fixedPointOpsTest.run();
     const expected0 = ethers.BigNumber.from(100);
 
     assert(
@@ -139,12 +138,12 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    const result0 = await tokenOpsTest.run();
+    const result0 = await fixedPointOpsTest.run();
     const expected0 = ethers.BigNumber.from(1 + Util.sixZeros + "0000");
 
     assert(
@@ -172,12 +171,12 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    const result0 = await tokenOpsTest.run();
+    const result0 = await fixedPointOpsTest.run();
     const expected0 = ethers.BigNumber.from(1 + Util.eighteenZeros + "00");
 
     assert(
@@ -205,12 +204,12 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    const result0 = await tokenOpsTest.run();
+    const result0 = await fixedPointOpsTest.run();
     const expected0 = ethers.BigNumber.from(1 + Util.sixZeros);
 
     assert(
@@ -240,12 +239,12 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    const result0 = await tokenOpsTest.run();
+    const result0 = await fixedPointOpsTest.run();
     const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros).div(
       value2
     );
@@ -276,12 +275,12 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    const result0 = await tokenOpsTest.run();
+    const result0 = await fixedPointOpsTest.run();
     const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros).mul(
       value2
     );
@@ -309,12 +308,12 @@ describe.only("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
+    const fixedPointOpsTest = (await fixedPointMathOpsTestFactory.deploy({
       sources,
       constants,
     })) as FixedPointMathOpsTest & Contract;
 
-    const result0 = await tokenOpsTest.run();
+    const result0 = await fixedPointOpsTest.run();
     const expected0 = ethers.BigNumber.from(value + Util.eighteenZeros);
     assert(
       result0.eq(expected0),

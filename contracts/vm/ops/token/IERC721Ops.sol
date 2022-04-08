@@ -15,12 +15,7 @@ uint256 constant IERC721_OPS_LENGTH = 2;
 /// @title IERC721Ops
 /// @notice RainVM opcode pack to read the IERC721 interface.
 library IERC721Ops {
-
-    function stackIndexDiff(uint256, uint256)
-        internal
-        pure
-        returns (int256)
-    {
+    function stackIndexDiff(uint256, uint256) internal pure returns (int256) {
         return -1;
     }
 

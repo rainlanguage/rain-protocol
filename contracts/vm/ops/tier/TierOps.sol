@@ -41,7 +41,7 @@ library TierOps {
         } else {
             uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
             require(reportsLength_ > 0, "BAD_OPERAND");
-            return 1 - int(reportsLength_);
+            return 1 - int256(reportsLength_);
         }
     }
 
@@ -115,7 +115,7 @@ library TierOps {
             // The report to update and block number to update to are both
             // taken from the stack.
             else if (opcode_ == OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE) {
-                                uint256 location_;
+                uint256 location_;
                 uint256 report_;
                 uint256 startTier_ = operand_ & 0x0f; // & 00001111
                 uint256 endTier_ = (operand_ >> 4) & 0x0f; // & 00001111

@@ -5,7 +5,7 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {RainVM, State} from "../vm/RainVM.sol";
+import {RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
@@ -25,12 +25,12 @@ struct EmissionsERC20Config {
 }
 
 /// @dev Source index for VM eval.
-uint constant SOURCE_INDEX = 0;
+uint256 constant SOURCE_INDEX = 0;
 
-    /// @dev local opcode to put claimant account on the stack.
-    uint256 constant OPCODE_CLAIMANT_ACCOUNT = 0;
-    /// @dev local opcodes length.
-    uint256 constant LOCAL_OPS_LENGTH = 1;
+/// @dev local opcode to put claimant account on the stack.
+uint256 constant OPCODE_CLAIMANT_ACCOUNT = 0;
+/// @dev local opcodes length.
+uint256 constant LOCAL_OPS_LENGTH = 1;
 
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -86,7 +86,7 @@ contract EmissionsERC20 is
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function initialize(EmissionsERC20Config memory config_)
+    function initialize(EmissionsERC20Config calldata config_)
         external
         initializer
     {
@@ -96,8 +96,14 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(
+            sourceAnalysis_,
+            config_.vmStateConfig.sources,
+            SOURCE_INDEX
+        );
         vmStatePointer = _snapshot(
-            _newState(RainVM(this), config_.vmStateConfig, SOURCE_INDEX)
+            _newState(config_.vmStateConfig, sourceAnalysis_)
         );
 
         /// Log some deploy state for use by claim/opcodes.
@@ -116,7 +122,10 @@ contract EmissionsERC20 is
         unchecked {
             if (opcode_ < localOpsStart) {
                 return
-                    AllStandardOps.stackIndexDiff(opcode_ - ALL_STANDARD_OPS_START, operand_);
+                    AllStandardOps.stackIndexDiff(
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
             } else {
                 return 1;
             }
@@ -132,14 +141,17 @@ contract EmissionsERC20 is
     ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < localOpsStart) {
-                return AllStandardOps.applyOp(
-                    stackTopLocation_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
+                return
+                    AllStandardOps.applyOp(
+                        stackTopLocation_,
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
             } else {
                 // There's only one opcode, which stacks the account address.
-                uint account_ = uint(uint160(address(abi.decode(context_, (address)))));
+                uint256 account_ = uint256(
+                    uint160(address(abi.decode(context_, (address))))
+                );
                 assembly {
                     mstore(stackTopLocation_, account_)
                     stackTopLocation_ := add(stackTopLocation_, 0x20)

@@ -17,16 +17,15 @@ uint256 constant EVM_CONSTANT_OPS_LENGTH = 4;
 /// @title EVMConstantOps
 /// @notice RainVM opcode pack to access constants from the EVM environment.
 library EVMConstantOps {
-
     function stackIndexDiff(uint256, uint256) internal pure returns (int256) {
         return 1;
     }
 
     function applyOp(
-        uint stackTopLocation_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256
-    ) internal view returns(uint) {
+    ) internal view returns (uint256) {
         unchecked {
             assembly {
                 switch opcode_

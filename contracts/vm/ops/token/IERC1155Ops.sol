@@ -15,7 +15,6 @@ uint256 constant IERC1155_OPS_LENGTH = 2;
 /// @title IERC1155Ops
 /// @notice RainVM opcode pack to read the IERC1155 interface.
 library IERC1155Ops {
-
     function stackIndexDiff(uint256 opcode_, uint256 operand_)
         internal
         pure
@@ -27,9 +26,10 @@ library IERC1155Ops {
             require(operand_ > 0, "BAD_OPERAND");
             // inputs: (len * 2) + 1
             // outputs: len
-            return -(1 + int(operand_));
+            return -(1 + int256(operand_));
         }
     }
+
     function applyOp(
         uint256 stackTopLocation_,
         uint256 opcode_,

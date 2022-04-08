@@ -3,18 +3,18 @@ pragma solidity =0.8.10;
 
 import {State} from "../../RainVM.sol";
 
-    uint256 constant OPCODE_ISZERO = 0;
-    uint256 constant OPCODE_EAGER_IF = 1;
-    uint256 constant OPCODE_EQUAL_TO = 2;
-    uint256 constant OPCODE_LESS_THAN = 3;
-    uint256 constant OPCODE_GREATER_THAN = 4;
-    uint256 constant OPCODE_EVERY = 5;
-    uint256 constant OPCODE_ANY = 6;
-    /// @dev Number of provided opcodes for `LogicOps`.
-    /// The opcodes are NOT listed on the library as they are all internal to
-    /// the assembly and yul doesn't seem to support using solidity constants
-    /// as switch case values.
-    uint256 constant OPS_LENGTH = 7;
+uint256 constant OPCODE_ISZERO = 0;
+uint256 constant OPCODE_EAGER_IF = 1;
+uint256 constant OPCODE_EQUAL_TO = 2;
+uint256 constant OPCODE_LESS_THAN = 3;
+uint256 constant OPCODE_GREATER_THAN = 4;
+uint256 constant OPCODE_EVERY = 5;
+uint256 constant OPCODE_ANY = 6;
+/// @dev Number of provided opcodes for `LogicOps`.
+/// The opcodes are NOT listed on the library as they are all internal to
+/// the assembly and yul doesn't seem to support using solidity constants
+/// as switch case values.
+uint256 constant OPS_LENGTH = 7;
 
 /// @dev Number of provided opcodes for `LogicOps`.
 /// The opcodes are NOT listed on the library as they are all internal to
@@ -25,7 +25,6 @@ uint256 constant LOGIC_OPS_LENGTH = 7;
 /// @title LogicOps
 /// @notice RainVM opcode pack to perform some basic logic operations.
 library LogicOps {
-
     function stackIndexDiff(uint256 opcode_, uint256 operand_)
         internal
         pure

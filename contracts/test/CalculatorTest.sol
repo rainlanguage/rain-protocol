@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
+import {RainVM, State, RAIN_VM_OPS_LENGTH, SourceAnalysis} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {EVMConstantOps, EVM_CONSTANT_OPS_LENGTH} from "../vm/ops/evm/EVMConstantOps.sol";
 import {MathOps} from "../vm/ops/math/MathOps.sol";
 
-uint constant SOURCE_INDEX = 0;
+uint256 constant SOURCE_INDEX = 0;
 
 /// @title CalculatorTest
 /// Simple calculator that exposes basic math ops and block ops for testing.
@@ -24,7 +24,9 @@ contract CalculatorTest is RainVM, VMState {
         /// added/removed and potentially breaking the offsets here.
         evmConstantOpsStart = RAIN_VM_OPS_LENGTH;
         mathOpsStart = evmConstantOpsStart + EVM_CONSTANT_OPS_LENGTH;
-        vmStatePointer = _snapshot(_newState(RainVM(this), config_, SOURCE_INDEX));
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
+        vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
     }
 
     /// @inheritdoc RainVM
@@ -37,7 +39,10 @@ contract CalculatorTest is RainVM, VMState {
         unchecked {
             if (opcode_ < mathOpsStart) {
                 return
-                    EVMConstantOps.stackIndexDiff(opcode_ - evmConstantOpsStart, operand_);
+                    EVMConstantOps.stackIndexDiff(
+                        opcode_ - evmConstantOpsStart,
+                        operand_
+                    );
             } else {
                 return MathOps.stackIndexDiff(opcode_ - mathOpsStart, operand_);
             }

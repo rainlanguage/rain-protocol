@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "hardhat/console.sol";
 
 struct SourceAnalysis {
-    int stackIndex;
-    uint stackUpperBound;
-    uint argumentsUpperBound;
+    int256 stackIndex;
+    uint256 stackUpperBound;
+    uint256 argumentsUpperBound;
 }
 
 /// Everything required to evaluate and track the state of a rain script.
@@ -40,16 +40,16 @@ struct State {
     uint256 argumentsIndex;
 }
 
-    /// @dev Copies a value either off `constants` to the top of the stack.
-    uint256 constant OPCODE_VAL = 0;
-    /// @dev Duplicates any value in the stack to the top of the stack. The operand
-    /// specifies the index to copy from.
-    uint256 constant OPCODE_DUP = 1;
-    /// @dev Takes N values off the stack, interprets them as an array then zips
-    /// and maps a source from `sources` over them.
-    uint256 constant OPCODE_ZIPMAP = 2;
-    /// @dev ABI encodes the entire stack and logs it to the hardhat console.
-    uint constant OPCODE_DEBUG = 3;
+/// @dev Copies a value either off `constants` to the top of the stack.
+uint256 constant OPCODE_VAL = 0;
+/// @dev Duplicates any value in the stack to the top of the stack. The operand
+/// specifies the index to copy from.
+uint256 constant OPCODE_DUP = 1;
+/// @dev Takes N values off the stack, interprets them as an array then zips
+/// and maps a source from `sources` over them.
+uint256 constant OPCODE_ZIPMAP = 2;
+/// @dev ABI encodes the entire stack and logs it to the hardhat console.
+uint256 constant OPCODE_DEBUG = 3;
 /// @dev Number of provided opcodes for `RainVM`.
 uint256 constant RAIN_VM_OPS_LENGTH = 4;
 
@@ -117,19 +117,25 @@ uint256 constant RAIN_VM_OPS_LENGTH = 4;
 /// up very quickly. Implementing contracts and opcode packs SHOULD require
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
+    using Math for uint256;
 
-    using Math for uint;
+    function _newSourceAnalysis()
+        internal
+        pure
+        returns (SourceAnalysis memory)
+    {
+        return SourceAnalysis(0, 0, 0);
+    }
 
     function analyzeZipmap(
         SourceAnalysis memory sourceAnalysis_,
         bytes[] memory sources_,
         uint256 operand_
-    )
-        private
-        view
-    {
+    ) private view {
         uint256 valLength_ = (operand_ >> 5) + 1;
-        sourceAnalysis_.argumentsUpperBound = sourceAnalysis_.argumentsUpperBound.max(valLength_);
+        sourceAnalysis_.argumentsUpperBound = sourceAnalysis_
+            .argumentsUpperBound
+            .max(valLength_);
         sourceAnalysis_.stackIndex -= int256(valLength_);
         uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
         for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
@@ -141,10 +147,7 @@ abstract contract RainVM {
         SourceAnalysis memory sourceAnalysis_,
         bytes[] memory sources_,
         uint256 entrypoint_
-    )
-        public
-        view
-    {
+    ) public view {
         unchecked {
             uint256 i_ = 0;
             uint256 sourceLen_;
@@ -176,17 +179,18 @@ abstract contract RainVM {
                     if (opcode_ < OPCODE_ZIPMAP) {
                         sourceAnalysis_.stackIndex++;
                     } else {
-                        analyzeZipmap(
-                            sourceAnalysis_,
-                            sources_,
-                            operand_
-                        );
+                        analyzeZipmap(sourceAnalysis_, sources_, operand_);
                     }
                 } else {
-                    sourceAnalysis_.stackIndex += stackIndexDiff(opcode_, operand_);
+                    sourceAnalysis_.stackIndex += stackIndexDiff(
+                        opcode_,
+                        operand_
+                    );
                 }
                 require(sourceAnalysis_.stackIndex >= 0, "STACK_UNDERFLOW");
-                sourceAnalysis_.stackUpperBound = sourceAnalysis_.stackUpperBound.max(uint(sourceAnalysis_.stackIndex));
+                sourceAnalysis_.stackUpperBound = sourceAnalysis_
+                    .stackUpperBound
+                    .max(uint256(sourceAnalysis_.stackIndex));
             }
         }
     }

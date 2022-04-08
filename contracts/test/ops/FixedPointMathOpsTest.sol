@@ -7,7 +7,7 @@ import {FixedPointMathOps} from "../../vm/ops/math/FixedPointMathOps.sol";
 
 import "hardhat/console.sol";
 
-uint constant SOURCE_INDEX = 0;
+uint256 constant SOURCE_INDEX = 0;
 
 /// @title FixedPointMathOpsTest
 /// Simple contract that exposes fixed point math ops for testing.
@@ -22,20 +22,33 @@ contract FixedPointMathOpsTest is RainVM, VMState {
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
         fixedPointMathOpsStart = RAIN_VM_OPS_LENGTH;
-        vmStatePointer = _snapshot(_newState(config_, analyzeSources(config_.sources, SOURCE_INDEX, 0)));
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
+        console.log(
+            "analysis: %s %s %s",
+            uint(sourceAnalysis_.stackIndex),
+            sourceAnalysis_.stackUpperBound,
+            sourceAnalysis_.argumentsUpperBound
+        );
+        vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
     }
 
     /// @inheritdoc RainVM
-    function stackIndexDiff(uint opcode_, uint operand_)
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
         public
-        view virtual override returns (int256) {
-            unchecked {
-                return FixedPointMathOps.stackIndexDiff(
+        view
+        virtual
+        override
+        returns (int256)
+    {
+        unchecked {
+            return
+                FixedPointMathOps.stackIndexDiff(
                     opcode_ - fixedPointMathOpsStart,
                     operand_
                 );
-            }
         }
+    }
 
     /// @inheritdoc RainVM
     function applyOp(
@@ -43,13 +56,15 @@ contract FixedPointMathOpsTest is RainVM, VMState {
         uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override returns (uint) {
+    ) internal view override returns (uint256) {
+        console.log("apply op");
         unchecked {
-            return FixedPointMathOps.applyOp(
-                stackTopLocation_,
-                opcode_ - fixedPointMathOpsStart,
-                operand_
-            );
+            return
+                FixedPointMathOps.applyOp(
+                    stackTopLocation_,
+                    opcode_ - fixedPointMathOpsStart,
+                    operand_
+                );
         }
     }
 
@@ -57,6 +72,7 @@ contract FixedPointMathOpsTest is RainVM, VMState {
     /// @return top of `runState` stack.
     function run() external view returns (uint256) {
         State memory state_ = runState();
+        console.log("final state: %s", state_.stackIndex);
         return state_.stack[state_.stackIndex - 1];
     }
 

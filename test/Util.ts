@@ -32,6 +32,7 @@ import type {
 } from "ethers";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SourceAnalysisStruct } from "../typechain/RainVM";
 
 const { assert } = chai;
 
@@ -595,3 +596,11 @@ export enum AllStandardOps {
   IERC1155_BALANCE_OF_BATCH,
   length,
 }
+
+export const newSourceAnalysis = (): SourceAnalysisStruct => {
+  return {
+    stackIndex: 0,
+    stackUpperBound: 0,
+    argumentsUpperBound: 0,
+  };
+};

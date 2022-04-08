@@ -32,11 +32,10 @@ contract VMState {
     /// Builds a new `State` from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
-    function _newState(StateConfig calldata config_, SourceAnalysis calldata sourceAnalysis_)
-        internal
-        view
-        returns (State memory)
-    {
+    function _newState(
+        StateConfig memory config_,
+        SourceAnalysis memory sourceAnalysis_
+    ) internal pure returns (State memory) {
         require(config_.sources.length > 0, "0_SOURCES");
         uint256[] memory constants_ = new uint256[](
             config_.constants.length + sourceAnalysis_.argumentsUpperBound

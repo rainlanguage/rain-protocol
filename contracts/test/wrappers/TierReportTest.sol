@@ -101,12 +101,7 @@ contract TierReportTest {
         uint256 blockNumber_
     ) external pure returns (uint256) {
         unchecked {
-            return
-                TierReport.updateBlockAtTier(
-                    report_,
-                    tier_,
-                    blockNumber_
-                );
+            return TierReport.updateBlockAtTier(report_, tier_, blockNumber_);
         }
     }
 }

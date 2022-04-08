@@ -15,7 +15,6 @@ uint256 constant IERC20_OPS_LENGTH = 2;
 /// @title IERC20Ops
 /// @notice RainVM opcode pack to read the IERC20 interface.
 library IERC20Ops {
-
     function stackIndexDiff(uint256 opcode_, uint256)
         internal
         pure

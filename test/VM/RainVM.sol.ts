@@ -693,7 +693,11 @@ describe("RainVM", async function () {
 
     console.log(sources);
 
-    const stackUB = await calculator.analyzeSources(sources, 0, 0);
+    const stackUB = await calculator.analyzeSources(
+      Util.newSourceAnalysis(),
+      sources,
+      0
+    );
 
     console.log(stackUB);
 

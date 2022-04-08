@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "hardhat/console.sol";
 
-uint constant SOURCE_INDEX = 0;
+uint256 constant SOURCE_INDEX = 0;
 
 contract TokenOpsTest is RainVM, VMState {
     uint256 private immutable ierc20OpsStart;
@@ -27,11 +27,9 @@ contract TokenOpsTest is RainVM, VMState {
         ierc721OpsStart = ierc20OpsStart + IERC20_OPS_LENGTH;
         ierc1155OpsStart = ierc721OpsStart + IERC721_OPS_LENGTH;
 
-        (uint finalIndex_, uint256 stackUpperBound_, uint256 argumentsUpperBound_) = analyzeSources(config_.sources, SOURCE_INDEX, 0);
-        console.log("analyze: %s %s %s", finalIndex_, stackUpperBound_, argumentsUpperBound_);
-
-        // vmStatePointer = _snapshot(_newState(RainVM(address(this)), config_, SOURCE_INDEX));
-        vmStatePointer = address(0);
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
+        vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -108,15 +106,26 @@ contract TokenOpsTest is RainVM, VMState {
     ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < ierc721OpsStart) {
-                return IERC20Ops.applyOp(stackTopLocation_, opcode_ - ierc20OpsStart, operand_);
+                return
+                    IERC20Ops.applyOp(
+                        stackTopLocation_,
+                        opcode_ - ierc20OpsStart,
+                        operand_
+                    );
             } else if (opcode_ < ierc1155OpsStart) {
-                return IERC721Ops.applyOp(stackTopLocation_, opcode_ - ierc721OpsStart, operand_);
+                return
+                    IERC721Ops.applyOp(
+                        stackTopLocation_,
+                        opcode_ - ierc721OpsStart,
+                        operand_
+                    );
             } else {
-                return IERC1155Ops.applyOp(
-                    stackTopLocation_,
-                    opcode_ - ierc1155OpsStart,
-                    operand_
-                );
+                return
+                    IERC1155Ops.applyOp(
+                        stackTopLocation_,
+                        opcode_ - ierc1155OpsStart,
+                        operand_
+                    );
             }
         }
     }

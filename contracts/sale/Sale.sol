@@ -134,7 +134,7 @@ struct Receipt {
     uint256 price;
 }
 
-uint constant SOURCE_INDEX = 0;
+uint256 constant SOURCE_INDEX = 0;
 
 // solhint-disable-next-line max-states-count
 contract Sale is
@@ -265,7 +265,7 @@ contract Sale is
     }
 
     function initialize(
-        SaleConfig memory config_,
+        SaleConfig calldata config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external initializer {
         require(
@@ -286,14 +286,36 @@ contract Sale is
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
+        SourceAnalysis memory canStartSourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(
+            canStartSourceAnalysis_,
+            config_.canStartStateConfig.sources,
+            SOURCE_INDEX
+        );
         canStartStatePointer = _snapshot(
-            _newState(RainVM(this), config_.canStartStateConfig, SOURCE_INDEX)
+            _newState(config_.canStartStateConfig, canStartSourceAnalysis_)
+        );
+        SourceAnalysis memory canEndSourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(
+            canEndSourceAnalysis_,
+            config_.canEndStateConfig.sources,
+            SOURCE_INDEX
         );
         canEndStatePointer = _snapshot(
-            _newState(RainVM(this), config_.canEndStateConfig, SOURCE_INDEX)
+            _newState(config_.canEndStateConfig, canEndSourceAnalysis_)
+        );
+        SourceAnalysis
+            memory calculatePriceSourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(
+            calculatePriceSourceAnalysis_,
+            config_.calculatePriceStateConfig.sources,
+            SOURCE_INDEX
         );
         calculatePriceStatePointer = _snapshot(
-            _newState(RainVM(this), config_.calculatePriceStateConfig, SOURCE_INDEX)
+            _newState(
+                config_.calculatePriceStateConfig,
+                calculatePriceSourceAnalysis_
+            )
         );
         recipient = config_.recipient;
 
@@ -603,7 +625,10 @@ contract Sale is
         unchecked {
             if (opcode_ < localOpsStart) {
                 return
-                    AllStandardOps.stackIndexDiff(opcode_ - ALL_STANDARD_OPS_START, operand_);
+                    AllStandardOps.stackIndexDiff(
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
             } else {
                 return 1;
             }
@@ -618,14 +643,15 @@ contract Sale is
     ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < localOpsStart) {
-                return AllStandardOps.applyOp(
-                    stackTopLocation_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
+                return
+                    AllStandardOps.applyOp(
+                        stackTopLocation_,
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
             } else {
                 opcode_ -= localOpsStart;
-                uint value_;
+                uint256 value_;
                 if (opcode_ == OPCODE_REMAINING_UNITS) {
                     value_ = remainingUnits;
                 } else if (opcode_ == OPCODE_TOTAL_RESERVE_IN) {
@@ -633,13 +659,9 @@ contract Sale is
                 } else if (opcode_ == OPCODE_CURRENT_BUY_UNITS) {
                     value_ = abi.decode(context_, (uint256));
                 } else if (opcode_ == OPCODE_TOKEN_ADDRESS) {
-                    value_ = uint256(
-                        uint160(address(_token))
-                    );
+                    value_ = uint256(uint160(address(_token)));
                 } else if (opcode_ == OPCODE_RESERVE_ADDRESS) {
-                    value_ = uint256(
-                        uint160(address(_reserve))
-                    );
+                    value_ = uint256(uint160(address(_reserve)));
                 }
                 assembly {
                     mstore(stackTopLocation_, value_)
