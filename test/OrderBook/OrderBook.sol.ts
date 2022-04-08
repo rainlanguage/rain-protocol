@@ -41,6 +41,288 @@ describe("OrderBook", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
+  // should expose counterparty to RainVM calculations
+
+  it("should expose tracked data to RainVM calculations", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const bountyBot = signers[3];
+    const carol = signers[4];
+    const dave = signers[5];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(3);
+    const bobOutputVault = ethers.BigNumber.from(4);
+    const bountyBotVaultA = ethers.BigNumber.from(5);
+    const bountyBotVaultB = ethers.BigNumber.from(6);
+    const carolInputVault = ethers.BigNumber.from(7);
+    const carolOutputVault = ethers.BigNumber.from(8);
+    const daveInputVault = ethers.BigNumber.from(9);
+    const daveOutputVault = ethers.BigNumber.from(10);
+
+    // ASK ORDER
+
+    const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
+    const askConstants = [Util.max_uint256, askPrice];
+    const vAskOutputMax = op(Opcode.VAL, 0);
+    const vAskPrice = op(Opcode.VAL, 1);
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig: OrderConfigStruct = {
+      owner: alice.address,
+      inputToken: tokenA.address,
+      inputVaultId: aliceInputVault,
+      outputToken: tokenB.address,
+      outputVaultId: aliceOutputVault,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0],
+        sources: [askSource],
+        constants: askConstants,
+        arguments: [],
+      },
+    };
+
+    const txAskOrderLive = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { config: askConfig } = (await Util.getEventArgs(
+      txAskOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    // BID ORDER
+
+    const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
+    const bidConstants = [Util.max_uint256, bidPrice];
+    const vBidOutputMax = op(Opcode.VAL, 0);
+    const vBidPrice = op(Opcode.VAL, 1);
+    // prettier-ignore
+    const bidSource = concat([
+      vBidOutputMax,
+      vBidPrice,
+    ]);
+    const bidOrderConfig: OrderConfigStruct = {
+      owner: bob.address,
+      inputToken: tokenB.address,
+      inputVaultId: bobInputVault,
+      outputToken: tokenA.address,
+      outputVaultId: bobOutputVault,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0],
+        sources: [bidSource],
+        constants: bidConstants,
+        arguments: [],
+      },
+    };
+
+    const txBidOrderLive = await orderBook
+      .connect(bob)
+      .addOrder(bidOrderConfig);
+
+    const { config: bidConfig } = (await Util.getEventArgs(
+      txBidOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    // DEPOSITS
+
+    const amountB = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenA.transfer(bob.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      depositor: alice.address,
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      depositor: bob.address,
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    await orderBook.connect(alice).deposit(depositConfigStructAlice);
+    // Bob deposits tokenA into his output vault
+    await orderBook.connect(bob).deposit(depositConfigStructBob);
+
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const bountyConfig0: BountyConfigStruct = {
+      aVaultId: bountyBotVaultA,
+      bVaultId: bountyBotVaultB,
+    };
+
+    await orderBook
+      .connect(bountyBot)
+      .clear(askConfig, bidConfig, bountyConfig0);
+
+    // CAROL ORDER - ORDER FUNDS CLEARED
+
+    const carolPriceIfCleared = ethers.BigNumber.from("1" + Util.eighteenZeros);
+    const carolPriceIfNotCleared = ethers.BigNumber.from(
+      "2" + Util.eighteenZeros
+    );
+    const carolConstants = [
+      Util.max_uint256,
+      carolPriceIfCleared,
+      carolPriceIfNotCleared,
+    ];
+    const vCarolOutputMax = op(Opcode.VAL, 0);
+    const vCarolPriceIfCleared = op(Opcode.VAL, 1);
+    const vCarolPriceIfNotCleared = op(Opcode.VAL, 2);
+    // prettier-ignore
+    const carolSource = concat([
+      vCarolOutputMax,
+        op(Opcode.OPCODE_ORDER_FUNDS_CLEARED),
+        vCarolPriceIfCleared,
+        vCarolPriceIfNotCleared,
+      op(Opcode.EAGER_IF)
+    ]);
+    const carolOrderConfig: OrderConfigStruct = {
+      owner: carol.address,
+      inputToken: tokenA.address,
+      inputVaultId: carolInputVault,
+      outputToken: tokenB.address,
+      outputVaultId: carolOutputVault,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0, 0, 0, 0, 0, 0, 0],
+        sources: [carolSource],
+        constants: carolConstants,
+        arguments: [],
+      },
+    };
+
+    const txCarolOrderLive = await orderBook
+      .connect(carol)
+      .addOrder(carolOrderConfig);
+
+    const { config: carolConfig } = (await Util.getEventArgs(
+      txCarolOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    // DAVE ORDER - COUNTERPARTY FUNDS CLEARED
+
+    const davePriceIfCleared = ethers.BigNumber.from("1" + Util.eighteenZeros);
+    const davePriceIfNotCleared = ethers.BigNumber.from(
+      "2" + Util.eighteenZeros
+    );
+    const daveConstants = [
+      Util.max_uint256,
+      davePriceIfCleared,
+      davePriceIfNotCleared,
+    ];
+    const vDaveOutputMax = op(Opcode.VAL, 0);
+    const vDavePriceIfCleared = op(Opcode.VAL, 1);
+    const vDavePriceIfNotCleared = op(Opcode.VAL, 2);
+    // prettier-ignore
+    const daveSource = concat([
+      vDaveOutputMax,
+        op(Opcode.OPCODE_COUNTERPARTY_FUNDS_CLEARED),
+        vDavePriceIfCleared,
+        vDavePriceIfNotCleared,
+      op(Opcode.EAGER_IF)
+    ]);
+    const daveOrderConfig: OrderConfigStruct = {
+      owner: dave.address,
+      inputToken: tokenB.address,
+      inputVaultId: daveInputVault,
+      outputToken: tokenA.address,
+      outputVaultId: daveOutputVault,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0, 0, 0, 0, 0, 0, 0],
+        sources: [daveSource],
+        constants: daveConstants,
+        arguments: [],
+      },
+    };
+
+    const txDaveOrderLive = await orderBook
+      .connect(dave)
+      .addOrder(daveOrderConfig);
+
+    const { config: daveConfig } = (await Util.getEventArgs(
+      txDaveOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    // DEPOSITS - CAROL & DAVE
+
+    await tokenB.transfer(carol.address, amountB);
+    await tokenA.transfer(dave.address, amountA);
+
+    const depositConfigStructCarol: DepositConfigStruct = {
+      depositor: carol.address,
+      token: tokenB.address,
+      vaultId: carolOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructDave: DepositConfigStruct = {
+      depositor: dave.address,
+      token: tokenA.address,
+      vaultId: daveOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(carol)
+      .approve(orderBook.address, depositConfigStructCarol.amount);
+    await tokenA
+      .connect(dave)
+      .approve(orderBook.address, depositConfigStructDave.amount);
+
+    // Carol deposits tokenB into her output vault
+    await orderBook.connect(carol).deposit(depositConfigStructCarol);
+    // Dave deposits tokenA into his output vault
+    await orderBook.connect(dave).deposit(depositConfigStructDave);
+
+    // BOUNTY BOT CLEARS THE ORDER - CAROL & DAVE
+
+    const bountyConfig1: BountyConfigStruct = {
+      aVaultId: bountyBotVaultA,
+      bVaultId: bountyBotVaultB,
+    };
+
+    const txClearOrder1 = await orderBook
+      .connect(bountyBot)
+      .clear(carolConfig, daveConfig, bountyConfig1);
+  });
+
   it("should support removing orders iff they interface with non-append-only vaults", async function () {
     this.timeout(0);
 
