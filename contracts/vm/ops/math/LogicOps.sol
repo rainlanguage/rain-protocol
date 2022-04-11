@@ -69,15 +69,17 @@ library LogicOps {
             case 1 {
                 let location_ := sub(stackTopLocation_, 0x60)
                 stackTopLocation_ := add(location_, 0x20)
-                switch mload(location_)
                 // false => use second value
-                case 0 {
-                    mstore(location_, mload(add(location_, 0x40)))
-                }
                 // true => use first value
-                default {
-                    mstore(location_, mload(stackTopLocation_))
-                }
+                mstore(
+                    location_,
+                    mload(
+                        add(
+                            stackTopLocation_,
+                            mul(0x20, iszero(mload(location_)))
+                        )
+                    )
+                )
             }
             // EQUAL_TO
             case 2 {

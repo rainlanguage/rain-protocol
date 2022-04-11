@@ -151,8 +151,6 @@ abstract contract RainVM {
             uint256 opcode_;
             uint256 operand_;
             uint256 sourceLocation_;
-            // uint256 stackUpperBound_ = uint256(stackIndex_);
-            // uint256 argumentsUpperBound_;
             uint256 d_;
 
             assembly {
