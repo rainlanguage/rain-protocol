@@ -41,7 +41,187 @@ describe("OrderBook", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  // should expose tracked data to RainVM calculations
+  it("should expose tracked data to RainVM calculations (e.g. ask order will trigger revert if bid order does not clear output vault funds)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const bountyBot = signers[4];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(3);
+    const bobOutputVault = ethers.BigNumber.from(4);
+    const bountyBotVaultA = ethers.BigNumber.from(5);
+    const bountyBotVaultB = ethers.BigNumber.from(6);
+
+    // ASK ORDER
+
+    const askOutputMax = Util.max_uint256;
+    const askPriceIfClearFunds = ethers.BigNumber.from(
+      "90" + Util.eighteenZeros
+    );
+    const askPriceIfNotClearFunds = Util.max_uint256;
+
+    const askConstants = [
+      askOutputMax,
+      askPriceIfClearFunds,
+      askPriceIfNotClearFunds,
+    ];
+    const vAskOutputMax = op(Opcode.VAL, 0);
+    const vAskPriceIfClear = op(Opcode.VAL, 1);
+    const vAskPriceIfNotClear = op(Opcode.VAL, 2);
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+        op(Opcode.ORDER_FUNDS_CLEARED),
+        vAskPriceIfClear,
+        vAskPriceIfNotClear,
+      op(Opcode.EAGER_IF)
+    ]);
+
+    const askOrderConfig: OrderConfigStruct = {
+      owner: alice.address,
+      inputToken: tokenA.address,
+      inputVaultId: aliceInputVault,
+      outputToken: tokenB.address,
+      outputVaultId: aliceOutputVault,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0, 0, 0, 0, 0, 0, 0],
+        sources: [askSource],
+        constants: askConstants,
+        arguments: [],
+      },
+    };
+
+    const txAskOrderLive = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { sender: askSender, config: askConfig } = (await Util.getEventArgs(
+      txAskOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    assert(askSender === alice.address, "wrong sender");
+    Util.compareStructs(askConfig, askOrderConfig);
+
+    // BID ORDER
+
+    const bidOutputMax = Util.max_uint256;
+    const bidPrice = Util.fixedPointDiv(Util.ONE, askPriceIfClearFunds);
+
+    const bidConstants = [bidOutputMax, bidPrice];
+    const vBidOutputMax = op(Opcode.VAL, 0);
+    const vBidPrice = op(Opcode.VAL, 1);
+    // prettier-ignore
+    const bidSource = concat([
+      vBidOutputMax,
+      vBidPrice,
+    ]);
+    const bidOrderConfig: OrderConfigStruct = {
+      owner: bob.address,
+      inputToken: tokenB.address,
+      inputVaultId: bobInputVault,
+      outputToken: tokenA.address,
+      outputVaultId: bobOutputVault,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0],
+        sources: [bidSource],
+        constants: bidConstants,
+        arguments: [],
+      },
+    };
+
+    const txBidOrderLive = await orderBook
+      .connect(bob)
+      .addOrder(bidOrderConfig);
+
+    const { sender: bidSender, config: bidConfig } = (await Util.getEventArgs(
+      txBidOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    assert(bidSender === bob.address, "wrong sender");
+    Util.compareStructs(bidConfig, bidOrderConfig);
+
+    // DEPOSITS
+
+    const amountB = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenA.transfer(bob.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      depositor: alice.address,
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      depositor: bob.address,
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+    // Bob deposits tokenA into his output vault
+    const txDepositOrderBob = await orderBook
+      .connect(bob)
+      .deposit(depositConfigStructBob);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await Util.getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositBobSender, config: depositBobConfig } =
+      (await Util.getEventArgs(
+        txDepositOrderBob,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    Util.compareStructs(depositAliceConfig, depositConfigStructAlice);
+    assert(depositBobSender === bob.address);
+    Util.compareStructs(depositBobConfig, depositConfigStructBob);
+
+    // TODO: Test fail case
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const bountyConfig: BountyConfigStruct = {
+      aVaultId: bountyBotVaultA,
+      bVaultId: bountyBotVaultB,
+    };
+
+    await orderBook
+      .connect(bountyBot)
+      .clear(askConfig, bidConfig, bountyConfig);
+  });
 
   it("should expose counterparty to RainVM calculations (e.g. ask order will trigger revert if bid order counterparty does not match Carol's address)", async function () {
     this.timeout(0);
@@ -84,9 +264,9 @@ describe("OrderBook", async function () {
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-            op(Opcode.OPCODE_COUNTERPARTY),
-            vExpectedCounterparty,
-          op(Opcode.EQUAL_TO),
+          op(Opcode.COUNTERPARTY),
+          vExpectedCounterparty,
+        op(Opcode.EQUAL_TO),
         vAskPriceIfMatch,
         vAskPriceIfNotMatch,
       op(Opcode.EAGER_IF)
@@ -98,7 +278,7 @@ describe("OrderBook", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: 0x0,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
       vmState: {
         stackIndex: 0,
         stack: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -141,7 +321,7 @@ describe("OrderBook", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: 0x0,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -184,7 +364,7 @@ describe("OrderBook", async function () {
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
       outputVaultId: carolOutputVault,
-      tracking: 0x0,
+      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
