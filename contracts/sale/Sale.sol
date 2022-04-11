@@ -134,6 +134,21 @@ struct Receipt {
     uint256 price;
 }
 
+uint256 constant SOURCE_INDEX = 0;
+
+/// @dev local opcode to stack remaining rTKN units.
+uint256 constant OPCODE_REMAINING_UNITS = 0;
+/// @dev local opcode to stack total reserve taken in so far.
+uint256 constant OPCODE_TOTAL_RESERVE_IN = 1;
+/// @dev local opcode to stack the rTKN units/amount of the current buy.
+uint256 constant OPCODE_CURRENT_BUY_UNITS = 2;
+/// @dev local opcode to stack the address of the rTKN.
+uint256 constant OPCODE_TOKEN_ADDRESS = 3;
+/// @dev local opcode to stack the address of the reserve token.
+uint256 constant OPCODE_RESERVE_ADDRESS = 4;
+/// @dev local opcodes length.
+uint256 constant LOCAL_OPS_LENGTH = 5;
+
 // solhint-disable-next-line max-states-count
 contract Sale is
     Initializable,
@@ -175,19 +190,6 @@ contract Sale is
     /// rTKN being refunded.
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
-
-    /// @dev local opcode to stack remaining rTKN units.
-    uint256 private constant OPCODE_REMAINING_UNITS = 0;
-    /// @dev local opcode to stack total reserve taken in so far.
-    uint256 private constant OPCODE_TOTAL_RESERVE_IN = 1;
-    /// @dev local opcode to stack the rTKN units/amount of the current buy.
-    uint256 private constant OPCODE_CURRENT_BUY_UNITS = 2;
-    /// @dev local opcode to stack the address of the rTKN.
-    uint256 private constant OPCODE_TOKEN_ADDRESS = 3;
-    /// @dev local opcode to stack the address of the reserve token.
-    uint256 private constant OPCODE_RESERVE_ADDRESS = 4;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 5;
 
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
@@ -263,7 +265,7 @@ contract Sale is
     }
 
     function initialize(
-        SaleConfig memory config_,
+        SaleConfig calldata config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external initializer {
         require(
@@ -284,12 +286,36 @@ contract Sale is
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        canStartStatePointer = _snapshot(
-            _newState(config_.canStartStateConfig)
+        SourceAnalysis memory canStartSourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(
+            canStartSourceAnalysis_,
+            config_.canStartStateConfig.sources,
+            SOURCE_INDEX
         );
-        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
+        canStartStatePointer = _snapshot(
+            _newState(config_.canStartStateConfig, canStartSourceAnalysis_)
+        );
+        SourceAnalysis memory canEndSourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(
+            canEndSourceAnalysis_,
+            config_.canEndStateConfig.sources,
+            SOURCE_INDEX
+        );
+        canEndStatePointer = _snapshot(
+            _newState(config_.canEndStateConfig, canEndSourceAnalysis_)
+        );
+        SourceAnalysis
+            memory calculatePriceSourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(
+            calculatePriceSourceAnalysis_,
+            config_.calculatePriceStateConfig.sources,
+            SOURCE_INDEX
+        );
         calculatePriceStatePointer = _snapshot(
-            _newState(config_.calculatePriceStateConfig)
+            _newState(
+                config_.calculatePriceStateConfig,
+                calculatePriceSourceAnalysis_
+            )
         );
         recipient = config_.recipient;
 
@@ -355,7 +381,7 @@ contract Sale is
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
             State memory state_ = _restore(canStartStatePointer);
-            eval("", state_, 0);
+            eval("", state_, SOURCE_INDEX);
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
             return false;
@@ -385,7 +411,7 @@ contract Sale is
             // to the appropriate script for an answer.
             else {
                 State memory state_ = _restore(canEndStatePointer);
-                eval("", state_, 0);
+                eval("", state_, SOURCE_INDEX);
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
         } else {
@@ -399,7 +425,7 @@ contract Sale is
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = _restore(calculatePriceStatePointer);
-        eval(abi.encode(units_), state_, 0);
+        eval(abi.encode(units_), state_, SOURCE_INDEX);
 
         return state_.stack[state_.stackIndex - 1];
     }
@@ -590,39 +616,59 @@ contract Sale is
     }
 
     /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override {
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        override
+        returns (int256)
+    {
         unchecked {
             if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
+                return
+                    AllStandardOps.stackIndexDiff(
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
             } else {
                 opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
+                require(opcode_ < LOCAL_OPS_LENGTH, "OPCODE_OUT_OF_BOUNDS");
+                return 1;
+            }
+        }
+    }
+
+    function applyOp(
+        bytes memory context_,
+        uint256 stackTopLocation_,
+        uint256 opcode_,
+        uint256 operand_
+    ) internal view override returns (uint256) {
+        unchecked {
+            if (opcode_ < localOpsStart) {
+                return
+                    AllStandardOps.applyOp(
+                        stackTopLocation_,
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
+            } else {
+                opcode_ -= localOpsStart;
+                uint256 value_;
                 if (opcode_ == OPCODE_REMAINING_UNITS) {
-                    state_.stack[state_.stackIndex] = remainingUnits;
+                    value_ = remainingUnits;
                 } else if (opcode_ == OPCODE_TOTAL_RESERVE_IN) {
-                    state_.stack[state_.stackIndex] = totalReserveIn;
+                    value_ = totalReserveIn;
                 } else if (opcode_ == OPCODE_CURRENT_BUY_UNITS) {
-                    uint256 units_ = abi.decode(context_, (uint256));
-                    state_.stack[state_.stackIndex] = units_;
+                    value_ = abi.decode(context_, (uint256));
                 } else if (opcode_ == OPCODE_TOKEN_ADDRESS) {
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(address(_token))
-                    );
+                    value_ = uint256(uint160(address(_token)));
                 } else if (opcode_ == OPCODE_RESERVE_ADDRESS) {
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(address(_reserve))
-                    );
+                    value_ = uint256(uint160(address(_reserve)));
                 }
-                state_.stackIndex++;
+                assembly {
+                    mstore(stackTopLocation_, value_)
+                }
+                return stackTopLocation_ + 0x20;
             }
         }
     }

@@ -8,7 +8,6 @@ import {
   op,
   paddedUInt32,
   paddedUInt256,
-  arg,
   sixZeros,
 } from "../Util";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
@@ -109,8 +108,8 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN zipmap args
 
-    const argDuration = op(Opcode.VAL, arg(0));
-    const argBaseReward = op(Opcode.VAL, arg(1));
+    const argDuration = op(Opcode.VAL, 5);
+    const argBaseReward = op(Opcode.VAL, 6);
 
     // END zipmap args
 
@@ -202,7 +201,7 @@ describe("EmissionsERC20", async function () {
       BLOCKS_PER_YEAR,
     ];
 
-    console.log("source", SOURCE());
+    console.log("source", SOURCE(), FN());
     console.log("constants", constants);
     console.log("source length", SOURCE().length);
 
@@ -220,8 +219,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [SOURCE(), FN()],
           constants,
-          argumentsLength: 2,
-          stackLength: SOURCE().length / 2,
         },
       }
     );
@@ -382,8 +379,8 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.VAL, arg(0));
-    const valBaseReward = op(Opcode.VAL, arg(1));
+    const valDuration = op(Opcode.VAL, 5);
+    const valBaseReward = op(Opcode.VAL, 6);
 
     // END zipmap args
 
@@ -502,8 +499,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [SOURCE(), FN()],
           constants,
-          argumentsLength: 2,
-          stackLength: SOURCE().length / 2,
         },
       }
     );
@@ -631,8 +626,6 @@ describe("EmissionsERC20", async function () {
             ]),
           ],
           constants: [],
-          argumentsLength: 0,
-          stackLength: 16,
         },
       }
     );
@@ -717,8 +710,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
           constants: [readWriteTier.address],
-          argumentsLength: 0,
-          stackLength: 8,
         },
       }
     );
@@ -795,8 +786,6 @@ describe("EmissionsERC20", async function () {
             ]),
           ],
           constants: [readWriteTier.address],
-          argumentsLength: 0,
-          stackLength: 8,
         },
       }
     );
@@ -848,8 +837,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -905,8 +892,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -945,8 +930,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -991,8 +974,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -1030,8 +1011,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [claimAmount],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );
@@ -1070,8 +1049,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [concat([op(Opcode.VAL)])],
           constants: [],
-          argumentsLength: 0,
-          stackLength: 1,
         },
       }
     );

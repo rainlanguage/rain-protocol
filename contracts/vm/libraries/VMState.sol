@@ -1,19 +1,15 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {State} from "../RainVM.sol";
+import {RainVM, State, SourceAnalysis} from "../RainVM.sol";
 import "../../sstore2/SSTORE2.sol";
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
 /// @param constants Constants verbatim.
-/// @param stackLength Sets the length of the uint256[] of the stack.
-/// @param argumentsLength Sets the length of the uint256[] of the arguments.
 struct StateConfig {
     bytes[] sources;
     uint256[] constants;
-    uint256 stackLength;
-    uint256 argumentsLength;
 }
 
 /// @title StateSnapshot
@@ -34,19 +30,24 @@ contract VMState {
     /// Builds a new `State` from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
-    function _newState(StateConfig memory config_)
-        internal
-        pure
-        returns (State memory)
-    {
+    function _newState(
+        StateConfig memory config_,
+        SourceAnalysis memory sourceAnalysis_
+    ) internal pure returns (State memory) {
         require(config_.sources.length > 0, "0_SOURCES");
+        uint256[] memory constants_ = new uint256[](
+            config_.constants.length + sourceAnalysis_.argumentsUpperBound
+        );
+        for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
+            constants_[i_] = config_.constants[i_];
+        }
         return
             State(
                 0,
-                new uint256[](config_.stackLength),
+                new uint256[](sourceAnalysis_.stackUpperBound),
                 config_.sources,
-                config_.constants,
-                new uint256[](config_.argumentsLength)
+                constants_,
+                config_.constants.length
             );
     }
 

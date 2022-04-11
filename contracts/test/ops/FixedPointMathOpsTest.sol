@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-import {FixedPointMathOps} from "../vm/ops/math/FixedPointMathOps.sol";
+import {RainVM, State, RAIN_VM_OPS_LENGTH, SourceAnalysis} from "../../vm/RainVM.sol";
+import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
+import {FixedPointMathOps} from "../../vm/ops/math/FixedPointMathOps.sol";
+
+uint256 constant SOURCE_INDEX = 0;
 
 /// @title FixedPointMathOpsTest
 /// Simple contract that exposes fixed point math ops for testing.
@@ -18,22 +20,42 @@ contract FixedPointMathOpsTest is RainVM, VMState {
         /// construction to future-proof against underlying ops being
         /// added/removed and potentially breaking the offsets here.
         fixedPointMathOpsStart = RAIN_VM_OPS_LENGTH;
-        vmStatePointer = _snapshot(_newState(config_));
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
+        vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
+    }
+
+    /// @inheritdoc RainVM
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        virtual
+        override
+        returns (int256)
+    {
+        unchecked {
+            return
+                FixedPointMathOps.stackIndexDiff(
+                    opcode_ - fixedPointMathOpsStart,
+                    operand_
+                );
+        }
     }
 
     /// @inheritdoc RainVM
     function applyOp(
         bytes memory,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint256) {
         unchecked {
-            FixedPointMathOps.applyOp(
-                state_,
-                opcode_ - fixedPointMathOpsStart,
-                operand_
-            );
+            return
+                FixedPointMathOps.applyOp(
+                    stackTopLocation_,
+                    opcode_ - fixedPointMathOpsStart,
+                    operand_
+                );
         }
     }
 
@@ -48,7 +70,7 @@ contract FixedPointMathOpsTest is RainVM, VMState {
     /// @return `State` after running own immutable source.
     function runState() public view returns (State memory) {
         State memory state_ = _restore(vmStatePointer);
-        eval("", state_, 0);
+        eval("", state_, SOURCE_INDEX);
         return state_;
     }
 }

@@ -14,7 +14,6 @@ import { ReserveTokenERC1155 } from "../../typechain/ReserveTokenERC1155";
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,
@@ -86,15 +85,13 @@ describe("TokenOpsTest", async function () {
           vSigner2,
           vTokenId,
           vTokenId,
-        op(Opcode.ERC1155_BALANCE_OF_BATCH, length - 1)
+        op(Opcode.ERC1155_BALANCE_OF_BATCH, length)
       ]),
     ];
 
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 5,
     })) as TokenOpsTest & Contract;
 
     const transferAmount = 100;
@@ -152,8 +149,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -210,8 +205,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -242,8 +235,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -278,8 +269,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();
@@ -309,8 +298,6 @@ describe("TokenOpsTest", async function () {
     const tokenOpsTest = (await tokenOpsTestFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as TokenOpsTest & Contract;
 
     const result0 = await tokenOpsTest.run();

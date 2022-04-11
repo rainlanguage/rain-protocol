@@ -32,6 +32,7 @@ import type {
 } from "ethers";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SourceAnalysisStruct } from "../typechain/RainVM";
 
 const { assert } = chai;
 
@@ -387,13 +388,6 @@ export function callSize(
   return callSize;
 }
 
-export function arg(valIndex: number): number {
-  let arg = 1;
-  arg <<= 7;
-  arg += valIndex;
-  return arg;
-}
-
 export function skip(places: number, conditional = false): number {
   let skip = conditional ? 1 : 0;
   skip <<= 7;
@@ -555,7 +549,6 @@ export enum selectLteMode {
 }
 
 export enum AllStandardOps {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,
@@ -603,3 +596,11 @@ export enum AllStandardOps {
   IERC1155_BALANCE_OF_BATCH,
   length,
 }
+
+export const newSourceAnalysis = (): SourceAnalysisStruct => {
+  return {
+    stackIndex: 0,
+    stackUpperBound: 0,
+    argumentsUpperBound: 0,
+  };
+};

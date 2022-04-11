@@ -133,8 +133,6 @@ describe("SaleUnchecked", async function () {
         calculatePriceStateConfig: {
           sources: [source0],
           constants,
-          stackLength: 10,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -208,8 +206,6 @@ describe("SaleUnchecked", async function () {
         calculatePriceStateConfig: {
           sources: [source0],
           constants,
-          stackLength: 10,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -237,7 +233,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator overflow did not panic"
     );
   });
@@ -283,8 +279,6 @@ describe("SaleUnchecked", async function () {
         calculatePriceStateConfig: {
           sources: [source0],
           constants,
-          stackLength: 10,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -312,7 +306,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator underflow did not panic"
     );
   });
@@ -358,8 +352,6 @@ describe("SaleUnchecked", async function () {
         calculatePriceStateConfig: {
           sources: [source0],
           constants,
-          stackLength: 10,
-          argumentsLength: 0,
         },
         recipient: recipient.address,
         reserve: reserve.address,
@@ -387,7 +379,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator overflow did not panic"
     );
   });

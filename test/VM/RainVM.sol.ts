@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, op, arg } from "../Util";
+import { bytify, callSize, op } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
@@ -10,7 +10,6 @@ import type { CalculatorTest } from "../../typechain/CalculatorTest";
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,
@@ -57,13 +56,11 @@ describe("RainVM", async function () {
     const calculatorUnsat = (await calculatorFactory.deploy({
       sources: sourcesUnsat,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     await Util.assertError(
       async () => await calculatorUnsat.run(),
-      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "normal multiplication overflow did not error"
     );
 
@@ -79,8 +76,6 @@ describe("RainVM", async function () {
     const calculatorSat = (await calculatorFactory.deploy({
       sources: sourcesSat,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculatorSat.run();
@@ -113,13 +108,11 @@ describe("RainVM", async function () {
     const calculatorUnsat = (await calculatorFactory.deploy({
       sources: sourcesUnsat,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     await Util.assertError(
       async () => await calculatorUnsat.run(),
-      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "normal subtraction overflow did not error"
     );
 
@@ -135,8 +128,6 @@ describe("RainVM", async function () {
     const calculatorSat = (await calculatorFactory.deploy({
       sources: sourcesSat,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculatorSat.run();
@@ -169,13 +160,11 @@ describe("RainVM", async function () {
     const calculatorUnsat = (await calculatorFactory.deploy({
       sources: sourcesUnsat,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     await Util.assertError(
       async () => await calculatorUnsat.run(),
-      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "normal addition overflow did not error"
     );
 
@@ -191,8 +180,6 @@ describe("RainVM", async function () {
     const calculatorSat = (await calculatorFactory.deploy({
       sources: sourcesSat,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculatorSat.run();
@@ -227,8 +214,6 @@ describe("RainVM", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 2,
     })) as CalculatorTest & Contract;
 
     // const { stack } = await calculator0.runState();
@@ -262,8 +247,6 @@ describe("RainVM", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 2,
     })) as CalculatorTest & Contract;
 
     const result0 = await calculator0.run();
@@ -286,8 +269,6 @@ describe("RainVM", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-      argumentsLength: 0,
-      stackLength: 1,
     })) as CalculatorTest & Contract;
 
     const block0 = await ethers.provider.getBlockNumber();
@@ -303,8 +284,6 @@ describe("RainVM", async function () {
     const calculator1 = (await calculatorFactory.deploy({
       sources: [source1],
       constants,
-      argumentsLength: 0,
-      stackLength: 1,
     })) as CalculatorTest & Contract;
 
     const timestamp1 = Date.now();
@@ -341,8 +320,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -375,8 +352,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 2,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -409,8 +384,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 2,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -445,8 +418,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -479,8 +450,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 2,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -513,8 +482,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -542,8 +509,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -563,8 +528,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources: [source],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 1,
     })) as CalculatorTest & Contract;
 
     await Util.createEmptyBlock(3);
@@ -615,20 +578,25 @@ describe("RainVM", async function () {
       ]),
     ];
 
+    const val0 = 0;
+    const val1 = 1;
+    const arg0 = 2;
+    const arg1 = 3;
+
     // prettier-ignore
     const sources = [
       concat([ // sourceIndex === 0 (main source)
-        op(Opcode.VAL, 0), // val0
-        op(Opcode.VAL, 1), // val1
+        op(Opcode.VAL, val0),
+        op(Opcode.VAL, val1),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([ // sourceIndex === 1 (inner ZIPMAP function)
         // (arg0 arg1 mul) (arg0 arg1 add)
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg0),
+        op(Opcode.VAL, arg1),
         op(Opcode.MUL, 2),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
+        op(Opcode.VAL, arg0),
+        op(Opcode.VAL, arg1),
         op(Opcode.ADD, 2),
       ]),
     ];
@@ -637,8 +605,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 2,
-      stackLength: 17,
     })) as CalculatorTest & Contract;
 
     const resultState = await calculator.runState();
@@ -695,22 +661,26 @@ describe("RainVM", async function () {
       concat([bytify(5, valBytes), bytify(3, valBytes)]),
     ];
 
+    const arg0 = 3;
+    const arg1 = 4;
+    const arg2 = 5;
+
     const sources = [
       concat([
-        op(Opcode.VAL, 2), // val0
-        op(Opcode.VAL, 1), // val1
-        op(Opcode.VAL, 0), // val2
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 0),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 mul) (arg0 arg1 arg2 add)
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg0),
+        op(Opcode.VAL, arg1),
+        op(Opcode.VAL, arg2),
         op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg(0)),
-        op(Opcode.VAL, arg(1)),
-        op(Opcode.VAL, arg(2)),
+        op(Opcode.VAL, arg0),
+        op(Opcode.VAL, arg1),
+        op(Opcode.VAL, arg2),
         op(Opcode.ADD, 3),
       ]),
     ];
@@ -719,11 +689,20 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 3,
-      stackLength: 6,
     })) as CalculatorTest & Contract;
 
+    console.log(sources);
+
+    const stackUB = await calculator.analyzeSources(
+      Util.newSourceAnalysis(),
+      sources,
+      0
+    );
+
+    console.log(stackUB);
+
     const resultState = await calculator.runState();
+    console.log(resultState);
 
     const expectedMul1 = 6;
     const actualMul1 = resultState.stack[0];
@@ -767,14 +746,14 @@ describe("RainVM", async function () {
 
     const constants = [10, 20, 30, 40, 50, 60, 70, 80];
 
-    const a0 = op(Opcode.VAL, arg(0));
-    const a1 = op(Opcode.VAL, arg(1));
-    const a2 = op(Opcode.VAL, arg(2));
-    const a3 = op(Opcode.VAL, arg(3));
-    const a4 = op(Opcode.VAL, arg(4));
-    const a5 = op(Opcode.VAL, arg(5));
-    const a6 = op(Opcode.VAL, arg(6));
-    const a7 = op(Opcode.VAL, arg(7));
+    const a0 = op(Opcode.VAL, 8);
+    const a1 = op(Opcode.VAL, 9);
+    const a2 = op(Opcode.VAL, 10);
+    const a3 = op(Opcode.VAL, 11);
+    const a4 = op(Opcode.VAL, 12);
+    const a5 = op(Opcode.VAL, 13);
+    const a6 = op(Opcode.VAL, 14);
+    const a7 = op(Opcode.VAL, 15);
 
     // zero-based counting
     const sourceIndex = 1;
@@ -783,14 +762,14 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.VAL, 0), // val0
-        op(Opcode.VAL, 1), // val1
-        op(Opcode.VAL, 2), // val2
-        op(Opcode.VAL, 3), // val3
-        op(Opcode.VAL, 4), // val4
-        op(Opcode.VAL, 5), // val5
-        op(Opcode.VAL, 6), // val6
-        op(Opcode.VAL, 7), // val7
+        op(Opcode.VAL, 0),
+        op(Opcode.VAL, 1),
+        op(Opcode.VAL, 2),
+        op(Opcode.VAL, 3),
+        op(Opcode.VAL, 4),
+        op(Opcode.VAL, 5),
+        op(Opcode.VAL, 6),
+        op(Opcode.VAL, 7),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
@@ -866,8 +845,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 8,
-      stackLength: 32,
     })) as CalculatorTest & Contract;
 
     const resultState = await calculator.runState();
@@ -908,9 +885,9 @@ describe("RainVM", async function () {
     const v1 = op(Opcode.VAL, 1);
     const v2 = op(Opcode.VAL, 2);
 
-    const a0 = op(Opcode.VAL, arg(0));
-    const a1 = op(Opcode.VAL, arg(1));
-    const a2 = op(Opcode.VAL, arg(2));
+    const a0 = op(Opcode.VAL, 3);
+    const a1 = op(Opcode.VAL, 4);
+    const a2 = op(Opcode.VAL, 5);
 
     // zero-based counting
     const sourceIndex = 1;
@@ -952,8 +929,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 8,
-      stackLength: 15,
     })) as CalculatorTest & Contract;
 
     const resultState = await calculator.runState();
@@ -994,9 +969,9 @@ describe("RainVM", async function () {
     const v4 = op(Opcode.VAL, 1);
     const v5 = op(Opcode.VAL, 2);
 
-    const a0 = op(Opcode.VAL, arg(0));
-    const a1 = op(Opcode.VAL, arg(1));
-    const a2 = op(Opcode.VAL, arg(2));
+    const a0 = op(Opcode.VAL, 3);
+    const a1 = op(Opcode.VAL, 4);
+    const a2 = op(Opcode.VAL, 5);
 
     // zero-based counting
     const sourceIndex = 1;
@@ -1028,8 +1003,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 8,
-      stackLength: 4,
     })) as CalculatorTest & Contract;
 
     const resultState = await calculator.runState();
@@ -1070,9 +1043,9 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.VAL, 1);
     const v3 = op(Opcode.VAL, 2);
 
-    const a0 = op(Opcode.VAL, arg(0));
-    const a1 = op(Opcode.VAL, arg(1));
-    const a2 = op(Opcode.VAL, arg(2));
+    const a0 = op(Opcode.VAL, 3);
+    const a1 = op(Opcode.VAL, 4);
+    const a2 = op(Opcode.VAL, 5);
 
     // zero-based counting
     const sourceIndex = 1; // 1
@@ -1099,8 +1072,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 8,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1146,8 +1117,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 6,
     })) as CalculatorTest & Contract;
 
     const block0 = await ethers.provider.getBlockNumber();
@@ -1210,8 +1179,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1246,8 +1213,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1282,8 +1247,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1318,8 +1281,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1354,8 +1315,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();
@@ -1390,8 +1349,6 @@ describe("RainVM", async function () {
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-      argumentsLength: 0,
-      stackLength: 3,
     })) as CalculatorTest & Contract;
 
     const result = await calculator.run();

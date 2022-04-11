@@ -5,7 +5,7 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {RainVM, State} from "../vm/RainVM.sol";
+import {RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
@@ -23,6 +23,14 @@ struct EmissionsERC20Config {
     ERC20Config erc20Config;
     StateConfig vmStateConfig;
 }
+
+/// @dev Source index for VM eval.
+uint256 constant SOURCE_INDEX = 0;
+
+/// @dev local opcode to put claimant account on the stack.
+uint256 constant OPCODE_CLAIMANT_ACCOUNT = 0;
+/// @dev local opcodes length.
+uint256 constant LOCAL_OPS_LENGTH = 1;
 
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -51,11 +59,6 @@ contract EmissionsERC20 is
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
 
-    /// @dev local opcode to put claimant account on the stack.
-    uint256 private constant OPCODE_CLAIMANT_ACCOUNT = 0;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 1;
-
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
 
@@ -83,7 +86,7 @@ contract EmissionsERC20 is
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function initialize(EmissionsERC20Config memory config_)
+    function initialize(EmissionsERC20Config calldata config_)
         external
         initializer
     {
@@ -93,7 +96,15 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = _snapshot(_newState(config_.vmStateConfig));
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(
+            sourceAnalysis_,
+            config_.vmStateConfig.sources,
+            SOURCE_INDEX
+        );
+        vmStatePointer = _snapshot(
+            _newState(config_.vmStateConfig, sourceAnalysis_)
+        );
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -102,26 +113,49 @@ contract EmissionsERC20 is
     }
 
     /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override {
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        override
+        returns (int256)
+    {
         unchecked {
             if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
+                return
+                    AllStandardOps.stackIndexDiff(
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
             } else {
-                opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
+                return 1;
+            }
+        }
+    }
+
+    /// @inheritdoc RainVM
+    function applyOp(
+        bytes memory context_,
+        uint256 stackTopLocation_,
+        uint256 opcode_,
+        uint256 operand_
+    ) internal view override returns (uint256) {
+        unchecked {
+            if (opcode_ < localOpsStart) {
+                return
+                    AllStandardOps.applyOp(
+                        stackTopLocation_,
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
+            } else {
                 // There's only one opcode, which stacks the account address.
-                address account_ = abi.decode(context_, (address));
-                state_.stack[state_.stackIndex] = uint256(uint160(account_));
-                state_.stackIndex++;
+                uint256 account_ = uint256(
+                    uint160(address(abi.decode(context_, (address))))
+                );
+                assembly {
+                    mstore(stackTopLocation_, account_)
+                }
+                return stackTopLocation_ + 0x20;
             }
         }
     }
@@ -151,7 +185,7 @@ contract EmissionsERC20 is
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
         State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(claimant_), state_, 0);
+        eval(abi.encode(claimant_), state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
     }
 

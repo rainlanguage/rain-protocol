@@ -4,11 +4,13 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {RainVM, State} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {VMState, StateConfig, SourceAnalysis} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
+
+uint256 constant SOURCE_INDEX = 0;
 
 /// @title CombineTier
 /// @notice Implements `ReadOnlyTier` over RainVM. Allows combining the reports
@@ -33,33 +35,57 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
 
     /// @param config_ The StateConfig will be deployed as a pointer under
     /// `vmStatePointer`.
-    function initialize(StateConfig memory config_) external initializer {
-        vmStatePointer = _snapshot(_newState(config_));
+    function initialize(StateConfig calldata config_) external initializer {
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
+        vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
+    }
+
+    /// @inheritdoc RainVM
+    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+        public
+        view
+        virtual
+        override
+        returns (int256)
+    {
+        unchecked {
+            if (opcode_ < localOpsStart) {
+                return
+                    AllStandardOps.stackIndexDiff(
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
+            } else {
+                return 1;
+            }
+        }
     }
 
     /// @inheritdoc RainVM
     function applyOp(
         bytes memory context_,
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal view override {
+    ) internal view override returns (uint256) {
         unchecked {
             if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
+                return
+                    AllStandardOps.applyOp(
+                        stackTopLocation_,
+                        opcode_ - ALL_STANDARD_OPS_START,
+                        operand_
+                    );
             } else {
-                opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 // There's only one opcode, which stacks the address to report.
-                address account_ = abi.decode(context_, (address));
-                state_.stack[state_.stackIndex] = uint256(
-                    uint160(account_)
+                uint256 account_ = uint256(
+                    uint160(address(abi.decode(context_, (address))))
                 );
-                state_.stackIndex++;
+                assembly {
+                    mstore(stackTopLocation_, account_)
+                }
+                return stackTopLocation_ + 0x20;
             }
         }
     }
@@ -73,7 +99,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         returns (uint256)
     {
         State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(account_), state_, 0);
+        eval(abi.encode(account_), state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
     }
 }

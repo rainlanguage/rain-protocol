@@ -27,49 +27,77 @@ uint256 constant FIXED_POINT_MATH_OPS_LENGTH = 7;
 library FixedPointMathOps {
     using FixedPointMath for uint256;
 
+    function stackIndexDiff(uint256 opcode_, uint256)
+        internal
+        pure
+        returns (int256)
+    {
+        if (opcode_ < OPCODE_SCALE18) {
+            return -1;
+        } else if (opcode_ < OPCODE_ONE) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
     function applyOp(
-        State memory state_,
+        uint256 stackTopLocation_,
         uint256 opcode_,
         uint256 operand_
-    ) internal pure {
+    ) internal pure returns (uint256) {
         unchecked {
-            require(opcode_ < FIXED_POINT_MATH_OPS_LENGTH, "MAX_OPCODE");
-
             if (opcode_ < OPCODE_SCALE18) {
-                uint256 baseIndex_ = state_.stackIndex - 2;
+                uint256 aLocation_;
+                uint256 bLocation_;
+                uint256 a_;
+                uint256 b_;
+                uint256 c_;
+                assembly {
+                    aLocation_ := sub(stackTopLocation_, 0x40)
+                    bLocation_ := sub(stackTopLocation_, 0x20)
+                    a_ := mload(aLocation_)
+                    b_ := mload(bLocation_)
+                }
                 if (opcode_ == OPCODE_SCALE18_MUL) {
-                    state_.stack[baseIndex_] =
-                        state_.stack[baseIndex_].scale18(operand_) *
-                        state_.stack[baseIndex_ + 1];
-                } else if (opcode_ == OPCODE_SCALE18_DIV) {
-                    state_.stack[baseIndex_] =
-                        state_.stack[baseIndex_].scale18(operand_) /
-                        state_.stack[baseIndex_ + 1];
+                    c_ = a_.scale18(operand_).fixedPointMul(b_);
+                } else {
+                    c_ = a_.scale18(operand_).fixedPointDiv(b_);
                 }
-                state_.stackIndex--;
+                assembly {
+                    mstore(aLocation_, c_)
+                }
+                return bLocation_;
             } else if (opcode_ < OPCODE_ONE) {
-                uint256 baseIndex_ = state_.stackIndex - 1;
+                uint256 location_;
+                uint256 a_;
+                uint256 b_;
+                assembly {
+                    location_ := sub(stackTopLocation_, 0x20)
+                    a_ := mload(location_)
+                }
                 if (opcode_ == OPCODE_SCALE18) {
-                    state_.stack[baseIndex_] = state_.stack[baseIndex_].scale18(
-                        operand_
-                    );
+                    b_ = a_.scale18(operand_);
                 } else if (opcode_ == OPCODE_SCALEN) {
-                    state_.stack[baseIndex_] = state_.stack[baseIndex_].scaleN(
-                        operand_
-                    );
-                } else if (opcode_ == OPCODE_SCALE_BY) {
-                    state_.stack[baseIndex_] = state_.stack[baseIndex_].scaleBy(
-                        int8(uint8(operand_))
-                    );
+                    b_ = a_.scaleN(operand_);
+                } else {
+                    b_ = a_.scaleBy(int8(uint8(operand_)));
                 }
+                assembly {
+                    mstore(location_, b_)
+                }
+                return stackTopLocation_;
             } else {
+                uint256 a_;
                 if (opcode_ == OPCODE_ONE) {
-                    state_.stack[state_.stackIndex] = FP_ONE;
-                    state_.stackIndex++;
-                } else if (opcode_ == OPCODE_DECIMALS) {
-                    state_.stack[state_.stackIndex] = FP_DECIMALS;
-                    state_.stackIndex++;
+                    a_ = FP_ONE;
+                } else {
+                    a_ = FP_DECIMALS;
                 }
+                assembly {
+                    mstore(stackTopLocation_, a_)
+                }
+                return stackTopLocation_ + 0x20;
             }
         }
     }

@@ -16,9 +16,9 @@ contract SaturatingMathTest {
         pure
         returns (uint256)
     {
-      unchecked {
-        return SaturatingMath.saturatingAdd(a_, b_);
-      }
+        unchecked {
+            return SaturatingMath.saturatingAdd(a_, b_);
+        }
     }
 
     /// Wraps `SaturatingMath.saturatingSub`.
@@ -31,9 +31,9 @@ contract SaturatingMathTest {
         pure
         returns (uint256)
     {
-      unchecked {
-        return SaturatingMath.saturatingSub(a_, b_);
-      }
+        unchecked {
+            return SaturatingMath.saturatingSub(a_, b_);
+        }
     }
 
     /// Wraps `SaturatingMath.saturatingMul`.
@@ -46,8 +46,8 @@ contract SaturatingMathTest {
         pure
         returns (uint256)
     {
-      unchecked {
-        return SaturatingMath.saturatingMul(a_, b_);
-      }
+        unchecked {
+            return SaturatingMath.saturatingMul(a_, b_);
+        }
     }
 }
