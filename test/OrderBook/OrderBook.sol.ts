@@ -41,7 +41,7 @@ describe("OrderBook", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  it("should expose tracked data to RainVM calculations (e.g. ask order will trigger revert if bid order does not clear output vault funds)", async function () {
+  it("should expose tracked data to RainVM calculations (e.g. throttle trades)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -62,26 +62,14 @@ describe("OrderBook", async function () {
     // ASK ORDER
 
     const askOutputMax = Util.max_uint256;
-    const askPriceIfClearFunds = ethers.BigNumber.from(
-      "90" + Util.eighteenZeros
-    );
-    const askPriceIfNotClearFunds = Util.max_uint256;
-
-    const askConstants = [
-      askOutputMax,
-      askPriceIfClearFunds,
-      askPriceIfNotClearFunds,
-    ];
+    const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
+    const askConstants = [askOutputMax, askPrice];
     const vAskOutputMax = op(Opcode.VAL, 0);
-    const vAskPriceIfClear = op(Opcode.VAL, 1);
-    const vAskPriceIfNotClear = op(Opcode.VAL, 2);
+    const vAskPrice = op(Opcode.VAL, 1);
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-        op(Opcode.ORDER_FUNDS_CLEARED),
-        vAskPriceIfClear,
-        vAskPriceIfNotClear,
-      op(Opcode.EAGER_IF)
+      vAskPrice,
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
@@ -90,10 +78,10 @@ describe("OrderBook", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: TRACK_CLEARED_ORDER,
       vmState: {
         stackIndex: 0,
-        stack: [0, 0, 0, 0, 0, 0, 0, 0],
+        stack: [0, 0],
         sources: [askSource],
         constants: askConstants,
         arguments: [],
@@ -116,8 +104,7 @@ describe("OrderBook", async function () {
     // BID ORDER
 
     const bidOutputMax = Util.max_uint256;
-    const bidPrice = Util.fixedPointDiv(Util.ONE, askPriceIfClearFunds);
-
+    const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [bidOutputMax, bidPrice];
     const vBidOutputMax = op(Opcode.VAL, 0);
     const vBidPrice = op(Opcode.VAL, 1);
@@ -132,7 +119,7 @@ describe("OrderBook", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: TRACK_CLEARED_ORDER,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -210,7 +197,6 @@ describe("OrderBook", async function () {
     assert(depositBobSender === bob.address);
     Util.compareStructs(depositBobConfig, depositConfigStructBob);
 
-    // TODO: Test fail case
     // BOUNTY BOT CLEARS THE ORDER
 
     const bountyConfig: BountyConfigStruct = {
@@ -246,30 +232,29 @@ describe("OrderBook", async function () {
 
     // ASK ORDER
 
-    const askPriceIfMatchingCounterparty = ethers.BigNumber.from(
-      "90" + Util.eighteenZeros
-    );
-    const askPriceIfNotMatchingCounterparty = Util.max_uint256;
+    const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
+    const askOutputMax = Util.max_uint256;
+    const askOutputMaxIfNotMatchingCounterparty = 0;
 
     const askConstants = [
-      Util.max_uint256,
-      askPriceIfMatchingCounterparty,
-      askPriceIfNotMatchingCounterparty,
+      askOutputMax,
+      askOutputMaxIfNotMatchingCounterparty,
+      askPrice,
       carol.address,
     ];
     const vAskOutputMax = op(Opcode.VAL, 0);
-    const vAskPriceIfMatch = op(Opcode.VAL, 1);
-    const vAskPriceIfNotMatch = op(Opcode.VAL, 2);
+    const vAskOutputMaxIfNotMatch = op(Opcode.VAL, 1);
+    const vAskPrice = op(Opcode.VAL, 2);
     const vExpectedCounterparty = op(Opcode.VAL, 3);
     // prettier-ignore
     const askSource = concat([
-      vAskOutputMax,
           op(Opcode.COUNTERPARTY),
           vExpectedCounterparty,
         op(Opcode.EQUAL_TO),
-        vAskPriceIfMatch,
-        vAskPriceIfNotMatch,
-      op(Opcode.EAGER_IF)
+        vAskOutputMax,
+        vAskOutputMaxIfNotMatch,
+      op(Opcode.EAGER_IF),
+      vAskPrice,
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
@@ -278,7 +263,7 @@ describe("OrderBook", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -303,10 +288,7 @@ describe("OrderBook", async function () {
 
     // BID ORDER - BAD MATCH
 
-    const bidPrice = Util.fixedPointDiv(
-      Util.ONE,
-      askPriceIfMatchingCounterparty
-    );
+    const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [Util.max_uint256, bidPrice];
     const vBidOutputMax = op(Opcode.VAL, 0);
     const vBidPrice = op(Opcode.VAL, 1);
@@ -321,7 +303,7 @@ describe("OrderBook", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -346,10 +328,7 @@ describe("OrderBook", async function () {
 
     // BID ORDER - GOOD MATCH
 
-    const bidPriceCarol = Util.fixedPointDiv(
-      Util.ONE,
-      askPriceIfMatchingCounterparty
-    );
+    const bidPriceCarol = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstantsCarol = [Util.max_uint256, bidPriceCarol];
     const vBidOutputMaxCarol = op(Opcode.VAL, 0);
     const vBidPriceCarol = op(Opcode.VAL, 1);
@@ -364,7 +343,7 @@ describe("OrderBook", async function () {
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
       outputVaultId: carolOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -477,8 +456,8 @@ describe("OrderBook", async function () {
         await orderBook
           .connect(bountyBot)
           .clear(askConfig, bidConfig, bountyConfig),
-      "reverted with panic code 0x11",
-      "should underflow due to maxed ask price since bob does not match expected counterparty"
+      "0_CLEAR",
+      "should revert with 0 amount since bob does not match expected counterparty"
     );
 
     // BOUNTY BOT CLEARS THE ORDER - GOOD MATCH
@@ -508,16 +487,13 @@ describe("OrderBook", async function () {
     );
     const bOutputExpected = Util.minBN(
       bOutputMaxExpected,
-      Util.fixedPointMul(askPriceIfMatchingCounterparty, amountB)
+      Util.fixedPointMul(askPrice, amountB)
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
       aOutput: aOutputExpected,
       bOutput: bOutputExpected,
-      aInput: Util.fixedPointMul(
-        askPriceIfMatchingCounterparty,
-        aOutputExpected
-      ),
+      aInput: Util.fixedPointMul(askPrice, aOutputExpected),
       bInput: Util.fixedPointMul(bidPrice, bOutputExpected),
     };
 
@@ -560,7 +536,7 @@ describe("OrderBook", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -617,7 +593,7 @@ describe("OrderBook", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -796,7 +772,7 @@ describe("OrderBook", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -836,7 +812,7 @@ describe("OrderBook", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: TRACK_CLEARED_ORDER | TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
