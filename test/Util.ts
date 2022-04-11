@@ -36,7 +36,7 @@ import type {
 } from "../typechain/SeedERC20Factory";
 import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
 import type { BPool } from "../typechain/BPool";
-import type {
+import {
   BigNumber,
   Contract,
   BytesLike,
@@ -855,6 +855,9 @@ const testStructs = (
     if (expectedValue !== undefined) {
       if (expectedValue instanceof Uint8Array) {
         expectedValue = hexlify(expectedValue);
+      }
+      if (actualValue instanceof BigNumber) {
+        expectedValue = BigNumber.from(expectedValue);
       }
 
       if (
