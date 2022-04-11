@@ -34,11 +34,9 @@ library FixedPointMathOps {
     {
         if (opcode_ < OPCODE_SCALE18) {
             return -1;
-        }
-        else if (opcode_ < OPCODE_ONE) {
+        } else if (opcode_ < OPCODE_ONE) {
             return 0;
-        }
-        else {
+        } else {
             return 1;
         }
     }
@@ -49,14 +47,12 @@ library FixedPointMathOps {
         uint256 operand_
     ) internal pure returns (uint256) {
         unchecked {
-            // require(opcode_ < FIXED_POINT_MATH_OPS_LENGTH, "MAX_OPCODE");
-
             if (opcode_ < OPCODE_SCALE18) {
-                uint aLocation_;
-                uint bLocation_;
-                uint a_;
-                uint b_;
-                uint c_;
+                uint256 aLocation_;
+                uint256 bLocation_;
+                uint256 a_;
+                uint256 b_;
+                uint256 c_;
                 assembly {
                     aLocation_ := sub(stackTopLocation_, 0x40)
                     bLocation_ := sub(stackTopLocation_, 0x20)
@@ -65,43 +61,37 @@ library FixedPointMathOps {
                 }
                 if (opcode_ == OPCODE_SCALE18_MUL) {
                     c_ = a_.scale18(operand_).fixedPointMul(b_);
-                }
-                else {
+                } else {
                     c_ = a_.scale18(operand_).fixedPointDiv(b_);
                 }
                 assembly {
                     mstore(aLocation_, c_)
                 }
                 return bLocation_;
-            }
-            else if (opcode_ < OPCODE_ONE) {
-                uint location_;
-                uint a_;
-                uint b_;
+            } else if (opcode_ < OPCODE_ONE) {
+                uint256 location_;
+                uint256 a_;
+                uint256 b_;
                 assembly {
                     location_ := sub(stackTopLocation_, 0x20)
                     a_ := mload(location_)
                 }
                 if (opcode_ == OPCODE_SCALE18) {
                     b_ = a_.scale18(operand_);
-                }
-                else if (opcode_ == OPCODE_SCALEN) {
+                } else if (opcode_ == OPCODE_SCALEN) {
                     b_ = a_.scaleN(operand_);
-                }
-                else {
+                } else {
                     b_ = a_.scaleBy(int8(uint8(operand_)));
                 }
                 assembly {
                     mstore(location_, b_)
                 }
                 return stackTopLocation_;
-            }
-            else {
-                uint a_;
+            } else {
+                uint256 a_;
                 if (opcode_ == OPCODE_ONE) {
                     a_ = FP_ONE;
-                }
-                else {
+                } else {
                     a_ = FP_DECIMALS;
                 }
                 assembly {

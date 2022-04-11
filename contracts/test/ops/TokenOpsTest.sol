@@ -12,8 +12,6 @@ import {IERC1155Ops, IERC1155_OPS_LENGTH} from "../../vm/ops/token/IERC1155Ops.s
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "hardhat/console.sol";
-
 uint256 constant SOURCE_INDEX = 0;
 
 contract TokenOpsTest is RainVM, VMState {
@@ -73,7 +71,6 @@ contract TokenOpsTest is RainVM, VMState {
         override
         returns (int256)
     {
-        console.log("stack index diff: %s %s", opcode_, operand_);
         unchecked {
             if (opcode_ < ierc721OpsStart) {
                 return

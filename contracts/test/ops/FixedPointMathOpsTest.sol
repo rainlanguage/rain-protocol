@@ -5,8 +5,6 @@ import {RainVM, State, RAIN_VM_OPS_LENGTH, SourceAnalysis} from "../../vm/RainVM
 import {VMState, StateConfig} from "../../vm/libraries/VMState.sol";
 import {FixedPointMathOps} from "../../vm/ops/math/FixedPointMathOps.sol";
 
-import "hardhat/console.sol";
-
 uint256 constant SOURCE_INDEX = 0;
 
 /// @title FixedPointMathOpsTest
@@ -24,12 +22,6 @@ contract FixedPointMathOpsTest is RainVM, VMState {
         fixedPointMathOpsStart = RAIN_VM_OPS_LENGTH;
         SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
         analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
-        console.log(
-            "analysis: %s %s %s",
-            uint(sourceAnalysis_.stackIndex),
-            sourceAnalysis_.stackUpperBound,
-            sourceAnalysis_.argumentsUpperBound
-        );
         vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
     }
 
@@ -57,7 +49,6 @@ contract FixedPointMathOpsTest is RainVM, VMState {
         uint256 opcode_,
         uint256 operand_
     ) internal view override returns (uint256) {
-        console.log("apply op");
         unchecked {
             return
                 FixedPointMathOps.applyOp(
@@ -72,7 +63,6 @@ contract FixedPointMathOpsTest is RainVM, VMState {
     /// @return top of `runState` stack.
     function run() external view returns (uint256) {
         State memory state_ = runState();
-        console.log("final state: %s", state_.stackIndex);
         return state_.stack[state_.stackIndex - 1];
     }
 

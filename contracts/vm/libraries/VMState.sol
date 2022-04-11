@@ -4,8 +4,6 @@ pragma solidity =0.8.10;
 import {RainVM, State, SourceAnalysis} from "../RainVM.sol";
 import "../../sstore2/SSTORE2.sol";
 
-import "hardhat/console.sol";
-
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
 /// @param constants Constants verbatim.

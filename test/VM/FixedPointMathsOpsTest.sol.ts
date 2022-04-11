@@ -245,9 +245,9 @@ describe("FixedPointMathOpsTest", async function () {
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await fixedPointOpsTest.run();
-    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros).mul(Util.ONE).div(
-      value2
-    );
+    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros)
+      .mul(Util.ONE)
+      .div(value2);
     assert(
       result0.eq(expected0),
       `wrong result
@@ -281,9 +281,9 @@ describe("FixedPointMathOpsTest", async function () {
     })) as FixedPointMathOpsTest & Contract;
 
     const result0 = await fixedPointOpsTest.run();
-    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros).mul(
-      value2
-    ).div(Util.ONE);
+    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros)
+      .mul(value2)
+      .div(Util.ONE);
     assert(
       result0.eq(expected0),
       `wrong result

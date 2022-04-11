@@ -113,8 +113,8 @@ library MathOps {
         }
         // Saturating subtraction.
         else if (opcode_ == OPCODE_SATURATING_SUB) {
-            uint item_;
-            uint cursor_ = location_;
+            uint256 item_;
+            uint256 cursor_ = location_;
             while (cursor_ < stackTopLocation_) {
                 assembly {
                     cursor_ := add(cursor_, 0x20)
