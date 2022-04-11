@@ -51,7 +51,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "Arithmetic operation underflowed or overflowed outside of an unchecked block",
       "accumulator overflow did not panic"
     );
   });
@@ -97,7 +97,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator overflow did not panic"
     );
   });
@@ -143,7 +143,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator underflow did not panic"
     );
   });
@@ -189,7 +189,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator overflow did not panic"
     );
   });

@@ -136,6 +136,19 @@ struct Receipt {
 
 uint256 constant SOURCE_INDEX = 0;
 
+/// @dev local opcode to stack remaining rTKN units.
+uint256 constant OPCODE_REMAINING_UNITS = 0;
+/// @dev local opcode to stack total reserve taken in so far.
+uint256 constant OPCODE_TOTAL_RESERVE_IN = 1;
+/// @dev local opcode to stack the rTKN units/amount of the current buy.
+uint256 constant OPCODE_CURRENT_BUY_UNITS = 2;
+/// @dev local opcode to stack the address of the rTKN.
+uint256 constant OPCODE_TOKEN_ADDRESS = 3;
+/// @dev local opcode to stack the address of the reserve token.
+uint256 constant OPCODE_RESERVE_ADDRESS = 4;
+/// @dev local opcodes length.
+uint256 constant LOCAL_OPS_LENGTH = 5;
+
 // solhint-disable-next-line max-states-count
 contract Sale is
     Initializable,
@@ -177,19 +190,6 @@ contract Sale is
     /// rTKN being refunded.
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
-
-    /// @dev local opcode to stack remaining rTKN units.
-    uint256 private constant OPCODE_REMAINING_UNITS = 0;
-    /// @dev local opcode to stack total reserve taken in so far.
-    uint256 private constant OPCODE_TOTAL_RESERVE_IN = 1;
-    /// @dev local opcode to stack the rTKN units/amount of the current buy.
-    uint256 private constant OPCODE_CURRENT_BUY_UNITS = 2;
-    /// @dev local opcode to stack the address of the rTKN.
-    uint256 private constant OPCODE_TOKEN_ADDRESS = 3;
-    /// @dev local opcode to stack the address of the reserve token.
-    uint256 private constant OPCODE_RESERVE_ADDRESS = 4;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 5;
 
     /// @dev local offset for local ops.
     uint256 private immutable localOpsStart;
@@ -630,6 +630,8 @@ contract Sale is
                         operand_
                     );
             } else {
+                opcode_ -= localOpsStart;
+                require(opcode_ < LOCAL_OPS_LENGTH, "OPCODE_OUT_OF_BOUNDS");
                 return 1;
             }
         }

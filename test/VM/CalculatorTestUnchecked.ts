@@ -11,7 +11,6 @@ import type { CalculatorTest } from "../../typechain/CalculatorTest";
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,
@@ -87,7 +86,7 @@ describe("CalculatorTestUnchecked", async function () {
 
     await Util.assertError(
       async () => await calculator0.runState(),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator overflow did not panic"
     );
   });
@@ -116,7 +115,7 @@ describe("CalculatorTestUnchecked", async function () {
 
     await Util.assertError(
       async () => await calculator0.runState(),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator underflow did not panic"
     );
   });
@@ -145,7 +144,7 @@ describe("CalculatorTestUnchecked", async function () {
 
     await Util.assertError(
       async () => await calculator0.runState(),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "accumulator overflow did not panic"
     );
   });

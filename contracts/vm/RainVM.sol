@@ -76,17 +76,14 @@ uint256 constant RAIN_VM_OPS_LENGTH = 4;
 /// run `eval` to produce a final value.
 ///
 /// There are only 4 "core" opcodes for `RainVM`:
-/// - `0`: Skip self and optionally additional opcodes, `0 0` is a noop.
-///   DEPRECATED! DON'T USE SKIP!
-///   See https://github.com/beehive-innovation/rain-protocol/issues/262
-/// - `1`: Copy value from either `constants` or `arguments` at index `operand`
-///   to the top of the stack. High bit of `operand` is `0` for `constants` and
-///   `1` for `arguments`.
-/// - `2`: Duplicates the value at stack index `operand_` to the top of the
+/// - `0`: Copy value from either `constants` at index `operand` to the top of
+///   the stack.
+/// - `1`: Duplicates the value at stack index `operand_` to the top of the
 ///   stack.
-/// - `3`: Zipmap takes N values from the stack, interprets each as an array of
+/// - `2`: Zipmap takes N values from the stack, interprets each as an array of
 ///   configurable length, then zips them into `arguments` and maps a source
 ///   from `sources` over these. See `zipmap` for more details.
+/// - `3`: Debug prints the state to the console log as per hardhat.
 ///
 /// To do anything useful the contract that inherits `RainVM` needs to provide
 /// opcodes to build up an internal DSL. This may sound complex but it only

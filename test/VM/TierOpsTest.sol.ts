@@ -10,7 +10,6 @@ import type { TierOpsTest } from "../../typechain/TierOpsTest";
 const { assert } = chai;
 
 const enum Opcode {
-  SKIP,
   VAL,
   DUP,
   ZIPMAP,

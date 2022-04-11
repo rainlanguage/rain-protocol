@@ -154,7 +154,6 @@ contract EmissionsERC20 is
                 );
                 assembly {
                     mstore(stackTopLocation_, account_)
-                    stackTopLocation_ := add(stackTopLocation_, 0x20)
                 }
                 return stackTopLocation_ + 0x20;
             }

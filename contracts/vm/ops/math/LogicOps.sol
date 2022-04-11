@@ -65,9 +65,7 @@ library LogicOps {
             // Eager because BOTH x_ and y_ must be eagerly evaluated
             // before EAGER_IF will select one of them. If both x_ and y_
             // are cheap (e.g. constant values) then this may also be the
-            // simplest and cheapest way to select one of them. If either
-            // x_ or y_ is expensive consider using the conditional form
-            // of OP_SKIP to carefully avoid it instead.
+            // simplest and cheapest way to select one of them.
             case 1 {
                 let location_ := sub(stackTopLocation_, 0x60)
                 stackTopLocation_ := add(location_, 0x20)

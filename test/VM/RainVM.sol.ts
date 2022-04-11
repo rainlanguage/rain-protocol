@@ -60,7 +60,7 @@ describe("RainVM", async function () {
 
     await Util.assertError(
       async () => await calculatorUnsat.run(),
-      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "normal multiplication overflow did not error"
     );
 
@@ -112,7 +112,7 @@ describe("RainVM", async function () {
 
     await Util.assertError(
       async () => await calculatorUnsat.run(),
-      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "normal subtraction overflow did not error"
     );
 
@@ -164,7 +164,7 @@ describe("RainVM", async function () {
 
     await Util.assertError(
       async () => await calculatorUnsat.run(),
-      "reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "MATH_OVERFLOW",
       "normal addition overflow did not error"
     );
 

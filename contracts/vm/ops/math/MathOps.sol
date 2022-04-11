@@ -111,17 +111,18 @@ library MathOps {
                 }
             }
         }
-        // // Saturating subtraction.
-        // else if (opcode_ == OPCODE_SATURATING_SUB) {
-        //     while (cursor_ < top_) {
-        //         unchecked {
-        //             cursor_++;
-        //             accumulator_ = accumulator_.saturatingSub(
-        //                 state_.stack[cursor_]
-        //             );
-        //         }
-        //     }
-        // }
+        // Saturating subtraction.
+        else if (opcode_ == OPCODE_SATURATING_SUB) {
+            uint item_;
+            uint cursor_ = location_;
+            while (cursor_ < stackTopLocation_) {
+                assembly {
+                    cursor_ := add(cursor_, 0x20)
+                    item_ := mload(cursor_)
+                }
+                accumulator_ = accumulator_.saturatingSub(item_);
+            }
+        }
         // Multiplication.
         // Slither false positive here complaining about dividing before
         // multiplying but both are mututally exclusive according to `opcode_`.
@@ -201,10 +202,10 @@ library MathOps {
             uint256 cursor_ = location_;
             while (cursor_ < stackTopLocation_) {
                 assembly {
-                    item_ := mload(cursor_)
                     cursor_ := add(cursor_, 0x20)
+                    item_ := mload(cursor_)
                 }
-                accumulator_**item_;
+                accumulator_ = accumulator_**item_;
             }
         }
         // Minimum.
