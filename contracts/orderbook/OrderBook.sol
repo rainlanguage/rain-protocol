@@ -8,10 +8,8 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../math/FixedPointMath.sol";
 import "../vm/ops/AllStandardOps.sol";
-
-type VaultId is int256;
-type OrderHash is uint256;
-type OrderLiveness is uint256;
+import "./libraries/Vault.sol";
+import "./libraries/Order.sol";
 
 struct DepositConfig {
     address depositor;
@@ -24,16 +22,6 @@ struct WithdrawConfig {
     address token;
     VaultId vaultId;
     uint256 amount;
-}
-
-struct OrderConfig {
-    address owner;
-    address inputToken;
-    VaultId inputVaultId;
-    address outputToken;
-    VaultId outputVaultId;
-    uint256 tracking;
-    State vmState;
 }
 
 struct BountyConfig {
@@ -59,9 +47,6 @@ uint256 constant OPCODE_COUNTERPARTY_FUNDS_CLEARED = 1;
 uint256 constant OPCODE_ORDER_FUNDS_CLEARED = 2;
 uint256 constant LOCAL_OPS_LENGTH = 3;
 
-OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
-OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
-
 uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
 uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
 
@@ -69,14 +54,21 @@ contract OrderBook is RainVM {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
+    using OrderLogic for OrderLiveness;
+
     event Deposit(address sender, DepositConfig config);
-    event Withdraw(address sender, WithdrawConfig config);
-    event OrderLive(address sender, OrderConfig config);
-    event OrderDead(address sender, OrderConfig config);
+    /// @param sender `msg.sender` withdrawing tokens.
+    /// @param config All config sent to the `withdraw` call.
+    /// @param amount The amount of tokens withdrawn, can be less than the
+    /// config amount if the vault does not have the funds available to cover
+    /// the config amount.
+    event Withdraw(address sender, WithdrawConfig config, uint256 amount);
+    event OrderLive(address sender, Order config);
+    event OrderDead(address sender, Order config);
     event Clear(
         address sender,
-        OrderConfig a_,
-        OrderConfig b_,
+        Order a_,
+        Order b_,
         BountyConfig bountyConfig,
         ClearStateChange stateChange
     );
@@ -101,13 +93,8 @@ contract OrderBook is RainVM {
         localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
     }
 
-    modifier onlyOrderOwner(OrderConfig calldata config_) {
+    modifier onlyOrderOwner(Order calldata config_) {
         require(msg.sender == config_.owner, "NOT_ORDER_OWNER");
-        _;
-    }
-
-    modifier notAppendOnlyVaultId(VaultId vaultId_) {
-        require(VaultId.unwrap(vaultId_) >= 0, "APPEND_ONLY_VAULT_ID");
         _;
     }
 
@@ -119,7 +106,7 @@ contract OrderBook is RainVM {
         return (tracking_ & mask_) > 0;
     }
 
-    function _orderHash(OrderConfig calldata config_)
+    function _orderHash(Order calldata config_)
         internal
         pure
         returns (OrderHash)
@@ -138,48 +125,44 @@ contract OrderBook is RainVM {
         );
     }
 
-    function withdraw(WithdrawConfig calldata config_)
-        external
-        notAppendOnlyVaultId(config_.vaultId)
-    {
-        vaults[msg.sender][config_.token][config_.vaultId] -= config_.amount;
-        emit Withdraw(msg.sender, config_);
-        IERC20(config_.token).safeTransfer(msg.sender, config_.amount);
+    /// Allows the sender to withdraw any tokens from their own vaults.
+    /// @param config_ All config required to withdraw. Notably if the amount
+    /// is less than the current vault balance then the vault will be cleared
+    /// to 0 rather than the withdraw transaction reverting.
+    function withdraw(WithdrawConfig calldata config_) external {
+        uint256 vaultBalance_ = vaults[msg.sender][config_.token][
+            config_.vaultId
+        ];
+        uint256 withdrawAmount_ = config_.amount.min(vaultBalance_);
+        vaults[msg.sender][config_.token][config_.vaultId] =
+            vaultBalance_ -
+            withdrawAmount_;
+        emit Withdraw(msg.sender, config_, withdrawAmount_);
+        IERC20(config_.token).safeTransfer(msg.sender, withdrawAmount_);
     }
 
-    function addOrder(OrderConfig calldata config_)
-        external
-        onlyOrderOwner(config_)
-    {
+    function addOrder(Order calldata config_) external onlyOrderOwner(config_) {
         OrderHash orderHash_ = _orderHash(config_);
-        if (
-            OrderLiveness.unwrap(orders[orderHash_]) ==
-            OrderLiveness.unwrap(ORDER_DEAD)
-        ) {
+        if (orders[orderHash_].isDead()) {
             orders[_orderHash(config_)] = ORDER_LIVE;
             emit OrderLive(msg.sender, config_);
         }
     }
 
-    function removeOrder(OrderConfig calldata config_)
+    function removeOrder(Order calldata config_)
         external
         onlyOrderOwner(config_)
-        notAppendOnlyVaultId(config_.inputVaultId)
-        notAppendOnlyVaultId(config_.outputVaultId)
     {
         OrderHash orderHash_ = _orderHash(config_);
-        if (
-            OrderLiveness.unwrap(orders[orderHash_]) ==
-            OrderLiveness.unwrap(ORDER_LIVE)
-        ) {
+        if (orders[orderHash_].isLive()) {
             orders[_orderHash(config_)] = ORDER_DEAD;
             emit OrderDead(msg.sender, config_);
         }
     }
 
     function clear(
-        OrderConfig calldata a_,
-        OrderConfig calldata b_,
+        Order calldata a_,
+        Order calldata b_,
         BountyConfig calldata bountyConfig_
     ) external {
         OrderHash aHash_ = _orderHash(a_);
@@ -187,16 +170,8 @@ contract OrderBook is RainVM {
         {
             require(a_.outputToken == b_.inputToken, "TOKEN_MISMATCH");
             require(b_.outputToken == a_.inputToken, "TOKEN_MISMATCH");
-            require(
-                OrderLiveness.unwrap(orders[aHash_]) ==
-                    OrderLiveness.unwrap(ORDER_LIVE),
-                "A_NOT_LIVE"
-            );
-            require(
-                OrderLiveness.unwrap(orders[bHash_]) ==
-                    OrderLiveness.unwrap(ORDER_LIVE),
-                "B_NOT_LIVE"
-            );
+            require(orders[aHash_].isLive(), "A_NOT_LIVE");
+            require(orders[bHash_].isLive(), "B_NOT_LIVE");
         }
 
         ClearStateChange memory stateChange_;
