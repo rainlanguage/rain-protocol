@@ -450,10 +450,9 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
 
         uint256 totalDeposited_ = totalDeposits[sale_][token_][supply_];
         uint256 withdrawn_ = withdrawals[sale_][token_][supply_][msg.sender];
+        withdrawals[sale_][token_][supply_][msg.sender] = totalDeposited_;
 
         RedeemableERC20 redeemable_ = RedeemableERC20(token(sale_));
-
-        withdrawals[sale_][token_][supply_][msg.sender] = totalDeposited_;
 
         //solhint-disable-next-line max-line-length
         uint256 amount_ = (// Underflow MUST error here (should not be possible).
