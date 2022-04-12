@@ -214,22 +214,29 @@ describe("OrderBook", async function () {
     };
 
     const blockClear0 = (await ethers.provider.getBlockNumber()) + 1;
-    const expectedBounty = 1;
-    const expectedOutputAmount = (blockClear0 - askBlock) * 5 - expectedBounty;
+    const expectedBounty0 = { a: 1, b: 0 };
+    const expectedOutputAmount0 =
+      (blockClear0 - askBlock) * 5 - expectedBounty0.a;
+
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
       .clear(askConfig, bidConfig, bountyConfig);
-    const {
-      stateChange: { bInput: bInput0 },
-    } = (await Util.getEventArgs(
+    const { stateChange: stateChange0 } = (await Util.getEventArgs(
       txClearOrder0,
       "Clear",
       orderBook
     )) as ClearEvent["args"];
+    const { bInput: bInput0 } = stateChange0;
+    console.log({ stateChange0 });
+    const actualBounty0 = {
+      a: stateChange0.aOutput.sub(stateChange0.bInput),
+      b: stateChange0.bOutput.sub(stateChange0.aInput),
+    };
+
     assert(
-      bInput0.eq(expectedOutputAmount),
+      bInput0.eq(expectedOutputAmount0),
       `did not throttle asker output amount correctly
-      expected  ${expectedOutputAmount}
+      expected  ${expectedOutputAmount0}
       got       ${bInput0}`
     );
   });
@@ -475,20 +482,24 @@ describe("OrderBook", async function () {
     };
 
     const blockClear0 = (await ethers.provider.getBlockNumber()) + 1;
-    const expectedBounty0 = 1;
+    const expectedBounty0 = { a: 1, b: 0 };
     const expectedOutputAmount0 =
-      (blockClear0 - askBlock) * 5 - expectedBounty0;
+      (blockClear0 - askBlock) * 5 - expectedBounty0.a;
 
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
       .clear(askConfig, bidConfig, bountyConfig);
-    const {
-      stateChange: { bInput: bInput0 },
-    } = (await Util.getEventArgs(
+    const { stateChange: stateChange0 } = (await Util.getEventArgs(
       txClearOrder0,
       "Clear",
       orderBook
     )) as ClearEvent["args"];
+    const { bInput: bInput0 } = stateChange0;
+    console.log({ stateChange0 });
+    const actualBounty0 = {
+      a: stateChange0.aOutput.sub(stateChange0.bInput),
+      b: stateChange0.bOutput.sub(stateChange0.aInput),
+    };
     assert(
       bInput0.eq(expectedOutputAmount0),
       `did not throttle bidder input amount correctly
@@ -508,20 +519,32 @@ describe("OrderBook", async function () {
     assert(bobTokenBBalance1.eq(bInput0));
 
     // clear again
+    const blockClear1 = (await ethers.provider.getBlockNumber()) + 1;
+    const expectedBounty1 = { a: 1, b: 0 };
+    const expectedOutputAmount1 =
+      (blockClear1 - askBlock) * 5 -
+      expectedBounty1.a -
+      expectedOutputAmount0 -
+      expectedBounty0.a;
+
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
       .clear(askConfig, bidConfig, bountyConfig);
-    const {
-      stateChange: { bInput: bInput1 },
-    } = (await Util.getEventArgs(
+    const { stateChange: stateChange1 } = (await Util.getEventArgs(
       txClearOrder1,
       "Clear",
       orderBook
     )) as ClearEvent["args"];
+    const { bInput: bInput1 } = stateChange1;
+    console.log({ stateChange1 });
+    const actualBounty1 = {
+      a: stateChange1.aOutput.sub(stateChange1.bInput),
+      b: stateChange1.bOutput.sub(stateChange1.aInput),
+    };
     assert(
-      bInput1.eq(1),
+      bInput1.eq(expectedOutputAmount1),
       `did not throttle bidder input amount correctly
-      expected  ${1}
+      expected  ${expectedOutputAmount1}
       got       ${bInput1}`
     );
 
@@ -535,25 +558,34 @@ describe("OrderBook", async function () {
     assert(bobTokenBBalance2.eq(bobTokenBBalance1.add(bInput1)));
 
     // Carol should receive full amount, should be independent of amount Bob received
-    const blockClear1 = (await ethers.provider.getBlockNumber()) + 1;
-    const expectedBounty1 = 1;
-    const expectedOutputAmount1 =
-      (blockClear1 - askBlock) * 5 - expectedBounty1;
+    const blockClear2 = (await ethers.provider.getBlockNumber()) + 1;
+    const expectedBounty2 = { a: 0, b: 0 };
+    const expectedOutputAmount2 =
+      (blockClear2 - askBlock) * 5 -
+      expectedBounty2.a -
+      expectedOutputAmount1 -
+      expectedBounty1.a -
+      expectedOutputAmount0 -
+      expectedBounty0.a;
 
     const txClearOrder2 = await orderBook
       .connect(bountyBot)
       .clear(askConfig, carolConfig, bountyConfig);
-    const {
-      stateChange: { bInput: bInput2 },
-    } = (await Util.getEventArgs(
+    const { stateChange: stateChange2 } = (await Util.getEventArgs(
       txClearOrder2,
       "Clear",
       orderBook
     )) as ClearEvent["args"];
+    const { bInput: bInput2 } = stateChange2;
+    console.log({ stateChange2 });
+    const actualBounty2 = {
+      a: stateChange2.aOutput.sub(stateChange2.bInput),
+      b: stateChange2.bOutput.sub(stateChange2.aInput),
+    };
     assert(
-      bInput2.eq(expectedOutputAmount1),
+      bInput2.eq(expectedOutputAmount2),
       `did not throttle Carol bidder input amount correctly
-      expected  ${expectedOutputAmount1}
+      expected  ${expectedOutputAmount2}
       got       ${bInput2}`
     );
 
@@ -743,23 +775,28 @@ describe("OrderBook", async function () {
     };
 
     const blockClear0 = (await ethers.provider.getBlockNumber()) + 1;
-    const expectedBounty = 1;
-    const expectedOutputAmount = (blockClear0 - askBlock) * 5 - expectedBounty;
+    const expectedBounty0 = { a: 1, b: 0 };
+    const expectedOutputAmount0 =
+      (blockClear0 - askBlock) * 5 - expectedBounty0.a;
 
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
       .clear(askConfig, bidConfig, bountyConfig);
-    const {
-      stateChange: { bInput: bInput0 },
-    } = (await Util.getEventArgs(
+    const { stateChange: stateChange0 } = (await Util.getEventArgs(
       txClearOrder0,
       "Clear",
       orderBook
     )) as ClearEvent["args"];
+    const { bInput: bInput0 } = stateChange0;
+    console.log({ stateChange0 });
+    const actualBounty0 = {
+      a: stateChange0.aOutput.sub(stateChange0.bInput),
+      b: stateChange0.bOutput.sub(stateChange0.aInput),
+    };
     assert(
-      bInput0.eq(expectedOutputAmount),
+      bInput0.eq(expectedOutputAmount0),
       `did not throttle asker output amount correctly
-      expected  ${expectedOutputAmount}
+      expected  ${expectedOutputAmount0}
       got       ${bInput0}`
     );
 
@@ -775,20 +812,34 @@ describe("OrderBook", async function () {
     assert(bobTokenBBalance1.eq(bInput0));
 
     // clear again
+    const blockClear1 = (await ethers.provider.getBlockNumber()) + 1;
+    const expectedBounty1 = { a: 1, b: 0 };
+    const expectedOutputAmount1 =
+      (blockClear1 - askBlock) * 5 -
+      expectedBounty1.a -
+      expectedOutputAmount0 -
+      expectedBounty0.a;
+
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
       .clear(askConfig, bidConfig, bountyConfig);
-    const {
-      stateChange: { bInput: bInput1 },
-    } = (await Util.getEventArgs(
+    const { stateChange: stateChange1 } = (await Util.getEventArgs(
       txClearOrder1,
       "Clear",
       orderBook
     )) as ClearEvent["args"];
+    const { bInput: bInput1 } = stateChange1;
+    console.log({ stateChange1 });
+    const actualBounty1 = {
+      a: stateChange1.aOutput.sub(stateChange1.bInput),
+      b: stateChange1.bOutput.sub(stateChange1.aInput),
+    };
+    console.log({ actualBounty1 });
+
     assert(
-      bInput1.eq(1),
+      bInput1.eq(expectedOutputAmount1),
       `did not throttle asker output amount correctly
-      expected  ${1}
+      expected  ${expectedOutputAmount1}
       got       ${bInput1}`
     );
 
