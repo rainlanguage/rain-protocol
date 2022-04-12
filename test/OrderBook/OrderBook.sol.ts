@@ -41,9 +41,200 @@ describe("OrderBook", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  // TODO: test bounty bot should receive bounties in their vaults, and can withdraw their vault balance for each token
+  it("order clearer should receive correct bounty amounts in their vaults, and can withdraw their vault balance for each token", async function () {
+    this.timeout(0);
 
-  it("should expose tracked data to RainVM calculations (e.g. asker throttles output of their tokens to 1 token per block per bidder)", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const bountyBot = signers[4]; // order clearer
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(3);
+    const bobOutputVault = ethers.BigNumber.from(4);
+    const bountyBotVaultA = ethers.BigNumber.from(5);
+    const bountyBotVaultB = ethers.BigNumber.from(6);
+
+    // ASK ORDER
+
+    const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
+    const askBlock = await ethers.provider.getBlockNumber();
+    const askConstants = [askPrice, askBlock, 5];
+    const vAskPrice = op(Opcode.VAL, 0);
+    const vAskBlock = op(Opcode.VAL, 1);
+    const v5 = op(Opcode.VAL, 2);
+    // prettier-ignore
+    const askSource = concat([
+      // outputMax = (currentBlock - askBlock) * 5 - aliceCleared
+      // 5 tokens available per block
+            op(Opcode.BLOCK_NUMBER),
+            vAskBlock,
+          op(Opcode.SUB, 2),
+          v5,
+        op(Opcode.MUL, 2),
+        op(Opcode.ORDER_FUNDS_CLEARED),
+      op(Opcode.SUB, 2),
+      vAskPrice,
+    ]);
+
+    const askOrderConfig: OrderConfigStruct = {
+      owner: alice.address,
+      inputToken: tokenA.address,
+      inputVaultId: aliceInputVault,
+      outputToken: tokenB.address,
+      outputVaultId: aliceOutputVault,
+      tracking: TRACK_CLEARED_ORDER,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0],
+        sources: [askSource],
+        constants: askConstants,
+        arguments: [],
+      },
+    };
+
+    const txAskOrderLive = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { sender: askSender, config: askConfig } = (await Util.getEventArgs(
+      txAskOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    assert(askSender === alice.address, "wrong sender");
+    Util.compareStructs(askConfig, askOrderConfig);
+
+    // BID ORDER
+
+    const bidOutputMax = Util.max_uint256;
+    const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
+    const bidConstants = [bidOutputMax, bidPrice];
+    const vBidOutputMax = op(Opcode.VAL, 0);
+    const vBidPrice = op(Opcode.VAL, 1);
+    // prettier-ignore
+    const bidSource = concat([
+      vBidOutputMax,
+      vBidPrice,
+    ]);
+    const bidOrderConfig: OrderConfigStruct = {
+      owner: bob.address,
+      inputToken: tokenB.address,
+      inputVaultId: bobInputVault,
+      outputToken: tokenA.address,
+      outputVaultId: bobOutputVault,
+      tracking: 0x0,
+      vmState: {
+        stackIndex: 0,
+        stack: [0, 0],
+        sources: [bidSource],
+        constants: bidConstants,
+        arguments: [],
+      },
+    };
+
+    const txBidOrderLive = await orderBook
+      .connect(bob)
+      .addOrder(bidOrderConfig);
+
+    const { sender: bidSender, config: bidConfig } = (await Util.getEventArgs(
+      txBidOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    assert(bidSender === bob.address, "wrong sender");
+    Util.compareStructs(bidConfig, bidOrderConfig);
+
+    // DEPOSITS
+
+    const amountB = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenA.transfer(bob.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      depositor: alice.address,
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      depositor: bob.address,
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+    // Bob deposits tokenA into his output vault
+    const txDepositOrderBob = await orderBook
+      .connect(bob)
+      .deposit(depositConfigStructBob);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await Util.getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositBobSender, config: depositBobConfig } =
+      (await Util.getEventArgs(
+        txDepositOrderBob,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    Util.compareStructs(depositAliceConfig, depositConfigStructAlice);
+    assert(depositBobSender === bob.address);
+    Util.compareStructs(depositBobConfig, depositConfigStructBob);
+
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const bountyConfig: BountyConfigStruct = {
+      aVaultId: bountyBotVaultA,
+      bVaultId: bountyBotVaultB,
+    };
+
+    const blockClear0 = (await ethers.provider.getBlockNumber()) + 1;
+    const expectedBounty = 1;
+    const expectedOutputAmount = (blockClear0 - askBlock) * 5 - expectedBounty;
+    const txClearOrder0 = await orderBook
+      .connect(bountyBot)
+      .clear(askConfig, bidConfig, bountyConfig);
+    const {
+      stateChange: { bInput: bInput0 },
+    } = (await Util.getEventArgs(
+      txClearOrder0,
+      "Clear",
+      orderBook
+    )) as ClearEvent["args"];
+    assert(
+      bInput0.eq(expectedOutputAmount),
+      `did not throttle asker output amount correctly
+      expected  ${expectedOutputAmount}
+      got       ${bInput0}`
+    );
+  });
+
+  it("should expose tracked data to RainVM calculations (e.g. asker throttles output of their tokens to 5 tokens per block per bidder)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -69,17 +260,21 @@ describe("OrderBook", async function () {
     const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askBlock = await ethers.provider.getBlockNumber();
 
-    const askConstants = [askPrice, askBlock];
+    const askConstants = [askPrice, askBlock, 5];
     const vAskPrice = op(Opcode.VAL, 0);
     const vAskBlock = op(Opcode.VAL, 1);
+    const v5 = op(Opcode.VAL, 2);
     // prettier-ignore
     const askSource = concat([
-      // outputMax = currentBlock - askBlock - bidderCleared
-      // 1 token available per block per bidder
-        op(Opcode.BLOCK_NUMBER),
-        vAskBlock,
-        op(Opcode.COUNTERPARTY_FUNDS_CLEARED),
-      op(Opcode.SUB, 3),
+      // outputMax = (currentBlock - askBlock) * 5 - bidderCleared
+      // 5 tokens available per block
+            op(Opcode.BLOCK_NUMBER),
+            vAskBlock,
+          op(Opcode.SUB, 2),
+          v5,
+        op(Opcode.MUL, 2),
+        op(Opcode.ORDER_FUNDS_CLEARED),
+      op(Opcode.SUB, 2),
       vAskPrice,
     ]);
 
@@ -92,7 +287,7 @@ describe("OrderBook", async function () {
       tracking: TRACK_CLEARED_COUNTERPARTY,
       vmState: {
         stackIndex: 0,
-        stack: [0, 0, 0, 0, 0, 0, 0, 0],
+        stack: [0, 0],
         sources: [askSource],
         constants: askConstants,
         arguments: [],
@@ -130,7 +325,7 @@ describe("OrderBook", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -171,7 +366,7 @@ describe("OrderBook", async function () {
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
       outputVaultId: carolOutputVault,
-      tracking: TRACK_CLEARED_COUNTERPARTY,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -279,8 +474,10 @@ describe("OrderBook", async function () {
       bVaultId: bountyBotVaultB,
     };
 
-    const blockClear0 = await ethers.provider.getBlockNumber();
-    const expectedOutputAmount0 = blockClear0 - askBlock;
+    const blockClear0 = (await ethers.provider.getBlockNumber()) + 1;
+    const expectedBounty0 = 1;
+    const expectedOutputAmount0 =
+      (blockClear0 - askBlock) * 5 - expectedBounty0;
 
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
@@ -294,7 +491,9 @@ describe("OrderBook", async function () {
     )) as ClearEvent["args"];
     assert(
       bInput0.eq(expectedOutputAmount0),
-      "did not throttle bidder input amount correctly"
+      `did not throttle bidder input amount correctly
+      expected  ${expectedOutputAmount0}
+      got       ${bInput0}`
     );
 
     const withdrawConfig0: WithdrawConfigStruct = {
@@ -308,7 +507,7 @@ describe("OrderBook", async function () {
     assert(bobTokenBBalance0.isZero());
     assert(bobTokenBBalance1.eq(bInput0));
 
-    // clear again, should have throttled amount of 1 block
+    // clear again
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
       .clear(askConfig, bidConfig, bountyConfig);
@@ -319,7 +518,12 @@ describe("OrderBook", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    assert(bInput1.eq(1), "did not throttle bidder input amount correctly");
+    assert(
+      bInput1.eq(1),
+      `did not throttle bidder input amount correctly
+      expected  ${1}
+      got       ${bInput1}`
+    );
 
     const withdrawConfig1: WithdrawConfigStruct = {
       token: tokenB.address,
@@ -331,8 +535,10 @@ describe("OrderBook", async function () {
     assert(bobTokenBBalance2.eq(bobTokenBBalance1.add(bInput1)));
 
     // Carol should receive full amount, should be independent of amount Bob received
-    const blockClear1 = await ethers.provider.getBlockNumber();
-    const expectedOutputAmount1 = blockClear1 - askBlock;
+    const blockClear1 = (await ethers.provider.getBlockNumber()) + 1;
+    const expectedBounty1 = 1;
+    const expectedOutputAmount1 =
+      (blockClear1 - askBlock) * 5 - expectedBounty1;
 
     const txClearOrder2 = await orderBook
       .connect(bountyBot)
@@ -346,7 +552,9 @@ describe("OrderBook", async function () {
     )) as ClearEvent["args"];
     assert(
       bInput2.eq(expectedOutputAmount1),
-      "did not throttle Carol bidder input amount correctly"
+      `did not throttle Carol bidder input amount correctly
+      expected  ${expectedOutputAmount1}
+      got       ${bInput2}`
     );
 
     const withdrawConfig2: WithdrawConfigStruct = {
@@ -361,7 +569,7 @@ describe("OrderBook", async function () {
     assert(carolTokenBBalance1.eq(bInput2));
   });
 
-  it("should expose tracked data to RainVM calculations (e.g. asker throttles output of their tokens to 1 token per block)", async function () {
+  it("should expose tracked data to RainVM calculations (e.g. asker throttles output of their tokens to 5 tokens per block)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -384,17 +592,21 @@ describe("OrderBook", async function () {
     const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askBlock = await ethers.provider.getBlockNumber();
 
-    const askConstants = [askPrice, askBlock];
+    const askConstants = [askPrice, askBlock, 5];
     const vAskPrice = op(Opcode.VAL, 0);
     const vAskBlock = op(Opcode.VAL, 1);
+    const v5 = op(Opcode.VAL, 2);
     // prettier-ignore
     const askSource = concat([
-      // outputMax = currentBlock - askBlock - aliceCleared
-      // 1 token available per block
-        op(Opcode.BLOCK_NUMBER),
-        vAskBlock,
+      // outputMax = (currentBlock - askBlock) * 5 - aliceCleared
+      // 5 tokens available per block
+            op(Opcode.BLOCK_NUMBER),
+            vAskBlock,
+          op(Opcode.SUB, 2),
+          v5,
+        op(Opcode.MUL, 2),
         op(Opcode.ORDER_FUNDS_CLEARED),
-      op(Opcode.SUB, 3),
+      op(Opcode.SUB, 2),
       vAskPrice,
     ]);
 
@@ -407,7 +619,7 @@ describe("OrderBook", async function () {
       tracking: TRACK_CLEARED_ORDER,
       vmState: {
         stackIndex: 0,
-        stack: [0, 0, 0, 0, 0, 0, 0, 0],
+        stack: [0, 0],
         sources: [askSource],
         constants: askConstants,
         arguments: [],
@@ -445,7 +657,7 @@ describe("OrderBook", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: TRACK_CLEARED_ORDER,
+      tracking: 0x0,
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
@@ -530,8 +742,9 @@ describe("OrderBook", async function () {
       bVaultId: bountyBotVaultB,
     };
 
-    const blockClear0 = await ethers.provider.getBlockNumber();
-    const expectedOutputAmount = blockClear0 - askBlock;
+    const blockClear0 = (await ethers.provider.getBlockNumber()) + 1;
+    const expectedBounty = 1;
+    const expectedOutputAmount = (blockClear0 - askBlock) * 5 - expectedBounty;
 
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
@@ -545,7 +758,9 @@ describe("OrderBook", async function () {
     )) as ClearEvent["args"];
     assert(
       bInput0.eq(expectedOutputAmount),
-      "did not throttle asker output amount correctly"
+      `did not throttle asker output amount correctly
+      expected  ${expectedOutputAmount}
+      got       ${bInput0}`
     );
 
     const withdrawConfig0: WithdrawConfigStruct = {
@@ -559,7 +774,7 @@ describe("OrderBook", async function () {
     assert(bobTokenBBalance0.isZero());
     assert(bobTokenBBalance1.eq(bInput0));
 
-    // clear again, should have throttled amount of 1 block
+    // clear again
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
       .clear(askConfig, bidConfig, bountyConfig);
@@ -570,7 +785,12 @@ describe("OrderBook", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    assert(bInput1.eq(1), "did not throttle asker output amount correctly");
+    assert(
+      bInput1.eq(1),
+      `did not throttle asker output amount correctly
+      expected  ${1}
+      got       ${bInput1}`
+    );
 
     const withdrawConfig1: WithdrawConfigStruct = {
       token: tokenB.address,
@@ -639,7 +859,7 @@ describe("OrderBook", async function () {
       tracking: 0x0,
       vmState: {
         stackIndex: 0,
-        stack: [0, 0, 0, 0, 0, 0, 0, 0],
+        stack: [0, 0],
         sources: [askSource],
         constants: askConstants,
         arguments: [],
