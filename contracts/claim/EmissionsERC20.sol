@@ -121,11 +121,7 @@ contract EmissionsERC20 is
     {
         unchecked {
             if (opcode_ < localOpsStart) {
-                return
-                    AllStandardOps.stackIndexDiff(
-                        opcode_,
-                        operand_
-                    );
+                return AllStandardOps.stackIndexDiff(opcode_, operand_);
             } else {
                 return 1;
             }

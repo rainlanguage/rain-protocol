@@ -5,7 +5,7 @@ import { concat, hexlify } from "ethers/lib/utils";
 import { op, AllStandardOps } from "../Util";
 import { Contract } from "ethers";
 
-import type { TierOpsTest } from "../../typechain/TierOpsTest";
+import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 
 const { assert } = chai;
 
@@ -32,11 +32,13 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
   return range;
 }
 
-describe.only("TierOpsTest", async function () {
+describe.only("TierOps", async function () {
   it("should enforce maxTier for update tier range operation", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
+    const tierOpsFactory = await ethers.getContractFactory(
+      "AllStandardOpsTest"
+    );
 
     await Util.createEmptyBlock(3);
 
@@ -59,7 +61,7 @@ describe.only("TierOpsTest", async function () {
     const tierOps0 = (await tierOpsFactory.deploy({
       sources: [source0],
       constants: constants0,
-    })) as TierOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
       async () => await tierOps0.run(),
@@ -71,7 +73,9 @@ describe.only("TierOpsTest", async function () {
   it("should use saturating sub for diff where only some tiers would underflow", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
+    const tierOpsFactory = await ethers.getContractFactory(
+      "AllStandardOpsTest"
+    );
 
     const constants0 = [
       //         0x01000000020000000300000004000000050000000600000007
@@ -93,9 +97,10 @@ describe.only("TierOpsTest", async function () {
     const tierOps0 = (await tierOpsFactory.deploy({
       sources: [source0],
       constants: constants0,
-    })) as TierOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result0 = await tierOps0.run();
+    await tierOps0.run();
+    const result0 = await tierOps0.stackTop();
     const resultHex0 = hexlify(result0);
 
     const expectedResultHex0 =
@@ -112,7 +117,9 @@ describe.only("TierOpsTest", async function () {
   it("should use saturating sub for diff (does not panic when underflowing, but sets to zero)", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
+    const tierOpsFactory = await ethers.getContractFactory(
+      "AllStandardOpsTest"
+    );
 
     const constants0 = [
       // 0x01000000020000000300000004000000050000000600000007
@@ -134,9 +141,10 @@ describe.only("TierOpsTest", async function () {
     const tierOps0 = (await tierOpsFactory.deploy({
       sources: [source0],
       constants: constants0,
-    })) as TierOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result0 = await tierOps0.run();
+    await tierOps0.run();
+    const result0 = await tierOps0.stackTop();
     const resultHex0 = hexlify(result0);
 
     assert(
@@ -150,7 +158,9 @@ describe.only("TierOpsTest", async function () {
   it("should diff reports correctly", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
+    const tierOpsFactory = await ethers.getContractFactory(
+      "AllStandardOpsTest"
+    );
 
     const constants0 = [
       // 0x0200000003000000040000000500000006000000070000000800000009
@@ -172,9 +182,10 @@ describe.only("TierOpsTest", async function () {
     const tierOps0 = (await tierOpsFactory.deploy({
       sources: [source0],
       constants: constants0,
-    })) as TierOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result0 = await tierOps0.run();
+    await tierOps0.run();
+    const result0 = await tierOps0.stackTop();
     const resultHex0 = hexlify(result0);
 
     const expectedResultHex0 =

@@ -11,10 +11,11 @@ import {IERC721Ops, IERC721_OPS_LENGTH} from "./token/IERC721Ops.sol";
 import {IERC1155Ops, IERC1155_OPS_LENGTH} from "./token/IERC1155Ops.sol";
 import "./math/LogicOps.sol";
 import {MathOps, MATH_OPS_LENGTH} from "./math/MathOps.sol";
-import {TierOps, TIER_OPS_LENGTH} from "./tier/TierOps.sol";
+import "./tier/TierOps.sol";
 
 uint256 constant ALL_STANDARD_OPS_START = RAIN_VM_OPS_LENGTH;
-uint256 constant FIXED_POINT_MATH_OPS_START = ALL_STANDARD_OPS_START + EVM_CONSTANT_OPS_LENGTH;
+uint256 constant FIXED_POINT_MATH_OPS_START = ALL_STANDARD_OPS_START +
+    EVM_CONSTANT_OPS_LENGTH;
 uint256 constant MATH_OPS_START = FIXED_POINT_MATH_OPS_START +
     FIXED_POINT_MATH_OPS_LENGTH;
 
@@ -23,11 +24,19 @@ uint256 constant LOGIC_OPCODE_ISZERO = LOGIC_OPS_START + OPCODE_ISZERO;
 uint256 constant LOGIC_OPCODE_EAGER_IF = LOGIC_OPS_START + OPCODE_EAGER_IF;
 uint256 constant LOGIC_OPCODE_EQUAL_TO = LOGIC_OPS_START + OPCODE_EQUAL_TO;
 uint256 constant LOGIC_OPCODE_LESS_THAN = LOGIC_OPS_START + OPCODE_LESS_THAN;
-uint256 constant LOGIC_OPCODE_GREATER_THAN = LOGIC_OPS_START + OPCODE_GREATER_THAN;
+uint256 constant LOGIC_OPCODE_GREATER_THAN = LOGIC_OPS_START +
+    OPCODE_GREATER_THAN;
 uint256 constant LOGIC_OPCODE_EVERY = LOGIC_OPS_START + OPCODE_EVERY;
 uint256 constant LOGIC_OPCODE_ANY = LOGIC_OPS_START + OPCODE_ANY;
 
 uint256 constant TIER_OPS_START = LOGIC_OPS_START + LOGIC_OPS_LENGTH;
+uint256 constant TIER_OPCODE_REPORT = TIER_OPS_START + OPCODE_REPORT;
+uint256 constant TIER_OPCODE_NEVER = TIER_OPS_START + OPCODE_NEVER;
+uint256 constant TIER_OPCODE_ALWAYS = TIER_OPS_START + OPCODE_ALWAYS;
+uint256 constant TIER_OPCODE_SATURATING_DIFF = TIER_OPS_START + OPCODE_SATURATING_DIFF;
+uint256 constant TIER_OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE = TIER_OPS_START + OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE;
+uint256 constant TIER_OPCODE_SELECT_LTE = TIER_OPS_START + OPCODE_SELECT_LTE;
+
 uint256 constant IERC20_OPS_START = TIER_OPS_START + TIER_OPS_LENGTH;
 uint256 constant IERC721_OPS_START = IERC20_OPS_START + IERC20_OPS_LENGTH;
 uint256 constant IERC1155_OPS_START = IERC721_OPS_START + IERC721_OPS_LENGTH;
@@ -105,33 +114,38 @@ library AllStandardOps {
                 } else {
                     if (opcode_ == LOGIC_OPCODE_ISZERO) {
                         return LogicOps.isZero(stackTopLocation_);
-                    }
-                    else if (opcode_ == LOGIC_OPCODE_EAGER_IF) {
+                    } else if (opcode_ == LOGIC_OPCODE_EAGER_IF) {
                         return LogicOps.eagerIf(stackTopLocation_);
-                    }
-                    else if (opcode_ == LOGIC_OPCODE_EQUAL_TO) {
+                    } else if (opcode_ == LOGIC_OPCODE_EQUAL_TO) {
                         return LogicOps.equalTo(stackTopLocation_);
-                    }
-                    else if (opcode_ == LOGIC_OPCODE_LESS_THAN) {
+                    } else if (opcode_ == LOGIC_OPCODE_LESS_THAN) {
                         return LogicOps.lessThan(stackTopLocation_);
-                    }
-                    else if (opcode_ == LOGIC_OPCODE_GREATER_THAN) {
+                    } else if (opcode_ == LOGIC_OPCODE_GREATER_THAN) {
                         return LogicOps.greaterThan(stackTopLocation_);
-                    }
-                    else if (opcode_ == LOGIC_OPCODE_EVERY) {
+                    } else if (opcode_ == LOGIC_OPCODE_EVERY) {
                         return LogicOps.every(stackTopLocation_, operand_);
-                    }
-                    else {
+                    } else {
                         return LogicOps.any(stackTopLocation_, operand_);
                     }
                 }
             } else if (opcode_ < IERC20_OPS_START) {
-                return
-                    TierOps.applyOp(
-                        stackTopLocation_,
-                        opcode_ - TIER_OPS_START,
-                        operand_
-                    );
+                if (opcode_ == TIER_OPCODE_REPORT) {
+                    return TierOps.report(stackTopLocation_);
+                }
+                else if (opcode_ == TIER_OPCODE_NEVER) {
+                    return TierOps.never(stackTopLocation_);
+                }
+                else if (opcode_ == TIER_OPCODE_ALWAYS) {
+                    return TierOps.always(stackTopLocation_);
+                }
+                else if (opcode_ == TIER_OPCODE_SATURATING_DIFF) {
+                    return TierOps.saturatingDiff(stackTopLocation_);
+                } else if (opcode_ == TIER_OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE) {
+                    return TierOps.updateBlocksForTierRange(stackTopLocation_, operand_);
+                }
+                else {
+                    return TierOps.selectLte(stackTopLocation_, operand_);
+                }
             } else {
                 if (opcode_ < IERC721_OPS_START) {
                     return

@@ -43,7 +43,7 @@ library LogicOps {
     }
 
     // ISZERO
-    function isZero(uint stackTopLocation_) internal pure returns (uint) {
+    function isZero(uint256 stackTopLocation_) internal pure returns (uint256) {
         assembly {
             // The index doesn't change for iszero as there is
             // one input and output.
@@ -58,7 +58,11 @@ library LogicOps {
     // before EAGER_IF will select one of them. If both x_ and y_
     // are cheap (e.g. constant values) then this may also be the
     // simplest and cheapest way to select one of them.
-    function eagerIf(uint stackTopLocation_) internal pure returns (uint) {
+    function eagerIf(uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, 0x60)
             stackTopLocation_ := add(location_, 0x20)
@@ -67,72 +71,75 @@ library LogicOps {
             mstore(
                 location_,
                 mload(
-                    add(
-                        stackTopLocation_,
-                        mul(0x20, iszero(mload(location_)))
-                    )
+                    add(stackTopLocation_, mul(0x20, iszero(mload(location_))))
                 )
             )
         }
         return stackTopLocation_;
     }
 
-    function equalTo(uint stackTopLocation_) internal pure returns (uint) {
+    function equalTo(uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
-                stackTopLocation_ := sub(stackTopLocation_, 0x20)
-                let location_ := sub(stackTopLocation_, 0x20)
-                mstore(
-                    location_,
-                    eq(mload(location_), mload(stackTopLocation_))
-                )
-
+            stackTopLocation_ := sub(stackTopLocation_, 0x20)
+            let location_ := sub(stackTopLocation_, 0x20)
+            mstore(location_, eq(mload(location_), mload(stackTopLocation_)))
         }
         return stackTopLocation_;
     }
 
-    function lessThan(uint stackTopLocation_) internal pure returns (uint) {
+    function lessThan(uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
-                stackTopLocation_ := sub(stackTopLocation_, 0x20)
-                let location_ := sub(stackTopLocation_, 0x20)
-                mstore(
-                    location_,
-                    lt(mload(location_), mload(stackTopLocation_))
-                )
+            stackTopLocation_ := sub(stackTopLocation_, 0x20)
+            let location_ := sub(stackTopLocation_, 0x20)
+            mstore(location_, lt(mload(location_), mload(stackTopLocation_)))
         }
         return stackTopLocation_;
     }
 
-    function greaterThan(uint stackTopLocation_) internal pure returns (uint) {
+    function greaterThan(uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
-                stackTopLocation_ := sub(stackTopLocation_, 0x20)
-                let location_ := sub(stackTopLocation_, 0x20)
-                mstore(
-                    location_,
-                    gt(mload(location_), mload(stackTopLocation_))
-                )
+            stackTopLocation_ := sub(stackTopLocation_, 0x20)
+            let location_ := sub(stackTopLocation_, 0x20)
+            mstore(location_, gt(mload(location_), mload(stackTopLocation_)))
         }
         return stackTopLocation_;
     }
 
-            // EVERY
-            // EVERY is either the first item if every item is nonzero, else 0.
-            // operand_ is the length of items to check.
-    function every(uint stackTopLocation_, uint operand_) internal pure returns (uint) {
+    // EVERY
+    // EVERY is either the first item if every item is nonzero, else 0.
+    // operand_ is the length of items to check.
+    function every(uint256 stackTopLocation_, uint256 operand_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
-                let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-                for {
-                    let cursor_ := location_
-                } lt(cursor_, stackTopLocation_) {
-                    cursor_ := add(cursor_, 0x20)
-                } {
-                    // If anything is zero then EVERY is a failed check.
-                    if iszero(mload(cursor_)) {
-                        // Prevent further looping.
-                        cursor_ := stackTopLocation_
-                        mstore(location_, 0)
-                    }
+            let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
+            for {
+                let cursor_ := location_
+            } lt(cursor_, stackTopLocation_) {
+                cursor_ := add(cursor_, 0x20)
+            } {
+                // If anything is zero then EVERY is a failed check.
+                if iszero(mload(cursor_)) {
+                    // Prevent further looping.
+                    cursor_ := stackTopLocation_
+                    mstore(location_, 0)
                 }
-                stackTopLocation_ := add(location_, 0x20)
+            }
+            stackTopLocation_ := add(location_, 0x20)
         }
         return stackTopLocation_;
     }
@@ -140,25 +147,29 @@ library LogicOps {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(uint stackTopLocation_, uint operand_) internal pure returns (uint) {
+    function any(uint256 stackTopLocation_, uint256 operand_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
-                let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-                for {
-                    let cursor_ := location_
-                } lt(cursor_, stackTopLocation_) {
-                    cursor_ := add(cursor_, 0x20)
-                } {
-                    // If anything is NOT zero then ANY is a successful
-                    // check and can short-circuit.
-                    let item_ := mload(cursor_)
-                    if iszero(iszero(item_)) {
-                        // Prevent further looping.
-                        cursor_ := stackTopLocation_
-                        // Write the usable value to the top of the stack.
-                        mstore(location_, item_)
-                    }
+            let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
+            for {
+                let cursor_ := location_
+            } lt(cursor_, stackTopLocation_) {
+                cursor_ := add(cursor_, 0x20)
+            } {
+                // If anything is NOT zero then ANY is a successful
+                // check and can short-circuit.
+                let item_ := mload(cursor_)
+                if iszero(iszero(item_)) {
+                    // Prevent further looping.
+                    cursor_ := stackTopLocation_
+                    // Write the usable value to the top of the stack.
+                    mstore(location_, item_)
                 }
-                stackTopLocation_ := add(location_, 0x20)
+            }
+            stackTopLocation_ := add(location_, 0x20)
         }
         return stackTopLocation_;
     }

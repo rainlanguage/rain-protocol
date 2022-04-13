@@ -51,11 +51,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     {
         unchecked {
             if (opcode_ < localOpsStart) {
-                return
-                    AllStandardOps.stackIndexDiff(
-                        opcode_,
-                        operand_
-                    );
+                return AllStandardOps.stackIndexDiff(opcode_, operand_);
             } else {
                 return 1;
             }

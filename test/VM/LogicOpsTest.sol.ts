@@ -37,7 +37,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic0.run()
+    await logic0.run();
     const result0 = await logic0.stackTop();
 
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
@@ -103,7 +103,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic0.run()
+    await logic0.run();
     const result0 = await logic0.stackTop();
 
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
@@ -121,7 +121,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic1.run()
+    await logic1.run();
     const result1 = await logic1.stackTop();
 
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
@@ -138,7 +138,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic2.run()
+    await logic2.run();
     const result2 = await logic2.stackTop();
 
     assert(result2.isZero(), `returned wrong value from every, got ${result2}`);
@@ -170,7 +170,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic0.run()
+    await logic0.run();
     const result0 = await logic0.stackTop();
 
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
@@ -189,7 +189,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic1.run()
+    await logic1.run();
     const result1 = await logic1.stackTop();
 
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
@@ -208,7 +208,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic2.run()
+    await logic2.run();
     const result2 = await logic2.stackTop();
 
     assert(result2.eq(3), `returned wrong value from eager if, got ${result2}`);
@@ -233,7 +233,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic0.run()
+    await logic0.run();
     const result0 = await logic0.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
@@ -250,7 +250,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic1.run()
+    await logic1.run();
     const result1 = await logic1.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is gt 2");
@@ -275,7 +275,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic0.run()
+    await logic0.run();
     const result0 = await logic0.stackTop(); // expect 0
 
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
@@ -292,7 +292,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic1.run()
+    await logic1.run();
     const result1 = await logic1.stackTop(); // expect 1
 
     assert(isTruthy(result1), "wrongly says 1 is not lt 2");
@@ -317,7 +317,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic0.run()
+    await logic0.run();
     const result0 = await logic0.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
@@ -334,7 +334,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic1.run()
+    await logic1.run();
     const result1 = await logic1.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
@@ -358,7 +358,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic0.run()
+    await logic0.run();
     const result0 = await logic0.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 0 is not zero");
@@ -374,7 +374,7 @@ describe("LogicOpsTest", async function () {
       constants,
     })) as LogicOpsTest & Contract;
 
-    await logic1.run()
+    await logic1.run();
     const result1 = await logic1.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is zero");

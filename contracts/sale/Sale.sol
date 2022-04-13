@@ -148,6 +148,8 @@ uint256 constant OPCODE_TOKEN_ADDRESS = 3;
 uint256 constant OPCODE_RESERVE_ADDRESS = 4;
 /// @dev local opcodes length.
 uint256 constant LOCAL_OPS_LENGTH = 5;
+uint constant LOCAL_OPS_START = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+
 
 // solhint-disable-next-line max-states-count
 contract Sale is
@@ -191,8 +193,6 @@ contract Sale is
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
 
-    /// @dev local offset for local ops.
-    uint256 private immutable localOpsStart;
     /// @dev the saleTimeout cannot exceed this. Prevents downstream contracts
     /// that require a finalization such as escrows from getting permanently
     /// stuck in a pending or active status due to buggy scripts.
@@ -254,8 +254,6 @@ contract Sale is
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_) {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
-
         maximumSaleTimeout = config_.maximumSaleTimeout;
         maximumCooldownDuration = config_.maximumCooldownDuration;
 
@@ -618,19 +616,15 @@ contract Sale is
     /// @inheritdoc RainVM
     function stackIndexDiff(uint256 opcode_, uint256 operand_)
         public
-        view
+        pure
         override
         returns (int256)
     {
         unchecked {
-            if (opcode_ < localOpsStart) {
-                return
-                    AllStandardOps.stackIndexDiff(
-                        opcode_,
-                        operand_
-                    );
+            if (opcode_ < LOCAL_OPS_START) {
+                return AllStandardOps.stackIndexDiff(opcode_, operand_);
             } else {
-                opcode_ -= localOpsStart;
+                opcode_ -= LOCAL_OPS_START;
                 require(opcode_ < LOCAL_OPS_LENGTH, "OPCODE_OUT_OF_BOUNDS");
                 return 1;
             }
@@ -644,7 +638,7 @@ contract Sale is
         uint256 operand_
     ) internal view override returns (uint256) {
         unchecked {
-            if (opcode_ < localOpsStart) {
+            if (opcode_ < LOCAL_OPS_START) {
                 return
                     AllStandardOps.applyOp(
                         stackTopLocation_,
@@ -652,7 +646,7 @@ contract Sale is
                         operand_
                     );
             } else {
-                opcode_ -= localOpsStart;
+                opcode_ -= LOCAL_OPS_START;
                 uint256 value_;
                 if (opcode_ == OPCODE_REMAINING_UNITS) {
                     value_ = remainingUnits;
