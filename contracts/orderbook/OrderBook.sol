@@ -55,6 +55,7 @@ contract OrderBook is RainVM {
     using Math for uint256;
     using FixedPointMath for uint256;
     using OrderLogic for OrderLiveness;
+    using OrderLogic for Order;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -106,14 +107,6 @@ contract OrderBook is RainVM {
         return (tracking_ & mask_) > 0;
     }
 
-    function _orderHash(Order calldata config_)
-        internal
-        pure
-        returns (OrderHash)
-    {
-        return OrderHash.wrap(uint256(keccak256(abi.encode(config_))));
-    }
-
     function deposit(DepositConfig calldata config_) external {
         vaults[config_.depositor][config_.token][config_.vaultId] += config_
             .amount;
@@ -141,22 +134,22 @@ contract OrderBook is RainVM {
         IERC20(config_.token).safeTransfer(msg.sender, withdrawAmount_);
     }
 
-    function addOrder(Order calldata config_) external onlyOrderOwner(config_) {
-        OrderHash orderHash_ = _orderHash(config_);
+    function addOrder(Order calldata order_) external onlyOrderOwner(order_) {
+        OrderHash orderHash_ = order_.hash();
         if (orders[orderHash_].isDead()) {
-            orders[_orderHash(config_)] = ORDER_LIVE;
-            emit OrderLive(msg.sender, config_);
+            orders[orderHash_] = ORDER_LIVE;
+            emit OrderLive(msg.sender, order_);
         }
     }
 
-    function removeOrder(Order calldata config_)
+    function removeOrder(Order calldata order_)
         external
-        onlyOrderOwner(config_)
+        onlyOrderOwner(order_)
     {
-        OrderHash orderHash_ = _orderHash(config_);
+        OrderHash orderHash_ = order_.hash();
         if (orders[orderHash_].isLive()) {
-            orders[_orderHash(config_)] = ORDER_DEAD;
-            emit OrderDead(msg.sender, config_);
+            orders[orderHash_] = ORDER_DEAD;
+            emit OrderDead(msg.sender, order_);
         }
     }
 
@@ -165,8 +158,8 @@ contract OrderBook is RainVM {
         Order calldata b_,
         BountyConfig calldata bountyConfig_
     ) external {
-        OrderHash aHash_ = _orderHash(a_);
-        OrderHash bHash_ = _orderHash(b_);
+        OrderHash aHash_ = a_.hash();
+        OrderHash bHash_ = b_.hash();
         {
             require(a_.outputToken == b_.inputToken, "TOKEN_MISMATCH");
             require(b_.outputToken == a_.inputToken, "TOKEN_MISMATCH");

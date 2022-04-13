@@ -30,4 +30,8 @@ library OrderLogic {
         return
             OrderLiveness.unwrap(liveness_) == OrderLiveness.unwrap(ORDER_DEAD);
     }
+
+    function hash(Order calldata order_) internal pure returns (OrderHash) {
+        return OrderHash.wrap(uint256(keccak256(abi.encode(order_))));
+    }
 }
