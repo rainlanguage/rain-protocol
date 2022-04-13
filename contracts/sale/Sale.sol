@@ -136,20 +136,19 @@ struct Receipt {
 
 uint256 constant SOURCE_INDEX = 0;
 
-/// @dev local opcode to stack remaining rTKN units.
-uint256 constant OPCODE_REMAINING_UNITS = 0;
-/// @dev local opcode to stack total reserve taken in so far.
-uint256 constant OPCODE_TOTAL_RESERVE_IN = 1;
-/// @dev local opcode to stack the rTKN units/amount of the current buy.
-uint256 constant OPCODE_CURRENT_BUY_UNITS = 2;
-/// @dev local opcode to stack the address of the rTKN.
-uint256 constant OPCODE_TOKEN_ADDRESS = 3;
-/// @dev local opcode to stack the address of the reserve token.
-uint256 constant OPCODE_RESERVE_ADDRESS = 4;
-/// @dev local opcodes length.
-uint256 constant LOCAL_OPS_LENGTH = 5;
 uint constant LOCAL_OPS_START = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
-
+/// @dev local opcode to stack remaining rTKN units.
+uint256 constant OPCODE_REMAINING_UNITS = LOCAL_OPS_START;
+/// @dev local opcode to stack total reserve taken in so far.
+uint256 constant OPCODE_TOTAL_RESERVE_IN = LOCAL_OPS_START + 1;
+/// @dev local opcode to stack the rTKN units/amount of the current buy.
+uint256 constant OPCODE_CURRENT_BUY_UNITS = LOCAL_OPS_START + 2;
+/// @dev local opcode to stack the address of the rTKN.
+uint256 constant OPCODE_TOKEN_ADDRESS = LOCAL_OPS_START + 3;
+/// @dev local opcode to stack the address of the reserve token.
+uint256 constant OPCODE_RESERVE_ADDRESS = LOCAL_OPS_START + 4;
+/// @dev local opcodes length.
+uint256 constant LOCAL_OPS_LENGTH = LOCAL_OPS_START + 5;
 
 // solhint-disable-next-line max-states-count
 contract Sale is
@@ -646,7 +645,6 @@ contract Sale is
                         operand_
                     );
             } else {
-                opcode_ -= LOCAL_OPS_START;
                 uint256 value_;
                 if (opcode_ == OPCODE_REMAINING_UNITS) {
                     value_ = remainingUnits;
