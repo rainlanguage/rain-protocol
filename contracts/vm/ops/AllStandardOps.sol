@@ -31,8 +31,6 @@ uint256 constant LOGIC_OPCODE_ANY = LOGIC_OPS_START + OPCODE_ANY;
 
 uint256 constant TIER_OPS_START = LOGIC_OPS_START + LOGIC_OPS_LENGTH;
 uint256 constant TIER_OPCODE_REPORT = TIER_OPS_START + OPCODE_REPORT;
-uint256 constant TIER_OPCODE_NEVER = TIER_OPS_START + OPCODE_NEVER;
-uint256 constant TIER_OPCODE_ALWAYS = TIER_OPS_START + OPCODE_ALWAYS;
 uint256 constant TIER_OPCODE_SATURATING_DIFF = TIER_OPS_START + OPCODE_SATURATING_DIFF;
 uint256 constant TIER_OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE = TIER_OPS_START + OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE;
 uint256 constant TIER_OPCODE_SELECT_LTE = TIER_OPS_START + OPCODE_SELECT_LTE;
@@ -131,12 +129,6 @@ library AllStandardOps {
             } else if (opcode_ < IERC20_OPS_START) {
                 if (opcode_ == TIER_OPCODE_REPORT) {
                     return TierOps.report(stackTopLocation_);
-                }
-                else if (opcode_ == TIER_OPCODE_NEVER) {
-                    return TierOps.never(stackTopLocation_);
-                }
-                else if (opcode_ == TIER_OPCODE_ALWAYS) {
-                    return TierOps.always(stackTopLocation_);
                 }
                 else if (opcode_ == TIER_OPCODE_SATURATING_DIFF) {
                     return TierOps.saturatingDiff(stackTopLocation_);

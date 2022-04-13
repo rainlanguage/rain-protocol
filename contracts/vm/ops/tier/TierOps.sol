@@ -7,18 +7,14 @@ import "../../../tier/libraries/TierwiseCombine.sol";
 
 /// @dev Opcode to call `report` on an `ITier` contract.
 uint256 constant OPCODE_REPORT = 0;
-/// @dev Opcode to stack a report that has never been held for all tiers.
-uint256 constant OPCODE_NEVER = 1;
-/// @dev Opcode to stack a report that has always been held for all tiers.
-uint256 constant OPCODE_ALWAYS = 2;
 /// @dev Opcode to calculate the tierwise diff of two reports.
-uint256 constant OPCODE_SATURATING_DIFF = 3;
+uint256 constant OPCODE_SATURATING_DIFF = 1;
 /// @dev Opcode to update the blocks over a range of tiers for a report.
-uint256 constant OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE = 4;
+uint256 constant OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE = 2;
 /// @dev Opcode to tierwise select the best block lte a reference block.
-uint256 constant OPCODE_SELECT_LTE = 5;
+uint256 constant OPCODE_SELECT_LTE = 3;
 /// @dev Number of provided opcodes for `TierOps`.
-uint256 constant TIER_OPS_LENGTH = 6;
+uint256 constant TIER_OPS_LENGTH = 4;
 
 /// @title TierOps
 /// @notice RainVM opcode pack to operate on tier reports.
@@ -63,26 +59,6 @@ library TierOps {
         );
         assembly {
             mstore(location_, report_)
-        }
-        return stackTopLocation_;
-    }
-
-    // Stack a report that has never been held at any tier.
-    function never(uint256 stackTopLocation_) internal pure returns (uint256) {
-        uint256 never_ = TierConstants.NEVER_REPORT;
-        assembly {
-            mstore(stackTopLocation_, never_)
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
-    }
-
-    // Stack a report that has always been held at every tier.
-    function always(uint256 stackTopLocation_) internal pure returns (uint256) {
-        uint256 always_ = TierConstants.ALWAYS;
-        assembly {
-            mstore(stackTopLocation_, always_)
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
         }
         return stackTopLocation_;
     }

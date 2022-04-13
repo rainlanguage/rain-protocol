@@ -31,9 +31,6 @@ export const Opcode = {
   ...CombineTierOps,
 };
 
-const sourceAlways = concat([op(Opcode.ALWAYS)]);
-const sourceNever = concat([op(Opcode.NEVER)]);
-
 describe("CombineTier", async function () {
   it("should correctly combine Always and Never tier contracts with orLeft", async () => {
     this.timeout(0);
@@ -41,12 +38,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
+      sources: [[op(Opcode.VAL, 0)]],
+      constants: [0],
     });
     const neverTier = await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
+      sources: [[op(Opcode.VAL, 0)]],
+      constants: [Util.ALWAYS],
     });
 
     const constants = [

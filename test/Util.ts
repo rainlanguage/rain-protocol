@@ -583,8 +583,6 @@ export enum AllStandardOps {
   EVERY,
   ANY,
   REPORT,
-  NEVER,
-  ALWAYS,
   SATURATING_DIFF,
   UPDATE_BLOCKS_FOR_TIER_RANGE,
   SELECT_LTE,
