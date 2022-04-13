@@ -9,12 +9,9 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 uint256 constant SOURCE_INDEX = 0;
 
 contract TierOpsTest is RainVM, VMState {
-    uint256 private immutable tierOpsStart;
     address private immutable vmStatePointer;
 
     constructor(StateConfig memory config_) {
-        tierOpsStart = RAIN_VM_OPS_LENGTH;
-
         SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
         analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
         vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));

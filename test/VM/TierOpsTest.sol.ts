@@ -2,25 +2,14 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { op } from "../Util";
+import { op, AllStandardOps } from "../Util";
 import { Contract } from "ethers";
 
 import type { TierOpsTest } from "../../typechain/TierOpsTest";
 
 const { assert } = chai;
 
-const enum Opcode {
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  REPORT,
-  NEVER,
-  ALWAYS,
-  SATURATING_DIFF,
-  UPDATE_BLOCKS_FOR_TIER_RANGE,
-  SELECT_LTE,
-}
+const Opcode = AllStandardOps;
 
 enum Tier {
   ZERO,
@@ -43,7 +32,7 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
   return range;
 }
 
-describe("TierOpsTest", async function () {
+describe.only("TierOpsTest", async function () {
   it("should enforce maxTier for update tier range operation", async () => {
     this.timeout(0);
 

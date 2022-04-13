@@ -9,15 +9,24 @@ import {FixedPointMathOps, FIXED_POINT_MATH_OPS_LENGTH} from "./math/FixedPointM
 import {IERC20Ops, IERC20_OPS_LENGTH} from "./token/IERC20Ops.sol";
 import {IERC721Ops, IERC721_OPS_LENGTH} from "./token/IERC721Ops.sol";
 import {IERC1155Ops, IERC1155_OPS_LENGTH} from "./token/IERC1155Ops.sol";
-import {LogicOps, LOGIC_OPS_LENGTH} from "./math/LogicOps.sol";
+import "./math/LogicOps.sol";
 import {MathOps, MATH_OPS_LENGTH} from "./math/MathOps.sol";
 import {TierOps, TIER_OPS_LENGTH} from "./tier/TierOps.sol";
 
 uint256 constant ALL_STANDARD_OPS_START = RAIN_VM_OPS_LENGTH;
-uint256 constant FIXED_POINT_MATH_OPS_START = EVM_CONSTANT_OPS_LENGTH;
+uint256 constant FIXED_POINT_MATH_OPS_START = ALL_STANDARD_OPS_START + EVM_CONSTANT_OPS_LENGTH;
 uint256 constant MATH_OPS_START = FIXED_POINT_MATH_OPS_START +
     FIXED_POINT_MATH_OPS_LENGTH;
+
 uint256 constant LOGIC_OPS_START = MATH_OPS_START + MATH_OPS_LENGTH;
+uint256 constant LOGIC_OPCODE_ISZERO = LOGIC_OPS_START + OPCODE_ISZERO;
+uint256 constant LOGIC_OPCODE_EAGER_IF = LOGIC_OPS_START + OPCODE_EAGER_IF;
+uint256 constant LOGIC_OPCODE_EQUAL_TO = LOGIC_OPS_START + OPCODE_EQUAL_TO;
+uint256 constant LOGIC_OPCODE_LESS_THAN = LOGIC_OPS_START + OPCODE_LESS_THAN;
+uint256 constant LOGIC_OPCODE_GREATER_THAN = LOGIC_OPS_START + OPCODE_GREATER_THAN;
+uint256 constant LOGIC_OPCODE_EVERY = LOGIC_OPS_START + OPCODE_EVERY;
+uint256 constant LOGIC_OPCODE_ANY = LOGIC_OPS_START + OPCODE_ANY;
+
 uint256 constant TIER_OPS_START = LOGIC_OPS_START + LOGIC_OPS_LENGTH;
 uint256 constant IERC20_OPS_START = TIER_OPS_START + TIER_OPS_LENGTH;
 uint256 constant IERC721_OPS_START = IERC20_OPS_START + IERC20_OPS_LENGTH;
@@ -94,12 +103,27 @@ library AllStandardOps {
                             operand_
                         );
                 } else {
-                    return
-                        LogicOps.applyOp(
-                            stackTopLocation_,
-                            opcode_ - LOGIC_OPS_START,
-                            operand_
-                        );
+                    if (opcode_ == LOGIC_OPCODE_ISZERO) {
+                        return LogicOps.isZero(stackTopLocation_);
+                    }
+                    else if (opcode_ == LOGIC_OPCODE_EAGER_IF) {
+                        return LogicOps.eagerIf(stackTopLocation_);
+                    }
+                    else if (opcode_ == LOGIC_OPCODE_EQUAL_TO) {
+                        return LogicOps.equalTo(stackTopLocation_);
+                    }
+                    else if (opcode_ == LOGIC_OPCODE_LESS_THAN) {
+                        return LogicOps.lessThan(stackTopLocation_);
+                    }
+                    else if (opcode_ == LOGIC_OPCODE_GREATER_THAN) {
+                        return LogicOps.greaterThan(stackTopLocation_);
+                    }
+                    else if (opcode_ == LOGIC_OPCODE_EVERY) {
+                        return LogicOps.every(stackTopLocation_, operand_);
+                    }
+                    else {
+                        return LogicOps.any(stackTopLocation_, operand_);
+                    }
                 }
             } else if (opcode_ < IERC20_OPS_START) {
                 return

@@ -10,11 +10,6 @@ uint256 constant OPCODE_LESS_THAN = 3;
 uint256 constant OPCODE_GREATER_THAN = 4;
 uint256 constant OPCODE_EVERY = 5;
 uint256 constant OPCODE_ANY = 6;
-/// @dev Number of provided opcodes for `LogicOps`.
-/// The opcodes are NOT listed on the library as they are all internal to
-/// the assembly and yul doesn't seem to support using solidity constants
-/// as switch case values.
-uint256 constant OPS_LENGTH = 7;
 
 /// @dev Number of provided opcodes for `LogicOps`.
 /// The opcodes are NOT listed on the library as they are all internal to
@@ -47,71 +42,83 @@ library LogicOps {
         }
     }
 
-    function applyOp(
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal pure returns (uint256) {
+    // ISZERO
+    function isZero(uint stackTopLocation_) internal pure returns (uint) {
         assembly {
-            switch opcode_
-            // ISZERO
-            case 0 {
-                // The index doesn't change for iszero as there is
-                // one input and output.
-                let location_ := sub(stackTopLocation_, 0x20)
-                mstore(location_, iszero(mload(location_)))
-            }
-            // EAGER_IF
-            // Eager because BOTH x_ and y_ must be eagerly evaluated
-            // before EAGER_IF will select one of them. If both x_ and y_
-            // are cheap (e.g. constant values) then this may also be the
-            // simplest and cheapest way to select one of them.
-            case 1 {
-                let location_ := sub(stackTopLocation_, 0x60)
-                stackTopLocation_ := add(location_, 0x20)
-                // false => use second value
-                // true => use first value
-                mstore(
-                    location_,
-                    mload(
-                        add(
-                            stackTopLocation_,
-                            mul(0x20, iszero(mload(location_)))
-                        )
+            // The index doesn't change for iszero as there is
+            // one input and output.
+            let location_ := sub(stackTopLocation_, 0x20)
+            mstore(location_, iszero(mload(location_)))
+        }
+        return stackTopLocation_;
+    }
+
+    // EAGER_IF
+    // Eager because BOTH x_ and y_ must be eagerly evaluated
+    // before EAGER_IF will select one of them. If both x_ and y_
+    // are cheap (e.g. constant values) then this may also be the
+    // simplest and cheapest way to select one of them.
+    function eagerIf(uint stackTopLocation_) internal pure returns (uint) {
+        assembly {
+            let location_ := sub(stackTopLocation_, 0x60)
+            stackTopLocation_ := add(location_, 0x20)
+            // false => use second value
+            // true => use first value
+            mstore(
+                location_,
+                mload(
+                    add(
+                        stackTopLocation_,
+                        mul(0x20, iszero(mload(location_)))
                     )
                 )
-            }
-            // EQUAL_TO
-            case 2 {
-                let location_ := sub(stackTopLocation_, 0x40)
-                stackTopLocation_ := add(location_, 0x20)
+            )
+        }
+        return stackTopLocation_;
+    }
+
+    function equalTo(uint stackTopLocation_) internal pure returns (uint) {
+        assembly {
+                stackTopLocation_ := sub(stackTopLocation_, 0x20)
+                let location_ := sub(stackTopLocation_, 0x20)
                 mstore(
                     location_,
                     eq(mload(location_), mload(stackTopLocation_))
                 )
-            }
-            // LESS_THAN
-            case 3 {
-                let location_ := sub(stackTopLocation_, 0x40)
-                stackTopLocation_ := add(location_, 0x20)
+
+        }
+        return stackTopLocation_;
+    }
+
+    function lessThan(uint stackTopLocation_) internal pure returns (uint) {
+        assembly {
+                stackTopLocation_ := sub(stackTopLocation_, 0x20)
+                let location_ := sub(stackTopLocation_, 0x20)
                 mstore(
                     location_,
                     lt(mload(location_), mload(stackTopLocation_))
                 )
-            }
-            // GREATER_THAN
-            case 4 {
-                let location_ := sub(stackTopLocation_, 0x40)
-                stackTopLocation_ := add(location_, 0x20)
+        }
+        return stackTopLocation_;
+    }
+
+    function greaterThan(uint stackTopLocation_) internal pure returns (uint) {
+        assembly {
+                stackTopLocation_ := sub(stackTopLocation_, 0x20)
+                let location_ := sub(stackTopLocation_, 0x20)
                 mstore(
                     location_,
                     gt(mload(location_), mload(stackTopLocation_))
                 )
-            }
+        }
+        return stackTopLocation_;
+    }
+
             // EVERY
             // EVERY is either the first item if every item is nonzero, else 0.
             // operand_ is the length of items to check.
-            case 5 {
+    function every(uint stackTopLocation_, uint operand_) internal pure returns (uint) {
+        assembly {
                 let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
                 for {
                     let cursor_ := location_
@@ -126,11 +133,15 @@ library LogicOps {
                     }
                 }
                 stackTopLocation_ := add(location_, 0x20)
-            }
-            // ANY
-            // ANY is the first nonzero item, else 0.
-            // operand_ id the length of items to check.
-            case 6 {
+        }
+        return stackTopLocation_;
+    }
+
+    // ANY
+    // ANY is the first nonzero item, else 0.
+    // operand_ id the length of items to check.
+    function any(uint stackTopLocation_, uint operand_) internal pure returns (uint) {
+        assembly {
                 let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
                 for {
                     let cursor_ := location_
@@ -148,7 +159,6 @@ library LogicOps {
                     }
                 }
                 stackTopLocation_ := add(location_, 0x20)
-            }
         }
         return stackTopLocation_;
     }
