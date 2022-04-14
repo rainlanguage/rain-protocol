@@ -103,6 +103,7 @@ describe("EmissionsERC20", async function () {
     const valTierAddress = op(Opcode.VAL, 0);
     const valBaseRewardPerTier = op(Opcode.VAL, 1);
     const valBlocksPerYear = op(Opcode.VAL, 2);
+    const valNever = op(Opcode.VAL, 3)
 
     // END global constants
 
@@ -145,7 +146,7 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.NEVER),
+          valNever,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -199,6 +200,7 @@ describe("EmissionsERC20", async function () {
       readWriteTier.address,
       BASE_REWARD_PER_TIER,
       BLOCKS_PER_YEAR,
+      Util.NEVER
     ];
 
     console.log("source", SOURCE(), FN());
@@ -374,13 +376,14 @@ describe("EmissionsERC20", async function () {
     const valBlocksPerYear = op(Opcode.VAL, 2);
     const valBNOne = op(Opcode.VAL, 3);
     const valBNOneReward = op(Opcode.VAL, 4);
+    const valNever = op(Opcode.VAL, 5)
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.VAL, 5);
-    const valBaseReward = op(Opcode.VAL, 6);
+    const valDuration = op(Opcode.VAL, 6);
+    const valBaseReward = op(Opcode.VAL, 7);
 
     // END zipmap args
 
@@ -427,7 +430,7 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.NEVER),
+          valNever,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -479,6 +482,7 @@ describe("EmissionsERC20", async function () {
       BLOCKS_PER_YEAR,
       BN_ONE,
       BN_ONE_REWARD,
+      Util.NEVER
     ];
 
     console.log("source", SOURCE());
@@ -658,10 +662,12 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const valNever = op(Opcode.VAL, 1)
+
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.NEVER),
+          valNever,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -709,7 +715,7 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
-          constants: [readWriteTier.address],
+          constants: [readWriteTier.address, Util.NEVER],
         },
       }
     );
@@ -759,6 +765,8 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const valNever = op(Opcode.VAL, 1)
+
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
       emissionsERC20Factory,
@@ -773,7 +781,7 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [
             concat([
-              op(Opcode.NEVER),
+              valNever,
               op(Opcode.BLOCK_NUMBER),
               op(
                 Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -785,7 +793,7 @@ describe("EmissionsERC20", async function () {
               op(Opcode.SATURATING_DIFF),
             ]),
           ],
-          constants: [readWriteTier.address],
+          constants: [readWriteTier.address, Util.NEVER],
         },
       }
     );

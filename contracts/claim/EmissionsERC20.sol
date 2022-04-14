@@ -5,7 +5,7 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
+import {DispatchTable, RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
@@ -180,8 +180,9 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
+        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
         State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(claimant_), state_, SOURCE_INDEX);
+        eval(dispatchTable_, abi.encode(claimant_), state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
     }
 

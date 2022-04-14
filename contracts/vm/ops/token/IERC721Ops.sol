@@ -6,9 +6,9 @@ import {State} from "../../RainVM.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @dev Opcode for `IERC721` `balanceOf`.
-uint256 constant OPCODE_BALANCE_OF = 0;
+uint256 constant OPCODE_IERC721_BALANCE_OF = 0;
 /// @dev Opcode for `IERC721` `ownerOf`.
-uint256 constant OPCODE_OWNER_OF = 1;
+uint256 constant OPCODE_IERC721_OWNER_OF = 1;
 /// @dev Number of provided opcodes for `IERC721Ops`.
 uint256 constant IERC721_OPS_LENGTH = 2;
 
@@ -19,21 +19,15 @@ library IERC721Ops {
         return -1;
     }
 
-    function applyOp(
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256
-    ) internal view returns (uint256) {
-        unchecked {
             // Stack the return of `balanceOf`.
-            if (opcode_ == OPCODE_BALANCE_OF) {
+    function balanceOf(uint, uint stackTopLocation_) internal view returns (uint) {
                 uint256 location_;
                 uint256 token_;
                 uint256 account_;
 
                 assembly {
-                    location_ := sub(stackTopLocation_, 0x40)
-                    stackTopLocation_ := add(location_, 0x20)
+                    stackTopLocation_ := sub(stackTopLocation_, 0x20)
+                    location_ := sub(stackTopLocation_, 0x20)
                     token_ := mload(location_)
                     account_ := mload(stackTopLocation_)
                 }
@@ -44,16 +38,18 @@ library IERC721Ops {
                 assembly {
                     mstore(location_, balance_)
                 }
-            }
+                return stackTopLocation_;
+    }
+
             // Stack the return of `ownerOf`.
-            else if (opcode_ == OPCODE_OWNER_OF) {
-                uint256 location_;
+    function ownerOf(uint, uint stackTopLocation_) internal view returns (uint) {
+                        uint256 location_;
                 uint256 token_;
                 uint256 id_;
 
                 assembly {
-                    location_ := sub(stackTopLocation_, 0x40)
-                    stackTopLocation_ := add(location_, 0x20)
+                    stackTopLocation_ := sub(stackTopLocation_, 0x20)
+                    location_ := sub(stackTopLocation_, 0x20)
                     token_ := mload(location_)
                     id_ := mload(stackTopLocation_)
                 }
@@ -63,8 +59,7 @@ library IERC721Ops {
                 assembly {
                     mstore(location_, owner_)
                 }
-            }
-            return stackTopLocation_;
-        }
+                return stackTopLocation_;
     }
+
 }

@@ -377,8 +377,9 @@ contract Sale is
         // Only a pending sale can start. Starting a sale more than once would
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
+            DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
             State memory state_ = _restore(canStartStatePointer);
-            eval("", state_, SOURCE_INDEX);
+            eval(dispatchTable_, "", state_, SOURCE_INDEX);
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
             return false;
@@ -407,8 +408,9 @@ contract Sale is
             // The raise is active and still has stock remaining so we delegate
             // to the appropriate script for an answer.
             else {
+                DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
                 State memory state_ = _restore(canEndStatePointer);
-                eval("", state_, SOURCE_INDEX);
+                eval(dispatchTable_, "", state_, SOURCE_INDEX);
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
         } else {
@@ -421,8 +423,9 @@ contract Sale is
     /// @param units_ Amount of rTKN to quote a price for, will be available to
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
+        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
         State memory state_ = _restore(calculatePriceStatePointer);
-        eval(abi.encode(units_), state_, SOURCE_INDEX);
+        eval(dispatchTable_, abi.encode(units_), state_, SOURCE_INDEX);
 
         return state_.stack[state_.stackIndex - 1];
     }

@@ -6,9 +6,9 @@ import {State} from "../../RainVM.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev Opcode for `IERC20` `balanceOf`.
-uint256 constant OPCODE_BALANCE_OF = 0;
+uint256 constant OPCODE_IERC20_BALANCE_OF = 0;
 /// @dev Opcode for `IERC20` `totalSupply`.
-uint256 constant OPCODE_TOTAL_SUPPLY = 1;
+uint256 constant OPCODE_IERC20_TOTAL_SUPPLY = 1;
 /// @dev Number of provided opcodes for `IERC20Ops`.
 uint256 constant IERC20_OPS_LENGTH = 2;
 
@@ -20,27 +20,20 @@ library IERC20Ops {
         pure
         returns (int256)
     {
-        if (opcode_ == OPCODE_BALANCE_OF) {
+        if (opcode_ == OPCODE_IERC20_BALANCE_OF) {
             return -1;
         } else {
             return 0;
         }
     }
-
-    function applyOp(
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256
-    ) internal view returns (uint256) {
-        unchecked {
             // Stack the return of `balanceOf`.
-            if (opcode_ == OPCODE_BALANCE_OF) {
+    function balanceOf(uint, uint stackTopLocation_) internal view returns (uint) {
                 uint256 location_;
                 uint256 token_;
                 uint256 account_;
                 assembly {
-                    location_ := sub(stackTopLocation_, 0x40)
-                    stackTopLocation_ := add(location_, 0x20)
+                    stackTopLocation_ := sub(stackTopLocation_, 0x20)
+                    location_ := sub(stackTopLocation_, 0x20)
                     token_ := mload(location_)
                     account_ := mload(stackTopLocation_)
                 }
@@ -50,9 +43,11 @@ library IERC20Ops {
                 assembly {
                     mstore(location_, balance_)
                 }
-            }
+                return stackTopLocation_;
+    }
+
             // Stack the return of `totalSupply`.
-            else if (opcode_ == OPCODE_TOTAL_SUPPLY) {
+    function totalSupply(uint, uint stackTopLocation_) internal view returns (uint) {
                 uint256 location_;
                 uint256 token_;
                 assembly {
@@ -64,9 +59,6 @@ library IERC20Ops {
                 assembly {
                     mstore(location_, supply_)
                 }
-            }
-
-            return stackTopLocation_;
-        }
+                return stackTopLocation_;
     }
 }

@@ -90,12 +90,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -142,12 +142,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -194,12 +194,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -246,12 +246,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -298,12 +298,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -350,12 +350,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
+      sources: [op(Opcode.VAL, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [

@@ -32,7 +32,7 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
   return range;
 }
 
-describe.only("TierOps", async function () {
+describe("TierOps", async function () {
   it("should enforce maxTier for update tier range operation", async () => {
     this.timeout(0);
 
@@ -44,13 +44,13 @@ describe.only("TierOps", async function () {
 
     const block = await ethers.provider.getBlockNumber();
 
-    const constants0 = [block];
+    const constants0 = [block, Util.NEVER];
 
     const vBlock = op(Opcode.VAL, 0);
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.NEVER),
+        op(Opcode.VAL, 1),
         vBlock,
       op(
         Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,

@@ -44,7 +44,7 @@ library TierOps {
     // Stack the report returned by an `ITier` contract.
     // Top two stack vals are used as the address and `ITier` contract
     // to check against.
-    function report(uint256 stackTopLocation_) internal view returns (uint256) {
+    function report(uint, uint256 stackTopLocation_) internal view returns (uint256) {
         uint256 location_;
         uint256 tier_;
         uint256 account_;
@@ -67,7 +67,7 @@ library TierOps {
     // If the older report is newer than newer report the result will
     // be `0`, else a tierwise diff in blocks will be obtained.
     // The older and newer report are taken from the stack.
-    function saturatingDiff(uint256 stackTopLocation_)
+    function saturatingDiff(uint, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -97,8 +97,8 @@ library TierOps {
     // The report to update and block number to update to are both
     // taken from the stack.
     function updateBlocksForTierRange(
-        uint256 stackTopLocation_,
-        uint256 operand_
+        uint256 operand_,
+        uint256 stackTopLocation_
     ) internal pure returns (uint256) {
         uint256 location_;
         uint256 report_;
@@ -133,7 +133,7 @@ library TierOps {
     // `mode_` is the 2 highest bits after `logic_`.
     // The other bits specify how many values to take from the stack
     // as reports to compare against each other and the block number.
-    function selectLte(uint256 stackTopLocation_, uint256 operand_)
+    function selectLte(uint operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)

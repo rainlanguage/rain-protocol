@@ -11,6 +11,35 @@ struct SourceAnalysis {
     uint256 argumentsUpperBound;
 }
 
+type DispatchTable is uint;
+
+library Dispatch {
+    function initialize(DispatchTable dispatchTable_, uint[] memory fnPtrs_) internal pure {
+        assembly {
+            dispatchTable_ := add(fnPtrs_, 0x20)
+        }
+    }
+    function ptr(DispatchTable dispatchTable_, uint opcode_) internal pure returns (uint) {
+        uint ptr_;
+        assembly {
+            ptr_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+        }
+        return ptr_;
+    }
+    function setFn(DispatchTable dispatchTable_, uint opcode_, function (uint256, uint256) view returns (uint256) fn_) internal pure {
+        assembly {
+            mstore(add(dispatchTable_, mul(opcode_, 0x20)), fn_)
+        }
+    }
+    function dispatch(DispatchTable dispatchTable_, uint opcode_, uint operand_, uint stackTopLocation_) internal view returns (uint) {
+        function (uint256, uint256) view returns (uint256) fn_;
+        assembly {
+            fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+        }
+        return fn_(operand_, stackTopLocation_);
+    }
+}
+
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -115,6 +144,7 @@ uint256 constant RAIN_VM_OPS_LENGTH = 4;
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
     using Math for uint256;
+    using Dispatch for DispatchTable;
 
     function _newSourceAnalysis()
         internal
@@ -227,10 +257,10 @@ abstract contract RainVM {
     /// @param state_ The execution state of the VM.
     /// @param operand_ The operand_ associated with this dispatch to zipmap.
     function zipmap(
+        DispatchTable dispatchTable_,
         bytes memory context_,
         State memory state_,
         uint256 stackTopLocation_,
-        uint256 argumentsBottomLocation_,
         uint256 operand_
     ) internal view returns (uint256) {
         unchecked {
@@ -275,10 +305,28 @@ abstract contract RainVM {
                 }
             }
 
-            uint256 maxCursor_ = baseValsBottom_ + (valLength_ * 0x20);
+            uint argumentsBottomLocation_;
+            assembly {
+                let constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
+                argumentsBottomLocation_ := add(
+                    constantsBottomLocation_,
+                    mul(
+                        0x20,
+                        mload(
+                            // argumentsIndex
+                            add(state_, 0x80)
+                        )
+                    )
+                )
+
+            }
+
             for (uint256 step_ = 0; step_ < 0x100; step_ += stepSize_) {
                 // Prepare arguments.
                 {
+                    // max cursor is in this scope to avoid stack overflow from
+                    // solidity.
+                    uint256 maxCursor_ = baseValsBottom_ + (valLength_ * 0x20);
                     uint256 argumentsCursor_ = argumentsBottomLocation_;
                     uint256 cursor_ = baseValsBottom_;
                     while (cursor_ < maxCursor_) {
@@ -292,7 +340,7 @@ abstract contract RainVM {
                         }
                     }
                 }
-                stackTopLocation_ = eval(context_, state_, sourceIndex_);
+                stackTopLocation_ = eval(dispatchTable_, context_, state_, sourceIndex_);
             }
             return stackTopLocation_;
         }
@@ -311,6 +359,7 @@ abstract contract RainVM {
     /// are provided so the caller can provide additional data and kickoff the
     /// opcode dispatch from the correct source in `sources`.
     function eval(
+        DispatchTable dispatchTable_,
         bytes memory context_,
         State memory state_,
         uint256 sourceIndex_
@@ -322,9 +371,9 @@ abstract contract RainVM {
             uint256 sourceLocation_;
             uint256 sourceLen_;
             uint256 constantsBottomLocation_;
-            uint256 argumentsBottomLocation_;
             uint256 stackBottomLocation_;
             uint256 stackTopLocation_;
+
             assembly {
                 let stackLocation_ := mload(add(state_, 0x20))
                 stackBottomLocation_ := add(stackLocation_, 0x20)
@@ -341,16 +390,16 @@ abstract contract RainVM {
                 )
                 sourceLen_ := mload(sourceLocation_)
                 constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
-                argumentsBottomLocation_ := add(
-                    constantsBottomLocation_,
-                    mul(
-                        0x20,
-                        mload(
-                            // argumentsIndex
-                            add(state_, 0x80)
-                        )
-                    )
-                )
+                // argumentsBottomLocation_ := add(
+                //     constantsBottomLocation_,
+                //     mul(
+                //         0x20,
+                //         mload(
+                //             // argumentsIndex
+                //             add(state_, 0x80)
+                //         )
+                //     )
+                // )
             }
 
             // Loop until complete.
@@ -390,21 +439,21 @@ abstract contract RainVM {
                         }
                     } else if (opcode_ == OPCODE_ZIPMAP) {
                         stackTopLocation_ = zipmap(
+                            dispatchTable_,
                             context_,
                             state_,
                             stackTopLocation_,
-                            argumentsBottomLocation_,
                             operand_
                         );
                     } else {
                         console.logBytes(abi.encode(state_));
                     }
                 } else {
-                    stackTopLocation_ = applyOp(
-                        context_,
-                        stackTopLocation_,
+                    stackTopLocation_ = dispatch(
+                        dispatchTable_,
                         opcode_,
-                        operand_
+                        operand_,
+                        stackTopLocation_
                     );
                 }
             }
@@ -414,6 +463,14 @@ abstract contract RainVM {
             return stackTopLocation_;
         }
     }
+
+        function dispatch(DispatchTable dispatchTable_, uint opcode_, uint operand_, uint stackTopLocation_) internal view returns (uint) {
+            function (uint256, uint256) view returns (uint256) fn_;
+            assembly {
+                fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+            }
+            return fn_(operand_, stackTopLocation_);
+        }
 
     /// Every contract that implements `RainVM` should override `applyOp` so
     /// that useful opcodes are available to script writers.

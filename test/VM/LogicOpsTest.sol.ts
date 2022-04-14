@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { op, AllStandardOps } from "../Util";
 import type { BigNumber, Contract } from "ethers";
-import type { LogicOpsTest } from "../../typechain/LogicOpsTest";
+import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 
 const { assert } = chai;
 
@@ -11,11 +11,11 @@ const Opcode = AllStandardOps;
 
 const isTruthy = (vmValue: BigNumber) => vmValue.eq(1);
 
-describe("LogicOpsTest", async function () {
+describe("LogicOps Test", async function () {
   it("should check whether any value in a list is non-zero", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [0, 1, 2, 3];
 
@@ -35,7 +35,7 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic0.run();
     const result0 = await logic0.stackTop();
@@ -52,7 +52,7 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic1.run();
     const result1 = await logic1.stackTop();
@@ -70,7 +70,7 @@ describe("LogicOpsTest", async function () {
     const logic2 = (await logicFactory.deploy({
       sources: [source2],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic2.run();
     const result2 = await logic2.stackTop();
@@ -81,7 +81,7 @@ describe("LogicOpsTest", async function () {
   it("should check whether every value in a list is non-zero", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [0, 1, 2, 3];
 
@@ -101,7 +101,7 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic0.run();
     const result0 = await logic0.stackTop();
@@ -119,7 +119,7 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic1.run();
     const result1 = await logic1.stackTop();
@@ -136,7 +136,7 @@ describe("LogicOpsTest", async function () {
     const logic2 = (await logicFactory.deploy({
       sources: [source2],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic2.run();
     const result2 = await logic2.stackTop();
@@ -147,7 +147,7 @@ describe("LogicOpsTest", async function () {
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [0, 1, 2, 3];
 
@@ -168,7 +168,7 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic0.run();
     const result0 = await logic0.stackTop();
@@ -187,7 +187,7 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic1.run();
     const result1 = await logic1.stackTop();
@@ -206,7 +206,7 @@ describe("LogicOpsTest", async function () {
     const logic2 = (await logicFactory.deploy({
       sources: [source2],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic2.run();
     const result2 = await logic2.stackTop();
@@ -217,7 +217,7 @@ describe("LogicOpsTest", async function () {
   it("should check that value is greater than another value", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [1, 2];
 
@@ -231,7 +231,7 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic0.run();
     const result0 = await logic0.stackTop(); // expect 1
@@ -248,7 +248,7 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic1.run();
     const result1 = await logic1.stackTop(); // expect 0
@@ -259,7 +259,7 @@ describe("LogicOpsTest", async function () {
   it("should check that value is less than another value", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [1, 2];
 
@@ -273,7 +273,7 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic0.run();
     const result0 = await logic0.stackTop(); // expect 0
@@ -290,7 +290,7 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic1.run();
     const result1 = await logic1.stackTop(); // expect 1
@@ -301,7 +301,7 @@ describe("LogicOpsTest", async function () {
   it("should check that values are equal to each other", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [1, 2];
 
@@ -315,7 +315,7 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic0.run();
     const result0 = await logic0.stackTop(); // expect 1
@@ -332,7 +332,7 @@ describe("LogicOpsTest", async function () {
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic1.run();
     const result1 = await logic1.stackTop(); // expect 0
@@ -343,7 +343,7 @@ describe("LogicOpsTest", async function () {
   it("should check that a value is zero", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [0, 1];
 
@@ -356,7 +356,7 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic0.run();
     const result0 = await logic0.stackTop(); // expect 1
@@ -367,12 +367,14 @@ describe("LogicOpsTest", async function () {
     const source1 = concat([
       op(Opcode.VAL, 1),
       op(Opcode.ISZERO),
+      op(Opcode.ISZERO),
+      op(Opcode.ISZERO),
     ]);
 
     const logic1 = (await logicFactory.deploy({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await logic1.run();
     const result1 = await logic1.stackTop(); // expect 0

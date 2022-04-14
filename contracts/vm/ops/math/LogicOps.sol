@@ -43,7 +43,7 @@ library LogicOps {
     }
 
     // ISZERO
-    function isZero(uint256 stackTopLocation_) internal pure returns (uint256) {
+    function isZero(uint, uint256 stackTopLocation_) internal pure returns (uint256) {
         assembly {
             // The index doesn't change for iszero as there is
             // one input and output.
@@ -58,7 +58,7 @@ library LogicOps {
     // before EAGER_IF will select one of them. If both x_ and y_
     // are cheap (e.g. constant values) then this may also be the
     // simplest and cheapest way to select one of them.
-    function eagerIf(uint256 stackTopLocation_)
+    function eagerIf(uint, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -78,7 +78,7 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function equalTo(uint256 stackTopLocation_)
+    function equalTo(uint, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -91,7 +91,7 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function lessThan(uint256 stackTopLocation_)
+    function lessThan(uint, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -104,7 +104,7 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function greaterThan(uint256 stackTopLocation_)
+    function greaterThan(uint, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -120,7 +120,7 @@ library LogicOps {
     // EVERY
     // EVERY is either the first item if every item is nonzero, else 0.
     // operand_ is the length of items to check.
-    function every(uint256 stackTopLocation_, uint256 operand_)
+    function every(uint operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -147,7 +147,7 @@ library LogicOps {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(uint256 stackTopLocation_, uint256 operand_)
+    function any(uint operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)

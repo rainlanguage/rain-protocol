@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {State, RainVM, RAIN_VM_OPS_LENGTH} from "../RainVM.sol";
+import {State, RainVM, DispatchTable, Dispatch, RAIN_VM_OPS_LENGTH} from "../RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {EVMConstantOps, EVM_CONSTANT_OPS_LENGTH} from "./evm/EVMConstantOps.sol";
 // solhint-disable-next-line max-line-length
 import {FixedPointMathOps, FIXED_POINT_MATH_OPS_LENGTH} from "./math/FixedPointMathOps.sol";
-import {IERC20Ops, IERC20_OPS_LENGTH} from "./token/IERC20Ops.sol";
-import {IERC721Ops, IERC721_OPS_LENGTH} from "./token/IERC721Ops.sol";
+import "./token/IERC20Ops.sol";
+import "./token/IERC721Ops.sol";
 import {IERC1155Ops, IERC1155_OPS_LENGTH} from "./token/IERC1155Ops.sol";
 import "./math/LogicOps.sol";
 import {MathOps, MATH_OPS_LENGTH} from "./math/MathOps.sol";
 import "./tier/TierOps.sol";
+
+import "hardhat/console.sol";
 
 uint256 constant ALL_STANDARD_OPS_START = RAIN_VM_OPS_LENGTH;
 uint256 constant FIXED_POINT_MATH_OPS_START = ALL_STANDARD_OPS_START +
@@ -36,7 +38,13 @@ uint256 constant TIER_OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE = TIER_OPS_START + OPC
 uint256 constant TIER_OPCODE_SELECT_LTE = TIER_OPS_START + OPCODE_SELECT_LTE;
 
 uint256 constant IERC20_OPS_START = TIER_OPS_START + TIER_OPS_LENGTH;
+uint constant IERC20_OPCODE_IERC20_BALANCE_OF = IERC20_OPS_START + OPCODE_IERC20_BALANCE_OF;
+uint constant IERC20_OPCODE_IERC20_TOTAL_SUPPLY = IERC20_OPS_START + OPCODE_IERC20_TOTAL_SUPPLY;
+
 uint256 constant IERC721_OPS_START = IERC20_OPS_START + IERC20_OPS_LENGTH;
+uint constant IERC721_OPCODE_IERC721_BALANCE_OF = IERC721_OPS_START + OPCODE_IERC721_BALANCE_OF;
+uint constant IERC721_OPCODE_IERC721_OWNER_OF = IERC721_OPS_START + OPCODE_IERC721_OWNER_OF;
+
 uint256 constant IERC1155_OPS_START = IERC721_OPS_START + IERC721_OPS_LENGTH;
 uint256 constant ALL_STANDARD_OPS_LENGTH = IERC1155_OPS_START +
     IERC1155_OPS_LENGTH;
@@ -44,6 +52,8 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = IERC1155_OPS_START +
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
+    using Dispatch for DispatchTable;
+
     function stackIndexDiff(uint256 opcode_, uint256 operand_)
         internal
         pure
@@ -81,6 +91,32 @@ library AllStandardOps {
         }
     }
 
+    function dispatchTable() internal view returns (DispatchTable) {
+        uint gasStart_ = gasleft();
+        uint[] memory fnPtrs_ = new uint[](ALL_STANDARD_OPS_LENGTH);
+        DispatchTable dispatchTable_;
+        dispatchTable_.initialize(fnPtrs_);
+        dispatchTable_.setFn(LOGIC_OPCODE_ISZERO, LogicOps.isZero);
+        dispatchTable_.setFn(LOGIC_OPCODE_EAGER_IF, LogicOps.eagerIf);
+        dispatchTable_.setFn(LOGIC_OPCODE_EQUAL_TO, LogicOps.equalTo);
+        dispatchTable_.setFn(LOGIC_OPCODE_LESS_THAN, LogicOps.lessThan);
+        dispatchTable_.setFn(LOGIC_OPCODE_GREATER_THAN, LogicOps.greaterThan);
+        dispatchTable_.setFn(LOGIC_OPCODE_EVERY, LogicOps.every);
+        dispatchTable_.setFn(LOGIC_OPCODE_ANY, LogicOps.any);
+        dispatchTable_.setFn(TIER_OPCODE_REPORT, TierOps.report);
+        dispatchTable_.setFn(TIER_OPCODE_SATURATING_DIFF, TierOps.saturatingDiff);
+        dispatchTable_.setFn(TIER_OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE, TierOps.updateBlocksForTierRange);
+        dispatchTable_.setFn(TIER_OPCODE_SELECT_LTE, TierOps.selectLte);
+        dispatchTable_.setFn(IERC20_OPCODE_IERC20_BALANCE_OF, IERC20Ops.balanceOf);
+        dispatchTable_.setFn(IERC20_OPCODE_IERC20_TOTAL_SUPPLY, IERC20Ops.totalSupply);
+        dispatchTable_.setFn(IERC721_OPCODE_IERC721_BALANCE_OF, IERC721Ops.balanceOf);
+        dispatchTable_.setFn(IERC721_OPCODE_IERC721_OWNER_OF, IERC721Ops.ownerOf);
+        uint gasEnd_ = gasleft();
+        console.log("table gas: %s", gasStart_ - gasEnd_);
+        console.log("table is zero: %s", dispatchTable_.ptr(LOGIC_OPCODE_ISZERO));
+        return dispatchTable_;
+    }
+
     function applyOp(
         uint256 stackTopLocation_,
         uint256 opcode_,
@@ -109,58 +145,15 @@ library AllStandardOps {
                             opcode_ - MATH_OPS_START,
                             operand_
                         );
-                } else {
-                    if (opcode_ == LOGIC_OPCODE_ISZERO) {
-                        return LogicOps.isZero(stackTopLocation_);
-                    } else if (opcode_ == LOGIC_OPCODE_EAGER_IF) {
-                        return LogicOps.eagerIf(stackTopLocation_);
-                    } else if (opcode_ == LOGIC_OPCODE_EQUAL_TO) {
-                        return LogicOps.equalTo(stackTopLocation_);
-                    } else if (opcode_ == LOGIC_OPCODE_LESS_THAN) {
-                        return LogicOps.lessThan(stackTopLocation_);
-                    } else if (opcode_ == LOGIC_OPCODE_GREATER_THAN) {
-                        return LogicOps.greaterThan(stackTopLocation_);
-                    } else if (opcode_ == LOGIC_OPCODE_EVERY) {
-                        return LogicOps.every(stackTopLocation_, operand_);
-                    } else {
-                        return LogicOps.any(stackTopLocation_, operand_);
-                    }
                 }
-            } else if (opcode_ < IERC20_OPS_START) {
-                if (opcode_ == TIER_OPCODE_REPORT) {
-                    return TierOps.report(stackTopLocation_);
-                }
-                else if (opcode_ == TIER_OPCODE_SATURATING_DIFF) {
-                    return TierOps.saturatingDiff(stackTopLocation_);
-                } else if (opcode_ == TIER_OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE) {
-                    return TierOps.updateBlocksForTierRange(stackTopLocation_, operand_);
-                }
-                else {
-                    return TierOps.selectLte(stackTopLocation_, operand_);
-                }
-            } else {
-                if (opcode_ < IERC721_OPS_START) {
-                    return
-                        IERC20Ops.applyOp(
-                            stackTopLocation_,
-                            opcode_ - IERC20_OPS_START,
-                            operand_
-                        );
-                } else if (opcode_ < IERC1155_OPS_START) {
-                    return
-                        IERC721Ops.applyOp(
-                            stackTopLocation_,
-                            opcode_ - IERC721_OPS_START,
-                            operand_
-                        );
-                } else {
+            }
+            else {
                     return
                         IERC1155Ops.applyOp(
                             stackTopLocation_,
                             opcode_ - IERC1155_OPS_START,
                             operand_
                         );
-                }
             }
         }
     }
