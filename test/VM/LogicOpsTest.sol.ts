@@ -36,7 +36,7 @@ describe("LogicOps Test", async function () {
       sources: [source0],
       constants,
     })) as AllStandardOpsTest & Contract;
-    const fnPtrs0 = await logic0.fnPtrs()
+    const fnPtrs0 = await logic0.fnPtrs();
 
     await logic0.run(fnPtrs0);
     const result0 = await logic0.stackTop();
@@ -54,7 +54,7 @@ describe("LogicOps Test", async function () {
       sources: [source1],
       constants,
     })) as AllStandardOpsTest & Contract;
-    const fnPtrs1 = await logic1.fnPtrs()
+    const fnPtrs1 = await logic1.fnPtrs();
 
     await logic1.run(fnPtrs1);
     const result1 = await logic1.stackTop();
@@ -73,7 +73,7 @@ describe("LogicOps Test", async function () {
       sources: [source2],
       constants,
     })) as AllStandardOpsTest & Contract;
-    const fnPtrs2 = await logic2.fnPtrs()
+    const fnPtrs2 = await logic2.fnPtrs();
 
     await logic2.run(fnPtrs2);
     const result2 = await logic2.stackTop();
@@ -105,7 +105,7 @@ describe("LogicOps Test", async function () {
       sources: [source0],
       constants,
     })) as AllStandardOpsTest & Contract;
-    const fnPtrs0 = await logic0.fnPtrs()
+    const fnPtrs0 = await logic0.fnPtrs();
 
     await logic0.run(fnPtrs0);
     const result0 = await logic0.stackTop();

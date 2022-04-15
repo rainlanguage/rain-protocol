@@ -562,8 +562,6 @@ export enum AllStandardOps {
   SCALE18,
   SCALEN,
   SCALE_BY,
-  SCALE18_ONE,
-  SCALE18_DECIMALS,
   ADD,
   SATURATING_ADD,
   SUB,

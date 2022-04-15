@@ -11,30 +11,49 @@ struct SourceAnalysis {
     uint256 argumentsUpperBound;
 }
 
-type DispatchTable is uint;
+type DispatchTable is uint256;
 
 library Dispatch {
-    function initialize(DispatchTable dispatchTable_, uint[] memory fnPtrs_) internal pure returns (DispatchTable) {
+    function initialize(DispatchTable dispatchTable_, uint256[] memory fnPtrs_)
+        internal
+        pure
+        returns (DispatchTable)
+    {
         assembly {
             dispatchTable_ := add(fnPtrs_, 0x20)
         }
         return dispatchTable_;
     }
-    function ptr(DispatchTable dispatchTable_, uint opcode_) internal pure returns (uint) {
-        uint ptr_;
+
+    function ptr(DispatchTable dispatchTable_, uint256 opcode_)
+        internal
+        pure
+        returns (uint256)
+    {
+        uint256 ptr_;
         assembly {
             ptr_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
         }
         return ptr_;
     }
-    function fnPtrs(DispatchTable dispatchTable_) internal view returns (uint[] memory) {
-        uint[] memory fnPtrs_;
+
+    function fnPtrs(DispatchTable dispatchTable_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory fnPtrs_;
         assembly {
             fnPtrs_ := sub(dispatchTable_, 0x20)
         }
         return fnPtrs_;
     }
-    function setFn(DispatchTable dispatchTable_, uint opcode_, function (uint256, uint256) view returns (uint256) fn_) internal pure {
+
+    function setFn(
+        DispatchTable dispatchTable_,
+        uint256 opcode_,
+        function(uint256, uint256) view returns (uint256) fn_
+    ) internal pure {
         assembly {
             mstore(add(dispatchTable_, mul(opcode_, 0x20)), fn_)
         }
@@ -313,9 +332,12 @@ abstract contract RainVM {
                 }
             }
 
-            uint argumentsBottomLocation_;
+            uint256 argumentsBottomLocation_;
             assembly {
-                let constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
+                let constantsBottomLocation_ := add(
+                    mload(add(state_, 0x60)),
+                    0x20
+                )
                 argumentsBottomLocation_ := add(
                     constantsBottomLocation_,
                     mul(
@@ -326,7 +348,6 @@ abstract contract RainVM {
                         )
                     )
                 )
-
             }
 
             for (uint256 step_ = 0; step_ < 0x100; step_ += stepSize_) {
@@ -348,7 +369,12 @@ abstract contract RainVM {
                         }
                     }
                 }
-                stackTopLocation_ = eval(dispatchTable_, context_, state_, sourceIndex_);
+                stackTopLocation_ = eval(
+                    dispatchTable_,
+                    context_,
+                    state_,
+                    sourceIndex_
+                );
             }
             return stackTopLocation_;
         }
@@ -472,13 +498,18 @@ abstract contract RainVM {
         }
     }
 
-        function dispatch(DispatchTable dispatchTable_, uint opcode_, uint operand_, uint stackTopLocation_) internal view returns (uint) {
-            function (uint256, uint256) view returns (uint256) fn_;
-            assembly {
-                fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
-            }
-            return fn_(operand_, stackTopLocation_);
+    function dispatch(
+        DispatchTable dispatchTable_,
+        uint256 opcode_,
+        uint256 operand_,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
+        function(uint256, uint256) view returns (uint256) fn_;
+        assembly {
+            fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
         }
+        return fn_(operand_, stackTopLocation_);
+    }
 
     /// Every contract that implements `RainVM` should override `applyOp` so
     /// that useful opcodes are available to script writers.

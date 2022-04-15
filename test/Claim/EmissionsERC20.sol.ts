@@ -36,7 +36,7 @@ enum Tier {
   EIGHT,
 }
 
-describe("EmissionsERC20", async function () {
+describe.only("EmissionsERC20", async function () {
   it("should calculate correct emissions amount (if division is performed on final result)", async function () {
     this.timeout(0);
 
@@ -103,7 +103,8 @@ describe("EmissionsERC20", async function () {
     const valTierAddress = op(Opcode.VAL, 0);
     const valBaseRewardPerTier = op(Opcode.VAL, 1);
     const valBlocksPerYear = op(Opcode.VAL, 2);
-    const valNever = op(Opcode.VAL, 3)
+    const valNever = op(Opcode.VAL, 3);
+    const valOne = op(Opcode.VAL, 4)
 
     // END global constants
 
@@ -122,7 +123,7 @@ describe("EmissionsERC20", async function () {
           argDuration,
           valBlocksPerYear,
         op(Opcode.SCALE18_DIV, 0),
-        op(Opcode.SCALE18_ONE, 0),
+        valOne,
         op(Opcode.MIN, 2),
       ]);
 
@@ -130,7 +131,7 @@ describe("EmissionsERC20", async function () {
     const MULTIPLIER = () =>
       concat([
           PROGRESS(),
-          op(Opcode.SCALE18_ONE, 0),
+          valOne,
         op(Opcode.ADD, 2),
       ]);
 
@@ -200,7 +201,8 @@ describe("EmissionsERC20", async function () {
       readWriteTier.address,
       BASE_REWARD_PER_TIER,
       BLOCKS_PER_YEAR,
-      Util.NEVER
+      Util.NEVER,
+      Util.ONE,
     ];
 
     console.log("source", SOURCE(), FN());
@@ -376,7 +378,7 @@ describe("EmissionsERC20", async function () {
     const valBlocksPerYear = op(Opcode.VAL, 2);
     const valBNOne = op(Opcode.VAL, 3);
     const valBNOneReward = op(Opcode.VAL, 4);
-    const valNever = op(Opcode.VAL, 5)
+    const valNever = op(Opcode.VAL, 5);
 
     // END global constants
 
@@ -482,7 +484,7 @@ describe("EmissionsERC20", async function () {
       BLOCKS_PER_YEAR,
       BN_ONE,
       BN_ONE_REWARD,
-      Util.NEVER
+      Util.NEVER,
     ];
 
     console.log("source", SOURCE());
@@ -662,7 +664,7 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const valNever = op(Opcode.VAL, 1)
+    const valNever = op(Opcode.VAL, 1);
 
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
@@ -765,7 +767,7 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const valNever = op(Opcode.VAL, 1)
+    const valNever = op(Opcode.VAL, 1);
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,

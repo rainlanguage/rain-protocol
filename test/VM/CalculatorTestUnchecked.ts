@@ -16,7 +16,9 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator overflows with exponentiation op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    const calculatorFactory = await ethers.getContractFactory(
+      "AllStandardOpsTest"
+    );
 
     const constants = [Util.max_uint256.div(2), 2];
 
@@ -45,7 +47,9 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator overflows with multiplication op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    const calculatorFactory = await ethers.getContractFactory(
+      "AllStandardOpsTest"
+    );
 
     const constants = [Util.max_uint256.div(2), 3];
 
@@ -74,7 +78,9 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator underflows with subtraction op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    const calculatorFactory = await ethers.getContractFactory(
+      "AllStandardOpsTest"
+    );
 
     const constants = [0, 1];
 
@@ -103,7 +109,9 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator overflows with addition op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    const calculatorFactory = await ethers.getContractFactory(
+      "AllStandardOpsTest"
+    );
 
     const constants = [Util.max_uint256, 1];
 

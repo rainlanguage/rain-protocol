@@ -136,7 +136,8 @@ struct Receipt {
 
 uint256 constant SOURCE_INDEX = 0;
 
-uint constant LOCAL_OPS_START = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+uint256 constant LOCAL_OPS_START = ALL_STANDARD_OPS_START +
+    ALL_STANDARD_OPS_LENGTH;
 /// @dev local opcode to stack remaining rTKN units.
 uint256 constant OPCODE_REMAINING_UNITS = LOCAL_OPS_START;
 /// @dev local opcode to stack total reserve taken in so far.
