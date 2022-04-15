@@ -5,38 +5,18 @@ import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
 import type { Contract } from "ethers";
 
-import type { CalculatorTest } from "../../typechain/CalculatorTest";
+import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { assert } = chai;
 
-const enum Opcode {
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  BLOCK_NUMBER,
-  BLOCK_TIMESTAMP,
-  SENDER,
-  THIS,
-  ADD,
-  SATURATING_ADD,
-  SUB,
-  SATURATING_SUB,
-  MUL,
-  SATURATING_MUL,
-  DIV,
-  MOD,
-  POW,
-  MIN,
-  MAX,
-}
+const Opcode = Util.AllStandardOps;
 
 describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator overflows with exponentiation op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [Util.max_uint256.div(2), 2];
 
@@ -47,16 +27,16 @@ describe("CalculatorTestUnchecked", async function () {
     const source0 = concat([
         vHalfMaxUInt256,
         vTwo,
-      op(Opcode.POW, 2)
+      op(Opcode.EXP, 2)
     ]);
 
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculator0.runState(),
+      async () => await calculator0.run(await calculator0.fnPtrs()),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
     );
@@ -65,7 +45,7 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator overflows with multiplication op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [Util.max_uint256.div(2), 3];
 
@@ -82,11 +62,11 @@ describe("CalculatorTestUnchecked", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculator0.runState(),
-      "MATH_OVERFLOW",
+      async () => await calculator0.run(await calculator0.fnPtrs()),
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });
@@ -94,7 +74,7 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator underflows with subtraction op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [0, 1];
 
@@ -111,11 +91,11 @@ describe("CalculatorTestUnchecked", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculator0.runState(),
-      "MATH_OVERFLOW",
+      async () => await calculator0.run(await calculator0.fnPtrs()),
+      "Transaction reverted",
       "accumulator underflow did not panic"
     );
   });
@@ -123,7 +103,7 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator overflows with addition op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [Util.max_uint256, 1];
 
@@ -140,11 +120,11 @@ describe("CalculatorTestUnchecked", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculator0.runState(),
-      "MATH_OVERFLOW",
+      async () => await calculator0.run(await calculator0.fnPtrs()),
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });

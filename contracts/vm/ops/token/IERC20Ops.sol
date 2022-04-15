@@ -4,6 +4,7 @@ pragma solidity =0.8.10;
 import {State} from "../../RainVM.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 /// @dev Opcode for `IERC20` `balanceOf`.
 uint256 constant OPCODE_IERC20_BALANCE_OF = 0;
@@ -28,6 +29,7 @@ library IERC20Ops {
     }
             // Stack the return of `balanceOf`.
     function balanceOf(uint, uint stackTopLocation_) internal view returns (uint) {
+        console.log("balance of");
                 uint256 location_;
                 uint256 token_;
                 uint256 account_;

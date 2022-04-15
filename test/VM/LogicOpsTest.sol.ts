@@ -36,8 +36,9 @@ describe("LogicOps Test", async function () {
       sources: [source0],
       constants,
     })) as AllStandardOpsTest & Contract;
+    const fnPtrs0 = await logic0.fnPtrs()
 
-    await logic0.run();
+    await logic0.run(fnPtrs0);
     const result0 = await logic0.stackTop();
 
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
@@ -53,8 +54,9 @@ describe("LogicOps Test", async function () {
       sources: [source1],
       constants,
     })) as AllStandardOpsTest & Contract;
+    const fnPtrs1 = await logic1.fnPtrs()
 
-    await logic1.run();
+    await logic1.run(fnPtrs1);
     const result1 = await logic1.stackTop();
 
     assert(result1.isZero(), `returned wrong value from any, got ${result1}`);
@@ -71,8 +73,9 @@ describe("LogicOps Test", async function () {
       sources: [source2],
       constants,
     })) as AllStandardOpsTest & Contract;
+    const fnPtrs2 = await logic2.fnPtrs()
 
-    await logic2.run();
+    await logic2.run(fnPtrs2);
     const result2 = await logic2.stackTop();
 
     assert(result2.eq(3), `returned wrong value from any, got ${result2}`);
@@ -102,8 +105,9 @@ describe("LogicOps Test", async function () {
       sources: [source0],
       constants,
     })) as AllStandardOpsTest & Contract;
+    const fnPtrs0 = await logic0.fnPtrs()
 
-    await logic0.run();
+    await logic0.run(fnPtrs0);
     const result0 = await logic0.stackTop();
 
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
@@ -121,7 +125,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic1.run();
+    await logic1.run(await logic1.fnPtrs());
     const result1 = await logic1.stackTop();
 
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
@@ -138,7 +142,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic2.run();
+    await logic2.run(await logic2.fnPtrs());
     const result2 = await logic2.stackTop();
 
     assert(result2.isZero(), `returned wrong value from every, got ${result2}`);
@@ -170,7 +174,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic0.run();
+    await logic0.run(await logic0.fnPtrs());
     const result0 = await logic0.stackTop();
 
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
@@ -189,7 +193,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic1.run();
+    await logic1.run(await logic1.fnPtrs());
     const result1 = await logic1.stackTop();
 
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
@@ -208,7 +212,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic2.run();
+    await logic2.run(await logic2.fnPtrs());
     const result2 = await logic2.stackTop();
 
     assert(result2.eq(3), `returned wrong value from eager if, got ${result2}`);
@@ -233,7 +237,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic0.run();
+    await logic0.run(await logic0.fnPtrs());
     const result0 = await logic0.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
@@ -250,7 +254,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic1.run();
+    await logic1.run(await logic1.fnPtrs());
     const result1 = await logic1.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is gt 2");
@@ -275,7 +279,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic0.run();
+    await logic0.run(await logic0.fnPtrs());
     const result0 = await logic0.stackTop(); // expect 0
 
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
@@ -292,7 +296,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic1.run();
+    await logic1.run(await logic1.fnPtrs());
     const result1 = await logic1.stackTop(); // expect 1
 
     assert(isTruthy(result1), "wrongly says 1 is not lt 2");
@@ -317,7 +321,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic0.run();
+    await logic0.run(await logic0.fnPtrs());
     const result0 = await logic0.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
@@ -334,7 +338,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic1.run();
+    await logic1.run(await logic1.fnPtrs());
     const result1 = await logic1.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
@@ -358,7 +362,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic0.run();
+    await logic0.run(await logic0.fnPtrs());
     const result0 = await logic0.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 0 is not zero");
@@ -376,7 +380,7 @@ describe("LogicOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await logic1.run();
+    await logic1.run(await logic1.fnPtrs());
     const result1 = await logic1.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is zero");

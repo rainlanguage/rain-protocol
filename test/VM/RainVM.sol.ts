@@ -5,39 +5,19 @@ import { concat } from "ethers/lib/utils";
 import { bytify, callSize, op } from "../Util";
 import type { Contract } from "ethers";
 
-import type { CalculatorTest } from "../../typechain/CalculatorTest";
+import type { AllStandardOpsTest, StateStruct } from "../../typechain/AllStandardOpsTest";
 
 const { assert } = chai;
 
-const enum Opcode {
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  BLOCK_NUMBER,
-  BLOCK_TIMESTAMP,
-  SENDER,
-  THIS,
-  ADD,
-  SATURATING_ADD,
-  SUB,
-  SATURATING_SUB,
-  MUL,
-  SATURATING_MUL,
-  DIV,
-  MOD,
-  EXP,
-  MIN,
-  MAX,
-}
+const Opcode = Util.AllStandardOps
 
-// Contains tests for RainVM, the constant RainVM ops as well as Math ops via CalculatorTest contract.
+// Contains tests for RainVM, the constant RainVM ops as well as Math ops via AllStandardOpsTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM", async function () {
   it("should perform saturating multiplication", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [Util.max_uint256, 2];
     const vMaxUInt256 = op(Opcode.VAL, 0);
@@ -56,11 +36,11 @@ describe("RainVM", async function () {
     const calculatorUnsat = (await calculatorFactory.deploy({
       sources: sourcesUnsat,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculatorUnsat.run(),
-      "MATH_OVERFLOW",
+      async () => await calculatorUnsat.run(await calculatorUnsat.fnPtrs()),
+      "Transaction reverted",
       "normal multiplication overflow did not error"
     );
 
@@ -76,9 +56,10 @@ describe("RainVM", async function () {
     const calculatorSat = (await calculatorFactory.deploy({
       sources: sourcesSat,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculatorSat.run();
+    await calculatorSat.run(await calculatorSat.fnPtrs());
+    const result = await calculatorSat.stackTop();
     const expected = Util.max_uint256;
     assert(
       result.eq(expected),
@@ -89,7 +70,7 @@ describe("RainVM", async function () {
   it("should perform saturating subtraction", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [10, 20];
     const v10 = op(Opcode.VAL, 0);
@@ -108,11 +89,11 @@ describe("RainVM", async function () {
     const calculatorUnsat = (await calculatorFactory.deploy({
       sources: sourcesUnsat,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculatorUnsat.run(),
-      "MATH_OVERFLOW",
+      async () => await calculatorUnsat.run(await calculatorUnsat.fnPtrs()),
+      "Transaction reverted",
       "normal subtraction overflow did not error"
     );
 
@@ -128,9 +109,10 @@ describe("RainVM", async function () {
     const calculatorSat = (await calculatorFactory.deploy({
       sources: sourcesSat,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculatorSat.run();
+    await calculatorSat.run(await calculatorSat.fnPtrs());
+    const result = await calculatorSat.stackTop();
     const expected = 0;
     assert(
       result.eq(expected),
@@ -141,7 +123,7 @@ describe("RainVM", async function () {
   it("should perform saturating addition", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [Util.max_uint256, 10];
     const vMaxUInt256 = op(Opcode.VAL, 0);
@@ -160,11 +142,11 @@ describe("RainVM", async function () {
     const calculatorUnsat = (await calculatorFactory.deploy({
       sources: sourcesUnsat,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculatorUnsat.run(),
-      "MATH_OVERFLOW",
+      async () => await calculatorUnsat.run(await calculatorUnsat.fnPtrs()),
+      "Transaction reverted",
       "normal addition overflow did not error"
     );
 
@@ -180,9 +162,10 @@ describe("RainVM", async function () {
     const calculatorSat = (await calculatorFactory.deploy({
       sources: sourcesSat,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculatorSat.run();
+    await calculatorSat.run(await calculatorSat.fnPtrs())
+    const result = await calculatorSat.stackTop();
     const expected = Util.max_uint256;
     assert(
       result.eq(expected),
@@ -193,7 +176,7 @@ describe("RainVM", async function () {
   it("should support source scripts with leading zeroes", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     await Util.createEmptyBlock(5);
 
@@ -214,19 +197,20 @@ describe("RainVM", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     // const { stack } = await calculator0.runState();
     // console.log({ stack });
 
-    const result0 = await calculator0.run();
+    await calculator0.run(await calculator0.fnPtrs())
+    const result0 = await calculator0.stackTop();
     assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
   });
 
   it("should support source scripts with trailing zeroes", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     await Util.createEmptyBlock(5);
 
@@ -247,16 +231,17 @@ describe("RainVM", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result0 = await calculator0.run();
+    await calculator0.run(await calculator0.fnPtrs())
+    const result0 = await calculator0.stackTop();
     assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
   });
 
   it("should return block.number and block.timestamp", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [];
 
@@ -269,10 +254,11 @@ describe("RainVM", async function () {
     const calculator0 = (await calculatorFactory.deploy({
       sources: [source0],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
+    await calculator0.run(await calculator0.fnPtrs())
     const block0 = await ethers.provider.getBlockNumber();
-    const result0 = await calculator0.run();
+    const result0 = await calculator0.stackTop();
     assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
 
     // prettier-ignore
@@ -284,10 +270,11 @@ describe("RainVM", async function () {
     const calculator1 = (await calculatorFactory.deploy({
       sources: [source1],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     const timestamp1 = Date.now();
-    const result1 = await calculator1.run();
+    await calculator1.run(await calculator1.fnPtrs())
+    const result1 = await calculator1.stackTop();
 
     const roughTimestamp1 = ethers.BigNumber.from(`${timestamp1}`.slice(0, 4));
     const roughResult1 = ethers.BigNumber.from(`${result1}`.slice(0, 4));
@@ -316,13 +303,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+        await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 1;
     assert(
       result.eq(expected),
@@ -348,13 +336,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+        await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 0;
     assert(
       result.eq(expected),
@@ -380,13 +369,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 1;
     assert(
       result.eq(expected),
@@ -414,13 +404,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 4096;
     assert(
       result.eq(expected),
@@ -446,13 +437,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 16;
     assert(
       result.eq(expected),
@@ -478,13 +470,14 @@ describe("RainVM", async function () {
       op(Opcode.MAX, 3),
     ]);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources: [source],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 33;
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
@@ -505,13 +498,14 @@ describe("RainVM", async function () {
       op(Opcode.MIN, 3),
     ]);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources: [source],
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 11;
     assert(result.eq(expected), `wrong minimum ${expected} ${result}`);
   });
@@ -524,16 +518,17 @@ describe("RainVM", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources: [source],
       constants: [],
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     await Util.createEmptyBlock(3);
 
+    await calculator.run(await calculator.fnPtrs())
     const expected = await ethers.provider.getBlockNumber();
-    const result = await calculator.run();
+    const result = await calculator.stackTop();
     assert(result.eq(expected), `wrong block number ${expected} ${result}`);
   });
 
@@ -601,13 +596,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const resultState = await calculator.runState();
+    await calculator.run(await calculator.fnPtrs())
+    const resultState = await calculator.state() as StateStruct;
 
     // We're not expecting a single result here.
     // The first 16 positions in the stack should match our expected output.
@@ -636,7 +632,7 @@ describe("RainVM", async function () {
       const stackEl = resultState.stack[i];
 
       assert(
-        stackEl.eq(expectedStack[i]),
+        ethers.BigNumber.from(stackEl).eq(expectedStack[i]),
         `wrong result of zipmap
         index     ${i}
         expected  ${expectedStack[i]}
@@ -685,11 +681,11 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
     console.log(sources);
 
@@ -701,11 +697,12 @@ describe("RainVM", async function () {
 
     console.log(stackUB);
 
-    const resultState = await calculator.runState();
+    await calculator.run(await calculator.fnPtrs())
+    const resultState = await calculator.state() as StateStruct;
     console.log(resultState);
 
     const expectedMul1 = 6;
-    const actualMul1 = resultState.stack[0];
+    const actualMul1 = ethers.BigNumber.from(resultState.stack[0]);
     assert(
       actualMul1.eq(expectedMul1),
       `wrong result of zipmap (1 2 3 *)
@@ -714,7 +711,7 @@ describe("RainVM", async function () {
     );
 
     const expectedAdd1 = 6;
-    const actualAdd1 = resultState.stack[1];
+    const actualAdd1 = ethers.BigNumber.from(resultState.stack[1]);
     assert(
       actualAdd1.eq(expectedAdd1),
       `wrong result of zipmap (1 2 3 +)
@@ -723,7 +720,7 @@ describe("RainVM", async function () {
     );
 
     const expectedMul0 = 60;
-    const actualMul0 = resultState.stack[2];
+    const actualMul0 = ethers.BigNumber.from(resultState.stack[2]);
     assert(
       actualMul0.eq(expectedMul0),
       `wrong result of zipmap (3 4 5 *)
@@ -732,7 +729,7 @@ describe("RainVM", async function () {
     );
 
     const expectedAdd0 = 12;
-    const actualAdd0 = resultState.stack[3];
+    const actualAdd0 = ethers.BigNumber.from(resultState.stack[3]);
     assert(
       actualAdd0.eq(expectedAdd0),
       `wrong result of zipmap (3 4 5 +)
@@ -841,16 +838,17 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const resultState = await calculator.runState();
+    await calculator.run(await calculator.fnPtrs())
+    const resultState = await calculator.state() as StateStruct;
 
     const expectedIndex = 2;
-    const actualIndex = resultState.stackIndex;
+    const actualIndex = ethers.BigNumber.from(resultState.stackIndex);
     assert(
       actualIndex.eq(expectedIndex),
       `wrong index for zipmap
@@ -859,7 +857,7 @@ describe("RainVM", async function () {
     );
 
     const expectedAdd1 = 1440; // first add
-    const actualAdd1 = resultState.stack[0];
+    const actualAdd1 = ethers.BigNumber.from(resultState.stack[0]);
     assert(
       actualAdd1.eq(expectedAdd1),
       `wrong result of zipmap
@@ -868,7 +866,7 @@ describe("RainVM", async function () {
     );
 
     const expectedAdd0 = 1290; // second add
-    const actualAdd0 = resultState.stack[1];
+    const actualAdd0 = ethers.BigNumber.from(resultState.stack[1]);
     assert(
       actualAdd0.eq(expectedAdd0),
       `wrong result of zipmap
@@ -925,16 +923,17 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const resultState = await calculator.runState();
+    await calculator.run(await calculator.fnPtrs())
+    const resultState = await calculator.state() as StateStruct;
 
     const expectedIndex = 2;
-    const actualIndex = resultState.stackIndex;
+    const actualIndex = ethers.BigNumber.from(resultState.stackIndex);
     assert(
       actualIndex.eq(expectedIndex),
       `wrong index for zipmap
@@ -943,7 +942,7 @@ describe("RainVM", async function () {
     );
 
     const expectedMul = 6;
-    const actualMul = resultState.stack[0];
+    const actualMul = ethers.BigNumber.from(resultState.stack[0]);
     assert(
       actualMul.eq(expectedMul),
       `wrong result of zipmap mul
@@ -952,7 +951,7 @@ describe("RainVM", async function () {
     );
 
     const expectedAdd = 29;
-    const actualAdd = resultState.stack[1];
+    const actualAdd = ethers.BigNumber.from(resultState.stack[1]);
     assert(
       actualAdd.eq(expectedAdd),
       `wrong result of zipmap add
@@ -999,16 +998,17 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const resultState = await calculator.runState();
+    await calculator.run(await calculator.fnPtrs())
+    const resultState = await calculator.state() as StateStruct;
 
     const expectedIndex = 2;
-    const actualIndex = resultState.stackIndex;
+    const actualIndex = ethers.BigNumber.from(resultState.stackIndex);
     assert(
       actualIndex.eq(expectedIndex),
       `wrong index for zipmap
@@ -1017,7 +1017,7 @@ describe("RainVM", async function () {
     );
 
     const expectedMul = 60;
-    const actualMul = resultState.stack[0];
+    const actualMul = ethers.BigNumber.from(resultState.stack[0]);
     assert(
       actualMul.eq(expectedMul),
       `wrong result of zipmap (3 4 5 *)
@@ -1026,7 +1026,7 @@ describe("RainVM", async function () {
     );
 
     const expectedAdd = 12;
-    const actualAdd = resultState.stack[1];
+    const actualAdd = ethers.BigNumber.from(resultState.stack[1]);
     assert(
       actualAdd.eq(expectedAdd),
       `wrong result of zipmap (3 4 5 +)
@@ -1068,13 +1068,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 6;
     assert(
       result.eq(expected),
@@ -1113,15 +1114,15 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
+    await calculator.run(await calculator.fnPtrs())
     const block0 = await ethers.provider.getBlockNumber();
-
-    const result0 = await calculator.run();
+    const result0 = await calculator.stackTop();
     const expected0 = 16 * block0;
     assert(
       result0.eq(expected0),
@@ -1132,22 +1133,27 @@ describe("RainVM", async function () {
 
     await Util.createEmptyBlock();
 
-    const result1 = await calculator.run();
-    const expected1 = 16 * (block0 + 1);
+    await calculator.run(await calculator.fnPtrs())
+    const block1 = await ethers.provider.getBlockNumber();
+
+    const result1 = await calculator.stackTop();
+    const expected1 = 16 * block1;
     assert(
       result1.eq(expected1),
-      `wrong solution with block number of ${block0 + 1}
+      `wrong solution with block number of ${block1 + 1}
       expected  ${expected1}
       got       ${result1}`
     );
 
     await Util.createEmptyBlock();
 
-    const result2 = await calculator.run();
-    const expected2 = 16 * (block0 + 2);
+    await calculator.run(await calculator.fnPtrs())
+    const block2 = await ethers.provider.getBlockNumber()
+    const result2 = await calculator.stackTop();
+    const expected2 = 16 * block2;
     assert(
       result2.eq(expected2),
-      `wrong solution with block number of ${block0 + 2}
+      `wrong solution with block number of ${block2}
       expected  ${expected2}
       got       ${result2}`
     );
@@ -1175,13 +1181,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 3;
     assert(
       result.eq(expected),
@@ -1209,13 +1216,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 1;
     assert(
       result.eq(expected),
@@ -1243,13 +1251,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 2;
     assert(
       result.eq(expected),
@@ -1277,13 +1286,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 60;
     assert(
       result.eq(expected),
@@ -1311,13 +1321,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 5;
     assert(
       result.eq(expected),
@@ -1345,13 +1356,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculatorFactory = await ethers.getContractFactory("AllStandardOpsTest");
     const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
-    })) as CalculatorTest & Contract;
+    })) as AllStandardOpsTest & Contract;
 
-    const result = await calculator.run();
+    await calculator.run(await calculator.fnPtrs())
+    const result = await calculator.stackTop();
     const expected = 6;
     assert(result.eq(expected), `wrong summation ${expected} ${result}`);
   });

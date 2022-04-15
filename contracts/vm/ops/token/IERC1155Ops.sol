@@ -6,9 +6,9 @@ import {State} from "../../RainVM.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 /// @dev Opcode for `IERC1155` `balanceOf`.
-uint256 constant OPCODE_BALANCE_OF = 0;
+uint256 constant OPCODE_IERC1155_BALANCE_OF = 0;
 /// @dev Opcode for `IERC1155` `balanceOfBatch`.
-uint256 constant OPCODE_BALANCE_OF_BATCH = 1;
+uint256 constant OPCODE_IERC1155_BALANCE_OF_BATCH = 1;
 /// @dev Number of provided opcodes for `IERC1155Ops`.
 uint256 constant IERC1155_OPS_LENGTH = 2;
 
@@ -20,7 +20,7 @@ library IERC1155Ops {
         pure
         returns (int256)
     {
-        if (opcode_ == OPCODE_BALANCE_OF) {
+        if (opcode_ == OPCODE_IERC1155_BALANCE_OF) {
             return -2;
         } else {
             require(operand_ > 0, "BAD_OPERAND");
@@ -30,14 +30,8 @@ library IERC1155Ops {
         }
     }
 
-    function applyOp(
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view returns (uint256) {
-        unchecked {
             // Stack the return of `balanceOf`.
-            if (opcode_ == OPCODE_BALANCE_OF) {
+    function balanceOf(uint, uint stackTopLocation_) internal view returns (uint) {
                 uint256 location_;
                 uint256 token_;
                 uint256 account_;
@@ -56,10 +50,12 @@ library IERC1155Ops {
                 assembly {
                     mstore(location_, result_)
                 }
-            }
+    return stackTopLocation_;
+    }
+
             // Stack the return of `balanceOfBatch`.
             // Operand will be the length
-            else if (opcode_ == OPCODE_BALANCE_OF_BATCH) {
+    function balanceOfBatch(uint operand_, uint stackTopLocation_) internal view returns (uint) {
                 uint256 location_;
                 address[] memory addresses_ = new address[](operand_);
                 uint256[] memory ids_ = new uint256[](operand_);
@@ -111,8 +107,6 @@ library IERC1155Ops {
                     }
                     stackTopLocation_ := cursor_
                 }
-            }
             return stackTopLocation_;
-        }
     }
 }

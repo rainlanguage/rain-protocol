@@ -14,10 +14,11 @@ struct SourceAnalysis {
 type DispatchTable is uint;
 
 library Dispatch {
-    function initialize(DispatchTable dispatchTable_, uint[] memory fnPtrs_) internal pure {
+    function initialize(DispatchTable dispatchTable_, uint[] memory fnPtrs_) internal pure returns (DispatchTable) {
         assembly {
             dispatchTable_ := add(fnPtrs_, 0x20)
         }
+        return dispatchTable_;
     }
     function ptr(DispatchTable dispatchTable_, uint opcode_) internal pure returns (uint) {
         uint ptr_;
@@ -26,18 +27,25 @@ library Dispatch {
         }
         return ptr_;
     }
+    function fnPtrs(DispatchTable dispatchTable_) internal view returns (uint[] memory) {
+        uint[] memory fnPtrs_;
+        assembly {
+            fnPtrs_ := sub(dispatchTable_, 0x20)
+        }
+        return fnPtrs_;
+    }
     function setFn(DispatchTable dispatchTable_, uint opcode_, function (uint256, uint256) view returns (uint256) fn_) internal pure {
         assembly {
             mstore(add(dispatchTable_, mul(opcode_, 0x20)), fn_)
         }
     }
-    function dispatch(DispatchTable dispatchTable_, uint opcode_, uint operand_, uint stackTopLocation_) internal view returns (uint) {
-        function (uint256, uint256) view returns (uint256) fn_;
-        assembly {
-            fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
-        }
-        return fn_(operand_, stackTopLocation_);
-    }
+    // function dispatch(DispatchTable dispatchTable_, uint opcode_, uint operand_, uint stackTopLocation_) internal view returns (uint) {
+    //     function (uint256, uint256) view returns (uint256) fn_;
+    //     assembly {
+    //         fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+    //     }
+    //     return fn_(operand_, stackTopLocation_);
+    // }
 }
 
 /// Everything required to evaluate and track the state of a rain script.

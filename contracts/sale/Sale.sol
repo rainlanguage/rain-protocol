@@ -633,38 +633,38 @@ contract Sale is
         }
     }
 
-    function applyOp(
-        bytes memory context_,
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override returns (uint256) {
-        unchecked {
-            if (opcode_ < LOCAL_OPS_START) {
-                return
-                    AllStandardOps.applyOp(
-                        stackTopLocation_,
-                        opcode_,
-                        operand_
-                    );
-            } else {
-                uint256 value_;
-                if (opcode_ == OPCODE_REMAINING_UNITS) {
-                    value_ = remainingUnits;
-                } else if (opcode_ == OPCODE_TOTAL_RESERVE_IN) {
-                    value_ = totalReserveIn;
-                } else if (opcode_ == OPCODE_CURRENT_BUY_UNITS) {
-                    value_ = abi.decode(context_, (uint256));
-                } else if (opcode_ == OPCODE_TOKEN_ADDRESS) {
-                    value_ = uint256(uint160(address(_token)));
-                } else if (opcode_ == OPCODE_RESERVE_ADDRESS) {
-                    value_ = uint256(uint160(address(_reserve)));
-                }
-                assembly {
-                    mstore(stackTopLocation_, value_)
-                }
-                return stackTopLocation_ + 0x20;
-            }
-        }
-    }
+    // function applyOp(
+    //     bytes memory context_,
+    //     uint256 stackTopLocation_,
+    //     uint256 opcode_,
+    //     uint256 operand_
+    // ) internal view override returns (uint256) {
+    //     unchecked {
+    //         if (opcode_ < LOCAL_OPS_START) {
+    //             return
+    //                 AllStandardOps.applyOp(
+    //                     stackTopLocation_,
+    //                     opcode_,
+    //                     operand_
+    //                 );
+    //         } else {
+    //             uint256 value_;
+    //             if (opcode_ == OPCODE_REMAINING_UNITS) {
+    //                 value_ = remainingUnits;
+    //             } else if (opcode_ == OPCODE_TOTAL_RESERVE_IN) {
+    //                 value_ = totalReserveIn;
+    //             } else if (opcode_ == OPCODE_CURRENT_BUY_UNITS) {
+    //                 value_ = abi.decode(context_, (uint256));
+    //             } else if (opcode_ == OPCODE_TOKEN_ADDRESS) {
+    //                 value_ = uint256(uint160(address(_token)));
+    //             } else if (opcode_ == OPCODE_RESERVE_ADDRESS) {
+    //                 value_ = uint256(uint160(address(_reserve)));
+    //             }
+    //             assembly {
+    //                 mstore(stackTopLocation_, value_)
+    //             }
+    //             return stackTopLocation_ + 0x20;
+    //         }
+    //     }
+    // }
 }

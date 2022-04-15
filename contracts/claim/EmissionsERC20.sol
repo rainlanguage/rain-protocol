@@ -128,33 +128,33 @@ contract EmissionsERC20 is
         }
     }
 
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override returns (uint256) {
-        unchecked {
-            if (opcode_ < localOpsStart) {
-                return
-                    AllStandardOps.applyOp(
-                        stackTopLocation_,
-                        opcode_,
-                        operand_
-                    );
-            } else {
-                // There's only one opcode, which stacks the account address.
-                uint256 account_ = uint256(
-                    uint160(address(abi.decode(context_, (address))))
-                );
-                assembly {
-                    mstore(stackTopLocation_, account_)
-                }
-                return stackTopLocation_ + 0x20;
-            }
-        }
-    }
+    // /// @inheritdoc RainVM
+    // function applyOp(
+    //     bytes memory context_,
+    //     uint256 stackTopLocation_,
+    //     uint256 opcode_,
+    //     uint256 operand_
+    // ) internal view override returns (uint256) {
+    //     unchecked {
+    //         if (opcode_ < localOpsStart) {
+    //             return
+    //                 AllStandardOps.applyOp(
+    //                     stackTopLocation_,
+    //                     opcode_,
+    //                     operand_
+    //                 );
+    //         } else {
+    //             // There's only one opcode, which stacks the account address.
+    //             uint256 account_ = uint256(
+    //                 uint160(address(abi.decode(context_, (address))))
+    //             );
+    //             assembly {
+    //                 mstore(stackTopLocation_, account_)
+    //             }
+    //             return stackTopLocation_ + 0x20;
+    //         }
+    //     }
+    // }
 
     /// @inheritdoc ITier
     function report(address account_)

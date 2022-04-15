@@ -13,9 +13,11 @@ uint256 constant SOURCE_INDEX = 0;
 /// @title StandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
 contract AllStandardOpsTest is RainVM, VMState {
+    using Dispatch for DispatchTable;
+
     address private immutable vmStatePointer;
 
-    State public state;
+    State private _state;
 
     constructor(StateConfig memory config_) {
 
@@ -40,34 +42,34 @@ contract AllStandardOpsTest is RainVM, VMState {
         return AllStandardOps.stackIndexDiff(opcode_, operand_);
     }
 
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory,
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override returns (uint256) {
-        return AllStandardOps.applyOp(stackTopLocation_, opcode_, operand_);
-    }
-
     /// Wraps `runState` and returns top of stack.
     /// @return top of `runState` stack.
     function stackTop() external view returns (uint256) {
-        return state.stack[state.stackIndex - 1];
+        return _state.stack[_state.stackIndex - 1];
     }
 
     function stack() external view returns (uint256[] memory) {
-        return state.stack;
+        return _state.stack;
+    }
+
+    function state() external view returns (State memory) {
+        return _state;
+    }
+
+    function fnPtrs() external view returns (uint[] memory) {
+        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
+        return dispatchTable_.fnPtrs();
     }
 
     /// Runs `eval` and stores full state.
-    function run() public {
-        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
+    function run(uint[] memory fnPtrs_) public {
+        DispatchTable dispatchTable_;
+        dispatchTable_ = dispatchTable_.initialize(fnPtrs_);
         State memory state_ = _restore(vmStatePointer);
         uint256 startGas_ = gasleft();
         eval(dispatchTable_, "", state_, SOURCE_INDEX);
         uint256 endGas_ = gasleft();
         console.log("logic eval gas used: %s", startGas_ - endGas_);
-        state = state_;
+        _state = state_;
     }
 }
