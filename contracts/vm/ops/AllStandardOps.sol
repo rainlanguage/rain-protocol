@@ -132,7 +132,7 @@ library AllStandardOps {
     }
 
     function dispatchTable() internal view returns (DispatchTable) {
-        uint256[] memory fnPtrs_ = new uint256[](ALL_STANDARD_OPS_LENGTH);
+        bytes memory fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 32);
         DispatchTable dispatchTable_;
         dispatchTable_ = dispatchTable_.initialize(fnPtrs_);
         dispatchTable_.setFn(EVM_OPCODE_BLOCK_NUMBER, EVMConstantOps.number);

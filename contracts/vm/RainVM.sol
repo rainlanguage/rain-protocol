@@ -14,7 +14,7 @@ struct SourceAnalysis {
 type DispatchTable is uint256;
 
 library Dispatch {
-    function initialize(DispatchTable dispatchTable_, uint256[] memory fnPtrs_)
+    function initialize(DispatchTable dispatchTable_, bytes memory fnPtrs_)
         internal
         pure
         returns (DispatchTable)
@@ -40,9 +40,9 @@ library Dispatch {
     function fnPtrs(DispatchTable dispatchTable_)
         internal
         view
-        returns (uint256[] memory)
+        returns (bytes memory)
     {
-        uint256[] memory fnPtrs_;
+        bytes memory fnPtrs_;
         assembly {
             fnPtrs_ := sub(dispatchTable_, 0x20)
         }

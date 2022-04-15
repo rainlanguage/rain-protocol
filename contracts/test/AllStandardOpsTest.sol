@@ -55,13 +55,13 @@ contract AllStandardOpsTest is RainVM, VMState {
         return _state;
     }
 
-    function fnPtrs() external view returns (uint256[] memory) {
+    function fnPtrs() external view returns (bytes memory) {
         DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
         return dispatchTable_.fnPtrs();
     }
 
     /// Runs `eval` and stores full state.
-    function run(uint256[] memory fnPtrs_) public {
+    function run(bytes memory fnPtrs_) public {
         DispatchTable dispatchTable_;
         dispatchTable_ = dispatchTable_.initialize(fnPtrs_);
         State memory state_ = _restore(vmStatePointer);

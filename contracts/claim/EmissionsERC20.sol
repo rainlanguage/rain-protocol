@@ -5,11 +5,14 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {DispatchTable, RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
+import {Dispatch, DispatchTable, RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
 import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "../sstore2/SSTORE2.sol";
+
+import "hardhat/console.sol";
 
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
@@ -53,6 +56,8 @@ contract EmissionsERC20 is
     IClaim,
     ReadOnlyTier
 {
+    using Dispatch for DispatchTable;
+
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param allowDelegatedClaims True if accounts can call `claim` on behalf
@@ -64,6 +69,8 @@ contract EmissionsERC20 is
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
+
+    address private fnPtrsPointer;
 
     /// Whether the claimant must be the caller of `claim`. If `false` then
     /// accounts other than claimant can claim. This may or may not be
@@ -108,6 +115,9 @@ contract EmissionsERC20 is
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
+
+        bytes memory fnPtrs_ = fnPtrs();
+        fnPtrsPointer = SSTORE2.write(fnPtrs_);
 
         emit Initialize(msg.sender, config_.allowDelegatedClaims);
     }
@@ -170,6 +180,14 @@ contract EmissionsERC20 is
                 : TierConstants.NEVER_REPORT;
     }
 
+    function fnPtrs() public view returns (bytes memory) {
+        uint gasStart_ = gasleft();
+        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
+        uint gasEnd_ = gasleft();
+        console.log("build gas", gasStart_ - gasEnd_);
+        return dispatchTable_.fnPtrs();
+    }
+
     /// Calculates the claim without processing it.
     /// Read only method that may be useful downstream both onchain and
     /// offchain if a claimant wants to check the claim amount before deciding
@@ -180,7 +198,14 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
+        uint gasStart_ = gasleft();
+        bytes memory fnPtrs_ = SSTORE2.read(fnPtrsPointer);
+        // uint[] memory fnPtrs_ = abi.decode(data_, (uint[]));
+        DispatchTable dispatchTable_;
+        dispatchTable_ = dispatchTable_.initialize(fnPtrs_);
+        uint gasEnd_ = gasleft();
+        console.log("load gas", gasStart_ - gasEnd_);
+
         State memory state_ = _restore(vmStatePointer);
         eval(dispatchTable_, abi.encode(claimant_), state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
