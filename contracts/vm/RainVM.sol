@@ -55,13 +55,13 @@ library LibDispatchTable {
 struct State {
     uint256 stackIndex;
     uint256[] stack;
-    bytes[] sources;
+    bytes[] ptrSources;
     uint256[] constants;
     /// `ZIPMAP` populates arguments into constants which can be copied to the
     /// stack by `VAL` as usual, starting from this index. This copying is
     /// destructive so it is recommended to leave space in the constants array.
     uint256 argumentsIndex;
-    bytes fnPtrs;
+    // bytes fnPtrs;
 }
 
 library LibState {
@@ -297,9 +297,6 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
-            DispatchTable dispatchTable_ = LibDispatchTable.fromBytes(
-                state_.fnPtrs
-            );
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
@@ -329,10 +326,12 @@ abstract contract RainVM {
 
             // Loop until complete.
             while (i_ < sourceLen_) {
+                uint x_;
                 assembly {
-                    i_ := add(i_, 2)
+                    i_ := add(i_, 3)
                     let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
+                    x_ := op_
+                    opcode_ := shr(8, and(op_, 0xFFFF00))
                     operand_ := byte(31, op_)
                 }
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
@@ -393,7 +392,7 @@ abstract contract RainVM {
                 } else {
                     function(uint256, uint256) view returns (uint256) fn_;
                     assembly {
-                        fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+                        fn_ := opcode_
                     }
                     stackTopLocation_ = fn_(operand_, stackTopLocation_);
                 }
