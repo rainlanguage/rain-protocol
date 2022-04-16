@@ -129,7 +129,7 @@ library AllStandardOps {
         }
     }
 
-    function dispatchTableBytes() internal view returns (bytes memory) {
+    function dispatchTableBytes() internal pure returns (bytes memory) {
         unchecked {
             uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
             function(bytes memory, uint256, uint256)

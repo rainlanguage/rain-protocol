@@ -42,7 +42,7 @@ describe("FixedPointMathOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await fixedPointOpsTest.run(await fixedPointOpsTest.fnPtrs());
+    await fixedPointOpsTest.run();
     const result0 = await fixedPointOpsTest.stackTop();
     const expected0 = ethers.BigNumber.from(100);
 
@@ -76,7 +76,7 @@ describe("FixedPointMathOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await fixedPointOpsTest.run(await fixedPointOpsTest.fnPtrs());
+    await fixedPointOpsTest.run();
     const result0 = await fixedPointOpsTest.stackTop();
     const expected0 = ethers.BigNumber.from(1 + Util.sixZeros + "0000");
 
@@ -110,7 +110,7 @@ describe("FixedPointMathOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await fixedPointOpsTest.run(await fixedPointOpsTest.fnPtrs());
+    await fixedPointOpsTest.run();
     const result0 = await fixedPointOpsTest.stackTop();
     const expected0 = ethers.BigNumber.from(1 + Util.eighteenZeros + "00");
 
@@ -144,7 +144,7 @@ describe("FixedPointMathOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await fixedPointOpsTest.run(await fixedPointOpsTest.fnPtrs());
+    await fixedPointOpsTest.run();
     const result0 = await fixedPointOpsTest.stackTop();
     const expected0 = ethers.BigNumber.from(1 + Util.sixZeros);
 
@@ -180,7 +180,7 @@ describe("FixedPointMathOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await fixedPointOpsTest.run(await fixedPointOpsTest.fnPtrs());
+    await fixedPointOpsTest.run();
     const result0 = await fixedPointOpsTest.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros)
       .mul(Util.ONE)
@@ -217,7 +217,7 @@ describe("FixedPointMathOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await fixedPointOpsTest.run(await fixedPointOpsTest.fnPtrs());
+    await fixedPointOpsTest.run();
     const result0 = await fixedPointOpsTest.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros)
       .mul(value2)
@@ -251,7 +251,7 @@ describe("FixedPointMathOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    await fixedPointOpsTest.run(await fixedPointOpsTest.fnPtrs());
+    await fixedPointOpsTest.run();
     const result0 = await fixedPointOpsTest.stackTop();
     const expected0 = ethers.BigNumber.from(value + Util.eighteenZeros);
     assert(

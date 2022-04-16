@@ -26,18 +26,6 @@ library Dispatch {
         return dispatchTable_;
     }
 
-    // function ptr(DispatchTable dispatchTable_, uint256 opcode_)
-    //     internal
-    //     pure
-    //     returns (uint256)
-    // {
-    //     uint256 ptr_;
-    //     assembly {
-    //         ptr_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
-    //     }
-    //     return ptr_;
-    // }
-
     /// ONLY safe to use on a dispatch table built with `fromBytes`
     function toBytes(DispatchTable dispatchTable_)
         internal
@@ -49,27 +37,6 @@ library Dispatch {
             fnPtrs_ := sub(dispatchTable_, 0x20)
         }
         return fnPtrs_;
-    }
-
-    // function setFn(
-    //     DispatchTable dispatchTable_,
-    //     uint256 opcode_,
-    //     function(bytes memory, uint256, uint256) view returns (uint256) fn_
-    // ) internal pure {
-    //     assembly {
-    //         mstore(add(dispatchTable_, mul(opcode_, 0x20)), fn_)
-    //     }
-    // }
-
-    function setFns(
-        DispatchTable dispatchTable_,
-        function(bytes memory, uint256, uint256) view returns (uint256)[]
-            memory fns_
-    ) internal pure returns (DispatchTable) {
-        assembly {
-            dispatchTable_ := add(fns_, 0x20)
-        }
-        return dispatchTable_;
     }
 }
 
@@ -100,6 +67,7 @@ struct State {
     /// stack by `VAL` as usual, starting from this index. This copying is
     /// destructive so it is recommended to leave space in the constants array.
     uint256 argumentsIndex;
+    bytes fnPtrs;
 }
 
 /// @dev Copies a value either off `constants` to the top of the stack.
@@ -290,7 +258,6 @@ abstract contract RainVM {
     /// @param state_ The execution state of the VM.
     /// @param operand_ The operand_ associated with this dispatch to zipmap.
     function zipmap(
-        DispatchTable dispatchTable_,
         bytes memory context_,
         State memory state_,
         uint256 stackTopLocation_,
@@ -376,7 +343,6 @@ abstract contract RainVM {
                     }
                 }
                 stackTopLocation_ = eval(
-                    dispatchTable_,
                     context_,
                     state_,
                     sourceIndex_
@@ -399,12 +365,12 @@ abstract contract RainVM {
     /// are provided so the caller can provide additional data and kickoff the
     /// opcode dispatch from the correct source in `sources`.
     function eval(
-        DispatchTable dispatchTable_,
         bytes memory context_,
         State memory state_,
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
+            DispatchTable dispatchTable_ = Dispatch.fromBytes(state_.fnPtrs);
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
@@ -479,7 +445,6 @@ abstract contract RainVM {
                         }
                     } else if (opcode_ == OPCODE_ZIPMAP) {
                         stackTopLocation_ = zipmap(
-                            dispatchTable_,
                             context_,
                             state_,
                             stackTopLocation_,
@@ -508,20 +473,6 @@ abstract contract RainVM {
             return stackTopLocation_;
         }
     }
-
-    // function dispatch(
-    //     DispatchTable dispatchTable_,
-    //     bytes memory context_,
-    //     uint256 opcode_,
-    //     uint256 operand_,
-    //     uint256 stackTopLocation_
-    // ) internal view returns (uint256) {
-    //     function(bytes memory, uint256, uint256) view returns (uint256) fn_;
-    //     assembly {
-    //         fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
-    //     }
-    //     return fn_(context_, operand_, stackTopLocation_);
-    // }
 
     /// Every contract that implements `RainVM` should override `applyOp` so
     /// that useful opcodes are available to script writers.

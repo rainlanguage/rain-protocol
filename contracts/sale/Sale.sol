@@ -7,7 +7,7 @@ import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {VMState, StateConfig} from "../vm/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
 //solhint-disable-next-line max-line-length
@@ -215,7 +215,6 @@ contract Sale is
     address private canEndStatePointer;
     /// @dev as per `SaleConfig`.
     address private calculatePriceStatePointer;
-    address private fnPtrsPointer;
     /// @dev as per `SaleConfig`.
     uint256 private minimumRaise;
     /// @dev as per `SaleConfig`.
@@ -317,9 +316,6 @@ contract Sale is
             )
         );
 
-        bytes memory fnPtrs_ = fnPtrs();
-        fnPtrsPointer = SSTORE2.write(fnPtrs_);
-
         recipient = config_.recipient;
 
         dustSize = config_.dustSize;
@@ -385,7 +381,6 @@ contract Sale is
         if (_saleStatus == SaleStatus.Pending) {
             State memory state_ = _restore(canStartStatePointer);
             eval(
-                Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
                 "",
                 state_,
                 SOURCE_INDEX
@@ -420,7 +415,6 @@ contract Sale is
             else {
                 State memory state_ = _restore(canEndStatePointer);
                 eval(
-                    Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
                     "",
                     state_,
                     SOURCE_INDEX
@@ -439,7 +433,6 @@ contract Sale is
     function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = _restore(calculatePriceStatePointer);
         eval(
-            Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
             abi.encode(units_),
             state_,
             SOURCE_INDEX
@@ -715,7 +708,7 @@ contract Sale is
         return stackTopLocation_;
     }
 
-    function fnPtrs() public view returns (bytes memory) {
+    function fnPtrs() public pure override returns (bytes memory) {
         bytes memory dispatchTableBytes_ = new bytes(0xA0);
         function(bytes memory, uint256, uint256) view returns (uint256)[5]
             memory fns_ = [

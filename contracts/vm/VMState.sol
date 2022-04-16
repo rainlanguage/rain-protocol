@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {RainVM, State, SourceAnalysis} from "../RainVM.sol";
-import "../../sstore2/SSTORE2.sol";
+import {RainVM, State, SourceAnalysis} from "./RainVM.sol";
+import "../sstore2/SSTORE2.sol";
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
@@ -20,7 +20,7 @@ struct StateConfig {
 /// Gas scales for reads much better for longer data than attempting to put
 /// all the source into storage.
 /// See https://github.com/0xsequence/sstore2
-contract VMState {
+abstract contract VMState {
     /// A new shapshot has been deployed onchain.
     /// @param sender `msg.sender` of the deployer.
     /// @param pointer Pointer to the onchain snapshot contract.
@@ -47,9 +47,12 @@ contract VMState {
                 new uint256[](sourceAnalysis_.stackUpperBound),
                 config_.sources,
                 constants_,
-                config_.constants.length
+                config_.constants.length,
+                fnPtrs()
             );
     }
+
+    function fnPtrs() public pure virtual returns (bytes memory);
 
     /// Snapshot a RainVM state as an immutable onchain contract.
     /// Usually `State` will be new as per `newState` but can be a snapshot of

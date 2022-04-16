@@ -38,7 +38,7 @@ describe("CalculatorTestUnchecked", async function () {
     })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculator0.run(await calculator0.fnPtrs()),
+      async () => await calculator0.run(),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
     );
@@ -69,7 +69,7 @@ describe("CalculatorTestUnchecked", async function () {
     })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculator0.run(await calculator0.fnPtrs()),
+      async () => await calculator0.run(),
       "Transaction reverted",
       "accumulator overflow did not panic"
     );
@@ -100,7 +100,7 @@ describe("CalculatorTestUnchecked", async function () {
     })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculator0.run(await calculator0.fnPtrs()),
+      async () => await calculator0.run(),
       "Transaction reverted",
       "accumulator underflow did not panic"
     );
@@ -131,7 +131,7 @@ describe("CalculatorTestUnchecked", async function () {
     })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await calculator0.run(await calculator0.fnPtrs()),
+      async () => await calculator0.run(),
       "Transaction reverted",
       "accumulator overflow did not panic"
     );

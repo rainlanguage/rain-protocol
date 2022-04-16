@@ -64,7 +64,7 @@ describe("TierOps", async function () {
     })) as AllStandardOpsTest & Contract;
 
     await Util.assertError(
-      async () => await tierOps0.run(await tierOps0.fnPtrs()),
+      async () => await tierOps0.run(),
       "MAX_TIER",
       "wrongly updated blocks with endTier of 9, which is greater than maxTier constant"
     );
@@ -99,7 +99,7 @@ describe("TierOps", async function () {
       constants: constants0,
     })) as AllStandardOpsTest & Contract;
 
-    await tierOps0.run(await tierOps0.fnPtrs());
+    await tierOps0.run();
     const result0 = await tierOps0.stackTop();
     const resultHex0 = hexlify(result0);
 
@@ -143,7 +143,7 @@ describe("TierOps", async function () {
       constants: constants0,
     })) as AllStandardOpsTest & Contract;
 
-    await tierOps0.run(await tierOps0.fnPtrs());
+    await tierOps0.run();
     const result0 = await tierOps0.stackTop();
     const resultHex0 = hexlify(result0);
 
@@ -184,7 +184,7 @@ describe("TierOps", async function () {
       constants: constants0,
     })) as AllStandardOpsTest & Contract;
 
-    await tierOps0.run(await tierOps0.fnPtrs());
+    await tierOps0.run();
     const result0 = await tierOps0.stackTop();
     const resultHex0 = hexlify(result0);
 

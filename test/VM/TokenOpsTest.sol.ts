@@ -105,7 +105,7 @@ describe("TokenOps Test", async function () {
       [tokenId, tokenId]
     );
 
-    await tokenOpsTest.run(await tokenOpsTest.fnPtrs());
+    await tokenOpsTest.run();
     const opBatchAmounts = await tokenOpsTest.stack();
 
     assert(
@@ -140,9 +140,8 @@ describe("TokenOps Test", async function () {
       sources,
       constants,
     })) as AllStandardOpsTest & Contract;
-    const fnPtrs = await tokenOpsTest.fnPtrs();
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result0 = await tokenOpsTest.stackTop();
     assert(result0.isZero(), `expected 0 of id ${tokenId}, got ${result0}`);
 
@@ -169,7 +168,7 @@ describe("TokenOps Test", async function () {
       got       ${signer1Balance}`
     );
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result1 = await tokenOpsTest.stackTop();
     assert(
       result1.eq(transferAmount),
@@ -199,15 +198,14 @@ describe("TokenOps Test", async function () {
       sources,
       constants,
     })) as AllStandardOpsTest & Contract;
-    const fnPtrs = await tokenOpsTest.fnPtrs();
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result0 = await tokenOpsTest.stackTop();
     assert(result0.eq(signer0.address));
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, nftId);
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result1 = await tokenOpsTest.stackTop();
     assert(result1.eq(signer1.address));
   });
@@ -232,22 +230,21 @@ describe("TokenOps Test", async function () {
       sources,
       constants,
     })) as AllStandardOpsTest & Contract;
-    const fnPtrs = await tokenOpsTest.fnPtrs();
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result0 = await tokenOpsTest.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, 0);
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result1 = await tokenOpsTest.stackTop();
     assert(result1.eq(1), `expected 1, got ${result1}`);
 
     await tokenERC721.mintNewToken();
     await tokenERC721.transferFrom(signer0.address, signer1.address, 1);
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result2 = await tokenOpsTest.stackTop();
     assert(result2.eq(2), `expected 2, got ${result2}`);
   });
@@ -270,9 +267,8 @@ describe("TokenOps Test", async function () {
       sources,
       constants,
     })) as AllStandardOpsTest & Contract;
-    const fnPtrs = await tokenOpsTest.fnPtrs();
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result0 = await tokenOpsTest.stackTop();
     const totalTokenSupply = await tokenERC20.totalSupply();
     assert(
@@ -302,16 +298,14 @@ describe("TokenOps Test", async function () {
       constants,
     })) as AllStandardOpsTest & Contract;
 
-    const fnPtrs = await tokenOpsTest.fnPtrs();
     console.log(sources, Opcode.length);
-    console.log(fnPtrs);
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result0 = await tokenOpsTest.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC20.transfer(signer1.address, 100);
 
-    await tokenOpsTest.run(fnPtrs);
+    await tokenOpsTest.run();
     const result1 = await tokenOpsTest.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });

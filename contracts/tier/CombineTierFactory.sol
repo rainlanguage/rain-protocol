@@ -4,7 +4,7 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import {Factory} from "../factory/Factory.sol";
 import {CombineTier} from "./CombineTier.sol";
-import {StateConfig} from "../vm/libraries/VMState.sol";
+import {StateConfig} from "../vm/VMState.sol";
 
 /// @title CombineTierFactory
 /// @notice Factory for creating and deploying `CombineTier` contracts.

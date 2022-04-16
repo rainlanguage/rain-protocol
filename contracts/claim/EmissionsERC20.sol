@@ -6,7 +6,7 @@ import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
 import {Dispatch, DispatchTable, RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {VMState, StateConfig} from "../vm/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
@@ -65,8 +65,6 @@ contract EmissionsERC20 is
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
 
-    address private fnPtrsPointer;
-
     /// Whether the claimant must be the caller of `claim`. If `false` then
     /// accounts other than claimant can claim. This may or may not be
     /// desirable depending on the emissions schedule. For example, a linear
@@ -102,9 +100,6 @@ contract EmissionsERC20 is
         vmStatePointer = _snapshot(
             _newState(config_.vmStateConfig, sourceAnalysis_)
         );
-
-        bytes memory fnPtrs_ = fnPtrs();
-        fnPtrsPointer = SSTORE2.write(fnPtrs_);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -154,7 +149,7 @@ contract EmissionsERC20 is
                 : TierConstants.NEVER_REPORT;
     }
 
-    function fnPtrs() public view returns (bytes memory) {
+    function fnPtrs() public pure override returns (bytes memory) {
         bytes memory dispatchTableBytes_ = new bytes(0x20);
         function(bytes memory, uint256, uint256)
             view
@@ -181,7 +176,6 @@ contract EmissionsERC20 is
     function calculateClaim(address claimant_) public view returns (uint256) {
         State memory state_ = _restore(vmStatePointer);
         eval(
-            Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
             abi.encode(claimant_),
             state_,
             SOURCE_INDEX

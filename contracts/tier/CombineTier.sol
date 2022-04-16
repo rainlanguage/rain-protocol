@@ -4,12 +4,11 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {RainVM, State, Dispatch, DispatchTable} from "../vm/RainVM.sol";
-import {VMState, StateConfig, SourceAnalysis} from "../vm/libraries/VMState.sol";
+import {VMState, StateConfig, SourceAnalysis} from "../vm/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
-import "../sstore2/SSTORE2.sol";
 
 uint256 constant SOURCE_INDEX = 0;
 
@@ -26,7 +25,6 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     uint256 internal constant LOCAL_OPS_LENGTH = 1;
 
     address private vmStatePointer;
-    address private fnPtrsPointer;
 
     /// @param config_ The StateConfig will be deployed as a pointer under
     /// `vmStatePointer`.
@@ -34,9 +32,6 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
         analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
         vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
-
-        bytes memory fnPtrs_ = fnPtrs();
-        fnPtrsPointer = SSTORE2.write(fnPtrs_);
     }
 
     /// @inheritdoc RainVM
@@ -68,7 +63,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         return stackTopLocation_;
     }
 
-    function fnPtrs() public view returns (bytes memory) {
+    function fnPtrs() public pure override returns (bytes memory) {
         bytes memory dispatchTableBytes_ = new bytes(0x20);
         function(bytes memory, uint256, uint256)
             view
@@ -93,7 +88,6 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     {
         State memory state_ = _restore(vmStatePointer);
         eval(
-            Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
             abi.encode(account_),
             state_,
             SOURCE_INDEX

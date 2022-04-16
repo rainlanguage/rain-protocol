@@ -2,7 +2,7 @@
 pragma solidity =0.8.10;
 
 import {RainVM, State, RAIN_VM_OPS_LENGTH, SourceAnalysis} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {VMState, StateConfig} from "../vm/VMState.sol";
 import {LogicOps} from "../vm/ops/math/LogicOps.sol";
 import "../vm/ops/AllStandardOps.sol";
 
@@ -53,14 +53,14 @@ contract AllStandardOpsTest is RainVM, VMState {
         return _state;
     }
 
-    function fnPtrs() external view returns (bytes memory) {
+    function fnPtrs() public pure override returns (bytes memory) {
         return AllStandardOps.dispatchTableBytes();
     }
 
     /// Runs `eval` and stores full state.
-    function run(bytes memory dispatchTableBytes_) public {
+    function run() public {
         State memory state_ = _restore(vmStatePointer);
-        eval(Dispatch.fromBytes(dispatchTableBytes_), "", state_, SOURCE_INDEX);
+        eval("", state_, SOURCE_INDEX);
         _state = state_;
     }
 }
