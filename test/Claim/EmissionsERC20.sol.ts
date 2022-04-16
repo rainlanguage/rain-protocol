@@ -182,6 +182,8 @@ describe.only("EmissionsERC20", async function () {
         op(Opcode.SATURATING_DIFF),
       ]);
 
+    console.log("td", TIERWISE_DIFF())
+
     // prettier-ignore
     const SOURCE = () =>
       concat([
