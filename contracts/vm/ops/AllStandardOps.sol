@@ -135,6 +135,7 @@ library AllStandardOps {
                     zeroFn_,
                     zeroFn_,
                     zeroFn_,
+                    zeroFn_,
                     EVMConstantOps.number,
                     EVMConstantOps.timestamp,
                     EVMConstantOps.caller,

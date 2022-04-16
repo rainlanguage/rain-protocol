@@ -7,7 +7,6 @@ import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
-import {VMState, StateConfig} from "../vm/VMState.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
 //solhint-disable-next-line max-line-length
@@ -22,6 +21,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
+import "../vm/VMMeta.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -37,6 +37,7 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
+    address vmMeta;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -150,14 +151,7 @@ uint256 constant OPCODE_RESERVE_ADDRESS = LOCAL_OPS_START + 3;
 uint256 constant LOCAL_OPS_LENGTH = LOCAL_OPS_START + 4;
 
 // solhint-disable-next-line max-states-count
-contract Sale is
-    Initializable,
-    Cooldown,
-    RainVM,
-    VMState,
-    ISale,
-    ReentrancyGuard
-{
+contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
@@ -191,6 +185,8 @@ contract Sale is
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
 
+    VMMeta immutable vmMeta;
+
     /// @dev the saleTimeout cannot exceed this. Prevents downstream contracts
     /// that require a finalization such as escrows from getting permanently
     /// stuck in a pending or active status due to buggy scripts.
@@ -198,6 +194,7 @@ contract Sale is
 
     /// Factory responsible for minting rTKN.
     RedeemableERC20Factory private immutable redeemableERC20Factory;
+
     /// Minted rTKN for each sale.
     /// Exposed via. `ISale.token()`.
     RedeemableERC20 private _token;
@@ -252,6 +249,7 @@ contract Sale is
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
+        vmMeta = VMMeta(config_.vmMeta);
 
         emit Construct(msg.sender, config_);
     }
@@ -274,36 +272,20 @@ contract Sale is
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        SourceAnalysis memory canStartSourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(
-            canStartSourceAnalysis_,
-            config_.canStartStateConfig.sources,
+        canStartStatePointer = vmMeta._newPointer(
+            address(this),
+            config_.canStartStateConfig,
             SOURCE_INDEX
         );
-        canStartStatePointer = _snapshot(
-            _newState(config_.canStartStateConfig, canStartSourceAnalysis_)
-        );
-        SourceAnalysis memory canEndSourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(
-            canEndSourceAnalysis_,
-            config_.canEndStateConfig.sources,
+        canEndStatePointer = vmMeta._newPointer(
+            address(this),
+            config_.canEndStateConfig,
             SOURCE_INDEX
         );
-        canEndStatePointer = _snapshot(
-            _newState(config_.canEndStateConfig, canEndSourceAnalysis_)
-        );
-        SourceAnalysis
-            memory calculatePriceSourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(
-            calculatePriceSourceAnalysis_,
-            config_.calculatePriceStateConfig.sources,
+        calculatePriceStatePointer = vmMeta._newPointer(
+            address(this),
+            config_.calculatePriceStateConfig,
             SOURCE_INDEX
-        );
-        calculatePriceStatePointer = _snapshot(
-            _newState(
-                config_.calculatePriceStateConfig,
-                calculatePriceSourceAnalysis_
-            )
         );
 
         recipient = config_.recipient;
@@ -369,7 +351,7 @@ contract Sale is
         // Only a pending sale can start. Starting a sale more than once would
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
-            State memory state_ = _restore(canStartStatePointer);
+            State memory state_ = vmMeta._restore(canStartStatePointer);
             eval("", state_, SOURCE_INDEX);
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
@@ -399,7 +381,7 @@ contract Sale is
             // The raise is active and still has stock remaining so we delegate
             // to the appropriate script for an answer.
             else {
-                State memory state_ = _restore(canEndStatePointer);
+                State memory state_ = vmMeta._restore(canEndStatePointer);
                 eval("", state_, SOURCE_INDEX);
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
@@ -413,7 +395,7 @@ contract Sale is
     /// @param units_ Amount of rTKN to quote a price for, will be available to
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = _restore(calculatePriceStatePointer);
+        State memory state_ = vmMeta._restore(calculatePriceStatePointer);
         bytes memory context_ = new bytes(0x20);
         assembly {
             mstore(add(context_, 0x20), units_)
@@ -608,91 +590,7 @@ contract Sale is
         }
     }
 
-    /// @inheritdoc RainVM
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
-        public
-        pure
-        override
-        returns (int256)
-    {
-        unchecked {
-            if (opcode_ < LOCAL_OPS_START) {
-                return AllStandardOps.stackIndexDiff(opcode_, operand_);
-            } else {
-                opcode_ -= LOCAL_OPS_START;
-                require(opcode_ < LOCAL_OPS_LENGTH, "OPCODE_OUT_OF_BOUNDS");
-                return 1;
-            }
-        }
-    }
-
-    function remainingUnits(
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
-        uint256 remainingUnits_ = _remainingUnits;
-        assembly {
-            mstore(stackTopLocation_, remainingUnits_)
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
-    }
-
-    function totalReserveIn(
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
-        uint256 totalReserveIn_ = _totalReserveIn;
-        assembly {
-            mstore(stackTopLocation_, totalReserveIn_)
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
-    }
-
-    function tokenAddress(
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
-        uint256 token_ = uint256(uint160(address(_token)));
-        assembly {
-            mstore(stackTopLocation_, token_)
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
-    }
-
-    function reserveAddress(
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
-        uint256 reserve_ = uint256(uint160(address(_reserve)));
-        assembly {
-            mstore(stackTopLocation_, reserve_)
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
-    }
-
     function fnPtrs() public pure override returns (bytes memory) {
-        bytes memory dispatchTableBytes_ = new bytes(0x80);
-        function(uint256, uint256) view returns (uint256)[4]
-            memory fns_ = [
-                remainingUnits,
-                totalReserveIn,
-                tokenAddress,
-                reserveAddress
-            ];
-        assembly {
-            mstore(add(dispatchTableBytes_, 0x20), mload(fns_))
-            mstore(add(dispatchTableBytes_, 0x40), mload(add(fns_, 0x20)))
-            mstore(add(dispatchTableBytes_, 0x60), mload(add(fns_, 0x40)))
-            mstore(add(dispatchTableBytes_, 0x80), mload(add(fns_, 0x60)))
-        }
-        return
-            bytes.concat(
-                AllStandardOps.dispatchTableBytes(),
-                dispatchTableBytes_
-            );
+        return AllStandardOps.dispatchTableBytes();
     }
 }

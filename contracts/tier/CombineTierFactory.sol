@@ -4,7 +4,7 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import {Factory} from "../factory/Factory.sol";
 import {CombineTier} from "./CombineTier.sol";
-import {StateConfig} from "../vm/VMState.sol";
+import {StateConfig} from "../vm/VMMeta.sol";
 
 /// @title CombineTierFactory
 /// @notice Factory for creating and deploying `CombineTier` contracts.
@@ -14,8 +14,8 @@ contract CombineTierFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor() {
-        address implementation_ = address(new CombineTier());
+    constructor(address vmMeta_) {
+        address implementation_ = address(new CombineTier(vmMeta_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

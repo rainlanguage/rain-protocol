@@ -5,8 +5,8 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {Dispatch, DispatchTable, RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/VMState.sol";
+import {VMMeta, StateConfig} from "../vm/VMMeta.sol";
+import {Dispatch, DispatchTable, RainVM, State} from "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
@@ -44,7 +44,6 @@ uint256 constant SOURCE_INDEX = 0;
 contract EmissionsERC20 is
     Initializable,
     RainVM,
-    VMState,
     ERC20Upgradeable,
     IClaim,
     ReadOnlyTier
@@ -56,6 +55,8 @@ contract EmissionsERC20 is
     /// @param allowDelegatedClaims True if accounts can call `claim` on behalf
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
+
+    VMMeta immutable vmMeta;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
@@ -75,6 +76,10 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
+    constructor(address vmMeta_) {
+        vmMeta = VMMeta(vmMeta_);
+    }
+
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(EmissionsERC20Config calldata config_)
         external
@@ -86,31 +91,16 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(
-            sourceAnalysis_,
-            config_.vmStateConfig.sources,
+        vmStatePointer = vmMeta._newPointer(
+            address(this),
+            config_.vmStateConfig,
             SOURCE_INDEX
-        );
-        vmStatePointer = _snapshot(
-            _newState(config_.vmStateConfig, sourceAnalysis_)
         );
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
 
         emit Initialize(msg.sender, config_.allowDelegatedClaims);
-    }
-
-    /// @inheritdoc RainVM
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
-        public
-        pure
-        override
-        returns (int256)
-    {
-
-                return AllStandardOps.stackIndexDiff(opcode_, operand_);
     }
 
     /// @inheritdoc ITier
@@ -141,9 +131,9 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        State memory state_ = _restore(vmStatePointer);
+        State memory state_ = vmMeta._restore(vmStatePointer);
         bytes memory context_ = new bytes(0x20);
-        uint claimantContext_ = uint(uint160(claimant_));
+        uint256 claimantContext_ = uint256(uint160(claimant_));
         assembly {
             mstore(add(context_, 0x20), claimantContext_)
         }

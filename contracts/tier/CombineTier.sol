@@ -4,11 +4,11 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {RainVM, State, Dispatch, DispatchTable} from "../vm/RainVM.sol";
-import {VMState, StateConfig, SourceAnalysis} from "../vm/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
+import "../vm/VMMeta.sol";
 
 uint256 constant SOURCE_INDEX = 0;
 
@@ -18,26 +18,22 @@ uint256 constant SOURCE_INDEX = 0;
 /// construction.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
-contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
+contract CombineTier is ReadOnlyTier, RainVM, Initializable {
+    VMMeta immutable vmMeta;
     address private vmStatePointer;
+
+    constructor(address vmMeta_) {
+        vmMeta = VMMeta(vmMeta_);
+    }
 
     /// @param config_ The StateConfig will be deployed as a pointer under
     /// `vmStatePointer`.
     function initialize(StateConfig calldata config_) external initializer {
-        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
-        vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
-    }
-
-    /// @inheritdoc RainVM
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
-        public
-        view
-        virtual
-        override
-        returns (int256)
-    {
-        return AllStandardOps.stackIndexDiff(opcode_, operand_);
+        vmStatePointer = vmMeta._newPointer(
+            address(this),
+            config_,
+            SOURCE_INDEX
+        );
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
@@ -52,9 +48,9 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         override
         returns (uint256)
     {
-        State memory state_ = _restore(vmStatePointer);
+        State memory state_ = vmMeta._restore(vmStatePointer);
         bytes memory context_ = new bytes(0x20);
-        uint accountContext_ = uint(uint160(account_));
+        uint256 accountContext_ = uint256(uint160(account_));
         assembly {
             mstore(add(context_, 0x20), accountContext_)
         }

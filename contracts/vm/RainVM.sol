@@ -5,12 +5,6 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "hardhat/console.sol";
 
-struct SourceAnalysis {
-    int256 stackIndex;
-    uint256 stackUpperBound;
-    uint256 argumentsUpperBound;
-}
-
 type DispatchTable is uint256;
 
 library Dispatch {
@@ -71,18 +65,19 @@ struct State {
 }
 
 /// @dev Copies a value either off `constants` to the top of the stack.
-uint256 constant OPCODE_VAL = 0;
+uint256 constant OPCODE_CONSTANT = 0;
 /// @dev Duplicates any value in the stack to the top of the stack. The operand
 /// specifies the index to copy from.
-uint256 constant OPCODE_DUP = 1;
+uint256 constant OPCODE_STACK = 1;
 uint256 constant OPCODE_CONTEXT = 2;
+uint256 constant OPCODE_STORAGE = 3;
 /// @dev Takes N values off the stack, interprets them as an array then zips
 /// and maps a source from `sources` over them.
-uint256 constant OPCODE_ZIPMAP = 3;
+uint256 constant OPCODE_ZIPMAP = 4;
 /// @dev ABI encodes the entire stack and logs it to the hardhat console.
-uint256 constant OPCODE_DEBUG = 4;
+uint256 constant OPCODE_DEBUG = 5;
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 5;
+uint256 constant RAIN_VM_OPS_LENGTH = 6;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -148,86 +143,7 @@ abstract contract RainVM {
     using Math for uint256;
     using Dispatch for DispatchTable;
 
-    function _newSourceAnalysis()
-        internal
-        pure
-        returns (SourceAnalysis memory)
-    {
-        return SourceAnalysis(0, 0, 0);
-    }
-
-    function analyzeZipmap(
-        SourceAnalysis memory sourceAnalysis_,
-        bytes[] memory sources_,
-        uint256 operand_
-    ) private view {
-        uint256 valLength_ = (operand_ >> 5) + 1;
-        sourceAnalysis_.argumentsUpperBound = sourceAnalysis_
-            .argumentsUpperBound
-            .max(valLength_);
-        sourceAnalysis_.stackIndex -= int256(valLength_);
-        uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
-        for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-            analyzeSources(sourceAnalysis_, sources_, operand_ & 0x07);
-        }
-    }
-
-    function analyzeSources(
-        SourceAnalysis memory sourceAnalysis_,
-        bytes[] memory sources_,
-        uint256 entrypoint_
-    ) public view {
-        unchecked {
-            uint256 i_ = 0;
-            uint256 sourceLen_;
-            uint256 opcode_;
-            uint256 operand_;
-            uint256 sourceLocation_;
-            uint256 d_;
-
-            assembly {
-                d_ := mload(add(sources_, 0x20))
-                sourceLocation_ := mload(
-                    add(sources_, add(0x20, mul(entrypoint_, 0x20)))
-                )
-
-                sourceLen_ := mload(sourceLocation_)
-            }
-
-            while (i_ < sourceLen_) {
-                assembly {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
-                    operand_ := byte(31, op_)
-                }
-
-                if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ < OPCODE_ZIPMAP) {
-                        sourceAnalysis_.stackIndex++;
-                    } else {
-                        analyzeZipmap(sourceAnalysis_, sources_, operand_);
-                    }
-                } else {
-                    sourceAnalysis_.stackIndex += stackIndexDiff(
-                        opcode_,
-                        operand_
-                    );
-                }
-                require(sourceAnalysis_.stackIndex >= 0, "STACK_UNDERFLOW");
-                sourceAnalysis_.stackUpperBound = sourceAnalysis_
-                    .stackUpperBound
-                    .max(uint256(sourceAnalysis_.stackIndex));
-            }
-        }
-    }
-
-    function stackIndexDiff(uint256 opcode_, uint256)
-        public
-        view
-        virtual
-        returns (int256)
-    {}
+    function fnPtrs() public pure virtual returns (bytes memory);
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -393,16 +309,6 @@ abstract contract RainVM {
                 )
                 sourceLen_ := mload(sourceLocation_)
                 constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
-                // argumentsBottomLocation_ := add(
-                //     constantsBottomLocation_,
-                //     mul(
-                //         0x20,
-                //         mload(
-                //             // argumentsIndex
-                //             add(state_, 0x80)
-                //         )
-                //     )
-                // )
             }
 
             // Loop until complete.
@@ -414,7 +320,7 @@ abstract contract RainVM {
                     operand_ := byte(31, op_)
                 }
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ == OPCODE_VAL) {
+                    if (opcode_ == OPCODE_CONSTANT) {
                         assembly {
                             mstore(
                                 stackTopLocation_,
@@ -427,7 +333,7 @@ abstract contract RainVM {
                             )
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
-                    } else if (opcode_ == OPCODE_DUP) {
+                    } else if (opcode_ == OPCODE_STACK) {
                         assembly {
                             mstore(
                                 stackTopLocation_,
@@ -451,6 +357,11 @@ abstract contract RainVM {
                                     )
                                 )
                             )
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                        }
+                    } else if (opcode_ == OPCODE_STORAGE) {
+                        assembly {
+                            mstore(stackTopLocation_, sload(operand_))
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_ZIPMAP) {

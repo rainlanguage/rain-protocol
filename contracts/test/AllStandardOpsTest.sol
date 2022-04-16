@@ -1,42 +1,33 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {RainVM, State, RAIN_VM_OPS_LENGTH, SourceAnalysis} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/VMState.sol";
+import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
 import {LogicOps} from "../vm/ops/math/LogicOps.sol";
 import "../vm/ops/AllStandardOps.sol";
+import "../vm/VMMeta.sol";
 
 uint256 constant SOURCE_INDEX = 0;
 
 /// @title StandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
-contract AllStandardOpsTest is RainVM, VMState {
+contract AllStandardOpsTest is RainVM {
     using Dispatch for DispatchTable;
 
-    address private immutable vmStatePointer;
+    VMMeta private immutable vmMeta;
+    address private vmStatePointer;
 
     State private _state;
 
-    constructor(StateConfig memory config_) {
-        /// These local opcode offsets are calculated as immutable but are
-        /// really just compile time constants. They only depend on the
-        /// imported libraries and contracts. These are calculated at
-        /// construction to future-proof against underlying ops being
-        /// added/removed and potentially breaking the offsets here.
-        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
-        vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
+    constructor(address vmMeta_) {
+        vmMeta = VMMeta(vmMeta_);
     }
 
-    /// @inheritdoc RainVM
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
-        public
-        view
-        virtual
-        override
-        returns (int256)
-    {
-        return AllStandardOps.stackIndexDiff(opcode_, operand_);
+    function initialize(StateConfig memory config_) external {
+        vmStatePointer = vmMeta._newPointer(
+            address(this),
+            config_,
+            SOURCE_INDEX
+        );
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -59,7 +50,7 @@ contract AllStandardOpsTest is RainVM, VMState {
 
     /// Runs `eval` and stores full state.
     function run() public {
-        State memory state_ = _restore(vmStatePointer);
+        State memory state_ = vmMeta._restore(vmStatePointer);
         eval("", state_, SOURCE_INDEX);
         _state = state_;
     }
