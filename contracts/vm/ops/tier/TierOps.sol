@@ -44,11 +44,11 @@ library TierOps {
     // Stack the report returned by an `ITier` contract.
     // Top two stack vals are used as the address and `ITier` contract
     // to check against.
-    function report(bytes memory, uint256, uint256 stackTopLocation_)
-        internal
-        view
-        returns (uint256)
-    {
+    function report(
+        bytes memory,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
         uint256 location_;
         uint256 tier_;
         uint256 account_;
@@ -71,11 +71,11 @@ library TierOps {
     // If the older report is newer than newer report the result will
     // be `0`, else a tierwise diff in blocks will be obtained.
     // The older and newer report are taken from the stack.
-    function saturatingDiff(bytes memory, uint256, uint256 stackTopLocation_)
-        internal
-        pure
-        returns (uint256)
-    {
+    function saturatingDiff(
+        bytes memory,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal pure returns (uint256) {
         uint256 location_;
         uint256 newerReport_;
         uint256 olderReport_;
@@ -100,7 +100,8 @@ library TierOps {
     // the `operand_` respectively.
     // The report to update and block number to update to are both
     // taken from the stack.
-    function updateBlocksForTierRange(bytes memory,
+    function updateBlocksForTierRange(
+        bytes memory,
         uint256 operand_,
         uint256 stackTopLocation_
     ) internal pure returns (uint256) {
@@ -137,11 +138,11 @@ library TierOps {
     // `mode_` is the 2 highest bits after `logic_`.
     // The other bits specify how many values to take from the stack
     // as reports to compare against each other and the block number.
-    function selectLte(bytes memory, uint256 operand_, uint256 stackTopLocation_)
-        internal
-        pure
-        returns (uint256)
-    {
+    function selectLte(
+        bytes memory,
+        uint256 operand_,
+        uint256 stackTopLocation_
+    ) internal pure returns (uint256) {
         uint256 logic_ = operand_ >> 7;
         uint256 mode_ = (operand_ >> 5) & 0x3; // & 00000011
         uint256 reportsLength_ = operand_ & 0x1F; // & 00011111

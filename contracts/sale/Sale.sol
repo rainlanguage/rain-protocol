@@ -378,9 +378,15 @@ contract Sale is
         // Only a pending sale can start. Starting a sale more than once would
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
-            bytes memory dispatchTableBytes_ = AllStandardOps.dispatchTableBytes();
+            bytes memory dispatchTableBytes_ = AllStandardOps
+                .dispatchTableBytes();
             State memory state_ = _restore(canStartStatePointer);
-            eval(Dispatch.fromBytes(dispatchTableBytes_), "", state_, SOURCE_INDEX);
+            eval(
+                Dispatch.fromBytes(dispatchTableBytes_),
+                "",
+                state_,
+                SOURCE_INDEX
+            );
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
             return false;
@@ -410,7 +416,12 @@ contract Sale is
             // to the appropriate script for an answer.
             else {
                 State memory state_ = _restore(canEndStatePointer);
-                eval(Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()), "", state_, SOURCE_INDEX);
+                eval(
+                    Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()),
+                    "",
+                    state_,
+                    SOURCE_INDEX
+                );
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
         } else {
@@ -424,7 +435,12 @@ contract Sale is
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = _restore(calculatePriceStatePointer);
-        eval(Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()), abi.encode(units_), state_, SOURCE_INDEX);
+        eval(
+            Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()),
+            abi.encode(units_),
+            state_,
+            SOURCE_INDEX
+        );
 
         return state_.stack[state_.stackIndex - 1];
     }

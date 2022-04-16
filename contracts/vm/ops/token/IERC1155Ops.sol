@@ -31,11 +31,11 @@ library IERC1155Ops {
     }
 
     // Stack the return of `balanceOf`.
-    function balanceOf(bytes memory, uint256, uint256 stackTopLocation_)
-        internal
-        view
-        returns (uint256)
-    {
+    function balanceOf(
+        bytes memory,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
         uint256 location_;
         uint256 token_;
         uint256 account_;
@@ -59,11 +59,11 @@ library IERC1155Ops {
 
     // Stack the return of `balanceOfBatch`.
     // Operand will be the length
-    function balanceOfBatch(bytes memory, uint256 operand_, uint256 stackTopLocation_)
-        internal
-        view
-        returns (uint256)
-    {
+    function balanceOfBatch(
+        bytes memory,
+        uint256 operand_,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
         uint256 location_;
         address[] memory addresses_ = new address[](operand_);
         uint256[] memory ids_ = new uint256[](operand_);

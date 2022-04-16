@@ -104,7 +104,7 @@ describe("EmissionsERC20", async function () {
     const valBaseRewardPerTier = op(Opcode.VAL, 1);
     const valBlocksPerYear = op(Opcode.VAL, 2);
     const valNever = op(Opcode.VAL, 3);
-    const valOne = op(Opcode.VAL, 4)
+    const valOne = op(Opcode.VAL, 4);
 
     // END global constants
 

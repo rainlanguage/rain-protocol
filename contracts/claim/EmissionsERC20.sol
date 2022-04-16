@@ -130,7 +130,11 @@ contract EmissionsERC20 is
         }
     }
 
-    function account(bytes memory context_, uint, uint stackTopLocation_) internal view returns (uint) {
+    function account(
+        bytes memory context_,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
         assembly {
             mstore(stackTopLocation_, mload(add(context_, 0x20)))
             stackTopLocation_ := add(stackTopLocation_, 0x20)
@@ -154,11 +158,17 @@ contract EmissionsERC20 is
 
     function fnPtrs() public view returns (bytes memory) {
         bytes memory dispatchTableBytes_ = new bytes(0x20);
-        function(bytes memory, uint256, uint256) view returns (uint256) account_ = account;
+        function(bytes memory, uint256, uint256)
+            view
+            returns (uint256) account_ = account;
         assembly {
             mstore(add(dispatchTableBytes_, 0x20), account_)
         }
-        return bytes.concat(AllStandardOps.dispatchTableBytes(), dispatchTableBytes_);
+        return
+            bytes.concat(
+                AllStandardOps.dispatchTableBytes(),
+                dispatchTableBytes_
+            );
     }
 
     /// Calculates the claim without processing it.
@@ -172,7 +182,12 @@ contract EmissionsERC20 is
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
         State memory state_ = _restore(vmStatePointer);
-        eval(Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)), abi.encode(claimant_), state_, SOURCE_INDEX);
+        eval(
+            Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
+            abi.encode(claimant_),
+            state_,
+            SOURCE_INDEX
+        );
         return state_.stack[state_.stackIndex - 1];
     }
 

@@ -133,52 +133,57 @@ library AllStandardOps {
 
     function dispatchTableBytes() internal view returns (bytes memory) {
         unchecked {
-            uint lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
-            function(bytes memory, uint256, uint256) view returns (uint256) zeroFn_;
-            function(bytes memory, uint256, uint256) view returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1] memory fns_ = [
-                zeroFn_,
-                zeroFn_,
-                zeroFn_,
-                zeroFn_,
-                zeroFn_,
-                EVMConstantOps.number,
-                EVMConstantOps.timestamp,
-                EVMConstantOps.caller,
-                EVMConstantOps.thisAddress,
-                FixedPointMathOps.scale18Mul,
-                FixedPointMathOps.scale18Div,
-                FixedPointMathOps.scale18,
-                FixedPointMathOps.scaleN,
-                FixedPointMathOps.scaleBy,
-                MathOps.add,
-                MathOps.saturatingAdd,
-                MathOps.sub,
-                MathOps.saturatingSub,
-                MathOps.mul,
-                MathOps.saturatingMul,
-                MathOps.div,
-                MathOps.mod,
-                MathOps.exp,
-                MathOps.min,
-                MathOps.max,
-                LogicOps.isZero,
-                LogicOps.eagerIf,
-                LogicOps.equalTo,
-                LogicOps.lessThan,
-                LogicOps.greaterThan,
-                LogicOps.every,
-                LogicOps.any,
-                TierOps.report,
-                TierOps.saturatingDiff,
-                TierOps.updateBlocksForTierRange,
-                TierOps.selectLte,
-                IERC20Ops.balanceOf,
-                IERC20Ops.totalSupply,
-                IERC721Ops.balanceOf,
-                IERC721Ops.ownerOf,
-                IERC1155Ops.balanceOf,
-                IERC1155Ops.balanceOfBatch
-            ];
+            uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
+            function(bytes memory, uint256, uint256)
+                view
+                returns (uint256) zeroFn_;
+            function(bytes memory, uint256, uint256)
+                view
+                returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
+                memory fns_ = [
+                    zeroFn_,
+                    zeroFn_,
+                    zeroFn_,
+                    zeroFn_,
+                    zeroFn_,
+                    EVMConstantOps.number,
+                    EVMConstantOps.timestamp,
+                    EVMConstantOps.caller,
+                    EVMConstantOps.thisAddress,
+                    FixedPointMathOps.scale18Mul,
+                    FixedPointMathOps.scale18Div,
+                    FixedPointMathOps.scale18,
+                    FixedPointMathOps.scaleN,
+                    FixedPointMathOps.scaleBy,
+                    MathOps.add,
+                    MathOps.saturatingAdd,
+                    MathOps.sub,
+                    MathOps.saturatingSub,
+                    MathOps.mul,
+                    MathOps.saturatingMul,
+                    MathOps.div,
+                    MathOps.mod,
+                    MathOps.exp,
+                    MathOps.min,
+                    MathOps.max,
+                    LogicOps.isZero,
+                    LogicOps.eagerIf,
+                    LogicOps.equalTo,
+                    LogicOps.lessThan,
+                    LogicOps.greaterThan,
+                    LogicOps.every,
+                    LogicOps.any,
+                    TierOps.report,
+                    TierOps.saturatingDiff,
+                    TierOps.updateBlocksForTierRange,
+                    TierOps.selectLte,
+                    IERC20Ops.balanceOf,
+                    IERC20Ops.totalSupply,
+                    IERC721Ops.balanceOf,
+                    IERC721Ops.ownerOf,
+                    IERC1155Ops.balanceOf,
+                    IERC1155Ops.balanceOfBatch
+                ];
             bytes memory ret_;
             assembly {
                 mstore(fns_, lenBytes_)

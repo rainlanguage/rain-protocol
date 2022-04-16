@@ -63,9 +63,12 @@ library Dispatch {
 
     function setFns(
         DispatchTable dispatchTable_,
-        function(bytes memory, uint256, uint256) view returns (uint256)[] memory fns_
+        function(bytes memory, uint256, uint256) view returns (uint256)[]
+            memory fns_
     ) internal pure returns (DispatchTable) {
-        assembly { dispatchTable_ := add(fns_, 0x20)}
+        assembly {
+            dispatchTable_ := add(fns_, 0x20)
+        }
         return dispatchTable_;
     }
 }
@@ -486,11 +489,17 @@ abstract contract RainVM {
                         console.logBytes(abi.encode(state_));
                     }
                 } else {
-                    function(bytes memory, uint256, uint256) view returns (uint256) fn_;
+                    function(bytes memory, uint256, uint256)
+                        view
+                        returns (uint256) fn_;
                     assembly {
                         fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
                     }
-                    stackTopLocation_ = fn_(context_, operand_, stackTopLocation_);
+                    stackTopLocation_ = fn_(
+                        context_,
+                        operand_,
+                        stackTopLocation_
+                    );
                 }
             }
             state_.stackIndex =

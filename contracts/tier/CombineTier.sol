@@ -95,7 +95,12 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         returns (uint256)
     {
         State memory state_ = _restore(vmStatePointer);
-        eval(Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()), abi.encode(account_), state_, SOURCE_INDEX);
+        eval(
+            Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()),
+            abi.encode(account_),
+            state_,
+            SOURCE_INDEX
+        );
         return state_.stack[state_.stackIndex - 1];
     }
 }
