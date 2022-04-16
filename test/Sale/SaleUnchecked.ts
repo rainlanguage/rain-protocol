@@ -233,7 +233,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });
@@ -306,7 +306,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator underflow did not panic"
     );
   });
@@ -379,7 +379,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });

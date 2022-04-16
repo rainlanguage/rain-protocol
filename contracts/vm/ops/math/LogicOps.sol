@@ -3,8 +3,6 @@ pragma solidity =0.8.10;
 
 import {State} from "../../RainVM.sol";
 
-import "hardhat/console.sol";
-
 uint256 constant OPCODE_ISZERO = 0;
 uint256 constant OPCODE_EAGER_IF = 1;
 uint256 constant OPCODE_EQUAL_TO = 2;
@@ -158,7 +156,6 @@ library LogicOps {
         uint256 operand_,
         uint256 stackTopLocation_
     ) internal view returns (uint256) {
-        console.log("any");
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             for {

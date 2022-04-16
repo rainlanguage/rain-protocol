@@ -11,8 +11,6 @@ import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
 import "./tier/TierOps.sol";
 
-import "hardhat/console.sol";
-
 uint256 constant ALL_STANDARD_OPS_START = RAIN_VM_OPS_LENGTH;
 
 uint256 constant EVM_OPCODE_BLOCK_NUMBER = ALL_STANDARD_OPS_START +

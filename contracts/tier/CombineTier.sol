@@ -9,6 +9,7 @@ import {VMState, StateConfig, SourceAnalysis} from "../vm/libraries/VMState.sol"
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
+import "../sstore2/SSTORE2.sol";
 
 uint256 constant SOURCE_INDEX = 0;
 
@@ -24,14 +25,8 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     /// @dev local opcodes length.
     uint256 internal constant LOCAL_OPS_LENGTH = 1;
 
-    /// @dev local offset for combine tier ops.
-    uint256 private immutable localOpsStart;
-
     address private vmStatePointer;
-
-    constructor() {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
-    }
+    address private fnPtrsPointer;
 
     /// @param config_ The StateConfig will be deployed as a pointer under
     /// `vmStatePointer`.
@@ -39,6 +34,9 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
         analyzeSources(sourceAnalysis_, config_.sources, SOURCE_INDEX);
         vmStatePointer = _snapshot(_newState(config_, sourceAnalysis_));
+
+        bytes memory fnPtrs_ = fnPtrs();
+        fnPtrsPointer = SSTORE2.write(fnPtrs_);
     }
 
     /// @inheritdoc RainVM
@@ -50,7 +48,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         returns (int256)
     {
         unchecked {
-            if (opcode_ < localOpsStart) {
+            if (opcode_ < ALL_STANDARD_OPS_LENGTH) {
                 return AllStandardOps.stackIndexDiff(opcode_, operand_);
             } else {
                 return 1;
@@ -58,33 +56,32 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         }
     }
 
-    // /// @inheritdoc RainVM
-    // function applyOp(
-    //     bytes memory context_,
-    //     uint256 stackTopLocation_,
-    //     uint256 opcode_,
-    //     uint256 operand_
-    // ) internal view override returns (uint256) {
-    //     unchecked {
-    //         if (opcode_ < localOpsStart) {
-    //             return
-    //                 AllStandardOps.applyOp(
-    //                     stackTopLocation_,
-    //                     opcode_,
-    //                     operand_
-    //                 );
-    //         } else {
-    //             // There's only one opcode, which stacks the address to report.
-    //             uint256 account_ = uint256(
-    //                 uint160(address(abi.decode(context_, (address))))
-    //             );
-    //             assembly {
-    //                 mstore(stackTopLocation_, account_)
-    //             }
-    //             return stackTopLocation_ + 0x20;
-    //         }
-    //     }
-    // }
+    function account(
+        bytes memory context_,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
+        assembly {
+            mstore(stackTopLocation_, mload(add(context_, 0x20)))
+            stackTopLocation_ := add(stackTopLocation_, 0x20)
+        }
+        return stackTopLocation_;
+    }
+
+    function fnPtrs() public view returns (bytes memory) {
+        bytes memory dispatchTableBytes_ = new bytes(0x20);
+        function(bytes memory, uint256, uint256)
+            view
+            returns (uint256) account_ = account;
+        assembly {
+            mstore(add(dispatchTableBytes_, 0x20), account_)
+        }
+        return
+            bytes.concat(
+                AllStandardOps.dispatchTableBytes(),
+                dispatchTableBytes_
+            );
+    }
 
     /// @inheritdoc ITier
     function report(address account_)
@@ -96,7 +93,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
     {
         State memory state_ = _restore(vmStatePointer);
         eval(
-            Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()),
+            Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
             abi.encode(account_),
             state_,
             SOURCE_INDEX

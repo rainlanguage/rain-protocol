@@ -6,8 +6,6 @@ import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
 import {LogicOps} from "../vm/ops/math/LogicOps.sol";
 import "../vm/ops/AllStandardOps.sol";
 
-import "hardhat/console.sol";
-
 uint256 constant SOURCE_INDEX = 0;
 
 /// @title StandardOpsTest

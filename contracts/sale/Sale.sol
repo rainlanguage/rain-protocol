@@ -21,6 +21,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 // solhint-disable-next-line max-line-length
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "../sstore2/SSTORE2.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -136,8 +137,7 @@ struct Receipt {
 
 uint256 constant SOURCE_INDEX = 0;
 
-uint256 constant LOCAL_OPS_START = ALL_STANDARD_OPS_START +
-    ALL_STANDARD_OPS_LENGTH;
+uint256 constant LOCAL_OPS_START = ALL_STANDARD_OPS_LENGTH;
 /// @dev local opcode to stack remaining rTKN units.
 uint256 constant OPCODE_REMAINING_UNITS = LOCAL_OPS_START;
 /// @dev local opcode to stack total reserve taken in so far.
@@ -215,6 +215,7 @@ contract Sale is
     address private canEndStatePointer;
     /// @dev as per `SaleConfig`.
     address private calculatePriceStatePointer;
+    address private fnPtrsPointer;
     /// @dev as per `SaleConfig`.
     uint256 private minimumRaise;
     /// @dev as per `SaleConfig`.
@@ -232,11 +233,11 @@ contract Sale is
     /// @dev remaining rTKN units to sell. MAY NOT be the rTKN balance of the
     /// Sale contract if rTKN has been sent directly to the sale contract
     /// outside the standard buy/refund loop.
-    uint256 private remainingUnits;
+    uint256 private _remainingUnits;
     /// @dev total reserve taken in to the sale contract via. buys. Does NOT
     /// include any reserve sent directly to the sale contract outside the
     /// standard buy/refund loop.
-    uint256 private totalReserveIn;
+    uint256 private _totalReserveIn;
 
     /// @dev Binding buyers to receipt hashes to maybe a non-zero value.
     /// A receipt will only be honoured if the mapping resolves to non-zero.
@@ -315,6 +316,10 @@ contract Sale is
                 calculatePriceSourceAnalysis_
             )
         );
+
+        bytes memory fnPtrs_ = fnPtrs();
+        fnPtrsPointer = SSTORE2.write(fnPtrs_);
+
         recipient = config_.recipient;
 
         dustSize = config_.dustSize;
@@ -333,7 +338,7 @@ contract Sale is
         );
         saleRedeemableERC20Config_.erc20Config.distributor = address(this);
 
-        remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
+        _remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
 
         RedeemableERC20 token_ = RedeemableERC20(
             redeemableERC20Factory.createChild(
@@ -378,11 +383,9 @@ contract Sale is
         // Only a pending sale can start. Starting a sale more than once would
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
-            bytes memory dispatchTableBytes_ = AllStandardOps
-                .dispatchTableBytes();
             State memory state_ = _restore(canStartStatePointer);
             eval(
-                Dispatch.fromBytes(dispatchTableBytes_),
+                Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
                 "",
                 state_,
                 SOURCE_INDEX
@@ -409,7 +412,7 @@ contract Sale is
             // refund, and it makes no sense that someone would refund at a low
             // price to buy at a high price. Therefore we should end the sale
             // and tally the final result as soon as we sell out.
-            if (remainingUnits < 1) {
+            if (_remainingUnits < 1) {
                 return true;
             }
             // The raise is active and still has stock remaining so we delegate
@@ -417,7 +420,7 @@ contract Sale is
             else {
                 State memory state_ = _restore(canEndStatePointer);
                 eval(
-                    Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()),
+                    Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
                     "",
                     state_,
                     SOURCE_INDEX
@@ -436,7 +439,7 @@ contract Sale is
     function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = _restore(calculatePriceStatePointer);
         eval(
-            Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()),
+            Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)),
             abi.encode(units_),
             state_,
             SOURCE_INDEX
@@ -458,10 +461,10 @@ contract Sale is
     function end() public {
         require(canEnd(), "CANT_END");
 
-        bool success_ = totalReserveIn >= minimumRaise;
+        bool success_ = _totalReserveIn >= minimumRaise;
         SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
 
-        remainingUnits = 0;
+        _remainingUnits = 0;
         _saleStatus = endStatus_;
         emit End(msg.sender, endStatus_);
         _token.endDistribution(address(this));
@@ -470,7 +473,7 @@ contract Sale is
         // If the raise is NOT a success then everyone can refund their reserve
         // deposited individually.
         if (success_) {
-            _reserve.safeTransfer(recipient, totalReserveIn);
+            _reserve.safeTransfer(recipient, _totalReserveIn);
         }
     }
 
@@ -491,7 +494,7 @@ contract Sale is
         );
 
         // Mimic `end` with a failed state but `Timeout` event.
-        remainingUnits = 0;
+        _remainingUnits = 0;
         _saleStatus = SaleStatus.Fail;
         emit Timeout(msg.sender);
         _token.endDistribution(address(this));
@@ -519,7 +522,7 @@ contract Sale is
 
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
-        uint256 units_ = config_.desiredUnits.min(remainingUnits);
+        uint256 units_ = config_.desiredUnits.min(_remainingUnits);
         require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
 
         uint256 price_ = calculatePrice(units_);
@@ -546,8 +549,8 @@ contract Sale is
         // outside of a `buy` call. This also means we don't support reserve
         // tokens with balances that can change outside of transfers
         // (e.g. rebase).
-        remainingUnits -= units_;
-        totalReserveIn += cost_;
+        _remainingUnits -= units_;
+        _totalReserveIn += cost_;
 
         // This happens before `end` so that the transfer from happens before
         // the transfer to.
@@ -561,10 +564,10 @@ contract Sale is
         // distributor is burned and token is frozen.
         IERC20(address(_token)).safeTransfer(msg.sender, units_);
 
-        if (remainingUnits < 1) {
+        if (_remainingUnits < 1) {
             end();
         } else {
-            require(remainingUnits >= dustSize, "DUST");
+            require(_remainingUnits >= dustSize, "DUST");
         }
 
         emit Buy(msg.sender, config_, receipt_);
@@ -601,8 +604,8 @@ contract Sale is
 
         uint256 cost_ = receipt_.price.fixedPointMul(receipt_.units);
 
-        totalReserveIn -= cost_;
-        remainingUnits += receipt_.units;
+        _totalReserveIn -= cost_;
+        _remainingUnits += receipt_.units;
         fees[receipt_.feeRecipient] -= receipt_.fee;
 
         emit Refund(msg.sender, receipt_);
@@ -648,38 +651,91 @@ contract Sale is
         }
     }
 
-    // function applyOp(
-    //     bytes memory context_,
-    //     uint256 stackTopLocation_,
-    //     uint256 opcode_,
-    //     uint256 operand_
-    // ) internal view override returns (uint256) {
-    //     unchecked {
-    //         if (opcode_ < LOCAL_OPS_START) {
-    //             return
-    //                 AllStandardOps.applyOp(
-    //                     stackTopLocation_,
-    //                     opcode_,
-    //                     operand_
-    //                 );
-    //         } else {
-    //             uint256 value_;
-    //             if (opcode_ == OPCODE_REMAINING_UNITS) {
-    //                 value_ = remainingUnits;
-    //             } else if (opcode_ == OPCODE_TOTAL_RESERVE_IN) {
-    //                 value_ = totalReserveIn;
-    //             } else if (opcode_ == OPCODE_CURRENT_BUY_UNITS) {
-    //                 value_ = abi.decode(context_, (uint256));
-    //             } else if (opcode_ == OPCODE_TOKEN_ADDRESS) {
-    //                 value_ = uint256(uint160(address(_token)));
-    //             } else if (opcode_ == OPCODE_RESERVE_ADDRESS) {
-    //                 value_ = uint256(uint160(address(_reserve)));
-    //             }
-    //             assembly {
-    //                 mstore(stackTopLocation_, value_)
-    //             }
-    //             return stackTopLocation_ + 0x20;
-    //         }
-    //     }
-    // }
+    function remainingUnits(
+        bytes memory,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
+        uint256 remainingUnits_ = _remainingUnits;
+        assembly {
+            mstore(stackTopLocation_, remainingUnits_)
+            stackTopLocation_ := add(stackTopLocation_, 0x20)
+        }
+        return stackTopLocation_;
+    }
+
+    function totalReserveIn(
+        bytes memory,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
+        uint256 totalReserveIn_ = _totalReserveIn;
+        assembly {
+            mstore(stackTopLocation_, totalReserveIn_)
+            stackTopLocation_ := add(stackTopLocation_, 0x20)
+        }
+        return stackTopLocation_;
+    }
+
+    function currentBuyUnits(
+        bytes memory context_,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
+        assembly {
+            mstore(stackTopLocation_, mload(add(context_, 0x20)))
+            stackTopLocation_ := add(stackTopLocation_, 0x20)
+        }
+        return stackTopLocation_;
+    }
+
+    function tokenAddress(
+        bytes memory,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
+        uint256 token_ = uint256(uint160(address(_token)));
+        assembly {
+            mstore(stackTopLocation_, token_)
+            stackTopLocation_ := add(stackTopLocation_, 0x20)
+        }
+        return stackTopLocation_;
+    }
+
+    function reserveAddress(
+        bytes memory,
+        uint256,
+        uint256 stackTopLocation_
+    ) internal view returns (uint256) {
+        uint256 reserve_ = uint256(uint160(address(_reserve)));
+        assembly {
+            mstore(stackTopLocation_, reserve_)
+            stackTopLocation_ := add(stackTopLocation_, 0x20)
+        }
+        return stackTopLocation_;
+    }
+
+    function fnPtrs() public view returns (bytes memory) {
+        bytes memory dispatchTableBytes_ = new bytes(0xA0);
+        function(bytes memory, uint256, uint256) view returns (uint256)[5]
+            memory fns_ = [
+                remainingUnits,
+                totalReserveIn,
+                currentBuyUnits,
+                tokenAddress,
+                reserveAddress
+            ];
+        assembly {
+            mstore(add(dispatchTableBytes_, 0x20), mload(fns_))
+            mstore(add(dispatchTableBytes_, 0x40), mload(add(fns_, 0x20)))
+            mstore(add(dispatchTableBytes_, 0x60), mload(add(fns_, 0x40)))
+            mstore(add(dispatchTableBytes_, 0x80), mload(add(fns_, 0x60)))
+            mstore(add(dispatchTableBytes_, 0xA0), mload(add(fns_, 0x80)))
+        }
+        return
+            bytes.concat(
+                AllStandardOps.dispatchTableBytes(),
+                dispatchTableBytes_
+            );
+    }
 }

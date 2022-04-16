@@ -12,8 +12,6 @@ import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from ".
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../sstore2/SSTORE2.sol";
 
-import "hardhat/console.sol";
-
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
 /// another account.
