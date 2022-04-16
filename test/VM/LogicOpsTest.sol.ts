@@ -354,8 +354,8 @@ describe("LogicOps Test", async function () {
     const source0 = concat([
       op(Opcode.CONSTANT, 0),
       op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 2),
-      // op(Opcode.ISZERO, 3),
+      op(Opcode.ISZERO, 2),
+      op(Opcode.ISZERO, 3),
     ]);
 
     const stateConfig0 = {
