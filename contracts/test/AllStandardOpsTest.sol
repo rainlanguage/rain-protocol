@@ -56,18 +56,18 @@ contract AllStandardOpsTest is RainVM {
 
     /// Runs `eval` and stores full state.
     function run() public {
-        uint256 a_ = gasleft();
+        // uint256 a_ = gasleft();
         bytes memory stateBytes_ = SSTORE2.read(vmStatePointer);
-        uint256 b_ = gasleft();
-        console.log("load logic:", a_ - b_);
-        uint256 c_ = gasleft();
+        // uint256 b_ = gasleft();
+        // console.log("load logic:", a_ - b_);
+        // uint256 c_ = gasleft();
         State memory state_ = LibState.fromBytesPacked(stateBytes_);
-        uint256 d_ = gasleft();
-        console.log("decode logic:", c_ - d_);
-        uint256 e_ = gasleft();
+        // uint256 d_ = gasleft();
+        // console.log("decode logic:", c_ - d_);
+        // uint256 e_ = gasleft();
         eval("", state_, SOURCE_INDEX);
-        uint256 f_ = gasleft();
-        console.log("run logic:", e_ - f_);
+        // uint256 f_ = gasleft();
+        // console.log("run logic:", e_ - f_);
 
         // Never actually do this, state is gigantic so can't live in storage.
         _state = state_;
