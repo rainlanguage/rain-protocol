@@ -181,7 +181,7 @@ library AllStandardOps {
             ];
             bytes memory ret_;
             assembly {
-                fns_ := lenBytes_
+                mstore(fns_, lenBytes_)
                 ret_ := fns_
             }
             return ret_;

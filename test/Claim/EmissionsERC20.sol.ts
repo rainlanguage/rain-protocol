@@ -36,8 +36,8 @@ enum Tier {
   EIGHT,
 }
 
-describe.only("EmissionsERC20", async function () {
-  it.only("should calculate correct emissions amount (if division is performed on final result)", async function () {
+describe("EmissionsERC20", async function () {
+  it("should calculate correct emissions amount (if division is performed on final result)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -181,8 +181,6 @@ describe.only("EmissionsERC20", async function () {
           op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
-
-    console.log("td", TIERWISE_DIFF())
 
     // prettier-ignore
     const SOURCE = () =>

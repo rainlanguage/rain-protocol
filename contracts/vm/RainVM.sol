@@ -447,7 +447,6 @@ abstract contract RainVM {
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
                 }
-                console.log("op", opcode_);
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ == OPCODE_VAL) {
                         assembly {
@@ -487,13 +486,11 @@ abstract contract RainVM {
                         console.logBytes(abi.encode(state_));
                     }
                 } else {
-                    stackTopLocation_ = dispatch(
-                        dispatchTable_,
-                        context_,
-                        opcode_,
-                        operand_,
-                        stackTopLocation_
-                    );
+                    function(bytes memory, uint256, uint256) view returns (uint256) fn_;
+                    assembly {
+                        fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+                    }
+                    stackTopLocation_ = fn_(context_, operand_, stackTopLocation_);
                 }
             }
             state_.stackIndex =
@@ -503,19 +500,19 @@ abstract contract RainVM {
         }
     }
 
-    function dispatch(
-        DispatchTable dispatchTable_,
-        bytes memory context_,
-        uint256 opcode_,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
-        function(bytes memory, uint256, uint256) view returns (uint256) fn_;
-        assembly {
-            fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
-        }
-        return fn_(context_, operand_, stackTopLocation_);
-    }
+    // function dispatch(
+    //     DispatchTable dispatchTable_,
+    //     bytes memory context_,
+    //     uint256 opcode_,
+    //     uint256 operand_,
+    //     uint256 stackTopLocation_
+    // ) internal view returns (uint256) {
+    //     function(bytes memory, uint256, uint256) view returns (uint256) fn_;
+    //     assembly {
+    //         fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+    //     }
+    //     return fn_(context_, operand_, stackTopLocation_);
+    // }
 
     /// Every contract that implements `RainVM` should override `applyOp` so
     /// that useful opcodes are available to script writers.

@@ -3,6 +3,8 @@ pragma solidity =0.8.10;
 
 import {State} from "../../RainVM.sol";
 
+import "hardhat/console.sol";
+
 /// @dev Opcode for the block number.
 uint256 constant OPCODE_BLOCK_NUMBER = 0;
 /// @dev Opcode for the block timestamp.

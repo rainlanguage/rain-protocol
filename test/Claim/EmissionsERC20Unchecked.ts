@@ -97,7 +97,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });
@@ -143,7 +143,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator underflow did not panic"
     );
   });
@@ -189,7 +189,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });

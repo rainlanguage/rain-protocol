@@ -62,10 +62,7 @@ contract AllStandardOpsTest is RainVM, VMState {
     /// Runs `eval` and stores full state.
     function run(bytes memory dispatchTableBytes_) public {
         State memory state_ = _restore(vmStatePointer);
-        uint256 startGas_ = gasleft();
         eval(Dispatch.fromBytes(dispatchTableBytes_), "", state_, SOURCE_INDEX);
-        uint256 endGas_ = gasleft();
-        console.log("logic eval gas used: %s", startGas_ - endGas_);
         _state = state_;
     }
 }

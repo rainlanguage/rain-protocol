@@ -64,9 +64,6 @@ contract EmissionsERC20 is
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
 
-    /// @dev local offset for local ops.
-    uint256 private immutable localOpsStart;
-
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
 
@@ -86,11 +83,6 @@ contract EmissionsERC20 is
     /// Each claim is modelled as a report so that the claim report can be
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
-
-    /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
-    constructor() {
-        localOpsStart = ALL_STANDARD_OPS_LENGTH;
-    }
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(EmissionsERC20Config calldata config_)
@@ -116,11 +108,6 @@ contract EmissionsERC20 is
         bytes memory fnPtrs_ = fnPtrs();
         fnPtrsPointer = SSTORE2.write(fnPtrs_);
 
-        uint gasStart_ = gasleft();
-        Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer));
-        uint gasEnd_ = gasleft();
-        console.log("load gas", gasStart_ - gasEnd_);
-
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
 
@@ -135,7 +122,7 @@ contract EmissionsERC20 is
         returns (int256)
     {
         unchecked {
-            if (opcode_ < localOpsStart) {
+            if (opcode_ < ALL_STANDARD_OPS_LENGTH) {
                 return AllStandardOps.stackIndexDiff(opcode_, operand_);
             } else {
                 return 1;
@@ -150,34 +137,6 @@ contract EmissionsERC20 is
         }
         return stackTopLocation_;
     }
-
-    // /// @inheritdoc RainVM
-    // function applyOp(
-    //     bytes memory context_,
-    //     uint256 stackTopLocation_,
-    //     uint256 opcode_,
-    //     uint256 operand_
-    // ) internal view override returns (uint256) {
-    //     unchecked {
-    //         if (opcode_ < localOpsStart) {
-    //             return
-    //                 AllStandardOps.applyOp(
-    //                     stackTopLocation_,
-    //                     opcode_,
-    //                     operand_
-    //                 );
-    //         } else {
-    //             // There's only one opcode, which stacks the account address.
-    //             uint256 account_ = uint256(
-    //                 uint160(address(abi.decode(context_, (address))))
-    //             );
-    //             assembly {
-    //                 mstore(stackTopLocation_, account_)
-    //             }
-    //             return stackTopLocation_ + 0x20;
-    //         }
-    //     }
-    // }
 
     /// @inheritdoc ITier
     function report(address account_)
@@ -194,17 +153,12 @@ contract EmissionsERC20 is
     }
 
     function fnPtrs() public view returns (bytes memory) {
-        uint gasStart_ = gasleft();
-        bytes memory dispatchTableBytes_ = AllStandardOps.dispatchTableBytes();
+        bytes memory dispatchTableBytes_ = new bytes(0x20);
         function(bytes memory, uint256, uint256) view returns (uint256) account_ = account;
-        bytes memory localDispatchTableBytes_ = new bytes(0x20);
         assembly {
-            mstore(add(localDispatchTableBytes_, 0x20), account_)
+            mstore(add(dispatchTableBytes_, 0x20), account_)
         }
-        bytes memory ret_ = bytes.concat(dispatchTableBytes_, localDispatchTableBytes_);
-        uint gasEnd_ = gasleft();
-        console.log("build gas", gasStart_ - gasEnd_);
-        return ret_;
+        return bytes.concat(AllStandardOps.dispatchTableBytes(), dispatchTableBytes_);
     }
 
     /// Calculates the claim without processing it.
@@ -217,14 +171,8 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        uint gasStart_ = gasleft();
-        bytes memory dispatchTableBytes_ = SSTORE2.read(fnPtrsPointer);
-        DispatchTable dispatchTable_ = Dispatch.fromBytes(dispatchTableBytes_);
-        uint gasEnd_ = gasleft();
-        console.log("load gas", gasStart_ - gasEnd_);
-
         State memory state_ = _restore(vmStatePointer);
-        eval(dispatchTable_, abi.encode(claimant_), state_, SOURCE_INDEX);
+        eval(Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer)), abi.encode(claimant_), state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
     }
 
