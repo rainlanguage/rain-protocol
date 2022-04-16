@@ -11,7 +11,7 @@ uint256 constant SOURCE_INDEX = 0;
 /// @title StandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
 contract AllStandardOpsTest is RainVM {
-    using Dispatch for DispatchTable;
+    using LibDispatchTable for DispatchTable;
 
     VMMeta private immutable vmMeta;
     address private vmStatePointer;
@@ -50,7 +50,7 @@ contract AllStandardOpsTest is RainVM {
 
     /// Runs `eval` and stores full state.
     function run() public {
-        State memory state_ = vmMeta._restore(vmStatePointer);
+        State memory state_ = LibState.fromBytes(SSTORE2.read(vmStatePointer));
         eval("", state_, SOURCE_INDEX);
         _state = state_;
     }

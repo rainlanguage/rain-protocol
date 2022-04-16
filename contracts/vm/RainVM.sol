@@ -7,7 +7,7 @@ import "hardhat/console.sol";
 
 type DispatchTable is uint256;
 
-library Dispatch {
+library LibDispatchTable {
     function fromBytes(bytes memory dispatchTableBytes_)
         internal
         pure
@@ -62,6 +62,20 @@ struct State {
     /// destructive so it is recommended to leave space in the constants array.
     uint256 argumentsIndex;
     bytes fnPtrs;
+}
+
+library LibState {
+    function fromBytes(bytes memory stateBytes_)
+        internal
+        pure
+        returns (State memory)
+    {
+        return abi.decode(stateBytes_, (State));
+    }
+
+    function toBytes(State memory state_) internal pure returns (bytes memory) {
+        return abi.encode(state_);
+    }
 }
 
 /// @dev Copies a value either off `constants` to the top of the stack.
@@ -141,7 +155,7 @@ uint256 constant RAIN_VM_OPS_LENGTH = 6;
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
     using Math for uint256;
-    using Dispatch for DispatchTable;
+    using LibDispatchTable for DispatchTable;
 
     function fnPtrs() public pure virtual returns (bytes memory);
 
@@ -283,7 +297,9 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
-            DispatchTable dispatchTable_ = Dispatch.fromBytes(state_.fnPtrs);
+            DispatchTable dispatchTable_ = LibDispatchTable.fromBytes(
+                state_.fnPtrs
+            );
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
@@ -372,7 +388,7 @@ abstract contract RainVM {
                             operand_
                         );
                     } else {
-                        console.logBytes(abi.encode(state_));
+                        console.logBytes(LibState.toBytes(state_));
                     }
                 } else {
                     function(uint256, uint256) view returns (uint256) fn_;

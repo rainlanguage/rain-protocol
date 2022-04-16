@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import {RainVM, State, Dispatch, DispatchTable} from "../vm/RainVM.sol";
+import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
@@ -48,7 +48,7 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
         override
         returns (uint256)
     {
-        State memory state_ = vmMeta._restore(vmStatePointer);
+        State memory state_ = LibState.fromBytes(SSTORE2.read(vmStatePointer));
         bytes memory context_ = new bytes(0x20);
         uint256 accountContext_ = uint256(uint160(account_));
         assembly {

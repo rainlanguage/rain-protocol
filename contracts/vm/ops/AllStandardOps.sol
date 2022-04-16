@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {State, RainVM, DispatchTable, Dispatch, RAIN_VM_OPS_LENGTH} from "../RainVM.sol";
+import "../RainVM.sol";
 import "./evm/EVMConstantOps.sol";
 import "./math/FixedPointMathOps.sol";
 import "./token/IERC20Ops.sol";
@@ -82,7 +82,7 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = IERC1155_OPS_START +
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
-    using Dispatch for DispatchTable;
+    using LibDispatchTable for DispatchTable;
 
     function stackIndexDiff(uint256 opcode_, uint256 operand_)
         internal

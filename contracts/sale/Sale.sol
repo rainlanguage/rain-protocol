@@ -351,7 +351,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         // Only a pending sale can start. Starting a sale more than once would
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
-            State memory state_ = vmMeta._restore(canStartStatePointer);
+            State memory state_ = LibState.fromBytes(
+                SSTORE2.read(canStartStatePointer)
+            );
             eval("", state_, SOURCE_INDEX);
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
@@ -381,7 +383,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             // The raise is active and still has stock remaining so we delegate
             // to the appropriate script for an answer.
             else {
-                State memory state_ = vmMeta._restore(canEndStatePointer);
+                State memory state_ = LibState.fromBytes(
+                    SSTORE2.read(canEndStatePointer)
+                );
                 eval("", state_, SOURCE_INDEX);
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
@@ -395,7 +399,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// @param units_ Amount of rTKN to quote a price for, will be available to
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = vmMeta._restore(calculatePriceStatePointer);
+        State memory state_ = LibState.fromBytes(
+            SSTORE2.read(calculatePriceStatePointer)
+        );
         bytes memory context_ = new bytes(0x20);
         assembly {
             mstore(add(context_, 0x20), units_)

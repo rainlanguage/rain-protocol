@@ -6,7 +6,7 @@ import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
 import {VMMeta, StateConfig} from "../vm/VMMeta.sol";
-import {Dispatch, DispatchTable, RainVM, State} from "../vm/RainVM.sol";
+import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
@@ -48,7 +48,7 @@ contract EmissionsERC20 is
     IClaim,
     ReadOnlyTier
 {
-    using Dispatch for DispatchTable;
+    using LibDispatchTable for DispatchTable;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -131,7 +131,7 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        State memory state_ = vmMeta._restore(vmStatePointer);
+        State memory state_ = LibState.fromBytes(SSTORE2.read(vmStatePointer));
         bytes memory context_ = new bytes(0x20);
         uint256 claimantContext_ = uint256(uint160(claimant_));
         assembly {

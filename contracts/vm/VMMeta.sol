@@ -69,17 +69,17 @@ contract VMMeta {
     /// an "in flight" execution state also.
     /// @param state_ The state to snapshot.
     function _snapshot(State memory state_) internal returns (address) {
-        address pointer_ = SSTORE2.write(abi.encode(state_));
+        address pointer_ = SSTORE2.write(LibState.toBytes(state_));
         emit Snapshot(msg.sender, pointer_, state_);
         return pointer_;
     }
 
-    /// Builds a fresh state for rainVM execution from all construction data.
-    /// This can be passed directly to `eval` for a `RainVM` contract.
-    /// @param pointer_ The pointer (address) of the snapshot to restore.
-    function _restore(address pointer_) external view returns (State memory) {
-        return abi.decode(SSTORE2.read(pointer_), (State));
-    }
+    // /// Builds a fresh state for rainVM execution from all construction data.
+    // /// This can be passed directly to `eval` for a `RainVM` contract.
+    // /// @param pointer_ The pointer (address) of the snapshot to restore.
+    // function _restore(address pointer_) external view returns (State memory) {
+    //     return abi.decode(SSTORE2.read(pointer_), (State));
+    // }
 
     function _newSourceAnalysis()
         internal
