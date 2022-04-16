@@ -135,7 +135,7 @@ struct Receipt {
 
 uint256 constant CAN_START_SOURCE_INDEX = 0;
 uint256 constant CAN_END_SOURCE_INDEX = 1;
-uint constant CALCULATE_PRICE_SOURCE_INDEX = 2;
+uint256 constant CALCULATE_PRICE_SOURCE_INDEX = 2;
 
 // solhint-disable-next-line max-states-count
 contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
@@ -365,9 +365,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// @param units_ Amount of rTKN to quote a price for, will be available to
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = LibState.fromBytes(
-            SSTORE2.read(vmStatePointer)
-        );
+        State memory state_ = LibState.fromBytes(SSTORE2.read(vmStatePointer));
         bytes memory context_ = new bytes(0x20);
         assembly {
             mstore(add(context_, 0x20), units_)

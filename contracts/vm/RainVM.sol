@@ -64,7 +64,17 @@ struct State {
     // bytes fnPtrs;
 }
 
+struct StatePacked {
+    uint256 indexes;
+    bytes[] ptrSources;
+    uint256[] constants;
+}
+
 library LibState {
+    function toBytes(State memory state_) internal pure returns (bytes memory) {
+        return abi.encode(state_);
+    }
+
     function fromBytes(bytes memory stateBytes_)
         internal
         pure
@@ -73,8 +83,80 @@ library LibState {
         return abi.decode(stateBytes_, (State));
     }
 
-    function toBytes(State memory state_) internal pure returns (bytes memory) {
-        return abi.encode(state_);
+    function fromBytesPacked(bytes memory stateBytes_)
+        internal
+        view
+        returns (State memory)
+    {
+        unchecked {
+            State memory state_;
+            uint256 indexes_;
+            assembly {
+                // Load indexes from state bytes.
+                indexes_ := mload(add(stateBytes_, 0x20))
+                // mask out everything but the constants length from state bytes.
+                mstore(add(stateBytes_, 0x20), and(indexes_, 0xFF))
+                // point state constants at state bytes
+                mstore(add(state_, 0x60), add(stateBytes_, 0x20))
+            }
+            // Stack index 0 is implied.
+            state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
+            state_.argumentsIndex = (indexes_ >> 16) & 0xFF;
+            uint256 ptrSourcesLen_ = (indexes_ >> 24) & 0xFF;
+            bytes[] memory ptrSources_ = new bytes[](ptrSourcesLen_);
+
+            assembly {
+                let ptrSourcesStart_ := add(
+                    stateBytes_,
+                    add(0x40, mul(0x20, mload(add(stateBytes_, 0x20))))
+                )
+                let ptr_ := ptrSourcesStart_
+
+                for {
+                    let i_ := 0
+                } lt(i_, ptrSourcesLen_) {
+                    i_ := add(i_, 1)
+                } {
+                    mstore(add(ptrSources_, add(0x20, mul(i_, 0x20))), ptr_)
+                    ptr_ := add(ptr_, add(0x20, mload(ptr_)))
+                }
+                mstore(add(state_, 0x40), ptrSources_)
+            }
+            return state_;
+        }
+    }
+
+    function toBytesPacked(State memory state_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        unchecked {
+            // indexes + constants
+            uint256[] memory constants_ = state_.constants;
+            // constants is first so we can literally use it on the other end
+            uint256 indexes_ = state_.constants.length |
+                (state_.stack.length << 8) |
+                (state_.argumentsIndex << 16) |
+                (state_.ptrSources.length << 24);
+            for (uint256 i_ = 0; i_ < state_.ptrSources.length; i_++) {
+                indexes_ |=
+                    (state_.ptrSources[i_].length / 3) <<
+                    (8 * (i_ + 4));
+            }
+            bytes memory ret_ = bytes.concat(
+                bytes32(indexes_),
+                abi.encodePacked(constants_)
+            );
+            for (uint256 i_ = 0; i_ < state_.ptrSources.length; i_++) {
+                ret_ = bytes.concat(
+                    ret_,
+                    bytes32(state_.ptrSources[i_].length),
+                    state_.ptrSources[i_]
+                );
+            }
+            return ret_;
+        }
     }
 }
 
@@ -326,7 +408,7 @@ abstract contract RainVM {
 
             // Loop until complete.
             while (i_ < sourceLen_) {
-                uint x_;
+                uint256 x_;
                 assembly {
                     i_ := add(i_, 3)
                     let op_ := mload(add(sourceLocation_, i_))

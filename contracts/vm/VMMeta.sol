@@ -34,7 +34,7 @@ contract VMMeta {
     function newStateBytes(
         address vm_,
         StateConfig memory config_,
-        uint analyzeIndex_
+        uint256 analyzeIndex_
     ) external view returns (bytes memory) {
         SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
         analyzeSources(sourceAnalysis_, config_.sources, analyzeIndex_);
@@ -45,69 +45,77 @@ contract VMMeta {
             constants_[i_] = config_.constants[i_];
         }
         bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
-        for (uint i_ = 0; i_ < config_.sources.length; i_++) {
+        for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
             ptrSources_[i_] = ptrSource(vm_, config_.sources[i_]);
         }
         return
-            LibState.toBytes(State(
-                0,
-                new uint256[](sourceAnalysis_.stackUpperBound),
-                ptrSources_,
-                constants_,
-                config_.constants.length
-            ));
+            LibState.toBytesPacked(
+                State(
+                    0,
+                    new uint256[](sourceAnalysis_.stackUpperBound),
+                    ptrSources_,
+                    constants_,
+                    config_.constants.length
+                )
+            );
     }
 
-    function ptrSource(address vm_, bytes memory source_) public view returns (bytes memory) {
+    function ptrSource(address vm_, bytes memory source_)
+        public
+        view
+        returns (bytes memory)
+    {
         unchecked {
+            uint256 sourceLen_ = source_.length;
+            require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
 
-        uint sourceLen_ = source_.length;
-        require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
+            DispatchTable dispatchTable_ = LibDispatchTable.fromBytes(
+                RainVM(vm_).fnPtrs()
+            );
 
-        DispatchTable dispatchTable_ = LibDispatchTable.fromBytes(RainVM(vm_).fnPtrs());
+            bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
 
-        bytes memory ptrSource_ = new bytes(sourceLen_ * 3 / 2);
-
-        uint rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
-        assembly {
-            let start_ := 1
-            let end_ := add(sourceLen_, 1)
-            for { let i_ := start_ let o_ := 0 } lt(i_, end_) { i_ := add(i_, 1) } {
-                let op_ := byte(31, mload(add(source_, i_)))
-                // is opcode
-                if mod(i_, 2) {
-                    // core ops simply zero pad.
-                    if lt(op_, rainVMOpsLength_) {
-                        o_ := add(o_, 1)
-                        mstore8(
-                            add(ptrSource_, add(0x20, o_)),
-                            op_
-                        )
+            uint256 rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
+            assembly {
+                let start_ := 1
+                let end_ := add(sourceLen_, 1)
+                for {
+                    let i_ := start_
+                    let o_ := 0
+                } lt(i_, end_) {
+                    i_ := add(i_, 1)
+                } {
+                    let op_ := byte(31, mload(add(source_, i_)))
+                    // is opcode
+                    if mod(i_, 2) {
+                        // core ops simply zero pad.
+                        if lt(op_, rainVMOpsLength_) {
+                            o_ := add(o_, 1)
+                            mstore8(add(ptrSource_, add(0x20, o_)), op_)
+                        }
+                        if iszero(lt(op_, rainVMOpsLength_)) {
+                            let fn_ := mload(
+                                add(dispatchTable_, mul(op_, 0x20))
+                            )
+                            mstore8(
+                                add(ptrSource_, add(0x20, o_)),
+                                byte(30, fn_)
+                            )
+                            o_ := add(o_, 1)
+                            mstore8(
+                                add(ptrSource_, add(0x20, o_)),
+                                byte(31, fn_)
+                            )
+                        }
                     }
-                    if iszero(lt(op_, rainVMOpsLength_)) {
-                        let fn_ := mload(add(dispatchTable_, mul(op_, 0x20)))
-                        mstore8(
-                            add(ptrSource_, add(0x20, o_)),
-                            byte(30, fn_)
-                        )
-                        o_ := add(o_, 1)
-                        mstore8(
-                            add(ptrSource_, add(0x20, o_)),
-                            byte(31, fn_)
-                        )
+                    // is operand
+                    if iszero(mod(i_, 2)) {
+                        mstore8(add(ptrSource_, add(0x20, o_)), op_)
                     }
+                    o_ := add(o_, 1)
                 }
-                // is operand
-                if iszero(mod(i_, 2)) {
-                    mstore8(
-                        add(ptrSource_, add(0x20, o_)),
-                        op_
-                    )
-                }
-                o_ := add(o_, 1)
             }
-        }
-        return ptrSource_;
+            return ptrSource_;
         }
     }
 
