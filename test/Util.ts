@@ -32,7 +32,7 @@ import type {
 } from "ethers";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import type { SourceAnalysisStruct } from "../typechain/RainVM";
+import type { SourceAnalysisStruct } from "../typechain/VMMeta";
 
 const { assert } = chai;
 
@@ -549,9 +549,10 @@ export enum selectLteMode {
 }
 
 export enum AllStandardOps {
-  VAL,
-  DUP,
+  CONSTANT,
+  STACK,
   CONTEXT,
+  STORAGE,
   ZIPMAP,
   DEBUG,
   BLOCK_NUMBER,

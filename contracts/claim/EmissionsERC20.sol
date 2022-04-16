@@ -22,7 +22,7 @@ import "../sstore2/SSTORE2.sol";
 struct EmissionsERC20Config {
     bool allowDelegatedClaims;
     ERC20Config erc20Config;
-    StateConfig vmStateConfig;
+    bytes vmStateBytes;
 }
 
 /// @dev Source index for VM eval.
@@ -56,8 +56,6 @@ contract EmissionsERC20 is
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
 
-    VMMeta immutable vmMeta;
-
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
 
@@ -76,10 +74,6 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(address vmMeta_) {
-        vmMeta = VMMeta(vmMeta_);
-    }
-
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(EmissionsERC20Config calldata config_)
         external
@@ -91,11 +85,7 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = vmMeta._newPointer(
-            address(this),
-            config_.vmStateConfig,
-            SOURCE_INDEX
-        );
+        vmStatePointer = SSTORE2.write(config_.vmStateBytes);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;

@@ -6,6 +6,8 @@ import {LogicOps} from "../vm/ops/math/LogicOps.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "../vm/VMMeta.sol";
 
+import "hardhat/console.sol";
+
 uint256 constant SOURCE_INDEX = 0;
 
 /// @title StandardOpsTest
@@ -13,21 +15,12 @@ uint256 constant SOURCE_INDEX = 0;
 contract AllStandardOpsTest is RainVM {
     using LibDispatchTable for DispatchTable;
 
-    VMMeta private immutable vmMeta;
     address private vmStatePointer;
 
     State private _state;
 
-    constructor(address vmMeta_) {
-        vmMeta = VMMeta(vmMeta_);
-    }
-
-    function initialize(StateConfig memory config_) external {
-        vmStatePointer = vmMeta._newPointer(
-            address(this),
-            config_,
-            SOURCE_INDEX
-        );
+    function initialize(bytes calldata stateBytes_) external {
+        vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -50,8 +43,16 @@ contract AllStandardOpsTest is RainVM {
 
     /// Runs `eval` and stores full state.
     function run() public {
+        uint a_ = gasleft();
         State memory state_ = LibState.fromBytes(SSTORE2.read(vmStatePointer));
+        uint b_ = gasleft();
+        console.log("load logic:", a_ - b_);
+        uint c_ = gasleft();
         eval("", state_, SOURCE_INDEX);
+        uint d_ = gasleft();
+        console.log("run logic:", c_ - d_);
+
+        // Never actually do this, state is gigantic so can't live in storage.
         _state = state_;
     }
 }

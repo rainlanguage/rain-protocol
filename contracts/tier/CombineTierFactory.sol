@@ -14,22 +14,21 @@ contract CombineTierFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(address vmMeta_) {
-        address implementation_ = address(new CombineTier(vmMeta_));
+    constructor() {
+        address implementation_ = address(new CombineTier());
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes calldata stateBytes_)
         internal
         virtual
         override
         returns (address)
     {
-        StateConfig memory config_ = abi.decode(data_, (StateConfig));
         address clone_ = Clones.clone(implementation);
-        CombineTier(clone_).initialize(config_);
+        CombineTier(clone_).initialize(stateBytes_);
         return clone_;
     }
 
@@ -37,12 +36,11 @@ contract CombineTierFactory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ `ImmutableSourceConfig` of the `CombineTier` logic.
     /// @return New `CombineTier` child contract address.
-    function createChildTyped(StateConfig calldata config_)
+    function createChildTyped(bytes calldata stateBytes_)
         external
         returns (CombineTier)
     {
-        return CombineTier(this.createChild(abi.encode(config_)));
+        return CombineTier(this.createChild(stateBytes_));
     }
 }

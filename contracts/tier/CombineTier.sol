@@ -19,21 +19,10 @@ uint256 constant SOURCE_INDEX = 0;
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
 contract CombineTier is ReadOnlyTier, RainVM, Initializable {
-    VMMeta immutable vmMeta;
     address private vmStatePointer;
 
-    constructor(address vmMeta_) {
-        vmMeta = VMMeta(vmMeta_);
-    }
-
-    /// @param config_ The StateConfig will be deployed as a pointer under
-    /// `vmStatePointer`.
-    function initialize(StateConfig calldata config_) external initializer {
-        vmStatePointer = vmMeta._newPointer(
-            address(this),
-            config_,
-            SOURCE_INDEX
-        );
+    function initialize(bytes calldata stateBytes_) external initializer {
+        vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
     function fnPtrs() public pure override returns (bytes memory) {

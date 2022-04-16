@@ -28,25 +28,16 @@ contract VMMeta {
     /// @param state `State` of the snapshot that was deployed.
     event Snapshot(address sender, address pointer, State state);
 
-    function _newPointer(
-        address vm_,
-        StateConfig calldata stateConfig_,
-        uint256 analyzeIndex_
-    ) external returns (address) {
-        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(sourceAnalysis_, stateConfig_.sources, analyzeIndex_);
-        return _snapshot(_newState(vm_, stateConfig_, sourceAnalysis_));
-    }
-
-    /// Builds a new `State` from `StateConfig`.
+    /// Builds a new `State` bytes from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
-    function _newState(
+    function newStateBytes(
         address vm_,
         StateConfig calldata config_,
-        SourceAnalysis memory sourceAnalysis_
-    ) internal pure returns (State memory) {
-        require(config_.sources.length > 0, "0_SOURCES");
+        uint analyzeIndex_
+    ) external pure returns (bytes memory) {
+        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
+        analyzeSources(sourceAnalysis_, config_.sources, analyzeIndex_);
         uint256[] memory constants_ = new uint256[](
             config_.constants.length + sourceAnalysis_.argumentsUpperBound
         );
@@ -54,32 +45,15 @@ contract VMMeta {
             constants_[i_] = config_.constants[i_];
         }
         return
-            State(
+            LibState.toBytes(State(
                 0,
                 new uint256[](sourceAnalysis_.stackUpperBound),
                 config_.sources,
                 constants_,
                 config_.constants.length,
                 RainVM(vm_).fnPtrs()
-            );
+            ));
     }
-
-    /// Snapshot a RainVM state as an immutable onchain contract.
-    /// Usually `State` will be new as per `newState` but can be a snapshot of
-    /// an "in flight" execution state also.
-    /// @param state_ The state to snapshot.
-    function _snapshot(State memory state_) internal returns (address) {
-        address pointer_ = SSTORE2.write(LibState.toBytes(state_));
-        emit Snapshot(msg.sender, pointer_, state_);
-        return pointer_;
-    }
-
-    // /// Builds a fresh state for rainVM execution from all construction data.
-    // /// This can be passed directly to `eval` for a `RainVM` contract.
-    // /// @param pointer_ The pointer (address) of the snapshot to restore.
-    // function _restore(address pointer_) external view returns (State memory) {
-    //     return abi.decode(SSTORE2.read(pointer_), (State));
-    // }
 
     function _newSourceAnalysis()
         internal
@@ -109,8 +83,9 @@ contract VMMeta {
         SourceAnalysis memory sourceAnalysis_,
         bytes[] memory sources_,
         uint256 entrypoint_
-    ) public pure {
+    ) public pure returns (SourceAnalysis memory) {
         unchecked {
+            require(sources_.length > entrypoint_, "MIN_SOURCES");
             uint256 i_ = 0;
             uint256 sourceLen_;
             uint256 opcode_;
@@ -152,6 +127,8 @@ contract VMMeta {
                     .stackUpperBound
                     .max(uint256(sourceAnalysis_.stackIndex));
             }
+
+            return sourceAnalysis_;
         }
     }
 

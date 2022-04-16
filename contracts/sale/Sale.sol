@@ -37,7 +37,6 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
-    address vmMeta;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -62,9 +61,7 @@ struct SaleConstructorConfig {
 /// contract unless it is all purchased, clearing the raise to 0 stock and thus
 /// ending the raise.
 struct SaleConfig {
-    StateConfig canStartStateConfig;
-    StateConfig canEndStateConfig;
-    StateConfig calculatePriceStateConfig;
+    bytes vmStateBytes;
     address recipient;
     IERC20 reserve;
     uint256 saleTimeout;
@@ -136,19 +133,9 @@ struct Receipt {
     uint256 price;
 }
 
-uint256 constant SOURCE_INDEX = 0;
-
-uint256 constant LOCAL_OPS_START = ALL_STANDARD_OPS_LENGTH;
-/// @dev local opcode to stack remaining rTKN units.
-uint256 constant OPCODE_REMAINING_UNITS = LOCAL_OPS_START;
-/// @dev local opcode to stack total reserve taken in so far.
-uint256 constant OPCODE_TOTAL_RESERVE_IN = LOCAL_OPS_START + 1;
-/// @dev local opcode to stack the address of the rTKN.
-uint256 constant OPCODE_TOKEN_ADDRESS = LOCAL_OPS_START + 2;
-/// @dev local opcode to stack the address of the reserve token.
-uint256 constant OPCODE_RESERVE_ADDRESS = LOCAL_OPS_START + 3;
-/// @dev local opcodes length.
-uint256 constant LOCAL_OPS_LENGTH = LOCAL_OPS_START + 4;
+uint256 constant CAN_START_SOURCE_INDEX = 0;
+uint256 constant CAN_END_SOURCE_INDEX = 1;
+uint constant CALCULATE_PRICE_SOURCE_INDEX = 2;
 
 // solhint-disable-next-line max-states-count
 contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
@@ -185,8 +172,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
 
-    VMMeta immutable vmMeta;
-
     /// @dev the saleTimeout cannot exceed this. Prevents downstream contracts
     /// that require a finalization such as escrows from getting permanently
     /// stuck in a pending or active status due to buggy scripts.
@@ -202,11 +187,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// @dev as per `SaleConfig`.
     address private recipient;
     /// @dev as per `SaleConfig`.
-    address private canStartStatePointer;
-    /// @dev as per `SaleConfig`.
-    address private canEndStatePointer;
-    /// @dev as per `SaleConfig`.
-    address private calculatePriceStatePointer;
+    address private vmStatePointer;
     /// @dev as per `SaleConfig`.
     uint256 private minimumRaise;
     /// @dev as per `SaleConfig`.
@@ -249,7 +230,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
-        vmMeta = VMMeta(config_.vmMeta);
 
         emit Construct(msg.sender, config_);
     }
@@ -272,21 +252,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        canStartStatePointer = vmMeta._newPointer(
-            address(this),
-            config_.canStartStateConfig,
-            SOURCE_INDEX
-        );
-        canEndStatePointer = vmMeta._newPointer(
-            address(this),
-            config_.canEndStateConfig,
-            SOURCE_INDEX
-        );
-        calculatePriceStatePointer = vmMeta._newPointer(
-            address(this),
-            config_.calculatePriceStateConfig,
-            SOURCE_INDEX
-        );
+        vmStatePointer = SSTORE2.write(config_.vmStateBytes);
 
         recipient = config_.recipient;
 
@@ -352,9 +318,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
             State memory state_ = LibState.fromBytes(
-                SSTORE2.read(canStartStatePointer)
+                SSTORE2.read(vmStatePointer)
             );
-            eval("", state_, SOURCE_INDEX);
+            eval("", state_, CAN_START_SOURCE_INDEX);
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
             return false;
@@ -384,9 +350,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             // to the appropriate script for an answer.
             else {
                 State memory state_ = LibState.fromBytes(
-                    SSTORE2.read(canEndStatePointer)
+                    SSTORE2.read(vmStatePointer)
                 );
-                eval("", state_, SOURCE_INDEX);
+                eval("", state_, CAN_END_SOURCE_INDEX);
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
         } else {
@@ -400,13 +366,13 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = LibState.fromBytes(
-            SSTORE2.read(calculatePriceStatePointer)
+            SSTORE2.read(vmStatePointer)
         );
         bytes memory context_ = new bytes(0x20);
         assembly {
             mstore(add(context_, 0x20), units_)
         }
-        eval(context_, state_, SOURCE_INDEX);
+        eval(context_, state_, CALCULATE_PRICE_SOURCE_INDEX);
 
         return state_.stack[state_.stackIndex - 1];
     }
