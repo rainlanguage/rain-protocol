@@ -52,11 +52,11 @@ library MathOps {
         return 1 - int256(operand_);
     }
 
-    function add(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function add(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)
@@ -80,11 +80,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function saturatingAdd(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function saturatingAdd(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 accumulator_;
         uint256 cursor_;
@@ -108,11 +108,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function sub(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function sub(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)
@@ -136,11 +136,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function saturatingSub(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function saturatingSub(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 accumulator_;
         uint256 cursor_;
@@ -164,11 +164,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function mul(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function mul(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)
@@ -196,11 +196,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function saturatingMul(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function saturatingMul(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 accumulator_;
         uint256 cursor_;
@@ -224,11 +224,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function div(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function div(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)
@@ -252,11 +252,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function mod(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function mod(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)
@@ -280,11 +280,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function exp(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function exp(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 accumulator_;
         uint256 cursor_;
@@ -308,11 +308,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function min(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function min(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)
@@ -334,11 +334,11 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function max(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function max(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)

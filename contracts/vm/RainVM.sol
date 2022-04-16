@@ -29,7 +29,7 @@ library Dispatch {
     /// ONLY safe to use on a dispatch table built with `fromBytes`
     function toBytes(DispatchTable dispatchTable_)
         internal
-        view
+        pure
         returns (bytes memory)
     {
         bytes memory fnPtrs_;
@@ -75,13 +75,14 @@ uint256 constant OPCODE_VAL = 0;
 /// @dev Duplicates any value in the stack to the top of the stack. The operand
 /// specifies the index to copy from.
 uint256 constant OPCODE_DUP = 1;
+uint256 constant OPCODE_CONTEXT = 2;
 /// @dev Takes N values off the stack, interprets them as an array then zips
 /// and maps a source from `sources` over them.
-uint256 constant OPCODE_ZIPMAP = 2;
+uint256 constant OPCODE_ZIPMAP = 3;
 /// @dev ABI encodes the entire stack and logs it to the hardhat console.
-uint256 constant OPCODE_DEBUG = 3;
+uint256 constant OPCODE_DEBUG = 4;
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 4;
+uint256 constant RAIN_VM_OPS_LENGTH = 5;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -342,11 +343,7 @@ abstract contract RainVM {
                         }
                     }
                 }
-                stackTopLocation_ = eval(
-                    context_,
-                    state_,
-                    sourceIndex_
-                );
+                stackTopLocation_ = eval(context_, state_, sourceIndex_);
             }
             return stackTopLocation_;
         }
@@ -443,6 +440,19 @@ abstract contract RainVM {
                             )
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
+                    } else if (opcode_ == OPCODE_CONTEXT) {
+                        assembly {
+                            mstore(
+                                stackTopLocation_,
+                                mload(
+                                    add(
+                                        context_,
+                                        add(0x20, mul(0x20, operand_))
+                                    )
+                                )
+                            )
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                        }
                     } else if (opcode_ == OPCODE_ZIPMAP) {
                         stackTopLocation_ = zipmap(
                             context_,
@@ -454,17 +464,11 @@ abstract contract RainVM {
                         console.logBytes(abi.encode(state_));
                     }
                 } else {
-                    function(bytes memory, uint256, uint256)
-                        view
-                        returns (uint256) fn_;
+                    function(uint256, uint256) view returns (uint256) fn_;
                     assembly {
                         fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
                     }
-                    stackTopLocation_ = fn_(
-                        context_,
-                        operand_,
-                        stackTopLocation_
-                    );
+                    stackTopLocation_ = fn_(operand_, stackTopLocation_);
                 }
             }
             state_.stackIndex =
@@ -472,35 +476,5 @@ abstract contract RainVM {
                 0x20;
             return stackTopLocation_;
         }
-    }
-
-    /// Every contract that implements `RainVM` should override `applyOp` so
-    /// that useful opcodes are available to script writers.
-    /// For an example of a simple and efficient `applyOp` implementation that
-    /// dispatches over several opcode packs see `CalculatorTest.sol`.
-    /// Implementing contracts are encouraged to handle the dispatch with
-    /// unchecked math as the dispatch is a critical performance path and
-    /// default solidity checked math can significantly increase gas cost for
-    /// each opcode dispatched. Consider that a single zipmap could loop over
-    /// dozens of opcode dispatches internally.
-    /// Stack is modified by reference NOT returned.
-    /// @param context_ Bytes that the implementing contract can passthrough
-    /// to be ready internally by its own opcodes. RainVM ignores the context.
-    /// @param stackTopLocation_ The memory location of the top of the stack.
-    /// @param opcode_ The current opcode to dispatch.
-    /// @param operand_ Additional information to inform the opcode dispatch.
-    function applyOp(
-        bytes memory context_,
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256 operand_
-    )
-        internal
-        view
-        virtual
-        returns (uint256)
-    //solhint-disable-next-line no-empty-blocks
-    {
-
     }
 }

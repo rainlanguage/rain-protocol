@@ -43,11 +43,11 @@ library LogicOps {
     }
 
     // ISZERO
-    function isZero(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function isZero(uint256, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             // The index doesn't change for iszero as there is
             // one input and output.
@@ -62,11 +62,11 @@ library LogicOps {
     // before EAGER_IF will select one of them. If both x_ and y_
     // are cheap (e.g. constant values) then this may also be the
     // simplest and cheapest way to select one of them.
-    function eagerIf(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function eagerIf(uint256, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, 0x60)
             stackTopLocation_ := add(location_, 0x20)
@@ -82,11 +82,11 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function equalTo(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function equalTo(uint256, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             let location_ := sub(stackTopLocation_, 0x20)
@@ -95,11 +95,11 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function lessThan(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function lessThan(uint256, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             let location_ := sub(stackTopLocation_, 0x20)
@@ -108,11 +108,11 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function greaterThan(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function greaterThan(uint256, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             let location_ := sub(stackTopLocation_, 0x20)
@@ -124,11 +124,11 @@ library LogicOps {
     // EVERY
     // EVERY is either the first item if every item is nonzero, else 0.
     // operand_ is the length of items to check.
-    function every(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+    function every(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             for {
@@ -151,11 +151,11 @@ library LogicOps {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function any(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             for {

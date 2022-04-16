@@ -15,14 +15,7 @@ import { BigNumber, Contract } from "ethers";
 
 const { assert } = chai;
 
-export enum EmissionsERC20Ops {
-  CLAIMANT_ACCOUNT = 0 + Util.AllStandardOps.length,
-}
-
-export const Opcode = {
-  ...Util.AllStandardOps,
-  ...EmissionsERC20Ops,
-};
+export const Opcode = Util.AllStandardOps;
 
 enum Tier {
   ZERO,
@@ -159,7 +152,7 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -167,7 +160,7 @@ describe("EmissionsERC20", async function () {
     const TIER_REPORT = () =>
       concat([
           valTierAddress,
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -444,7 +437,7 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -452,7 +445,7 @@ describe("EmissionsERC20", async function () {
     const TIER_REPORT = () =>
       concat([
           valTierAddress,
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -627,7 +620,7 @@ describe("EmissionsERC20", async function () {
             concat([
               // lastClaimReport
               op(Opcode.THIS_ADDRESS),
-              op(Opcode.CLAIMANT_ACCOUNT),
+              op(Opcode.CONTEXT),
               op(Opcode.REPORT),
             ]),
           ],
@@ -681,7 +674,7 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -689,7 +682,7 @@ describe("EmissionsERC20", async function () {
     const TIER_REPORT = () =>
       concat([
           op(Opcode.VAL, 0),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -790,7 +783,7 @@ describe("EmissionsERC20", async function () {
                 claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
               ),
               op(Opcode.VAL, 0),
-              op(Opcode.CLAIMANT_ACCOUNT),
+              op(Opcode.CONTEXT),
               op(Opcode.REPORT),
               op(Opcode.SATURATING_DIFF),
             ]),

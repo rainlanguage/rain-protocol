@@ -21,11 +21,11 @@ library EVMConstantOps {
         return 1;
     }
 
-    function number(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function number(uint256, uint256 stackTopLocation_)
+        internal
+        view
+        returns (uint256)
+    {
         assembly {
             mstore(stackTopLocation_, number())
             stackTopLocation_ := add(stackTopLocation_, 0x20)
@@ -33,11 +33,11 @@ library EVMConstantOps {
         return stackTopLocation_;
     }
 
-    function timestamp(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function timestamp(uint256, uint256 stackTopLocation_)
+        internal
+        view
+        returns (uint256)
+    {
         assembly {
             mstore(stackTopLocation_, timestamp())
             stackTopLocation_ := add(stackTopLocation_, 0x20)
@@ -45,11 +45,11 @@ library EVMConstantOps {
         return stackTopLocation_;
     }
 
-    function caller(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function caller(uint256, uint256 stackTopLocation_)
+        internal
+        view
+        returns (uint256)
+    {
         assembly {
             mstore(stackTopLocation_, caller())
             stackTopLocation_ := add(stackTopLocation_, 0x20)
@@ -57,11 +57,11 @@ library EVMConstantOps {
         return stackTopLocation_;
     }
 
-    function thisAddress(
-        bytes memory,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function thisAddress(uint256, uint256 stackTopLocation_)
+        internal
+        view
+        returns (uint256)
+    {
         assembly {
             mstore(stackTopLocation_, address())
             stackTopLocation_ := add(stackTopLocation_, 0x20)

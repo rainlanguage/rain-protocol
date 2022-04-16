@@ -35,11 +35,11 @@ library FixedPointMathOps {
         }
     }
 
-    function scale18Mul(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function scale18Mul(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 a_;
         uint256 b_;
@@ -56,11 +56,11 @@ library FixedPointMathOps {
         return stackTopLocation_;
     }
 
-    function scale18Div(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function scale18Div(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 a_;
         uint256 b_;
@@ -77,11 +77,11 @@ library FixedPointMathOps {
         return stackTopLocation_;
     }
 
-    function scale18(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function scale18(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 a_;
         assembly {
@@ -95,11 +95,11 @@ library FixedPointMathOps {
         return stackTopLocation_;
     }
 
-    function scaleN(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function scaleN(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 a_;
         assembly {
@@ -113,11 +113,11 @@ library FixedPointMathOps {
         return stackTopLocation_;
     }
 
-    function scaleBy(
-        bytes memory,
-        uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
+    function scaleBy(uint256 operand_, uint256 stackTopLocation_)
+        internal
+        pure
+        returns (uint256)
+    {
         uint256 location_;
         uint256 a_;
         assembly {

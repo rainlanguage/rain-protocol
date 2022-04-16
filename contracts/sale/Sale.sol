@@ -142,14 +142,12 @@ uint256 constant LOCAL_OPS_START = ALL_STANDARD_OPS_LENGTH;
 uint256 constant OPCODE_REMAINING_UNITS = LOCAL_OPS_START;
 /// @dev local opcode to stack total reserve taken in so far.
 uint256 constant OPCODE_TOTAL_RESERVE_IN = LOCAL_OPS_START + 1;
-/// @dev local opcode to stack the rTKN units/amount of the current buy.
-uint256 constant OPCODE_CURRENT_BUY_UNITS = LOCAL_OPS_START + 2;
 /// @dev local opcode to stack the address of the rTKN.
-uint256 constant OPCODE_TOKEN_ADDRESS = LOCAL_OPS_START + 3;
+uint256 constant OPCODE_TOKEN_ADDRESS = LOCAL_OPS_START + 2;
 /// @dev local opcode to stack the address of the reserve token.
-uint256 constant OPCODE_RESERVE_ADDRESS = LOCAL_OPS_START + 4;
+uint256 constant OPCODE_RESERVE_ADDRESS = LOCAL_OPS_START + 3;
 /// @dev local opcodes length.
-uint256 constant LOCAL_OPS_LENGTH = LOCAL_OPS_START + 5;
+uint256 constant LOCAL_OPS_LENGTH = LOCAL_OPS_START + 4;
 
 // solhint-disable-next-line max-states-count
 contract Sale is
@@ -197,9 +195,6 @@ contract Sale is
     /// that require a finalization such as escrows from getting permanently
     /// stuck in a pending or active status due to buggy scripts.
     uint256 private immutable maximumSaleTimeout;
-    /// @dev the cooldown duration cannot exceed this. Prevents "no refunds" in
-    /// a raise that never ends. Configured at the factory level upon deploy.
-    uint256 private immutable maximumCooldownDuration;
 
     /// Factory responsible for minting rTKN.
     RedeemableERC20Factory private immutable redeemableERC20Factory;
@@ -255,7 +250,6 @@ contract Sale is
 
     constructor(SaleConstructorConfig memory config_) {
         maximumSaleTimeout = config_.maximumSaleTimeout;
-        maximumCooldownDuration = config_.maximumCooldownDuration;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
 
@@ -266,10 +260,6 @@ contract Sale is
         SaleConfig calldata config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external initializer {
-        require(
-            config_.cooldownDuration <= maximumCooldownDuration,
-            "MAX_COOLDOWN"
-        );
         initializeCooldown(config_.cooldownDuration);
 
         require(config_.saleTimeout <= maximumSaleTimeout, "MAX_TIMEOUT");
@@ -380,11 +370,7 @@ contract Sale is
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
             State memory state_ = _restore(canStartStatePointer);
-            eval(
-                "",
-                state_,
-                SOURCE_INDEX
-            );
+            eval("", state_, SOURCE_INDEX);
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
             return false;
@@ -414,11 +400,7 @@ contract Sale is
             // to the appropriate script for an answer.
             else {
                 State memory state_ = _restore(canEndStatePointer);
-                eval(
-                    "",
-                    state_,
-                    SOURCE_INDEX
-                );
+                eval("", state_, SOURCE_INDEX);
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
         } else {
@@ -432,11 +414,11 @@ contract Sale is
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
         State memory state_ = _restore(calculatePriceStatePointer);
-        eval(
-            abi.encode(units_),
-            state_,
-            SOURCE_INDEX
-        );
+        bytes memory context_ = new bytes(0x20);
+        assembly {
+            mstore(add(context_, 0x20), units_)
+        }
+        eval(context_, state_, SOURCE_INDEX);
 
         return state_.stack[state_.stackIndex - 1];
     }
@@ -645,7 +627,6 @@ contract Sale is
     }
 
     function remainingUnits(
-        bytes memory,
         uint256,
         uint256 stackTopLocation_
     ) internal view returns (uint256) {
@@ -658,7 +639,6 @@ contract Sale is
     }
 
     function totalReserveIn(
-        bytes memory,
         uint256,
         uint256 stackTopLocation_
     ) internal view returns (uint256) {
@@ -670,20 +650,7 @@ contract Sale is
         return stackTopLocation_;
     }
 
-    function currentBuyUnits(
-        bytes memory context_,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
-        assembly {
-            mstore(stackTopLocation_, mload(add(context_, 0x20)))
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
-    }
-
     function tokenAddress(
-        bytes memory,
         uint256,
         uint256 stackTopLocation_
     ) internal view returns (uint256) {
@@ -696,7 +663,6 @@ contract Sale is
     }
 
     function reserveAddress(
-        bytes memory,
         uint256,
         uint256 stackTopLocation_
     ) internal view returns (uint256) {
@@ -709,12 +675,11 @@ contract Sale is
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
-        bytes memory dispatchTableBytes_ = new bytes(0xA0);
-        function(bytes memory, uint256, uint256) view returns (uint256)[5]
+        bytes memory dispatchTableBytes_ = new bytes(0x80);
+        function(uint256, uint256) view returns (uint256)[4]
             memory fns_ = [
                 remainingUnits,
                 totalReserveIn,
-                currentBuyUnits,
                 tokenAddress,
                 reserveAddress
             ];
@@ -723,7 +688,6 @@ contract Sale is
             mstore(add(dispatchTableBytes_, 0x40), mload(add(fns_, 0x20)))
             mstore(add(dispatchTableBytes_, 0x60), mload(add(fns_, 0x40)))
             mstore(add(dispatchTableBytes_, 0x80), mload(add(fns_, 0x60)))
-            mstore(add(dispatchTableBytes_, 0xA0), mload(add(fns_, 0x80)))
         }
         return
             bytes.concat(

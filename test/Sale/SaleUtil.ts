@@ -34,9 +34,8 @@ export enum Status {
 export enum SaleOps {
   REMAINING_UNITS = 0 + Util.AllStandardOps.length,
   TOTAL_RESERVE_IN = 1 + Util.AllStandardOps.length,
-  CURRENT_BUY_UNITS = 2 + Util.AllStandardOps.length,
-  TOKEN_ADDRESS = 3 + Util.AllStandardOps.length,
-  RESERVE_ADDRESS = 4 + Util.AllStandardOps.length,
+  TOKEN_ADDRESS = 2 + Util.AllStandardOps.length,
+  RESERVE_ADDRESS = 3 + Util.AllStandardOps.length,
 }
 
 export const Opcode = {

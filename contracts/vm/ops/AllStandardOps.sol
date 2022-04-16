@@ -13,14 +13,6 @@ import "./tier/TierOps.sol";
 
 uint256 constant ALL_STANDARD_OPS_START = RAIN_VM_OPS_LENGTH;
 
-uint256 constant EVM_OPCODE_BLOCK_NUMBER = ALL_STANDARD_OPS_START +
-    OPCODE_BLOCK_NUMBER;
-uint256 constant EVM_OPCODE_BLOCK_TIMESTAMP = ALL_STANDARD_OPS_START +
-    OPCODE_BLOCK_TIMESTAMP;
-uint256 constant EVM_OPCODE_CALLER = ALL_STANDARD_OPS_START + OPCODE_CALLER;
-uint256 constant EVM_OPCODE_THIS_ADDRESS = ALL_STANDARD_OPS_START +
-    OPCODE_THIS_ADDRESS;
-
 uint256 constant FP_MATH_OPS_START = ALL_STANDARD_OPS_START +
     EVM_CONSTANT_OPS_LENGTH;
 uint256 constant FP_MATH_OPCODE_SCALE18_MUL = FP_MATH_OPS_START +
@@ -132,13 +124,12 @@ library AllStandardOps {
     function dispatchTableBytes() internal pure returns (bytes memory) {
         unchecked {
             uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
-            function(bytes memory, uint256, uint256)
-                view
-                returns (uint256) zeroFn_;
-            function(bytes memory, uint256, uint256)
+            function(uint256, uint256) view returns (uint256) zeroFn_;
+            function(uint256, uint256)
                 view
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory fns_ = [
+                    zeroFn_,
                     zeroFn_,
                     zeroFn_,
                     zeroFn_,

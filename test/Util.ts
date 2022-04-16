@@ -551,6 +551,7 @@ export enum selectLteMode {
 export enum AllStandardOps {
   VAL,
   DUP,
+  CONTEXT,
   ZIPMAP,
   DEBUG,
   BLOCK_NUMBER,

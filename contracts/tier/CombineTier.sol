@@ -19,11 +19,6 @@ uint256 constant SOURCE_INDEX = 0;
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
 contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
-    /// @dev local opcode to put tier report account on the stack.
-    uint256 private constant OPCODE_ACCOUNT = 0;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 1;
-
     address private vmStatePointer;
 
     /// @param config_ The StateConfig will be deployed as a pointer under
@@ -42,40 +37,11 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         override
         returns (int256)
     {
-        unchecked {
-            if (opcode_ < ALL_STANDARD_OPS_LENGTH) {
-                return AllStandardOps.stackIndexDiff(opcode_, operand_);
-            } else {
-                return 1;
-            }
-        }
-    }
-
-    function account(
-        bytes memory context_,
-        uint256,
-        uint256 stackTopLocation_
-    ) internal view returns (uint256) {
-        assembly {
-            mstore(stackTopLocation_, mload(add(context_, 0x20)))
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
+        return AllStandardOps.stackIndexDiff(opcode_, operand_);
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
-        bytes memory dispatchTableBytes_ = new bytes(0x20);
-        function(bytes memory, uint256, uint256)
-            view
-            returns (uint256) account_ = account;
-        assembly {
-            mstore(add(dispatchTableBytes_, 0x20), account_)
-        }
-        return
-            bytes.concat(
-                AllStandardOps.dispatchTableBytes(),
-                dispatchTableBytes_
-            );
+        return AllStandardOps.dispatchTableBytes();
     }
 
     /// @inheritdoc ITier
@@ -87,11 +53,12 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         returns (uint256)
     {
         State memory state_ = _restore(vmStatePointer);
-        eval(
-            abi.encode(account_),
-            state_,
-            SOURCE_INDEX
-        );
+        bytes memory context_ = new bytes(0x20);
+        uint accountContext_ = uint(uint160(account_));
+        assembly {
+            mstore(add(context_, 0x20), accountContext_)
+        }
+        eval(context_, state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
     }
 }
