@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import {RainVM, State, DispatchTable} from "../vm/RainVM.sol";
+import {RainVM, State, Dispatch, DispatchTable} from "../vm/RainVM.sol";
 import {VMState, StateConfig, SourceAnalysis} from "../vm/libraries/VMState.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
@@ -94,9 +94,8 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         override
         returns (uint256)
     {
-        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
         State memory state_ = _restore(vmStatePointer);
-        eval(dispatchTable_, abi.encode(account_), state_, SOURCE_INDEX);
+        eval(Dispatch.fromBytes(AllStandardOps.dispatchTableBytes()), abi.encode(account_), state_, SOURCE_INDEX);
         return state_.stack[state_.stackIndex - 1];
     }
 }

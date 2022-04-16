@@ -38,14 +38,14 @@ library LogicOps {
             return -1;
         } else {
             // Zero length EVERY and ANY is not supported.
-            require(operand_ > 0, "BAD_OPERAND");
+            require(operand_ > 0, "BAD_LOGIC_OPERAND");
             // EVERY and ANY collapse operand_ as length of inputs to 1 output.
             return 1 - int256(operand_);
         }
     }
 
     // ISZERO
-    function isZero(uint256, uint256 stackTopLocation_)
+    function isZero(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -64,7 +64,7 @@ library LogicOps {
     // before EAGER_IF will select one of them. If both x_ and y_
     // are cheap (e.g. constant values) then this may also be the
     // simplest and cheapest way to select one of them.
-    function eagerIf(uint256, uint256 stackTopLocation_)
+    function eagerIf(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -84,7 +84,7 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function equalTo(uint256, uint256 stackTopLocation_)
+    function equalTo(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -97,7 +97,7 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function lessThan(uint256, uint256 stackTopLocation_)
+    function lessThan(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -110,7 +110,7 @@ library LogicOps {
         return stackTopLocation_;
     }
 
-    function greaterThan(uint256, uint256 stackTopLocation_)
+    function greaterThan(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -126,7 +126,7 @@ library LogicOps {
     // EVERY
     // EVERY is either the first item if every item is nonzero, else 0.
     // operand_ is the length of items to check.
-    function every(uint256 operand_, uint256 stackTopLocation_)
+    function every(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -153,7 +153,7 @@ library LogicOps {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(uint256 operand_, uint256 stackTopLocation_)
+    function any(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)

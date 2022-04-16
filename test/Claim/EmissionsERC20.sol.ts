@@ -37,7 +37,7 @@ enum Tier {
 }
 
 describe.only("EmissionsERC20", async function () {
-  it("should calculate correct emissions amount (if division is performed on final result)", async function () {
+  it.only("should calculate correct emissions amount (if division is performed on final result)", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();

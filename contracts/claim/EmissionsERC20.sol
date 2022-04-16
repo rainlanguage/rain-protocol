@@ -89,7 +89,7 @@ contract EmissionsERC20 is
 
     /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
     constructor() {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+        localOpsStart = ALL_STANDARD_OPS_LENGTH;
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
@@ -113,11 +113,16 @@ contract EmissionsERC20 is
             _newState(config_.vmStateConfig, sourceAnalysis_)
         );
 
-        /// Log some deploy state for use by claim/opcodes.
-        allowDelegatedClaims = config_.allowDelegatedClaims;
-
         bytes memory fnPtrs_ = fnPtrs();
         fnPtrsPointer = SSTORE2.write(fnPtrs_);
+
+        uint gasStart_ = gasleft();
+        Dispatch.fromBytes(SSTORE2.read(fnPtrsPointer));
+        uint gasEnd_ = gasleft();
+        console.log("load gas", gasStart_ - gasEnd_);
+
+        /// Log some deploy state for use by claim/opcodes.
+        allowDelegatedClaims = config_.allowDelegatedClaims;
 
         emit Initialize(msg.sender, config_.allowDelegatedClaims);
     }
@@ -136,6 +141,14 @@ contract EmissionsERC20 is
                 return 1;
             }
         }
+    }
+
+    function account(bytes memory context_, uint, uint stackTopLocation_) internal view returns (uint) {
+        assembly {
+            mstore(stackTopLocation_, mload(add(context_, 0x20)))
+            stackTopLocation_ := add(stackTopLocation_, 0x20)
+        }
+        return stackTopLocation_;
     }
 
     // /// @inheritdoc RainVM
@@ -182,10 +195,16 @@ contract EmissionsERC20 is
 
     function fnPtrs() public view returns (bytes memory) {
         uint gasStart_ = gasleft();
-        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
+        bytes memory dispatchTableBytes_ = AllStandardOps.dispatchTableBytes();
+        function(bytes memory, uint256, uint256) view returns (uint256) account_ = account;
+        bytes memory localDispatchTableBytes_ = new bytes(0x20);
+        assembly {
+            mstore(add(localDispatchTableBytes_, 0x20), account_)
+        }
+        bytes memory ret_ = bytes.concat(dispatchTableBytes_, localDispatchTableBytes_);
         uint gasEnd_ = gasleft();
         console.log("build gas", gasStart_ - gasEnd_);
-        return dispatchTable_.fnPtrs();
+        return ret_;
     }
 
     /// Calculates the claim without processing it.
@@ -199,10 +218,8 @@ contract EmissionsERC20 is
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
         uint gasStart_ = gasleft();
-        bytes memory fnPtrs_ = SSTORE2.read(fnPtrsPointer);
-        // uint[] memory fnPtrs_ = abi.decode(data_, (uint[]));
-        DispatchTable dispatchTable_;
-        dispatchTable_ = dispatchTable_.initialize(fnPtrs_);
+        bytes memory dispatchTableBytes_ = SSTORE2.read(fnPtrsPointer);
+        DispatchTable dispatchTable_ = Dispatch.fromBytes(dispatchTableBytes_);
         uint gasEnd_ = gasleft();
         console.log("load gas", gasStart_ - gasEnd_);
 

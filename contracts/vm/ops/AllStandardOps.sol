@@ -131,86 +131,60 @@ library AllStandardOps {
         }
     }
 
-    function dispatchTable() internal view returns (DispatchTable) {
-        bytes memory fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 32);
-        DispatchTable dispatchTable_;
-        dispatchTable_ = dispatchTable_.initialize(fnPtrs_);
-        dispatchTable_.setFn(EVM_OPCODE_BLOCK_NUMBER, EVMConstantOps.number);
-        dispatchTable_.setFn(
-            EVM_OPCODE_BLOCK_TIMESTAMP,
-            EVMConstantOps.timestamp
-        );
-        dispatchTable_.setFn(EVM_OPCODE_CALLER, EVMConstantOps.caller);
-        dispatchTable_.setFn(
-            EVM_OPCODE_THIS_ADDRESS,
-            EVMConstantOps.thisAddress
-        );
-        dispatchTable_.setFn(
-            FP_MATH_OPCODE_SCALE18_MUL,
-            FixedPointMathOps.scale18Mul
-        );
-        dispatchTable_.setFn(
-            FP_MATH_OPCODE_SCALE18_DIV,
-            FixedPointMathOps.scale18Div
-        );
-        dispatchTable_.setFn(FP_MATH_OPCODE_SCALE18, FixedPointMathOps.scale18);
-        dispatchTable_.setFn(FP_MATH_OPCODE_SCALEN, FixedPointMathOps.scaleN);
-        dispatchTable_.setFn(
-            FP_MATH_OPCODE_SCALE_BY,
-            FixedPointMathOps.scaleBy
-        );
-        dispatchTable_.setFn(MATH_OPCODE_ADD, MathOps.add);
-        dispatchTable_.setFn(MATH_OPCODE_SATURATING_ADD, MathOps.saturatingAdd);
-        dispatchTable_.setFn(MATH_OPCODE_SUB, MathOps.sub);
-        dispatchTable_.setFn(MATH_OPCODE_SATURATING_SUB, MathOps.saturatingSub);
-        dispatchTable_.setFn(MATH_OPCODE_MUL, MathOps.mul);
-        dispatchTable_.setFn(MATH_OPCODE_SATURATING_MUL, MathOps.saturatingMul);
-        dispatchTable_.setFn(MATH_OPCODE_DIV, MathOps.div);
-        dispatchTable_.setFn(MATH_OPCODE_MOD, MathOps.mod);
-        dispatchTable_.setFn(MATH_OPCODE_EXP, MathOps.exp);
-        dispatchTable_.setFn(MATH_OPCODE_MIN, MathOps.min);
-        dispatchTable_.setFn(MATH_OPCODE_MAX, MathOps.max);
-        dispatchTable_.setFn(LOGIC_OPCODE_ISZERO, LogicOps.isZero);
-        dispatchTable_.setFn(LOGIC_OPCODE_EAGER_IF, LogicOps.eagerIf);
-        dispatchTable_.setFn(LOGIC_OPCODE_EQUAL_TO, LogicOps.equalTo);
-        dispatchTable_.setFn(LOGIC_OPCODE_LESS_THAN, LogicOps.lessThan);
-        dispatchTable_.setFn(LOGIC_OPCODE_GREATER_THAN, LogicOps.greaterThan);
-        dispatchTable_.setFn(LOGIC_OPCODE_EVERY, LogicOps.every);
-        dispatchTable_.setFn(LOGIC_OPCODE_ANY, LogicOps.any);
-        dispatchTable_.setFn(TIER_OPCODE_REPORT, TierOps.report);
-        dispatchTable_.setFn(
-            TIER_OPCODE_SATURATING_DIFF,
-            TierOps.saturatingDiff
-        );
-        dispatchTable_.setFn(
-            TIER_OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE,
-            TierOps.updateBlocksForTierRange
-        );
-        dispatchTable_.setFn(TIER_OPCODE_SELECT_LTE, TierOps.selectLte);
-        dispatchTable_.setFn(
-            IERC20_OPCODE_IERC20_BALANCE_OF,
-            IERC20Ops.balanceOf
-        );
-        dispatchTable_.setFn(
-            IERC20_OPCODE_IERC20_TOTAL_SUPPLY,
-            IERC20Ops.totalSupply
-        );
-        dispatchTable_.setFn(
-            IERC721_OPCODE_IERC721_BALANCE_OF,
-            IERC721Ops.balanceOf
-        );
-        dispatchTable_.setFn(
-            IERC721_OPCODE_IERC721_OWNER_OF,
-            IERC721Ops.ownerOf
-        );
-        dispatchTable_.setFn(
-            IERC1155_OPCODE_IERC1155_BALANCE_OF,
-            IERC1155Ops.balanceOf
-        );
-        dispatchTable_.setFn(
-            IERC1155_OPCODE_IERC1155_BALANCE_OF_BATCH,
-            IERC1155Ops.balanceOfBatch
-        );
-        return dispatchTable_;
+    function dispatchTableBytes() internal view returns (bytes memory) {
+        unchecked {
+            uint lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
+            function(bytes memory, uint256, uint256) view returns (uint256) zeroFn_;
+            function(bytes memory, uint256, uint256) view returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1] memory fns_ = [
+                zeroFn_,
+                zeroFn_,
+                zeroFn_,
+                zeroFn_,
+                zeroFn_,
+                EVMConstantOps.number,
+                EVMConstantOps.timestamp,
+                EVMConstantOps.caller,
+                EVMConstantOps.thisAddress,
+                FixedPointMathOps.scale18Mul,
+                FixedPointMathOps.scale18Div,
+                FixedPointMathOps.scale18,
+                FixedPointMathOps.scaleN,
+                FixedPointMathOps.scaleBy,
+                MathOps.add,
+                MathOps.saturatingAdd,
+                MathOps.sub,
+                MathOps.saturatingSub,
+                MathOps.mul,
+                MathOps.saturatingMul,
+                MathOps.div,
+                MathOps.mod,
+                MathOps.exp,
+                MathOps.min,
+                MathOps.max,
+                LogicOps.isZero,
+                LogicOps.eagerIf,
+                LogicOps.equalTo,
+                LogicOps.lessThan,
+                LogicOps.greaterThan,
+                LogicOps.every,
+                LogicOps.any,
+                TierOps.report,
+                TierOps.saturatingDiff,
+                TierOps.updateBlocksForTierRange,
+                TierOps.selectLte,
+                IERC20Ops.balanceOf,
+                IERC20Ops.totalSupply,
+                IERC721Ops.balanceOf,
+                IERC721Ops.ownerOf,
+                IERC1155Ops.balanceOf,
+                IERC1155Ops.balanceOfBatch
+            ];
+            bytes memory ret_;
+            assembly {
+                fns_ := lenBytes_
+                ret_ := fns_
+            }
+            return ret_;
+        }
     }
 }

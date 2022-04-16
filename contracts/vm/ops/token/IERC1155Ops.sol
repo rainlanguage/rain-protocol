@@ -23,7 +23,7 @@ library IERC1155Ops {
         if (opcode_ == OPCODE_IERC1155_BALANCE_OF) {
             return -2;
         } else {
-            require(operand_ > 0, "BAD_OPERAND");
+            require(operand_ > 0, "BAD_IERC1155_OPERAND");
             // inputs: (len * 2) + 1
             // outputs: len
             return -(1 + int256(operand_));
@@ -31,7 +31,7 @@ library IERC1155Ops {
     }
 
     // Stack the return of `balanceOf`.
-    function balanceOf(uint256, uint256 stackTopLocation_)
+    function balanceOf(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -59,7 +59,7 @@ library IERC1155Ops {
 
     // Stack the return of `balanceOfBatch`.
     // Operand will be the length
-    function balanceOfBatch(uint256 operand_, uint256 stackTopLocation_)
+    function balanceOfBatch(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)

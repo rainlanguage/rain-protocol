@@ -29,7 +29,7 @@ library IERC20Ops {
     }
 
     // Stack the return of `balanceOf`.
-    function balanceOf(uint256, uint256 stackTopLocation_)
+    function balanceOf(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -54,7 +54,7 @@ library IERC20Ops {
     }
 
     // Stack the return of `totalSupply`.
-    function totalSupply(uint256, uint256 stackTopLocation_)
+    function totalSupply(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)

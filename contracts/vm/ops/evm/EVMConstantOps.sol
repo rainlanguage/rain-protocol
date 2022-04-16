@@ -21,7 +21,7 @@ library EVMConstantOps {
         return 1;
     }
 
-    function number(uint256, uint256 stackTopLocation_)
+    function number(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -33,7 +33,7 @@ library EVMConstantOps {
         return stackTopLocation_;
     }
 
-    function timestamp(uint256, uint256 stackTopLocation_)
+    function timestamp(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -45,7 +45,7 @@ library EVMConstantOps {
         return stackTopLocation_;
     }
 
-    function caller(uint256, uint256 stackTopLocation_)
+    function caller(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -57,7 +57,7 @@ library EVMConstantOps {
         return stackTopLocation_;
     }
 
-    function thisAddress(uint256, uint256 stackTopLocation_)
+    function thisAddress(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)

@@ -56,17 +56,14 @@ contract AllStandardOpsTest is RainVM, VMState {
     }
 
     function fnPtrs() external view returns (bytes memory) {
-        DispatchTable dispatchTable_ = AllStandardOps.dispatchTable();
-        return dispatchTable_.fnPtrs();
+        return AllStandardOps.dispatchTableBytes();
     }
 
     /// Runs `eval` and stores full state.
-    function run(bytes memory fnPtrs_) public {
-        DispatchTable dispatchTable_;
-        dispatchTable_ = dispatchTable_.initialize(fnPtrs_);
+    function run(bytes memory dispatchTableBytes_) public {
         State memory state_ = _restore(vmStatePointer);
         uint256 startGas_ = gasleft();
-        eval(dispatchTable_, "", state_, SOURCE_INDEX);
+        eval(Dispatch.fromBytes(dispatchTableBytes_), "", state_, SOURCE_INDEX);
         uint256 endGas_ = gasleft();
         console.log("logic eval gas used: %s", startGas_ - endGas_);
         _state = state_;

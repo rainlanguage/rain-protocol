@@ -20,7 +20,7 @@ library IERC721Ops {
     }
 
     // Stack the return of `balanceOf`.
-    function balanceOf(uint256, uint256 stackTopLocation_)
+    function balanceOf(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -46,7 +46,7 @@ library IERC721Ops {
     }
 
     // Stack the return of `ownerOf`.
-    function ownerOf(uint256, uint256 stackTopLocation_)
+    function ownerOf(bytes memory, uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)

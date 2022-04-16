@@ -14,30 +14,32 @@ struct SourceAnalysis {
 type DispatchTable is uint256;
 
 library Dispatch {
-    function initialize(DispatchTable dispatchTable_, bytes memory fnPtrs_)
+    function fromBytes(bytes memory dispatchTableBytes_)
         internal
         pure
         returns (DispatchTable)
     {
+        DispatchTable dispatchTable_;
         assembly {
-            dispatchTable_ := add(fnPtrs_, 0x20)
+            dispatchTable_ := add(dispatchTableBytes_, 0x20)
         }
         return dispatchTable_;
     }
 
-    function ptr(DispatchTable dispatchTable_, uint256 opcode_)
-        internal
-        pure
-        returns (uint256)
-    {
-        uint256 ptr_;
-        assembly {
-            ptr_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
-        }
-        return ptr_;
-    }
+    // function ptr(DispatchTable dispatchTable_, uint256 opcode_)
+    //     internal
+    //     pure
+    //     returns (uint256)
+    // {
+    //     uint256 ptr_;
+    //     assembly {
+    //         ptr_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+    //     }
+    //     return ptr_;
+    // }
 
-    function fnPtrs(DispatchTable dispatchTable_)
+    /// ONLY safe to use on a dispatch table built with `fromBytes`
+    function toBytes(DispatchTable dispatchTable_)
         internal
         view
         returns (bytes memory)
@@ -49,22 +51,23 @@ library Dispatch {
         return fnPtrs_;
     }
 
-    function setFn(
-        DispatchTable dispatchTable_,
-        uint256 opcode_,
-        function(uint256, uint256) view returns (uint256) fn_
-    ) internal pure {
-        assembly {
-            mstore(add(dispatchTable_, mul(opcode_, 0x20)), fn_)
-        }
-    }
-    // function dispatch(DispatchTable dispatchTable_, uint opcode_, uint operand_, uint stackTopLocation_) internal view returns (uint) {
-    //     function (uint256, uint256) view returns (uint256) fn_;
+    // function setFn(
+    //     DispatchTable dispatchTable_,
+    //     uint256 opcode_,
+    //     function(bytes memory, uint256, uint256) view returns (uint256) fn_
+    // ) internal pure {
     //     assembly {
-    //         fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
+    //         mstore(add(dispatchTable_, mul(opcode_, 0x20)), fn_)
     //     }
-    //     return fn_(operand_, stackTopLocation_);
     // }
+
+    function setFns(
+        DispatchTable dispatchTable_,
+        function(bytes memory, uint256, uint256) view returns (uint256)[] memory fns_
+    ) internal pure returns (DispatchTable) {
+        assembly { dispatchTable_ := add(fns_, 0x20)}
+        return dispatchTable_;
+    }
 }
 
 /// Everything required to evaluate and track the state of a rain script.
@@ -444,6 +447,7 @@ abstract contract RainVM {
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
                 }
+                console.log("op", opcode_);
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ == OPCODE_VAL) {
                         assembly {
@@ -485,6 +489,7 @@ abstract contract RainVM {
                 } else {
                     stackTopLocation_ = dispatch(
                         dispatchTable_,
+                        context_,
                         opcode_,
                         operand_,
                         stackTopLocation_
@@ -500,15 +505,16 @@ abstract contract RainVM {
 
     function dispatch(
         DispatchTable dispatchTable_,
+        bytes memory context_,
         uint256 opcode_,
         uint256 operand_,
         uint256 stackTopLocation_
     ) internal view returns (uint256) {
-        function(uint256, uint256) view returns (uint256) fn_;
+        function(bytes memory, uint256, uint256) view returns (uint256) fn_;
         assembly {
             fn_ := mload(add(dispatchTable_, mul(opcode_, 0x20)))
         }
-        return fn_(operand_, stackTopLocation_);
+        return fn_(context_, operand_, stackTopLocation_);
     }
 
     /// Every contract that implements `RainVM` should override `applyOp` so

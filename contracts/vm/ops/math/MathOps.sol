@@ -47,12 +47,12 @@ library MathOps {
         returns (int256)
     {
         // Zero length math ops not supported.
-        require(operand_ > 0, "BAD_OPERAND");
+        require(operand_ > 0, "BAD_MATH_OPERAND");
         // All operations take operand_ as length inputs and have 1 output.
         return 1 - int256(operand_);
     }
 
-    function add(uint256 operand_, uint256 stackTopLocation_)
+    function add(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -80,7 +80,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function saturatingAdd(uint256 operand_, uint256 stackTopLocation_)
+    function saturatingAdd(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -108,7 +108,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function sub(uint256 operand_, uint256 stackTopLocation_)
+    function sub(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -136,7 +136,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function saturatingSub(uint256 operand_, uint256 stackTopLocation_)
+    function saturatingSub(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -164,7 +164,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function mul(uint256 operand_, uint256 stackTopLocation_)
+    function mul(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -196,7 +196,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function saturatingMul(uint256 operand_, uint256 stackTopLocation_)
+    function saturatingMul(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -224,7 +224,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function div(uint256 operand_, uint256 stackTopLocation_)
+    function div(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -252,7 +252,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function mod(uint256 operand_, uint256 stackTopLocation_)
+    function mod(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -280,7 +280,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function exp(uint256 operand_, uint256 stackTopLocation_)
+    function exp(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -308,7 +308,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function min(uint256 operand_, uint256 stackTopLocation_)
+    function min(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)
@@ -334,7 +334,7 @@ library MathOps {
         return stackTopLocation_;
     }
 
-    function max(uint256 operand_, uint256 stackTopLocation_)
+    function max(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
         returns (uint256)

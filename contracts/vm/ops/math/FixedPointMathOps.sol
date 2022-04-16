@@ -35,7 +35,7 @@ library FixedPointMathOps {
         }
     }
 
-    function scale18Mul(uint256 operand_, uint256 stackTopLocation_)
+    function scale18Mul(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -56,7 +56,7 @@ library FixedPointMathOps {
         return stackTopLocation_;
     }
 
-    function scale18Div(uint256 operand_, uint256 stackTopLocation_)
+    function scale18Div(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -77,7 +77,7 @@ library FixedPointMathOps {
         return stackTopLocation_;
     }
 
-    function scale18(uint256 operand_, uint256 stackTopLocation_)
+    function scale18(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -95,7 +95,7 @@ library FixedPointMathOps {
         return stackTopLocation_;
     }
 
-    function scaleN(uint256 operand_, uint256 stackTopLocation_)
+    function scaleN(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
@@ -113,7 +113,7 @@ library FixedPointMathOps {
         return stackTopLocation_;
     }
 
-    function scaleBy(uint256 operand_, uint256 stackTopLocation_)
+    function scaleBy(bytes memory, uint256 operand_, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
