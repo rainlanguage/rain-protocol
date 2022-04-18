@@ -3,12 +3,6 @@ pragma solidity =0.8.10;
 
 import {State} from "../../RainVM.sol";
 
-/// @dev Number of provided opcodes for `LogicOps`.
-/// The opcodes are NOT listed on the library as they are all internal to
-/// the assembly and yul doesn't seem to support using solidity constants
-/// as switch case values.
-uint256 constant LOGIC_OPS_LENGTH = 7;
-
 /// @title LogicOps
 /// @notice RainVM opcode pack to perform some basic logic operations.
 library LogicOps {
@@ -32,8 +26,8 @@ library LogicOps {
         assembly {
             // The index doesn't change for iszero as there is
             // one input and output.
-            // let location_ := sub(stackTopLocation_, 0x20)
-            // mstore(location_, iszero(mload(location_)))
+            let location_ := sub(stackTopLocation_, 0x20)
+            mstore(location_, iszero(mload(location_)))
         }
         return stackTopLocation_;
     }

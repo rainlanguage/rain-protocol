@@ -384,7 +384,7 @@ describe("LogicOps Test", async function () {
       // op(Opcode.CONSTANT, 0),
       op(Opcode.CONSTANT, 0),
       op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
+      op(Opcode.ISZERO, 1),
       // op(Opcode.ISZERO, 1),
       // op(Opcode.ISZERO, 1),
       // op(Opcode.ISZERO, 1),

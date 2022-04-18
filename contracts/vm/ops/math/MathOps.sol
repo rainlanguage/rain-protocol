@@ -4,31 +4,6 @@ pragma solidity =0.8.10;
 import {State} from "../../RainVM.sol";
 import "../../../math/SaturatingMath.sol";
 
-/// @dev Opcode for addition.
-uint256 constant OPCODE_ADD = 0;
-/// @dev Opcode for saturating addition.
-uint256 constant OPCODE_SATURATING_ADD = 1;
-/// @dev Opcode for subtraction.
-uint256 constant OPCODE_SUB = 2;
-/// @dev Opcode for saturating subtraction.
-uint256 constant OPCODE_SATURATING_SUB = 3;
-/// @dev Opcode for multiplication.
-uint256 constant OPCODE_MUL = 4;
-/// @dev Opcode for saturating multiplication.
-uint256 constant OPCODE_SATURATING_MUL = 5;
-/// @dev Opcode for division.
-uint256 constant OPCODE_DIV = 6;
-/// @dev Opcode for modulo.
-uint256 constant OPCODE_MOD = 7;
-/// @dev Opcode for exponentiation.
-uint256 constant OPCODE_EXP = 8;
-/// @dev Opcode for minimum.
-uint256 constant OPCODE_MIN = 9;
-/// @dev Opcode for maximum.
-uint256 constant OPCODE_MAX = 10;
-/// @dev Number of provided opcodes for `MathOps`.
-uint256 constant MATH_OPS_LENGTH = 11;
-
 /// @title MathOps
 /// @notice RainVM opcode pack to perform basic checked math operations.
 /// Underflow and overflow will error as per default solidity behaviour.

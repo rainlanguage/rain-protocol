@@ -461,7 +461,6 @@ abstract contract RainVM {
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_STORAGE) {
-                        require(operand_ < storageLength);
                         assembly {
                             mstore(stackTopLocation_, sload(operand_))
                             stackTopLocation_ := add(stackTopLocation_, 0x20)

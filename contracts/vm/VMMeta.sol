@@ -111,6 +111,7 @@ contract VMMeta {
         uint256 entrypoint_
     ) public view returns (SourceAnalysis memory) {
         unchecked {
+            uint a_ = gasleft();
             require(sources_.length > entrypoint_, "MIN_SOURCES");
             bytes memory stackIndexDiffFns_ = stackIndexDiffFnPtrs();
             uint256 i_ = 0;
@@ -141,10 +142,8 @@ contract VMMeta {
                     analyzeZipmap(sourceAnalysis_, sources_, operand_);
                 } else {
                     function(uint256) pure returns (int256) fn_;
-                    uint256 x_;
                     assembly {
                         fn_ := mload(add(firstPtrLocation_, mul(opcode_, 0x20)))
-                        x_ := fn_
                     }
                     sourceAnalysis_.stackIndex += fn_(operand_);
                 }
@@ -154,6 +153,8 @@ contract VMMeta {
                     .max(uint256(sourceAnalysis_.stackIndex));
             }
 
+            uint b_ = gasleft();
+            console.log("analysis gas:", a_ - b_);
             return sourceAnalysis_;
         }
     }

@@ -16,45 +16,6 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 37;
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
-    // using LibDispatchTable for DispatchTable;
-
-    // function stackIndexDiff(uint256 opcode_, uint256 operand_)
-    //     internal
-    //     pure
-    //     returns (int256)
-    // {
-    //     if (opcode_ < FP_MATH_OPS_START) {
-    //         return EVMConstantOps.stackIndexDiff(opcode_, operand_);
-    //     } else if (opcode_ < MATH_OPS_START) {
-    //         return
-    //             FixedPointMathOps.stackIndexDiff(
-    //                 opcode_ - FP_MATH_OPS_START,
-    //                 operand_
-    //             );
-    //     } else if (opcode_ < LOGIC_OPS_START) {
-    //         return MathOps.stackIndexDiff(opcode_ - MATH_OPS_START, operand_);
-    //     } else if (opcode_ < TIER_OPS_START) {
-    //         return LogicOps.stackIndexDiff(opcode_ - LOGIC_OPS_START, operand_);
-    //     } else if (opcode_ < IERC20_OPS_START) {
-    //         return TierOps.stackIndexDiff(opcode_ - TIER_OPS_START, operand_);
-    //     } else if (opcode_ < IERC721_OPS_START) {
-    //         return
-    //             IERC20Ops.stackIndexDiff(opcode_ - IERC20_OPS_START, operand_);
-    //     } else if (opcode_ < IERC1155_OPS_START) {
-    //         return
-    //             IERC721Ops.stackIndexDiff(
-    //                 opcode_ - IERC721_OPS_START,
-    //                 operand_
-    //             );
-    //     } else {
-    //         return
-    //             IERC1155Ops.stackIndexDiff(
-    //                 opcode_ - IERC1155_OPS_START,
-    //                 operand_
-    //             );
-    //     }
-    // }
-
     function stackIndexDiffNegTwo(uint256) internal pure returns (int256) {
         return -2;
     }
