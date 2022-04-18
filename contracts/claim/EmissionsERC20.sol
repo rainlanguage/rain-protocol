@@ -169,7 +169,7 @@ contract EmissionsERC20 is
     /// they could have lost tiers since their last claim.
     /// The standard "uninitialized is 0xFF.." logic can be simulated in a rain
     /// script as `REPORT(this, account) IF(ISZERO(DUP(0)), never, DUP(0))` if
-    /// desired by the deployer.
+    /// desired by the deployer (adjusting the DUP index to taste).
     /// @inheritdoc ITier
     function report(address account_)
         public
