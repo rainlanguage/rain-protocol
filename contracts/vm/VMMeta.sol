@@ -44,80 +44,102 @@ contract VMMeta {
         for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
             constants_[i_] = config_.constants[i_];
         }
-        bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
-        for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-            ptrSources_[i_] = ptrSource(vm_, config_.sources[i_]);
-        }
+        // bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
+        // for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
+        //     ptrSources_[i_] = ptrSource(vm_, config_.sources[i_]);
+        // }
         return
             LibState.toBytesPacked(
                 State(
                     0,
                     new uint256[](sourceAnalysis_.stackUpperBound),
-                    ptrSources_,
+                    config_.sources,
                     constants_,
-                    config_.constants.length
+                    config_.constants.length,
+                    packFnPtrs(RainVM(vm_).fnPtrs())
                 )
             );
     }
 
-    function ptrSource(address vm_, bytes memory source_)
+    function packFnPtrs(bytes memory fnPtrs_)
         public
-        view
+        pure
         returns (bytes memory)
     {
-        unchecked {
-            uint256 sourceLen_ = source_.length;
-            require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
-
-            DispatchTable dispatchTable_ = LibDispatchTable.fromBytes(
-                RainVM(vm_).fnPtrs()
-            );
-
-            bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
-
-            uint256 rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
-            assembly {
-                let start_ := 1
-                let end_ := add(sourceLen_, 1)
-                for {
-                    let i_ := start_
-                    let o_ := 0
-                } lt(i_, end_) {
-                    i_ := add(i_, 1)
-                } {
-                    let op_ := byte(31, mload(add(source_, i_)))
-                    // is opcode
-                    if mod(i_, 2) {
-                        // core ops simply zero pad.
-                        if lt(op_, rainVMOpsLength_) {
-                            o_ := add(o_, 1)
-                            mstore8(add(ptrSource_, add(0x20, o_)), op_)
-                        }
-                        if iszero(lt(op_, rainVMOpsLength_)) {
-                            let fn_ := mload(
-                                add(dispatchTable_, mul(op_, 0x20))
-                            )
-                            mstore8(
-                                add(ptrSource_, add(0x20, o_)),
-                                byte(30, fn_)
-                            )
-                            o_ := add(o_, 1)
-                            mstore8(
-                                add(ptrSource_, add(0x20, o_)),
-                                byte(31, fn_)
-                            )
-                        }
-                    }
-                    // is operand
-                    if iszero(mod(i_, 2)) {
-                        mstore8(add(ptrSource_, add(0x20, o_)), op_)
-                    }
-                    o_ := add(o_, 1)
-                }
+        require(fnPtrs_.length % 0x20 == 0, "BAD_FN_PTRS_LENGTH");
+        bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length / 0x10);
+        assembly {
+            for {
+                let i_ := 0
+                let o_ := 0x02
+            } lt(i_, mload(fnPtrs_)) {
+                i_ := add(i_, 0x20)
+                o_ := add(o_, 0x02)
+            } {
+                let location_ := add(fnPtrsPacked_, o_)
+                let old_ := mload(location_)
+                let new_ := or(old_, mload(add(fnPtrs_, add(0x20, i_))))
+                mstore(location_, new_)
             }
-            return ptrSource_;
         }
+        return fnPtrsPacked_;
     }
+
+    // function ptrSource(address vm_, bytes memory source_)
+    //     public
+    //     view
+    //     returns (bytes memory)
+    // {
+    //     unchecked {
+    //         uint256 sourceLen_ = source_.length;
+    //         require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
+
+    //         bytes memory fnPtrs_ = RainVM(vm_).fnPtrs();
+    //         bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
+
+    //         uint256 rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
+    //         assembly {
+    //             let start_ := 1
+    //             let end_ := add(sourceLen_, 1)
+    //             for {
+    //                 let i_ := start_
+    //                 let o_ := 0
+    //             } lt(i_, end_) {
+    //                 i_ := add(i_, 1)
+    //             } {
+    //                 let op_ := byte(31, mload(add(source_, i_)))
+    //                 // is opcode
+    //                 if mod(i_, 2) {
+    //                     // core ops simply zero pad.
+    //                     if lt(op_, rainVMOpsLength_) {
+    //                         o_ := add(o_, 1)
+    //                         mstore8(add(ptrSource_, add(0x20, o_)), op_)
+    //                     }
+    //                     if iszero(lt(op_, rainVMOpsLength_)) {
+    //                         let fn_ := mload(
+    //                             add(fnPtrs_, add(0x20, mul(op_, 0x20)))
+    //                         )
+    //                         mstore8(
+    //                             add(ptrSource_, add(0x20, o_)),
+    //                             byte(30, fn_)
+    //                         )
+    //                         o_ := add(o_, 1)
+    //                         mstore8(
+    //                             add(ptrSource_, add(0x20, o_)),
+    //                             byte(31, fn_)
+    //                         )
+    //                     }
+    //                 }
+    //                 // is operand
+    //                 if iszero(mod(i_, 2)) {
+    //                     mstore8(add(ptrSource_, add(0x20, o_)), op_)
+    //                 }
+    //                 o_ := add(o_, 1)
+    //             }
+    //         }
+    //         return ptrSource_;
+    //     }
+    // }
 
     function _newSourceAnalysis()
         internal

@@ -37,6 +37,7 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
+    bytes fnPtrs;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -226,7 +227,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// Fee recipient => unclaimed fees.
     mapping(address => uint256) private fees;
 
-    constructor(SaleConstructorConfig memory config_) {
+    constructor(SaleConstructorConfig memory config_) RainVM(config_.fnPtrs) {
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
@@ -317,7 +318,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         // Only a pending sale can start. Starting a sale more than once would
         // always be a bug.
         if (_saleStatus == SaleStatus.Pending) {
-            State memory state_ = LibState.fromBytes(
+            State memory state_ = LibState.fromBytesPacked(
                 SSTORE2.read(vmStatePointer)
             );
             eval("", state_, CAN_START_SOURCE_INDEX);
@@ -349,7 +350,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             // The raise is active and still has stock remaining so we delegate
             // to the appropriate script for an answer.
             else {
-                State memory state_ = LibState.fromBytes(
+                State memory state_ = LibState.fromBytesPacked(
                     SSTORE2.read(vmStatePointer)
                 );
                 eval("", state_, CAN_END_SOURCE_INDEX);
@@ -365,7 +366,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// @param units_ Amount of rTKN to quote a price for, will be available to
     /// the price script from OPCODE_CURRENT_BUY_UNITS.
     function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = LibState.fromBytes(SSTORE2.read(vmStatePointer));
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
         bytes memory context_ = new bytes(0x20);
         assembly {
             mstore(add(context_, 0x20), units_)
@@ -561,6 +564,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
-        return AllStandardOps.dispatchTableBytes();
+        return AllStandardOps.fnPtrs();
     }
 }

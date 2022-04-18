@@ -48,7 +48,7 @@ contract EmissionsERC20 is
     IClaim,
     ReadOnlyTier
 {
-    using LibDispatchTable for DispatchTable;
+    // using LibDispatchTable for DispatchTable;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -73,6 +73,8 @@ contract EmissionsERC20 is
     /// Each claim is modelled as a report so that the claim report can be
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
+
+    constructor(bytes memory fnPtrs_) RainVM(fnPtrs_) {}
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(EmissionsERC20Config calldata config_)
@@ -108,7 +110,7 @@ contract EmissionsERC20 is
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
-        return AllStandardOps.dispatchTableBytes();
+        return AllStandardOps.fnPtrs();
     }
 
     /// Calculates the claim without processing it.
@@ -121,7 +123,9 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        State memory state_ = LibState.fromBytes(SSTORE2.read(vmStatePointer));
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
         bytes memory context_ = new bytes(0x20);
         uint256 claimantContext_ = uint256(uint160(claimant_));
         assembly {

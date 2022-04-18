@@ -5,35 +5,6 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "hardhat/console.sol";
 
-type DispatchTable is uint256;
-
-library LibDispatchTable {
-    function fromBytes(bytes memory dispatchTableBytes_)
-        internal
-        pure
-        returns (DispatchTable)
-    {
-        DispatchTable dispatchTable_;
-        assembly {
-            dispatchTable_ := add(dispatchTableBytes_, 0x20)
-        }
-        return dispatchTable_;
-    }
-
-    /// ONLY safe to use on a dispatch table built with `fromBytes`
-    function toBytes(DispatchTable dispatchTable_)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        bytes memory fnPtrs_;
-        assembly {
-            fnPtrs_ := sub(dispatchTable_, 0x20)
-        }
-        return fnPtrs_;
-    }
-}
-
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -55,37 +26,27 @@ library LibDispatchTable {
 struct State {
     uint256 stackIndex;
     uint256[] stack;
-    bytes[] ptrSources;
+    bytes[] sources;
     uint256[] constants;
     /// `ZIPMAP` populates arguments into constants which can be copied to the
     /// stack by `VAL` as usual, starting from this index. This copying is
     /// destructive so it is recommended to leave space in the constants array.
     uint256 argumentsIndex;
-    // bytes fnPtrs;
-}
-
-struct StatePacked {
-    uint256 indexes;
-    bytes[] ptrSources;
-    uint256[] constants;
+    bytes fnPtrsPacked;
 }
 
 library LibState {
-    function toBytes(State memory state_) internal pure returns (bytes memory) {
-        return abi.encode(state_);
-    }
-
-    function fromBytes(bytes memory stateBytes_)
+    function toBytesDebug(State memory state_)
         internal
         pure
-        returns (State memory)
+        returns (bytes memory)
     {
-        return abi.decode(stateBytes_, (State));
+        return abi.encode(state_);
     }
 
     function fromBytesPacked(bytes memory stateBytes_)
         internal
-        view
+        pure
         returns (State memory)
     {
         unchecked {
@@ -102,25 +63,37 @@ library LibState {
             // Stack index 0 is implied.
             state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
             state_.argumentsIndex = (indexes_ >> 16) & 0xFF;
-            uint256 ptrSourcesLen_ = (indexes_ >> 24) & 0xFF;
-            bytes[] memory ptrSources_ = new bytes[](ptrSourcesLen_);
+            uint256 sourcesLen_ = (indexes_ >> 24) & 0xFF;
+            bytes[] memory sources_ = new bytes[](sourcesLen_);
 
             assembly {
-                let ptrSourcesStart_ := add(
+                let sourcesStart_ := add(
                     stateBytes_,
-                    add(0x40, mul(0x20, mload(add(stateBytes_, 0x20))))
+                    add(
+                        // 0x40 for constants and sources array length
+                        0x40,
+                        // skip over length of constants
+                        mul(0x20, mload(add(stateBytes_, 0x20)))
+                    )
                 )
-                let ptr_ := ptrSourcesStart_
+                let cursor_ := sourcesStart_
 
                 for {
                     let i_ := 0
-                } lt(i_, ptrSourcesLen_) {
+                } lt(i_, sourcesLen_) {
                     i_ := add(i_, 1)
                 } {
-                    mstore(add(ptrSources_, add(0x20, mul(i_, 0x20))), ptr_)
-                    ptr_ := add(ptr_, add(0x20, mload(ptr_)))
+                    // sources_ is a dynamic array so it is a list of
+                    // pointers that can be set literally to the cursor_
+                    mstore(add(sources_, add(0x20, mul(i_, 0x20))), cursor_)
+                    // move the cursor by the length of the source in bytes
+                    cursor_ := add(cursor_, add(0x20, mload(cursor_)))
                 }
-                mstore(add(state_, 0x40), ptrSources_)
+                // point state at sources_ rather than clone in memory
+                mstore(add(state_, 0x40), sources_)
+                // point state at the cursor to pick up the packedFnPtrs at the
+                // end of the sources.
+                mstore(add(state_, 0xA0), cursor_)
             }
             return state_;
         }
@@ -138,23 +111,23 @@ library LibState {
             uint256 indexes_ = state_.constants.length |
                 (state_.stack.length << 8) |
                 (state_.argumentsIndex << 16) |
-                (state_.ptrSources.length << 24);
-            for (uint256 i_ = 0; i_ < state_.ptrSources.length; i_++) {
-                indexes_ |=
-                    (state_.ptrSources[i_].length / 3) <<
-                    (8 * (i_ + 4));
-            }
+                (state_.sources.length << 24);
             bytes memory ret_ = bytes.concat(
                 bytes32(indexes_),
                 abi.encodePacked(constants_)
             );
-            for (uint256 i_ = 0; i_ < state_.ptrSources.length; i_++) {
+            for (uint256 i_ = 0; i_ < state_.sources.length; i_++) {
                 ret_ = bytes.concat(
                     ret_,
-                    bytes32(state_.ptrSources[i_].length),
-                    state_.ptrSources[i_]
+                    bytes32(state_.sources[i_].length),
+                    state_.sources[i_]
                 );
             }
+            ret_ = bytes.concat(
+                ret_,
+                bytes32(state_.fnPtrsPacked.length),
+                state_.fnPtrsPacked
+            );
             return ret_;
         }
     }
@@ -237,9 +210,23 @@ uint256 constant RAIN_VM_OPS_LENGTH = 6;
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
     using Math for uint256;
-    using LibDispatchTable for DispatchTable;
+    // using LibDispatchTable for DispatchTable;
+
+    uint256 private immutable integrityHash;
+
+    constructor(bytes memory fnPtrsPacked_) {
+        integrityHash = uint256(keccak256(fnPtrsPacked_));
+    }
 
     function fnPtrs() public pure virtual returns (bytes memory);
+
+    function checkIntegrity(bytes memory fnPtrsPacked_)
+        internal
+        view
+        returns (bool)
+    {
+        return integrityHash == uint256(keccak256(fnPtrsPacked_));
+    }
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -379,6 +366,7 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
+            require(checkIntegrity(state_.fnPtrsPacked), "INTEGRITY");
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
@@ -387,6 +375,7 @@ abstract contract RainVM {
             uint256 constantsBottomLocation_;
             uint256 stackBottomLocation_;
             uint256 stackTopLocation_;
+            uint firstFnPtrLocation_;
 
             assembly {
                 let stackLocation_ := mload(add(state_, 0x20))
@@ -404,16 +393,16 @@ abstract contract RainVM {
                 )
                 sourceLen_ := mload(sourceLocation_)
                 constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
+                // first fn pointer is seen if we move two bytes into the data.
+                firstFnPtrLocation_ := add(mload(add(state_, 0xA0)), 0x02)
             }
 
             // Loop until complete.
             while (i_ < sourceLen_) {
-                uint256 x_;
                 assembly {
-                    i_ := add(i_, 3)
+                    i_ := add(i_, 2)
                     let op_ := mload(add(sourceLocation_, i_))
-                    x_ := op_
-                    opcode_ := shr(8, and(op_, 0xFFFF00))
+                    opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
                 }
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
@@ -469,12 +458,12 @@ abstract contract RainVM {
                             operand_
                         );
                     } else {
-                        console.logBytes(LibState.toBytes(state_));
+                        console.logBytes(LibState.toBytesDebug(state_));
                     }
                 } else {
                     function(uint256, uint256) view returns (uint256) fn_;
                     assembly {
-                        fn_ := opcode_
+                        fn_ := and(mload(add(firstFnPtrLocation_, mul(opcode_, 2))), 0xFFFF)
                     }
                     stackTopLocation_ = fn_(operand_, stackTopLocation_);
                 }

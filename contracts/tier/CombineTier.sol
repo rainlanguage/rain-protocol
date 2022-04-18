@@ -21,12 +21,14 @@ uint256 constant SOURCE_INDEX = 0;
 contract CombineTier is ReadOnlyTier, RainVM, Initializable {
     address private vmStatePointer;
 
+    constructor(bytes memory fnPtrs_) RainVM(fnPtrs_) {}
+
     function initialize(bytes calldata stateBytes_) external initializer {
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
-        return AllStandardOps.dispatchTableBytes();
+        return AllStandardOps.fnPtrs();
     }
 
     /// @inheritdoc ITier
@@ -37,7 +39,9 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
         override
         returns (uint256)
     {
-        State memory state_ = LibState.fromBytes(SSTORE2.read(vmStatePointer));
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
         bytes memory context_ = new bytes(0x20);
         uint256 accountContext_ = uint256(uint160(account_));
         assembly {

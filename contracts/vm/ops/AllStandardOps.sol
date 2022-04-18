@@ -82,7 +82,7 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = IERC1155_OPS_START +
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
-    using LibDispatchTable for DispatchTable;
+    // using LibDispatchTable for DispatchTable;
 
     function stackIndexDiff(uint256 opcode_, uint256 operand_)
         internal
@@ -121,21 +121,35 @@ library AllStandardOps {
         }
     }
 
-    function dispatchTableBytes() internal pure returns (bytes memory) {
+    function fnPtrs() internal pure returns (bytes memory) {
         unchecked {
             uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
             function(uint256, uint256) view returns (uint256) zeroFn_;
+            assembly {
+                // using zero bytes in the fnPtrs array may save gas in certain
+                // contexts.
+                zeroFn_ := 0
+            }
             function(uint256, uint256)
                 view
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory fns_ = [
+                    // will be overridden with length
                     zeroFn_,
+                    // placeholders for core ops
+                    // constant
                     zeroFn_,
+                    // stack
                     zeroFn_,
+                    // context
                     zeroFn_,
+                    // storage
                     zeroFn_,
+                    // zipmap
                     zeroFn_,
+                    // debug
                     zeroFn_,
+                    // dispatchable ops
                     EVMConstantOps.number,
                     EVMConstantOps.timestamp,
                     EVMConstantOps.caller,
