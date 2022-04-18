@@ -6,12 +6,12 @@ import "./AllStandardOps.sol";
 
 contract AllStandardOpsMeta is VMMeta {
     /// @inheritdoc VMMeta
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+    function stackIndexDiffFnPtrs()
         public
         pure
         override
-        returns (int256)
+        returns (bytes memory)
     {
-        return AllStandardOps.stackIndexDiff(opcode_, operand_);
+        return AllStandardOps.stackIndexDiffFnPtrs();
     }
 }

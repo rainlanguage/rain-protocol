@@ -39,13 +39,7 @@ uint256 constant MATH_OPS_LENGTH = 11;
 library MathOps {
     using SaturatingMath for uint256;
 
-    error MathOverflow();
-
-    function stackIndexDiff(uint256, uint256 operand_)
-        internal
-        pure
-        returns (int256)
-    {
+    function stackIndexDiff(uint256 operand_) internal pure returns (int256) {
         // Zero length math ops not supported.
         require(operand_ > 0, "BAD_MATH_OPERAND");
         // All operations take operand_ as length inputs and have 1 output.

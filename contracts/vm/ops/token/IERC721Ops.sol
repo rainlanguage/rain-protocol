@@ -5,20 +5,9 @@ import {State} from "../../RainVM.sol";
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-/// @dev Opcode for `IERC721` `balanceOf`.
-uint256 constant OPCODE_IERC721_BALANCE_OF = 0;
-/// @dev Opcode for `IERC721` `ownerOf`.
-uint256 constant OPCODE_IERC721_OWNER_OF = 1;
-/// @dev Number of provided opcodes for `IERC721Ops`.
-uint256 constant IERC721_OPS_LENGTH = 2;
-
 /// @title IERC721Ops
 /// @notice RainVM opcode pack to read the IERC721 interface.
 library IERC721Ops {
-    function stackIndexDiff(uint256, uint256) internal pure returns (int256) {
-        return -1;
-    }
-
     // Stack the return of `balanceOf`.
     function balanceOf(uint256, uint256 stackTopLocation_)
         internal

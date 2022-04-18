@@ -11,113 +11,168 @@ import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
 import "./tier/TierOps.sol";
 
-uint256 constant ALL_STANDARD_OPS_START = RAIN_VM_OPS_LENGTH;
-
-uint256 constant FP_MATH_OPS_START = ALL_STANDARD_OPS_START +
-    EVM_CONSTANT_OPS_LENGTH;
-uint256 constant FP_MATH_OPCODE_SCALE18_MUL = FP_MATH_OPS_START +
-    OPCODE_SCALE18_MUL;
-uint256 constant FP_MATH_OPCODE_SCALE18_DIV = FP_MATH_OPS_START +
-    OPCODE_SCALE18_DIV;
-uint256 constant FP_MATH_OPCODE_SCALE18 = FP_MATH_OPS_START + OPCODE_SCALE18;
-uint256 constant FP_MATH_OPCODE_SCALEN = FP_MATH_OPS_START + OPCODE_SCALEN;
-uint256 constant FP_MATH_OPCODE_SCALE_BY = FP_MATH_OPS_START + OPCODE_SCALE_BY;
-
-uint256 constant MATH_OPS_START = FP_MATH_OPS_START +
-    FIXED_POINT_MATH_OPS_LENGTH;
-uint256 constant MATH_OPCODE_ADD = MATH_OPS_START + OPCODE_ADD;
-uint256 constant MATH_OPCODE_SATURATING_ADD = MATH_OPS_START +
-    OPCODE_SATURATING_ADD;
-uint256 constant MATH_OPCODE_SUB = MATH_OPS_START + OPCODE_SUB;
-uint256 constant MATH_OPCODE_SATURATING_SUB = MATH_OPS_START +
-    OPCODE_SATURATING_SUB;
-uint256 constant MATH_OPCODE_MUL = MATH_OPS_START + OPCODE_MUL;
-uint256 constant MATH_OPCODE_SATURATING_MUL = MATH_OPS_START +
-    OPCODE_SATURATING_MUL;
-uint256 constant MATH_OPCODE_DIV = MATH_OPS_START + OPCODE_DIV;
-uint256 constant MATH_OPCODE_MOD = MATH_OPS_START + OPCODE_MOD;
-uint256 constant MATH_OPCODE_EXP = MATH_OPS_START + OPCODE_EXP;
-uint256 constant MATH_OPCODE_MIN = MATH_OPS_START + OPCODE_MIN;
-uint256 constant MATH_OPCODE_MAX = MATH_OPS_START + OPCODE_MAX;
-
-uint256 constant LOGIC_OPS_START = MATH_OPS_START + MATH_OPS_LENGTH;
-uint256 constant LOGIC_OPCODE_ISZERO = LOGIC_OPS_START + OPCODE_ISZERO;
-uint256 constant LOGIC_OPCODE_EAGER_IF = LOGIC_OPS_START + OPCODE_EAGER_IF;
-uint256 constant LOGIC_OPCODE_EQUAL_TO = LOGIC_OPS_START + OPCODE_EQUAL_TO;
-uint256 constant LOGIC_OPCODE_LESS_THAN = LOGIC_OPS_START + OPCODE_LESS_THAN;
-uint256 constant LOGIC_OPCODE_GREATER_THAN = LOGIC_OPS_START +
-    OPCODE_GREATER_THAN;
-uint256 constant LOGIC_OPCODE_EVERY = LOGIC_OPS_START + OPCODE_EVERY;
-uint256 constant LOGIC_OPCODE_ANY = LOGIC_OPS_START + OPCODE_ANY;
-
-uint256 constant TIER_OPS_START = LOGIC_OPS_START + LOGIC_OPS_LENGTH;
-uint256 constant TIER_OPCODE_REPORT = TIER_OPS_START + OPCODE_REPORT;
-uint256 constant TIER_OPCODE_SATURATING_DIFF = TIER_OPS_START +
-    OPCODE_SATURATING_DIFF;
-uint256 constant TIER_OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE = TIER_OPS_START +
-    OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE;
-uint256 constant TIER_OPCODE_SELECT_LTE = TIER_OPS_START + OPCODE_SELECT_LTE;
-
-uint256 constant IERC20_OPS_START = TIER_OPS_START + TIER_OPS_LENGTH;
-uint256 constant IERC20_OPCODE_IERC20_BALANCE_OF = IERC20_OPS_START +
-    OPCODE_IERC20_BALANCE_OF;
-uint256 constant IERC20_OPCODE_IERC20_TOTAL_SUPPLY = IERC20_OPS_START +
-    OPCODE_IERC20_TOTAL_SUPPLY;
-
-uint256 constant IERC721_OPS_START = IERC20_OPS_START + IERC20_OPS_LENGTH;
-uint256 constant IERC721_OPCODE_IERC721_BALANCE_OF = IERC721_OPS_START +
-    OPCODE_IERC721_BALANCE_OF;
-uint256 constant IERC721_OPCODE_IERC721_OWNER_OF = IERC721_OPS_START +
-    OPCODE_IERC721_OWNER_OF;
-
-uint256 constant IERC1155_OPS_START = IERC721_OPS_START + IERC721_OPS_LENGTH;
-uint256 constant IERC1155_OPCODE_IERC1155_BALANCE_OF = IERC1155_OPS_START +
-    OPCODE_IERC1155_BALANCE_OF;
-uint256 constant IERC1155_OPCODE_IERC1155_BALANCE_OF_BATCH = IERC1155_OPS_START +
-    OPCODE_IERC1155_BALANCE_OF_BATCH;
-
-uint256 constant ALL_STANDARD_OPS_LENGTH = IERC1155_OPS_START +
-    IERC1155_OPS_LENGTH;
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 37;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
     // using LibDispatchTable for DispatchTable;
 
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
-        internal
-        pure
-        returns (int256)
-    {
-        if (opcode_ < FP_MATH_OPS_START) {
-            return EVMConstantOps.stackIndexDiff(opcode_, operand_);
-        } else if (opcode_ < MATH_OPS_START) {
-            return
-                FixedPointMathOps.stackIndexDiff(
-                    opcode_ - FP_MATH_OPS_START,
-                    operand_
-                );
-        } else if (opcode_ < LOGIC_OPS_START) {
-            return MathOps.stackIndexDiff(opcode_ - MATH_OPS_START, operand_);
-        } else if (opcode_ < TIER_OPS_START) {
-            return LogicOps.stackIndexDiff(opcode_ - LOGIC_OPS_START, operand_);
-        } else if (opcode_ < IERC20_OPS_START) {
-            return TierOps.stackIndexDiff(opcode_ - TIER_OPS_START, operand_);
-        } else if (opcode_ < IERC721_OPS_START) {
-            return
-                IERC20Ops.stackIndexDiff(opcode_ - IERC20_OPS_START, operand_);
-        } else if (opcode_ < IERC1155_OPS_START) {
-            return
-                IERC721Ops.stackIndexDiff(
-                    opcode_ - IERC721_OPS_START,
-                    operand_
-                );
-        } else {
-            return
-                IERC1155Ops.stackIndexDiff(
-                    opcode_ - IERC1155_OPS_START,
-                    operand_
-                );
+    // function stackIndexDiff(uint256 opcode_, uint256 operand_)
+    //     internal
+    //     pure
+    //     returns (int256)
+    // {
+    //     if (opcode_ < FP_MATH_OPS_START) {
+    //         return EVMConstantOps.stackIndexDiff(opcode_, operand_);
+    //     } else if (opcode_ < MATH_OPS_START) {
+    //         return
+    //             FixedPointMathOps.stackIndexDiff(
+    //                 opcode_ - FP_MATH_OPS_START,
+    //                 operand_
+    //             );
+    //     } else if (opcode_ < LOGIC_OPS_START) {
+    //         return MathOps.stackIndexDiff(opcode_ - MATH_OPS_START, operand_);
+    //     } else if (opcode_ < TIER_OPS_START) {
+    //         return LogicOps.stackIndexDiff(opcode_ - LOGIC_OPS_START, operand_);
+    //     } else if (opcode_ < IERC20_OPS_START) {
+    //         return TierOps.stackIndexDiff(opcode_ - TIER_OPS_START, operand_);
+    //     } else if (opcode_ < IERC721_OPS_START) {
+    //         return
+    //             IERC20Ops.stackIndexDiff(opcode_ - IERC20_OPS_START, operand_);
+    //     } else if (opcode_ < IERC1155_OPS_START) {
+    //         return
+    //             IERC721Ops.stackIndexDiff(
+    //                 opcode_ - IERC721_OPS_START,
+    //                 operand_
+    //             );
+    //     } else {
+    //         return
+    //             IERC1155Ops.stackIndexDiff(
+    //                 opcode_ - IERC1155_OPS_START,
+    //                 operand_
+    //             );
+    //     }
+    // }
+
+    function stackIndexDiffNegTwo(uint256) internal pure returns (int256) {
+        return -2;
+    }
+
+    function stackIndexDiffNegOne(uint256) internal pure returns (int256) {
+        return -1;
+    }
+
+    function stackIndexDiffZero(uint256) internal pure returns (int256) {
+        return 0;
+    }
+
+    function stackIndexDiffOne(uint256) internal pure returns (int256) {
+        return 1;
+    }
+
+    function stackIndexDiffFnPtrs() internal pure returns (bytes memory) {
+        unchecked {
+            uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
+            function(uint256) pure returns (int256)[ALL_STANDARD_OPS_LENGTH + 1]
+                memory fns_ = [
+                    // will be overriden with length
+                    stackIndexDiffZero,
+                    // constant
+                    stackIndexDiffOne,
+                    // stack
+                    stackIndexDiffOne,
+                    // context
+                    stackIndexDiffOne,
+                    // storage
+                    stackIndexDiffOne,
+                    // zipmap
+                    // This will be ignored by the analyzer as zipmap is a special
+                    // case.
+                    stackIndexDiffZero,
+                    // debug
+                    stackIndexDiffZero,
+                    // block number
+                    stackIndexDiffOne,
+                    // timestamp
+                    stackIndexDiffOne,
+                    // caller
+                    stackIndexDiffOne,
+                    // this address
+                    stackIndexDiffOne,
+                    // scale18 mul
+                    stackIndexDiffNegOne,
+                    // scale18 div
+                    stackIndexDiffNegOne,
+                    // scale18
+                    stackIndexDiffZero,
+                    // scaleN
+                    stackIndexDiffZero,
+                    // scaleBy
+                    stackIndexDiffZero,
+                    // add
+                    MathOps.stackIndexDiff,
+                    // saturating add
+                    MathOps.stackIndexDiff,
+                    // sub
+                    MathOps.stackIndexDiff,
+                    // saturating sub
+                    MathOps.stackIndexDiff,
+                    // mul
+                    MathOps.stackIndexDiff,
+                    // saturating mul
+                    MathOps.stackIndexDiff,
+                    // div
+                    MathOps.stackIndexDiff,
+                    // mod
+                    MathOps.stackIndexDiff,
+                    // exp
+                    MathOps.stackIndexDiff,
+                    // min
+                    MathOps.stackIndexDiff,
+                    // max
+                    MathOps.stackIndexDiff,
+                    // iszero
+                    stackIndexDiffZero,
+                    // eager if
+                    stackIndexDiffNegTwo,
+                    // equal to
+                    stackIndexDiffNegOne,
+                    // less than
+                    stackIndexDiffNegOne,
+                    // greater than
+                    stackIndexDiffNegOne,
+                    // every
+                    LogicOps.stackIndexDiffEveryAny,
+                    // any
+                    LogicOps.stackIndexDiffEveryAny,
+                    // tier report
+                    stackIndexDiffNegOne,
+                    // tier saturating diff
+                    stackIndexDiffNegOne,
+                    // update blocks for tier range
+                    stackIndexDiffNegOne,
+                    // select lte
+                    TierOps.stackIndexDiffSelectLte,
+                    // ierc20 balance of
+                    stackIndexDiffNegOne,
+                    // ierc20 total supply
+                    stackIndexDiffZero,
+                    // ierc721 balance of
+                    stackIndexDiffNegOne,
+                    // ierc721 owner of
+                    stackIndexDiffNegOne,
+                    // ierc1155 balance of
+                    stackIndexDiffNegTwo,
+                    // ierc1155 balance of batch
+                    IERC1155Ops.stackIndexDiffBalanceOfBatch
+                ];
+            bytes memory ret_;
+            assembly {
+                mstore(fns_, lenBytes_)
+                ret_ := fns_
+            }
+            return ret_;
         }
     }
 

@@ -2,6 +2,7 @@
 pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../math/SaturatingMath.sol";
 
 import "hardhat/console.sol";
 
@@ -133,6 +134,8 @@ library LibState {
     }
 }
 
+string constant ERROR_OPCODE_LENGTH = "0";
+
 /// @dev Copies a value either off `constants` to the top of the stack.
 uint256 constant OPCODE_CONSTANT = 0;
 /// @dev Duplicates any value in the stack to the top of the stack. The operand
@@ -210,11 +213,22 @@ uint256 constant RAIN_VM_OPS_LENGTH = 6;
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
     using Math for uint256;
-    // using LibDispatchTable for DispatchTable;
+    using SaturatingMath for uint256;
 
+    error OddFnPtrs();
+    error FnPtrsIntegrity();
+    error OpcodeOutOfBounds();
+
+    uint256 private immutable maxOpcode;
     uint256 private immutable integrityHash;
+    uint private immutable opcodesLength;
 
     constructor(bytes memory fnPtrsPacked_) {
+        if (fnPtrsPacked_.length % 2 > 0) {
+            revert OddFnPtrs();
+        }
+        opcodesLength = fnPtrsPacked_.length / 2;
+        maxOpcode = (fnPtrsPacked_.length / 2).saturatingSub(1);
         integrityHash = uint256(keccak256(fnPtrsPacked_));
     }
 
@@ -366,7 +380,7 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
-            require(checkIntegrity(state_.fnPtrsPacked), "INTEGRITY");
+            require(checkIntegrity(state_.fnPtrsPacked));
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
@@ -375,7 +389,7 @@ abstract contract RainVM {
             uint256 constantsBottomLocation_;
             uint256 stackBottomLocation_;
             uint256 stackTopLocation_;
-            uint firstFnPtrLocation_;
+            uint256 firstFnPtrLocation_;
 
             assembly {
                 let stackLocation_ := mload(add(state_, 0x20))
@@ -433,6 +447,7 @@ abstract contract RainVM {
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_CONTEXT) {
+                        require(operand_ < context_.length);
                         assembly {
                             mstore(
                                 stackTopLocation_,
@@ -446,6 +461,7 @@ abstract contract RainVM {
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_STORAGE) {
+                        require(operand_ < storageLength);
                         assembly {
                             mstore(stackTopLocation_, sload(operand_))
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
@@ -461,9 +477,14 @@ abstract contract RainVM {
                         console.logBytes(LibState.toBytesDebug(state_));
                     }
                 } else {
+                    // ensure the opcode is not overflowing the fn ptrs.
+                    require(opcode_ < opcodesLength);
                     function(uint256, uint256) view returns (uint256) fn_;
                     assembly {
-                        fn_ := and(mload(add(firstFnPtrLocation_, mul(opcode_, 2))), 0xFFFF)
+                        fn_ := and(
+                            mload(add(firstFnPtrLocation_, mul(opcode_, 2))),
+                            0xFFFF
+                        )
                     }
                     stackTopLocation_ = fn_(operand_, stackTopLocation_);
                 }

@@ -349,10 +349,11 @@ describe("LogicOps Test", async function () {
     const logicUnsafe = (await logicFactory.deploy([])) as AllStandardOpsTest &
       Contract;
     const fnPtrsPacked = await meta.packFnPtrs(await logicUnsafe.fnPtrs());
-    const logic0 = (await logicFactory.deploy(fnPtrsPacked)) as AllStandardOpsTest &
-      Contract;
+    const logic0 = (await logicFactory.deploy(
+      fnPtrsPacked
+    )) as AllStandardOpsTest & Contract;
 
-    assert(await logic0.fnPtrs() == await logicUnsafe.fnPtrs())
+    assert((await logic0.fnPtrs()) == (await logicUnsafe.fnPtrs()));
 
     const constants = [0, 1];
 
@@ -424,6 +425,9 @@ describe("LogicOps Test", async function () {
       stateConfig0,
       0
     );
+
+    console.log(source0);
+    console.log(stateBytes0);
 
     await logic0.initialize(stateBytes0);
 

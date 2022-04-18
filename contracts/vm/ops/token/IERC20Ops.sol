@@ -5,28 +5,9 @@ import {State} from "../../RainVM.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-/// @dev Opcode for `IERC20` `balanceOf`.
-uint256 constant OPCODE_IERC20_BALANCE_OF = 0;
-/// @dev Opcode for `IERC20` `totalSupply`.
-uint256 constant OPCODE_IERC20_TOTAL_SUPPLY = 1;
-/// @dev Number of provided opcodes for `IERC20Ops`.
-uint256 constant IERC20_OPS_LENGTH = 2;
-
 /// @title IERC20Ops
 /// @notice RainVM opcode pack to read the IERC20 interface.
 library IERC20Ops {
-    function stackIndexDiff(uint256 opcode_, uint256)
-        internal
-        pure
-        returns (int256)
-    {
-        if (opcode_ == OPCODE_IERC20_BALANCE_OF) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
-
     // Stack the return of `balanceOf`.
     function balanceOf(uint256, uint256 stackTopLocation_)
         internal

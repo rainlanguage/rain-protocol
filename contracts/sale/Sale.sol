@@ -6,7 +6,7 @@ import {Cooldown} from "../cooldown/Cooldown.sol";
 import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
-import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
+import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
 //solhint-disable-next-line max-line-length

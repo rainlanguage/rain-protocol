@@ -3,16 +3,6 @@ pragma solidity =0.8.10;
 
 import {State} from "../../RainVM.sol";
 
-uint256 constant OPCODE_ISZERO = 0;
-uint256 constant OPCODE_EAGER_IF = 1;
-uint256 constant OPCODE_EQUAL_TO = 2;
-uint256 constant OPCODE_LESS_THAN = 3;
-uint256 constant OPCODE_GREATER_THAN = 4;
-uint256 constant OPCODE_EVERY = 5;
-uint256 constant OPCODE_ANY = 6;
-
-import "hardhat/console.sol";
-
 /// @dev Number of provided opcodes for `LogicOps`.
 /// The opcodes are NOT listed on the library as they are all internal to
 /// the assembly and yul doesn't seem to support using solidity constants
@@ -22,26 +12,15 @@ uint256 constant LOGIC_OPS_LENGTH = 7;
 /// @title LogicOps
 /// @notice RainVM opcode pack to perform some basic logic operations.
 library LogicOps {
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+    function stackIndexDiffEveryAny(uint256 operand_)
         internal
         pure
         returns (int256)
     {
-        if (opcode_ == OPCODE_ISZERO) {
-            // ISZERO negates a value in place.
-            return 0;
-        } else if (opcode_ == OPCODE_EAGER_IF) {
-            // Ternary IF collapses 3 inputs into 1 output.
-            return -2;
-        } else if (opcode_ < OPCODE_EVERY) {
-            // All comparisons collapse 2 inputs into 1 output.
-            return -1;
-        } else {
-            // Zero length EVERY and ANY is not supported.
-            require(operand_ > 0, "BAD_LOGIC_OPERAND");
-            // EVERY and ANY collapse operand_ as length of inputs to 1 output.
-            return 1 - int256(operand_);
-        }
+        // Zero length EVERY and ANY is not supported.
+        require(operand_ > 0, "BAD_LOGIC_OPERAND");
+        // EVERY and ANY collapse operand_ as length of inputs to 1 output.
+        return 1 - int256(operand_);
     }
 
     // ISZERO
@@ -53,8 +32,8 @@ library LogicOps {
         assembly {
             // The index doesn't change for iszero as there is
             // one input and output.
-            let location_ := sub(stackTopLocation_, 0x20)
-            mstore(location_, iszero(mload(location_)))
+            // let location_ := sub(stackTopLocation_, 0x20)
+            // mstore(location_, iszero(mload(location_)))
         }
         return stackTopLocation_;
     }

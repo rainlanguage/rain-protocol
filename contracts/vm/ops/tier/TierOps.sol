@@ -5,17 +5,6 @@ import {State} from "../../RainVM.sol";
 import "../../../tier/libraries/TierReport.sol";
 import "../../../tier/libraries/TierwiseCombine.sol";
 
-/// @dev Opcode to call `report` on an `ITier` contract.
-uint256 constant OPCODE_REPORT = 0;
-/// @dev Opcode to calculate the tierwise diff of two reports.
-uint256 constant OPCODE_SATURATING_DIFF = 1;
-/// @dev Opcode to update the blocks over a range of tiers for a report.
-uint256 constant OPCODE_UPDATE_BLOCKS_FOR_TIER_RANGE = 2;
-/// @dev Opcode to tierwise select the best block lte a reference block.
-uint256 constant OPCODE_SELECT_LTE = 3;
-/// @dev Number of provided opcodes for `TierOps`.
-uint256 constant TIER_OPS_LENGTH = 4;
-
 /// @title TierOps
 /// @notice RainVM opcode pack to operate on tier reports.
 /// The opcodes all map to functions from `ITier` and associated libraries such
@@ -23,22 +12,14 @@ uint256 constant TIER_OPS_LENGTH = 4;
 /// order of consumed values on the stack corresponds to the order of arguments
 /// to interface/library functions.
 library TierOps {
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
+    function stackIndexDiffSelectLte(uint256 operand_)
         internal
         pure
         returns (int256)
     {
-        if (opcode_ == OPCODE_REPORT) {
-            return -1;
-        } else if (opcode_ < OPCODE_SATURATING_DIFF) {
-            return 1;
-        } else if (opcode_ < OPCODE_SELECT_LTE) {
-            return -1;
-        } else {
-            uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
-            require(reportsLength_ > 0, "BAD_OPERAND");
-            return 1 - int256(reportsLength_);
-        }
+        uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
+        require(reportsLength_ > 0, "BAD_OPERAND");
+        return 1 - int256(reportsLength_);
     }
 
     // Stack the report returned by an `ITier` contract.

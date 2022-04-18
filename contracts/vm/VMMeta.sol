@@ -22,11 +22,11 @@ struct SourceAnalysis {
 contract VMMeta {
     using Math for uint256;
 
-    /// A new shapshot has been deployed onchain.
-    /// @param sender `msg.sender` of the deployer.
-    /// @param pointer Pointer to the onchain snapshot contract.
-    /// @param state `State` of the snapshot that was deployed.
-    event Snapshot(address sender, address pointer, State state);
+    // /// A new shapshot has been deployed onchain.
+    // /// @param sender `msg.sender` of the deployer.
+    // /// @param pointer Pointer to the onchain snapshot contract.
+    // /// @param state `State` of the snapshot that was deployed.
+    // event Snapshot(address sender, address pointer, State state);
 
     /// Builds a new `State` bytes from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
@@ -44,10 +44,6 @@ contract VMMeta {
         for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
             constants_[i_] = config_.constants[i_];
         }
-        // bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
-        // for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-        //     ptrSources_[i_] = ptrSource(vm_, config_.sources[i_]);
-        // }
         return
             LibState.toBytesPacked(
                 State(
@@ -85,62 +81,6 @@ contract VMMeta {
         return fnPtrsPacked_;
     }
 
-    // function ptrSource(address vm_, bytes memory source_)
-    //     public
-    //     view
-    //     returns (bytes memory)
-    // {
-    //     unchecked {
-    //         uint256 sourceLen_ = source_.length;
-    //         require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
-
-    //         bytes memory fnPtrs_ = RainVM(vm_).fnPtrs();
-    //         bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
-
-    //         uint256 rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
-    //         assembly {
-    //             let start_ := 1
-    //             let end_ := add(sourceLen_, 1)
-    //             for {
-    //                 let i_ := start_
-    //                 let o_ := 0
-    //             } lt(i_, end_) {
-    //                 i_ := add(i_, 1)
-    //             } {
-    //                 let op_ := byte(31, mload(add(source_, i_)))
-    //                 // is opcode
-    //                 if mod(i_, 2) {
-    //                     // core ops simply zero pad.
-    //                     if lt(op_, rainVMOpsLength_) {
-    //                         o_ := add(o_, 1)
-    //                         mstore8(add(ptrSource_, add(0x20, o_)), op_)
-    //                     }
-    //                     if iszero(lt(op_, rainVMOpsLength_)) {
-    //                         let fn_ := mload(
-    //                             add(fnPtrs_, add(0x20, mul(op_, 0x20)))
-    //                         )
-    //                         mstore8(
-    //                             add(ptrSource_, add(0x20, o_)),
-    //                             byte(30, fn_)
-    //                         )
-    //                         o_ := add(o_, 1)
-    //                         mstore8(
-    //                             add(ptrSource_, add(0x20, o_)),
-    //                             byte(31, fn_)
-    //                         )
-    //                     }
-    //                 }
-    //                 // is operand
-    //                 if iszero(mod(i_, 2)) {
-    //                     mstore8(add(ptrSource_, add(0x20, o_)), op_)
-    //                 }
-    //                 o_ := add(o_, 1)
-    //             }
-    //         }
-    //         return ptrSource_;
-    //     }
-    // }
-
     function _newSourceAnalysis()
         internal
         pure
@@ -153,7 +93,7 @@ contract VMMeta {
         SourceAnalysis memory sourceAnalysis_,
         bytes[] memory sources_,
         uint256 operand_
-    ) private pure {
+    ) private view {
         uint256 valLength_ = (operand_ >> 5) + 1;
         sourceAnalysis_.argumentsUpperBound = sourceAnalysis_
             .argumentsUpperBound
@@ -169,23 +109,24 @@ contract VMMeta {
         SourceAnalysis memory sourceAnalysis_,
         bytes[] memory sources_,
         uint256 entrypoint_
-    ) public pure returns (SourceAnalysis memory) {
+    ) public view returns (SourceAnalysis memory) {
         unchecked {
             require(sources_.length > entrypoint_, "MIN_SOURCES");
+            bytes memory stackIndexDiffFns_ = stackIndexDiffFnPtrs();
             uint256 i_ = 0;
             uint256 sourceLen_;
             uint256 opcode_;
             uint256 operand_;
             uint256 sourceLocation_;
-            uint256 d_;
+            uint256 firstPtrLocation_;
 
             assembly {
-                d_ := mload(add(sources_, 0x20))
                 sourceLocation_ := mload(
                     add(sources_, add(0x20, mul(entrypoint_, 0x20)))
                 )
 
                 sourceLen_ := mload(sourceLocation_)
+                firstPtrLocation_ := add(stackIndexDiffFns_, 0x20)
             }
 
             while (i_ < sourceLen_) {
@@ -196,17 +137,16 @@ contract VMMeta {
                     operand_ := byte(31, op_)
                 }
 
-                if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ < OPCODE_ZIPMAP) {
-                        sourceAnalysis_.stackIndex++;
-                    } else {
-                        analyzeZipmap(sourceAnalysis_, sources_, operand_);
-                    }
+                if (opcode_ == OPCODE_ZIPMAP) {
+                    analyzeZipmap(sourceAnalysis_, sources_, operand_);
                 } else {
-                    sourceAnalysis_.stackIndex += stackIndexDiff(
-                        opcode_,
-                        operand_
-                    );
+                    function(uint256) pure returns (int256) fn_;
+                    uint256 x_;
+                    assembly {
+                        fn_ := mload(add(firstPtrLocation_, mul(opcode_, 0x20)))
+                        x_ := fn_
+                    }
+                    sourceAnalysis_.stackIndex += fn_(operand_);
                 }
                 require(sourceAnalysis_.stackIndex >= 0, "STACK_UNDERFLOW");
                 sourceAnalysis_.stackUpperBound = sourceAnalysis_
@@ -218,10 +158,10 @@ contract VMMeta {
         }
     }
 
-    function stackIndexDiff(uint256 opcode_, uint256)
+    function stackIndexDiffFnPtrs()
         public
         pure
         virtual
-        returns (int256)
+        returns (bytes memory)
     {}
 }
