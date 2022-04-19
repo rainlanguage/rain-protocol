@@ -25,10 +25,20 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
     address private immutable vmStateBuilder;
     address private vmStatePointer;
 
-    constructor(address vmStateBuilder_) { self = address(this); vmStateBuilder = vmStateBuilder_; }
+    constructor(address vmStateBuilder_) {
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
+    }
 
-    function initialize(StateConfig calldata sourceConfig_) external initializer {
-        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(self, sourceConfig_, ENTRYPOINT);
+    function initialize(StateConfig calldata sourceConfig_)
+        external
+        initializer
+    {
+        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            sourceConfig_,
+            ENTRYPOINT
+        );
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 

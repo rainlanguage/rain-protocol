@@ -149,10 +149,10 @@ uint256 constant OPCODE_DEBUG = 5;
 /// @dev Number of provided opcodes for `RainVM`.
 uint256 constant RAIN_VM_OPS_LENGTH = 6;
 
-uint constant DEBUG_STATE_ABI = 0;
-uint constant DEBUG_STATE_PACKED = 1;
-uint constant DEBUG_STACK = 2;
-uint constant DEBUG_STACK_INDEX = 3;
+uint256 constant DEBUG_STATE_ABI = 0;
+uint256 constant DEBUG_STATE_PACKED = 1;
+uint256 constant DEBUG_STACK = 2;
+uint256 constant DEBUG_STACK_INDEX = 3;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -469,7 +469,6 @@ abstract contract RainVM {
                             debug_ = abi.encodePacked(state_.stackIndex);
                         }
                         if (debug_.length > 0) {
-
                             console.logBytes(debug_);
                         }
                     }

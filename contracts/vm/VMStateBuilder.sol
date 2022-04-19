@@ -156,8 +156,6 @@ contract VMStateBuilder {
                 }
 
                 // Additional integrity checks for core opcodes.
-                // Note that context length check is handled at runtime because
-                // we don't know how long context should be at this point.
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ == OPCODE_CONSTANT) {
                         // trying to read past the end of the constants array.
@@ -175,6 +173,10 @@ contract VMStateBuilder {
                     } else if (opcode_ == OPCODE_STACK) {
                         // trying to read past the current stack top.
                         require(operand_ < bounds_.stackIndex);
+                        bounds_.stackIndex++;
+                    } else if (opcode_ == OPCODE_CONTEXT) {
+                        // Note that context length check is handled at runtime because
+                        // we don't know how long context should be at this point.
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_STORAGE) {
                         // trying to read past allowed storage slots.
@@ -198,7 +200,7 @@ contract VMStateBuilder {
             }
             // Both an overflow or underflow in uint256 space will show up as
             // an upper bound exceeding the uint8 space.
-            require(bounds_.stackLength <= MAX_STACK_LENGTH);
+            require(bounds_.stackLength <= MAX_STACK_LENGTH, "MAX_STACK");
         }
     }
 

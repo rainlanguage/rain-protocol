@@ -13,13 +13,16 @@ uint256 constant ENTRYPOINT = 0;
 /// @title StandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
 contract AllStandardOpsTest is RainVM {
-    address immutable private self;
-    address immutable private vmStateBuilder;
+    address private immutable self;
+    address private immutable vmStateBuilder;
     address private vmStatePointer;
 
     State private _state;
 
-    constructor(address vmStateBuilder_) { self = address(this); vmStateBuilder = vmStateBuilder_;}
+    constructor(address vmStateBuilder_) {
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
+    }
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.

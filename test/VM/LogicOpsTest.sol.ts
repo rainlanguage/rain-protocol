@@ -16,7 +16,9 @@ describe("LogicOps Test", async function () {
   let logic;
   before(async () => {
     this.timeout(0);
-    const stateBuilderFactory = await ethers.getContractFactory("AllStandardOpsMeta");
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsMeta"
+    );
     stateBuilder = await stateBuilderFactory.deploy();
     await stateBuilder.deployed();
 
@@ -24,7 +26,7 @@ describe("LogicOps Test", async function () {
     logic = (await logicFactory.deploy(
       stateBuilder.address
     )) as AllStandardOpsTest & Contract;
-  })
+  });
   it("should check whether any value in a list is non-zero", async () => {
     this.timeout(0);
 
@@ -45,8 +47,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
     await logic.run();
     const result0 = await logic.stackTop();
 
@@ -61,8 +63,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source1],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result1 = await logic.stackTop();
@@ -79,8 +81,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source2],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result2 = await logic.stackTop();
@@ -108,8 +110,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
     await logic.run();
     const result0 = await logic.stackTop();
 
@@ -125,8 +127,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source1],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result1 = await logic.stackTop();
@@ -142,8 +144,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source2],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result2 = await logic.stackTop();
@@ -172,8 +174,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -191,8 +193,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source1],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result1 = await logic.stackTop();
@@ -210,8 +212,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source2],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result2 = await logic.stackTop();
@@ -233,8 +235,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result0 = await logic.stackTop(); // expect 1
@@ -250,8 +252,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source1],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result1 = await logic.stackTop(); // expect 0
@@ -273,8 +275,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result0 = await logic.stackTop(); // expect 0
@@ -290,8 +292,8 @@ describe("LogicOps Test", async function () {
 
     await logic.initialize({
       sources: [source1],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result1 = await logic.stackTop(); // expect 1
@@ -314,7 +316,7 @@ describe("LogicOps Test", async function () {
     await logic.initialize({
       sources: [source0],
       constants,
-    })
+    });
 
     await logic.run();
     const result0 = await logic.stackTop(); // expect 1

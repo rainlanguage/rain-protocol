@@ -17,7 +17,9 @@ describe("CalculatorTestUnchecked", async function () {
   let logic;
   before(async () => {
     this.timeout(0);
-    const stateBuilderFactory = await ethers.getContractFactory("AllStandardOpsMeta");
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsMeta"
+    );
     stateBuilder = await stateBuilderFactory.deploy();
     await stateBuilder.deployed();
 
@@ -25,7 +27,7 @@ describe("CalculatorTestUnchecked", async function () {
     logic = (await logicFactory.deploy(
       stateBuilder.address
     )) as AllStandardOpsTest & Contract;
-  })
+  });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
     this.timeout(0);
@@ -44,8 +46,8 @@ describe("CalculatorTestUnchecked", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -71,8 +73,8 @@ describe("CalculatorTestUnchecked", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -98,8 +100,8 @@ describe("CalculatorTestUnchecked", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -125,8 +127,8 @@ describe("CalculatorTestUnchecked", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
 
     await Util.assertError(
       async () => await logic.run(),

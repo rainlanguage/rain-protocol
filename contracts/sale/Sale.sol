@@ -259,8 +259,12 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         minimumRaise = config_.minimumRaise;
 
         // !! WARNING !! - NEED TO INCLUDE OTHER ENTRYPOINTS HERE!
-        bytes memory vmStateBytes = VMStateBuilder(vmStateBuilder).buildState(self, config_.vmStateConfig, CALCULATE_PRICE_ENTRYPOINT);
-
+        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            config_.vmStateConfig,
+            CALCULATE_PRICE_ENTRYPOINT
+        );
+        vmStatePointer = SSTORE2.write(vmStateBytes_);
         recipient = config_.recipient;
 
         dustSize = config_.dustSize;

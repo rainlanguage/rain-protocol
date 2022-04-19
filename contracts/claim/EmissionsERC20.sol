@@ -56,8 +56,8 @@ contract EmissionsERC20 is
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
 
-    address immutable private self;
-    address immutable private vmStateBuilder;
+    address private immutable self;
+    address private immutable vmStateBuilder;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
@@ -77,7 +77,10 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(address vmStateBuilder_) { self = address(this); vmStateBuilder = vmStateBuilder_; }
+    constructor(address vmStateBuilder_) {
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
+    }
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(EmissionsERC20Config calldata config_)
@@ -90,7 +93,11 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(self, config_.vmStateConfig, ENTRYPOINT);
+        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            config_.vmStateConfig,
+            ENTRYPOINT
+        );
         vmStatePointer = SSTORE2.write(vmStateBytes_);
 
         /// Log some deploy state for use by claim/opcodes.

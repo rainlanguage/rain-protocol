@@ -93,18 +93,18 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN global constants
 
-    const valTierAddress = op(Opcode.VAL, 0);
-    const valBaseRewardPerTier = op(Opcode.VAL, 1);
-    const valBlocksPerYear = op(Opcode.VAL, 2);
-    const valNever = op(Opcode.VAL, 3);
-    const valOne = op(Opcode.VAL, 4);
+    const valTierAddress = op(Opcode.CONSTANT, 0);
+    const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
+    const valBlocksPerYear = op(Opcode.CONSTANT, 2);
+    const valNever = op(Opcode.CONSTANT, 3);
+    const valOne = op(Opcode.CONSTANT, 4);
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const argDuration = op(Opcode.VAL, 5);
-    const argBaseReward = op(Opcode.VAL, 6);
+    const argDuration = op(Opcode.CONSTANT, 5);
+    const argBaseReward = op(Opcode.CONSTANT, 6);
 
     // END zipmap args
 
@@ -366,19 +366,19 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN global constants
 
-    const valTierAddress = op(Opcode.VAL, 0);
-    const valBaseRewardPerTier = op(Opcode.VAL, 1);
-    const valBlocksPerYear = op(Opcode.VAL, 2);
-    const valBNOne = op(Opcode.VAL, 3);
-    const valBNOneReward = op(Opcode.VAL, 4);
-    const valNever = op(Opcode.VAL, 5);
+    const valTierAddress = op(Opcode.CONSTANT, 0);
+    const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
+    const valBlocksPerYear = op(Opcode.CONSTANT, 2);
+    const valBNOne = op(Opcode.CONSTANT, 3);
+    const valBNOneReward = op(Opcode.CONSTANT, 4);
+    const valNever = op(Opcode.CONSTANT, 5);
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.VAL, 6);
-    const valBaseReward = op(Opcode.VAL, 7);
+    const valDuration = op(Opcode.CONSTANT, 6);
+    const valBaseReward = op(Opcode.CONSTANT, 7);
 
     // END zipmap args
 
@@ -657,7 +657,7 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const valNever = op(Opcode.VAL, 1);
+    const valNever = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
@@ -681,7 +681,7 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          op(Opcode.VAL, 0),
+          op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
@@ -760,7 +760,7 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const valNever = op(Opcode.VAL, 1);
+    const valNever = op(Opcode.CONSTANT, 1);
 
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
@@ -782,7 +782,7 @@ describe("EmissionsERC20", async function () {
                 Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
                 claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
               ),
-              op(Opcode.VAL, 0),
+              op(Opcode.CONSTANT, 0),
               op(Opcode.CONTEXT),
               op(Opcode.REPORT),
               op(Opcode.SATURATING_DIFF),
@@ -838,7 +838,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -893,7 +893,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -931,7 +931,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -975,7 +975,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -1012,7 +1012,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -1050,8 +1050,8 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
-          constants: [],
+          sources: [concat([op(Opcode.CONSTANT)])],
+          constants: [0],
         },
       }
     );
