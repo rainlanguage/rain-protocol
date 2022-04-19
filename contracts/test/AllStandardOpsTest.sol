@@ -13,16 +13,27 @@ uint256 constant SOURCE_INDEX = 0;
 /// @title StandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
 contract AllStandardOpsTest is RainVM {
-    // using LibDispatchTable for DispatchTable;
-
     address private vmStatePointer;
 
     State private _state;
 
-    constructor(bytes memory fnPtrs_) RainVM(fnPtrs_) {}
+    constructor(address vmMeta_) RainVM(vmMeta_) {}
 
-    function initialize(bytes calldata stateBytes_) external {
+    /// Using initialize rather than constructor because fnPtrs doesn't return
+    /// the same thing during construction.
+    function initialize(StateConfig calldata stateConfig_) external {
+        uint a_ = gasleft();
+        bytes memory stateBytes_ = VMMeta(vmMeta).newStateBytes(
+            address(this),
+            stateConfig_,
+            SOURCE_INDEX
+        );
+        uint b_ = gasleft();
+        console.log("new state gas", a_ - b_);
+        uint c_ = gasleft();
         vmStatePointer = SSTORE2.write(stateBytes_);
+        uint d_ = gasleft();
+        console.log("write gas", c_ - d_);
     }
 
     /// Wraps `runState` and returns top of stack.

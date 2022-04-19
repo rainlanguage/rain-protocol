@@ -74,7 +74,7 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(bytes memory fnPtrs_) RainVM(fnPtrs_) {}
+    constructor(address meta_) RainVM(meta_) {}
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(EmissionsERC20Config calldata config_)

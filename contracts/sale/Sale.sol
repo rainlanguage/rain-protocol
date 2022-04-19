@@ -37,7 +37,7 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
-    bytes fnPtrs;
+    address meta;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -227,7 +227,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// Fee recipient => unclaimed fees.
     mapping(address => uint256) private fees;
 
-    constructor(SaleConstructorConfig memory config_) RainVM(config_.fnPtrs) {
+    constructor(SaleConstructorConfig memory config_) RainVM(config_.meta) {
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;

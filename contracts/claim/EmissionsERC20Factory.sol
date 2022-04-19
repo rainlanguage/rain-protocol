@@ -14,8 +14,8 @@ contract EmissionsERC20Factory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(bytes memory fnPtrs_) {
-        address implementation_ = address(new EmissionsERC20(fnPtrs_));
+    constructor(address meta_) {
+        address implementation_ = address(new EmissionsERC20(meta_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

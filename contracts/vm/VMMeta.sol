@@ -13,7 +13,7 @@ struct StateConfig {
     uint256[] constants;
 }
 
-struct SourceAnalysis {
+struct StackBounds {
     uint256 stackIndex;
     uint256 stackUpperBound;
     uint256 argumentsUpperBound;
@@ -23,6 +23,17 @@ uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
 contract VMMeta {
     using Math for uint256;
+
+    mapping(address => address) private ptrCache;
+
+    function _packedFnPtrs(address vm_) private returns (bytes memory) {
+        bytes memory packedPtrs_ = SSTORE2.read(ptrCache[vm_]);
+        if (packedPtrs_.length == 0) {
+            ptrCache[vm_] = SSTORE2.write(packFnPtrs(RainVM(vm_).fnPtrs()));
+            return _packedFnPtrs(vm_);
+        }
+        return packedPtrs_;
+    }
 
     // /// A new shapshot has been deployed onchain.
     // /// @param sender `msg.sender` of the deployer.
@@ -37,24 +48,25 @@ contract VMMeta {
         address vm_,
         StateConfig memory config_,
         uint256 analyzeIndex_
-    ) external view returns (bytes memory) {
-        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(sourceAnalysis_, config_.sources, analyzeIndex_);
+    ) external returns (bytes memory) {
+        StackBounds memory stackBounds_ = StackBounds(0, 0, 0);
+        ensureIntegrity(stackBounds_, config_.sources, analyzeIndex_);
         uint256[] memory constants_ = new uint256[](
-            config_.constants.length + sourceAnalysis_.argumentsUpperBound
+            config_.constants.length + stackBounds_.argumentsUpperBound
         );
         for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
             constants_[i_] = config_.constants[i_];
         }
+
         return
             LibState.toBytesPacked(
                 State(
                     0,
-                    new uint256[](sourceAnalysis_.stackUpperBound),
+                    new uint256[](stackBounds_.stackUpperBound),
                     config_.sources,
                     constants_,
                     config_.constants.length,
-                    packFnPtrs(RainVM(vm_).fnPtrs())
+                    _packedFnPtrs(vm_)
                 )
             );
     }
@@ -83,41 +95,34 @@ contract VMMeta {
         return fnPtrsPacked_;
     }
 
-    function _newSourceAnalysis()
-        internal
-        pure
-        returns (SourceAnalysis memory)
-    {
-        return SourceAnalysis(0, 0, 0);
-    }
-
-    function analyzeZipmap(
-        SourceAnalysis memory sourceAnalysis_,
+    function _ensureIntegrityZipmap(
+        StackBounds memory stackBounds_,
         bytes[] memory sources_,
         uint256 operand_
     ) private view {
         unchecked {
             uint256 valLength_ = (operand_ >> 5) + 1;
-            sourceAnalysis_.argumentsUpperBound = sourceAnalysis_
+            stackBounds_.stackIndex -= valLength_;
+            // catch underflow here as a huge max.
+            stackBounds_.stackUpperBound = stackBounds_.stackUpperBound.max(
+                stackBounds_.stackIndex
+            );
+            stackBounds_.argumentsUpperBound = stackBounds_
                 .argumentsUpperBound
                 .max(valLength_);
-            sourceAnalysis_.stackIndex -= valLength_;
-            // overflow/underflow check.
-            require(sourceAnalysis_.stackIndex < MAX_STACK_LENGTH);
             uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
             for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-                analyzeSources(sourceAnalysis_, sources_, operand_ & 0x07);
+                ensureIntegrity(stackBounds_, sources_, operand_ & 0x07);
             }
         }
     }
 
-    function analyzeSources(
-        SourceAnalysis memory sourceAnalysis_,
+    function ensureIntegrity(
+        StackBounds memory stackBounds_,
         bytes[] memory sources_,
         uint256 entrypoint_
-    ) public view returns (SourceAnalysis memory) {
+    ) public view {
         unchecked {
-            uint256 a_ = gasleft();
             require(sources_.length > entrypoint_, "MIN_SOURCES");
             bytes memory stackIndexMoveFns_ = stackIndexMoveFnPtrs();
             uint256 i_ = 0;
@@ -145,26 +150,28 @@ contract VMMeta {
                 }
 
                 if (opcode_ == OPCODE_ZIPMAP) {
-                    analyzeZipmap(sourceAnalysis_, sources_, operand_);
+                    _ensureIntegrityZipmap(
+                        stackBounds_,
+                        sources_,
+                        operand_
+                    );
                 } else {
                     function(uint256, uint256) pure returns (uint256) fn_;
                     assembly {
                         fn_ := mload(add(firstPtrLocation_, mul(opcode_, 0x20)))
                     }
-                    sourceAnalysis_.stackIndex = fn_(
+                    stackBounds_.stackIndex = fn_(
                         operand_,
-                        sourceAnalysis_.stackIndex
+                        stackBounds_.stackIndex
                     );
                 }
-                require(sourceAnalysis_.stackIndex >= 0, "STACK_UNDERFLOW");
-                sourceAnalysis_.stackUpperBound = sourceAnalysis_
-                    .stackUpperBound
-                    .max(uint256(sourceAnalysis_.stackIndex));
+                stackBounds_.stackUpperBound = stackBounds_.stackUpperBound.max(
+                    stackBounds_.stackIndex
+                );
             }
-
-            uint256 b_ = gasleft();
-            console.log("analysis gas:", a_ - b_);
-            return sourceAnalysis_;
+            // Both an overflow or underflow in uint256 space will show up as
+            // an upper bound exceeding the uint8 space.
+            require(stackBounds_.stackUpperBound < MAX_STACK_LENGTH);
         }
     }
 

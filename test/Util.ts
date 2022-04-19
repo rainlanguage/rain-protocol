@@ -32,7 +32,7 @@ import type {
 } from "ethers";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import type { SourceAnalysisStruct } from "../typechain/VMMeta";
+import type { StackBoundsStruct } from "../typechain/VMMeta";
 
 const { assert } = chai;
 
@@ -595,7 +595,7 @@ export enum AllStandardOps {
   length,
 }
 
-export const newSourceAnalysis = (): SourceAnalysisStruct => {
+export const newSourceAnalysis = (): StackBoundsStruct => {
   return {
     stackIndex: 0,
     stackUpperBound: 0,

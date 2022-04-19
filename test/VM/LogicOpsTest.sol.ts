@@ -346,70 +346,24 @@ describe("LogicOps Test", async function () {
     await meta.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    const logicUnsafe = (await logicFactory.deploy([])) as AllStandardOpsTest &
-      Contract;
-    const fnPtrsPacked = await meta.packFnPtrs(await logicUnsafe.fnPtrs());
     const logic0 = (await logicFactory.deploy(
-      fnPtrsPacked
+      meta.address
     )) as AllStandardOpsTest & Contract;
+    // const fnPtrsPacked = await meta.packFnPtrs(await logicUnsafe.fnPtrs());
+    // const logic0 = (await logicFactory.deploy(
+    //   fnPtrsPacked
+    // )) as AllStandardOpsTest & Contract;
 
-    assert((await logic0.fnPtrs()) == (await logicUnsafe.fnPtrs()));
+    // assert((await logic0.fnPtrs()) == (await logicUnsafe.fnPtrs()));
 
     const constants = [0, 1];
 
     // prettier-ignore
     const source0 = concat([
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
-      // op(Opcode.CONSTANT, 0),
       op(Opcode.CONSTANT, 0),
       op(Opcode.ISZERO, 1),
       op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 1),
-      // op(Opcode.ISZERO, 2),
-      // op(Opcode.ISZERO, 3),
-      // op(Opcode.ISZERO, 2),
-      // op(Opcode.ISZERO, 3),
-      // op(Opcode.ISZERO, 2),
-      // op(Opcode.ISZERO, 3),
+
     ]);
 
     const stateConfig0 = {
@@ -420,21 +374,24 @@ describe("LogicOps Test", async function () {
 
     // await meta.ptrSource(logic0.address, source0);
 
-    const stateBytes0 = await meta.newStateBytes(
-      logic0.address,
-      stateConfig0,
-      0
-    );
+    // const stateBytes0 = await meta.newStateBytes(
+    //   logic0.address,
+    //   stateConfig0,
+    //   0
+    // );
 
     console.log(source0);
-    console.log(stateBytes0);
+    // console.log(stateBytes0);
 
-    await logic0.initialize(stateBytes0);
+    await logic0.initialize(stateConfig0);
+    console.log('foo')
+    await logic0.initialize(stateConfig0);
 
-    await logic0.run();
-    const result0 = await logic0.stackTop(); // expect 1
 
-    assert(isTruthy(result0), "wrongly says 0 is not zero");
+    // await logic0.run();
+    // const result0 = await logic0.stackTop(); // expect 1
+
+    // assert(isTruthy(result0), "wrongly says 0 is not zero");
 
     // // prettier-ignore
     // const source1 = concat([

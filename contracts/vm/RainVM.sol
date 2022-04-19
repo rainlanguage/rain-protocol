@@ -102,10 +102,11 @@ library LibState {
 
     function toBytesPacked(State memory state_)
         internal
-        pure
+        view
         returns (bytes memory)
     {
         unchecked {
+            uint a_ = gasleft();
             // indexes + constants
             uint256[] memory constants_ = state_.constants;
             // constants is first so we can literally use it on the other end
@@ -129,6 +130,8 @@ library LibState {
                 bytes32(state_.fnPtrsPacked.length),
                 state_.fnPtrsPacked
             );
+            uint b_ = gasleft();
+            console.log("bytes packed gas", a_ - b_);
             return ret_;
         }
     }
@@ -215,32 +218,13 @@ abstract contract RainVM {
     using Math for uint256;
     using SaturatingMath for uint256;
 
-    error OddFnPtrs();
-    error FnPtrsIntegrity();
-    error OpcodeOutOfBounds();
+    address internal immutable vmMeta;
 
-    uint256 private immutable maxOpcode;
-    uint256 private immutable integrityHash;
-    uint256 private immutable opcodesLength;
-
-    constructor(bytes memory fnPtrsPacked_) {
-        if (fnPtrsPacked_.length % 2 > 0) {
-            revert OddFnPtrs();
-        }
-        opcodesLength = fnPtrsPacked_.length / 2;
-        maxOpcode = (fnPtrsPacked_.length / 2).saturatingSub(1);
-        integrityHash = uint256(keccak256(fnPtrsPacked_));
+    constructor(address vmMeta_) {
+        vmMeta = vmMeta_;
     }
 
     function fnPtrs() public pure virtual returns (bytes memory);
-
-    function checkIntegrity(bytes memory fnPtrsPacked_)
-        internal
-        view
-        returns (bool)
-    {
-        return integrityHash == uint256(keccak256(fnPtrsPacked_));
-    }
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -380,7 +364,6 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
-            require(checkIntegrity(state_.fnPtrsPacked));
             uint256 i_ = 0;
             uint256 opcode_;
             uint256 operand_;
@@ -447,6 +430,9 @@ abstract contract RainVM {
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_CONTEXT) {
+                        // This is the only runtime integrity check that we do
+                        // as it is not possible to know how long context might
+                        // be in general until runtime.
                         require(operand_ < context_.length);
                         assembly {
                             mstore(
@@ -476,8 +462,6 @@ abstract contract RainVM {
                         console.logBytes(LibState.toBytesDebug(state_));
                     }
                 } else {
-                    // ensure the opcode is not overflowing the fn ptrs.
-                    require(opcode_ < opcodesLength);
                     function(uint256, uint256) view returns (uint256) fn_;
                     assembly {
                         fn_ := and(

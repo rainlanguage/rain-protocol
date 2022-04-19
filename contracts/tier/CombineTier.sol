@@ -21,7 +21,7 @@ uint256 constant SOURCE_INDEX = 0;
 contract CombineTier is ReadOnlyTier, RainVM, Initializable {
     address private vmStatePointer;
 
-    constructor(bytes memory fnPtrs_) RainVM(fnPtrs_) {}
+    constructor(address meta_) RainVM(meta_) {}
 
     function initialize(bytes calldata stateBytes_) external initializer {
         vmStatePointer = SSTORE2.write(stateBytes_);

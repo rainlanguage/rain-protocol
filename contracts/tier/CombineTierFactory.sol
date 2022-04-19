@@ -14,8 +14,8 @@ contract CombineTierFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(bytes memory fnPtrs_) {
-        address implementation_ = address(new CombineTier(fnPtrs_));
+    constructor(address meta_) {
+        address implementation_ = address(new CombineTier(meta_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
