@@ -12,14 +12,16 @@ import "../../../tier/libraries/TierwiseCombine.sol";
 /// order of consumed values on the stack corresponds to the order of arguments
 /// to interface/library functions.
 library TierOps {
-    function stackIndexDiffSelectLte(uint256 operand_)
+    function stackIndexMoveSelectLte(uint256 operand_, uint256 stackIndex_)
         internal
         pure
-        returns (int256)
+        returns (uint256)
     {
-        uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
-        require(reportsLength_ > 0, "BAD_OPERAND");
-        return 1 - int256(reportsLength_);
+        unchecked {
+            uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
+            require(reportsLength_ > 0, "BAD_OPERAND");
+            return stackIndex_ - (reportsLength_ - 1);
+        }
     }
 
     // Stack the report returned by an `ITier` contract.

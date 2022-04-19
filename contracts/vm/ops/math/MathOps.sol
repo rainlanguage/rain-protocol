@@ -14,11 +14,18 @@ import "../../../math/SaturatingMath.sol";
 library MathOps {
     using SaturatingMath for uint256;
 
-    function stackIndexDiff(uint256 operand_) internal pure returns (int256) {
-        // Zero length math ops not supported.
-        require(operand_ > 0, "BAD_MATH_OPERAND");
-        // All operations take operand_ as length inputs and have 1 output.
-        return 1 - int256(operand_);
+    function stackIndexMove(uint256 operand_, uint256 stackIndex_)
+        internal
+        pure
+        returns (uint256)
+    {
+        unchecked {
+            // Zero length math ops not supported.
+            require(operand_ > 0, "BAD_MATH_OPERAND");
+            // All operations take operand_ as length inputs and have 1 output.
+
+            return stackIndex_ - (operand_ - 1);
+        }
     }
 
     function add(uint256 operand_, uint256 stackTopLocation_)

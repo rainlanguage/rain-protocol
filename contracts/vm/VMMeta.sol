@@ -14,10 +14,12 @@ struct StateConfig {
 }
 
 struct SourceAnalysis {
-    int256 stackIndex;
+    uint256 stackIndex;
     uint256 stackUpperBound;
     uint256 argumentsUpperBound;
 }
+
+uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
 contract VMMeta {
     using Math for uint256;
@@ -94,14 +96,18 @@ contract VMMeta {
         bytes[] memory sources_,
         uint256 operand_
     ) private view {
-        uint256 valLength_ = (operand_ >> 5) + 1;
-        sourceAnalysis_.argumentsUpperBound = sourceAnalysis_
-            .argumentsUpperBound
-            .max(valLength_);
-        sourceAnalysis_.stackIndex -= int256(valLength_);
-        uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
-        for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-            analyzeSources(sourceAnalysis_, sources_, operand_ & 0x07);
+        unchecked {
+            uint256 valLength_ = (operand_ >> 5) + 1;
+            sourceAnalysis_.argumentsUpperBound = sourceAnalysis_
+                .argumentsUpperBound
+                .max(valLength_);
+            sourceAnalysis_.stackIndex -= valLength_;
+            // overflow/underflow check.
+            require(sourceAnalysis_.stackIndex < MAX_STACK_LENGTH);
+            uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
+            for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
+                analyzeSources(sourceAnalysis_, sources_, operand_ & 0x07);
+            }
         }
     }
 
@@ -111,9 +117,9 @@ contract VMMeta {
         uint256 entrypoint_
     ) public view returns (SourceAnalysis memory) {
         unchecked {
-            uint a_ = gasleft();
+            uint256 a_ = gasleft();
             require(sources_.length > entrypoint_, "MIN_SOURCES");
-            bytes memory stackIndexDiffFns_ = stackIndexDiffFnPtrs();
+            bytes memory stackIndexMoveFns_ = stackIndexMoveFnPtrs();
             uint256 i_ = 0;
             uint256 sourceLen_;
             uint256 opcode_;
@@ -127,7 +133,7 @@ contract VMMeta {
                 )
 
                 sourceLen_ := mload(sourceLocation_)
-                firstPtrLocation_ := add(stackIndexDiffFns_, 0x20)
+                firstPtrLocation_ := add(stackIndexMoveFns_, 0x20)
             }
 
             while (i_ < sourceLen_) {
@@ -141,11 +147,14 @@ contract VMMeta {
                 if (opcode_ == OPCODE_ZIPMAP) {
                     analyzeZipmap(sourceAnalysis_, sources_, operand_);
                 } else {
-                    function(uint256) pure returns (int256) fn_;
+                    function(uint256, uint256) pure returns (uint256) fn_;
                     assembly {
                         fn_ := mload(add(firstPtrLocation_, mul(opcode_, 0x20)))
                     }
-                    sourceAnalysis_.stackIndex += fn_(operand_);
+                    sourceAnalysis_.stackIndex = fn_(
+                        operand_,
+                        sourceAnalysis_.stackIndex
+                    );
                 }
                 require(sourceAnalysis_.stackIndex >= 0, "STACK_UNDERFLOW");
                 sourceAnalysis_.stackUpperBound = sourceAnalysis_
@@ -153,13 +162,13 @@ contract VMMeta {
                     .max(uint256(sourceAnalysis_.stackIndex));
             }
 
-            uint b_ = gasleft();
+            uint256 b_ = gasleft();
             console.log("analysis gas:", a_ - b_);
             return sourceAnalysis_;
         }
     }
 
-    function stackIndexDiffFnPtrs()
+    function stackIndexMoveFnPtrs()
         public
         pure
         virtual

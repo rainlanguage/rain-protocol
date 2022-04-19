@@ -16,117 +16,144 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 37;
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
-    function stackIndexDiffNegTwo(uint256) internal pure returns (int256) {
-        return -2;
+    function stackIndexMoveNegTwo(uint256, uint256 stackIndex_)
+        internal
+        pure
+        returns (uint256)
+    {
+        assembly {
+            stackIndex_ := sub(stackIndex_, 2)
+        }
+        return stackIndex_;
     }
 
-    function stackIndexDiffNegOne(uint256) internal pure returns (int256) {
-        return -1;
+    function stackIndexMoveNegOne(uint256, uint256 stackIndex_)
+        internal
+        pure
+        returns (uint256)
+    {
+        assembly {
+            stackIndex_ := sub(stackIndex_, 1)
+        }
+        return stackIndex_;
     }
 
-    function stackIndexDiffZero(uint256) internal pure returns (int256) {
-        return 0;
+    function stackIndexMoveZero(uint256, uint256 stackIndex_)
+        internal
+        pure
+        returns (uint256)
+    {
+        return stackIndex_;
     }
 
-    function stackIndexDiffOne(uint256) internal pure returns (int256) {
-        return 1;
+    function stackIndexMoveOne(uint256, uint256 stackIndex_)
+        internal
+        pure
+        returns (uint256)
+    {
+        assembly {
+            stackIndex_ := add(stackIndex_, 1)
+        }
+        return stackIndex_;
     }
 
-    function stackIndexDiffFnPtrs() internal pure returns (bytes memory) {
+    function stackIndexMoveFnPtrs() internal pure returns (bytes memory) {
         unchecked {
             uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
-            function(uint256) pure returns (int256)[ALL_STANDARD_OPS_LENGTH + 1]
+            function(uint256, uint256)
+                pure
+                returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory fns_ = [
                     // will be overriden with length
-                    stackIndexDiffZero,
+                    stackIndexMoveZero,
                     // constant
-                    stackIndexDiffOne,
+                    stackIndexMoveOne,
                     // stack
-                    stackIndexDiffOne,
+                    stackIndexMoveOne,
                     // context
-                    stackIndexDiffOne,
+                    stackIndexMoveOne,
                     // storage
-                    stackIndexDiffOne,
+                    stackIndexMoveOne,
                     // zipmap
                     // This will be ignored by the analyzer as zipmap is a special
                     // case.
-                    stackIndexDiffZero,
+                    stackIndexMoveZero,
                     // debug
-                    stackIndexDiffZero,
+                    stackIndexMoveZero,
                     // block number
-                    stackIndexDiffOne,
+                    stackIndexMoveOne,
                     // timestamp
-                    stackIndexDiffOne,
+                    stackIndexMoveOne,
                     // caller
-                    stackIndexDiffOne,
+                    stackIndexMoveOne,
                     // this address
-                    stackIndexDiffOne,
+                    stackIndexMoveOne,
                     // scale18 mul
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // scale18 div
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // scale18
-                    stackIndexDiffZero,
+                    stackIndexMoveZero,
                     // scaleN
-                    stackIndexDiffZero,
+                    stackIndexMoveZero,
                     // scaleBy
-                    stackIndexDiffZero,
+                    stackIndexMoveZero,
                     // add
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // saturating add
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // sub
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // saturating sub
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // mul
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // saturating mul
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // div
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // mod
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // exp
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // min
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // max
-                    MathOps.stackIndexDiff,
+                    MathOps.stackIndexMove,
                     // iszero
-                    stackIndexDiffZero,
+                    stackIndexMoveZero,
                     // eager if
-                    stackIndexDiffNegTwo,
+                    stackIndexMoveNegTwo,
                     // equal to
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // less than
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // greater than
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // every
-                    LogicOps.stackIndexDiffEveryAny,
+                    LogicOps.stackIndexMoveEveryAny,
                     // any
-                    LogicOps.stackIndexDiffEveryAny,
+                    LogicOps.stackIndexMoveEveryAny,
                     // tier report
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // tier saturating diff
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // update blocks for tier range
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // select lte
-                    TierOps.stackIndexDiffSelectLte,
+                    TierOps.stackIndexMoveSelectLte,
                     // ierc20 balance of
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // ierc20 total supply
-                    stackIndexDiffZero,
+                    stackIndexMoveZero,
                     // ierc721 balance of
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // ierc721 owner of
-                    stackIndexDiffNegOne,
+                    stackIndexMoveNegOne,
                     // ierc1155 balance of
-                    stackIndexDiffNegTwo,
+                    stackIndexMoveNegTwo,
                     // ierc1155 balance of batch
-                    IERC1155Ops.stackIndexDiffBalanceOfBatch
+                    IERC1155Ops.stackIndexMoveBalanceOfBatch
                 ];
             bytes memory ret_;
             assembly {

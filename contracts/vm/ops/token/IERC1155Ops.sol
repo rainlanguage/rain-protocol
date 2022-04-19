@@ -8,15 +8,17 @@ import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 /// @title IERC1155Ops
 /// @notice RainVM opcode pack to read the IERC1155 interface.
 library IERC1155Ops {
-    function stackIndexDiffBalanceOfBatch(uint256 operand_)
+    function stackIndexMoveBalanceOfBatch(uint256 operand_, uint256 stackIndex_)
         internal
         pure
-        returns (int256)
+        returns (uint256)
     {
-        require(operand_ > 0, "BAD_IERC1155_OPERAND");
-        // inputs: (len * 2) + 1
-        // outputs: len
-        return -(1 + int256(operand_));
+        unchecked {
+            require(operand_ > 0, "BAD_IERC1155_OPERAND");
+            // inputs: (len * 2) + 1
+            // outputs: len
+            return stackIndex_ - (operand_ + 1);
+        }
     }
 
     // Stack the return of `balanceOf`.

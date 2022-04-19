@@ -221,7 +221,7 @@ abstract contract RainVM {
 
     uint256 private immutable maxOpcode;
     uint256 private immutable integrityHash;
-    uint private immutable opcodesLength;
+    uint256 private immutable opcodesLength;
 
     constructor(bytes memory fnPtrsPacked_) {
         if (fnPtrsPacked_.length % 2 > 0) {
