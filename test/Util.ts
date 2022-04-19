@@ -32,7 +32,7 @@ import type {
 } from "ethers";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import type { BoundsStruct } from "../typechain/VMMeta";
+import type { BoundsStruct } from "../typechain/VMStateBuilder";
 
 const { assert } = chai;
 
@@ -595,7 +595,14 @@ export enum AllStandardOps {
   length,
 }
 
-export const newVMMetaBounds = (): BoundsStruct => {
+export enum Debug {
+  StateAbi,
+  StatePacked,
+  Stack,
+  StackIndex,
+}
+
+export const newVMStateBuilderBounds = (): BoundsStruct => {
   return {
     stackIndex: 0,
     stackLength: 0,

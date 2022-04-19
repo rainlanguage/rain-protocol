@@ -22,7 +22,7 @@ struct Bounds {
 
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
-contract VMMeta {
+contract VMStateBuilder {
     using Math for uint256;
 
     mapping(address => address) private ptrCache;
@@ -47,7 +47,7 @@ contract VMMeta {
     /// Builds a new `State` bytes from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
-    function newStateBytes(
+    function buildState(
         address vm_,
         StateConfig memory config_,
         uint256 entrypoint_

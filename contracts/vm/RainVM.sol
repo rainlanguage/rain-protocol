@@ -149,6 +149,11 @@ uint256 constant OPCODE_DEBUG = 5;
 /// @dev Number of provided opcodes for `RainVM`.
 uint256 constant RAIN_VM_OPS_LENGTH = 6;
 
+uint constant DEBUG_STATE_ABI = 0;
+uint constant DEBUG_STATE_PACKED = 1;
+uint constant DEBUG_STACK = 2;
+uint constant DEBUG_STACK_INDEX = 3;
+
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
 /// Libraries and contracts map opcodes to `view` functionality then RainVM
@@ -212,12 +217,6 @@ uint256 constant RAIN_VM_OPS_LENGTH = 6;
 abstract contract RainVM {
     using Math for uint256;
     using SaturatingMath for uint256;
-
-    address internal immutable vmMeta;
-
-    constructor(address vmMeta_) {
-        vmMeta = vmMeta_;
-    }
 
     /// Default is to disallow all storage access to opcodes.
     function storageOpcodesLength() public pure virtual returns (uint256) {
@@ -459,7 +458,20 @@ abstract contract RainVM {
                             operand_
                         );
                     } else {
-                        console.logBytes(LibState.toBytesDebug(state_));
+                        bytes memory debug_;
+                        if (operand_ == DEBUG_STATE_ABI) {
+                            debug_ = abi.encode(state_);
+                        } else if (operand_ == DEBUG_STATE_PACKED) {
+                            debug_ = LibState.toBytesPacked(state_);
+                        } else if (operand_ == DEBUG_STACK) {
+                            debug_ = abi.encodePacked(state_.stack);
+                        } else if (operand_ == DEBUG_STACK_INDEX) {
+                            debug_ = abi.encodePacked(state_.stackIndex);
+                        }
+                        if (debug_.length > 0) {
+
+                            console.logBytes(debug_);
+                        }
                     }
                 } else {
                     function(uint256, uint256) view returns (uint256) fn_;

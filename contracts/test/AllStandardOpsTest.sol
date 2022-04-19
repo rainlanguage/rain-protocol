@@ -4,7 +4,7 @@ pragma solidity =0.8.10;
 import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
 import {LogicOps} from "../vm/ops/math/LogicOps.sol";
 import "../vm/ops/AllStandardOps.sol";
-import "../vm/VMMeta.sol";
+import "../vm/VMStateBuilder.sol";
 
 import "hardhat/console.sol";
 
@@ -13,18 +13,20 @@ uint256 constant ENTRYPOINT = 0;
 /// @title StandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
 contract AllStandardOpsTest is RainVM {
+    address immutable private self;
+    address immutable private vmStateBuilder;
     address private vmStatePointer;
 
     State private _state;
 
-    constructor(address vmMeta_) RainVM(vmMeta_) {}
+    constructor(address vmStateBuilder_) { self = address(this); vmStateBuilder = vmStateBuilder_;}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
     function initialize(StateConfig calldata stateConfig_) external {
         uint256 a_ = gasleft();
-        bytes memory stateBytes_ = VMMeta(vmMeta).newStateBytes(
-            address(this),
+        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
             stateConfig_,
             ENTRYPOINT
         );

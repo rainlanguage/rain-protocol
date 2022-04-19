@@ -5,7 +5,7 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {VMMeta, StateConfig} from "../vm/VMMeta.sol";
+import {VMStateBuilder, StateConfig} from "../vm/VMStateBuilder.sol";
 import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
@@ -22,11 +22,11 @@ import "../sstore2/SSTORE2.sol";
 struct EmissionsERC20Config {
     bool allowDelegatedClaims;
     ERC20Config erc20Config;
-    bytes vmStateBytes;
+    StateConfig vmStateConfig;
 }
 
 /// @dev Source index for VM eval.
-uint256 constant SOURCE_INDEX = 0;
+uint256 constant ENTRYPOINT = 0;
 
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -56,6 +56,9 @@ contract EmissionsERC20 is
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
 
+    address immutable private self;
+    address immutable private vmStateBuilder;
+
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
 
@@ -74,7 +77,7 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(address meta_) RainVM(meta_) {}
+    constructor(address vmStateBuilder_) { self = address(this); vmStateBuilder = vmStateBuilder_; }
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(EmissionsERC20Config calldata config_)
@@ -87,7 +90,8 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = SSTORE2.write(config_.vmStateBytes);
+        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(self, config_.vmStateConfig, ENTRYPOINT);
+        vmStatePointer = SSTORE2.write(vmStateBytes_);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -131,7 +135,7 @@ contract EmissionsERC20 is
         assembly {
             mstore(add(context_, 0x20), claimantContext_)
         }
-        eval(context_, state_, SOURCE_INDEX);
+        eval(context_, state_, ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }
 

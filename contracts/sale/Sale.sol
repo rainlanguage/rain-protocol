@@ -21,7 +21,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
-import "../vm/VMMeta.sol";
+import "../vm/VMStateBuilder.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -37,7 +37,7 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
-    address meta;
+    address vmStateBuilder;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -62,7 +62,7 @@ struct SaleConstructorConfig {
 /// contract unless it is all purchased, clearing the raise to 0 stock and thus
 /// ending the raise.
 struct SaleConfig {
-    bytes vmStateBytes;
+    StateConfig vmStateConfig;
     address recipient;
     IERC20 reserve;
     uint256 saleTimeout;
@@ -134,9 +134,9 @@ struct Receipt {
     uint256 price;
 }
 
-uint256 constant CAN_START_SOURCE_INDEX = 0;
-uint256 constant CAN_END_SOURCE_INDEX = 1;
-uint256 constant CALCULATE_PRICE_SOURCE_INDEX = 2;
+uint256 constant CAN_START_ENTRYPOINT = 0;
+uint256 constant CAN_END_ENTRYPOINT = 1;
+uint256 constant CALCULATE_PRICE_ENTRYPOINT = 2;
 
 // solhint-disable-next-line max-states-count
 contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
@@ -172,6 +172,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// rTKN being refunded.
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
+
+    address private immutable self;
+    address private immutable vmStateBuilder;
 
     /// @dev the saleTimeout cannot exceed this. Prevents downstream contracts
     /// that require a finalization such as escrows from getting permanently
@@ -227,7 +230,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// Fee recipient => unclaimed fees.
     mapping(address => uint256) private fees;
 
-    constructor(SaleConstructorConfig memory config_) RainVM(config_.meta) {
+    constructor(SaleConstructorConfig memory config_) {
+        self = address(this);
+        vmStateBuilder = config_.vmStateBuilder;
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
@@ -253,7 +258,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        vmStatePointer = SSTORE2.write(config_.vmStateBytes);
+        // !! WARNING !! - NEED TO INCLUDE OTHER ENTRYPOINTS HERE!
+        bytes memory vmStateBytes = VMStateBuilder(vmStateBuilder).buildState(self, config_.vmStateConfig, CALCULATE_PRICE_ENTRYPOINT);
 
         recipient = config_.recipient;
 
@@ -321,7 +327,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             State memory state_ = LibState.fromBytesPacked(
                 SSTORE2.read(vmStatePointer)
             );
-            eval("", state_, CAN_START_SOURCE_INDEX);
+            eval("", state_, CAN_START_ENTRYPOINT);
             return state_.stack[state_.stackIndex - 1] > 0;
         } else {
             return false;
@@ -353,7 +359,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                 State memory state_ = LibState.fromBytesPacked(
                     SSTORE2.read(vmStatePointer)
                 );
-                eval("", state_, CAN_END_SOURCE_INDEX);
+                eval("", state_, CAN_END_ENTRYPOINT);
                 return state_.stack[state_.stackIndex - 1] > 0;
             }
         } else {
@@ -373,7 +379,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         assembly {
             mstore(add(context_, 0x20), units_)
         }
-        eval(context_, state_, CALCULATE_PRICE_SOURCE_INDEX);
+        eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
 
         return state_.stack[state_.stackIndex - 1];
     }

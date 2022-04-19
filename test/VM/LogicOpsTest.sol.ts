@@ -1,7 +1,7 @@
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { op, AllStandardOps } from "../Util";
+import { op, AllStandardOps, Debug } from "../Util";
 import type { BigNumber, Contract } from "ethers";
 import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 
@@ -12,15 +12,21 @@ const Opcode = AllStandardOps;
 const isTruthy = (vmValue: BigNumber) => vmValue.eq(1);
 
 describe("LogicOps Test", async function () {
-  const stateBuilder;
-  const logic;
+  let stateBuilder;
+  let logic;
   before(async () => {
+    this.timeout(0);
+    const stateBuilderFactory = await ethers.getContractFactory("AllStandardOpsMeta");
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
 
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
   })
   it("should check whether any value in a list is non-zero", async () => {
     this.timeout(0);
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [0, 1, 2, 3];
 
@@ -37,12 +43,12 @@ describe("LogicOps Test", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
-    await logic0.run();
-    const result0 = await logic0.stackTop();
+      constants
+    })
+    await logic.run();
+    const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
 
@@ -53,13 +59,13 @@ describe("LogicOps Test", async function () {
       op(Opcode.ANY, 2),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic1.run();
-    const result1 = await logic1.stackTop();
+    await logic.run();
+    const result1 = await logic.stackTop();
 
     assert(result1.isZero(), `returned wrong value from any, got ${result1}`);
 
@@ -71,21 +77,19 @@ describe("LogicOps Test", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    const logic2 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source2],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic2.run();
-    const result2 = await logic2.stackTop();
+    await logic.run();
+    const result2 = await logic.stackTop();
 
     assert(result2.eq(3), `returned wrong value from any, got ${result2}`);
   });
 
   it("should check whether every value in a list is non-zero", async () => {
     this.timeout(0);
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [0, 1, 2, 3];
 
@@ -102,13 +106,12 @@ describe("LogicOps Test", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
-
-    await logic0.run();
-    const result0 = await logic0.stackTop();
+      constants
+    })
+    await logic.run();
+    const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
 
@@ -120,13 +123,13 @@ describe("LogicOps Test", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic1.run();
-    const result1 = await logic1.stackTop();
+    await logic.run();
+    const result1 = await logic.stackTop();
 
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
 
@@ -137,21 +140,19 @@ describe("LogicOps Test", async function () {
       op(Opcode.EVERY, 2),
     ]);
 
-    const logic2 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source2],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic2.run();
-    const result2 = await logic2.stackTop();
+    await logic.run();
+    const result2 = await logic.stackTop();
 
     assert(result2.isZero(), `returned wrong value from every, got ${result2}`);
   });
 
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
     this.timeout(0);
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [0, 1, 2, 3];
 
@@ -169,13 +170,13 @@ describe("LogicOps Test", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic0.run();
-    const result0 = await logic0.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
 
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
 
@@ -188,13 +189,13 @@ describe("LogicOps Test", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic1.run();
-    const result1 = await logic1.stackTop();
+    await logic.run();
+    const result1 = await logic.stackTop();
 
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
 
@@ -207,21 +208,19 @@ describe("LogicOps Test", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const logic2 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source2],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic2.run();
-    const result2 = await logic2.stackTop();
+    await logic.run();
+    const result2 = await logic.stackTop();
 
     assert(result2.eq(3), `returned wrong value from eager if, got ${result2}`);
   });
 
   it("should check that value is greater than another value", async () => {
     this.timeout(0);
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [1, 2];
 
@@ -232,13 +231,13 @@ describe("LogicOps Test", async function () {
       op(Opcode.GREATER_THAN),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic0.run();
-    const result0 = await logic0.stackTop(); // expect 1
+    await logic.run();
+    const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
 
@@ -249,21 +248,19 @@ describe("LogicOps Test", async function () {
       op(Opcode.GREATER_THAN),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic1.run();
-    const result1 = await logic1.stackTop(); // expect 0
+    await logic.run();
+    const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is gt 2");
   });
 
   it("should check that value is less than another value", async () => {
     this.timeout(0);
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [1, 2];
 
@@ -274,13 +271,13 @@ describe("LogicOps Test", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic0.run();
-    const result0 = await logic0.stackTop(); // expect 0
+    await logic.run();
+    const result0 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
 
@@ -291,21 +288,19 @@ describe("LogicOps Test", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await logic1.run();
-    const result1 = await logic1.stackTop(); // expect 1
+    await logic.run();
+    const result1 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result1), "wrongly says 1 is not lt 2");
   });
 
   it("should check that values are equal to each other", async () => {
     this.timeout(0);
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
 
     const constants = [1, 2];
 
@@ -316,13 +311,13 @@ describe("LogicOps Test", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants,
-    })) as AllStandardOpsTest & Contract;
+    })
 
-    await logic0.run();
-    const result0 = await logic0.stackTop(); // expect 1
+    await logic.run();
+    const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
 
@@ -333,28 +328,18 @@ describe("LogicOps Test", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
       constants,
-    })) as AllStandardOpsTest & Contract;
+    });
 
-    await logic1.run();
-    const result1 = await logic1.stackTop(); // expect 0
+    await logic.run();
+    const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
   });
 
-  it.only("should check that a value is zero", async () => {
-    this.timeout(0);
-    const metaFactory = await ethers.getContractFactory("AllStandardOpsMeta");
-    const meta = await metaFactory.deploy();
-    await meta.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    const logic = (await logicFactory.deploy(
-      meta.address
-    )) as AllStandardOpsTest & Contract;
-
+  it("should check that a value is zero", async () => {
     const constants = [0, 1];
 
     // prettier-ignore

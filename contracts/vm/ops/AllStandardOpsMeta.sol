@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import "../VMMeta.sol";
+import "../VMStateBuilder.sol";
 import "./AllStandardOps.sol";
 
-contract AllStandardOpsMeta is VMMeta {
-    /// @inheritdoc VMMeta
+contract AllStandardOpsMeta is VMStateBuilder {
+    /// @inheritdoc VMStateBuilder
     function stackIndexMoveFnPtrs()
         public
         pure

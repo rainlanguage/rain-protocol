@@ -8,9 +8,9 @@ import "../vm/RainVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
-import "../vm/VMMeta.sol";
+import "../vm/VMStateBuilder.sol";
 
-uint256 constant SOURCE_INDEX = 0;
+uint256 constant ENTRYPOINT = 0;
 
 /// @title CombineTier
 /// @notice Implements `ReadOnlyTier` over RainVM. Allows combining the reports
@@ -19,11 +19,16 @@ uint256 constant SOURCE_INDEX = 0;
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
 contract CombineTier is ReadOnlyTier, RainVM, Initializable {
+    // This allows cloned contracts to forward the template contract to the VM
+    // state builder during initialization.
+    address private immutable self;
+    address private immutable vmStateBuilder;
     address private vmStatePointer;
 
-    constructor(address meta_) RainVM(meta_) {}
+    constructor(address vmStateBuilder_) { self = address(this); vmStateBuilder = vmStateBuilder_; }
 
-    function initialize(bytes calldata stateBytes_) external initializer {
+    function initialize(StateConfig calldata sourceConfig_) external initializer {
+        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(self, sourceConfig_, ENTRYPOINT);
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
@@ -47,7 +52,7 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
         assembly {
             mstore(add(context_, 0x20), accountContext_)
         }
-        eval(context_, state_, SOURCE_INDEX);
+        eval(context_, state_, ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }
 }
