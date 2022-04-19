@@ -13,17 +13,27 @@ const { assert } = chai;
 const Opcode = Util.AllStandardOps;
 
 describe("CalculatorTestUnchecked", async function () {
+  let stateBuilder;
+  let logic;
+  before(async () => {
+    this.timeout(0);
+    const stateBuilderFactory = await ethers.getContractFactory("AllStandardOpsMeta");
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
+  })
+
   it("should panic when accumulator overflows with exponentiation op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-
     const constants = [Util.max_uint256.div(2), 2];
 
-    const vHalfMaxUInt256 = op(Opcode.VAL, 0);
-    const vTwo = op(Opcode.VAL, 1);
+    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vTwo = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -32,13 +42,13 @@ describe("CalculatorTestUnchecked", async function () {
       op(Opcode.EXP, 2)
     ]);
 
-    const calculator0 = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
     await Util.assertError(
-      async () => await calculator0.run(),
+      async () => await logic.run(),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
     );
@@ -47,14 +57,10 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator overflows with multiplication op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-
     const constants = [Util.max_uint256.div(2), 3];
 
-    const vHalfMaxUInt256 = op(Opcode.VAL, 0);
-    const vThree = op(Opcode.VAL, 1);
+    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vThree = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -63,13 +69,13 @@ describe("CalculatorTestUnchecked", async function () {
       op(Opcode.MUL, 2)
     ]);
 
-    const calculator0 = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
     await Util.assertError(
-      async () => await calculator0.run(),
+      async () => await logic.run(),
       "Transaction reverted",
       "accumulator overflow did not panic"
     );
@@ -78,14 +84,10 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator underflows with subtraction op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-
     const constants = [0, 1];
 
-    const vZero = op(Opcode.VAL, 0);
-    const vOne = op(Opcode.VAL, 1);
+    const vZero = op(Opcode.CONSTANT, 0);
+    const vOne = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -94,13 +96,13 @@ describe("CalculatorTestUnchecked", async function () {
       op(Opcode.SUB, 2)
     ]);
 
-    const calculator0 = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
     await Util.assertError(
-      async () => await calculator0.run(),
+      async () => await logic.run(),
       "Transaction reverted",
       "accumulator underflow did not panic"
     );
@@ -109,14 +111,10 @@ describe("CalculatorTestUnchecked", async function () {
   it("should panic when accumulator overflows with addition op", async () => {
     this.timeout(0);
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-
     const constants = [Util.max_uint256, 1];
 
-    const vMaxUInt256 = op(Opcode.VAL, 0);
-    const vOne = op(Opcode.VAL, 1);
+    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vOne = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -125,13 +123,13 @@ describe("CalculatorTestUnchecked", async function () {
       op(Opcode.ADD, 2)
     ]);
 
-    const calculator0 = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
     await Util.assertError(
-      async () => await calculator0.run(),
+      async () => await logic.run(),
       "Transaction reverted",
       "accumulator overflow did not panic"
     );
