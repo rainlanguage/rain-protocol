@@ -102,11 +102,10 @@ library LibState {
 
     function toBytesPacked(State memory state_)
         internal
-        view
+        pure
         returns (bytes memory)
     {
         unchecked {
-            uint a_ = gasleft();
             // indexes + constants
             uint256[] memory constants_ = state_.constants;
             // constants is first so we can literally use it on the other end
@@ -130,14 +129,10 @@ library LibState {
                 bytes32(state_.fnPtrsPacked.length),
                 state_.fnPtrsPacked
             );
-            uint b_ = gasleft();
-            console.log("bytes packed gas", a_ - b_);
             return ret_;
         }
     }
 }
-
-string constant ERROR_OPCODE_LENGTH = "0";
 
 /// @dev Copies a value either off `constants` to the top of the stack.
 uint256 constant OPCODE_CONSTANT = 0;
@@ -222,6 +217,11 @@ abstract contract RainVM {
 
     constructor(address vmMeta_) {
         vmMeta = vmMeta_;
+    }
+
+    /// Default is to disallow all storage access to opcodes.
+    function storageOpcodesLength() public pure virtual returns (uint256) {
+        return 0;
     }
 
     function fnPtrs() public pure virtual returns (bytes memory);

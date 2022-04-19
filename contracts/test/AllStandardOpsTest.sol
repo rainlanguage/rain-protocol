@@ -8,7 +8,7 @@ import "../vm/VMMeta.sol";
 
 import "hardhat/console.sol";
 
-uint256 constant SOURCE_INDEX = 0;
+uint256 constant ENTRYPOINT = 0;
 
 /// @title StandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
@@ -22,18 +22,15 @@ contract AllStandardOpsTest is RainVM {
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
     function initialize(StateConfig calldata stateConfig_) external {
-        uint a_ = gasleft();
+        uint256 a_ = gasleft();
         bytes memory stateBytes_ = VMMeta(vmMeta).newStateBytes(
             address(this),
             stateConfig_,
-            SOURCE_INDEX
+            ENTRYPOINT
         );
-        uint b_ = gasleft();
+        uint256 b_ = gasleft();
         console.log("new state gas", a_ - b_);
-        uint c_ = gasleft();
         vmStatePointer = SSTORE2.write(stateBytes_);
-        uint d_ = gasleft();
-        console.log("write gas", c_ - d_);
     }
 
     /// Wraps `runState` and returns top of stack.
@@ -63,12 +60,14 @@ contract AllStandardOpsTest is RainVM {
         State memory state_ = LibState.fromBytesPacked(stateBytes_);
         uint256 d_ = gasleft();
         uint256 e_ = gasleft();
-        eval("", state_, SOURCE_INDEX);
+        eval("", state_, ENTRYPOINT);
         uint256 f_ = gasleft();
         console.log("load gas:", a_ - b_);
         console.log("decode gas:", c_ - d_);
         console.log("run gas:", e_ - f_);
         // Never actually do this, state is gigantic so can't live in storage.
+        // This is just being done to make testing easier than trying to read
+        // results from events etc.
         _state = state_;
     }
 }

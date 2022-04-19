@@ -12,6 +12,11 @@ const Opcode = AllStandardOps;
 const isTruthy = (vmValue: BigNumber) => vmValue.eq(1);
 
 describe("LogicOps Test", async function () {
+  const stateBuilder;
+  const logic;
+  before(async () => {
+
+  })
   it("should check whether any value in a list is non-zero", async () => {
     this.timeout(0);
 
@@ -346,15 +351,9 @@ describe("LogicOps Test", async function () {
     await meta.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    const logic0 = (await logicFactory.deploy(
+    const logic = (await logicFactory.deploy(
       meta.address
     )) as AllStandardOpsTest & Contract;
-    // const fnPtrsPacked = await meta.packFnPtrs(await logicUnsafe.fnPtrs());
-    // const logic0 = (await logicFactory.deploy(
-    //   fnPtrsPacked
-    // )) as AllStandardOpsTest & Contract;
-
-    // assert((await logic0.fnPtrs()) == (await logicUnsafe.fnPtrs()));
 
     const constants = [0, 1];
 
@@ -362,57 +361,35 @@ describe("LogicOps Test", async function () {
     const source0 = concat([
       op(Opcode.CONSTANT, 0),
       op(Opcode.ISZERO, 1),
-      op(Opcode.ISZERO, 1),
-
     ]);
 
     const stateConfig0 = {
-      // sources: [source0, concat([op(Opcode.CONSTANT, 1)])],
       sources: [source0],
       constants,
     };
 
-    // await meta.ptrSource(logic0.address, source0);
+    await logic.initialize(stateConfig0);
 
-    // const stateBytes0 = await meta.newStateBytes(
-    //   logic0.address,
-    //   stateConfig0,
-    //   0
-    // );
+    await logic.run();
+    const result0 = await logic.stackTop(); // expect 1
 
-    console.log(source0);
-    // console.log(stateBytes0);
+    assert(isTruthy(result0), "wrongly says 0 is not zero");
 
-    await logic0.initialize(stateConfig0);
-    console.log('foo')
-    await logic0.initialize(stateConfig0);
+    // prettier-ignore
+    const source1 = concat([
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.ISZERO),
+    ]);
 
+    const stateConfig1 = {
+      sources: [source1],
+      constants,
+    };
+    await logic.initialize(stateConfig1);
 
-    // await logic0.run();
-    // const result0 = await logic0.stackTop(); // expect 1
+    await logic.run();
+    const result1 = await logic.stackTop(); // expect 0
 
-    // assert(isTruthy(result0), "wrongly says 0 is not zero");
-
-    // // prettier-ignore
-    // const source1 = concat([
-    //   op(Opcode.CONSTANT, 1),
-    //   op(Opcode.ISZERO),
-    //   op(Opcode.ISZERO),
-    //   op(Opcode.ISZERO),
-    // ]);
-
-    // const logic1 = await logicFactory.deploy() as AllStandardOpsTest & Contract;
-
-    // const stateConfig1 = {
-    //   sources: [source1],
-    //   constants,
-    // }
-    // const stateBytes1 = await meta.newStateBytes(logic1.address, stateConfig1, 0)
-    // await logic1.initialize(stateBytes1)
-
-    // await logic1.run();
-    // const result1 = await logic1.stackTop(); // expect 0
-
-    // assert(!isTruthy(result1), "wrongly says 1 is zero");
+    assert(!isTruthy(result1), "wrongly says 1 is zero");
   });
 });

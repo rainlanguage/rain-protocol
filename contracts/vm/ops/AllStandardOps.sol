@@ -60,26 +60,30 @@ library AllStandardOps {
     function stackIndexMoveFnPtrs() internal pure returns (bytes memory) {
         unchecked {
             uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
+            function(uint256, uint256) pure returns (uint256) zeroFn_;
+            assembly {
+                // using zero bytes in the fnPtrs array may save gas in certain
+                // contexts.
+                zeroFn_ := 0
+            }
             function(uint256, uint256)
                 pure
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory fns_ = [
                     // will be overriden with length
-                    stackIndexMoveZero,
-                    // constant
-                    stackIndexMoveOne,
-                    // stack
-                    stackIndexMoveOne,
-                    // context
-                    stackIndexMoveOne,
-                    // storage
-                    stackIndexMoveOne,
-                    // zipmap
-                    // This will be ignored by the analyzer as zipmap is a special
-                    // case.
-                    stackIndexMoveZero,
-                    // debug
-                    stackIndexMoveZero,
+                    zeroFn_,
+                    // constant placeholder
+                    zeroFn_,
+                    // stack placeholder
+                    zeroFn_,
+                    // context placeholder
+                    zeroFn_,
+                    // storage placeholder
+                    zeroFn_,
+                    // zipmap placeholder
+                    zeroFn_,
+                    // debug placeholder
+                    zeroFn_,
                     // block number
                     stackIndexMoveOne,
                     // timestamp

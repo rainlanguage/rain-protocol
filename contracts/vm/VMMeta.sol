@@ -13,10 +13,11 @@ struct StateConfig {
     uint256[] constants;
 }
 
-struct StackBounds {
+struct Bounds {
     uint256 stackIndex;
-    uint256 stackUpperBound;
-    uint256 argumentsUpperBound;
+    uint256 stackLength;
+    uint256 argumentsLength;
+    uint256 storageLength;
 }
 
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
@@ -27,12 +28,14 @@ contract VMMeta {
     mapping(address => address) private ptrCache;
 
     function _packedFnPtrs(address vm_) private returns (bytes memory) {
-        bytes memory packedPtrs_ = SSTORE2.read(ptrCache[vm_]);
-        if (packedPtrs_.length == 0) {
-            ptrCache[vm_] = SSTORE2.write(packFnPtrs(RainVM(vm_).fnPtrs()));
-            return _packedFnPtrs(vm_);
+        unchecked {
+            bytes memory packedPtrs_ = SSTORE2.read(ptrCache[vm_]);
+            if (packedPtrs_.length == 0) {
+                ptrCache[vm_] = SSTORE2.write(packFnPtrs(RainVM(vm_).fnPtrs()));
+                return _packedFnPtrs(vm_);
+            }
+            return packedPtrs_;
         }
-        return packedPtrs_;
     }
 
     // /// A new shapshot has been deployed onchain.
@@ -47,83 +50,86 @@ contract VMMeta {
     function newStateBytes(
         address vm_,
         StateConfig memory config_,
-        uint256 analyzeIndex_
+        uint256 entrypoint_
     ) external returns (bytes memory) {
-        StackBounds memory stackBounds_ = StackBounds(0, 0, 0);
-        ensureIntegrity(stackBounds_, config_.sources, analyzeIndex_);
-        uint256[] memory constants_ = new uint256[](
-            config_.constants.length + stackBounds_.argumentsUpperBound
-        );
-        for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
-            constants_[i_] = config_.constants[i_];
-        }
+        unchecked {
+            Bounds memory bounds_;
+            bounds_.storageLength = RainVM(vm_).storageOpcodesLength();
+            ensureIntegrity(config_, bounds_, entrypoint_);
 
-        return
-            LibState.toBytesPacked(
-                State(
-                    0,
-                    new uint256[](stackBounds_.stackUpperBound),
-                    config_.sources,
-                    constants_,
-                    config_.constants.length,
-                    _packedFnPtrs(vm_)
-                )
+            // build a new constants array with space for the arguments.
+            uint256[] memory constants_ = new uint256[](
+                config_.constants.length + bounds_.argumentsLength
             );
+            for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
+                constants_[i_] = config_.constants[i_];
+            }
+
+            return
+                LibState.toBytesPacked(
+                    State(
+                        0,
+                        new uint256[](bounds_.stackLength),
+                        config_.sources,
+                        constants_,
+                        config_.constants.length,
+                        _packedFnPtrs(vm_)
+                    )
+                );
+        }
     }
 
     function packFnPtrs(bytes memory fnPtrs_)
-        public
+        internal
         pure
         returns (bytes memory)
     {
-        require(fnPtrs_.length % 0x20 == 0, "BAD_FN_PTRS_LENGTH");
-        bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length / 0x10);
-        assembly {
-            for {
-                let i_ := 0
-                let o_ := 0x02
-            } lt(i_, mload(fnPtrs_)) {
-                i_ := add(i_, 0x20)
-                o_ := add(o_, 0x02)
-            } {
-                let location_ := add(fnPtrsPacked_, o_)
-                let old_ := mload(location_)
-                let new_ := or(old_, mload(add(fnPtrs_, add(0x20, i_))))
-                mstore(location_, new_)
+        unchecked {
+            require(fnPtrs_.length % 0x20 == 0, "BAD_FN_PTRS_LENGTH");
+            bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length / 0x10);
+            assembly {
+                for {
+                    let i_ := 0
+                    let o_ := 0x02
+                } lt(i_, mload(fnPtrs_)) {
+                    i_ := add(i_, 0x20)
+                    o_ := add(o_, 0x02)
+                } {
+                    let location_ := add(fnPtrsPacked_, o_)
+                    let old_ := mload(location_)
+                    let new_ := or(old_, mload(add(fnPtrs_, add(0x20, i_))))
+                    mstore(location_, new_)
+                }
             }
+            return fnPtrsPacked_;
         }
-        return fnPtrsPacked_;
     }
 
     function _ensureIntegrityZipmap(
-        StackBounds memory stackBounds_,
-        bytes[] memory sources_,
+        StateConfig memory stateConfig_,
+        Bounds memory bounds_,
         uint256 operand_
     ) private view {
         unchecked {
             uint256 valLength_ = (operand_ >> 5) + 1;
-            stackBounds_.stackIndex -= valLength_;
-            // catch underflow here as a huge max.
-            stackBounds_.stackUpperBound = stackBounds_.stackUpperBound.max(
-                stackBounds_.stackIndex
-            );
-            stackBounds_.argumentsUpperBound = stackBounds_
-                .argumentsUpperBound
-                .max(valLength_);
+            bounds_.stackIndex -= valLength_;
+            // underflow here will show up as an OOB max later.
+            bounds_.stackLength = bounds_.stackLength.max(bounds_.stackIndex);
+            bounds_.argumentsLength = bounds_.argumentsLength.max(valLength_);
             uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
             for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-                ensureIntegrity(stackBounds_, sources_, operand_ & 0x07);
+                ensureIntegrity(stateConfig_, bounds_, operand_ & 0x07);
             }
         }
     }
 
     function ensureIntegrity(
-        StackBounds memory stackBounds_,
-        bytes[] memory sources_,
+        StateConfig memory stateConfig_,
+        Bounds memory bounds_,
         uint256 entrypoint_
     ) public view {
         unchecked {
-            require(sources_.length > entrypoint_, "MIN_SOURCES");
+            require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
             bytes memory stackIndexMoveFns_ = stackIndexMoveFnPtrs();
             uint256 i_ = 0;
             uint256 sourceLen_;
@@ -134,7 +140,7 @@ contract VMMeta {
 
             assembly {
                 sourceLocation_ := mload(
-                    add(sources_, add(0x20, mul(entrypoint_, 0x20)))
+                    add(mload(stateConfig_), add(0x20, mul(entrypoint_, 0x20)))
                 )
 
                 sourceLen_ := mload(sourceLocation_)
@@ -149,29 +155,50 @@ contract VMMeta {
                     operand_ := byte(31, op_)
                 }
 
-                if (opcode_ == OPCODE_ZIPMAP) {
-                    _ensureIntegrityZipmap(
-                        stackBounds_,
-                        sources_,
-                        operand_
-                    );
+                // Additional integrity checks for core opcodes.
+                // Note that context length check is handled at runtime because
+                // we don't know how long context should be at this point.
+                if (opcode_ < RAIN_VM_OPS_LENGTH) {
+                    if (opcode_ == OPCODE_CONSTANT) {
+                        // trying to read past the end of the constants array.
+                        // note that it is possible for a script to reach into
+                        // arguments space after a zipmap has completed. While
+                        // this is almost certainly a critical bug for the
+                        // script it doesn't expose the ability to read past
+                        // the constants array in memory so we allow it here.
+                        require(
+                            operand_ <
+                                (bounds_.argumentsLength +
+                                    stateConfig_.constants.length)
+                        );
+                        bounds_.stackIndex++;
+                    } else if (opcode_ == OPCODE_STACK) {
+                        // trying to read past the current stack top.
+                        require(operand_ < bounds_.stackIndex);
+                        bounds_.stackIndex++;
+                    } else if (opcode_ == OPCODE_STORAGE) {
+                        // trying to read past allowed storage slots.
+                        require(operand_ < bounds_.storageLength);
+                        bounds_.stackIndex++;
+                    }
+                    if (opcode_ == OPCODE_ZIPMAP) {
+                        _ensureIntegrityZipmap(stateConfig_, bounds_, operand_);
+                    }
                 } else {
                     function(uint256, uint256) pure returns (uint256) fn_;
                     assembly {
                         fn_ := mload(add(firstPtrLocation_, mul(opcode_, 0x20)))
                     }
-                    stackBounds_.stackIndex = fn_(
-                        operand_,
-                        stackBounds_.stackIndex
-                    );
+                    bounds_.stackIndex = fn_(operand_, bounds_.stackIndex);
                 }
-                stackBounds_.stackUpperBound = stackBounds_.stackUpperBound.max(
-                    stackBounds_.stackIndex
+
+                bounds_.stackLength = bounds_.stackLength.max(
+                    bounds_.stackIndex
                 );
             }
             // Both an overflow or underflow in uint256 space will show up as
             // an upper bound exceeding the uint8 space.
-            require(stackBounds_.stackUpperBound < MAX_STACK_LENGTH);
+            require(bounds_.stackLength <= MAX_STACK_LENGTH);
         }
     }
 
