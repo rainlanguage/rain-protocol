@@ -61,10 +61,10 @@ describe("TokenOps Test", async function () {
       tokenERC1155.address,
       tokenId,
     ];
-    const vSigner1 = op(Opcode.VAL, 0);
-    const vSigner2 = op(Opcode.VAL, 1);
-    const vTokenAddr = op(Opcode.VAL, 2);
-    const vTokenId = op(Opcode.VAL, 3);
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vSigner2 = op(Opcode.CONSTANT, 1);
+    const vTokenAddr = op(Opcode.CONSTANT, 2);
+    const vTokenId = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const sources = [
@@ -122,9 +122,9 @@ describe("TokenOps Test", async function () {
     const tokenId = 0;
 
     const constants = [signer1.address, tokenERC1155.address, tokenId];
-    const vSigner1 = op(Opcode.VAL, 0);
-    const vTokenAddr = op(Opcode.VAL, 1);
-    const vTokenId = op(Opcode.VAL, 2);
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
+    const vTokenId = op(Opcode.CONSTANT, 2);
 
     // prettier-ignore
     const sources = [
@@ -182,8 +182,8 @@ describe("TokenOps Test", async function () {
     const nftId = 0;
 
     const constants = [nftId, tokenERC721.address];
-    const vNftId = op(Opcode.VAL, 0);
-    const vTokenAddr = op(Opcode.VAL, 1);
+    const vNftId = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const sources = [
@@ -214,8 +214,8 @@ describe("TokenOps Test", async function () {
     this.timeout(0);
 
     const constants = [signer1.address, tokenERC721.address];
-    const vSigner1 = op(Opcode.VAL, 0);
-    const vTokenAddr = op(Opcode.VAL, 1);
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const sources = [
@@ -253,7 +253,7 @@ describe("TokenOps Test", async function () {
     this.timeout(0);
 
     const constants = [tokenERC20.address];
-    const vTokenAddr = op(Opcode.VAL, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const sources = [
@@ -281,8 +281,8 @@ describe("TokenOps Test", async function () {
     this.timeout(0);
 
     const constants = [signer1.address, tokenERC20.address];
-    const vSigner1 = op(Opcode.VAL, 0);
-    const vTokenAddr = op(Opcode.VAL, 1);
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const sources = [

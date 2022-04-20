@@ -56,6 +56,12 @@ describe("SaleEscrow", async function () {
   });
 
   before(async () => {
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsMeta"
+    );
+    const stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
     redeemableERC20FactoryFactory = await ethers.getContractFactory(
       "RedeemableERC20Factory",
       {}
@@ -74,6 +80,7 @@ describe("SaleEscrow", async function () {
       maximumSaleTimeout: 1000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
+      vmStateBuilder: stateBuilder.address,
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
@@ -372,7 +379,7 @@ describe("SaleEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 

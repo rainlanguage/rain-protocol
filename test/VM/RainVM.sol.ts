@@ -25,8 +25,8 @@ describe("RainVM", async function () {
     );
 
     const constants = [Util.max_uint256, 2];
-    const vMaxUInt256 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
+    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
 
     // test case with normal multiplication
     const sourcesUnsat = [
@@ -80,8 +80,8 @@ describe("RainVM", async function () {
     );
 
     const constants = [10, 20];
-    const v10 = op(Opcode.VAL, 0);
-    const v20 = op(Opcode.VAL, 1);
+    const v10 = op(Opcode.CONSTANT, 0);
+    const v20 = op(Opcode.CONSTANT, 1);
 
     // test case with normal subtraction
     const sourcesUnsat = [
@@ -135,8 +135,8 @@ describe("RainVM", async function () {
     );
 
     const constants = [Util.max_uint256, 10];
-    const vMaxUInt256 = op(Opcode.VAL, 0);
-    const v10 = op(Opcode.VAL, 1);
+    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const v10 = op(Opcode.CONSTANT, 1);
 
     // test case with normal addition
     const sourcesUnsat = [
@@ -194,7 +194,7 @@ describe("RainVM", async function () {
     const block0 = await ethers.provider.getBlockNumber();
     const constants = [block0];
 
-    const vBlock = op(Opcode.VAL, 0);
+    const vBlock = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const source0 = concat([
@@ -230,7 +230,7 @@ describe("RainVM", async function () {
     const block0 = await ethers.provider.getBlockNumber();
     const constants = [block0];
 
-    const vBlock = op(Opcode.VAL, 0);
+    const vBlock = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const source0 = concat([
@@ -304,9 +304,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [7, 4, 2];
-    const v7 = op(Opcode.VAL, 0);
-    const v4 = op(Opcode.VAL, 1);
-    const v2 = op(Opcode.VAL, 2);
+    const v7 = op(Opcode.CONSTANT, 0);
+    const v4 = op(Opcode.CONSTANT, 1);
+    const v2 = op(Opcode.CONSTANT, 2);
 
     const sources = [
       concat([
@@ -341,8 +341,8 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [9, 3];
-    const v9 = op(Opcode.VAL, 0);
-    const v3 = op(Opcode.VAL, 1);
+    const v9 = op(Opcode.CONSTANT, 0);
+    const v3 = op(Opcode.CONSTANT, 1);
 
     const sources = [
       concat([
@@ -376,8 +376,8 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [5, 2];
-    const v5 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
+    const v5 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
 
     const sources = [
       concat([
@@ -411,9 +411,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [2, 4, 3];
-    const v2 = op(Opcode.VAL, 0);
-    const v4 = op(Opcode.VAL, 1);
-    const v3 = op(Opcode.VAL, 2);
+    const v2 = op(Opcode.CONSTANT, 0);
+    const v4 = op(Opcode.CONSTANT, 1);
+    const v3 = op(Opcode.CONSTANT, 2);
 
     const sources = [
       concat([
@@ -448,8 +448,8 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [2, 4];
-    const v2 = op(Opcode.VAL, 0);
-    const v4 = op(Opcode.VAL, 1);
+    const v2 = op(Opcode.CONSTANT, 0);
+    const v4 = op(Opcode.CONSTANT, 1);
 
     const sources = [
       concat([
@@ -483,9 +483,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.VAL, 0);
-    const v11 = op(Opcode.VAL, 1);
-    const v22 = op(Opcode.VAL, 2);
+    const v33 = op(Opcode.CONSTANT, 0);
+    const v11 = op(Opcode.CONSTANT, 1);
+    const v22 = op(Opcode.CONSTANT, 2);
 
     const source = concat([
       // (22 11 33 max)
@@ -513,9 +513,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.VAL, 0);
-    const v11 = op(Opcode.VAL, 1);
-    const v22 = op(Opcode.VAL, 2);
+    const v33 = op(Opcode.CONSTANT, 0);
+    const v11 = op(Opcode.CONSTANT, 1);
+    const v22 = op(Opcode.CONSTANT, 2);
 
     const source = concat([
       // (22 11 33 min)
@@ -612,17 +612,17 @@ describe("RainVM", async function () {
     // prettier-ignore
     const sources = [
       concat([ // sourceIndex === 0 (main source)
-        op(Opcode.VAL, val0),
-        op(Opcode.VAL, val1),
+        op(Opcode.CONSTANT, val0),
+        op(Opcode.CONSTANT, val1),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([ // sourceIndex === 1 (inner ZIPMAP function)
         // (arg0 arg1 mul) (arg0 arg1 add)
-        op(Opcode.VAL, arg0),
-        op(Opcode.VAL, arg1),
+        op(Opcode.CONSTANT, arg0),
+        op(Opcode.CONSTANT, arg1),
         op(Opcode.MUL, 2),
-        op(Opcode.VAL, arg0),
-        op(Opcode.VAL, arg1),
+        op(Opcode.CONSTANT, arg0),
+        op(Opcode.CONSTANT, arg1),
         op(Opcode.ADD, 2),
       ]),
     ];
@@ -696,20 +696,20 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 0),
+        op(Opcode.CONSTANT, 2),
+        op(Opcode.CONSTANT, 1),
+        op(Opcode.CONSTANT, 0),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 mul) (arg0 arg1 arg2 add)
-        op(Opcode.VAL, arg0),
-        op(Opcode.VAL, arg1),
-        op(Opcode.VAL, arg2),
+        op(Opcode.CONSTANT, arg0),
+        op(Opcode.CONSTANT, arg1),
+        op(Opcode.CONSTANT, arg2),
         op(Opcode.MUL, 3),
-        op(Opcode.VAL, arg0),
-        op(Opcode.VAL, arg1),
-        op(Opcode.VAL, arg2),
+        op(Opcode.CONSTANT, arg0),
+        op(Opcode.CONSTANT, arg1),
+        op(Opcode.CONSTANT, arg2),
         op(Opcode.ADD, 3),
       ]),
     ];
@@ -725,7 +725,7 @@ describe("RainVM", async function () {
     console.log(sources);
 
     const stackUB = await calculator.analyzeSources(
-      Util.newSourceAnalysis(),
+      Util.newVMStateBuilderBounds(),
       sources,
       0
     );
@@ -778,14 +778,14 @@ describe("RainVM", async function () {
 
     const constants = [10, 20, 30, 40, 50, 60, 70, 80];
 
-    const a0 = op(Opcode.VAL, 8);
-    const a1 = op(Opcode.VAL, 9);
-    const a2 = op(Opcode.VAL, 10);
-    const a3 = op(Opcode.VAL, 11);
-    const a4 = op(Opcode.VAL, 12);
-    const a5 = op(Opcode.VAL, 13);
-    const a6 = op(Opcode.VAL, 14);
-    const a7 = op(Opcode.VAL, 15);
+    const a0 = op(Opcode.CONSTANT, 8);
+    const a1 = op(Opcode.CONSTANT, 9);
+    const a2 = op(Opcode.CONSTANT, 10);
+    const a3 = op(Opcode.CONSTANT, 11);
+    const a4 = op(Opcode.CONSTANT, 12);
+    const a5 = op(Opcode.CONSTANT, 13);
+    const a6 = op(Opcode.CONSTANT, 14);
+    const a7 = op(Opcode.CONSTANT, 15);
 
     // zero-based counting
     const sourceIndex = 1;
@@ -794,14 +794,14 @@ describe("RainVM", async function () {
 
     const sources = [
       concat([
-        op(Opcode.VAL, 0),
-        op(Opcode.VAL, 1),
-        op(Opcode.VAL, 2),
-        op(Opcode.VAL, 3),
-        op(Opcode.VAL, 4),
-        op(Opcode.VAL, 5),
-        op(Opcode.VAL, 6),
-        op(Opcode.VAL, 7),
+        op(Opcode.CONSTANT, 0),
+        op(Opcode.CONSTANT, 1),
+        op(Opcode.CONSTANT, 2),
+        op(Opcode.CONSTANT, 3),
+        op(Opcode.CONSTANT, 4),
+        op(Opcode.CONSTANT, 5),
+        op(Opcode.CONSTANT, 6),
+        op(Opcode.CONSTANT, 7),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
@@ -916,13 +916,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [1, 2, 3];
-    const v0 = op(Opcode.VAL, 0);
-    const v1 = op(Opcode.VAL, 1);
-    const v2 = op(Opcode.VAL, 2);
+    const v0 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.CONSTANT, 1);
+    const v2 = op(Opcode.CONSTANT, 2);
 
-    const a0 = op(Opcode.VAL, 3);
-    const a1 = op(Opcode.VAL, 4);
-    const a2 = op(Opcode.VAL, 5);
+    const a0 = op(Opcode.CONSTANT, 3);
+    const a1 = op(Opcode.CONSTANT, 4);
+    const a2 = op(Opcode.CONSTANT, 5);
 
     // zero-based counting
     const sourceIndex = 1;
@@ -1003,13 +1003,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 4, 5];
-    const v3 = op(Opcode.VAL, 0);
-    const v4 = op(Opcode.VAL, 1);
-    const v5 = op(Opcode.VAL, 2);
+    const v3 = op(Opcode.CONSTANT, 0);
+    const v4 = op(Opcode.CONSTANT, 1);
+    const v5 = op(Opcode.CONSTANT, 2);
 
-    const a0 = op(Opcode.VAL, 3);
-    const a1 = op(Opcode.VAL, 4);
-    const a2 = op(Opcode.VAL, 5);
+    const a0 = op(Opcode.CONSTANT, 3);
+    const a1 = op(Opcode.CONSTANT, 4);
+    const a2 = op(Opcode.CONSTANT, 5);
 
     // zero-based counting
     const sourceIndex = 1;
@@ -1080,13 +1080,13 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [1, 2, 3];
-    const v1 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
-    const v3 = op(Opcode.VAL, 2);
+    const v1 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
+    const v3 = op(Opcode.CONSTANT, 2);
 
-    const a0 = op(Opcode.VAL, 3);
-    const a1 = op(Opcode.VAL, 4);
-    const a2 = op(Opcode.VAL, 5);
+    const a0 = op(Opcode.CONSTANT, 3);
+    const a1 = op(Opcode.CONSTANT, 4);
+    const a2 = op(Opcode.CONSTANT, 5);
 
     // zero-based counting
     const sourceIndex = 1; // 1
@@ -1133,11 +1133,11 @@ describe("RainVM", async function () {
 
     const constants = [1, 2, 3, 4, 6];
 
-    const one = op(Opcode.VAL, 0);
-    const two = op(Opcode.VAL, 1);
-    const three = op(Opcode.VAL, 2);
-    const four = op(Opcode.VAL, 3);
-    const six = op(Opcode.VAL, 4);
+    const one = op(Opcode.CONSTANT, 0);
+    const two = op(Opcode.CONSTANT, 1);
+    const three = op(Opcode.CONSTANT, 2);
+    const four = op(Opcode.CONSTANT, 3);
+    const six = op(Opcode.CONSTANT, 4);
 
     // prettier-ignore
     const sources = [
@@ -1208,8 +1208,8 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [2, 3];
-    const v2 = op(Opcode.VAL, 0);
-    const v3 = op(Opcode.VAL, 1);
+    const v2 = op(Opcode.CONSTANT, 0);
+    const v3 = op(Opcode.CONSTANT, 1);
 
     const sources = [
       concat([
@@ -1249,9 +1249,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 13];
-    const v3 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
-    const v13 = op(Opcode.VAL, 2);
+    const v3 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
+    const v13 = op(Opcode.CONSTANT, 2);
 
     const sources = [
       concat([
@@ -1286,9 +1286,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 12];
-    const v3 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
-    const v12 = op(Opcode.VAL, 2);
+    const v3 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
+    const v12 = op(Opcode.CONSTANT, 2);
 
     const sources = [
       concat([
@@ -1323,9 +1323,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [5, 4, 3];
-    const v5 = op(Opcode.VAL, 0);
-    const v4 = op(Opcode.VAL, 1);
-    const v3 = op(Opcode.VAL, 2);
+    const v5 = op(Opcode.CONSTANT, 0);
+    const v4 = op(Opcode.CONSTANT, 1);
+    const v3 = op(Opcode.CONSTANT, 2);
 
     const sources = [
       concat([
@@ -1360,9 +1360,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 10];
-    const v3 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
-    const v10 = op(Opcode.VAL, 2);
+    const v3 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
+    const v10 = op(Opcode.CONSTANT, 2);
 
     const sources = [
       concat([
@@ -1397,9 +1397,9 @@ describe("RainVM", async function () {
     this.timeout(0);
 
     const constants = [3, 2, 1];
-    const v3 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
-    const v1 = op(Opcode.VAL, 2);
+    const v3 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
+    const v1 = op(Opcode.CONSTANT, 2);
 
     const sources = [
       concat([

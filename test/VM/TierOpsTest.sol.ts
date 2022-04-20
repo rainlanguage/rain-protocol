@@ -46,11 +46,11 @@ describe("TierOps", async function () {
 
     const constants0 = [block, Util.NEVER];
 
-    const vBlock = op(Opcode.VAL, 0);
+    const vBlock = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.VAL, 1),
+        op(Opcode.CONSTANT, 1),
         vBlock,
       op(
         Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -84,8 +84,8 @@ describe("TierOps", async function () {
       Util.blockNumbersToReport([2, 0, 4, 0, 6, 0, 8, 0].reverse()),
     ];
 
-    const vReport0 = op(Opcode.VAL, 0);
-    const vReport1 = op(Opcode.VAL, 1);
+    const vReport0 = op(Opcode.CONSTANT, 0);
+    const vReport1 = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -128,8 +128,8 @@ describe("TierOps", async function () {
       Util.blockNumbersToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
     ];
 
-    const vReport0 = op(Opcode.VAL, 0);
-    const vReport1 = op(Opcode.VAL, 1);
+    const vReport0 = op(Opcode.CONSTANT, 0);
+    const vReport1 = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -169,8 +169,8 @@ describe("TierOps", async function () {
       Util.blockNumbersToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
     ];
 
-    const vReport0 = op(Opcode.VAL, 0);
-    const vReport1 = op(Opcode.VAL, 1);
+    const vReport0 = op(Opcode.CONSTANT, 0);
+    const vReport1 = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([

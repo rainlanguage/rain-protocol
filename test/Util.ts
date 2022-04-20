@@ -205,8 +205,14 @@ export const verifyTierDeploy = async (deployer, config) => {
 };
 
 export const combineTierDeploy = async (deployer, config) => {
+  const stateBuilderFactory = await ethers.getContractFactory(
+    "AllStandardOpsMeta"
+  );
+  const stateBuilder = await stateBuilderFactory.deploy();
+  await stateBuilder.deployed();
+
   const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
-  const factory = (await factoryFactory.deploy()) as CombineTierFactory;
+  const factory = (await factoryFactory.deploy(stateBuilder.address)) as CombineTierFactory;
   await factory.deployed();
 
   const { implementation } = (await getEventArgs(

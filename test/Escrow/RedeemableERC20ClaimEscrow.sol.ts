@@ -80,7 +80,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
@@ -321,7 +321,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
@@ -548,7 +548,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
@@ -749,7 +749,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
@@ -959,7 +959,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
@@ -1126,7 +1126,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
@@ -1284,7 +1284,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
@@ -1456,7 +1456,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
@@ -1600,7 +1600,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
     const constants = [staticPrice];
-    const vBasePrice = op(Opcode.VAL, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
     const sources = [concat([vBasePrice])];
 
