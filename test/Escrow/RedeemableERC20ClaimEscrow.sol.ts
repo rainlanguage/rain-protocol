@@ -769,163 +769,105 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
   });
 
-  // it("should allow withdrawing redeemable tokens on successful raise", async function () {
-  //   this.timeout(0);
+  it.only("should allow withdrawing redeemable tokens on successful raise", async function () {
+    this.timeout(0);
 
-  //   const signers = await ethers.getSigners();
-  //   const alice = signers[1];
-  //   const deployer = signers[3];
-  //   const recipient = signers[4];
-  //   const feeRecipient = signers[5];
+    const signers = await ethers.getSigners();
+    const alice = signers[1];
+    const deployer = signers[3];
 
-  //   const startBlock = await ethers.provider.getBlockNumber();
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: deployer.address,
+      initialSupply: totalTokenSupply,
+    };
+    const redeemableERC20 = (await Util.redeemableERC20Deploy(deployer, {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20Config,
+      tier: readWriteTier.address,
+      minimumTier: 0,
+      distributionEndForwardingAddress: Util.zeroAddress,
+    })) as RedeemableERC20 & Contract;
 
-  //   const saleDuration = 30;
-  //   const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale = (await saleFactory.deploy()) as Contract & MockISale;
+    await sale.setToken(redeemableERC20.address);
 
-  //   const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-  //   const redeemableERC20Config = {
-  //     name: "Token",
-  //     symbol: "TKN",
-  //     distributor: Util.zeroAddress,
-  //     initialSupply: totalTokenSupply,
-  //   };
+    const desiredUnitsAlice = totalTokenSupply;
 
-  //   const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+    await sale.setSaleStatus(Status.ACTIVE)
 
-  //   const constants = [staticPrice];
-  //   const vBasePrice = op(Opcode.CONSTANT, 0);
+    const saleStatusActive = await sale.saleStatus();
 
-  //   const sources = [concat([vBasePrice])];
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
+    );
 
-  //   const [sale] = await saleDeploy(
-  //     signers,
-  //     deployer,
-  //     saleFactory,
-  //     {
-  //       canStartStateConfig: afterBlockNumberConfig(startBlock),
-  //       canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
-  //       calculatePriceStateConfig: {
-  //         sources,
-  //         constants,
-  //       },
-  //       recipient: recipient.address,
-  //       reserve: reserve.address,
-  //       cooldownDuration: 1,
-  //       minimumRaise,
-  //       dustSize: 0,
-  //       saleTimeout: 100,
-  //     },
-  //     {
-  //       erc20Config: redeemableERC20Config,
-  //       tier: readWriteTier.address,
-  //       minimumTier: Tier.ZERO,
-  //       distributionEndForwardingAddress: ethers.constants.AddressZero,
-  //     }
-  //   );
+    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice.div(10))
 
-  //   const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+    // deposit claimable tokens
+    const depositAmount = ethers.BigNumber.from(
+      "100" + "0".repeat(await reserve.decimals())
+    );
 
-  //   const desiredUnitsAlice = totalTokenSupply;
-  //   const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+    await reserve.approve(claim.address, depositAmount);
 
-  //   // give alice reserve to cover cost + (fee * 2)
-  //   await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+    await claim.depositPending(sale.address, reserve.address, depositAmount);
 
-  //   const aliceReserveBalance = await reserve.balanceOf(alice.address);
+    const preSupply = await reserve.totalSupply();
 
-  //   // wait until sale start
-  //   await Util.createEmptyBlock(
-  //     startBlock - (await ethers.provider.getBlockNumber())
-  //   );
+    // prevent withdraw until status Success
+    await Util.assertError(
+      async () =>
+        await claim
+          .connect(alice)
+          .withdraw(sale.address, reserve.address, preSupply),
+      "NOT_SUCCESS",
+      "wrongly withrew during Trading"
+    );
 
-  //   await sale.start();
+    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice)
+    await sale.setSaleStatus(Status.SUCCESS)
+    const saleStatusSuccess = await sale.saleStatus();
 
-  //   await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status
+      expected  ${Status.SUCCESS}
+      got       ${saleStatusSuccess}`
+    );
 
-  //   // alice buys some units
-  //   await sale.connect(alice).buy({
-  //     feeRecipient: feeRecipient.address,
-  //     fee,
-  //     minimumUnits: desiredUnitsAlice.div(10),
-  //     desiredUnits: desiredUnitsAlice.div(10),
-  //     maximumPrice: staticPrice,
-  //   });
+    const txDeposit = await claim.sweepPending(
+      sale.address,
+      reserve.address,
+      signers[0].address
+    );
+    const { supply } = await getEventArgs(txDeposit, "Deposit", claim);
 
-  //   const saleStatusActive = await sale.saleStatus();
+    const txWithdraw0 = await claim
+      .connect(alice)
+      .withdraw(sale.address, reserve.address, supply);
 
-  //   assert(
-  //     saleStatusActive === Status.ACTIVE,
-  //     `wrong status
-  //       expected  ${Status.ACTIVE}
-  //       got       ${saleStatusActive}`
-  //   );
+    const { amount: registeredWithdrawnAmountSigner1 } =
+      (await Util.getEventArgs(
+        txWithdraw0,
+        "Withdraw",
+        claim
+      )) as WithdrawEvent["args"];
 
-  //   // deposit claimable tokens
-  //   const depositAmount = ethers.BigNumber.from(
-  //     "100" + "0".repeat(await reserve.decimals())
-  //   );
+    // total amount withdrawn and registered value should match
+    assert(
+      registeredWithdrawnAmountSigner1.eq(depositAmount),
+      "wrong registered withdrawal value for signer1"
+    );
 
-  //   await reserve.approve(claim.address, depositAmount);
-
-  //   await claim.depositPending(sale.address, reserve.address, depositAmount);
-
-  //   const preSupply = await reserve.totalSupply();
-
-  //   // prevent withdraw until status Success
-  //   await Util.assertError(
-  //     async () =>
-  //       await claim
-  //         .connect(alice)
-  //         .withdraw(sale.address, reserve.address, preSupply),
-  //     "NOT_SUCCESS",
-  //     "wrongly withrew during Trading"
-  //   );
-
-  //   // alice buys rest of units
-  //   await sale.connect(alice).buy({
-  //     feeRecipient: feeRecipient.address,
-  //     fee,
-  //     minimumUnits: 1,
-  //     desiredUnits: desiredUnitsAlice,
-  //     maximumPrice: staticPrice,
-  //   });
-
-  //   const saleStatusSuccess = await sale.saleStatus();
-
-  //   assert(
-  //     saleStatusSuccess === Status.SUCCESS,
-  //     `wrong status
-  //     expected  ${Status.SUCCESS}
-  //     got       ${saleStatusSuccess}`
-  //   );
-
-  //   const txDeposit = await claim.sweepPending(
-  //     sale.address,
-  //     reserve.address,
-  //     signers[0].address
-  //   );
-  //   const { supply } = await getEventArgs(txDeposit, "Deposit", claim);
-
-  //   const txWithdraw0 = await claim
-  //     .connect(alice)
-  //     .withdraw(sale.address, reserve.address, supply);
-
-  //   const { amount: registeredWithdrawnAmountSigner1 } =
-  //     (await Util.getEventArgs(
-  //       txWithdraw0,
-  //       "Withdraw",
-  //       claim
-  //     )) as WithdrawEvent["args"];
-
-  //   // total amount withdrawn and registered value should match
-  //   assert(
-  //     registeredWithdrawnAmountSigner1.eq(depositAmount),
-  //     "wrong registered withdrawal value for signer1"
-  //   );
-
-  //   // not testing further withdrawal behaviour here
-  // });
+    // not testing further withdrawal behaviour here
+  });
 
   // it("should allow undepositing redeemable tokens on failed raise", async function () {
   //   this.timeout(0);
