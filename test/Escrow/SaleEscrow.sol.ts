@@ -3,10 +3,7 @@ import chai from "chai";
 import { ethers } from "hardhat";
 import { op } from "../Util";
 import {
-  afterBlockNumberConfig,
-  Opcode,
-  saleDeploy,
-  Tier,
+  Status
 } from "../Sale/SaleUtil";
 import { concat } from "ethers/lib/utils";
 import { ReserveToken } from "../../typechain/ReserveToken";
@@ -19,6 +16,7 @@ import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20Claim
 import { SaleFactory } from "../../typechain/SaleFactory";
 import { MockISale } from "../../typechain/MockISale";
 import { IERC20 } from "../../typechain/IERC20";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 
 const { assert } = chai;
 
@@ -361,53 +359,28 @@ describe("SaleEscrow", async function () {
 
     const signers = await ethers.getSigners();
     const deployer = signers[0];
-    const recipient = signers[1];
-
-    // 5 blocks from now
-    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
-    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
-      distributor: Util.zeroAddress,
+      distributor: deployer.address,
       initialSupply: totalTokenSupply,
     };
+    const redeemableERC20 = (await Util.redeemableERC20Deploy(deployer, {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20Config,
+      tier: readWriteTier.address,
+      minimumTier: 0,
+      distributionEndForwardingAddress: Util.zeroAddress,
+    })) as RedeemableERC20 & Contract;
 
-    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale = (await saleFactory.deploy()) as Contract & MockISale;
 
-    const constants = [staticPrice];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-
-    const sources = [concat([vBasePrice])];
-
-    const [sale] = await saleDeploy(
-      signers,
-      deployer,
-      saleFactory,
-      {
-        canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-        calculatePriceStateConfig: {
-          sources,
-          constants,
-        },
-        recipient: recipient.address,
-        reserve: reserve.address,
-        cooldownDuration: 1,
-        minimumRaise,
-        dustSize: 0,
-        saleTimeout: 100,
-      },
-      {
-        erc20Config: redeemableERC20Config,
-        tier: readWriteTier.address,
-        minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: ethers.constants.AddressZero,
-      }
-    );
+    await sale.setReserve(reserve.address)
+    await sale.setToken(redeemableERC20.address)
+    await sale.setSaleStatus(Status.PENDING)
 
     const saleReserve = await sale.reserve();
     const saleToken = await sale.token();

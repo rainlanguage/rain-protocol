@@ -17,12 +17,23 @@ const Opcode = Util.AllStandardOps;
 // Contains tests for RainVM, the constant RainVM ops as well as Math ops via AllStandardOpsTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM", async function () {
+  let stateBuilder;
+  let logic;
+  before(async () => {
+    this.timeout(0);
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
+  });
   it("should perform saturating multiplication", async () => {
     this.timeout(0);
-
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
 
     const constants = [Util.max_uint256, 2];
     const vMaxUInt256 = op(Opcode.CONSTANT, 0);
@@ -38,13 +49,13 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorUnsat = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: sourcesUnsat,
       constants,
-    })) as AllStandardOpsTest & Contract;
+    })
 
     await Util.assertError(
-      async () => await calculatorUnsat.run(),
+      async () => await logic.run(),
       "Transaction reverted",
       "normal multiplication overflow did not error"
     );
@@ -58,13 +69,13 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorSat = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: sourcesSat,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await calculatorSat.run();
-    const result = await calculatorSat.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = Util.max_uint256;
     assert(
       result.eq(expected),
@@ -74,10 +85,6 @@ describe("RainVM", async function () {
 
   it("should perform saturating subtraction", async () => {
     this.timeout(0);
-
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
 
     const constants = [10, 20];
     const v10 = op(Opcode.CONSTANT, 0);
@@ -93,13 +100,13 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorUnsat = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: sourcesUnsat,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
     await Util.assertError(
-      async () => await calculatorUnsat.run(),
+      async () => await logic.run(),
       "Transaction reverted",
       "normal subtraction overflow did not error"
     );
@@ -113,13 +120,13 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorSat = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: sourcesSat,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await calculatorSat.run();
-    const result = await calculatorSat.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 0;
     assert(
       result.eq(expected),
@@ -129,10 +136,6 @@ describe("RainVM", async function () {
 
   it("should perform saturating addition", async () => {
     this.timeout(0);
-
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
 
     const constants = [Util.max_uint256, 10];
     const vMaxUInt256 = op(Opcode.CONSTANT, 0);
@@ -148,13 +151,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorUnsat = (await calculatorFactory.deploy({
-      sources: sourcesUnsat,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({sources: sourcesUnsat, constants})
 
     await Util.assertError(
-      async () => await calculatorUnsat.run(),
+      async () => await logic.run(),
       "Transaction reverted",
       "normal addition overflow did not error"
     );
@@ -168,13 +168,13 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorSat = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: sourcesSat,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    await calculatorSat.run();
-    const result = await calculatorSat.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = Util.max_uint256;
     assert(
       result.eq(expected),
@@ -184,10 +184,6 @@ describe("RainVM", async function () {
 
   it("should support source scripts with leading zeroes", async () => {
     this.timeout(0);
-
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
 
     await Util.createEmptyBlock(5);
 
@@ -205,25 +201,18 @@ describe("RainVM", async function () {
       op(Opcode.MIN, 2),
     ]);
 
-    const calculator0 = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
-    // const { stack } = await calculator0.runState();
-    // console.log({ stack });
-
-    await calculator0.run();
-    const result0 = await calculator0.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
   });
 
   it("should support source scripts with trailing zeroes", async () => {
     this.timeout(0);
-
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
 
     await Util.createEmptyBlock(5);
 
@@ -241,22 +230,15 @@ describe("RainVM", async function () {
       new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
     ]);
 
-    const calculator0 = (await calculatorFactory.deploy({
-      sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources: [source0], constants})
 
-    await calculator0.run();
-    const result0 = await calculator0.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
   });
 
   it("should return block.number and block.timestamp", async () => {
     this.timeout(0);
-
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
 
     const constants = [];
 
@@ -266,14 +248,11 @@ describe("RainVM", async function () {
       op(Opcode.BLOCK_NUMBER)
     ]);
 
-    const calculator0 = (await calculatorFactory.deploy({
-      sources: [source0],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources: [source0], constants })
 
-    await calculator0.run();
+    await logic.run();
     const block0 = await ethers.provider.getBlockNumber();
-    const result0 = await calculator0.stackTop();
+    const result0 = await logic.stackTop();
     assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
 
     // prettier-ignore
@@ -282,14 +261,14 @@ describe("RainVM", async function () {
       op(Opcode.BLOCK_TIMESTAMP)
     ]);
 
-    const calculator1 = (await calculatorFactory.deploy({
+    await logic.initialize({
       sources: [source1],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+      constants
+    })
 
     const timestamp1 = Date.now();
-    await calculator1.run();
-    const result1 = await calculator1.stackTop();
+    await logic.run();
+    const result1 = await logic.stackTop();
 
     const roughTimestamp1 = ethers.BigNumber.from(`${timestamp1}`.slice(0, 4));
     const roughResult1 = ethers.BigNumber.from(`${result1}`.slice(0, 4));
@@ -318,16 +297,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({sources, constants})
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 1;
     assert(
       result.eq(expected),
@@ -353,16 +326,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({sources, constants})
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 0;
     assert(
       result.eq(expected),
@@ -388,16 +355,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({sources, constants})
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 1;
     assert(
       result.eq(expected),
@@ -425,16 +386,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 4096;
     assert(
       result.eq(expected),
@@ -460,16 +415,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 16;
     assert(
       result.eq(expected),
@@ -495,16 +444,10 @@ describe("RainVM", async function () {
       op(Opcode.MAX, 3),
     ]);
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources: [source],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources: [source], constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 33;
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
   });
@@ -525,16 +468,10 @@ describe("RainVM", async function () {
       op(Opcode.MIN, 3),
     ]);
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources: [source],
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources: [source], constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 11;
     assert(result.eq(expected), `wrong minimum ${expected} ${result}`);
   });
@@ -547,19 +484,13 @@ describe("RainVM", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources: [source],
-      constants: [],
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources: [source], constants: []})
 
     await Util.createEmptyBlock(3);
 
-    await calculator.run();
+    await logic.run();
     const expected = await ethers.provider.getBlockNumber();
-    const result = await calculator.stackTop();
+    const result = await logic.stackTop();
     assert(result.eq(expected), `wrong block number ${expected} ${result}`);
   });
 
@@ -627,16 +558,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({sources, constants})
 
-    await calculator.run();
-    const resultState = (await calculator.state()) as StateStruct;
+    await logic.run();
+    const resultState = (await logic.state()) as StateStruct;
 
     // We're not expecting a single result here.
     // The first 16 positions in the stack should match our expected output.
@@ -714,27 +639,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    console.log(sources);
-
-    const stackUB = await calculator.analyzeSources(
-      Util.newVMStateBuilderBounds(),
-      sources,
-      0
-    );
-
-    console.log(stackUB);
-
-    await calculator.run();
-    const resultState = (await calculator.state()) as StateStruct;
-    console.log(resultState);
+    await logic.run();
+    const resultState = (await logic.state()) as StateStruct;
 
     const expectedMul1 = 6;
     const actualMul1 = ethers.BigNumber.from(resultState.stack[0]);
@@ -873,16 +781,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const resultState = (await calculator.state()) as StateStruct;
+    await logic.run();
+    const resultState = (await logic.state()) as StateStruct;
 
     const expectedIndex = 2;
     const actualIndex = ethers.BigNumber.from(resultState.stackIndex);
@@ -960,16 +862,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const resultState = (await calculator.state()) as StateStruct;
+    await logic.run();
+    const resultState = (await logic.state()) as StateStruct;
 
     const expectedIndex = 2;
     const actualIndex = ethers.BigNumber.from(resultState.stackIndex);
@@ -1037,16 +933,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const resultState = (await calculator.state()) as StateStruct;
+    await logic.run();
+    const resultState = (await logic.state()) as StateStruct;
 
     const expectedIndex = 2;
     const actualIndex = ethers.BigNumber.from(resultState.stackIndex);
@@ -1109,16 +999,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 6;
     assert(
       result.eq(expected),
@@ -1157,17 +1041,11 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
+    await logic.run();
     const block0 = await ethers.provider.getBlockNumber();
-    const result0 = await calculator.stackTop();
+    const result0 = await logic.stackTop();
     const expected0 = 16 * block0;
     assert(
       result0.eq(expected0),
@@ -1178,10 +1056,10 @@ describe("RainVM", async function () {
 
     await Util.createEmptyBlock();
 
-    await calculator.run();
+    await logic.run();
     const block1 = await ethers.provider.getBlockNumber();
 
-    const result1 = await calculator.stackTop();
+    const result1 = await logic.stackTop();
     const expected1 = 16 * block1;
     assert(
       result1.eq(expected1),
@@ -1192,9 +1070,9 @@ describe("RainVM", async function () {
 
     await Util.createEmptyBlock();
 
-    await calculator.run();
+    await logic.run();
     const block2 = await ethers.provider.getBlockNumber();
-    const result2 = await calculator.stackTop();
+    const result2 = await logic.stackTop();
     const expected2 = 16 * block2;
     assert(
       result2.eq(expected2),
@@ -1226,16 +1104,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 3;
     assert(
       result.eq(expected),
@@ -1263,16 +1135,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 1;
     assert(
       result.eq(expected),
@@ -1300,16 +1166,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 2;
     assert(
       result.eq(expected),
@@ -1337,16 +1197,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 60;
     assert(
       result.eq(expected),
@@ -1374,16 +1228,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 5;
     assert(
       result.eq(expected),
@@ -1411,16 +1259,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    const calculatorFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-    const calculator = (await calculatorFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await calculator.run();
-    const result = await calculator.stackTop();
+    await logic.run();
+    const result = await logic.stackTop();
     const expected = 6;
     assert(result.eq(expected), `wrong summation ${expected} ${result}`);
   });

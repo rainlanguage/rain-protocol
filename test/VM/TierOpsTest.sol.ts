@@ -33,12 +33,23 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
 }
 
 describe("TierOps", async function () {
+  let stateBuilder;
+  let logic;
+  before(async () => {
+    this.timeout(0);
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
+  });
   it("should enforce maxTier for update tier range operation", async () => {
     this.timeout(0);
-
-    const tierOpsFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
 
     await Util.createEmptyBlock(3);
 
@@ -58,13 +69,13 @@ describe("TierOps", async function () {
       ),
     ]);
 
-    const tierOps0 = (await tierOpsFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants: constants0,
-    })) as AllStandardOpsTest & Contract;
+    })
 
     await Util.assertError(
-      async () => await tierOps0.run(),
+      async () => await logic.run(),
       "MAX_TIER",
       "wrongly updated blocks with endTier of 9, which is greater than maxTier constant"
     );
@@ -72,10 +83,6 @@ describe("TierOps", async function () {
 
   it("should use saturating sub for diff where only some tiers would underflow", async () => {
     this.timeout(0);
-
-    const tierOpsFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
 
     const constants0 = [
       //         0x01000000020000000300000004000000050000000600000007
@@ -94,13 +101,10 @@ describe("TierOps", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    const tierOps0 = (await tierOpsFactory.deploy({
-      sources: [source0],
-      constants: constants0,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources: [source0], constants: constants0 })
 
-    await tierOps0.run();
-    const result0 = await tierOps0.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
     const expectedResultHex0 =
@@ -117,10 +121,6 @@ describe("TierOps", async function () {
   it("should use saturating sub for diff (does not panic when underflowing, but sets to zero)", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-
     const constants0 = [
       // 0x01000000020000000300000004000000050000000600000007
       Util.blockNumbersToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
@@ -138,13 +138,10 @@ describe("TierOps", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    const tierOps0 = (await tierOpsFactory.deploy({
-      sources: [source0],
-      constants: constants0,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources: [source0], constants: constants0 })
 
-    await tierOps0.run();
-    const result0 = await tierOps0.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
     assert(
@@ -158,10 +155,6 @@ describe("TierOps", async function () {
   it("should diff reports correctly", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory(
-      "AllStandardOpsTest"
-    );
-
     const constants0 = [
       // 0x0200000003000000040000000500000006000000070000000800000009
       Util.blockNumbersToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
@@ -179,13 +172,10 @@ describe("TierOps", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    const tierOps0 = (await tierOpsFactory.deploy({
-      sources: [source0],
-      constants: constants0,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({sources: [source0], constants: constants0})
 
-    await tierOps0.run();
-    const result0 = await tierOps0.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
     const expectedResultHex0 =

@@ -24,11 +24,21 @@ let tokenERC20: ReserveToken;
 let tokenERC721: ReserveTokenERC721;
 let tokenERC1155: ReserveTokenERC1155;
 
-let tokenOpsTestFactory: ContractFactory;
-
 describe("TokenOps Test", async function () {
+  let stateBuilder;
+  let logic;
   before(async () => {
-    tokenOpsTestFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    this.timeout(0);
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
   });
 
   beforeEach(async () => {
@@ -78,10 +88,7 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
     const transferAmount = 100;
 
@@ -105,8 +112,8 @@ describe("TokenOps Test", async function () {
       [tokenId, tokenId]
     );
 
-    await tokenOpsTest.run();
-    const opBatchAmounts = await tokenOpsTest.stack();
+    await logic.run();
+    const opBatchAmounts = await logic.stack();
 
     assert(
       nativeBatchAmounts.every((nativeAmount, i) =>
@@ -136,13 +143,9 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
-
-    await tokenOpsTest.run();
-    const result0 = await tokenOpsTest.stackTop();
+    await logic.initialize({ sources, constants })
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0 of id ${tokenId}, got ${result0}`);
 
     const transferAmount = 100;
@@ -168,8 +171,8 @@ describe("TokenOps Test", async function () {
       got       ${signer1Balance}`
     );
 
-    await tokenOpsTest.run();
-    const result1 = await tokenOpsTest.stackTop();
+    await logic.run();
+    const result1 = await logic.stackTop();
     assert(
       result1.eq(transferAmount),
       `expected ${transferAmount} of id ${tokenId}, got ${result1}`
@@ -194,19 +197,16 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await tokenOpsTest.run();
-    const result0 = await tokenOpsTest.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.eq(signer0.address));
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, nftId);
 
-    await tokenOpsTest.run();
-    const result1 = await tokenOpsTest.stackTop();
+    await logic.run();
+    const result1 = await logic.stackTop();
     assert(result1.eq(signer1.address));
   });
 
@@ -226,26 +226,23 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({sources, constants})
 
-    await tokenOpsTest.run();
-    const result0 = await tokenOpsTest.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, 0);
 
-    await tokenOpsTest.run();
-    const result1 = await tokenOpsTest.stackTop();
+    await logic.run();
+    const result1 = await logic.stackTop();
     assert(result1.eq(1), `expected 1, got ${result1}`);
 
     await tokenERC721.mintNewToken();
     await tokenERC721.transferFrom(signer0.address, signer1.address, 1);
 
-    await tokenOpsTest.run();
-    const result2 = await tokenOpsTest.stackTop();
+    await logic.run();
+    const result2 = await logic.stackTop();
     assert(result2.eq(2), `expected 2, got ${result2}`);
   });
 
@@ -263,13 +260,10 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
+    await logic.initialize({ sources, constants })
 
-    await tokenOpsTest.run();
-    const result0 = await tokenOpsTest.stackTop();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const totalTokenSupply = await tokenERC20.totalSupply();
     assert(
       result0.eq(totalTokenSupply),
@@ -293,20 +287,15 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as AllStandardOpsTest & Contract;
-
-    console.log(sources, Opcode.length);
-    await tokenOpsTest.run();
-    const result0 = await tokenOpsTest.stackTop();
+    await logic.initialize({ sources, constants })
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC20.transfer(signer1.address, 100);
 
-    await tokenOpsTest.run();
-    const result1 = await tokenOpsTest.stackTop();
+    await logic.run();
+    const result1 = await logic.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });
 });
