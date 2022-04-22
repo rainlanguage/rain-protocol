@@ -4,7 +4,7 @@ pragma solidity =0.8.10;
 import "../VMStateBuilder.sol";
 import "./AllStandardOps.sol";
 
-contract AllStandardOpsMeta is VMStateBuilder {
+contract AllStandardOpsStateBuilder is VMStateBuilder {
     /// @inheritdoc VMStateBuilder
     function stackIndexMoveFnPtrs()
         public

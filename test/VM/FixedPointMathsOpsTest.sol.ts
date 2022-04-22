@@ -17,7 +17,7 @@ describe("FixedPointMathOps Test", async function () {
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsMeta"
+      "AllStandardOpsStateBuilder"
     );
     stateBuilder = await stateBuilderFactory.deploy();
     await stateBuilder.deployed();
@@ -45,7 +45,7 @@ describe("FixedPointMathOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -76,7 +76,7 @@ describe("FixedPointMathOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -106,7 +106,7 @@ describe("FixedPointMathOps Test", async function () {
         op(Opcode.SCALEN, n)
       ]),
     ];
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -137,7 +137,7 @@ describe("FixedPointMathOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -170,7 +170,7 @@ describe("FixedPointMathOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -204,7 +204,7 @@ describe("FixedPointMathOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -235,7 +235,7 @@ describe("FixedPointMathOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();

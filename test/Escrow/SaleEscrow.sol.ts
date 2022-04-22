@@ -57,7 +57,7 @@ describe("SaleEscrow", async function () {
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsMeta"
+      "AllStandardOpsStateBuilder"
     );
     const stateBuilder = await stateBuilderFactory.deploy();
     await stateBuilder.deployed();

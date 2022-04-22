@@ -206,13 +206,15 @@ export const verifyTierDeploy = async (deployer, config) => {
 
 export const combineTierDeploy = async (deployer, config) => {
   const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsMeta"
+    "AllStandardOpsStateBuilder"
   );
   const stateBuilder = await stateBuilderFactory.deploy();
   await stateBuilder.deployed();
 
   const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
-  const factory = (await factoryFactory.deploy(stateBuilder.address)) as CombineTierFactory;
+  const factory = (await factoryFactory.deploy(
+    stateBuilder.address
+  )) as CombineTierFactory;
   await factory.deployed();
 
   const { implementation } = (await getEventArgs(
@@ -614,5 +616,6 @@ export const newVMStateBuilderBounds = (): BoundsStruct => {
     stackLength: 0,
     argumentsLength: 0,
     storageLength: 0,
+    opcodesLength: 0,
   };
 };

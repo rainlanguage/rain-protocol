@@ -13,11 +13,31 @@ struct StateConfig {
     uint256[] constants;
 }
 
+/// @param stackIndex The current stack index as the state builder moves
+/// through each opcode and applies the appropriate move fn.
+/// @param stackLength The maximum length of the stack seen so far due to stack
+/// index movements. If the stack index underflows this will be close to
+/// uint256 max and will ultimately error. It will also error if it overflows
+/// MAX_STACK_LENGTH.
+/// @param argumentsLength The maximum length of arguments seen so far due to
+/// zipmap calls. Will be 0 if there are no zipmap calls.
+/// @param storageLength The VM contract MUST specify which range of storage
+/// slots can be read by VM scripts as [0, storageLength). If the storageLength
+/// is 0 then no storage slots may be read by opcodes. In practise opcodes are
+/// uint8 so storage slots beyond 255 cannot be read, notably all mappings will
+/// be inaccessible.
+/// @param opcodesLength The VM contract MUST specify how many valid opcodes
+/// there are, where a valid opcode is one with a corresponding valid function
+/// pointer in the array returned by `fnPtrs`. If this is not set correctly
+/// then an attacker may specify an opcode that points to data beyond the valid
+/// fnPtrs, which has undefined and therefore possibly catastrophic behaviour
+/// for the implementing contract, up to and including total funds loss.
 struct Bounds {
     uint256 stackIndex;
     uint256 stackLength;
     uint256 argumentsLength;
     uint256 storageLength;
+    uint256 opcodesLength;
 }
 
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
@@ -53,8 +73,12 @@ contract VMStateBuilder {
         uint256 entrypoint_
     ) external returns (bytes memory) {
         unchecked {
+            bytes memory packedFnPtrs_ = _packedFnPtrs(vm_);
             Bounds memory bounds_;
             bounds_.storageLength = RainVM(vm_).storageOpcodesLength();
+            // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the length
+            // to get the valid opcodes length.
+            bounds_.opcodesLength = packedFnPtrs_.length / 2;
             ensureIntegrity(config_, bounds_, entrypoint_);
 
             // build a new constants array with space for the arguments.
@@ -73,7 +97,7 @@ contract VMStateBuilder {
                         config_.sources,
                         constants_,
                         config_.constants.length,
-                        _packedFnPtrs(vm_)
+                        packedFnPtrs_
                     )
                 );
         }
@@ -175,8 +199,9 @@ contract VMStateBuilder {
                         require(operand_ < bounds_.stackIndex);
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_CONTEXT) {
-                        // Note that context length check is handled at runtime because
-                        // we don't know how long context should be at this point.
+                        // Note that context length check is handled at runtime
+                        // because we don't know how long context should be at
+                        // this point.
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_STORAGE) {
                         // trying to read past allowed storage slots.
@@ -187,6 +212,8 @@ contract VMStateBuilder {
                         _ensureIntegrityZipmap(stateConfig_, bounds_, operand_);
                     }
                 } else {
+                    // Opcodes can't exceed the bounds of valid fn pointers.
+                    require(opcode_ < bounds_.opcodesLength, "MAX_OPCODE");
                     function(uint256, uint256) pure returns (uint256) fn_;
                     assembly {
                         fn_ := mload(add(firstPtrLocation_, mul(opcode_, 0x20)))

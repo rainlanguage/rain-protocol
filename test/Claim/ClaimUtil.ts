@@ -21,7 +21,7 @@ export interface ClaimFactories {
 
 export const claimFactoriesDeploy = async (): Promise<ClaimFactories> => {
   const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsMeta"
+    "AllStandardOpsStateBuilder"
   );
   const stateBuilder = await stateBuilderFactory.deploy();
   await stateBuilder.deployed();

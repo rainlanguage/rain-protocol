@@ -17,7 +17,7 @@ describe("LogicOps Test", async function () {
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsMeta"
+      "AllStandardOpsStateBuilder"
     );
     stateBuilder = await stateBuilderFactory.deploy();
     await stateBuilder.deployed();

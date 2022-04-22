@@ -13,7 +13,7 @@ import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 
 export const deployGlobals = async () => {
   const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsMeta"
+    "AllStandardOpsStateBuilder"
   );
   const stateBuilder = await stateBuilderFactory.deploy();
   await stateBuilder.deployed();
