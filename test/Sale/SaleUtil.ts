@@ -96,7 +96,7 @@ export const afterBlockNumberConfig = (blockNumber) => {
       concat([
         // (BLOCK_NUMBER blockNumberSub1 gt)
         op(Opcode.BLOCK_NUMBER),
-        op(Opcode.VAL, 0),
+        op(Opcode.CONSTANT, 0),
         op(Opcode.GREATER_THAN),
       ]),
     ],
