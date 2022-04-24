@@ -269,7 +269,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        // !! WARNING !! - NEED TO INCLUDE OTHER ENTRYPOINTS HERE!
         bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             config_.vmStateConfig,
