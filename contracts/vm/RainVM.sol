@@ -27,13 +27,12 @@ import "hardhat/console.sol";
 struct State {
     uint256 stackIndex;
     uint256[] stack;
-    bytes[] sources;
+    bytes[] ptrSources;
     uint256[] constants;
     /// `ZIPMAP` populates arguments into constants which can be copied to the
     /// stack by `VAL` as usual, starting from this index. This copying is
     /// destructive so it is recommended to leave space in the constants array.
     uint256 argumentsIndex;
-    bytes fnPtrsPacked;
 }
 
 library LibState {
@@ -65,7 +64,7 @@ library LibState {
             state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
             state_.argumentsIndex = (indexes_ >> 16) & 0xFF;
             uint256 sourcesLen_ = (indexes_ >> 24) & 0xFF;
-            bytes[] memory sources_ = new bytes[](sourcesLen_);
+            bytes[] memory ptrSources_ = new bytes[](sourcesLen_);
 
             assembly {
                 let sourcesStart_ := add(
@@ -86,15 +85,12 @@ library LibState {
                 } {
                     // sources_ is a dynamic array so it is a list of
                     // pointers that can be set literally to the cursor_
-                    mstore(add(sources_, add(0x20, mul(i_, 0x20))), cursor_)
+                    mstore(add(ptrSources_, add(0x20, mul(i_, 0x20))), cursor_)
                     // move the cursor by the length of the source in bytes
                     cursor_ := add(cursor_, add(0x20, mload(cursor_)))
                 }
                 // point state at sources_ rather than clone in memory
-                mstore(add(state_, 0x40), sources_)
-                // point state at the cursor to pick up the packedFnPtrs at the
-                // end of the sources.
-                mstore(add(state_, 0xA0), cursor_)
+                mstore(add(state_, 0x40), ptrSources_)
             }
             return state_;
         }
@@ -112,23 +108,18 @@ library LibState {
             uint256 indexes_ = state_.constants.length |
                 (state_.stack.length << 8) |
                 (state_.argumentsIndex << 16) |
-                (state_.sources.length << 24);
+                (state_.ptrSources.length << 24);
             bytes memory ret_ = bytes.concat(
                 bytes32(indexes_),
                 abi.encodePacked(constants_)
             );
-            for (uint256 i_ = 0; i_ < state_.sources.length; i_++) {
+            for (uint256 i_ = 0; i_ < state_.ptrSources.length; i_++) {
                 ret_ = bytes.concat(
                     ret_,
-                    bytes32(state_.sources[i_].length),
-                    state_.sources[i_]
+                    bytes32(state_.ptrSources[i_].length),
+                    state_.ptrSources[i_]
                 );
             }
-            ret_ = bytes.concat(
-                ret_,
-                bytes32(state_.fnPtrsPacked.length),
-                state_.fnPtrsPacked
-            );
             return ret_;
         }
     }
@@ -396,11 +387,12 @@ abstract contract RainVM {
             // Loop until complete.
             while (i_ < sourceLen_) {
                 assembly {
-                    i_ := add(i_, 2)
+                    i_ := add(i_, 3)
                     let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
+                    opcode_ := and(shr(8, op_), 0xFFFF)
                 }
+
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ == OPCODE_CONSTANT) {
                         assembly {
@@ -475,10 +467,7 @@ abstract contract RainVM {
                 } else {
                     function(uint256, uint256) view returns (uint256) fn_;
                     assembly {
-                        fn_ := and(
-                            mload(add(firstFnPtrLocation_, mul(opcode_, 2))),
-                            0xFFFF
-                        )
+                        fn_ := opcode_
                     }
                     stackTopLocation_ = fn_(operand_, stackTopLocation_);
                 }

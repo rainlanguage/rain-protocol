@@ -5,6 +5,8 @@ import "../sstore2/SSTORE2.sol";
 import "./RainVM.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
+import "hardhat/console.sol";
+
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
 /// @param constants Constants verbatim.
@@ -89,17 +91,76 @@ contract VMStateBuilder {
                 constants_[i_] = config_.constants[i_];
             }
 
+            bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
+            for (uint i_ = 0; i_ < config_.sources.length; i_++) {
+                ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
+            }
+
             return
                 LibState.toBytesPacked(
                     State(
                         0,
                         new uint256[](bounds_.stackLength),
-                        config_.sources,
+                        ptrSources_,
                         constants_,
-                        config_.constants.length,
-                        packedFnPtrs_
+                        config_.constants.length
                     )
                 );
+        }
+    }
+
+    function ptrSource(bytes memory packedFnPtrs_, bytes memory source_)
+        public
+        pure
+        returns (bytes memory)
+    {
+        unchecked {
+            uint256 sourceLen_ = source_.length;
+            require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
+
+            bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
+
+            uint256 rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
+            assembly {
+                let start_ := 1
+                let end_ := add(sourceLen_, 1)
+                for {
+                    let i_ := start_
+                    let o_ := 0
+                } lt(i_, end_) {
+                    i_ := add(i_, 1)
+                } {
+                    let op_ := byte(31, mload(add(source_, i_)))
+                    // is opcode
+                    if mod(i_, 2) {
+                        // core ops simply zero pad.
+                        if lt(op_, rainVMOpsLength_) {
+                            o_ := add(o_, 1)
+                            mstore8(add(ptrSource_, add(0x20, o_)), op_)
+                        }
+                        if iszero(lt(op_, rainVMOpsLength_)) {
+                            let fn_ := mload(
+                                add(packedFnPtrs_, add(0x2, mul(op_, 0x2)))
+                            )
+                            mstore8(
+                                add(ptrSource_, add(0x20, o_)),
+                                byte(30, fn_)
+                            )
+                            o_ := add(o_, 1)
+                            mstore8(
+                                add(ptrSource_, add(0x20, o_)),
+                                byte(31, fn_)
+                            )
+                        }
+                    }
+                    // is operand
+                    if iszero(mod(i_, 2)) {
+                        mstore8(add(ptrSource_, add(0x20, o_)), op_)
+                    }
+                    o_ := add(o_, 1)
+                }
+            }
+            return ptrSource_;
         }
     }
 

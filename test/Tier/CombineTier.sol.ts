@@ -405,7 +405,7 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const source = concat([bytify(Opcode.CONTEXT)]);
+    const source = concat([op(Opcode.CONTEXT, 0)]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],

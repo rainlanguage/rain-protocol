@@ -138,7 +138,7 @@ uint256 constant CAN_START_ENTRYPOINT = 0;
 uint256 constant CAN_END_ENTRYPOINT = 1;
 uint256 constant CALCULATE_PRICE_ENTRYPOINT = 2;
 
-uint constant STORAGE_OPCODES_LENGTH = 4;
+uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
 // solhint-disable-next-line max-states-count
 contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
