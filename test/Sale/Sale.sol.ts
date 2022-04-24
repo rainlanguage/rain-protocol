@@ -45,193 +45,193 @@ let reserve: ReserveToken & Contract,
   saleFactory: SaleFactory & Contract,
   saleProxy: Sale & Contract;
 
-describe("Sale", async function () {
+describe.only("Sale", async function () {
   beforeEach(async () => {
     reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
       Contract;
   });
 
-  // before(async () => {
-  //   redeemableERC20FactoryFactory = await ethers.getContractFactory(
-  //     "RedeemableERC20Factory",
-  //     {}
-  //   );
-  //   redeemableERC20Factory =
-  //     (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-  //       Contract;
-  //   await redeemableERC20Factory.deployed();
+  before(async () => {
+    redeemableERC20FactoryFactory = await ethers.getContractFactory(
+      "RedeemableERC20Factory",
+      {}
+    );
+    redeemableERC20Factory =
+      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
+        Contract;
+    await redeemableERC20Factory.deployed();
 
-  //   readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-  //   readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
-  //     Contract;
-  //   await readWriteTier.deployed();
+    readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
+    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
+      Contract;
+    await readWriteTier.deployed();
 
-  //   saleConstructorConfig = {
-  //     maximumSaleTimeout: 10000,
-  //     maximumCooldownDuration: 1000,
-  //     redeemableERC20Factory: redeemableERC20Factory.address,
-  //   };
+    saleConstructorConfig = {
+      maximumSaleTimeout: 10000,
+      maximumCooldownDuration: 1000,
+      redeemableERC20Factory: redeemableERC20Factory.address,
+    };
 
-  //   saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-  //   saleFactory = (await saleFactoryFactory.deploy(
-  //     saleConstructorConfig
-  //   )) as SaleFactory & Contract;
-  //   await saleFactory.deployed();
+    saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
+    saleFactory = (await saleFactoryFactory.deploy(
+      saleConstructorConfig
+    )) as SaleFactory & Contract;
+    await saleFactory.deployed();
 
-  //   const { implementation, sender } = await Util.getEventArgs(
-  //     saleFactory.deployTransaction,
-  //     "Implementation",
-  //     saleFactory
-  //   );
+    const { implementation, sender } = await Util.getEventArgs(
+      saleFactory.deployTransaction,
+      "Implementation",
+      saleFactory
+    );
 
-  //   assert(sender === (await ethers.getSigners())[0].address, "wrong sender");
+    assert(sender === (await ethers.getSigners())[0].address, "wrong sender");
 
-  //   saleProxy = new ethers.Contract(
-  //     implementation,
-  //     (await artifacts.readArtifact("Sale")).abi
-  //   ) as Sale & Contract;
+    saleProxy = new ethers.Contract(
+      implementation,
+      (await artifacts.readArtifact("Sale")).abi
+    ) as Sale & Contract;
 
-  //   const { sender: senderProxy, config } = (await Util.getEventArgs(
-  //     saleFactory.deployTransaction,
-  //     "Construct",
-  //     saleProxy
-  //   )) as ConstructEvent["args"];
+    const { sender: senderProxy, config } = (await Util.getEventArgs(
+      saleFactory.deployTransaction,
+      "Construct",
+      saleProxy
+    )) as ConstructEvent["args"];
 
-  //   assert(senderProxy === saleFactory.address, "wrong proxy sender");
+    assert(senderProxy === saleFactory.address, "wrong proxy sender");
 
-  //   assert(
-  //     config.redeemableERC20Factory === redeemableERC20Factory.address,
-  //     "wrong redeemableERC20Factory in SaleConstructorConfig"
-  //   );
-  // });
+    assert(
+      config.redeemableERC20Factory === redeemableERC20Factory.address,
+      "wrong redeemableERC20Factory in SaleConstructorConfig"
+    );
+  });
 
-  // it("should configure tier correctly", async () => {
-  //   this.timeout(0);
+  it("should configure tier correctly", async () => {
+    this.timeout(0);
 
-  //   const signers = await ethers.getSigners();
-  //   const deployer = signers[0];
-  //   const recipient = signers[1];
-  //   const signer1 = signers[2];
-  //   const feeRecipient = signers[3];
-  //   const forwardingAddress = signers[4];
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const feeRecipient = signers[3];
+    const forwardingAddress = signers[4];
 
-  //   // 5 blocks from now
-  //   const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-  //   const saleDuration = 30;
-  //   const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
 
-  //   const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-  //   const redeemableERC20Config = {
-  //     name: "Token",
-  //     symbol: "TKN",
-  //     distributor: Util.zeroAddress,
-  //     initialSupply: totalTokenSupply,
-  //   };
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
-  //   const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
 
-  //   const constants = [staticPrice];
-  //   const vBasePrice = op(Opcode.CONSTANT, 0);
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.CONSTANT, 0);
 
-  //   const sources = [concat([vBasePrice])];
+    const sources = [concat([vBasePrice])];
 
-  //   const minimumTier = Tier.FOUR;
+    const minimumTier = Tier.FOUR;
 
-  //   const [sale, token] = await saleDeploy(
-  //     signers,
-  //     deployer,
-  //     saleFactory,
-  //     {
-  //       canStartStateConfig: afterBlockNumberConfig(startBlock),
-  //       canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
-  //       calculatePriceStateConfig: {
-  //         sources,
-  //         constants,
-  //       },
-  //       recipient: recipient.address,
-  //       reserve: reserve.address,
-  //       cooldownDuration: 1,
-  //       minimumRaise,
-  //       dustSize: 0,
-  //       saleTimeout: 100,
-  //     },
-  //     {
-  //       erc20Config: redeemableERC20Config,
-  //       tier: readWriteTier.address,
-  //       minimumTier,
-  //       distributionEndForwardingAddress: forwardingAddress.address,
-  //     }
-  //   );
+    const [sale, token] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier,
+        distributionEndForwardingAddress: forwardingAddress.address,
+      }
+    );
 
-  //   assert(
-  //     (await token.minimumTier()).eq(minimumTier),
-  //     "wrong tier level set on token"
-  //   );
+    assert(
+      (await token.minimumTier()).eq(minimumTier),
+      "wrong tier level set on token"
+    );
 
-  //   const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
 
-  //   // wait until sale start
-  //   await Util.createEmptyBlock(
-  //     startBlock - (await ethers.provider.getBlockNumber())
-  //   );
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
 
-  //   await sale.start();
+    await sale.start();
 
-  //   const desiredUnits = totalTokenSupply.div(2); // not all
-  //   const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
+    const desiredUnits = totalTokenSupply.div(2); // not all
+    const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
 
-  //   // give signer1 reserve to cover cost + fee
-  //   await reserve.transfer(signer1.address, cost.add(fee));
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, cost.add(fee));
 
-  //   await reserve
-  //     .connect(signer1)
-  //     .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, staticPrice.mul(desiredUnits).add(fee));
 
-  //   // attempt to buy all units
-  //   await Util.assertError(
-  //     async () =>
-  //       await sale.connect(signer1).buy({
-  //         feeRecipient: feeRecipient.address,
-  //         fee,
-  //         minimumUnits: desiredUnits,
-  //         desiredUnits,
-  //         maximumPrice: staticPrice,
-  //       }),
-  //     "MIN_TIER",
-  //     "singer1 bought units from Sale without meeting minimum tier requirement"
-  //   );
+    // attempt to buy all units
+    await Util.assertError(
+      async () =>
+        await sale.connect(signer1).buy({
+          feeRecipient: feeRecipient.address,
+          fee,
+          minimumUnits: desiredUnits,
+          desiredUnits,
+          maximumPrice: staticPrice,
+        }),
+      "MIN_TIER",
+      "singer1 bought units from Sale without meeting minimum tier requirement"
+    );
 
-  //   await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
 
-  //   // buy all units
-  //   await sale.connect(signer1).buy({
-  //     feeRecipient: feeRecipient.address,
-  //     fee,
-  //     minimumUnits: desiredUnits,
-  //     desiredUnits,
-  //     maximumPrice: staticPrice,
-  //   });
+    // buy all units
+    await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits,
+      desiredUnits,
+      maximumPrice: staticPrice,
+    });
 
-  //   // wait until sale can end
-  //   await Util.createEmptyBlock(
-  //     saleDuration + startBlock - (await ethers.provider.getBlockNumber())
-  //   );
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
+    );
 
-  //   const forwardingAddressTokenBalance0 = await token.balanceOf(
-  //     forwardingAddress.address
-  //   );
+    const forwardingAddressTokenBalance0 = await token.balanceOf(
+      forwardingAddress.address
+    );
 
-  //   await sale.end();
+    await sale.end();
 
-  //   const forwardingAddressTokenBalance1 = await token.balanceOf(
-  //     forwardingAddress.address
-  //   );
+    const forwardingAddressTokenBalance1 = await token.balanceOf(
+      forwardingAddress.address
+    );
 
-  //   assert(
-  //     forwardingAddressTokenBalance1.gt(forwardingAddressTokenBalance0),
-  //     "forwarding address should bypass tier restrictions"
-  //   );
-  // });
+    assert(
+      forwardingAddressTokenBalance1.gt(forwardingAddressTokenBalance0),
+      "forwarding address should bypass tier restrictions"
+    );
+  });
 
   // it("should work happily if griefer sends small amount of reserve to contracts and signers", async () => {
   //   this.timeout(0);

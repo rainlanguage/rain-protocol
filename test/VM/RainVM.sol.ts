@@ -52,7 +52,7 @@ describe("RainVM", async function () {
     await logic.initialize({
       sources: sourcesUnsat,
       constants,
-    })
+    });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -71,8 +71,8 @@ describe("RainVM", async function () {
 
     await logic.initialize({
       sources: sourcesSat,
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -102,8 +102,8 @@ describe("RainVM", async function () {
 
     await logic.initialize({
       sources: sourcesUnsat,
-      constants
-    })
+      constants,
+    });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -122,8 +122,8 @@ describe("RainVM", async function () {
 
     await logic.initialize({
       sources: sourcesSat,
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -151,7 +151,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({sources: sourcesUnsat, constants})
+    await logic.initialize({ sources: sourcesUnsat, constants });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -170,8 +170,8 @@ describe("RainVM", async function () {
 
     await logic.initialize({
       sources: sourcesSat,
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -203,8 +203,8 @@ describe("RainVM", async function () {
 
     await logic.initialize({
       sources: [source0],
-      constants
-    })
+      constants,
+    });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -230,7 +230,7 @@ describe("RainVM", async function () {
       new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
     ]);
 
-    await logic.initialize({ sources: [source0], constants})
+    await logic.initialize({ sources: [source0], constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -248,7 +248,7 @@ describe("RainVM", async function () {
       op(Opcode.BLOCK_NUMBER)
     ]);
 
-    await logic.initialize({ sources: [source0], constants })
+    await logic.initialize({ sources: [source0], constants });
 
     await logic.run();
     const block0 = await ethers.provider.getBlockNumber();
@@ -263,8 +263,8 @@ describe("RainVM", async function () {
 
     await logic.initialize({
       sources: [source1],
-      constants
-    })
+      constants,
+    });
 
     const timestamp1 = Date.now();
     await logic.run();
@@ -297,7 +297,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -326,7 +326,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -355,7 +355,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -386,7 +386,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -415,7 +415,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -444,7 +444,7 @@ describe("RainVM", async function () {
       op(Opcode.MAX, 3),
     ]);
 
-    await logic.initialize({ sources: [source], constants })
+    await logic.initialize({ sources: [source], constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -468,7 +468,7 @@ describe("RainVM", async function () {
       op(Opcode.MIN, 3),
     ]);
 
-    await logic.initialize({ sources: [source], constants })
+    await logic.initialize({ sources: [source], constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -484,7 +484,7 @@ describe("RainVM", async function () {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    await logic.initialize({ sources: [source], constants: []})
+    await logic.initialize({ sources: [source], constants: [] });
 
     await Util.createEmptyBlock(3);
 
@@ -558,7 +558,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const resultState = (await logic.state()) as StateStruct;
@@ -639,7 +639,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const resultState = (await logic.state()) as StateStruct;
@@ -781,7 +781,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const resultState = (await logic.state()) as StateStruct;
@@ -862,7 +862,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const resultState = (await logic.state()) as StateStruct;
@@ -933,7 +933,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const resultState = (await logic.state()) as StateStruct;
@@ -999,7 +999,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -1041,7 +1041,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const block0 = await ethers.provider.getBlockNumber();
@@ -1104,7 +1104,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -1135,7 +1135,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -1166,7 +1166,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -1197,7 +1197,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -1228,7 +1228,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();
@@ -1259,7 +1259,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result = await logic.stackTop();

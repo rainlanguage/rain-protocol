@@ -408,21 +408,25 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const desiredUnitsAlice = totalTokenSupply.div(2);
     const desiredUnitsBob = totalTokenSupply.div(2);
 
-    await sale.setSaleStatus(Status.ACTIVE)
+    await sale.setSaleStatus(Status.ACTIVE);
 
-    const saleStatusActive = await sale.saleStatus()
+    const saleStatusActive = await sale.saleStatus();
     assert(
       saleStatusActive === Status.ACTIVE,
       `wrong status
       expected  ${Status.ACTIVE}
       got       ${saleStatusActive}`
-      );
+    );
 
-      await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice)
-      await redeemableERC20.connect(deployer).transfer(bob.address, desiredUnitsBob)
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice);
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(bob.address, desiredUnitsBob);
 
-      await sale.setSaleStatus(Status.SUCCESS)
-    await redeemableERC20.endDistribution(deployer.address)
+    await sale.setSaleStatus(Status.SUCCESS);
+    await redeemableERC20.endDistribution(deployer.address);
     const saleStatusSuccess = await sale.saleStatus();
 
     assert(
@@ -547,7 +551,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const desiredUnitsAlice = totalTokenSupply.div(4); // 25%
     const desiredUnitsBob = totalTokenSupply.mul(3).div(4); // 75%
 
-    await sale.setSaleStatus(Status.ACTIVE)
+    await sale.setSaleStatus(Status.ACTIVE);
 
     const saleStatusActive = await sale.saleStatus();
 
@@ -558,10 +562,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         got       ${saleStatusActive}`
     );
 
-    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice)
-    await redeemableERC20.connect(deployer).transfer(bob.address, desiredUnitsBob)
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice);
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(bob.address, desiredUnitsBob);
 
-    await sale.setSaleStatus(Status.SUCCESS)
+    await sale.setSaleStatus(Status.SUCCESS);
 
     const saleStatusSuccess = await sale.saleStatus();
 
@@ -695,7 +703,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const desiredUnitsAlice = totalTokenSupply.div(4); // 25%
     const desiredUnitsBob = totalTokenSupply.mul(3).div(4); // 75%
 
-    await sale.setSaleStatus(Status.ACTIVE)
+    await sale.setSaleStatus(Status.ACTIVE);
     const saleStatusActive = await sale.saleStatus();
 
     assert(
@@ -705,10 +713,14 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         got       ${saleStatusActive}`
     );
 
-    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice)
-    await redeemableERC20.connect(deployer).transfer(bob.address, desiredUnitsBob)
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice);
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(bob.address, desiredUnitsBob);
 
-    await sale.setSaleStatus(Status.SUCCESS)
+    await sale.setSaleStatus(Status.SUCCESS);
     const saleStatusSuccess = await sale.saleStatus();
 
     assert(
@@ -797,7 +809,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const desiredUnitsAlice = totalTokenSupply;
 
-    await sale.setSaleStatus(Status.ACTIVE)
+    await sale.setSaleStatus(Status.ACTIVE);
 
     const saleStatusActive = await sale.saleStatus();
 
@@ -808,7 +820,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         got       ${saleStatusActive}`
     );
 
-    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice.div(10))
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice.div(10));
 
     // deposit claimable tokens
     const depositAmount = ethers.BigNumber.from(
@@ -831,8 +845,10 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "wrongly withrew during Trading"
     );
 
-    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice.mul(9).div(10))
-    await sale.setSaleStatus(Status.SUCCESS)
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice.mul(9).div(10));
+    await sale.setSaleStatus(Status.SUCCESS);
     const saleStatusSuccess = await sale.saleStatus();
 
     assert(
@@ -899,7 +915,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const aliceReserveBalance = await reserve.balanceOf(alice.address);
 
-    await sale.setSaleStatus(Status.ACTIVE)
+    await sale.setSaleStatus(Status.ACTIVE);
 
     await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
 
@@ -912,7 +928,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         got       ${saleStatusActive}`
     );
 
-    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice.div(10))
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice.div(10));
 
     // deposit claimable tokens
     const depositAmount0 = ethers.BigNumber.from(
@@ -942,7 +960,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "wrongly undeposited during Trading"
     );
 
-    await sale.setSaleStatus(Status.FAIL)
+    await sale.setSaleStatus(Status.FAIL);
 
     const deposit0 = await claim.sweepPending(
       sale.address,
@@ -1017,7 +1035,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const desiredUnitsAlice = totalTokenSupply;
 
-    await sale.setSaleStatus(Status.ACTIVE)
+    await sale.setSaleStatus(Status.ACTIVE);
 
     const saleStatusActive = await sale.saleStatus();
 
@@ -1028,7 +1046,9 @@ describe("RedeemableERC20ClaimEscrow", async function () {
         got       ${saleStatusActive}`
     );
 
-    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice.div(10))
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice.div(10));
 
     // deposit claimable tokens
     const depositAmount0 = ethers.BigNumber.from(
@@ -1043,7 +1063,7 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       depositAmount0
     );
 
-    await sale.setSaleStatus(Status.FAIL)
+    await sale.setSaleStatus(Status.FAIL);
 
     await claim.sweepPending(sale.address, reserve.address, signers[0].address);
 
@@ -1107,8 +1127,10 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     const aliceReserveBalance = await reserve.balanceOf(alice.address);
 
-    await sale.setSaleStatus(Status.ACTIVE)
-    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice.div(10))
+    await sale.setSaleStatus(Status.ACTIVE);
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice.div(10));
     await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
 
     const saleStatusActive = await sale.saleStatus();
@@ -1144,8 +1166,10 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       "actual tokens deposited and registered amount do not match (0)"
     );
 
-    await redeemableERC20.connect(deployer).transfer(alice.address, desiredUnitsAlice.mul(9).div(10))
-    await sale.setSaleStatus(Status.SUCCESS)
+    await redeemableERC20
+      .connect(deployer)
+      .transfer(alice.address, desiredUnitsAlice.mul(9).div(10));
+    await sale.setSaleStatus(Status.SUCCESS);
 
     const totalDepositedActual0 = deposited0;
     const totalDepositedExpected0 = depositAmount0;

@@ -64,7 +64,7 @@ struct SaleConstructorConfig {
 struct SaleConfig {
     StateConfig vmStateConfig;
     address recipient;
-    IERC20 reserve;
+    address reserve;
     uint256 saleTimeout;
     uint256 cooldownDuration;
     uint256 minimumRaise;
@@ -138,6 +138,8 @@ uint256 constant CAN_START_ENTRYPOINT = 0;
 uint256 constant CAN_END_ENTRYPOINT = 1;
 uint256 constant CALCULATE_PRICE_ENTRYPOINT = 2;
 
+uint constant STORAGE_OPCODES_LENGTH = 4;
+
 // solhint-disable-next-line max-states-count
 contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     using Math for uint256;
@@ -181,12 +183,32 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// stuck in a pending or active status due to buggy scripts.
     uint256 private immutable maximumSaleTimeout;
 
-    /// Factory responsible for minting rTKN.
-    RedeemableERC20Factory private immutable redeemableERC20Factory;
+    /// *** STORAGE OPCODES START ***
+
+    /// @dev remaining rTKN units to sell. MAY NOT be the rTKN balance of the
+    /// Sale contract if rTKN has been sent directly to the sale contract
+    /// outside the standard buy/refund loop.
+    uint256 private _remainingUnits;
+
+    /// @dev total reserve taken in to the sale contract via. buys. Does NOT
+    /// include any reserve sent directly to the sale contract outside the
+    /// standard buy/refund loop.
+    uint256 private _totalReserveIn;
 
     /// Minted rTKN for each sale.
     /// Exposed via. `ISale.token()`.
-    RedeemableERC20 private _token;
+    /// Represented as uint NOT address so that it is VM safe.
+    uint256 private _token;
+
+    /// @dev as per `SaleConfig`.
+    /// Exposed via. `ISale.reserve()`.
+    /// Represented as uint NOT address so that it is VM safe.
+    uint256 private _reserve;
+
+    /// *** STORAGE OPCODES END ***
+
+    /// Factory responsible for minting rTKN.
+    RedeemableERC20Factory private immutable redeemableERC20Factory;
 
     /// @dev as per `SaleConfig`.
     address private recipient;
@@ -196,24 +218,12 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     uint256 private minimumRaise;
     /// @dev as per `SaleConfig`.
     uint256 private dustSize;
-    /// @dev as per `SaleConfig`.
-    /// Exposed via. `ISale.reserve()`.
-    IERC20 private _reserve;
 
     /// @dev the current sale status exposed as `ISale.saleStatus`.
     SaleStatus private _saleStatus;
     /// @dev the current sale can always end in failure at this block even if
     /// it did not start. Provided it did not already end of course.
     uint256 private saleTimeout;
-
-    /// @dev remaining rTKN units to sell. MAY NOT be the rTKN balance of the
-    /// Sale contract if rTKN has been sent directly to the sale contract
-    /// outside the standard buy/refund loop.
-    uint256 private _remainingUnits;
-    /// @dev total reserve taken in to the sale contract via. buys. Does NOT
-    /// include any reserve sent directly to the sale contract outside the
-    /// standard buy/refund loop.
-    uint256 private _totalReserveIn;
 
     /// @dev Binding buyers to receipt hashes to maybe a non-zero value.
     /// A receipt will only be honoured if the mapping resolves to non-zero.
@@ -273,7 +283,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         // takes a nonzero value somehow due to refactor.
         _saleStatus = SaleStatus.Pending;
 
-        _reserve = config_.reserve;
+        _reserve = uint256(uint160(config_.reserve));
 
         // The distributor of the rTKN is always set to the sale contract.
         // It is an error for the deployer to attempt to set the distributor.
@@ -285,33 +295,35 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
         _remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
 
-        RedeemableERC20 token_ = RedeemableERC20(
-            redeemableERC20Factory.createChild(
-                abi.encode(
-                    RedeemableERC20Config(
-                        address(config_.reserve),
-                        saleRedeemableERC20Config_.erc20Config,
-                        saleRedeemableERC20Config_.tier,
-                        saleRedeemableERC20Config_.minimumTier,
-                        saleRedeemableERC20Config_
-                            .distributionEndForwardingAddress
-                    )
+        address token_ = redeemableERC20Factory.createChild(
+            abi.encode(
+                RedeemableERC20Config(
+                    address(config_.reserve),
+                    saleRedeemableERC20Config_.erc20Config,
+                    saleRedeemableERC20Config_.tier,
+                    saleRedeemableERC20Config_.minimumTier,
+                    saleRedeemableERC20Config_.distributionEndForwardingAddress
                 )
             )
         );
-        _token = token_;
+        _token = uint256(uint160(token_));
 
         emit Initialize(msg.sender, config_, address(token_));
     }
 
+    /// @inheritdoc RainVM
+    function storageOpcodesLength() public pure override returns (uint256) {
+        return STORAGE_OPCODES_LENGTH;
+    }
+
     /// @inheritdoc ISale
     function token() external view returns (address) {
-        return address(_token);
+        return address(uint160(_token));
     }
 
     /// @inheritdoc ISale
     function reserve() external view returns (address) {
-        return address(_reserve);
+        return address(uint160(_reserve));
     }
 
     /// @inheritdoc ISale
@@ -407,13 +419,18 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         _remainingUnits = 0;
         _saleStatus = endStatus_;
         emit End(msg.sender, endStatus_);
-        _token.endDistribution(address(this));
+        RedeemableERC20(address(uint160(_token))).endDistribution(
+            address(this)
+        );
 
         // Only send reserve to recipient if the raise is a success.
         // If the raise is NOT a success then everyone can refund their reserve
         // deposited individually.
         if (success_) {
-            _reserve.safeTransfer(recipient, _totalReserveIn);
+            IERC20(address(uint160(_reserve))).safeTransfer(
+                recipient,
+                _totalReserveIn
+            );
         }
     }
 
@@ -437,7 +454,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         _remainingUnits = 0;
         _saleStatus = SaleStatus.Fail;
         emit Timeout(msg.sender);
-        _token.endDistribution(address(this));
+        RedeemableERC20(address(uint160(_token))).endDistribution(
+            address(this)
+        );
     }
 
     /// Main entrypoint to the sale. Sells rTKN in exchange for reserve token.
@@ -495,14 +514,14 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         // This happens before `end` so that the transfer from happens before
         // the transfer to.
         // `end` changes state so `buy` needs to be nonReentrant.
-        _reserve.safeTransferFrom(
+        IERC20(address(uint160(_reserve))).safeTransferFrom(
             msg.sender,
             address(this),
             cost_ + config_.fee
         );
         // This happens before `end` so that the transfer happens before the
         // distributor is burned and token is frozen.
-        IERC20(address(_token)).safeTransfer(msg.sender, units_);
+        IERC20(address(uint160(_token))).safeTransfer(msg.sender, units_);
 
         if (_remainingUnits < 1) {
             end();
@@ -550,12 +569,15 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
         emit Refund(msg.sender, receipt_);
 
-        IERC20(address(_token)).safeTransferFrom(
+        IERC20(address(uint160(_token))).safeTransferFrom(
             msg.sender,
             address(this),
             receipt_.units
         );
-        _reserve.safeTransfer(msg.sender, cost_ + receipt_.fee);
+        IERC20(address(uint160(_reserve))).safeTransfer(
+            msg.sender,
+            cost_ + receipt_.fee
+        );
     }
 
     /// After a sale ends in success all fees collected for a recipient can be
@@ -569,7 +591,10 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         uint256 amount_ = fees[recipient_];
         if (amount_ > 0) {
             delete fees[recipient_];
-            _reserve.safeTransfer(recipient_, amount_);
+            IERC20(address(uint160(_reserve))).safeTransfer(
+                recipient_,
+                amount_
+            );
         }
     }
 

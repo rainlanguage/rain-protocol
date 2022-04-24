@@ -88,7 +88,7 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     const transferAmount = 100;
 
@@ -143,7 +143,7 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
     await logic.run();
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0 of id ${tokenId}, got ${result0}`);
@@ -197,7 +197,7 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -226,7 +226,7 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -260,7 +260,7 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -287,7 +287,7 @@ describe("TokenOps Test", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
     await logic.run();
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);

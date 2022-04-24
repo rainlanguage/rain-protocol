@@ -2,9 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { op } from "../Util";
-import {
-  Status
-} from "../Sale/SaleUtil";
+import { Status } from "../Sale/SaleUtil";
 import { concat } from "ethers/lib/utils";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { Contract, ContractFactory } from "ethers";
@@ -378,9 +376,9 @@ describe("SaleEscrow", async function () {
     const saleFactory = await ethers.getContractFactory("MockISale");
     const sale = (await saleFactory.deploy()) as Contract & MockISale;
 
-    await sale.setReserve(reserve.address)
-    await sale.setToken(redeemableERC20.address)
-    await sale.setSaleStatus(Status.PENDING)
+    await sale.setReserve(reserve.address);
+    await sale.setToken(redeemableERC20.address);
+    await sale.setSaleStatus(Status.PENDING);
 
     const saleReserve = await sale.reserve();
     const saleToken = await sale.token();

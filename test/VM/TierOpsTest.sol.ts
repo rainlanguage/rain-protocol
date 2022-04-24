@@ -72,7 +72,7 @@ describe("TierOps", async function () {
     await logic.initialize({
       sources: [source0],
       constants: constants0,
-    })
+    });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -101,7 +101,7 @@ describe("TierOps", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    await logic.initialize({ sources: [source0], constants: constants0 })
+    await logic.initialize({ sources: [source0], constants: constants0 });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -138,7 +138,7 @@ describe("TierOps", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    await logic.initialize({ sources: [source0], constants: constants0 })
+    await logic.initialize({ sources: [source0], constants: constants0 });
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -172,7 +172,7 @@ describe("TierOps", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    await logic.initialize({sources: [source0], constants: constants0})
+    await logic.initialize({ sources: [source0], constants: constants0 });
 
     await logic.run();
     const result0 = await logic.stackTop();
