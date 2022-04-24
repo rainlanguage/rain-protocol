@@ -96,7 +96,7 @@ contract EmissionsERC20 is
         bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             config_.vmStateConfig,
-            ENTRYPOINT
+            ENTRYPOINT + 1
         );
         vmStatePointer = SSTORE2.write(vmStateBytes_);
 

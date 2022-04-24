@@ -31,7 +31,7 @@ contract AllStandardOpsTest is RainVM {
         bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             stateConfig_,
-            ENTRYPOINT
+            ENTRYPOINT + 1
         );
         uint256 b_ = gasleft();
         console.log("new state gas", a_ - b_);

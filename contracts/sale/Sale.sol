@@ -137,6 +137,7 @@ struct Receipt {
 uint256 constant CAN_START_ENTRYPOINT = 0;
 uint256 constant CAN_END_ENTRYPOINT = 1;
 uint256 constant CALCULATE_PRICE_ENTRYPOINT = 2;
+uint256 constant ENTRYPOINTS_LENGTH = 3;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
@@ -272,7 +273,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             config_.vmStateConfig,
-            CALCULATE_PRICE_ENTRYPOINT
+            ENTRYPOINTS_LENGTH
         );
         vmStatePointer = SSTORE2.write(vmStateBytes_);
         recipient = config_.recipient;
@@ -312,8 +313,17 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     }
 
     /// @inheritdoc RainVM
-    function storageOpcodesLength() public pure override returns (uint256) {
-        return STORAGE_OPCODES_LENGTH;
+    function storageOpcodesRange()
+        public
+        pure
+        override
+        returns (StorageOpcodesRange memory)
+    {
+        uint256 pointer_;
+        assembly {
+            pointer_ := _remainingUnits.slot
+        }
+        return StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);
     }
 
     /// @inheritdoc ISale

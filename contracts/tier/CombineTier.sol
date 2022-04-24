@@ -37,7 +37,7 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
         bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             sourceConfig_,
-            ENTRYPOINT
+            ENTRYPOINT + 1
         );
         vmStatePointer = SSTORE2.write(stateBytes_);
     }

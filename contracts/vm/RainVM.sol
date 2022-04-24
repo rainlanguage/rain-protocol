@@ -35,6 +35,11 @@ struct State {
     uint256 argumentsIndex;
 }
 
+struct StorageOpcodesRange {
+    uint256 pointer;
+    uint256 length;
+}
+
 library LibState {
     function toBytesDebug(State memory state_)
         internal
@@ -210,8 +215,13 @@ abstract contract RainVM {
     using SaturatingMath for uint256;
 
     /// Default is to disallow all storage access to opcodes.
-    function storageOpcodesLength() public pure virtual returns (uint256) {
-        return 0;
+    function storageOpcodesRange()
+        public
+        pure
+        virtual
+        returns (StorageOpcodesRange memory)
+    {
+        return StorageOpcodesRange(0, 0);
     }
 
     function fnPtrs() public pure virtual returns (bytes memory);
@@ -438,8 +448,15 @@ abstract contract RainVM {
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_STORAGE) {
+                        StorageOpcodesRange
+                            memory storageOpcodesRange_ = storageOpcodesRange();
                         assembly {
-                            mstore(stackTopLocation_, sload(operand_))
+                            mstore(
+                                stackTopLocation_,
+                                sload(
+                                    add(operand_, mload(storageOpcodesRange_))
+                                )
+                            )
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_ZIPMAP) {

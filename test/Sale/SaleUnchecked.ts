@@ -13,7 +13,13 @@ import {
   SaleConstructorConfigStruct,
   SaleFactory,
 } from "../../typechain/SaleFactory";
-import { afterBlockNumberConfig, saleDeploy, Opcode, Tier } from "./SaleUtil";
+import {
+  afterBlockNumberSource,
+  saleDeploy,
+  Opcode,
+  Tier,
+  SaleStorage,
+} from "./SaleUtil";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -31,6 +37,8 @@ let reserve: ReserveToken & Contract,
   signers: SignerWithAddress[];
 
 describe("SaleUnchecked", async function () {
+  let stateBuilder;
+
   beforeEach(async () => {
     signers = await ethers.getSigners();
 
@@ -38,349 +46,387 @@ describe("SaleUnchecked", async function () {
       Contract;
   });
 
-  // before(async () => {
-  //   redeemableERC20FactoryFactory = await ethers.getContractFactory(
-  //     "RedeemableERC20Factory",
-  //     {}
-  //   );
-  //   redeemableERC20Factory =
-  //     (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-  //       Contract;
-  //   await redeemableERC20Factory.deployed();
+  before(async () => {
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
 
-  //   readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-  //   readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
-  //     Contract;
-  //   await readWriteTier.deployed();
+    redeemableERC20FactoryFactory = await ethers.getContractFactory(
+      "RedeemableERC20Factory",
+      {}
+    );
+    redeemableERC20Factory =
+      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
+        Contract;
+    await redeemableERC20Factory.deployed();
 
-  //   saleConstructorConfig = {
-  //     maximumSaleTimeout: 1000,
-  //     maximumCooldownDuration: 1000,
-  //     redeemableERC20Factory: redeemableERC20Factory.address,
-  //   };
+    readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
+    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
+      Contract;
+    await readWriteTier.deployed();
 
-  //   saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-  //   saleFactory = (await saleFactoryFactory.deploy(
-  //     saleConstructorConfig
-  //   )) as SaleFactory & Contract;
-  //   await saleFactory.deployed();
+    saleConstructorConfig = {
+      vmStateBuilder: stateBuilder.address,
+      maximumSaleTimeout: 1000,
+      maximumCooldownDuration: 1000,
+      redeemableERC20Factory: redeemableERC20Factory.address,
+    };
 
-  //   const { implementation, sender } = await Util.getEventArgs(
-  //     saleFactory.deployTransaction,
-  //     "Implementation",
-  //     saleFactory
-  //   );
+    saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
+    saleFactory = (await saleFactoryFactory.deploy(
+      saleConstructorConfig
+    )) as SaleFactory & Contract;
+    await saleFactory.deployed();
 
-  //   assert(sender === (await ethers.getSigners())[0].address, "wrong sender");
+    const { implementation, sender } = await Util.getEventArgs(
+      saleFactory.deployTransaction,
+      "Implementation",
+      saleFactory
+    );
 
-  //   saleProxy = new ethers.Contract(
-  //     implementation,
-  //     (await artifacts.readArtifact("Sale")).abi
-  //   ) as Sale & Contract;
+    assert(sender === (await ethers.getSigners())[0].address, "wrong sender");
 
-  //   const { sender: senderProxy, config } = (await Util.getEventArgs(
-  //     saleFactory.deployTransaction,
-  //     "Construct",
-  //     saleProxy
-  //   )) as ConstructEvent["args"];
+    saleProxy = new ethers.Contract(
+      implementation,
+      (await artifacts.readArtifact("Sale")).abi
+    ) as Sale & Contract;
 
-  //   assert(senderProxy === saleFactory.address, "wrong proxy sender");
+    const { sender: senderProxy, config } = (await Util.getEventArgs(
+      saleFactory.deployTransaction,
+      "Construct",
+      saleProxy
+    )) as ConstructEvent["args"];
 
-  //   assert(
-  //     config.redeemableERC20Factory === redeemableERC20Factory.address,
-  //     "wrong redeemableERC20Factory in SaleConstructorConfig"
-  //   );
-  // });
+    assert(senderProxy === saleFactory.address, "wrong proxy sender");
 
-  // it("should panic when accumulator overflows with exponentiation op", async () => {
-  //   this.timeout(0);
+    assert(
+      config.redeemableERC20Factory === redeemableERC20Factory.address,
+      "wrong redeemableERC20Factory in SaleConstructorConfig"
+    );
+  });
 
-  //   const deployer = signers[0];
-  //   const recipient = signers[1];
+  it("should panic when accumulator overflows with exponentiation op", async () => {
+    this.timeout(0);
 
-  //   // 5 blocks from now
-  //   const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-  //   const saleTimeout = 30;
-  //   const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    const deployer = signers[0];
+    const recipient = signers[1];
 
-  //   const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-  //   const redeemableERC20Config = {
-  //     name: "Token",
-  //     symbol: "TKN",
-  //     distributor: Util.zeroAddress,
-  //     initialSupply: totalTokenSupply,
-  //   };
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-  //   const constants = [Util.max_uint256.div(2), 2];
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
-  //   const vHalfMaxUInt256 = op(Opcode.VAL, 0);
-  //   const vTwo = op(Opcode.VAL, 1);
+    const constants = [
+      Util.max_uint256.div(2),
+      2,
+      startBlock - 1,
+      startBlock + saleTimeout - 1,
+    ];
 
-  //   // prettier-ignore
-  //   const source0 = concat([
-  //       vHalfMaxUInt256,
-  //       vTwo,
-  //     op(Opcode.EXP, 2)
-  //   ]);
+    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vTwo = op(Opcode.CONSTANT, 1);
 
-  //   const [sale] = await saleDeploy(
-  //     signers,
-  //     deployer,
-  //     saleFactory,
-  //     {
-  //       canStartStateConfig: afterBlockNumberConfig(startBlock),
-  //       canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-  //       calculatePriceStateConfig: {
-  //         sources: [source0],
-  //         constants,
-  //       },
-  //       recipient: recipient.address,
-  //       reserve: reserve.address,
-  //       cooldownDuration: 1,
-  //       minimumRaise,
-  //       dustSize: 0,
-  //       saleTimeout: 100,
-  //     },
-  //     {
-  //       erc20Config: redeemableERC20Config,
-  //       tier: readWriteTier.address,
-  //       minimumTier: Tier.ZERO,
-  //       distributionEndForwardingAddress: Util.zeroAddress,
-  //     }
-  //   );
+    // prettier-ignore
+    const source0 = concat( [
+        vHalfMaxUInt256,
+        vTwo,
+      op(Opcode.EXP, 2)
+    ]);
 
-  //   // wait until sale start
-  //   await Util.createEmptyBlock(
-  //     startBlock - (await ethers.provider.getBlockNumber())
-  //   );
+    const sources = [
+      afterBlockNumberSource(2),
+      afterBlockNumberSource(3),
+      source0,
+    ];
 
-  //   await sale.start();
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: Util.zeroAddress,
+      }
+    );
 
-  //   const desiredUnits = totalTokenSupply;
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
 
-  //   await Util.assertError(
-  //     async () => await sale.calculatePrice(desiredUnits),
-  //     "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
-  //     "accumulator overflow did not panic"
-  //   );
-  // });
+    await sale.start();
 
-  // it("should panic when accumulator overflows with multiplication op", async () => {
-  //   this.timeout(0);
+    const desiredUnits = totalTokenSupply;
 
-  //   const deployer = signers[0];
-  //   const recipient = signers[1];
+    await Util.assertError(
+      async () => await sale.calculatePrice(desiredUnits),
+      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "accumulator overflow did not panic"
+    );
+  });
 
-  //   // 5 blocks from now
-  //   const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-  //   const saleTimeout = 30;
-  //   const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+  it("should panic when accumulator overflows with multiplication op", async () => {
+    this.timeout(0);
 
-  //   const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-  //   const redeemableERC20Config = {
-  //     name: "Token",
-  //     symbol: "TKN",
-  //     distributor: Util.zeroAddress,
-  //     initialSupply: totalTokenSupply,
-  //   };
+    const deployer = signers[0];
+    const recipient = signers[1];
 
-  //   const constants = [Util.max_uint256.div(2), 3];
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-  //   const vHalfMaxUInt256 = op(Opcode.VAL, 0);
-  //   const vThree = op(Opcode.VAL, 1);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
-  //   // prettier-ignore
-  //   const source0 = concat([
-  //       vHalfMaxUInt256,
-  //       vThree,
-  //     op(Opcode.MUL, 2)
-  //   ]);
+    const constants = [
+      Util.max_uint256.div(2),
+      3,
+      startBlock - 1,
+      startBlock + saleTimeout - 1,
+    ];
 
-  //   const [sale] = await saleDeploy(
-  //     signers,
-  //     deployer,
-  //     saleFactory,
-  //     {
-  //       canStartStateConfig: afterBlockNumberConfig(startBlock),
-  //       canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-  //       calculatePriceStateConfig: {
-  //         sources: [source0],
-  //         constants,
-  //       },
-  //       recipient: recipient.address,
-  //       reserve: reserve.address,
-  //       cooldownDuration: 1,
-  //       minimumRaise,
-  //       dustSize: 0,
-  //       saleTimeout: 100,
-  //     },
-  //     {
-  //       erc20Config: redeemableERC20Config,
-  //       tier: readWriteTier.address,
-  //       minimumTier: Tier.ZERO,
-  //       distributionEndForwardingAddress: Util.zeroAddress,
-  //     }
-  //   );
+    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vThree = op(Opcode.CONSTANT, 1);
 
-  //   // wait until sale start
-  //   await Util.createEmptyBlock(
-  //     startBlock - (await ethers.provider.getBlockNumber())
-  //   );
+    // prettier-ignore
+    const source0 = concat([
+        vHalfMaxUInt256,
+        vThree,
+      op(Opcode.MUL, 2)
+    ]);
 
-  //   await sale.start();
+    const sources = [
+      afterBlockNumberSource(2),
+      afterBlockNumberSource(3),
+      source0,
+    ];
 
-  //   const desiredUnits = totalTokenSupply;
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: Util.zeroAddress,
+      }
+    );
 
-  //   await Util.assertError(
-  //     async () => await sale.calculatePrice(desiredUnits),
-  //     "Transaction reverted",
-  //     "accumulator overflow did not panic"
-  //   );
-  // });
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
 
-  // it("should panic when accumulator underflows with subtraction op", async () => {
-  //   this.timeout(0);
+    await sale.start();
 
-  //   const deployer = signers[0];
-  //   const recipient = signers[1];
+    const desiredUnits = totalTokenSupply;
 
-  //   // 5 blocks from now
-  //   const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-  //   const saleTimeout = 30;
-  //   const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    await Util.assertError(
+      async () => await sale.calculatePrice(desiredUnits),
+      "Transaction reverted",
+      "accumulator overflow did not panic"
+    );
+  });
 
-  //   const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-  //   const redeemableERC20Config = {
-  //     name: "Token",
-  //     symbol: "TKN",
-  //     distributor: Util.zeroAddress,
-  //     initialSupply: totalTokenSupply,
-  //   };
+  it("should panic when accumulator underflows with subtraction op", async () => {
+    this.timeout(0);
 
-  //   const constants = [0, 1];
+    const deployer = signers[0];
+    const recipient = signers[1];
 
-  //   const vZero = op(Opcode.VAL, 0);
-  //   const vOne = op(Opcode.VAL, 1);
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-  //   // prettier-ignore
-  //   const source0 = concat([
-  //       vZero,
-  //       vOne,
-  //     op(Opcode.SUB, 2)
-  //   ]);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
-  //   const [sale] = await saleDeploy(
-  //     signers,
-  //     deployer,
-  //     saleFactory,
-  //     {
-  //       canStartStateConfig: afterBlockNumberConfig(startBlock),
-  //       canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-  //       calculatePriceStateConfig: {
-  //         sources: [source0],
-  //         constants,
-  //       },
-  //       recipient: recipient.address,
-  //       reserve: reserve.address,
-  //       cooldownDuration: 1,
-  //       minimumRaise,
-  //       dustSize: 0,
-  //       saleTimeout: 100,
-  //     },
-  //     {
-  //       erc20Config: redeemableERC20Config,
-  //       tier: readWriteTier.address,
-  //       minimumTier: Tier.ZERO,
-  //       distributionEndForwardingAddress: Util.zeroAddress,
-  //     }
-  //   );
+    const constants = [0, 1, startBlock - 1, startBlock + saleTimeout - 1];
 
-  //   // wait until sale start
-  //   await Util.createEmptyBlock(
-  //     startBlock - (await ethers.provider.getBlockNumber())
-  //   );
+    const vZero = op(Opcode.CONSTANT, 0);
+    const vOne = op(Opcode.CONSTANT, 1);
 
-  //   await sale.start();
+    // prettier-ignore
+    const source0 = concat([
+        vZero,
+        vOne,
+      op(Opcode.SUB, 2)
+    ]);
 
-  //   const desiredUnits = totalTokenSupply;
+    const sources = [
+      afterBlockNumberSource(2),
+      afterBlockNumberSource(3),
+      source0,
+    ];
 
-  //   await Util.assertError(
-  //     async () => await sale.calculatePrice(desiredUnits),
-  //     "Transaction reverted",
-  //     "accumulator underflow did not panic"
-  //   );
-  // });
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: Util.zeroAddress,
+      }
+    );
 
-  // it("should panic when accumulator overflows with addition op", async () => {
-  //   this.timeout(0);
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
 
-  //   const deployer = signers[0];
-  //   const recipient = signers[1];
+    await sale.start();
 
-  //   // 5 blocks from now
-  //   const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-  //   const saleTimeout = 30;
-  //   const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    const desiredUnits = totalTokenSupply;
 
-  //   const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
-  //   const redeemableERC20Config = {
-  //     name: "Token",
-  //     symbol: "TKN",
-  //     distributor: Util.zeroAddress,
-  //     initialSupply: totalTokenSupply,
-  //   };
+    await Util.assertError(
+      async () => await sale.calculatePrice(desiredUnits),
+      "Transaction reverted",
+      "accumulator underflow did not panic"
+    );
+  });
 
-  //   const constants = [Util.max_uint256, 1];
+  it("should panic when accumulator overflows with addition op", async () => {
+    this.timeout(0);
 
-  //   const vMaxUInt256 = op(Opcode.VAL, 0);
-  //   const vOne = op(Opcode.VAL, 1);
+    const deployer = signers[0];
+    const recipient = signers[1];
 
-  //   // prettier-ignore
-  //   const source0 = concat([
-  //       vMaxUInt256,
-  //       vOne,
-  //     op(Opcode.ADD, 2)
-  //   ]);
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
-  //   const [sale] = await saleDeploy(
-  //     signers,
-  //     deployer,
-  //     saleFactory,
-  //     {
-  //       canStartStateConfig: afterBlockNumberConfig(startBlock),
-  //       canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-  //       calculatePriceStateConfig: {
-  //         sources: [source0],
-  //         constants,
-  //       },
-  //       recipient: recipient.address,
-  //       reserve: reserve.address,
-  //       cooldownDuration: 1,
-  //       minimumRaise,
-  //       dustSize: 0,
-  //       saleTimeout: 100,
-  //     },
-  //     {
-  //       erc20Config: redeemableERC20Config,
-  //       tier: readWriteTier.address,
-  //       minimumTier: Tier.ZERO,
-  //       distributionEndForwardingAddress: Util.zeroAddress,
-  //     }
-  //   );
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
 
-  //   // wait until sale start
-  //   await Util.createEmptyBlock(
-  //     startBlock - (await ethers.provider.getBlockNumber())
-  //   );
+    const constants = [
+      Util.max_uint256,
+      1,
+      startBlock - 1,
+      startBlock + saleTimeout - 1,
+    ];
 
-  //   await sale.start();
+    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vOne = op(Opcode.CONSTANT, 1);
 
-  //   const desiredUnits = totalTokenSupply;
+    // prettier-ignore
+    const source0 = concat([
+        vMaxUInt256,
+        vOne,
+      op(Opcode.ADD, 2)
+    ]);
 
-  //   await Util.assertError(
-  //     async () => await sale.calculatePrice(desiredUnits),
-  //     "Transaction reverted",
-  //     "accumulator overflow did not panic"
-  //   );
-  // });
+    const sources = [
+      afterBlockNumberSource(2),
+      afterBlockNumberSource(3),
+      source0,
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: Util.zeroAddress,
+      }
+    );
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits = totalTokenSupply;
+
+    await Util.assertError(
+      async () => await sale.calculatePrice(desiredUnits),
+      "Transaction reverted",
+      "accumulator overflow did not panic"
+    );
+  });
 });

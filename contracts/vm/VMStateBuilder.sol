@@ -5,8 +5,6 @@ import "../sstore2/SSTORE2.sol";
 import "./RainVM.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-import "hardhat/console.sol";
-
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
 /// @param constants Constants verbatim.
@@ -72,16 +70,22 @@ contract VMStateBuilder {
     function buildState(
         address vm_,
         StateConfig memory config_,
-        uint256 entrypoint_
+        uint256 entrypointsLength_
     ) external returns (bytes memory) {
         unchecked {
             bytes memory packedFnPtrs_ = _packedFnPtrs(vm_);
             Bounds memory bounds_;
-            bounds_.storageLength = RainVM(vm_).storageOpcodesLength();
+            bounds_.storageLength = RainVM(vm_).storageOpcodesRange().length;
             // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the length
             // to get the valid opcodes length.
             bounds_.opcodesLength = packedFnPtrs_.length / 2;
-            ensureIntegrity(config_, bounds_, entrypoint_);
+
+            // We need the max stack and arguments length across all possible
+            // entrypoints, which means looping over all the entrypoints.
+            for (uint256 i_ = 0; i_ < entrypointsLength_; i_++) {
+                bounds_.stackIndex = 0;
+                ensureIntegrity(config_, bounds_, i_);
+            }
 
             // build a new constants array with space for the arguments.
             uint256[] memory constants_ = new uint256[](
@@ -92,7 +96,7 @@ contract VMStateBuilder {
             }
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
-            for (uint i_ = 0; i_ < config_.sources.length; i_++) {
+            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
 

@@ -31,17 +31,7 @@ export enum Status {
   FAIL,
 }
 
-export enum SaleOps {
-  REMAINING_UNITS = 0 + Util.AllStandardOps.length,
-  TOTAL_RESERVE_IN = 1 + Util.AllStandardOps.length,
-  TOKEN_ADDRESS = 2 + Util.AllStandardOps.length,
-  RESERVE_ADDRESS = 3 + Util.AllStandardOps.length,
-}
-
-export const Opcode = {
-  ...Util.AllStandardOps,
-  ...SaleOps,
-};
+export const Opcode = Util.AllStandardOps;
 
 export const saleDeploy = async (
   signers: SignerWithAddress[],
@@ -90,16 +80,18 @@ export const saleDeploy = async (
   return [sale, token];
 };
 
-export const afterBlockNumberConfig = (blockNumber) => {
-  return {
-    sources: [
-      concat([
-        // (BLOCK_NUMBER blockNumberSub1 gt)
-        op(Opcode.BLOCK_NUMBER),
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.GREATER_THAN),
-      ]),
-    ],
-    constants: [blockNumber - 1],
-  };
+export const afterBlockNumberSource = (constant) => {
+  return concat([
+    // (BLOCK_NUMBER blockNumberSub1 gt)
+    op(Opcode.BLOCK_NUMBER),
+    op(Opcode.CONSTANT, constant),
+    op(Opcode.GREATER_THAN),
+  ]);
 };
+
+export enum SaleStorage {
+  RemainingUnits,
+  TotalReserveIn,
+  Token,
+  Reserve,
+}
