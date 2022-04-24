@@ -48,7 +48,6 @@ contract EmissionsERC20 is
     IClaim,
     ReadOnlyTier
 {
-    // using LibDispatchTable for DispatchTable;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).

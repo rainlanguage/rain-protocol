@@ -6,8 +6,6 @@ import {LogicOps} from "../vm/ops/math/LogicOps.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "../vm/VMStateBuilder.sol";
 
-import "hardhat/console.sol";
-
 uint256 constant ENTRYPOINT = 0;
 
 /// @title StandardOpsTest
