@@ -43,7 +43,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
 
     const readWriteTierFactory = await ethers.getContractFactory(
       "ReadWriteTier"
@@ -229,7 +229,7 @@ describe("EmissionsERC20", async function () {
     // const immutableSource = await emissionsERC20.source();
 
     // Has Platinum Tier
-    await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
 
     const tierBlock = await ethers.provider.getBlockNumber();
 
@@ -283,7 +283,7 @@ describe("EmissionsERC20", async function () {
       .mul(sumBaseRewardByDuration)
       .div(BN_ONE_REWARD);
 
-    const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
+    const claimAmount = await emissionsERC20.calculateClaim(claimant.address);
 
     console.log(`expectations:
     claimDuration                               ${claimDuration}
@@ -307,9 +307,9 @@ describe("EmissionsERC20", async function () {
     // );
     console.log(claimAmount, expectedClaimAmount);
 
-    await emissionsERC20.connect(claimer).claim(claimer.address, []);
+    await emissionsERC20.connect(claimant).claim(claimant.address, []);
 
-    console.log(await emissionsERC20.balanceOf(claimer.address));
+    console.log(await emissionsERC20.balanceOf(claimant.address));
   });
 
   it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
@@ -317,7 +317,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
 
     const readWriteTierFactory = await ethers.getContractFactory(
       "ReadWriteTier"
@@ -509,7 +509,7 @@ describe("EmissionsERC20", async function () {
     );
 
     // Has Platinum Tier
-    await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
 
     const tierBlock = await ethers.provider.getBlockNumber();
 
@@ -577,7 +577,7 @@ describe("EmissionsERC20", async function () {
       .add(expectedClaimAmountSilv)
       .add(expectedClaimAmountBrnz);
 
-    const claimAmount = await emissionsERC20.calculateClaim(claimer.address);
+    const claimAmount = await emissionsERC20.calculateClaim(claimant.address);
 
     console.log(`expectations:
     claimDuration                               ${claimDuration}
@@ -606,7 +606,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
@@ -638,13 +638,13 @@ describe("EmissionsERC20", async function () {
     );
 
     const beforeClaimReport = await emissionsERC20.calculateClaim(
-      claimer.address
+      claimant.address
     );
 
     assert(
-      beforeClaimReport.eq(Util.NEVER),
+      beforeClaimReport.eq(0),
       `wrong emissions report before claim
-      expected  ${Util.NEVER}
+      expected  ${0}
       got       ${hexlify(beforeClaimReport)}`
     );
   });
@@ -654,7 +654,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
 
     const readWriteTierFactory = await ethers.getContractFactory(
       "ReadWriteTier"
@@ -723,15 +723,15 @@ describe("EmissionsERC20", async function () {
       }
     );
 
-    await readWriteTier.setTier(claimer.address, Tier.ONE, []);
-    await readWriteTier.setTier(claimer.address, Tier.TWO, []);
-    await readWriteTier.setTier(claimer.address, Tier.THREE, []);
-    await readWriteTier.setTier(claimer.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.ONE, []);
+    await readWriteTier.setTier(claimant.address, Tier.TWO, []);
+    await readWriteTier.setTier(claimant.address, Tier.THREE, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
 
     await Util.createEmptyBlock(5);
 
     const claimReport = paddedUInt256(
-      await emissionsERC20.calculateClaim(claimer.address)
+      await emissionsERC20.calculateClaim(claimant.address)
     );
     const expectedClaimReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -757,7 +757,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
 
     const readWriteTierFactory = await ethers.getContractFactory(
       "ReadWriteTier"
@@ -802,12 +802,12 @@ describe("EmissionsERC20", async function () {
     );
 
     const setTierBlock = (await ethers.provider.getBlockNumber()) + 1;
-    await readWriteTier.setTier(claimer.address, Tier.EIGHT, []);
+    await readWriteTier.setTier(claimant.address, Tier.EIGHT, []);
 
     await Util.createEmptyBlock(5);
 
     const calculationBlock = await ethers.provider.getBlockNumber();
-    const diffResult = await emissionsERC20.calculateClaim(claimer.address);
+    const diffResult = await emissionsERC20.calculateClaim(claimant.address);
 
     const expectedDiff = paddedUInt256(
       ethers.BigNumber.from(
@@ -828,7 +828,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
 
     const claimAmount = 123;
 
@@ -857,9 +857,9 @@ describe("EmissionsERC20", async function () {
     const claimBlockNumber = (await ethers.provider.getBlockNumber()) + 1;
 
     await emissionsERC20
-      .connect(claimer)
+      .connect(claimant)
       .claim(
-        claimer.address,
+        claimant.address,
         hexlify([...Buffer.from("Custom claim message")])
       );
 
@@ -868,7 +868,7 @@ describe("EmissionsERC20", async function () {
     );
 
     const actualReport = paddedUInt256(
-      await emissionsERC20.report(claimer.address)
+      await emissionsERC20.report(claimant.address)
     );
 
     assert(
@@ -884,7 +884,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
     const delegate = signers[2];
 
     const claimAmount = 123;
@@ -914,7 +914,7 @@ describe("EmissionsERC20", async function () {
     await emissionsERC20
       .connect(delegate)
       .claim(
-        claimer.address,
+        claimant.address,
         hexlify([...Buffer.from("Custom claim message")])
       );
   });
@@ -924,7 +924,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
     const delegate = signers[2];
 
     const claimAmount = 123;
@@ -958,7 +958,7 @@ describe("EmissionsERC20", async function () {
         await emissionsERC20
           .connect(delegate)
           .claim(
-            claimer.address,
+            claimant.address,
             hexlify([...Buffer.from("Custom claim message")])
           ),
       "DELEGATED_CLAIM",
@@ -971,7 +971,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
 
     const claimAmount = 123;
 
@@ -998,9 +998,9 @@ describe("EmissionsERC20", async function () {
     );
 
     await emissionsERC20
-      .connect(claimer)
+      .connect(claimant)
       .claim(
-        claimer.address,
+        claimant.address,
         hexlify([...Buffer.from("Custom claim message")])
       );
   });
@@ -1010,7 +1010,7 @@ describe("EmissionsERC20", async function () {
 
     const signers = await ethers.getSigners();
     const creator = signers[0];
-    const claimer = signers[1];
+    const claimant = signers[1];
 
     const claimAmount = 123;
 
@@ -1037,7 +1037,7 @@ describe("EmissionsERC20", async function () {
     );
 
     const claimAmountResult = await emissionsERC20.calculateClaim(
-      claimer.address
+      claimant.address
     );
 
     assert(
