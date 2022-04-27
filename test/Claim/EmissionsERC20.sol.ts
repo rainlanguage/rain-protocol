@@ -146,7 +146,7 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.NEVER),
+          op(Opcode.ALWAYS),
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -430,7 +430,7 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.NEVER),
+          op(Opcode.ALWAYS),
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -665,10 +665,17 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    // BEGIN zipmap args
+
+    const argReport = op(Opcode.VAL, arg(0));
+    const argNever = op(Opcode.VAL, arg(1));
+
+    // END zipmap args
+
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.NEVER),
+          op(Opcode.ALWAYS),
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -677,11 +684,23 @@ describe("EmissionsERC20", async function () {
       ]);
 
     // prettier-ignore
+    const ZIPMAP_FN = () =>
+      concat([
+            argReport,
+          op(Opcode.ISZERO),
+          argNever,
+          argReport,
+        op(Opcode.EAGER_IF),
+      ]);
+
+    // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
-          op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
-        op(Opcode.REPORT),
+            op(Opcode.THIS_ADDRESS),
+            op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.REPORT),
+          op(Opcode.NEVER),
+        op(Opcode.ZIPMAP, Util.callSize(1, 3, 1)),
       ]);
 
     // prettier-ignore
@@ -715,10 +734,10 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [TIERWISE_DIFF()],
+          sources: [TIERWISE_DIFF(), ZIPMAP_FN()],
           constants: [readWriteTier.address],
-          argumentsLength: 0,
-          stackLength: 8,
+          argumentsLength: 2,
+          stackLength: TIERWISE_DIFF().length / 2,
         },
       }
     );
