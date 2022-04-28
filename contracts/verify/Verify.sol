@@ -230,7 +230,7 @@ contract Verify is AccessControl, Initializable {
 
     /// Optional IVerifyCallback contract.
     /// MAY be address 0.
-    IVerifyCallback public callback = IVerifyCallback(address(0));
+    IVerifyCallback public callback;
 
     /// Initializes the `Verify` contract e.g. as cloned by a factory.
     /// @param config_ The config required to initialize the contract.
