@@ -665,13 +665,6 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    // BEGIN zipmap args
-
-    const argReport = op(Opcode.VAL, arg(0));
-    const argNever = op(Opcode.VAL, arg(1));
-
-    // END zipmap args
-
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
@@ -684,23 +677,11 @@ describe("EmissionsERC20", async function () {
       ]);
 
     // prettier-ignore
-    const ZIPMAP_FN = () =>
-      concat([
-            argReport,
-          op(Opcode.ISZERO),
-          argNever,
-          argReport,
-        op(Opcode.EAGER_IF),
-      ]);
-
-    // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
-            op(Opcode.THIS_ADDRESS),
-            op(Opcode.CLAIMANT_ACCOUNT),
-          op(Opcode.REPORT),
-          op(Opcode.NEVER),
-        op(Opcode.ZIPMAP, Util.callSize(1, 3, 1)),
+          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CLAIMANT_ACCOUNT),
+        op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
@@ -718,7 +699,7 @@ describe("EmissionsERC20", async function () {
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
             op(Opcode.BLOCK_NUMBER),
-          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
+          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
 
@@ -734,9 +715,9 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [TIERWISE_DIFF(), ZIPMAP_FN()],
+          sources: [TIERWISE_DIFF()],
           constants: [readWriteTier.address],
-          argumentsLength: 2,
+          argumentsLength: 0,
           stackLength: TIERWISE_DIFF().length / 2,
         },
       }
