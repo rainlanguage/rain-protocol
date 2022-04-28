@@ -9,7 +9,7 @@ import type {
   DepositConfigStruct,
   DepositEvent,
   OrderBook,
-  OrderConfigStruct,
+  OrderStruct,
   OrderDeadEvent,
   OrderLiveEvent,
   WithdrawConfigStruct,
@@ -81,7 +81,7 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
 
-    const askOrderConfig: OrderConfigStruct = {
+    const askOrderConfig: OrderStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
@@ -122,7 +122,7 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderConfigStruct = {
+    const bidOrderConfig: OrderStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
@@ -285,7 +285,7 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
 
-    const askOrderConfig: OrderConfigStruct = {
+    const askOrderConfig: OrderStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
@@ -326,7 +326,7 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderConfigStruct = {
+    const bidOrderConfig: OrderStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
@@ -367,7 +367,7 @@ describe("OrderBook", async function () {
       vCarolOutputMax,
       vCarolPrice,
     ]);
-    const carolOrderConfig: OrderConfigStruct = {
+    const carolOrderConfig: OrderStruct = {
       owner: carol.address,
       inputToken: tokenB.address,
       inputVaultId: carolInputVault,
@@ -642,7 +642,7 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
 
-    const askOrderConfig: OrderConfigStruct = {
+    const askOrderConfig: OrderStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
@@ -683,7 +683,7 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderConfigStruct = {
+    const bidOrderConfig: OrderStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
@@ -901,7 +901,7 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
 
-    const askOrderConfig: OrderConfigStruct = {
+    const askOrderConfig: OrderStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
@@ -941,7 +941,7 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderConfigStruct = {
+    const bidOrderConfig: OrderStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
@@ -981,7 +981,7 @@ describe("OrderBook", async function () {
       vBidOutputMaxCarol,
       vBidPriceCarol,
     ]);
-    const bidOrderConfigCarol: OrderConfigStruct = {
+    const bidOrderConfigCarol: OrderStruct = {
       owner: carol.address,
       inputToken: tokenB.address,
       inputVaultId: carolInputVault,
@@ -1148,22 +1148,17 @@ describe("OrderBook", async function () {
     Util.compareStructs(clearStateChange, expectedClearStateChange);
   });
 
-  it("should support removing orders iff they interface with non-append-only vaults", async function () {
+  it("should support removing orders", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
-    const bob = signers[2];
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(3);
-    const bobOutputVault = ethers.BigNumber.from(-4);
-
-    // ASK ORDER
 
     const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askConstants = [Util.max_uint256, askPrice];
@@ -1174,7 +1169,7 @@ describe("OrderBook", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
-    const askOrderConfig: OrderConfigStruct = {
+    const askOrderConfig: OrderStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
@@ -1204,7 +1199,7 @@ describe("OrderBook", async function () {
     assert(askLiveSender === alice.address, "wrong sender");
     Util.compareStructs(askLiveConfig, askOrderConfig);
 
-    // REMOVE ASK ORDER (only non-append-only vaults)
+    // REMOVE ASK ORDER
 
     const txAskOrderDead = await orderBook
       .connect(alice)
@@ -1219,147 +1214,58 @@ describe("OrderBook", async function () {
 
     assert(askDeadSender === alice.address, "wrong sender");
     Util.compareStructs(askDeadConfig, askOrderConfig);
-
-    // BID ORDER
-
-    const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
-    const bidConstants = [Util.max_uint256, bidPrice];
-    const vBidOutputMax = op(Opcode.VAL, 0);
-    const vBidPrice = op(Opcode.VAL, 1);
-    // prettier-ignore
-    const bidSource = concat([
-      vBidOutputMax,
-      vBidPrice,
-    ]);
-    const bidOrderConfig: OrderConfigStruct = {
-      owner: bob.address,
-      inputToken: tokenB.address,
-      inputVaultId: bobInputVault,
-      outputToken: tokenA.address,
-      outputVaultId: bobOutputVault,
-      tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        sources: [bidSource],
-        constants: bidConstants,
-        arguments: [],
-      },
-    };
-
-    const txBidOrderLive = await orderBook
-      .connect(bob)
-      .addOrder(bidOrderConfig);
-
-    const { sender: bidLiveSender, config: bidLiveConfig } =
-      (await Util.getEventArgs(
-        txBidOrderLive,
-        "OrderLive",
-        orderBook
-      )) as OrderLiveEvent["args"];
-
-    assert(bidLiveSender === bob.address, "wrong sender");
-    Util.compareStructs(bidLiveConfig, bidOrderConfig);
-
-    // REMOVE BID ORDER (has append-only output vault)
-
-    await Util.assertError(
-      async () => await orderBook.connect(bob).removeOrder(bidOrderConfig),
-      "APPEND_ONLY_VAULT_ID",
-      "wrongly removed order with append-only output vault"
-    );
   });
 
-  it("should allow withdrawals from non-append-only vault, and prevent withdrawals from append-only vaults", async function () {
+  it("should allow withdrawals from vaults", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-
     const alice = signers[1];
-
     const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
-
-    const appendVault = ethers.BigNumber.from(-1);
-    const nonAppendVault = ethers.BigNumber.from(1);
+    const vaultId = ethers.BigNumber.from(1);
 
     // DEPOSITS
 
-    const amountAppend = ethers.BigNumber.from("1000" + Util.eighteenZeros);
-    const amountNonAppend = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    const amount = ethers.BigNumber.from("1000" + Util.eighteenZeros);
+    await tokenA.transfer(alice.address, amount);
 
-    await tokenA.transfer(alice.address, amountAppend);
-    await tokenB.transfer(alice.address, amountNonAppend);
-
-    const depositConfigStructAppend: DepositConfigStruct = {
+    const depositConfigStruct: DepositConfigStruct = {
       depositor: alice.address,
       token: tokenA.address,
-      vaultId: appendVault,
-      amount: amountAppend,
-    };
-    const depositConfigStructNonAppend: DepositConfigStruct = {
-      depositor: alice.address,
-      token: tokenB.address,
-      vaultId: nonAppendVault,
-      amount: amountNonAppend,
+      vaultId,
+      amount,
     };
 
     await tokenA
       .connect(alice)
-      .approve(orderBook.address, depositConfigStructAppend.amount);
-    await tokenB
-      .connect(alice)
-      .approve(orderBook.address, depositConfigStructNonAppend.amount);
+      .approve(orderBook.address, depositConfigStruct.amount);
 
-    // Alice deposits tokenA into her append-only vault
-    const txDepositAppend = await orderBook
+    // Alice deposits tokenA into her non-append-only vault
+    const txDeposit = await orderBook
       .connect(alice)
-      .deposit(depositConfigStructAppend);
-    // Alice deposits tokenB into her non-append-only vault
-    const txDepositNonAppend = await orderBook
-      .connect(alice)
-      .deposit(depositConfigStructNonAppend);
+      .deposit(depositConfigStruct);
 
-    const { sender: depositAppendSender, config: depositAppendConfig } =
+    const { sender: depositSender, config: depositConfig } =
       (await Util.getEventArgs(
-        txDepositAppend,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-    const { sender: depositNonAppendSender, config: depositNonAppendConfig } =
-      (await Util.getEventArgs(
-        txDepositNonAppend,
+        txDeposit,
         "Deposit",
         orderBook
       )) as DepositEvent["args"];
 
-    assert(depositAppendSender === alice.address);
-    Util.compareStructs(depositAppendConfig, depositConfigStructAppend);
-    assert(depositNonAppendSender === alice.address);
-    Util.compareStructs(depositNonAppendConfig, depositConfigStructNonAppend);
+    assert(depositSender === alice.address);
+    Util.compareStructs(depositConfig, depositConfigStruct);
 
     const aliceTokenABalance0 = await tokenA.balanceOf(alice.address);
-    const aliceTokenBBalance0 = await tokenB.balanceOf(alice.address);
 
-    const withdrawConfigAppend: WithdrawConfigStruct = {
+    const withdrawConfigStruct: WithdrawConfigStruct = {
       token: tokenA.address,
-      vaultId: appendVault,
-      amount: amountAppend,
+      vaultId: vaultId,
+      amount,
     };
-    const withdrawConfigNonAppend: WithdrawConfigStruct = {
-      token: tokenB.address,
-      vaultId: nonAppendVault,
-      amount: amountNonAppend,
-    };
-
-    await Util.assertError(
-      async () => await orderBook.connect(alice).withdraw(withdrawConfigAppend),
-      "APPEND_ONLY_VAULT_ID",
-      "alice wrongly withdrew from append-only vault"
-    );
 
     const txWithdraw = await orderBook
       .connect(alice)
-      .withdraw(withdrawConfigNonAppend);
+      .withdraw(withdrawConfigStruct);
 
     const { sender: withdrawSender, config: withdrawConfig } =
       (await Util.getEventArgs(
@@ -1369,16 +1275,12 @@ describe("OrderBook", async function () {
       )) as WithdrawEvent["args"];
 
     assert(withdrawSender === alice.address);
-    Util.compareStructs(withdrawConfig, withdrawConfigNonAppend);
+    Util.compareStructs(withdrawConfig, withdrawConfigStruct);
 
     const aliceTokenABalance1 = await tokenA.balanceOf(alice.address);
-    const aliceTokenBBalance1 = await tokenB.balanceOf(alice.address);
 
     assert(aliceTokenABalance0.isZero());
-    assert(aliceTokenABalance1.isZero());
-
-    assert(aliceTokenBBalance0.isZero());
-    assert(aliceTokenBBalance1.eq(amountNonAppend));
+    assert(aliceTokenABalance1.eq(amount));
   });
 
   it("should add ask and bid orders and clear the order", async function () {
@@ -1410,7 +1312,7 @@ describe("OrderBook", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
-    const askOrderConfig: OrderConfigStruct = {
+    const askOrderConfig: OrderStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
@@ -1450,7 +1352,7 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderConfigStruct = {
+    const bidOrderConfig: OrderStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
