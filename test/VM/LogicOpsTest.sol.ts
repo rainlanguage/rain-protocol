@@ -88,10 +88,22 @@ describe("LogicOpsTest", async function () {
       sources: [SOURCE(), ZIPMAP_FN()],
       constants,
       argumentsLength: 2,
-      stackLength: 64,
+      stackLength: 32,
     })) as LogicOpsTest & Contract;
 
-    const result = await logic0.run({ gasLimit: 100000000 });
+    const result = await logic0.runState({ gasLimit: 100000000 });
+
+    const resultReport = ethers.BigNumber.from(
+      "0x" +
+        paddedUInt32(result.stack[7]) +
+        paddedUInt32(result.stack[6]) +
+        paddedUInt32(result.stack[5]) +
+        paddedUInt32(result.stack[4]) +
+        paddedUInt32(result.stack[3]) +
+        paddedUInt32(result.stack[2]) +
+        paddedUInt32(result.stack[1]) +
+        paddedUInt32(result.stack[0])
+    );
 
     const expectedReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -108,10 +120,10 @@ describe("LogicOpsTest", async function () {
     );
 
     assert(
-      result.eq(expectedReport),
+      resultReport.eq(expectedReport),
       `wrong calculation result
       expected  ${hexlify(expectedReport)}
-      got       ${hexlify(result)}`
+      got       ${hexlify(resultReport)}`
     );
   });
 
