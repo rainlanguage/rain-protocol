@@ -24,19 +24,20 @@ library IERC721Ops {
             require(opcode_ < IERC721_OPS_LENGTH, "MAX_OPCODE");
 
             state_.stackIndex--;
+            uint baseIndex_ = state_.stackIndex - 1;
             // Stack the return of `balanceOf`.
             if (opcode_ == OPCODE_BALANCE_OF) {
-                state_.stack[state_.stackIndex - 1] = IERC721(
-                    address(uint160(state_.stack[state_.stackIndex - 1]))
+                state_.stack[baseIndex_] = IERC721(
+                    address(uint160(state_.stack[baseIndex_]))
                 ).balanceOf(address(uint160(state_.stack[state_.stackIndex])));
             }
             // Stack the return of `ownerOf`.
             else if (opcode_ == OPCODE_OWNER_OF) {
-                state_.stack[state_.stackIndex - 1] = uint256(
+                state_.stack[baseIndex_] = uint256(
                     uint160(
                         IERC721(
                             address(
-                                uint160(state_.stack[state_.stackIndex - 1])
+                                uint160(state_.stack[baseIndex_])
                             )
                         ).ownerOf(state_.stack[state_.stackIndex])
                     )
