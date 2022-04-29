@@ -84,7 +84,11 @@ library FixedPointMath {
         } else if (scaleBy_ > 0) {
             return a_ * 10**uint8(scaleBy_);
         } else {
-            return a_ / 10**(~uint8(scaleBy_) + 1);
+            uint256 posScaleDownBy_;
+            unchecked {
+                posScaleDownBy_ = uint8(-scaleBy_);
+            }
+            return a_ / 10**posScaleDownBy_;
         }
     }
 

@@ -21,9 +21,11 @@ contract TrustEscrowWrapper is TrustEscrow {
         return crps[trust_];
     }
 
-    function getEscrowStatus(
-        address trust_
-    ) external view returns (EscrowStatus) {
+    function getEscrowStatus(address trust_)
+        external
+        view
+        returns (EscrowStatus)
+    {
         return escrowStatuses[trust_];
     }
 
