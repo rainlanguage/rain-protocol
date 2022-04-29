@@ -56,9 +56,7 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
                 require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
                 // There's only one opcode, which stacks the address to report.
                 address account_ = abi.decode(context_, (address));
-                state_.stack[state_.stackIndex] = uint256(
-                    uint160(account_)
-                );
+                state_.stack[state_.stackIndex] = uint256(uint160(account_));
                 state_.stackIndex++;
             }
         }

@@ -66,10 +66,7 @@ contract ERC20TransferTier is ReadWriteTier, ValueTier, Initializable {
     /// Result of initialize.
     /// @param sender `msg.sender` of the initialize.
     /// @param erc20 erc20 to transfer.
-    event Initialize(
-        address sender,
-        address erc20
-    );
+    event Initialize(address sender, address erc20);
 
     /// The erc20 to transfer balances of.
     IERC20 internal erc20;

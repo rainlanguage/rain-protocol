@@ -70,7 +70,11 @@ library FixedPointMath {
         } else if (scaleBy_ > 0) {
             return a_ * 10**uint8(scaleBy_);
         } else {
-            return a_ / 10**(~uint8(scaleBy_) + 1);
+            uint256 negScaleBy_;
+            unchecked {
+                negScaleBy_ = uint8(scaleBy_ - 1);
+            }
+            return a_ / 10**negScaleBy_;
         }
     }
 

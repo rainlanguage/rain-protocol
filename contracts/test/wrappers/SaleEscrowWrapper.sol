@@ -17,9 +17,11 @@ contract SaleEscrowWrapper is SaleEscrow {
         return tokens[sale_];
     }
 
-    function getEscrowStatus(
-        address sale_
-    ) external view returns (EscrowStatus) {
+    function getEscrowStatus(address sale_)
+        external
+        view
+        returns (EscrowStatus)
+    {
         return escrowStatuses[sale_];
     }
 
