@@ -25,12 +25,19 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
+        uint decimals_;
         if (FP_DECIMALS == aDecimals_) {
             return a_;
         } else if (FP_DECIMALS > aDecimals_) {
-            return a_ * 10**(FP_DECIMALS - aDecimals_);
+            unchecked {
+                decimals_ = FP_DECIMALS - aDecimals_;
+            }
+            return a_ * 10**decimals_;
         } else {
-            return a_ / 10**(aDecimals_ - FP_DECIMALS);
+            unchecked {
+                decimals_ = aDecimals_ - FP_DECIMALS;
+            }
+            return a_ / 10**decimals_;
         }
     }
 
@@ -43,12 +50,19 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
+        uint decimals_;
         if (targetDecimals_ == FP_DECIMALS) {
             return a_;
         } else if (FP_DECIMALS > targetDecimals_) {
-            return a_ / 10**(FP_DECIMALS - targetDecimals_);
+            unchecked {
+                decimals_ = FP_DECIMALS - targetDecimals_;
+            }
+            return a_ / 10**decimals_;
         } else {
-            return a_ * 10**(targetDecimals_ - FP_DECIMALS);
+            unchecked {
+                decimals_ = targetDecimals_ - FP_DECIMALS;
+            }
+            return a_ * 10**decimals_;
         }
     }
 
