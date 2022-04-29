@@ -414,7 +414,7 @@ contract Verify is AccessControl, Initializable {
         }
     }
 
-    /// Any approved address can request some other address be approved.
+    /// Any approved address can request some address be approved.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request approvals for.
     function requestApprove(Evidence[] calldata evidences_)
@@ -464,7 +464,7 @@ contract Verify is AccessControl, Initializable {
         }
     }
 
-    /// Any approved address can request some other address be banned.
+    /// Any approved address can request some address be banned.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request banning for.
     function requestBan(Evidence[] calldata evidences_) external onlyApproved {
@@ -492,7 +492,7 @@ contract Verify is AccessControl, Initializable {
         }
     }
 
-    /// Any approved address can request some other address be removed.
+    /// Any approved address can request some address be removed.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request removal of.
     function requestRemove(Evidence[] calldata evidences_)
