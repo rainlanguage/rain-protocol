@@ -7,7 +7,7 @@ uint256 constant FP_DECIMALS = 18;
 /// @dev The number `1` in the standard fixed point math scaling. Most of the
 /// differences between fixed point math and regular math is multiplying or
 /// dividing by `ONE` after the appropriate scaling has been applied.
-uint256 constant FP_ONE = 10**FP_DECIMALS;
+uint256 constant FP_ONE = 1e18;
 
 /// @title FixedPointMath
 /// @notice Sometimes we want to do math with decimal values but all we have
