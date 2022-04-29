@@ -65,8 +65,8 @@ library MathOps {
         }
         // Saturating addition.
         else if (opcode_ == OPCODE_SATURATING_ADD) {
-            while (cursor_ < top_) {
                 unchecked {
+            while (cursor_ < top_ && accumulator_ < type(uint256).max) {
                     cursor_++;
                     accumulator_ = accumulator_.saturatingAdd(
                         state_.stack[cursor_]
@@ -85,8 +85,8 @@ library MathOps {
         }
         // Saturating subtraction.
         else if (opcode_ == OPCODE_SATURATING_SUB) {
-            while (cursor_ < top_) {
                 unchecked {
+            while (cursor_ < top_ && 0 < accumulator_) {
                     cursor_++;
                     accumulator_ = accumulator_.saturatingSub(
                         state_.stack[cursor_]
@@ -107,8 +107,8 @@ library MathOps {
         }
         // Saturating multiplication.
         else if (opcode_ == OPCODE_SATURATING_MUL) {
-            while (cursor_ < top_) {
                 unchecked {
+            while (cursor_ < top_ && accumulator_ < type(uint256).max) {
                     cursor_++;
                     accumulator_ = accumulator_.saturatingMul(
                         state_.stack[cursor_]
