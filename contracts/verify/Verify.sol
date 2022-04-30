@@ -376,15 +376,15 @@ contract Verify is AccessControl, Initializable {
         external
         onlyRole(APPROVER)
     {
-        uint256 dirty_ = 0;
         State memory state_;
+        Evidence[] memory dirtyEvidences_ = new Evidence[](evidences_.length);
+        uint256 dirty_ = 0;
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             state_ = states[evidences_[i_].account];
             // If the account hasn't been added an approver can still add and
             // approve it on their behalf.
             if (state_.addedSince < 1) {
                 state_ = newState();
-                dirty_ = 1;
             }
             // If the account hasn't been approved we approve it. As there are
             // many approvers operating independently and concurrently we do
@@ -397,12 +397,9 @@ contract Verify is AccessControl, Initializable {
             // banned block only.
             if (state_.approvedSince == UNINITIALIZED) {
                 state_.approvedSince = uint32(block.number);
-                dirty_ = 1;
-            }
-
-            if (dirty_ > 0) {
                 states[evidences_[i_].account] = state_;
-                dirty_ = 0;
+                dirtyEvidences_[dirty_] = evidences_[i_];
+                dirty_++;
             }
 
             // Always emit an `Approve` event even if we didn't write state.
@@ -410,9 +407,15 @@ contract Verify is AccessControl, Initializable {
             // review.
             emit Approve(msg.sender, evidences_[i_]);
         }
-        IVerifyCallback callback_ = callback;
-        if (address(callback_) != address(0)) {
-            callback_.afterApprove(msg.sender, evidences_);
+        if (dirty_ > 0) {
+            // Force the length of dirtyEvidences_ down to dirty_.
+            assembly {
+                mstore(dirtyEvidences_, dirty_)
+            }
+            IVerifyCallback callback_ = callback;
+            if (address(callback_) != address(0)) {
+                callback_.afterApprove(msg.sender, dirtyEvidences_);
+            }
         }
     }
 
@@ -431,8 +434,9 @@ contract Verify is AccessControl, Initializable {
     /// A `BANNER` can ban an added OR approved account.
     /// @param evidences_ All evidence appropriate for all bans.
     function ban(Evidence[] calldata evidences_) external onlyRole(BANNER) {
-        uint256 dirty_ = 0;
         State memory state_;
+        Evidence[] memory dirtyEvidences_ = new Evidence[](evidences_.length);
+        uint256 dirty_ = 0;
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             state_ = states[evidences_[i_].account];
 
@@ -442,17 +446,13 @@ contract Verify is AccessControl, Initializable {
             // the same address in the current contract.
             if (state_.addedSince < 1) {
                 state_ = newState();
-                dirty_ = 1;
             }
             // Respect prior bans by leaving the older block number in place.
             if (state_.bannedSince == UNINITIALIZED) {
                 state_.bannedSince = uint32(block.number);
-                dirty_ = 1;
-            }
-
-            if (dirty_ > 0) {
                 states[evidences_[i_].account] = state_;
-                dirty_ = 0;
+                dirtyEvidences_[dirty_] = evidences_[i_];
+                dirty_++;
             }
 
             // Always emit a `Ban` event even if we didn't write state. This
@@ -460,9 +460,15 @@ contract Verify is AccessControl, Initializable {
             // review.
             emit Ban(msg.sender, evidences_[i_]);
         }
-        IVerifyCallback callback_ = callback;
-        if (address(callback_) != address(0)) {
-            callback_.afterBan(msg.sender, evidences_);
+        if (dirty_ > 0) {
+            // Force the length of dirtyEvidences_ down to dirty_.
+            assembly {
+                mstore(dirtyEvidences_, dirty_)
+            }
+            IVerifyCallback callback_ = callback;
+            if (address(callback_) != address(0)) {
+                callback_.afterBan(msg.sender, dirtyEvidences_);
+            }
         }
     }
 
@@ -481,16 +487,26 @@ contract Verify is AccessControl, Initializable {
     /// @param evidences_ All evidence to suppor the removal.
     function remove(Evidence[] calldata evidences_) external onlyRole(REMOVER) {
         State memory state_;
+        Evidence[] memory dirtyEvidences_ = new Evidence[](evidences_.length);
+        uint256 dirty_ = 0;
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             state_ = states[evidences_[i_].account];
             if (state_.addedSince > 0) {
                 delete (states[evidences_[i_].account]);
+                dirtyEvidences_[dirty_] = evidences_[i_];
+                dirty_++;
             }
             emit Remove(msg.sender, evidences_[i_]);
         }
-        IVerifyCallback callback_ = callback;
-        if (address(callback_) != address(0)) {
-            callback_.afterRemove(msg.sender, evidences_);
+        if (dirty_ > 0) {
+            // Force the length of dirtyEvidences_ down to dirty_.
+            assembly {
+                mstore(dirtyEvidences_, dirty_)
+            }
+            IVerifyCallback callback_ = callback;
+            if (address(callback_) != address(0)) {
+                callback_.afterRemove(msg.sender, dirtyEvidences_);
+            }
         }
     }
 

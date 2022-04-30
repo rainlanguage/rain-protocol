@@ -25,7 +25,7 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
-        uint decimals_;
+        uint256 decimals_;
         if (FP_DECIMALS == aDecimals_) {
             return a_;
         } else if (FP_DECIMALS > aDecimals_) {
@@ -50,7 +50,7 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
-        uint decimals_;
+        uint256 decimals_;
         if (targetDecimals_ == FP_DECIMALS) {
             return a_;
         } else if (FP_DECIMALS > targetDecimals_) {
