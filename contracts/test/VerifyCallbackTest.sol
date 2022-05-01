@@ -14,18 +14,20 @@ contract VerifyCallbackTest is IVerifyCallback {
     mapping(address => bool) public bans;
     mapping(address => bool) public removals;
 
-    function afterAdd(address adder_, Evidence calldata evidence_)
+    function afterAdd(address adder_, Evidence[] calldata evidences_)
         external
         virtual
         override
     {
         require(adder_ != address(0), "0_ADDRESS");
-        require(!additions[evidence_.account], "PRIOR_ADD");
-        require(
-            keccak256(evidence_.data) == keccak256(bytes("Good")),
-            "BAD_EVIDENCE"
-        );
-        additions[evidence_.account] = true;
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            require(!additions[evidences_[i_].account], "PRIOR_ADD");
+            require(
+                keccak256(evidences_[i_].data) == keccak256(bytes("Good")),
+                "BAD_EVIDENCE"
+            );
+            additions[evidences_[i_].account] = true;
+        }
     }
 
     function afterApprove(address approver_, Evidence[] calldata evidences_)
@@ -34,13 +36,13 @@ contract VerifyCallbackTest is IVerifyCallback {
         override
     {
         require(approver_ != address(0), "0_ADDRESS");
-        for (uint256 index = 0; index < evidences_.length; index++) {
-            require(!approvals[evidences_[index].account], "PRIOR_APPROVE");
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            require(!approvals[evidences_[i_].account], "PRIOR_APPROVE");
             require(
-                keccak256(evidences_[index].data) == keccak256(bytes("Good")),
+                keccak256(evidences_[i_].data) == keccak256(bytes("Good")),
                 "BAD_EVIDENCE"
             );
-            approvals[evidences_[index].account] = true;
+            approvals[evidences_[i_].account] = true;
         }
     }
 

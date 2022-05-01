@@ -54,6 +54,7 @@ describe("Verify", async function () {
     const banner = signers[6];
     // other signers
     const signer1 = signers[7];
+    const signer2 = signers[8];
 
     const verifyCallback = (await Util.basicDeploy(
       "VerifyCallbackTest",
@@ -127,16 +128,35 @@ describe("Verify", async function () {
       "BAD_EVIDENCE",
       "afterApprove hook did not require Good evidence"
     );
+    assert(
+      !(await verifyCallback.approvals(signer1.address)),
+      "approved with bad evidence"
+    );
+
     await verify
       .connect(approver)
       .approve([{ account: signer1.address, data: goodEvidenceApprove }]);
-    await Util.assertError(
-      async () =>
-        await verify
-          .connect(approver)
-          .approve([{ account: signer1.address, data: goodEvidenceApprove }]),
-      "PRIOR_APPROVE",
-      "afterApprove hook did not prevent 2nd approval"
+    assert(
+      await verifyCallback.approvals(signer1.address),
+      "did not approve with good evidence"
+    );
+
+    await verify.connect(approver).approve([
+      // Include signer1 a second time. The test contract will throw an error
+      // if it sees the same approval twice. This shows the Verify contract
+      // filters out dupes.
+      { account: signer1.address, data: goodEvidenceApprove },
+      // The signer2 should be approved and not filtered out by the Verify
+      // contract.
+      { account: signer2.address, data: goodEvidenceApprove },
+    ]);
+    assert(
+      await verifyCallback.approvals(signer1.address),
+      "missing signer 1 approval"
+    );
+    assert(
+      await verifyCallback.approvals(signer2.address),
+      "did not approve signer2 with good evidence"
     );
 
     // ban account
@@ -148,16 +168,30 @@ describe("Verify", async function () {
       "BAD_EVIDENCE",
       "afterBan hook did not require Good evidence"
     );
+    assert(
+      !(await verifyCallback.bans(signer1.address)),
+      "banned signer1 without good evidence"
+    );
     await verify
       .connect(banner)
       .ban([{ account: signer1.address, data: goodEvidenceBan }]);
-    await Util.assertError(
-      async () =>
-        await verify
-          .connect(banner)
-          .ban([{ account: signer1.address, data: goodEvidenceBan }]),
-      "PRIOR_BAN",
-      "afterBan hook did not prevent 2nd ban"
+    assert(
+      await verifyCallback.bans(signer1.address),
+      "did not ban signer1 with good evidence"
+    );
+    await verify.connect(banner).ban([
+      // Include signer1 a second time. The test contract will throw an error
+      // if it sees the same ban twice. This shows the Verify contract filters
+      // out dupes.
+      { account: signer1.address, data: goodEvidenceBan },
+      // The signer2 should be banned and not filtered out by the Verify
+      // contract.
+      { account: signer2.address, data: goodEvidenceBan },
+    ]);
+    assert(await verifyCallback.bans(signer1.address), "missing signer 1 ban");
+    assert(
+      await verifyCallback.bans(signer2.address),
+      "did not ban signer2 with good evidence"
     );
 
     // remove account
@@ -169,16 +203,31 @@ describe("Verify", async function () {
       "BAD_EVIDENCE",
       "afterRemove hook did not require Good evidence"
     );
+    assert(
+      !(await verifyCallback.removals(signer1.address)),
+      "removed signer1 with bad evidence"
+    );
     await verify
       .connect(remover)
       .remove([{ account: signer1.address, data: goodEvidenceRemove }]);
-    await Util.assertError(
-      async () =>
-        await verify
-          .connect(remover)
-          .remove([{ account: signer1.address, data: goodEvidenceRemove }]),
-      "PRIOR_REMOVE",
-      "afterRemove hook did not prevent 2nd remove"
+    assert(
+      await verifyCallback.removals(signer1.address),
+      "did not remove signer1 with good evidence"
+    );
+    await verify.connect(remover).remove([
+      // include signer1 against to ensure that Verify filters dupes and does
+      // not cause the test contract to error.
+      { account: signer1.address, data: goodEvidenceRemove },
+      // remove signer 2 also.
+      { account: signer2.address, data: goodEvidenceRemove },
+    ]);
+    assert(
+      await verifyCallback.removals(signer1.address),
+      "missing removal of signer1"
+    );
+    assert(
+      await verifyCallback.removals(signer2.address),
+      "did not remove signer2 with good evidence"
     );
   });
 
