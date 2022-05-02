@@ -215,6 +215,13 @@ abstract contract RainVM {
         State memory state_,
         uint256 sourceIndex_
     ) internal view {
+        // State needs to start with the stack index at a valid position which
+        // may not be the case in general.
+                        require(
+                    state_.stackIndex <= state_.stack.length,
+                    "STACK_OVERFLOW"
+                );
+
         // Everything in eval can be checked statically, there are no dynamic
         // runtime values read from the stack that can cause out of bounds
         // behaviour. E.g. sourceIndex in zipmap and size of a skip are both
@@ -311,7 +318,18 @@ abstract contract RainVM {
                 }
                 // The stack index may be the same as the length as this means
                 // the stack is full. But we cannot write past the end of the
-                // stack.
+                // stack. This also catches a stack index that underflows due
+                // to unchecked or assembly math. This check MAY be redundant
+                // with standard OOB checks on the stack array due to indexing
+                // into it, but is a required guard in the case of VM assembly.
+                // Future versions of the VM will precalculate all stack
+                // movements at deploy time rather than runtime as this kind of
+                // accounting adds nontrivial gas across longer scripts that
+                // include many opcodes.
+                // Note: This check would NOT be safe in the case that some
+                // opcode used assembly in a way that can underflow the stack
+                // as this would allow a malicious rain script to write to the
+                // stack length and/or the stack index.
                 require(
                     state_.stackIndex <= state_.stack.length,
                     "STACK_OVERFLOW"
