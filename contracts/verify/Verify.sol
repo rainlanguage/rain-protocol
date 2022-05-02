@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./libraries/VerifyConstants.sol";
 
-import "hardhat/console.sol";
-
 /// Records the block a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
 /// Most accounts will never be banned so most accounts will never reach every
