@@ -122,11 +122,7 @@ contract SeedERC20 is Initializable, Phased, Cooldown, ERC20Redeem, ERC20Pull {
     /// @param tokensSeeded Number of seed tokens purchased.
     /// @param reserveReceived Amount of reserve received by the seed contract
     /// for the seed tokens.
-    event Seed(
-        address sender,
-        uint256 tokensSeeded,
-        uint256 reserveReceived
-    );
+    event Seed(address sender, uint256 tokensSeeded, uint256 reserveReceived);
 
     /// Reserve was refunded for seed tokens.
     /// @param sender Anon `msg.sender` unseeding.

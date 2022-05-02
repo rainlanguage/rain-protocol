@@ -115,7 +115,6 @@ abstract contract RainVM {
     /// `4` ABI encodes the entire stack and logs it to the hardhat console.
     uint256 private constant OP_DEBUG = 4;
 
-
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
     /// values where X is configurable by `operand_`. Each 1 increment in the

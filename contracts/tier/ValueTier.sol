@@ -20,10 +20,7 @@ contract ValueTier {
     /// TODO: Typescript errors on uint256[8] so can't include tierValues here.
     /// @param sender The `msg.sender` initializing value tier.
     /// @param pointer Pointer to the uint256[8] values.
-    event InitializeValueTier(
-        address sender,
-        address pointer
-    );
+    event InitializeValueTier(address sender, address pointer);
 
     /// Pointer to the uint256[8] values.
     address private tierValuesPointer;

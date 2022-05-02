@@ -25,9 +25,7 @@ contract ERC20PulleeTest {
         IERC20(token_).transfer(recipient_, amount_);
     }
 
-    function endDistribution(address token_, address distributor_)
-        external
-    {
+    function endDistribution(address token_, address distributor_) external {
         RedeemableERC20(token_).endDistribution(distributor_);
     }
 
