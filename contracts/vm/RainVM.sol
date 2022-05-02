@@ -216,10 +216,7 @@ abstract contract RainVM {
     ) internal view {
         // State needs to start with the stack index at a valid position which
         // may not be the case in general.
-                        require(
-                    state_.stackIndex <= state_.stack.length,
-                    "STACK_OVERFLOW"
-                );
+        require(state_.stackIndex <= state_.stack.length, "STACK_OVERFLOW");
 
         // Everything in eval can be checked statically, there are no dynamic
         // runtime values read from the stack that can cause out of bounds
@@ -265,6 +262,12 @@ abstract contract RainVM {
                                 location_ := constantsLocation_
                             }
 
+                            let valIndex_ := and(operand_, 0x7F)
+                            // Attempted to read beyond constants/arguments.
+                            if iszero(lt(valIndex_, mload(location_))) {
+                                revert(0, 0)
+                            }
+
                             let stackIndex_ := mload(state_)
                             // Copy value to stack.
                             mstore(
@@ -275,10 +278,7 @@ abstract contract RainVM {
                                 mload(
                                     add(
                                         location_,
-                                        add(
-                                            0x20,
-                                            mul(and(operand_, 0x7F), 0x20)
-                                        )
+                                        add(0x20, mul(valIndex_, 0x20))
                                     )
                                 )
                             )
@@ -287,6 +287,10 @@ abstract contract RainVM {
                     } else if (opcode_ == OP_DUP) {
                         assembly {
                             let stackIndex_ := mload(state_)
+                            // DUPing data past the values on the stack.
+                            if iszero(lt(operand_, stackIndex_)) {
+                                revert(0, 0)
+                            }
                             mstore(
                                 add(
                                     stackLocation_,
