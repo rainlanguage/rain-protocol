@@ -2,7 +2,6 @@ import chai from "chai";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
 import {
-  arg,
   callSize,
   max_uint256,
   op,
@@ -60,8 +59,8 @@ describe("LogicOpsTest", async function () {
 
     // BEGIN zipmap args
 
-    const argReport = op(Opcode.VAL, arg(0));
-    const argReportMax = op(Opcode.VAL, arg(1));
+    const argReport = op(Opcode.VAL, 2);
+    const argReportMax = op(Opcode.VAL, 3);
 
     // END zipmap args
 
@@ -86,8 +85,6 @@ describe("LogicOpsTest", async function () {
     const logic0 = (await logicFactory.deploy({
       sources: [SOURCE(), ZIPMAP_FN()],
       constants,
-      argumentsLength: 2,
-      stackLength: 32,
     })) as LogicOpsTest & Contract;
 
     const result = await logic0.runState({ gasLimit: 100000000 });

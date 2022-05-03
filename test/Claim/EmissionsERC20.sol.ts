@@ -116,8 +116,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
           constants: [readWriteTier.address, constructionBlock],
-          argumentsLength: 0,
-          stackLength: TIERWISE_DIFF().length / 2,
         },
       }
     );
@@ -244,8 +242,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
           constants: [readWriteTier.address],
-          argumentsLength: 0,
-          stackLength: TIERWISE_DIFF().length / 2,
         },
       }
     );
@@ -371,8 +367,6 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
           constants: [readWriteTier.address],
-          argumentsLength: 0,
-          stackLength: TIERWISE_DIFF().length / 2,
         },
       }
     );
