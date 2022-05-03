@@ -1,7 +1,14 @@
 import chai from "chai";
 import { ethers } from "hardhat";
-import { concat } from "ethers/lib/utils";
-import { op } from "../Util";
+import { concat, hexlify } from "ethers/lib/utils";
+import {
+  arg,
+  callSize,
+  max_uint256,
+  op,
+  paddedUInt256,
+  paddedUInt32,
+} from "../Util";
 import type { BigNumber, Contract } from "ethers";
 
 import type { LogicOpsTest } from "../../typechain/LogicOpsTest";
@@ -14,7 +21,7 @@ const enum Opcode {
   DUP,
   ZIPMAP,
   DEBUG,
-  IS_ZERO,
+  ISZERO,
   EAGER_IF,
   EQUAL_TO,
   LESS_THAN,
@@ -26,6 +33,100 @@ const enum Opcode {
 const isTruthy = (vmValue: BigNumber) => vmValue.eq(1);
 
 describe("LogicOpsTest", async function () {
+  it("should support logic ops within a zipmap loop", async function () {
+    this.timeout(0);
+
+    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
+
+    const report = paddedUInt256(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedUInt32(1) +
+          paddedUInt32(0) +
+          paddedUInt32(3) +
+          paddedUInt32(0) +
+          paddedUInt32(5) +
+          paddedUInt32(0) +
+          paddedUInt32(7) +
+          paddedUInt32(8)
+      )
+    );
+
+    const reportMax = max_uint256;
+
+    const constants = [report, reportMax];
+
+    const vReport = op(Opcode.VAL, 0);
+    const vReportMax = op(Opcode.VAL, 1);
+
+    // BEGIN zipmap args
+
+    const argReport = op(Opcode.VAL, arg(0));
+    const argReportMax = op(Opcode.VAL, arg(1));
+
+    // END zipmap args
+
+    // prettier-ignore
+    const ZIPMAP_FN = () =>
+      concat([
+            argReport,
+          op(Opcode.ISZERO),
+          argReportMax,
+          argReport,
+        op(Opcode.EAGER_IF),
+      ]);
+
+    // prettier-ignore
+    const SOURCE = () =>
+      concat([
+          vReport,
+          vReportMax,
+        op(Opcode.ZIPMAP, callSize(1, 3, 1)),
+      ]);
+
+    const logic0 = (await logicFactory.deploy({
+      sources: [SOURCE(), ZIPMAP_FN()],
+      constants,
+      argumentsLength: 2,
+      stackLength: 32,
+    })) as LogicOpsTest & Contract;
+
+    const result = await logic0.runState({ gasLimit: 100000000 });
+
+    const resultReport = ethers.BigNumber.from(
+      "0x" +
+        paddedUInt32(result.stack[7]) +
+        paddedUInt32(result.stack[6]) +
+        paddedUInt32(result.stack[5]) +
+        paddedUInt32(result.stack[4]) +
+        paddedUInt32(result.stack[3]) +
+        paddedUInt32(result.stack[2]) +
+        paddedUInt32(result.stack[1]) +
+        paddedUInt32(result.stack[0])
+    );
+
+    const expectedReport = paddedUInt256(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedUInt32(1) +
+          paddedUInt32("0xffffffff") +
+          paddedUInt32(3) +
+          paddedUInt32("0xffffffff") +
+          paddedUInt32(5) +
+          paddedUInt32("0xffffffff") +
+          paddedUInt32(7) +
+          paddedUInt32(8)
+      )
+    );
+
+    assert(
+      resultReport.eq(expectedReport),
+      `wrong calculation result
+      expected  ${hexlify(expectedReport)}
+      got       ${hexlify(resultReport)}`
+    );
+  });
+
   it("should check whether any value in a list is non-zero", async () => {
     this.timeout(0);
 
@@ -379,7 +480,7 @@ describe("LogicOpsTest", async function () {
     // prettier-ignore
     const source0 = concat([
       op(Opcode.VAL, 0),
-      op(Opcode.IS_ZERO),
+      op(Opcode.ISZERO),
     ]);
 
     const logic0 = (await logicFactory.deploy({
@@ -396,7 +497,7 @@ describe("LogicOpsTest", async function () {
     // prettier-ignore
     const source1 = concat([
       op(Opcode.VAL, 1),
-      op(Opcode.IS_ZERO),
+      op(Opcode.ISZERO),
     ]);
 
     const logic1 = (await logicFactory.deploy({

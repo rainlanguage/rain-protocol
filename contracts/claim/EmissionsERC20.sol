@@ -126,6 +126,16 @@ contract EmissionsERC20 is
         }
     }
 
+    /// Reports from the claim contract function differently to most tier
+    /// contracts. When the report is uninitialized it is `0` NOT `0xFF..`. The
+    /// intent is that the claim report is compatible with an "every" selectLte
+    /// against tiers that might be gating claims. It's important that we use
+    /// every for this check as the underlying tier doing the gating MUST be
+    /// respected on every claim even for users that have previously claimed as
+    /// they could have lost tiers since their last claim.
+    /// The standard "uninitialized is 0xFF.." logic can be simulated in a rain
+    /// script as `REPORT(this, account) IF(ISZERO(DUP(0)), never, DUP(0))` if
+    /// desired by the deployer (adjusting the DUP index to taste).
     /// @inheritdoc ITier
     function report(address account_)
         public
@@ -134,10 +144,7 @@ contract EmissionsERC20 is
         override
         returns (uint256)
     {
-        return
-            reports[account_] > 0
-                ? reports[account_]
-                : TierConstants.NEVER_REPORT;
+        return reports[account_];
     }
 
     /// Calculates the claim without processing it.
