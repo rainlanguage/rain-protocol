@@ -230,7 +230,7 @@ contract Verify is AccessControl, Initializable {
 
     /// Optional IVerifyCallback contract.
     /// MAY be address 0.
-    IVerifyCallback public callback = IVerifyCallback(address(0));
+    IVerifyCallback public callback;
 
     /// Initializes the `Verify` contract e.g. as cloned by a factory.
     /// @param config_ The config required to initialize the contract.
@@ -352,8 +352,9 @@ contract Verify is AccessControl, Initializable {
         // requirements.
         // The inheriting contract MUST `require` or otherwise enforce its
         // needs to rollback a bad add.
-        if (address(callback) != address(0)) {
-            callback.afterAdd(msg.sender, evidence_);
+        IVerifyCallback callback_ = callback;
+        if (address(callback_) != address(0)) {
+            callback_.afterAdd(msg.sender, evidence_);
         }
     }
 
@@ -409,12 +410,13 @@ contract Verify is AccessControl, Initializable {
             // review.
             emit Approve(msg.sender, evidences_[i_]);
         }
-        if (address(callback) != address(0)) {
-            callback.afterApprove(msg.sender, evidences_);
+        IVerifyCallback callback_ = callback;
+        if (address(callback_) != address(0)) {
+            callback_.afterApprove(msg.sender, evidences_);
         }
     }
 
-    /// Any approved address can request some other address be approved.
+    /// Any approved address can request some address be approved.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request approvals for.
     function requestApprove(Evidence[] calldata evidences_)
@@ -458,13 +460,13 @@ contract Verify is AccessControl, Initializable {
             // review.
             emit Ban(msg.sender, evidences_[i_]);
         }
-
-        if (address(callback) != address(0)) {
-            callback.afterBan(msg.sender, evidences_);
+        IVerifyCallback callback_ = callback;
+        if (address(callback_) != address(0)) {
+            callback_.afterBan(msg.sender, evidences_);
         }
     }
 
-    /// Any approved address can request some other address be banned.
+    /// Any approved address can request some address be banned.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request banning for.
     function requestBan(Evidence[] calldata evidences_) external onlyApproved {
@@ -486,13 +488,13 @@ contract Verify is AccessControl, Initializable {
             }
             emit Remove(msg.sender, evidences_[i_]);
         }
-
-        if (address(callback) != address(0)) {
-            callback.afterRemove(msg.sender, evidences_);
+        IVerifyCallback callback_ = callback;
+        if (address(callback_) != address(0)) {
+            callback_.afterRemove(msg.sender, evidences_);
         }
     }
 
-    /// Any approved address can request some other address be removed.
+    /// Any approved address can request some address be removed.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request removal of.
     function requestRemove(Evidence[] calldata evidences_)

@@ -84,7 +84,7 @@ library MathOps {
         }
         // // Saturating addition.
         // else if (opcode_ == OPCODE_SATURATING_ADD) {
-        //     while (cursor_ < top_) {
+        //     while (cursor_ < top_ && accumulator_ < type(uint256).maxs) {
         //         unchecked {
         //             cursor_++;
         //             accumulator_ = accumulator_.saturatingAdd(
@@ -115,7 +115,7 @@ library MathOps {
         else if (opcode_ == OPCODE_SATURATING_SUB) {
             uint256 item_;
             uint256 cursor_ = location_;
-            while (cursor_ < stackTopLocation_) {
+            while (cursor_ < stackTopLocation_ && 0 < accumulator_) {
                 assembly {
                     cursor_ := add(cursor_, 0x20)
                     item_ := mload(cursor_)
@@ -149,7 +149,7 @@ library MathOps {
         }
         // // Saturating multiplication.
         // else if (opcode_ == OPCODE_SATURATING_MUL) {
-        //     while (cursor_ < top_) {
+        //     while (cursor_ < top_ && accumulator_ < type(uint256).max) {
         //         unchecked {
         //             cursor_++;
         //             accumulator_ = accumulator_.saturatingMul(

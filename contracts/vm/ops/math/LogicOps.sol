@@ -120,9 +120,8 @@ library LogicOps {
                 } {
                     // If anything is zero then EVERY is a failed check.
                     if iszero(mload(cursor_)) {
-                        // Prevent further looping.
-                        cursor_ := stackTopLocation_
                         mstore(location_, 0)
+                        break
                     }
                 }
                 stackTopLocation_ := add(location_, 0x20)
@@ -141,10 +140,9 @@ library LogicOps {
                     // check and can short-circuit.
                     let item_ := mload(cursor_)
                     if iszero(iszero(item_)) {
-                        // Prevent further looping.
-                        cursor_ := stackTopLocation_
                         // Write the usable value to the top of the stack.
                         mstore(location_, item_)
+                        break
                     }
                 }
                 stackTopLocation_ := add(location_, 0x20)
