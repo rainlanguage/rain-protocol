@@ -6,6 +6,7 @@ import { bytify, callSize, op, arg } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
+import type { StackOverflowTest } from "../../typechain/StackOverflowTest";
 
 const { assert } = chai;
 
@@ -35,6 +36,65 @@ const enum Opcode {
 // Contains tests for RainVM, the constant RainVM ops as well as Math ops via CalculatorTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM", async function () {
+  it("should prevent stack overflow at runtime due to malicious RainVM opcode", async () => {
+    this.timeout(0);
+
+    const overflowOpcode = Opcode.THIS + 1; // ensure this opcode is the next one after EVMConstantOps
+
+    const constants = [];
+
+    const sources = [concat([op(overflowOpcode)])];
+
+    const calculatorMaliciousFactory = await ethers.getContractFactory(
+      "StackOverflowTest"
+    );
+    const calculator = (await calculatorMaliciousFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as StackOverflowTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "STACK_OVERFLOW",
+      "did not prevent stack overflow due to malicious RainVM opcode"
+    );
+  });
+
+  it("should prevent stack overflow at runtime", async () => {
+    this.timeout(0);
+
+    const constants = [3, 2, 1];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.VAL, 2);
+
+    const sources = [
+      concat([
+        // (1 2 3 +)
+        v1,
+        v2,
+        v3,
+        op(Opcode.ADD, 3),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 2,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "STACK_OVERFLOW",
+      "did not prevent stack overflow from misconfigured stack length on construction"
+    );
+  });
+
   it("should perform saturating multiplication", async () => {
     this.timeout(0);
 
