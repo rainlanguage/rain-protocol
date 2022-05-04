@@ -26,14 +26,14 @@ library IERC20Ops {
             // Stack the return of `balanceOf`.
             if (opcode_ == OPCODE_BALANCE_OF) {
                 state_.stackIndex--;
-                uint baseIndex_ = state_.stackIndex - 1;
+                uint256 baseIndex_ = state_.stackIndex - 1;
                 state_.stack[baseIndex_] = IERC20(
                     address(uint160(state_.stack[baseIndex_]))
                 ).balanceOf(address(uint160(state_.stack[state_.stackIndex])));
             }
             // Stack the return of `totalSupply`.
             else if (opcode_ == OPCODE_TOTAL_SUPPLY) {
-                uint baseIndex_ = state_.stackIndex - 1;
+                uint256 baseIndex_ = state_.stackIndex - 1;
                 state_.stack[baseIndex_] = IERC20(
                     address(uint160(state_.stack[baseIndex_]))
                 ).totalSupply();
