@@ -756,7 +756,7 @@ export const getEvents = async (
       x.address == address
   );
 
-  if (!eventObjs) {
+  if (!eventObjs.length) {
     throw new Error(`Could not find event ${eventName} at address ${address}`);
   }
 
