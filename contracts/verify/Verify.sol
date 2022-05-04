@@ -123,7 +123,9 @@ struct VerifyConfig {
 ///   approvers to verify the PAIRING between account and evidence.
 /// - ANY account with the `APPROVER` role can review the evidence by
 ///   inspecting the event logs. IF the evidence is valid then the `approve`
-///   function should be called by the approver.
+///   function should be called by the approver. Approvers MAY also approve and
+///   implicitly add any account atomically if the account did not previously
+///   add itself.
 /// - ANY account with the `BANNER` role can veto either an add OR a prior
 ///   approval. In the case of a false positive, i.e. where an account was
 ///   mistakenly approved, an appeal can be made to a banner to update the
@@ -132,7 +134,9 @@ struct VerifyConfig {
 ///   resubmit new fraudulent evidence and potentially be reapproved.
 ///   Once an account is banned, any attempt by the account holder to change
 ///   their status, or an approver to approve will be rejected. Downstream
-///   consumers of a `State` MUST check for an existing ban.
+///   consumers of a `State` MUST check for an existing ban. Banners MAY ban
+///   and implicity add any account atomically if the account did not
+///   previously add itself.
 ///   - ANY account with the `REMOVER` role can scrub the `State` from an
 ///   account. Of course, this is a blockchain so the state changes are all
 ///   still visible to full nodes and indexers in historical data, in both the
@@ -163,6 +167,21 @@ struct VerifyConfig {
 /// Ideally the admin account assigned at deployment would renounce their admin
 /// rights after establishing a more granular and appropriate set of accounts
 /// with each specific role.
+///
+/// There is no requirement that any of the priviledged accounts with roles are
+/// a single-key EOA, they may be multisig accounts or even a DAO with formal
+/// governance processes mediated by a smart contract.
+///
+/// Every action emits an associated event and optionally calls an onchain
+/// callback on a `IVerifyCallback` contract set during initialize. As each
+/// action my be performed in bulk dupes are not rolled back, instead the
+/// events are emitted for every time the action is called and the callbacks
+/// and onchain state changes are deduped. For example, an approve may be
+/// called twice for a single account, but by different approvers, potentially
+/// submitting different evidence for each approval. In this case the block of
+/// the first approve will be used and the onchain callback will be called for
+/// the first transaction only, but BOTH approvals will emit an event. This
+/// logic is applied per-account, per-action across a batch of evidences.
 contract Verify is AccessControl, Initializable {
     /// Any state never held is UNINITIALIZED.
     /// Note that as per default evm an unset state is 0 so always check the
