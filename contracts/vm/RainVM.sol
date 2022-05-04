@@ -214,6 +214,10 @@ abstract contract RainVM {
         State memory state_,
         uint256 sourceIndex_
     ) internal view {
+        // State needs to start with the stack index at a valid position which
+        // may not be the case in general.
+        require(state_.stackIndex <= state_.stack.length, "STACK_OVERFLOW");
+
         // Everything in eval can be checked statically, there are no dynamic
         // runtime values read from the stack that can cause out of bounds
         // behaviour. E.g. sourceIndex in zipmap and size of a skip are both
@@ -258,6 +262,12 @@ abstract contract RainVM {
                                 location_ := constantsLocation_
                             }
 
+                            let valIndex_ := and(operand_, 0x7F)
+                            // Attempted to read beyond constants/arguments.
+                            if iszero(lt(valIndex_, mload(location_))) {
+                                revert(0, 0)
+                            }
+
                             let stackIndex_ := mload(state_)
                             // Copy value to stack.
                             mstore(
@@ -268,10 +278,7 @@ abstract contract RainVM {
                                 mload(
                                     add(
                                         location_,
-                                        add(
-                                            0x20,
-                                            mul(and(operand_, 0x7F), 0x20)
-                                        )
+                                        add(0x20, mul(valIndex_, 0x20))
                                     )
                                 )
                             )
@@ -280,6 +287,10 @@ abstract contract RainVM {
                     } else if (opcode_ == OP_DUP) {
                         assembly {
                             let stackIndex_ := mload(state_)
+                            // DUPing data past the values on the stack.
+                            if iszero(lt(operand_, stackIndex_)) {
+                                revert(0, 0)
+                            }
                             mstore(
                                 add(
                                     stackLocation_,
@@ -299,56 +310,33 @@ abstract contract RainVM {
                     } else if (opcode_ == OP_DEBUG) {
                         console.logBytes(abi.encode(state_));
                     } else {
-                        // DEPRECATED! DON'T USE SKIP!
-                        // if the high bit of the operand is nonzero then take
-                        // the top of the stack and if it is zero we do NOT
-                        // skip.
-                        // analogous to `JUMPI` in evm opcodes.
-                        // If high bit of the operand is zero then we always
-                        // skip.
-                        // analogous to `JUMP` in evm opcodes.
-                        // the operand is interpreted as a signed integer so
-                        // that we can skip forwards or backwards. Notable
-                        // difference between skip and jump from evm is that
-                        // skip moves a relative distance from the current
-                        // position and is known at compile time, while jump
-                        // moves to an absolute position read from the stack at
-                        // runtime. The relative simplicity of skip means we
-                        // can check for out of bounds behaviour at compile
-                        // time and each source can never goto a position in a
-                        // different source.
-
-                        // manually sign extend 1 bit.
-                        // normal signextend works on bytes not bits.
-                        int8 shift_ = int8(
-                            uint8(operand_) & ((uint8(operand_) << 1) | 0x7F)
-                        );
-
-                        // if the high bit is 1...
-                        if (operand_ & 0x80 > 0) {
-                            // take the top of the stack and only skip if it is
-                            // nonzero.
-                            state_.stackIndex--;
-                            if (state_.stack[state_.stackIndex] == 0) {
-                                continue;
-                            }
-                        }
-                        if (shift_ != 0) {
-                            if (shift_ < 0) {
-                                // This is not particularly intuitive.
-                                // Converting between int and uint and then
-                                // moving `i_` back another 2 bytes to
-                                // compensate for the addition of 2 bytes at
-                                // the start of the next loop.
-                                i_ -= uint8(~shift_ + 2) * 2;
-                            } else {
-                                i_ += uint8(shift_ * 2);
-                            }
-                        }
+                        // SKIP was deprecated and is now removed. This is due
+                        // to skip making it impossible to statically analyse
+                        // a script to calculate a valid stack length ahead of
+                        // time.
+                        require(opcode_ != OP_SKIP, "SKIP_REMOVED");
                     }
                 } else {
                     applyOp(context_, state_, opcode_, operand_);
                 }
+                // The stack index may be the same as the length as this means
+                // the stack is full. But we cannot write past the end of the
+                // stack. This also catches a stack index that underflows due
+                // to unchecked or assembly math. This check MAY be redundant
+                // with standard OOB checks on the stack array due to indexing
+                // into it, but is a required guard in the case of VM assembly.
+                // Future versions of the VM will precalculate all stack
+                // movements at deploy time rather than runtime as this kind of
+                // accounting adds nontrivial gas across longer scripts that
+                // include many opcodes.
+                // Note: This check would NOT be safe in the case that some
+                // opcode used assembly in a way that can underflow the stack
+                // as this would allow a malicious rain script to write to the
+                // stack length and/or the stack index.
+                require(
+                    state_.stackIndex <= state_.stack.length,
+                    "STACK_OVERFLOW"
+                );
             }
         }
     }

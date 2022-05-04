@@ -39,7 +39,11 @@ library LogicOps {
             // ISZERO
             case 0 {
                 // The stackIndex_ doesn't change for iszero as there is
-                // one input and output.
+                // one input and output. ISZERO reads one value so the stack
+                // index needs to be nonzero.
+                if iszero(stackIndex_) {
+                    revert(0, 0)
+                }
                 let location_ := sub(stackTopLocation_, 0x20)
                 mstore(location_, iszero(mload(location_)))
             }
@@ -47,10 +51,12 @@ library LogicOps {
             // Eager because BOTH x_ and y_ must be eagerly evaluated
             // before EAGER_IF will select one of them. If both x_ and y_
             // are cheap (e.g. constant values) then this may also be the
-            // simplest and cheapest way to select one of them. If either
-            // x_ or y_ is expensive consider using the conditional form
-            // of OP_SKIP to carefully avoid it instead.
+            // simplest and cheapest way to select one of them.
             case 1 {
+                // EAGER_IF reads 3 values.
+                if lt(stackIndex_, 3) {
+                    revert(0, 0)
+                }
                 // decrease stack index by 2 (3 inputs, 1 output)
                 mstore(state_, sub(stackIndex_, 2))
                 let location_ := sub(stackTopLocation_, 0x60)
@@ -66,6 +72,10 @@ library LogicOps {
             }
             // EQUAL_TO
             case 2 {
+                // EQUAL_TO reads 2 values.
+                if lt(stackIndex_, 2) {
+                    revert(0, 0)
+                }
                 // decrease stack index by 1 (2 inputs, 1 output)
                 mstore(state_, sub(stackIndex_, 1))
                 let location_ := sub(stackTopLocation_, 0x40)
@@ -76,6 +86,10 @@ library LogicOps {
             }
             // LESS_THAN
             case 3 {
+                // LESS_THAN reads 2 values.
+                if lt(stackIndex_, 2) {
+                    revert(0, 0)
+                }
                 // decrease stack index by 1 (2 inputs, 1 output)
                 mstore(state_, sub(stackIndex_, 1))
                 let location_ := sub(stackTopLocation_, 0x40)
@@ -86,6 +100,10 @@ library LogicOps {
             }
             // GREATER_THAN
             case 4 {
+                // GREATER_THAN reads 2 values.
+                if lt(stackIndex_, 2) {
+                    revert(0, 0)
+                }
                 // decrease stack index by 1 (2 inputs, 1 output)
                 mstore(state_, sub(stackIndex_, 1))
                 let location_ := sub(stackTopLocation_, 0x40)
@@ -99,6 +117,10 @@ library LogicOps {
             // operand_ is the length of items to check.
             // EVERY of length `0` is a noop.
             case 5 {
+                // EVERY reads operand_ values.
+                if lt(stackIndex_, operand_) {
+                    revert(0, 0)
+                }
                 if iszero(iszero(operand_)) {
                     // decrease stack index by 1 less than operand_
                     mstore(state_, sub(stackIndex_, sub(operand_, 1)))
@@ -121,6 +143,10 @@ library LogicOps {
             // operand_ id the length of items to check.
             // ANY of length `0` is a noop.
             case 6 {
+                // ANY reads operand_ values.
+                if lt(stackIndex_, operand_) {
+                    revert(0, 0)
+                }
                 if iszero(iszero(operand_)) {
                     // decrease stack index by 1 less than the operand_
                     mstore(state_, sub(stackIndex_, sub(operand_, 1)))
