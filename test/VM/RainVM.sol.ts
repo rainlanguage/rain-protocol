@@ -6,7 +6,7 @@ import { bytify, callSize, op, arg } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
-import type { StackOverflowTest } from "../../typechain/StackOverflowTest";
+import type { LogicOpsTest } from "../../typechain/LogicOpsTest";
 
 const { assert } = chai;
 
@@ -33,32 +33,156 @@ const enum Opcode {
   MAX,
 }
 
+const enum OpcodeLogicTest {
+  SKIP,
+  VAL,
+  DUP,
+  ZIPMAP,
+  DEBUG,
+  IS_ZERO,
+  EAGER_IF,
+  EQUAL_TO,
+  LESS_THAN,
+  GREATER_THAN,
+  EVERY,
+  ANY,
+}
+
 // Contains tests for RainVM, the constant RainVM ops as well as Math ops via CalculatorTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM", async function () {
-  it("should prevent stack overflow at runtime due to malicious RainVM opcode", async () => {
+  it("should error when trying to read an out-of-bounds argument", async () => {
     this.timeout(0);
 
-    const overflowOpcode = Opcode.THIS + 1; // ensure this opcode is the next one after EVMConstantOps
+    const constants = [1, 2, 3];
+    const v1 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v3 = op(Opcode.VAL, 2);
 
-    const constants = [];
+    const a0 = op(Opcode.VAL, arg(0));
+    const a1 = op(Opcode.VAL, arg(1));
+    const aOOB = op(Opcode.VAL, arg(3));
 
-    const sources = [concat([op(overflowOpcode)])];
+    // zero-based counting
+    const sourceIndex = 1; // 1
+    const loopSize = 0; // 1
+    const valSize = 2; // 3
 
-    const calculatorMaliciousFactory = await ethers.getContractFactory(
-      "StackOverflowTest"
+    const sources = [
+      concat([
+        v1,
+        v2,
+        v3,
+        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+      ]),
+      concat([
+        // (arg0 arg1 arg2 add)
+        a0,
+        a1,
+        aOOB,
+        op(Opcode.ADD, 3),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 3,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "", // there is at least an error
+      "did not error when trying to read an out-of-bounds argument"
     );
-    const calculator = (await calculatorMaliciousFactory.deploy({
+  });
+
+  it("should error when trying to read an out-of-bounds constant", async () => {
+    this.timeout(0);
+
+    const constants = [1];
+    const vOOB = op(Opcode.VAL, 1);
+
+    const sources = [concat([vOOB])];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 1,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "", // there is at least an error
+      "did not error when trying to read an out-of-bounds constant"
+    );
+  });
+
+  it("should prevent stack underflow at runtime due to bad RainVM script", async () => {
+    this.timeout(0);
+
+    const constants = [0, 1];
+    const v0 = op(OpcodeLogicTest.VAL, 0);
+    const v1 = op(OpcodeLogicTest.VAL, 1);
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v0,
+          v1,
+        op(OpcodeLogicTest.EAGER_IF),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("LogicOpsTest");
+    const calculator = (await calculatorFactory.deploy({
       sources,
       constants,
       argumentsLength: 0,
       stackLength: 3,
-    })) as StackOverflowTest & Contract;
+    })) as LogicOpsTest & Contract;
 
     await Util.assertError(
       async () => await calculator.run(),
-      "STACK_OVERFLOW",
-      "did not prevent stack overflow due to malicious RainVM opcode"
+      "", // there is at least an error
+      "did not prevent stack underflow due to bad RainVM script"
+    );
+  });
+
+  it("should prevent stack overflow at runtime due to bad RainVM script", async () => {
+    this.timeout(0);
+
+    const constants = [3, 2, 1];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.VAL, 2);
+
+    const sources = [
+      concat([
+        // (1 2 3 +)
+        v1,
+        v2,
+        v3,
+        op(Opcode.ADD, 4),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "", // there is at least an error
+      "did not prevent stack overflow due to bad RainVM script"
     );
   });
 
