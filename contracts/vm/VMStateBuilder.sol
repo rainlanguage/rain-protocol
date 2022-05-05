@@ -201,8 +201,8 @@ contract VMStateBuilder {
     ) private view {
         unchecked {
             uint256 valLength_ = (operand_ >> 5) + 1;
+            // read underflow here will show up as an OOB max later.
             bounds_.stackIndex -= valLength_;
-            // underflow here will show up as an OOB max later.
             bounds_.stackLength = bounds_.stackLength.max(bounds_.stackIndex);
             bounds_.argumentsLength = bounds_.argumentsLength.max(valLength_);
             uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
@@ -288,20 +288,16 @@ contract VMStateBuilder {
                             add(stackPushesFns_, add(0x20, mul(opcode_, 0x20)))
                         )
                     }
-                    uint256 pops_ = popsFn_(operand_);
-                    uint256 pushes_ = pushesFn_(operand_);
-                    // We don't allow reading below the stack so even though
-                    // we are in an unchecked block we have to ensure that the
-                    // index is at least as long as the pops at all times.
-                    // Even if the end result would be a valid stack index move
-                    // the reads cannot exceed the index. For example, an IF
-                    // pops 3 values and pushes 1 value so a scripts like
-                    // `VAL:0 VAL:1 IF` has a net movement of -2 which doesn't
-                    // underflow the stack, but there is a gross movement of
-                    // -3 where the IF would read values in memory underflowing
-                    // the stack, which is NOT allowed.
-                    require(pops_ <= bounds_.stackIndex, "POPS_UNDERFLOW");
-                    bounds_.stackIndex = bounds_.stackIndex - pops_ + pushes_;
+
+                    // This will catch popping/reading from underflowing the
+                    // stack as it will show up as an overflow on the stack
+                    // length below.
+                    bounds_.stackIndex -= popsFn_(operand_);
+                    bounds_.stackLength = bounds_.stackLength.max(
+                        bounds_.stackIndex
+                    );
+
+                    bounds_.stackIndex += pushesFn_(operand_);
                 }
 
                 bounds_.stackLength = bounds_.stackLength.max(
