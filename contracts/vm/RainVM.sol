@@ -407,6 +407,24 @@ abstract contract RainVM {
                         operand_
                     );
                 }
+                // The stack index may be the same as the length as this means
+                // the stack is full. But we cannot write past the end of the
+                // stack. This also catches a stack index that underflows due
+                // to unchecked or assembly math. This check MAY be redundant
+                // with standard OOB checks on the stack array due to indexing
+                // into it, but is a required guard in the case of VM assembly.
+                // Future versions of the VM will precalculate all stack
+                // movements at deploy time rather than runtime as this kind of
+                // accounting adds nontrivial gas across longer scripts that
+                // include many opcodes.
+                // Note: This check would NOT be safe in the case that some
+                // opcode used assembly in a way that can underflow the stack
+                // as this would allow a malicious rain script to write to the
+                // stack length and/or the stack index.
+                require(
+                    state_.stackIndex <= state_.stack.length,
+                    "STACK_OVERFLOW"
+                );
             }
             state_.stackIndex =
                 (stackTopLocation_ - stackBottomLocation_) /

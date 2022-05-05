@@ -26,11 +26,12 @@ import {Evidence} from "./Verify.sol";
 /// completely agnostic to callback concerns and doesn't even require that a
 /// callback contract be set at all.
 interface IVerifyCallback {
-    /// Additional processing after an address has been added.
+    /// Additional processing after a batch of additions.
     /// SHOULD revert/rollback transactions if processing fails.
-    /// @param adder_ The `msg.sender` in the `add`. Will be the addee.
-    /// @param evidence_ The evidence associated with the add.
-    function afterAdd(address adder_, Evidence calldata evidence_) external;
+    /// @param adder_ The `msg.sender` that authorized the additions.
+    /// MAY be the addee without any specific role.
+    /// @param evidences_ All evidences associated with the additions.
+    function afterAdd(address adder_, Evidence[] calldata evidences_) external;
 
     /// Additional processing after a batch of approvals.
     /// SHOULD revert/rollback transactions if processing fails.

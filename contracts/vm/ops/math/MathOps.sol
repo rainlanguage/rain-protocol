@@ -84,8 +84,8 @@ library MathOps {
         }
         // // Saturating addition.
         // else if (opcode_ == OPCODE_SATURATING_ADD) {
-        //     while (cursor_ < top_ && accumulator_ < type(uint256).maxs) {
         //         unchecked {
+        //     while (cursor_ < top_ && accumulator_ < type(uint256).max) {
         //             cursor_++;
         //             accumulator_ = accumulator_.saturatingAdd(
         //                 state_.stack[cursor_]

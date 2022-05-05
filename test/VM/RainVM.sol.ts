@@ -6,6 +6,7 @@ import { bytify, callSize, op } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CalculatorTest } from "../../typechain/CalculatorTest";
+import type { LogicOpsTest } from "../../typechain/LogicOpsTest";
 
 const { assert } = chai;
 
@@ -31,9 +32,192 @@ const enum Opcode {
   MAX,
 }
 
+const enum OpcodeLogicTest {
+  SKIP,
+  VAL,
+  DUP,
+  ZIPMAP,
+  DEBUG,
+  IS_ZERO,
+  EAGER_IF,
+  EQUAL_TO,
+  LESS_THAN,
+  GREATER_THAN,
+  EVERY,
+  ANY,
+}
+
 // Contains tests for RainVM, the constant RainVM ops as well as Math ops via CalculatorTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM", async function () {
+  it("should error when trying to read an out-of-bounds argument", async () => {
+    this.timeout(0);
+
+    const constants = [1, 2, 3];
+    const v1 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v3 = op(Opcode.VAL, 2);
+
+    const a0 = op(Opcode.VAL, 3);
+    const a1 = op(Opcode.VAL, 4);
+    const aOOB = op(Opcode.VAL, 5);
+
+    // zero-based counting
+    const sourceIndex = 1; // 1
+    const loopSize = 0; // 1
+    const valSize = 2; // 3
+
+    const sources = [
+      concat([
+        v1,
+        v2,
+        v3,
+        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+      ]),
+      concat([
+        // (arg0 arg1 arg2 add)
+        a0,
+        a1,
+        aOOB,
+        op(Opcode.ADD, 3),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 3,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "", // there is at least an error
+      "did not error when trying to read an out-of-bounds argument"
+    );
+  });
+
+  it("should error when trying to read an out-of-bounds constant", async () => {
+    this.timeout(0);
+
+    const constants = [1];
+    const vOOB = op(Opcode.VAL, 1);
+
+    const sources = [concat([vOOB])];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 1,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "", // there is at least an error
+      "did not error when trying to read an out-of-bounds constant"
+    );
+  });
+
+  it("should prevent stack underflow at runtime due to bad RainVM script", async () => {
+    this.timeout(0);
+
+    const constants = [0, 1];
+    const v0 = op(OpcodeLogicTest.VAL, 0);
+    const v1 = op(OpcodeLogicTest.VAL, 1);
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v0,
+          v1,
+        op(OpcodeLogicTest.EAGER_IF),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("LogicOpsTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as LogicOpsTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "", // there is at least an error
+      "did not prevent stack underflow due to bad RainVM script"
+    );
+  });
+
+  it("should prevent stack overflow at runtime due to bad RainVM script", async () => {
+    this.timeout(0);
+
+    const constants = [3, 2, 1];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.VAL, 2);
+
+    const sources = [
+      concat([
+        // (1 2 3 +)
+        v1,
+        v2,
+        v3,
+        op(Opcode.ADD, 4),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 3,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "", // there is at least an error
+      "did not prevent stack overflow due to bad RainVM script"
+    );
+  });
+
+  it("should prevent stack overflow at runtime", async () => {
+    this.timeout(0);
+
+    const constants = [3, 2, 1];
+    const v3 = op(Opcode.VAL, 0);
+    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.VAL, 2);
+
+    const sources = [
+      concat([
+        // (1 2 3 +)
+        v1,
+        v2,
+        v3,
+        op(Opcode.ADD, 3),
+      ]),
+    ];
+
+    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
+    const calculator = (await calculatorFactory.deploy({
+      sources,
+      constants,
+      argumentsLength: 0,
+      stackLength: 2,
+    })) as CalculatorTest & Contract;
+
+    await Util.assertError(
+      async () => await calculator.run(),
+      "STACK_OVERFLOW",
+      "did not prevent stack overflow from misconfigured stack length on construction"
+    );
+  });
+
   it("should perform saturating multiplication", async () => {
     this.timeout(0);
 
@@ -188,69 +372,6 @@ describe("RainVM", async function () {
       result.eq(expected),
       `wrong saturating addition ${expected} ${result}`
     );
-  });
-
-  it("should support source scripts with leading zeroes", async () => {
-    this.timeout(0);
-
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
-
-    await Util.createEmptyBlock(5);
-
-    const block0 = await ethers.provider.getBlockNumber();
-    const constants = [block0];
-
-    const vBlock = op(Opcode.VAL, 0);
-
-    // prettier-ignore
-    const source0 = concat([
-      // 0 0 0 0 0 0 0 0 0 0 (block0 BLOCK_NUMBER min)
-      new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-        vBlock,
-        op(Opcode.BLOCK_NUMBER),
-      op(Opcode.MIN, 2),
-    ]);
-
-    const calculator0 = (await calculatorFactory.deploy({
-      sources: [source0],
-      constants,
-    })) as CalculatorTest & Contract;
-
-    // const { stack } = await calculator0.runState();
-    // console.log({ stack });
-
-    const result0 = await calculator0.run();
-    assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
-  });
-
-  it("should support source scripts with trailing zeroes", async () => {
-    this.timeout(0);
-
-    const calculatorFactory = await ethers.getContractFactory("CalculatorTest");
-
-    await Util.createEmptyBlock(5);
-
-    const block0 = await ethers.provider.getBlockNumber();
-    const constants = [block0];
-
-    const vBlock = op(Opcode.VAL, 0);
-
-    // prettier-ignore
-    const source0 = concat([
-      // (block0 BLOCK_NUMBER min) 0 0 0 0 0 0 0 0 0 0
-        vBlock,
-        op(Opcode.BLOCK_NUMBER),
-      op(Opcode.MIN, 2),
-      new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-    ]);
-
-    const calculator0 = (await calculatorFactory.deploy({
-      sources: [source0],
-      constants,
-    })) as CalculatorTest & Contract;
-
-    const result0 = await calculator0.run();
-    assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
   });
 
   it("should return block.number and block.timestamp", async () => {
