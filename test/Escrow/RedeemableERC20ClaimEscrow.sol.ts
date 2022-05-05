@@ -54,6 +54,236 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       Contract;
   });
 
+  it("should prevent depositing with zero amount", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const alice = signers[1];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply;
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+
+    // give alice reserve to cover cost + (fee * 2)
+    await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+
+    // alice buys some units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(10),
+      desiredUnits: desiredUnitsAlice.div(10),
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
+    );
+
+    // alice buys rest of units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 1,
+      desiredUnits: desiredUnitsAlice,
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusSuccess = await sale.saleStatus();
+
+    assert(
+      saleStatusSuccess === Status.SUCCESS,
+      `wrong status
+        expected  ${Status.SUCCESS}
+        got       ${saleStatusSuccess}`
+    );
+
+    const depositAmount1 = ethers.BigNumber.from(0);
+
+    await reserve.approve(claim.address, depositAmount1);
+
+    await Util.assertError(
+      async () =>
+        await claim.deposit(sale.address, reserve.address, depositAmount1),
+      "ZERO_DEPOSIT",
+      "did not prevent zero deposit amount"
+    );
+  });
+
+  it("should prevent depositing with zero amount (pending phase)", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const alice = signers[1];
+    const deployer = signers[3];
+    const recipient = signers[4];
+    const feeRecipient = signers[5];
+
+    const startBlock = await ethers.provider.getBlockNumber();
+
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
+
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const staticPrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+
+    const constants = [staticPrice];
+    const vBasePrice = op(Opcode.VAL, 0);
+
+    const sources = [concat([vBasePrice])];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        canStartStateConfig: afterBlockNumberConfig(startBlock),
+        canEndStateConfig: afterBlockNumberConfig(startBlock + saleDuration),
+        calculatePriceStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    const desiredUnitsAlice = totalTokenSupply;
+    const costAlice = staticPrice.mul(desiredUnitsAlice).div(Util.ONE);
+
+    // give alice reserve to cover cost + (fee * 2)
+    await reserve.transfer(alice.address, costAlice.add(fee.mul(2)));
+
+    const aliceReserveBalance = await reserve.balanceOf(alice.address);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    await reserve.connect(alice).approve(sale.address, aliceReserveBalance);
+
+    // alice buys some units
+    await sale.connect(alice).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnitsAlice.div(10),
+      desiredUnits: desiredUnitsAlice.div(10),
+      maximumPrice: staticPrice,
+    });
+
+    const saleStatusActive = await sale.saleStatus();
+
+    assert(
+      saleStatusActive === Status.ACTIVE,
+      `wrong status
+        expected  ${Status.ACTIVE}
+        got       ${saleStatusActive}`
+    );
+
+    const depositAmount0 = ethers.BigNumber.from(0);
+
+    await reserve.approve(claim.address, depositAmount0);
+
+    await Util.assertError(
+      async () =>
+        await claim.depositPending(
+          sale.address,
+          reserve.address,
+          depositAmount0
+        ),
+      "ZERO_DEPOSIT",
+      "did not prevent zero deposit pending amount"
+    );
+  });
+
   it("if alice withdraws then burns then bob withdraws, bob does not receive more than his pro-rata share from deposit time due to the subsequent supply change", async function () {
     this.timeout(0);
 
@@ -1232,6 +1462,17 @@ describe("RedeemableERC20ClaimEscrow", async function () {
       got       ${saleStatusSuccess}`
     );
 
+    await Util.assertError(
+      async () =>
+        await claim.depositPending(
+          sale.address,
+          reserve.address,
+          depositAmount
+        ),
+      "NOT_PENDING",
+      "did not prevent depositPending when status is not pending"
+    );
+
     const txDeposit = await claim.sweepPending(
       sale.address,
       reserve.address,
@@ -1673,6 +1914,13 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     );
 
     await reserve.approve(claim.address, depositAmount0);
+
+    await Util.assertError(
+      async () =>
+        await claim.deposit(sale.address, reserve.address, depositAmount0),
+      "PENDING",
+      "did not prevent deposit during pending phase"
+    );
 
     const txDepositPending0 = await claim.depositPending(
       sale.address,
