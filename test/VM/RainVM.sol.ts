@@ -32,6 +32,145 @@ describe("RainVM", async function () {
       stateBuilder.address
     )) as AllStandardOpsTest & Contract;
   });
+
+  it("should error when trying to read an out-of-bounds argument", async () => {
+    this.timeout(0);
+
+    const constants = [1, 2, 3];
+    const v1 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
+    const v3 = op(Opcode.CONSTANT, 2);
+
+    const a0 = op(Opcode.CONSTANT, 3);
+    const a1 = op(Opcode.CONSTANT, 4);
+    const aOOB = op(Opcode.CONSTANT, 5);
+
+    // zero-based counting
+    const sourceIndex = 1; // 1
+    const loopSize = 0; // 1
+    const valSize = 2; // 3
+
+    const sources = [
+      concat([
+        v1,
+        v2,
+        v3,
+        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+      ]),
+      concat([
+        // (arg0 arg1 arg2 add)
+        a0,
+        a1,
+        aOOB,
+        op(Opcode.ADD, 3),
+      ]),
+    ];
+
+    await logic.initialize({sources, constants})
+
+    await Util.assertError(
+      async () => await logic.run(),
+      "", // there is at least an error
+      "did not error when trying to read an out-of-bounds argument"
+    );
+  });
+
+  it("should error when trying to read an out-of-bounds constant", async () => {
+    this.timeout(0);
+
+    const constants = [1];
+    const vOOB = op(Opcode.CONSTANT, 1);
+
+    const sources = [concat([vOOB])];
+
+    await logic.initialize({sources, constants})
+
+    await Util.assertError(
+      async () => await logic.run(),
+      "", // there is at least an error
+      "did not error when trying to read an out-of-bounds constant"
+    );
+  });
+
+  it("should prevent stack underflow at runtime due to bad RainVM script", async () => {
+    this.timeout(0);
+
+    const constants = [0, 1];
+    const v0 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.CONSTANT, 1);
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v0,
+          v1,
+        op(Opcode.EAGER_IF),
+      ]),
+    ];
+
+    await logic.initialize({sources, constants})
+
+    await Util.assertError(
+      async () => await logic.run(),
+      "", // there is at least an error
+      "did not prevent stack underflow due to bad RainVM script"
+    );
+  });
+
+  it("should prevent stack overflow at runtime due to bad RainVM script", async () => {
+    this.timeout(0);
+
+    const constants = [3, 2, 1];
+    const v3 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
+    const v1 = op(Opcode.CONSTANT, 2);
+
+    const sources = [
+      concat([
+        // (1 2 3 +)
+        v1,
+        v2,
+        v3,
+        op(Opcode.ADD, 4),
+      ]),
+    ];
+
+    await logic.initialize({sources, constants})
+
+    await Util.assertError(
+      async () => await logic.run(),
+      "", // there is at least an error
+      "did not prevent stack overflow due to bad RainVM script"
+    );
+  });
+
+  it("should prevent stack overflow at runtime", async () => {
+    this.timeout(0);
+
+    const constants = [3, 2, 1];
+    const v3 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
+    const v1 = op(Opcode.CONSTANT, 2);
+
+    const sources = [
+      concat([
+        // (1 2 3 +)
+        v1,
+        v2,
+        v3,
+        op(Opcode.ADD, 3),
+      ]),
+    ];
+
+    await logic.initialize({ sources, constants })
+
+    await Util.assertError(
+      async () => await logic.run(),
+      "STACK_OVERFLOW",
+      "did not prevent stack overflow from misconfigured stack length on construction"
+    );
+  });
+
   it("should perform saturating multiplication", async () => {
     this.timeout(0);
 
@@ -180,61 +319,6 @@ describe("RainVM", async function () {
       result.eq(expected),
       `wrong saturating addition ${expected} ${result}`
     );
-  });
-
-  it("should support source scripts with leading zeroes", async () => {
-    this.timeout(0);
-
-    await Util.createEmptyBlock(5);
-
-    const block0 = await ethers.provider.getBlockNumber();
-    const constants = [block0];
-
-    const vBlock = op(Opcode.CONSTANT, 0);
-
-    // prettier-ignore
-    const source0 = concat([
-      // 0 0 0 0 0 0 0 0 0 0 (block0 BLOCK_NUMBER min)
-      new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-        vBlock,
-        op(Opcode.BLOCK_NUMBER),
-      op(Opcode.MIN, 2),
-    ]);
-
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
-
-    await logic.run();
-    const result0 = await logic.stackTop();
-    assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
-  });
-
-  it("should support source scripts with trailing zeroes", async () => {
-    this.timeout(0);
-
-    await Util.createEmptyBlock(5);
-
-    const block0 = await ethers.provider.getBlockNumber();
-    const constants = [block0];
-
-    const vBlock = op(Opcode.CONSTANT, 0);
-
-    // prettier-ignore
-    const source0 = concat([
-      // (block0 BLOCK_NUMBER min) 0 0 0 0 0 0 0 0 0 0
-        vBlock,
-        op(Opcode.BLOCK_NUMBER),
-      op(Opcode.MIN, 2),
-      new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-    ]);
-
-    await logic.initialize({ sources: [source0], constants });
-
-    await logic.run();
-    const result0 = await logic.stackTop();
-    assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
   });
 
   it("should return block.number and block.timestamp", async () => {

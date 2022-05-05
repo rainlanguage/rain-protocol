@@ -1,7 +1,13 @@
 import chai from "chai";
 import { ethers } from "hardhat";
-import { concat } from "ethers/lib/utils";
 import { op, AllStandardOps, Debug } from "../Util";
+import { concat, hexlify } from "ethers/lib/utils";
+import {
+  callSize,
+  max_uint256,
+  paddedUInt256,
+  paddedUInt32,
+} from "../Util";
 import type { BigNumber, Contract } from "ethers";
 import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 
@@ -27,6 +33,97 @@ describe("LogicOps Test", async function () {
       stateBuilder.address
     )) as AllStandardOpsTest & Contract;
   });
+
+  it("should support logic ops within a zipmap loop", async function () {
+    this.timeout(0);
+
+    const report = paddedUInt256(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedUInt32(1) +
+          paddedUInt32(0) +
+          paddedUInt32(3) +
+          paddedUInt32(0) +
+          paddedUInt32(5) +
+          paddedUInt32(0) +
+          paddedUInt32(7) +
+          paddedUInt32(8)
+      )
+    );
+
+    const reportMax = max_uint256;
+
+    const constants = [report, reportMax];
+
+    const vReport = op(Opcode.CONSTANT, 0);
+    const vReportMax = op(Opcode.CONSTANT, 1);
+
+    // BEGIN zipmap args
+
+    const argReport = op(Opcode.CONSTANT, 2);
+    const argReportMax = op(Opcode.CONSTANT, 3);
+
+    // END zipmap args
+
+    // prettier-ignore
+    const ZIPMAP_FN = () =>
+      concat([
+            argReport,
+          op(Opcode.ISZERO),
+          argReportMax,
+          argReport,
+        op(Opcode.EAGER_IF),
+      ]);
+
+    // prettier-ignore
+    const SOURCE = () =>
+      concat([
+          vReport,
+          vReportMax,
+        op(Opcode.ZIPMAP, callSize(1, 3, 1)),
+      ]);
+
+
+    await logic.initialize({sources: [SOURCE(), ZIPMAP_FN()], constants})
+
+    await logic.run()
+
+    const result = await logic.state();
+
+    const resultReport = ethers.BigNumber.from(
+      "0x" +
+        paddedUInt32(result.stack[7]) +
+        paddedUInt32(result.stack[6]) +
+        paddedUInt32(result.stack[5]) +
+        paddedUInt32(result.stack[4]) +
+        paddedUInt32(result.stack[3]) +
+        paddedUInt32(result.stack[2]) +
+        paddedUInt32(result.stack[1]) +
+        paddedUInt32(result.stack[0])
+    );
+
+    const expectedReport = paddedUInt256(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedUInt32(1) +
+          paddedUInt32("0xffffffff") +
+          paddedUInt32(3) +
+          paddedUInt32("0xffffffff") +
+          paddedUInt32(5) +
+          paddedUInt32("0xffffffff") +
+          paddedUInt32(7) +
+          paddedUInt32(8)
+      )
+    );
+
+    assert(
+      resultReport.eq(expectedReport),
+      `wrong calculation result
+      expected  ${hexlify(expectedReport)}
+      got       ${hexlify(resultReport)}`
+    );
+  });
+
   it("should check whether any value in a list is non-zero", async () => {
     this.timeout(0);
 
@@ -347,7 +444,7 @@ describe("LogicOps Test", async function () {
     // prettier-ignore
     const source0 = concat([
       op(Opcode.CONSTANT, 0),
-      op(Opcode.ISZERO, 1),
+      op(Opcode.ISZERO),
     ]);
 
     const stateConfig0 = {

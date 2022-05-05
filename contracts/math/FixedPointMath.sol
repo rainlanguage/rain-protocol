@@ -7,7 +7,7 @@ uint256 constant FP_DECIMALS = 18;
 /// @dev The number `1` in the standard fixed point math scaling. Most of the
 /// differences between fixed point math and regular math is multiplying or
 /// dividing by `ONE` after the appropriate scaling has been applied.
-uint256 constant FP_ONE = 10**FP_DECIMALS;
+uint256 constant FP_ONE = 1e18;
 
 /// @title FixedPointMath
 /// @notice Sometimes we want to do math with decimal values but all we have
@@ -25,12 +25,19 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
+        uint256 decimals_;
         if (FP_DECIMALS == aDecimals_) {
             return a_;
         } else if (FP_DECIMALS > aDecimals_) {
-            return a_ * 10**(FP_DECIMALS - aDecimals_);
+            unchecked {
+                decimals_ = FP_DECIMALS - aDecimals_;
+            }
+            return a_ * 10**decimals_;
         } else {
-            return a_ / 10**(aDecimals_ - FP_DECIMALS);
+            unchecked {
+                decimals_ = aDecimals_ - FP_DECIMALS;
+            }
+            return a_ / 10**decimals_;
         }
     }
 
@@ -43,12 +50,19 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
+        uint256 decimals_;
         if (targetDecimals_ == FP_DECIMALS) {
             return a_;
         } else if (FP_DECIMALS > targetDecimals_) {
-            return a_ / 10**(FP_DECIMALS - targetDecimals_);
+            unchecked {
+                decimals_ = FP_DECIMALS - targetDecimals_;
+            }
+            return a_ / 10**decimals_;
         } else {
-            return a_ * 10**(targetDecimals_ - FP_DECIMALS);
+            unchecked {
+                decimals_ = targetDecimals_ - FP_DECIMALS;
+            }
+            return a_ * 10**decimals_;
         }
     }
 
@@ -70,7 +84,11 @@ library FixedPointMath {
         } else if (scaleBy_ > 0) {
             return a_ * 10**uint8(scaleBy_);
         } else {
-            return a_ / 10**(~uint8(scaleBy_) + 1);
+            uint256 posScaleDownBy_;
+            unchecked {
+                posScaleDownBy_ = uint8(-scaleBy_);
+            }
+            return a_ / 10**posScaleDownBy_;
         }
     }
 

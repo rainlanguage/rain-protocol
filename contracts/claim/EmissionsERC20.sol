@@ -113,10 +113,7 @@ contract EmissionsERC20 is
         override
         returns (uint256)
     {
-        return
-            reports[account_] > 0
-                ? reports[account_]
-                : TierConstants.NEVER_REPORT;
+        return reports[account_];
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
