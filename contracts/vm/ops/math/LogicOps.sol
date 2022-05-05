@@ -6,19 +6,6 @@ import {State} from "../../RainVM.sol";
 /// @title LogicOps
 /// @notice RainVM opcode pack to perform some basic logic operations.
 library LogicOps {
-    function stackIndexMoveEveryAny(uint256 operand_, uint256 stackIndex_)
-        internal
-        pure
-        returns (uint256)
-    {
-        unchecked {
-            // Zero length EVERY and ANY is not supported.
-            require(operand_ > 0, "BAD_LOGIC_OPERAND");
-            // EVERY and ANY collapse operand_ as length of inputs to 1 output.
-            return stackIndex_ - (operand_ - 1);
-        }
-    }
-
     // ISZERO
     function isZero(uint256, uint256 stackTopLocation_)
         internal

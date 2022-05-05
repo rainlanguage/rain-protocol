@@ -219,13 +219,13 @@ contract VMStateBuilder {
     ) public view {
         unchecked {
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
-            bytes memory stackIndexMoveFns_ = stackIndexMoveFnPtrs();
+            bytes memory stackPopsFns_ = stackPopsFnPtrs();
+            bytes memory stackPushesFns_ = stackPushesFnPtrs();
             uint256 i_ = 0;
             uint256 sourceLen_;
             uint256 opcode_;
             uint256 operand_;
             uint256 sourceLocation_;
-            uint256 firstPtrLocation_;
 
             assembly {
                 sourceLocation_ := mload(
@@ -233,7 +233,6 @@ contract VMStateBuilder {
                 )
 
                 sourceLen_ := mload(sourceLocation_)
-                firstPtrLocation_ := add(stackIndexMoveFns_, 0x20)
             }
 
             while (i_ < sourceLen_) {
@@ -279,11 +278,30 @@ contract VMStateBuilder {
                 } else {
                     // Opcodes can't exceed the bounds of valid fn pointers.
                     require(opcode_ < bounds_.opcodesLength, "MAX_OPCODE");
-                    function(uint256, uint256) pure returns (uint256) fn_;
+                    function(uint256) pure returns (uint256) popsFn_;
+                    function(uint256) pure returns (uint256) pushesFn_;
                     assembly {
-                        fn_ := mload(add(firstPtrLocation_, mul(opcode_, 0x20)))
+                        popsFn_ := mload(
+                            add(stackPopsFns_, add(0x20, mul(opcode_, 0x20)))
+                        )
+                        pushesFn_ := mload(
+                            add(stackPushesFns_, add(0x20, mul(opcode_, 0x20)))
+                        )
                     }
-                    bounds_.stackIndex = fn_(operand_, bounds_.stackIndex);
+                    uint256 pops_ = popsFn_(operand_);
+                    uint256 pushes_ = pushesFn_(operand_);
+                    // We don't allow reading below the stack so even though
+                    // we are in an unchecked block we have to ensure that the
+                    // index is at least as long as the pops at all times.
+                    // Even if the end result would be a valid stack index move
+                    // the reads cannot exceed the index. For example, an IF
+                    // pops 3 values and pushes 1 value so a scripts like
+                    // `VAL:0 VAL:1 IF` has a net movement of -2 which doesn't
+                    // underflow the stack, but there is a gross movement of
+                    // -3 where the IF would read values in memory underflowing
+                    // the stack, which is NOT allowed.
+                    require(pops_ <= bounds_.stackIndex, "POPS_UNDERFLOW");
+                    bounds_.stackIndex = bounds_.stackIndex - pops_ + pushes_;
                 }
 
                 bounds_.stackLength = bounds_.stackLength.max(
@@ -296,10 +314,7 @@ contract VMStateBuilder {
         }
     }
 
-    function stackIndexMoveFnPtrs()
-        public
-        pure
-        virtual
-        returns (bytes memory)
-    {}
+    function stackPopsFnPtrs() public pure virtual returns (bytes memory) {}
+
+    function stackPushesFnPtrs() public pure virtual returns (bytes memory) {}
 }

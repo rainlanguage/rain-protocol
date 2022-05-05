@@ -184,7 +184,7 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const vAlways = op(Opcode.CONSTANT, 1)
+    const vAlways = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
@@ -311,7 +311,7 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const vAlways = op(Opcode.CONSTANT, 1)
+    const vAlways = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>

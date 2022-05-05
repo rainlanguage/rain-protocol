@@ -48,7 +48,6 @@ contract EmissionsERC20 is
     IClaim,
     ReadOnlyTier
 {
-
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param allowDelegatedClaims True if accounts can call `claim` on behalf

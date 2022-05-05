@@ -66,7 +66,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -83,7 +83,7 @@ describe("RainVM", async function () {
 
     const sources = [concat([vOOB])];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -108,7 +108,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -135,7 +135,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({sources, constants})
+    await logic.initialize({ sources, constants });
 
     await Util.assertError(
       async () => await logic.run(),
@@ -162,7 +162,7 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants })
+    await logic.initialize({ sources, constants });
 
     await Util.assertError(
       async () => await logic.run(),

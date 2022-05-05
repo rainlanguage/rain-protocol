@@ -12,7 +12,7 @@ import "../../../tier/libraries/TierwiseCombine.sol";
 /// order of consumed values on the stack corresponds to the order of arguments
 /// to interface/library functions.
 library TierOps {
-    function stackIndexMoveSelectLte(uint256 operand_, uint256 stackIndex_)
+    function stackPopsSelectLte(uint256 operand_)
         internal
         pure
         returns (uint256)
@@ -20,7 +20,7 @@ library TierOps {
         unchecked {
             uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
             require(reportsLength_ > 0, "BAD_OPERAND");
-            return stackIndex_ - (reportsLength_ - 1);
+            return reportsLength_;
         }
     }
 

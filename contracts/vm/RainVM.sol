@@ -60,7 +60,8 @@ library LibState {
             assembly {
                 // Load indexes from state bytes.
                 indexes_ := mload(add(stateBytes_, 0x20))
-                // mask out everything but the constants length from state bytes.
+                // mask out everything but the constants length from state
+                // bytes.
                 mstore(add(stateBytes_, 0x20), and(indexes_, 0xFF))
                 // point state constants at state bytes
                 mstore(add(state_, 0x60), add(stateBytes_, 0x20))
@@ -364,7 +365,7 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
-            uint256 i_ = 0;
+            uint256 pc_ = 0;
             uint256 opcode_;
             uint256 operand_;
             uint256 sourceLocation_;
@@ -395,10 +396,10 @@ abstract contract RainVM {
             }
 
             // Loop until complete.
-            while (i_ < sourceLen_) {
+            while (pc_ < sourceLen_) {
                 assembly {
-                    i_ := add(i_, 3)
-                    let op_ := mload(add(sourceLocation_, i_))
+                    pc_ := add(pc_, 3)
+                    let op_ := mload(add(sourceLocation_, pc_))
                     operand_ := byte(31, op_)
                     opcode_ := and(shr(8, op_), 0xFFFF)
                 }

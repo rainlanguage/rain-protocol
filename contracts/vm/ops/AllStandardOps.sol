@@ -16,57 +16,37 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 37;
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
-    function stackIndexMoveNegTwo(uint256, uint256 stackIndex_)
-        internal
-        pure
-        returns (uint256)
-    {
-        assembly {
-            stackIndex_ := sub(stackIndex_, 2)
-        }
-        return stackIndex_;
+    function zero(uint256) internal pure returns (uint256) {
+        return 0;
     }
 
-    function stackIndexMoveNegOne(uint256, uint256 stackIndex_)
-        internal
-        pure
-        returns (uint256)
-    {
-        assembly {
-            stackIndex_ := sub(stackIndex_, 1)
-        }
-        return stackIndex_;
+    function one(uint) internal pure returns (uint) {
+        return 1;
     }
 
-    function stackIndexMoveZero(uint256, uint256 stackIndex_)
-        internal
-        pure
-        returns (uint256)
-    {
-        return stackIndex_;
+    function two(uint) internal pure returns (uint) {
+        return 2;
     }
 
-    function stackIndexMoveOne(uint256, uint256 stackIndex_)
-        internal
-        pure
-        returns (uint256)
-    {
-        assembly {
-            stackIndex_ := add(stackIndex_, 1)
-        }
-        return stackIndex_;
+    function three(uint) internal pure returns (uint) {
+        return 3;
     }
 
-    function stackIndexMoveFnPtrs() internal pure returns (bytes memory) {
+    function nonzeroOperandN(uint operand_) internal pure returns (uint) {
+        require(operand_ > 0, "0_OPERAND");
+        return operand_;
+    }
+
+    function stackPopsFnPtrs() internal pure returns (bytes memory) {
         unchecked {
             uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
-            function(uint256, uint256) pure returns (uint256) zeroFn_;
+            function(uint256) pure returns (uint256) zeroFn_;
             assembly {
                 // using zero bytes in the fnPtrs array may save gas in certain
                 // contexts.
                 zeroFn_ := 0
             }
-            function(uint256, uint256)
+            function(uint256)
                 pure
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory fns_ = [
@@ -85,79 +65,190 @@ library AllStandardOps {
                     // debug placeholder
                     zeroFn_,
                     // block number
-                    stackIndexMoveOne,
+                    zero,
                     // timestamp
-                    stackIndexMoveOne,
+                    zero,
                     // caller
-                    stackIndexMoveOne,
+                    zero,
                     // this address
-                    stackIndexMoveOne,
+                    zero,
                     // scale18 mul
-                    stackIndexMoveNegOne,
+                    two,
                     // scale18 div
-                    stackIndexMoveNegOne,
+                    two,
                     // scale18
-                    stackIndexMoveZero,
+                    one,
                     // scaleN
-                    stackIndexMoveZero,
+                    one,
                     // scaleBy
-                    stackIndexMoveZero,
+                    one,
                     // add
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // saturating add
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // sub
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // saturating sub
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // mul
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // saturating mul
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // div
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // mod
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // exp
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // min
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // max
-                    MathOps.stackIndexMove,
+                    nonzeroOperandN,
                     // iszero
-                    stackIndexMoveZero,
+                    one,
                     // eager if
-                    stackIndexMoveNegTwo,
+                    three,
                     // equal to
-                    stackIndexMoveNegOne,
+                    two,
                     // less than
-                    stackIndexMoveNegOne,
+                    two,
                     // greater than
-                    stackIndexMoveNegOne,
+                    two,
                     // every
-                    LogicOps.stackIndexMoveEveryAny,
+                    nonzeroOperandN,
                     // any
-                    LogicOps.stackIndexMoveEveryAny,
+                    nonzeroOperandN,
                     // tier report
-                    stackIndexMoveNegOne,
+                    two,
                     // tier saturating diff
-                    stackIndexMoveNegOne,
+                    two,
                     // update blocks for tier range
-                    stackIndexMoveNegOne,
+                    two,
                     // select lte
-                    TierOps.stackIndexMoveSelectLte,
+                    TierOps.stackPopsSelectLte,
                     // ierc20 balance of
-                    stackIndexMoveNegOne,
+                    two,
                     // ierc20 total supply
-                    stackIndexMoveZero,
+                    one,
                     // ierc721 balance of
-                    stackIndexMoveNegOne,
+                    two,
                     // ierc721 owner of
-                    stackIndexMoveNegOne,
+                    two,
                     // ierc1155 balance of
-                    stackIndexMoveNegTwo,
+                    three,
                     // ierc1155 balance of batch
-                    IERC1155Ops.stackIndexMoveBalanceOfBatch
+                    IERC1155Ops.stackPopsBalanceOfBatch
+                ];
+            bytes memory ret_;
+            assembly {
+                mstore(fns_, lenBytes_)
+                ret_ := fns_
+            }
+            return ret_;
+        }
+    }
+
+    function stackPushesFnPtrs() internal pure returns (bytes memory) {
+        unchecked {
+            uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
+            function(uint256) pure returns (uint256) zeroFn_;
+            assembly {
+                // using zero bytes in the fnPtrs array may save gas in certain
+                // contexts.
+                zeroFn_ := 0
+            }
+            function(uint256)
+                pure
+                returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
+                memory fns_ = [
+                    // will be overriden with length
+                    zeroFn_,
+                    // constant placeholder
+                    zeroFn_,
+                    // stack placeholder
+                    zeroFn_,
+                    // context placeholder
+                    zeroFn_,
+                    // storage placeholder
+                    zeroFn_,
+                    // zipmap placeholder
+                    zeroFn_,
+                    // debug placeholder
+                    zeroFn_,
+                    // block number
+                    one,
+                    // timestamp
+                    one,
+                    // caller
+                    one,
+                    // this address
+                    one,
+                    // scale18 mul
+                    one,
+                    // scale18 div
+                    one,
+                    // scale18
+                    one,
+                    // scaleN
+                    one,
+                    // scaleBy
+                    one,
+                    // add
+                    one,
+                    // saturating add
+                    one,
+                    // sub
+                    one,
+                    // saturating sub
+                    one,
+                    // mul
+                    one,
+                    // saturating mul
+                    one,
+                    // div
+                    one,
+                    // mod
+                    one,
+                    // exp
+                    one,
+                    // min
+                    one,
+                    // max
+                    one,
+                    // iszero
+                    one,
+                    // eager if
+                    one,
+                    // equal to
+                    one,
+                    // less than
+                    one,
+                    // greater than
+                    one,
+                    // every
+                    one,
+                    // any
+                    one,
+                    // tier report
+                    one,
+                    // tier saturating diff
+                    one,
+                    // update blocks for tier range
+                    one,
+                    // select lte
+                    one,
+                    // ierc20 balance of
+                    one,
+                    // ierc20 total supply
+                    one,
+                    // ierc721 balance of
+                    one,
+                    // ierc721 owner of
+                    one,
+                    // ierc1155 balance of
+                    one,
+                    // ierc1155 balance of batch
+                    nonzeroOperandN
                 ];
             bytes memory ret_;
             assembly {
