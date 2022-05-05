@@ -15,7 +15,7 @@ library IERC1155Ops {
     {
         unchecked {
             require(operand_ > 0, "0_OPERAND");
-            return ( operand_ * 2 ) + 1;
+            return (operand_ * 2) + 1;
         }
     }
 

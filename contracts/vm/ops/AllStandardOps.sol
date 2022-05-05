@@ -20,19 +20,19 @@ library AllStandardOps {
         return 0;
     }
 
-    function one(uint) internal pure returns (uint) {
+    function one(uint256) internal pure returns (uint256) {
         return 1;
     }
 
-    function two(uint) internal pure returns (uint) {
+    function two(uint256) internal pure returns (uint256) {
         return 2;
     }
 
-    function three(uint) internal pure returns (uint) {
+    function three(uint256) internal pure returns (uint256) {
         return 3;
     }
 
-    function nonzeroOperandN(uint operand_) internal pure returns (uint) {
+    function nonzeroOperandN(uint256 operand_) internal pure returns (uint256) {
         require(operand_ > 0, "0_OPERAND");
         return operand_;
     }
@@ -46,9 +46,8 @@ library AllStandardOps {
                 // contexts.
                 zeroFn_ := 0
             }
-            function(uint256)
-                pure
-                returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
+            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_LENGTH +
+                1]
                 memory fns_ = [
                     // will be overriden with length
                     zeroFn_,
@@ -157,9 +156,8 @@ library AllStandardOps {
                 // contexts.
                 zeroFn_ := 0
             }
-            function(uint256)
-                pure
-                returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
+            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_LENGTH +
+                1]
                 memory fns_ = [
                     // will be overriden with length
                     zeroFn_,

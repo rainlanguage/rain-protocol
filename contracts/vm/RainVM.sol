@@ -70,7 +70,8 @@ library LibState {
             state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
             state_.argumentsIndex = (indexes_ >> 16) & 0xFF;
             uint256 sourcesLen_ = (indexes_ >> 24) & 0xFF;
-            bytes[] memory ptrSources_ = new bytes[](sourcesLen_);
+            bytes[] memory ptrSources_;
+            uint256[] memory ptrSourcesPtrs_ = new uint256[](sourcesLen_);
 
             assembly {
                 let sourcesStart_ := add(
@@ -91,11 +92,15 @@ library LibState {
                 } {
                     // sources_ is a dynamic array so it is a list of
                     // pointers that can be set literally to the cursor_
-                    mstore(add(ptrSources_, add(0x20, mul(i_, 0x20))), cursor_)
+                    mstore(
+                        add(ptrSourcesPtrs_, add(0x20, mul(i_, 0x20))),
+                        cursor_
+                    )
                     // move the cursor by the length of the source in bytes
                     cursor_ := add(cursor_, add(0x20, mload(cursor_)))
                 }
                 // point state at sources_ rather than clone in memory
+                ptrSources_ := ptrSourcesPtrs_
                 mstore(add(state_, 0x40), ptrSources_)
             }
             return state_;
