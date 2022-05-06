@@ -9,19 +9,21 @@ import type { Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { TrustFactory } from "../../typechain/TrustFactory";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
+import { SaleFactory } from "../../typechain/SaleFactory";
+import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 
 const tokenJson = require("../../artifacts/contracts/redeemableERC20/RedeemableERC20.sol/RedeemableERC20.json");
 
 enum Tier {
-  NIL,
-  COPPER,
-  BRONZE,
-  SILVER,
-  GOLD,
-  PLATINUM,
-  DIAMOND,
-  CHAD,
-  JAWAD,
+  ZERO,
+  ONE,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT,
 }
 
 export const deployGlobals = async () => {
@@ -47,6 +49,22 @@ export const deployGlobals = async () => {
     (await claimWrapperFactory.deploy()) as RedeemableERC20ClaimEscrowWrapper &
       Contract;
 
+  const redeemableERC20FactoryFactory = await ethers.getContractFactory(
+    "RedeemableERC20Factory",
+    {}
+  );
+  const redeemableERC20Factory =
+    (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
+      Contract;
+  await redeemableERC20Factory.deployed();
+
+  const saleFactoryFactory = await ethers.getContractFactory("SaleFactory");
+  const saleFactory = (await saleFactoryFactory.deploy({
+    maximumSaleTimeout: 1000,
+    maximumCooldownDuration: 1000,
+    redeemableERC20Factory: redeemableERC20Factory.address,
+  })) as SaleFactory & Contract;
+
   return {
     crpFactory,
     bFactory,
@@ -57,6 +75,8 @@ export const deployGlobals = async () => {
     claim,
     claimWrapperFactory,
     claimWrapper,
+    saleFactoryFactory,
+    saleFactory,
   };
 };
 
@@ -68,7 +88,7 @@ export const basicSetup = async (
   const reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
     Contract;
 
-  const minimumTier = Tier.GOLD;
+  const minimumTier = Tier.FOUR;
 
   const totalTokenSupply = ethers.BigNumber.from("2000" + Util.eighteenZeros);
   const redeemableERC20Config = {
