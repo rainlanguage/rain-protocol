@@ -9,6 +9,7 @@ import type {
   AllStandardOpsTest,
   StateStruct,
 } from "../../typechain/AllStandardOpsTest";
+import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
 
 const { assert } = chai;
 
@@ -17,14 +18,17 @@ const Opcode = Util.AllStandardOps;
 // Contains tests for RainVM, the constant RainVM ops as well as Math ops via AllStandardOpsTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM", async function () {
-  let stateBuilder;
-  let logic;
+  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let logic: AllStandardOpsTest & Contract;
+
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
-    stateBuilder = await stateBuilderFactory.deploy();
+    stateBuilder =
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
+        Contract;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
@@ -43,7 +47,7 @@ describe("RainVM", async function () {
 
     const a0 = op(Opcode.CONSTANT, 3);
     const a1 = op(Opcode.CONSTANT, 4);
-    const aOOB = op(Opcode.CONSTANT, 5);
+    const aOOB = op(Opcode.CONSTANT, 6);
 
     // zero-based counting
     const sourceIndex = 1; // 1
@@ -66,10 +70,8 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
-
     await Util.assertError(
-      async () => await logic.run(),
+      async () => await logic.initialize({ sources, constants }),
       "", // there is at least an error
       "did not error when trying to read an out-of-bounds argument"
     );
@@ -83,16 +85,14 @@ describe("RainVM", async function () {
 
     const sources = [concat([vOOB])];
 
-    await logic.initialize({ sources, constants });
-
     await Util.assertError(
-      async () => await logic.run(),
+      async () => await logic.initialize({ sources, constants }),
       "", // there is at least an error
       "did not error when trying to read an out-of-bounds constant"
     );
   });
 
-  it("should prevent stack underflow at runtime due to bad RainVM script", async () => {
+  it("should prevent bad RainVM script attempting to access stack index out of bounds (underflow)", async () => {
     this.timeout(0);
 
     const constants = [0, 1];
@@ -108,16 +108,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
-
     await Util.assertError(
-      async () => await logic.run(),
-      "", // there is at least an error
-      "did not prevent stack underflow due to bad RainVM script"
+      async () => await logic.initialize({ sources, constants }),
+      "STACK_OVERFLOW",
+      "did not prevent bad RainVM script accessing stack index out of bounds"
     );
   });
 
-  it("should prevent stack overflow at runtime due to bad RainVM script", async () => {
+  it("should prevent bad RainVM script attempting to access stack index out of bounds (overflow)", async () => {
     this.timeout(0);
 
     const constants = [3, 2, 1];
@@ -135,39 +133,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
-
     await Util.assertError(
-      async () => await logic.run(),
-      "", // there is at least an error
-      "did not prevent stack overflow due to bad RainVM script"
-    );
-  });
-
-  it("should prevent stack overflow at runtime", async () => {
-    this.timeout(0);
-
-    const constants = [3, 2, 1];
-    const v3 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
-    const v1 = op(Opcode.CONSTANT, 2);
-
-    const sources = [
-      concat([
-        // (1 2 3 +)
-        v1,
-        v2,
-        v3,
-        op(Opcode.ADD, 3),
-      ]),
-    ];
-
-    await logic.initialize({ sources, constants });
-
-    await Util.assertError(
-      async () => await logic.run(),
+      async () => await logic.initialize({ sources, constants }),
       "STACK_OVERFLOW",
-      "did not prevent stack overflow from misconfigured stack length on construction"
+      "did not prevent bad RainVM script accessing stack index out of bounds"
     );
   });
 
