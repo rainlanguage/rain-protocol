@@ -14,7 +14,7 @@ struct StateConfig {
 }
 
 /// @param stackIndex The current stack index as the state builder moves
-/// through each opcode and applies the appropriate move fn.
+/// through each opcode and applies the appropriate pops and pushes.
 /// @param stackLength The maximum length of the stack seen so far due to stack
 /// index movements. If the stack index underflows this will be close to
 /// uint256 max and will ultimately error. It will also error if it overflows
