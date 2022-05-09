@@ -85,14 +85,17 @@ contract AllStandardOpsTest is RainVM {
         _state = state_;
     }
 
-    /// Runs `eval` and stores full state. Stores `value_` to be accessed later
+    /// Runs `eval` and stores full state. Stores `values_` to be accessed later
     /// via CONTEXT opcode.
-    /// This is an example case where the data to be added to context is a
-    /// single number.
-    function runContext(uint256 value_) public {
-        bytes memory context_ = new bytes(0x20);
-        assembly {
-            mstore(add(context_, 0x20), value_)
+    /// @param values_ - Values to add to context.
+    function runContext(uint256[] memory values_) public {
+        bytes memory context_ = new bytes(0x20 * values_.length);
+        for (uint256 i_ = 0; i_ < values_.length; i_++) {
+            uint256 value_ = values_[i_];
+            uint256 offset_ = i_ * 0x20;
+            assembly {
+                mstore(add(add(context_, offset_), 0x20), value_)
+            }
         }
         uint256 a_ = gasleft();
         bytes memory stateBytes_ = SSTORE2.read(vmStatePointer);

@@ -98,22 +98,55 @@ describe("RainVM", async function () {
     });
   });
 
+  it("should return correct data with CONTEXT operand", async () => {
+    this.timeout(0);
+
+    const constants = [];
+    const sources = [
+      concat([
+        op(Opcode.CONTEXT, 0),
+        op(Opcode.CONTEXT, 1),
+        op(Opcode.CONTEXT, 2),
+      ]),
+    ];
+
+    await logic.initialize({ sources, constants });
+
+    const data = [10, 20, 30];
+
+    await logic.runContext(data);
+
+    const result = await logic.stack();
+    const expected = data;
+
+    expected.forEach((expectedValue, index) => {
+      assert(
+        result[index].eq(expectedValue),
+        `wrong value was returned at index ${index}
+        expected  ${expectedValue}
+        got       ${result[index]}`
+      );
+    });
+  });
+
   it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
     this.timeout(0);
 
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT)])];
+    const sources = [concat([op(Opcode.CONTEXT, 0)])];
 
     await logic.initialize({ sources, constants });
 
-    await logic.runContext(42);
+    const data = [42];
+
+    await logic.runContext(data);
 
     const result = await logic.stackTop();
     const expected = 42;
 
     assert(
       result.eq(expected),
-      `wrong value added to stack via context opcode
+      `wrong value was returned
       expected  ${expected}
       got       ${result}`
     );
