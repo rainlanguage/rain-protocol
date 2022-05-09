@@ -5,7 +5,7 @@ import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
 import type { Contract, ContractFactory } from "ethers";
 
-import type { TokenOpsTest } from "../../typechain/TokenOpsTest";
+import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { ReserveTokenERC721 } from "../../typechain/ReserveTokenERC721";
@@ -13,18 +13,7 @@ import { ReserveTokenERC1155 } from "../../typechain/ReserveTokenERC1155";
 
 const { assert } = chai;
 
-const enum Opcode {
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  ERC20_BALANCE_OF,
-  ERC20_TOTAL_SUPPLY,
-  ERC721_BALANCE_OF,
-  ERC721_OWNER_OF,
-  ERC1155_BALANCE_OF,
-  ERC1155_BALANCE_OF_BATCH,
-}
+const Opcode = Util.AllStandardOps;
 
 let signers: SignerWithAddress[];
 let signer0: SignerWithAddress;
@@ -35,11 +24,21 @@ let tokenERC20: ReserveToken;
 let tokenERC721: ReserveTokenERC721;
 let tokenERC1155: ReserveTokenERC1155;
 
-let tokenOpsTestFactory: ContractFactory;
-
-describe("TokenOpsTest", async function () {
+describe("TokenOps Test", async function () {
+  let stateBuilder;
+  let logic;
   before(async () => {
-    tokenOpsTestFactory = await ethers.getContractFactory("TokenOpsTest");
+    this.timeout(0);
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
   });
 
   beforeEach(async () => {
@@ -72,10 +71,10 @@ describe("TokenOpsTest", async function () {
       tokenERC1155.address,
       tokenId,
     ];
-    const vSigner1 = op(Opcode.VAL, 0);
-    const vSigner2 = op(Opcode.VAL, 1);
-    const vTokenAddr = op(Opcode.VAL, 2);
-    const vTokenId = op(Opcode.VAL, 3);
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vSigner2 = op(Opcode.CONSTANT, 1);
+    const vTokenAddr = op(Opcode.CONSTANT, 2);
+    const vTokenId = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const sources = [
@@ -85,14 +84,11 @@ describe("TokenOpsTest", async function () {
           vSigner2,
           vTokenId,
           vTokenId,
-        op(Opcode.ERC1155_BALANCE_OF_BATCH, length)
+        op(Opcode.IERC1155_BALANCE_OF_BATCH, length)
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as TokenOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
     const transferAmount = 100;
 
@@ -116,7 +112,8 @@ describe("TokenOpsTest", async function () {
       [tokenId, tokenId]
     );
 
-    const opBatchAmounts = await tokenOpsTest.runLength(length);
+    await logic.run();
+    const opBatchAmounts = await logic.stack();
 
     assert(
       nativeBatchAmounts.every((nativeAmount, i) =>
@@ -132,9 +129,9 @@ describe("TokenOpsTest", async function () {
     const tokenId = 0;
 
     const constants = [signer1.address, tokenERC1155.address, tokenId];
-    const vSigner1 = op(Opcode.VAL, 0);
-    const vTokenAddr = op(Opcode.VAL, 1);
-    const vTokenId = op(Opcode.VAL, 2);
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
+    const vTokenId = op(Opcode.CONSTANT, 2);
 
     // prettier-ignore
     const sources = [
@@ -142,16 +139,13 @@ describe("TokenOpsTest", async function () {
           vTokenAddr,
           vSigner1,
           vTokenId,
-        op(Opcode.ERC1155_BALANCE_OF)
+        op(Opcode.IERC1155_BALANCE_OF)
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as TokenOpsTest & Contract;
-
-    const result0 = await tokenOpsTest.run();
+    await logic.initialize({ sources, constants });
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0 of id ${tokenId}, got ${result0}`);
 
     const transferAmount = 100;
@@ -177,7 +171,8 @@ describe("TokenOpsTest", async function () {
       got       ${signer1Balance}`
     );
 
-    const result1 = await tokenOpsTest.run();
+    await logic.run();
+    const result1 = await logic.stackTop();
     assert(
       result1.eq(transferAmount),
       `expected ${transferAmount} of id ${tokenId}, got ${result1}`
@@ -190,29 +185,28 @@ describe("TokenOpsTest", async function () {
     const nftId = 0;
 
     const constants = [nftId, tokenERC721.address];
-    const vNftId = op(Opcode.VAL, 0);
-    const vTokenAddr = op(Opcode.VAL, 1);
+    const vNftId = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const sources = [
       concat([
           vTokenAddr,
           vNftId,
-        op(Opcode.ERC721_OWNER_OF)
+        op(Opcode.IERC721_OWNER_OF)
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as TokenOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.eq(signer0.address));
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, nftId);
 
-    const result1 = await tokenOpsTest.run();
+    await logic.run();
+    const result1 = await logic.stackTop();
     assert(result1.eq(signer1.address));
   });
 
@@ -220,35 +214,35 @@ describe("TokenOpsTest", async function () {
     this.timeout(0);
 
     const constants = [signer1.address, tokenERC721.address];
-    const vSigner1 = op(Opcode.VAL, 0);
-    const vTokenAddr = op(Opcode.VAL, 1);
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const sources = [
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.ERC721_BALANCE_OF)
+        op(Opcode.IERC721_BALANCE_OF)
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as TokenOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, 0);
 
-    const result1 = await tokenOpsTest.run();
+    await logic.run();
+    const result1 = await logic.stackTop();
     assert(result1.eq(1), `expected 1, got ${result1}`);
 
     await tokenERC721.mintNewToken();
     await tokenERC721.transferFrom(signer0.address, signer1.address, 1);
 
-    const result2 = await tokenOpsTest.run();
+    await logic.run();
+    const result2 = await logic.stackTop();
     assert(result2.eq(2), `expected 2, got ${result2}`);
   });
 
@@ -256,22 +250,20 @@ describe("TokenOpsTest", async function () {
     this.timeout(0);
 
     const constants = [tokenERC20.address];
-    const vTokenAddr = op(Opcode.VAL, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const sources = [
       concat([
           vTokenAddr,
-        op(Opcode.ERC20_TOTAL_SUPPLY)
+        op(Opcode.IERC20_TOTAL_SUPPLY)
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as TokenOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const totalTokenSupply = await tokenERC20.totalSupply();
     assert(
       result0.eq(totalTokenSupply),
@@ -283,29 +275,27 @@ describe("TokenOpsTest", async function () {
     this.timeout(0);
 
     const constants = [signer1.address, tokenERC20.address];
-    const vSigner1 = op(Opcode.VAL, 0);
-    const vTokenAddr = op(Opcode.VAL, 1);
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const sources = [
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.ERC20_BALANCE_OF)
+        op(Opcode.IERC20_BALANCE_OF)
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-    })) as TokenOpsTest & Contract;
-
-    const result0 = await tokenOpsTest.run();
+    await logic.initialize({ sources, constants });
+    await logic.run();
+    const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC20.transfer(signer1.address, 100);
 
-    const result1 = await tokenOpsTest.run();
+    await logic.run();
+    const result1 = await logic.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });
 });

@@ -15,14 +15,7 @@ import { BigNumber, Contract } from "ethers";
 
 const { assert } = chai;
 
-export enum EmissionsERC20Ops {
-  CLAIMANT_ACCOUNT = 0 + Util.AllStandardOps.length,
-}
-
-export const Opcode = {
-  ...Util.AllStandardOps,
-  ...EmissionsERC20Ops,
-};
+export const Opcode = Util.AllStandardOps;
 
 enum Tier {
   ZERO,
@@ -51,8 +44,9 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
-    const vReadWriteTier = op(Opcode.VAL, 0);
-    const vConstructionBlock = op(Opcode.VAL, 1);
+    const vReadWriteTier = op(Opcode.CONSTANT, 0);
+    const vConstructionBlock = op(Opcode.CONSTANT, 1);
+    const vAlways = op(Opcode.CONSTANT, 2);
 
     await readWriteTier.setTier(claimant.address, Tier.TWO, []);
 
@@ -63,7 +57,7 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.ALWAYS),
+          vAlways,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -75,7 +69,7 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT, 0),
         op(Opcode.REPORT),
       ]);
 
@@ -83,7 +77,7 @@ describe("EmissionsERC20", async function () {
     const TIER_REPORT = () =>
       concat([
         vReadWriteTier,
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT, 0),
         op(Opcode.REPORT),
       ]);
 
@@ -115,7 +109,7 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
-          constants: [readWriteTier.address, constructionBlock],
+          constants: [readWriteTier.address, constructionBlock, Util.ALWAYS],
         },
       }
     );
@@ -190,10 +184,12 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const vAlways = op(Opcode.CONSTANT, 1);
+
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.ALWAYS),
+          vAlways,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -205,15 +201,15 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT, 0),
         op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          op(Opcode.VAL, 0),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONSTANT, 0),
+          op(Opcode.CONTEXT, 0),
         op(Opcode.REPORT),
       ]);
 
@@ -241,7 +237,7 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
-          constants: [readWriteTier.address],
+          constants: [readWriteTier.address, Util.ALWAYS],
         },
       }
     );
@@ -315,10 +311,12 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const vAlways = op(Opcode.CONSTANT, 1);
+
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.ALWAYS),
+          vAlways,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -330,15 +328,15 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT, 0),
         op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          op(Opcode.VAL, 0),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONSTANT, 0),
+          op(Opcode.CONTEXT, 0),
         op(Opcode.REPORT),
       ]);
 
@@ -366,7 +364,7 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
-          constants: [readWriteTier.address],
+          constants: [readWriteTier.address, Util.ALWAYS],
         },
       }
     );
@@ -487,16 +485,18 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN global constants
 
-    const valTierAddress = op(Opcode.VAL, 0);
-    const valBaseRewardPerTier = op(Opcode.VAL, 1);
-    const valBlocksPerYear = op(Opcode.VAL, 2);
+    const valTierAddress = op(Opcode.CONSTANT, 0);
+    const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
+    const valBlocksPerYear = op(Opcode.CONSTANT, 2);
+    const valAlways = op(Opcode.CONSTANT, 3);
+    const valOne = op(Opcode.CONSTANT, 4);
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const argDuration = op(Opcode.VAL, 5);
-    const argBaseReward = op(Opcode.VAL, 6);
+    const argDuration = op(Opcode.CONSTANT, 5);
+    const argBaseReward = op(Opcode.CONSTANT, 6);
 
     // END zipmap args
 
@@ -508,7 +508,7 @@ describe("EmissionsERC20", async function () {
           argDuration,
           valBlocksPerYear,
         op(Opcode.SCALE18_DIV, 0),
-        op(Opcode.SCALE18_ONE, 0),
+        valOne,
         op(Opcode.MIN, 2),
       ]);
 
@@ -516,7 +516,7 @@ describe("EmissionsERC20", async function () {
     const MULTIPLIER = () =>
       concat([
           PROGRESS(),
-          op(Opcode.SCALE18_ONE, 0),
+          valOne,
         op(Opcode.ADD, 2),
       ]);
 
@@ -532,7 +532,7 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.ALWAYS),
+          valAlways,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -544,7 +544,7 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -552,7 +552,7 @@ describe("EmissionsERC20", async function () {
     const TIER_REPORT = () =>
       concat([
           valTierAddress,
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -586,6 +586,8 @@ describe("EmissionsERC20", async function () {
       readWriteTier.address,
       BASE_REWARD_PER_TIER,
       BLOCKS_PER_YEAR,
+      Util.ALWAYS,
+      Util.ONE,
     ];
 
     console.log("source", SOURCE(), FN());
@@ -756,18 +758,19 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN global constants
 
-    const valTierAddress = op(Opcode.VAL, 0);
-    const valBaseRewardPerTier = op(Opcode.VAL, 1);
-    const valBlocksPerYear = op(Opcode.VAL, 2);
-    const valBNOne = op(Opcode.VAL, 3);
-    const valBNOneReward = op(Opcode.VAL, 4);
+    const valTierAddress = op(Opcode.CONSTANT, 0);
+    const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
+    const valBlocksPerYear = op(Opcode.CONSTANT, 2);
+    const valBNOne = op(Opcode.CONSTANT, 3);
+    const valBNOneReward = op(Opcode.CONSTANT, 4);
+    const valAlways = op(Opcode.CONSTANT, 5);
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.VAL, 5);
-    const valBaseReward = op(Opcode.VAL, 6);
+    const valDuration = op(Opcode.CONSTANT, 6);
+    const valBaseReward = op(Opcode.CONSTANT, 7);
 
     // END zipmap args
 
@@ -814,7 +817,7 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.ALWAYS),
+          valAlways,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -826,7 +829,7 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -834,7 +837,7 @@ describe("EmissionsERC20", async function () {
     const TIER_REPORT = () =>
       concat([
           valTierAddress,
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -866,6 +869,7 @@ describe("EmissionsERC20", async function () {
       BLOCKS_PER_YEAR,
       BN_ONE,
       BN_ONE_REWARD,
+      Util.ALWAYS,
     ];
 
     console.log("source", SOURCE());
@@ -1008,7 +1012,7 @@ describe("EmissionsERC20", async function () {
             concat([
               // lastClaimReport
               op(Opcode.THIS_ADDRESS),
-              op(Opcode.CLAIMANT_ACCOUNT),
+              op(Opcode.CONTEXT),
               op(Opcode.REPORT),
             ]),
           ],
@@ -1045,10 +1049,12 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const valAlways = op(Opcode.CONSTANT, 1);
+
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-          op(Opcode.ALWAYS),
+          valAlways,
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -1060,15 +1066,15 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          op(Opcode.VAL, 0),
-          op(Opcode.CLAIMANT_ACCOUNT),
+          op(Opcode.CONSTANT, 0),
+          op(Opcode.CONTEXT),
         op(Opcode.REPORT),
       ]);
 
@@ -1096,7 +1102,7 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
-          constants: [readWriteTier.address],
+          constants: [readWriteTier.address, Util.ALWAYS],
         },
       }
     );
@@ -1152,6 +1158,8 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
 
+    const valNever = op(Opcode.CONSTANT, 1);
+
     const emissionsERC20 = await claimUtil.emissionsDeploy(
       creator,
       emissionsERC20Factory,
@@ -1166,19 +1174,19 @@ describe("EmissionsERC20", async function () {
         vmStateConfig: {
           sources: [
             concat([
-              op(Opcode.NEVER),
+              valNever,
               op(Opcode.BLOCK_NUMBER),
               op(
                 Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
                 claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
               ),
-              op(Opcode.VAL, 0),
-              op(Opcode.CLAIMANT_ACCOUNT),
+              op(Opcode.CONSTANT, 0),
+              op(Opcode.CONTEXT),
               op(Opcode.REPORT),
               op(Opcode.SATURATING_DIFF),
             ]),
           ],
-          constants: [readWriteTier.address],
+          constants: [readWriteTier.address, Util.NEVER],
         },
       }
     );
@@ -1228,7 +1236,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -1283,7 +1291,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -1321,7 +1329,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -1365,7 +1373,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -1402,7 +1410,7 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
+          sources: [concat([op(Opcode.CONSTANT)])],
           constants: [claimAmount],
         },
       }
@@ -1440,8 +1448,8 @@ describe("EmissionsERC20", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.VAL)])],
-          constants: [],
+          sources: [concat([op(Opcode.CONSTANT)])],
+          constants: [0],
         },
       }
     );

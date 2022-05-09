@@ -13,7 +13,13 @@ import {
   SaleConstructorConfigStruct,
   SaleFactory,
 } from "../../typechain/SaleFactory";
-import { afterBlockNumberConfig, saleDeploy, Opcode, Tier } from "./SaleUtil";
+import {
+  afterBlockNumberSource,
+  saleDeploy,
+  Opcode,
+  Tier,
+  SaleStorage,
+} from "./SaleUtil";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -31,6 +37,8 @@ let reserve: ReserveToken & Contract,
   signers: SignerWithAddress[];
 
 describe("SaleUnchecked", async function () {
+  let stateBuilder;
+
   beforeEach(async () => {
     signers = await ethers.getSigners();
 
@@ -39,6 +47,12 @@ describe("SaleUnchecked", async function () {
   });
 
   before(async () => {
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
     redeemableERC20FactoryFactory = await ethers.getContractFactory(
       "RedeemableERC20Factory",
       {}
@@ -54,6 +68,7 @@ describe("SaleUnchecked", async function () {
     await readWriteTier.deployed();
 
     saleConstructorConfig = {
+      vmStateBuilder: stateBuilder.address,
       maximumSaleTimeout: 1000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
@@ -111,27 +126,36 @@ describe("SaleUnchecked", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const constants = [Util.max_uint256.div(2), 2];
+    const constants = [
+      Util.max_uint256.div(2),
+      2,
+      startBlock - 1,
+      startBlock + saleTimeout - 1,
+    ];
 
-    const vHalfMaxUInt256 = op(Opcode.VAL, 0);
-    const vTwo = op(Opcode.VAL, 1);
+    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vTwo = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
-    const source0 = concat([
+    const source0 = concat( [
         vHalfMaxUInt256,
         vTwo,
       op(Opcode.EXP, 2)
     ]);
+
+    const sources = [
+      afterBlockNumberSource(2),
+      afterBlockNumberSource(3),
+      source0,
+    ];
 
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-        calculatePriceStateConfig: {
-          sources: [source0],
+        vmStateConfig: {
+          sources,
           constants,
         },
         recipient: recipient.address,
@@ -184,10 +208,15 @@ describe("SaleUnchecked", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const constants = [Util.max_uint256.div(2), 3];
+    const constants = [
+      Util.max_uint256.div(2),
+      3,
+      startBlock - 1,
+      startBlock + saleTimeout - 1,
+    ];
 
-    const vHalfMaxUInt256 = op(Opcode.VAL, 0);
-    const vThree = op(Opcode.VAL, 1);
+    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vThree = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -196,15 +225,19 @@ describe("SaleUnchecked", async function () {
       op(Opcode.MUL, 2)
     ]);
 
+    const sources = [
+      afterBlockNumberSource(2),
+      afterBlockNumberSource(3),
+      source0,
+    ];
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-        calculatePriceStateConfig: {
-          sources: [source0],
+        vmStateConfig: {
+          sources,
           constants,
         },
         recipient: recipient.address,
@@ -233,7 +266,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });
@@ -257,10 +290,10 @@ describe("SaleUnchecked", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const constants = [0, 1];
+    const constants = [0, 1, startBlock - 1, startBlock + saleTimeout - 1];
 
-    const vZero = op(Opcode.VAL, 0);
-    const vOne = op(Opcode.VAL, 1);
+    const vZero = op(Opcode.CONSTANT, 0);
+    const vOne = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -269,15 +302,19 @@ describe("SaleUnchecked", async function () {
       op(Opcode.SUB, 2)
     ]);
 
+    const sources = [
+      afterBlockNumberSource(2),
+      afterBlockNumberSource(3),
+      source0,
+    ];
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-        calculatePriceStateConfig: {
-          sources: [source0],
+        vmStateConfig: {
+          sources,
           constants,
         },
         recipient: recipient.address,
@@ -306,7 +343,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator underflow did not panic"
     );
   });
@@ -330,10 +367,15 @@ describe("SaleUnchecked", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const constants = [Util.max_uint256, 1];
+    const constants = [
+      Util.max_uint256,
+      1,
+      startBlock - 1,
+      startBlock + saleTimeout - 1,
+    ];
 
-    const vMaxUInt256 = op(Opcode.VAL, 0);
-    const vOne = op(Opcode.VAL, 1);
+    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vOne = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -342,15 +384,19 @@ describe("SaleUnchecked", async function () {
       op(Opcode.ADD, 2)
     ]);
 
+    const sources = [
+      afterBlockNumberSource(2),
+      afterBlockNumberSource(3),
+      source0,
+    ];
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        canStartStateConfig: afterBlockNumberConfig(startBlock),
-        canEndStateConfig: afterBlockNumberConfig(startBlock + saleTimeout),
-        calculatePriceStateConfig: {
-          sources: [source0],
+        vmStateConfig: {
+          sources,
           constants,
         },
         recipient: recipient.address,
@@ -379,7 +425,7 @@ describe("SaleUnchecked", async function () {
 
     await Util.assertError(
       async () => await sale.calculatePrice(desiredUnits),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });

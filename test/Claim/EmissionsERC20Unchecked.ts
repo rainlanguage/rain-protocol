@@ -15,8 +15,8 @@ describe("EmissionsERC20Unchecked", async function () {
 
     const constants = [Util.max_uint256.div(2), 2];
 
-    const vHalfMaxUInt256 = op(Opcode.VAL, 0);
-    const vTwo = op(Opcode.VAL, 1);
+    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vTwo = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -61,8 +61,8 @@ describe("EmissionsERC20Unchecked", async function () {
 
     const constants = [Util.max_uint256.div(2), 3];
 
-    const vHalfMaxUInt256 = op(Opcode.VAL, 0);
-    const vThree = op(Opcode.VAL, 1);
+    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vThree = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -97,7 +97,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });
@@ -107,8 +107,8 @@ describe("EmissionsERC20Unchecked", async function () {
 
     const constants = [0, 1];
 
-    const vZero = op(Opcode.VAL, 0);
-    const vOne = op(Opcode.VAL, 1);
+    const vZero = op(Opcode.CONSTANT, 0);
+    const vOne = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -143,7 +143,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator underflow did not panic"
     );
   });
@@ -153,8 +153,8 @@ describe("EmissionsERC20Unchecked", async function () {
 
     const constants = [Util.max_uint256, 1];
 
-    const vMaxUInt256 = op(Opcode.VAL, 0);
-    const vOne = op(Opcode.VAL, 1);
+    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
+    const vOne = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -189,7 +189,7 @@ describe("EmissionsERC20Unchecked", async function () {
 
     await Util.assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "MATH_OVERFLOW",
+      "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });

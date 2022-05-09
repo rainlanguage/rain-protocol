@@ -32,7 +32,7 @@ import type {
 } from "ethers";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import type { SourceAnalysisStruct } from "../typechain/RainVM";
+import type { BoundsStruct } from "../typechain/VMStateBuilder";
 
 const { assert } = chai;
 
@@ -205,8 +205,16 @@ export const verifyTierDeploy = async (deployer, config) => {
 };
 
 export const combineTierDeploy = async (deployer, config) => {
+  const stateBuilderFactory = await ethers.getContractFactory(
+    "AllStandardOpsStateBuilder"
+  );
+  const stateBuilder = await stateBuilderFactory.deploy();
+  await stateBuilder.deployed();
+
   const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
-  const factory = (await factoryFactory.deploy()) as CombineTierFactory;
+  const factory = (await factoryFactory.deploy(
+    stateBuilder.address
+  )) as CombineTierFactory;
   await factory.deployed();
 
   const { implementation } = (await getEventArgs(
@@ -568,8 +576,10 @@ export enum selectLteMode {
 }
 
 export enum AllStandardOps {
-  VAL,
-  DUP,
+  CONSTANT,
+  STACK,
+  CONTEXT,
+  STORAGE,
   ZIPMAP,
   DEBUG,
   BLOCK_NUMBER,
@@ -581,8 +591,6 @@ export enum AllStandardOps {
   SCALE18,
   SCALEN,
   SCALE_BY,
-  SCALE18_ONE,
-  SCALE18_DECIMALS,
   ADD,
   SATURATING_ADD,
   SUB,
@@ -602,8 +610,6 @@ export enum AllStandardOps {
   EVERY,
   ANY,
   REPORT,
-  NEVER,
-  ALWAYS,
   SATURATING_DIFF,
   UPDATE_BLOCKS_FOR_TIER_RANGE,
   SELECT_LTE,
@@ -616,10 +622,19 @@ export enum AllStandardOps {
   length,
 }
 
-export const newSourceAnalysis = (): SourceAnalysisStruct => {
+export enum Debug {
+  StateAbi,
+  StatePacked,
+  Stack,
+  StackIndex,
+}
+
+export const newVMStateBuilderBounds = (): BoundsStruct => {
   return {
     stackIndex: 0,
-    stackUpperBound: 0,
-    argumentsUpperBound: 0,
+    stackLength: 0,
+    argumentsLength: 0,
+    storageLength: 0,
+    opcodesLength: 0,
   };
 };

@@ -2,14 +2,9 @@
 pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../math/SaturatingMath.sol";
 
 import "hardhat/console.sol";
-
-struct SourceAnalysis {
-    int256 stackIndex;
-    uint256 stackUpperBound;
-    uint256 argumentsUpperBound;
-}
 
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
@@ -32,7 +27,7 @@ struct SourceAnalysis {
 struct State {
     uint256 stackIndex;
     uint256[] stack;
-    bytes[] sources;
+    bytes[] ptrSources;
     uint256[] constants;
     /// `ZIPMAP` populates arguments into constants which can be copied to the
     /// stack by `VAL` as usual, starting from this index. This copying is
@@ -40,18 +35,126 @@ struct State {
     uint256 argumentsIndex;
 }
 
+struct StorageOpcodesRange {
+    uint256 pointer;
+    uint256 length;
+}
+
+library LibState {
+    function toBytesDebug(State memory state_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encode(state_);
+    }
+
+    function fromBytesPacked(bytes memory stateBytes_)
+        internal
+        pure
+        returns (State memory)
+    {
+        unchecked {
+            State memory state_;
+            uint256 indexes_;
+            assembly {
+                // Load indexes from state bytes.
+                indexes_ := mload(add(stateBytes_, 0x20))
+                // mask out everything but the constants length from state
+                // bytes.
+                mstore(add(stateBytes_, 0x20), and(indexes_, 0xFF))
+                // point state constants at state bytes
+                mstore(add(state_, 0x60), add(stateBytes_, 0x20))
+            }
+            // Stack index 0 is implied.
+            state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
+            state_.argumentsIndex = (indexes_ >> 16) & 0xFF;
+            uint256 sourcesLen_ = (indexes_ >> 24) & 0xFF;
+            bytes[] memory ptrSources_;
+            uint256[] memory ptrSourcesPtrs_ = new uint256[](sourcesLen_);
+
+            assembly {
+                let sourcesStart_ := add(
+                    stateBytes_,
+                    add(
+                        // 0x40 for constants and sources array length
+                        0x40,
+                        // skip over length of constants
+                        mul(0x20, mload(add(stateBytes_, 0x20)))
+                    )
+                )
+                let cursor_ := sourcesStart_
+
+                for {
+                    let i_ := 0
+                } lt(i_, sourcesLen_) {
+                    i_ := add(i_, 1)
+                } {
+                    // sources_ is a dynamic array so it is a list of
+                    // pointers that can be set literally to the cursor_
+                    mstore(
+                        add(ptrSourcesPtrs_, add(0x20, mul(i_, 0x20))),
+                        cursor_
+                    )
+                    // move the cursor by the length of the source in bytes
+                    cursor_ := add(cursor_, add(0x20, mload(cursor_)))
+                }
+                // point state at sources_ rather than clone in memory
+                ptrSources_ := ptrSourcesPtrs_
+                mstore(add(state_, 0x40), ptrSources_)
+            }
+            return state_;
+        }
+    }
+
+    function toBytesPacked(State memory state_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        unchecked {
+            // indexes + constants
+            uint256[] memory constants_ = state_.constants;
+            // constants is first so we can literally use it on the other end
+            uint256 indexes_ = state_.constants.length |
+                (state_.stack.length << 8) |
+                (state_.argumentsIndex << 16) |
+                (state_.ptrSources.length << 24);
+            bytes memory ret_ = bytes.concat(
+                bytes32(indexes_),
+                abi.encodePacked(constants_)
+            );
+            for (uint256 i_ = 0; i_ < state_.ptrSources.length; i_++) {
+                ret_ = bytes.concat(
+                    ret_,
+                    bytes32(state_.ptrSources[i_].length),
+                    state_.ptrSources[i_]
+                );
+            }
+            return ret_;
+        }
+    }
+}
+
 /// @dev Copies a value either off `constants` to the top of the stack.
-uint256 constant OPCODE_VAL = 0;
+uint256 constant OPCODE_CONSTANT = 0;
 /// @dev Duplicates any value in the stack to the top of the stack. The operand
 /// specifies the index to copy from.
-uint256 constant OPCODE_DUP = 1;
+uint256 constant OPCODE_STACK = 1;
+uint256 constant OPCODE_CONTEXT = 2;
+uint256 constant OPCODE_STORAGE = 3;
 /// @dev Takes N values off the stack, interprets them as an array then zips
 /// and maps a source from `sources` over them.
-uint256 constant OPCODE_ZIPMAP = 2;
+uint256 constant OPCODE_ZIPMAP = 4;
 /// @dev ABI encodes the entire stack and logs it to the hardhat console.
-uint256 constant OPCODE_DEBUG = 3;
+uint256 constant OPCODE_DEBUG = 5;
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 4;
+uint256 constant RAIN_VM_OPS_LENGTH = 6;
+
+uint256 constant DEBUG_STATE_ABI = 0;
+uint256 constant DEBUG_STATE_PACKED = 1;
+uint256 constant DEBUG_STACK = 2;
+uint256 constant DEBUG_STACK_INDEX = 3;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -115,87 +218,19 @@ uint256 constant RAIN_VM_OPS_LENGTH = 4;
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
     using Math for uint256;
+    using SaturatingMath for uint256;
 
-    function _newSourceAnalysis()
-        internal
-        pure
-        returns (SourceAnalysis memory)
-    {
-        return SourceAnalysis(0, 0, 0);
-    }
-
-    function analyzeZipmap(
-        SourceAnalysis memory sourceAnalysis_,
-        bytes[] memory sources_,
-        uint256 operand_
-    ) private view {
-        uint256 valLength_ = (operand_ >> 5) + 1;
-        sourceAnalysis_.argumentsUpperBound = sourceAnalysis_
-            .argumentsUpperBound
-            .max(valLength_);
-        sourceAnalysis_.stackIndex -= int256(valLength_);
-        uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
-        for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-            analyzeSources(sourceAnalysis_, sources_, operand_ & 0x07);
-        }
-    }
-
-    function analyzeSources(
-        SourceAnalysis memory sourceAnalysis_,
-        bytes[] memory sources_,
-        uint256 entrypoint_
-    ) public view {
-        unchecked {
-            uint256 i_ = 0;
-            uint256 sourceLen_;
-            uint256 opcode_;
-            uint256 operand_;
-            uint256 sourceLocation_;
-            uint256 d_;
-
-            assembly {
-                d_ := mload(add(sources_, 0x20))
-                sourceLocation_ := mload(
-                    add(sources_, add(0x20, mul(entrypoint_, 0x20)))
-                )
-
-                sourceLen_ := mload(sourceLocation_)
-            }
-
-            while (i_ < sourceLen_) {
-                assembly {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
-                    operand_ := byte(31, op_)
-                }
-
-                if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ < OPCODE_ZIPMAP) {
-                        sourceAnalysis_.stackIndex++;
-                    } else {
-                        analyzeZipmap(sourceAnalysis_, sources_, operand_);
-                    }
-                } else {
-                    sourceAnalysis_.stackIndex += stackIndexDiff(
-                        opcode_,
-                        operand_
-                    );
-                }
-                require(sourceAnalysis_.stackIndex >= 0, "STACK_UNDERFLOW");
-                sourceAnalysis_.stackUpperBound = sourceAnalysis_
-                    .stackUpperBound
-                    .max(uint256(sourceAnalysis_.stackIndex));
-            }
-        }
-    }
-
-    function stackIndexDiff(uint256 opcode_, uint256)
+    /// Default is to disallow all storage access to opcodes.
+    function storageOpcodesRange()
         public
-        view
+        pure
         virtual
-        returns (int256)
-    {}
+        returns (StorageOpcodesRange memory)
+    {
+        return StorageOpcodesRange(0, 0);
+    }
+
+    function fnPtrs() public pure virtual returns (bytes memory);
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -230,7 +265,6 @@ abstract contract RainVM {
         bytes memory context_,
         State memory state_,
         uint256 stackTopLocation_,
-        uint256 argumentsBottomLocation_,
         uint256 operand_
     ) internal view returns (uint256) {
         unchecked {
@@ -275,10 +309,30 @@ abstract contract RainVM {
                 }
             }
 
-            uint256 maxCursor_ = baseValsBottom_ + (valLength_ * 0x20);
+            uint256 argumentsBottomLocation_;
+            assembly {
+                let constantsBottomLocation_ := add(
+                    mload(add(state_, 0x60)),
+                    0x20
+                )
+                argumentsBottomLocation_ := add(
+                    constantsBottomLocation_,
+                    mul(
+                        0x20,
+                        mload(
+                            // argumentsIndex
+                            add(state_, 0x80)
+                        )
+                    )
+                )
+            }
+
             for (uint256 step_ = 0; step_ < 0x100; step_ += stepSize_) {
                 // Prepare arguments.
                 {
+                    // max cursor is in this scope to avoid stack overflow from
+                    // solidity.
+                    uint256 maxCursor_ = baseValsBottom_ + (valLength_ * 0x20);
                     uint256 argumentsCursor_ = argumentsBottomLocation_;
                     uint256 cursor_ = baseValsBottom_;
                     while (cursor_ < maxCursor_) {
@@ -316,15 +370,16 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (uint256) {
         unchecked {
-            uint256 i_ = 0;
+            uint256 pc_ = 0;
             uint256 opcode_;
             uint256 operand_;
             uint256 sourceLocation_;
             uint256 sourceLen_;
             uint256 constantsBottomLocation_;
-            uint256 argumentsBottomLocation_;
             uint256 stackBottomLocation_;
             uint256 stackTopLocation_;
+            uint256 firstFnPtrLocation_;
+
             assembly {
                 let stackLocation_ := mload(add(state_, 0x20))
                 stackBottomLocation_ := add(stackLocation_, 0x20)
@@ -341,28 +396,21 @@ abstract contract RainVM {
                 )
                 sourceLen_ := mload(sourceLocation_)
                 constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
-                argumentsBottomLocation_ := add(
-                    constantsBottomLocation_,
-                    mul(
-                        0x20,
-                        mload(
-                            // argumentsIndex
-                            add(state_, 0x80)
-                        )
-                    )
-                )
+                // first fn pointer is seen if we move two bytes into the data.
+                firstFnPtrLocation_ := add(mload(add(state_, 0xA0)), 0x02)
             }
 
             // Loop until complete.
-            while (i_ < sourceLen_) {
+            while (pc_ < sourceLen_) {
                 assembly {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
+                    pc_ := add(pc_, 3)
+                    let op_ := mload(add(sourceLocation_, pc_))
                     operand_ := byte(31, op_)
+                    opcode_ := and(shr(8, op_), 0xFFFF)
                 }
+
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ == OPCODE_VAL) {
+                    if (opcode_ == OPCODE_CONSTANT) {
                         assembly {
                             mstore(
                                 stackTopLocation_,
@@ -375,7 +423,7 @@ abstract contract RainVM {
                             )
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
-                    } else if (opcode_ == OPCODE_DUP) {
+                    } else if (opcode_ == OPCODE_STACK) {
                         assembly {
                             mstore(
                                 stackTopLocation_,
@@ -388,24 +436,66 @@ abstract contract RainVM {
                             )
                             stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
+                    } else if (opcode_ == OPCODE_CONTEXT) {
+                        // This is the only runtime integrity check that we do
+                        // as it is not possible to know how long context might
+                        // be in general until runtime.
+                        require(
+                            operand_ * 0x20 < context_.length,
+                            "CONTEXT_LENGTH"
+                        );
+                        assembly {
+                            mstore(
+                                stackTopLocation_,
+                                mload(
+                                    add(
+                                        context_,
+                                        add(0x20, mul(0x20, operand_))
+                                    )
+                                )
+                            )
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                        }
+                    } else if (opcode_ == OPCODE_STORAGE) {
+                        StorageOpcodesRange
+                            memory storageOpcodesRange_ = storageOpcodesRange();
+                        assembly {
+                            mstore(
+                                stackTopLocation_,
+                                sload(
+                                    add(operand_, mload(storageOpcodesRange_))
+                                )
+                            )
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                        }
                     } else if (opcode_ == OPCODE_ZIPMAP) {
                         stackTopLocation_ = zipmap(
                             context_,
                             state_,
                             stackTopLocation_,
-                            argumentsBottomLocation_,
                             operand_
                         );
                     } else {
-                        console.logBytes(abi.encode(state_));
+                        bytes memory debug_;
+                        if (operand_ == DEBUG_STATE_ABI) {
+                            debug_ = abi.encode(state_);
+                        } else if (operand_ == DEBUG_STATE_PACKED) {
+                            debug_ = LibState.toBytesPacked(state_);
+                        } else if (operand_ == DEBUG_STACK) {
+                            debug_ = abi.encodePacked(state_.stack);
+                        } else if (operand_ == DEBUG_STACK_INDEX) {
+                            debug_ = abi.encodePacked(state_.stackIndex);
+                        }
+                        if (debug_.length > 0) {
+                            console.logBytes(debug_);
+                        }
                     }
                 } else {
-                    stackTopLocation_ = applyOp(
-                        context_,
-                        stackTopLocation_,
-                        opcode_,
-                        operand_
-                    );
+                    function(uint256, uint256) view returns (uint256) fn_;
+                    assembly {
+                        fn_ := opcode_
+                    }
+                    stackTopLocation_ = fn_(operand_, stackTopLocation_);
                 }
                 // The stack index may be the same as the length as this means
                 // the stack is full. But we cannot write past the end of the
@@ -431,35 +521,5 @@ abstract contract RainVM {
                 0x20;
             return stackTopLocation_;
         }
-    }
-
-    /// Every contract that implements `RainVM` should override `applyOp` so
-    /// that useful opcodes are available to script writers.
-    /// For an example of a simple and efficient `applyOp` implementation that
-    /// dispatches over several opcode packs see `CalculatorTest.sol`.
-    /// Implementing contracts are encouraged to handle the dispatch with
-    /// unchecked math as the dispatch is a critical performance path and
-    /// default solidity checked math can significantly increase gas cost for
-    /// each opcode dispatched. Consider that a single zipmap could loop over
-    /// dozens of opcode dispatches internally.
-    /// Stack is modified by reference NOT returned.
-    /// @param context_ Bytes that the implementing contract can passthrough
-    /// to be ready internally by its own opcodes. RainVM ignores the context.
-    /// @param stackTopLocation_ The memory location of the top of the stack.
-    /// @param opcode_ The current opcode to dispatch.
-    /// @param operand_ Additional information to inform the opcode dispatch.
-    function applyOp(
-        bytes memory context_,
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256 operand_
-    )
-        internal
-        view
-        virtual
-        returns (uint256)
-    //solhint-disable-next-line no-empty-blocks
-    {
-
     }
 }

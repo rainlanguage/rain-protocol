@@ -12,6 +12,12 @@ import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 
 export const deployGlobals = async () => {
+  const stateBuilderFactory = await ethers.getContractFactory(
+    "AllStandardOpsStateBuilder"
+  );
+  const stateBuilder = await stateBuilderFactory.deploy();
+  await stateBuilder.deployed();
+
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const readWriteTier = (await tierFactory.deploy()) as ReadWriteTier &
     Contract;
@@ -29,6 +35,7 @@ export const deployGlobals = async () => {
     maximumSaleTimeout: 1000,
     maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
+    vmStateBuilder: stateBuilder.address,
   };
 
   const saleFactoryFactory = await ethers.getContractFactory("SaleFactory");

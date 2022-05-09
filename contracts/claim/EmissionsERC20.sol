@@ -5,11 +5,12 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {RainVM, State, SourceAnalysis} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {VMStateBuilder, StateConfig} from "../vm/VMStateBuilder.sol";
+import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
-import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
+import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "../sstore2/SSTORE2.sol";
 
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
@@ -25,12 +26,7 @@ struct EmissionsERC20Config {
 }
 
 /// @dev Source index for VM eval.
-uint256 constant SOURCE_INDEX = 0;
-
-/// @dev local opcode to put claimant account on the stack.
-uint256 constant OPCODE_CLAIMANT_ACCOUNT = 0;
-/// @dev local opcodes length.
-uint256 constant LOCAL_OPS_LENGTH = 1;
+uint256 constant ENTRYPOINT = 0;
 
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -48,7 +44,6 @@ uint256 constant LOCAL_OPS_LENGTH = 1;
 contract EmissionsERC20 is
     Initializable,
     RainVM,
-    VMState,
     ERC20Upgradeable,
     IClaim,
     ReadOnlyTier
@@ -59,8 +54,8 @@ contract EmissionsERC20 is
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
 
-    /// @dev local offset for local ops.
-    uint256 private immutable localOpsStart;
+    address private immutable self;
+    address private immutable vmStateBuilder;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
@@ -80,9 +75,9 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
-    constructor() {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+    constructor(address vmStateBuilder_) {
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
@@ -96,15 +91,12 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        SourceAnalysis memory sourceAnalysis_ = _newSourceAnalysis();
-        analyzeSources(
-            sourceAnalysis_,
-            config_.vmStateConfig.sources,
-            SOURCE_INDEX
+        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            config_.vmStateConfig,
+            ENTRYPOINT + 1
         );
-        vmStatePointer = _snapshot(
-            _newState(config_.vmStateConfig, sourceAnalysis_)
-        );
+        vmStatePointer = SSTORE2.write(vmStateBytes_);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -112,64 +104,6 @@ contract EmissionsERC20 is
         emit Initialize(msg.sender, config_.allowDelegatedClaims);
     }
 
-    /// @inheritdoc RainVM
-    function stackIndexDiff(uint256 opcode_, uint256 operand_)
-        public
-        view
-        override
-        returns (int256)
-    {
-        unchecked {
-            if (opcode_ < localOpsStart) {
-                return
-                    AllStandardOps.stackIndexDiff(
-                        opcode_ - ALL_STANDARD_OPS_START,
-                        operand_
-                    );
-            } else {
-                return 1;
-            }
-        }
-    }
-
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        uint256 stackTopLocation_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override returns (uint256) {
-        unchecked {
-            if (opcode_ < localOpsStart) {
-                return
-                    AllStandardOps.applyOp(
-                        stackTopLocation_,
-                        opcode_ - ALL_STANDARD_OPS_START,
-                        operand_
-                    );
-            } else {
-                // There's only one opcode, which stacks the account address.
-                uint256 account_ = uint256(
-                    uint160(address(abi.decode(context_, (address))))
-                );
-                assembly {
-                    mstore(stackTopLocation_, account_)
-                }
-                return stackTopLocation_ + 0x20;
-            }
-        }
-    }
-
-    /// Reports from the claim contract function differently to most tier
-    /// contracts. When the report is uninitialized it is `0` NOT `0xFF..`. The
-    /// intent is that the claim report is compatible with an "every" selectLte
-    /// against tiers that might be gating claims. It's important that we use
-    /// every for this check as the underlying tier doing the gating MUST be
-    /// respected on every claim even for users that have previously claimed as
-    /// they could have lost tiers since their last claim.
-    /// The standard "uninitialized is 0xFF.." logic can be simulated in a rain
-    /// script as `REPORT(this, account) IF(ISZERO(DUP(0)), never, DUP(0))` if
-    /// desired by the deployer (adjusting the DUP index to taste).
     /// @inheritdoc ITier
     function report(address account_)
         public
@@ -179,6 +113,10 @@ contract EmissionsERC20 is
         returns (uint256)
     {
         return reports[account_];
+    }
+
+    function fnPtrs() public pure override returns (bytes memory) {
+        return AllStandardOps.fnPtrs();
     }
 
     /// Calculates the claim without processing it.
@@ -191,8 +129,15 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(claimant_), state_, SOURCE_INDEX);
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
+        bytes memory context_ = new bytes(0x20);
+        uint256 claimantContext_ = uint256(uint160(claimant_));
+        assembly {
+            mstore(add(context_, 0x20), claimantContext_)
+        }
+        eval(context_, state_, ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }
 

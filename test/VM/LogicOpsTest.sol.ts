@@ -1,40 +1,36 @@
 import chai from "chai";
 import { ethers } from "hardhat";
+import { op, AllStandardOps, Debug } from "../Util";
 import { concat, hexlify } from "ethers/lib/utils";
-import {
-  callSize,
-  max_uint256,
-  op,
-  paddedUInt256,
-  paddedUInt32,
-} from "../Util";
+import { callSize, max_uint256, paddedUInt256, paddedUInt32 } from "../Util";
 import type { BigNumber, Contract } from "ethers";
-
-import type { LogicOpsTest } from "../../typechain/LogicOpsTest";
+import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 
 const { assert } = chai;
 
-const enum Opcode {
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  ISZERO,
-  EAGER_IF,
-  EQUAL_TO,
-  LESS_THAN,
-  GREATER_THAN,
-  EVERY,
-  ANY,
-}
+const Opcode = AllStandardOps;
 
 const isTruthy = (vmValue: BigNumber) => vmValue.eq(1);
 
-describe("LogicOpsTest", async function () {
+describe("LogicOps Test", async function () {
+  let stateBuilder;
+  let logic;
+  before(async () => {
+    this.timeout(0);
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
+  });
+
   it("should support logic ops within a zipmap loop", async function () {
     this.timeout(0);
-
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
 
     const report = paddedUInt256(
       ethers.BigNumber.from(
@@ -54,13 +50,13 @@ describe("LogicOpsTest", async function () {
 
     const constants = [report, reportMax];
 
-    const vReport = op(Opcode.VAL, 0);
-    const vReportMax = op(Opcode.VAL, 1);
+    const vReport = op(Opcode.CONSTANT, 0);
+    const vReportMax = op(Opcode.CONSTANT, 1);
 
     // BEGIN zipmap args
 
-    const argReport = op(Opcode.VAL, 2);
-    const argReportMax = op(Opcode.VAL, 3);
+    const argReport = op(Opcode.CONSTANT, 2);
+    const argReportMax = op(Opcode.CONSTANT, 3);
 
     // END zipmap args
 
@@ -82,12 +78,11 @@ describe("LogicOpsTest", async function () {
         op(Opcode.ZIPMAP, callSize(1, 3, 1)),
       ]);
 
-    const logic0 = (await logicFactory.deploy({
-      sources: [SOURCE(), ZIPMAP_FN()],
-      constants,
-    })) as LogicOpsTest & Contract;
+    await logic.initialize({ sources: [SOURCE(), ZIPMAP_FN()], constants });
 
-    const result = await logic0.runState({ gasLimit: 100000000 });
+    await logic.run();
+
+    const result = await logic.state();
 
     const resultReport = ethers.BigNumber.from(
       "0x" +
@@ -126,14 +121,12 @@ describe("LogicOpsTest", async function () {
   it("should check whether any value in a list is non-zero", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
-
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.VAL, 0);
-    const v1 = op(Opcode.VAL, 1);
-    const v2 = op(Opcode.VAL, 2);
-    const v3 = op(Opcode.VAL, 3);
+    const v0 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.CONSTANT, 1);
+    const v2 = op(Opcode.CONSTANT, 2);
+    const v3 = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const source0 = concat([
@@ -143,12 +136,12 @@ describe("LogicOpsTest", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
-
-    const result0 = await logic0.run();
+    });
+    await logic.run();
+    const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
 
@@ -159,12 +152,13 @@ describe("LogicOpsTest", async function () {
       op(Opcode.ANY, 2),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result1 = await logic1.run();
+    await logic.run();
+    const result1 = await logic.stackTop();
 
     assert(result1.isZero(), `returned wrong value from any, got ${result1}`);
 
@@ -176,12 +170,13 @@ describe("LogicOpsTest", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    const logic2 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source2],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result2 = await logic2.run();
+    await logic.run();
+    const result2 = await logic.stackTop();
 
     assert(result2.eq(3), `returned wrong value from any, got ${result2}`);
   });
@@ -189,14 +184,12 @@ describe("LogicOpsTest", async function () {
   it("should check whether every value in a list is non-zero", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
-
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.VAL, 0);
-    const v1 = op(Opcode.VAL, 1);
-    const v2 = op(Opcode.VAL, 2);
-    const v3 = op(Opcode.VAL, 3);
+    const v0 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.CONSTANT, 1);
+    const v2 = op(Opcode.CONSTANT, 2);
+    const v3 = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const source0 = concat([
@@ -206,12 +199,12 @@ describe("LogicOpsTest", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
-
-    const result0 = await logic0.run();
+    });
+    await logic.run();
+    const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
 
@@ -223,12 +216,13 @@ describe("LogicOpsTest", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result1 = await logic1.run();
+    await logic.run();
+    const result1 = await logic.stackTop();
 
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
 
@@ -239,12 +233,13 @@ describe("LogicOpsTest", async function () {
       op(Opcode.EVERY, 2),
     ]);
 
-    const logic2 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source2],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result2 = await logic2.run();
+    await logic.run();
+    const result2 = await logic.stackTop();
 
     assert(result2.isZero(), `returned wrong value from every, got ${result2}`);
   });
@@ -252,14 +247,12 @@ describe("LogicOpsTest", async function () {
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
-
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.VAL, 0);
-    const v1 = op(Opcode.VAL, 1);
-    const v2 = op(Opcode.VAL, 2);
-    const v3 = op(Opcode.VAL, 3);
+    const v0 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.CONSTANT, 1);
+    const v2 = op(Opcode.CONSTANT, 2);
+    const v3 = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const source0 = concat([
@@ -270,12 +263,13 @@ describe("LogicOpsTest", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result0 = await logic0.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
 
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
 
@@ -288,12 +282,13 @@ describe("LogicOpsTest", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result1 = await logic1.run();
+    await logic.run();
+    const result1 = await logic.stackTop();
 
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
 
@@ -306,12 +301,13 @@ describe("LogicOpsTest", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const logic2 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source2],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result2 = await logic2.run();
+    await logic.run();
+    const result2 = await logic.stackTop();
 
     assert(result2.eq(3), `returned wrong value from eager if, got ${result2}`);
   });
@@ -319,39 +315,39 @@ describe("LogicOpsTest", async function () {
   it("should check that value is greater than another value", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
-
     const constants = [1, 2];
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.VAL, 1), // 2
-      op(Opcode.VAL, 0), // 1
+      op(Opcode.CONSTANT, 1), // 2
+      op(Opcode.CONSTANT, 0), // 1
       op(Opcode.GREATER_THAN),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result0 = await logic0.run(); // expect 1
+    await logic.run();
+    const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.VAL, 0), // 1
-      op(Opcode.VAL, 1), // 2
+      op(Opcode.CONSTANT, 0), // 1
+      op(Opcode.CONSTANT, 1), // 2
       op(Opcode.GREATER_THAN),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result1 = await logic1.run(); // expect 0
+    await logic.run();
+    const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is gt 2");
   });
@@ -359,39 +355,39 @@ describe("LogicOpsTest", async function () {
   it("should check that value is less than another value", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
-
     const constants = [1, 2];
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.VAL, 1), // 2
-      op(Opcode.VAL, 0), // 1
+      op(Opcode.CONSTANT, 1), // 2
+      op(Opcode.CONSTANT, 0), // 1
       op(Opcode.LESS_THAN),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result0 = await logic0.run(); // expect 0
+    await logic.run();
+    const result0 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.VAL, 0), // 1
-      op(Opcode.VAL, 1), // 2
+      op(Opcode.CONSTANT, 0), // 1
+      op(Opcode.CONSTANT, 1), // 2
       op(Opcode.LESS_THAN),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result1 = await logic1.run(); // expect 1
+    await logic.run();
+    const result1 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result1), "wrongly says 1 is not lt 2");
   });
@@ -399,77 +395,78 @@ describe("LogicOpsTest", async function () {
   it("should check that values are equal to each other", async () => {
     this.timeout(0);
 
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
-
     const constants = [1, 2];
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.VAL, 1), // 2
-      op(Opcode.VAL, 1), // 2
+      op(Opcode.CONSTANT, 1), // 2
+      op(Opcode.CONSTANT, 1), // 2
       op(Opcode.EQUAL_TO),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result0 = await logic0.run(); // expect 1
+    await logic.run();
+    const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.VAL, 0), // 1
-      op(Opcode.VAL, 1), // 2
+      op(Opcode.CONSTANT, 0), // 1
+      op(Opcode.CONSTANT, 1), // 2
       op(Opcode.EQUAL_TO),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    await logic.initialize({
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    });
 
-    const result1 = await logic1.run(); // expect 0
+    await logic.run();
+    const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
   });
 
   it("should check that a value is zero", async () => {
-    this.timeout(0);
-
-    const logicFactory = await ethers.getContractFactory("LogicOpsTest");
-
     const constants = [0, 1];
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.VAL, 0),
+      op(Opcode.CONSTANT, 0),
       op(Opcode.ISZERO),
     ]);
 
-    const logic0 = (await logicFactory.deploy({
+    const stateConfig0 = {
       sources: [source0],
       constants,
-    })) as LogicOpsTest & Contract;
+    };
 
-    const result0 = await logic0.run(); // expect 1
+    await logic.initialize(stateConfig0);
+
+    await logic.run();
+    const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 0 is not zero");
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.VAL, 1),
+      op(Opcode.CONSTANT, 1),
       op(Opcode.ISZERO),
     ]);
 
-    const logic1 = (await logicFactory.deploy({
+    const stateConfig1 = {
       sources: [source1],
       constants,
-    })) as LogicOpsTest & Contract;
+    };
+    await logic.initialize(stateConfig1);
 
-    const result1 = await logic1.run(); // expect 0
+    await logic.run();
+    const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is zero");
   });
