@@ -244,26 +244,11 @@ describe("RedeemableERC20ClaimEscrow", async function () {
 
     // attempt deposit with 0 rTKN supply
     await reserveToken.approve(claim.address, depositAmount);
-    const txDeposit = await claim.deposit(
-      sale.address,
-      reserveToken.address,
-      depositAmount
-    );
-
-    const { supply } = await getEventArgs(txDeposit, "Deposit", claim);
-
-    const trappedTokens0 = await reserveToken.balanceOf(claim.address);
-    console.log({ trappedTokens0 });
-
-    await claim
-      .connect(alice)
-      .withdraw(sale.address, reserveToken.address, supply);
-
-    const trappedTokens1 = await reserveToken.balanceOf(claim.address);
-    console.log({ trappedTokens1 });
-    assert(
-      trappedTokens1.isZero(),
-      "should safely remove tokens from escrow when rTKN supply is zero"
+    await Util.assertError(
+      async () =>
+        await claim.deposit(sale.address, reserveToken.address, depositAmount),
+      "ZERO_SUPPLY",
+      "did not prevent zero supply amount"
     );
   });
 
