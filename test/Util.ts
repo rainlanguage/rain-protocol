@@ -23,8 +23,8 @@ import type {
   ImplementationEvent as ImplementationEventVerifyTierFactory,
   VerifyTierFactory,
 } from "../typechain/VerifyTierFactory";
+import { BigNumber } from "ethers";
 import type {
-  BigNumber,
   Contract,
   BytesLike,
   BigNumberish,

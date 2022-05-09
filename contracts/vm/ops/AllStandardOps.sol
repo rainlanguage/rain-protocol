@@ -4,9 +4,9 @@ pragma solidity =0.8.10;
 import "../RainVM.sol";
 import "./evm/EVMConstantOps.sol";
 import "./math/FixedPointMathOps.sol";
-import "./token/IERC20Ops.sol";
-import "./token/IERC721Ops.sol";
-import "./token/IERC1155Ops.sol";
+import "./token/ERC20Ops.sol";
+import "./token/ERC721Ops.sol";
+import "./token/ERC1155Ops.sol";
 import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
 import "./tier/TierOps.sol";
@@ -125,18 +125,18 @@ library AllStandardOps {
                     two,
                     // select lte
                     TierOps.stackPopsSelectLte,
-                    // ierc20 balance of
+                    // erc20 balance of
                     two,
-                    // ierc20 total supply
+                    // erc20 total supply
                     one,
-                    // ierc721 balance of
+                    // erc721 balance of
                     two,
-                    // ierc721 owner of
+                    // erc721 owner of
                     two,
-                    // ierc1155 balance of
+                    // erc1155 balance of
                     three,
-                    // ierc1155 balance of batch
-                    IERC1155Ops.stackPopsBalanceOfBatch
+                    // erc1155 balance of batch
+                    ERC1155Ops.stackPopsBalanceOfBatch
                 ];
             bytes memory ret_;
             assembly {
@@ -317,12 +317,12 @@ library AllStandardOps {
                     TierOps.saturatingDiff,
                     TierOps.updateBlocksForTierRange,
                     TierOps.selectLte,
-                    IERC20Ops.balanceOf,
-                    IERC20Ops.totalSupply,
-                    IERC721Ops.balanceOf,
-                    IERC721Ops.ownerOf,
-                    IERC1155Ops.balanceOf,
-                    IERC1155Ops.balanceOfBatch
+                    ERC20Ops.balanceOf,
+                    ERC20Ops.totalSupply,
+                    ERC721Ops.balanceOf,
+                    ERC721Ops.ownerOf,
+                    ERC1155Ops.balanceOf,
+                    ERC1155Ops.balanceOfBatch
                 ];
             bytes memory ret_;
             assembly {

@@ -41,7 +41,7 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
-uint256 constant VM_SOURCE_INDEX = 0;
+uint256 constant ENTRYPOINT = 0;
 uint256 constant OPCODE_COUNTERPARTY = 0;
 uint256 constant OPCODE_COUNTERPARTY_FUNDS_CLEARED = 1;
 uint256 constant OPCODE_ORDER_FUNDS_CLEARED = 2;
@@ -50,12 +50,26 @@ uint256 constant LOCAL_OPS_LENGTH = 3;
 uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
 uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
 
+library LibEvalContext {
+    function toContextBytes(EvalContext memory evalContext_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        uint256[2] memory vals_;
+        vals_[0] = OrderHash.unwrap(evalContext_.orderHash);
+        vals_[1] = uint256(uint160(evalContext_.counterparty));
+        return abi.encodePacked(vals_);
+    }
+}
+
 contract OrderBook is RainVM {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
     using OrderLogic for OrderLiveness;
     using OrderLogic for Order;
+    using LibEvalContext for EvalContext;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -74,8 +88,6 @@ contract OrderBook is RainVM {
         ClearStateChange stateChange
     );
 
-    uint256 private immutable localOpsStart;
-
     // order hash => order liveness
     mapping(OrderHash => OrderLiveness) private orders;
     // depositor => token => vault => token amount.
@@ -89,10 +101,6 @@ contract OrderBook is RainVM {
     // order hash => order owner => token amount
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
-
-    constructor() {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
-    }
 
     modifier onlyOrderOwner(Order calldata config_) {
         require(msg.sender == config_.owner, "NOT_ORDER_OWNER");
@@ -182,9 +190,9 @@ contract OrderBook is RainVM {
                 {
                     vmState_ = a_.vmState;
                     eval(
-                        abi.encode(EvalContext(aHash_, b_.owner)),
+                        EvalContext(aHash_, b_.owner).toContextBytes(),
                         vmState_,
-                        VM_SOURCE_INDEX
+                        ENTRYPOINT
                     );
                     aPrice_ = vmState_.stack[vmState_.stackIndex - 1];
                     aOutputMax_ = vmState_.stack[vmState_.stackIndex - 2];
@@ -193,9 +201,9 @@ contract OrderBook is RainVM {
                 {
                     vmState_ = b_.vmState;
                     eval(
-                        abi.encode(EvalContext(bHash_, a_.owner)),
+                        EvalContext(bHash_, a_.owner).toContextBytes(),
                         vmState_,
-                        VM_SOURCE_INDEX
+                        ENTRYPOINT
                     );
                     bPrice_ = vmState_.stack[vmState_.stackIndex - 1];
                     bOutputMax_ = vmState_.stack[vmState_.stackIndex - 2];
@@ -276,40 +284,44 @@ contract OrderBook is RainVM {
         emit Clear(msg.sender, a_, b_, bountyConfig_, stateChange_);
     }
 
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override {
-        if (opcode_ < localOpsStart) {
-            AllStandardOps.applyOp(
-                state_,
-                opcode_ - ALL_STANDARD_OPS_START,
-                operand_
-            );
-        } else {
-            opcode_ -= localOpsStart;
-            require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-            EvalContext memory evalContext_ = abi.decode(
-                context_,
-                (EvalContext)
-            );
-            if (opcode_ == OPCODE_COUNTERPARTY) {
-                state_.stack[state_.stackIndex] = uint256(
-                    uint160(evalContext_.counterparty)
-                );
-            } else if (opcode_ == OPCODE_COUNTERPARTY_FUNDS_CLEARED) {
-                state_.stack[state_.stackIndex] = clearedCounterparty[
-                    evalContext_.orderHash
-                ][evalContext_.counterparty];
-            } else if (opcode_ == OPCODE_ORDER_FUNDS_CLEARED) {
-                state_.stack[state_.stackIndex] = clearedOrder[
-                    evalContext_.orderHash
-                ];
-            }
-            state_.stackIndex++;
-        }
+    // /// @inheritdoc RainVM
+    // function applyOp(
+    //     bytes memory context_,
+    //     State memory state_,
+    //     uint256 opcode_,
+    //     uint256 operand_
+    // ) internal view override {
+    //     if (opcode_ < localOpsStart) {
+    //         AllStandardOps.applyOp(
+    //             state_,
+    //             opcode_ - ALL_STANDARD_OPS_START,
+    //             operand_
+    //         );
+    //     } else {
+    //         opcode_ -= localOpsStart;
+    //         require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
+    //         EvalContext memory evalContext_ = abi.decode(
+    //             context_,
+    //             (EvalContext)
+    //         );
+    //         if (opcode_ == OPCODE_COUNTERPARTY) {
+    //             state_.stack[state_.stackIndex] = uint256(
+    //                 uint160(evalContext_.counterparty)
+    //             );
+    //         } else if (opcode_ == OPCODE_COUNTERPARTY_FUNDS_CLEARED) {
+    //             state_.stack[state_.stackIndex] = clearedCounterparty[
+    //                 evalContext_.orderHash
+    //             ][evalContext_.counterparty];
+    //         } else if (opcode_ == OPCODE_ORDER_FUNDS_CLEARED) {
+    //             state_.stack[state_.stackIndex] = clearedOrder[
+    //                 evalContext_.orderHash
+    //             ];
+    //         }
+    //         state_.stackIndex++;
+    //     }
+    // }
+
+    function fnPtrs() public pure override returns (bytes memory) {
+        return AllStandardOps.fnPtrs();
     }
 }
