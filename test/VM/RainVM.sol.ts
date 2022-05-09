@@ -98,7 +98,24 @@ describe("RainVM", async function () {
     });
   });
 
-  it("should return correct data with CONTEXT operand", async () => {
+  it("should error if accessing memory outside of context memory range", async () => {
+    this.timeout(0);
+
+    const constants = [];
+    const sources = [concat([op(Opcode.CONTEXT, 3)])];
+
+    await logic.initialize({ sources, constants });
+
+    const data = [10, 20, 30];
+
+    await Util.assertError(
+      async () => await logic.runContext(data),
+      "CONTEXT_LENGTH",
+      "did not error when accessing memory outside of context memory range"
+    );
+  });
+
+  it("should return correct context value when specifying context operand", async () => {
     this.timeout(0);
 
     const constants = [];
@@ -120,6 +137,7 @@ describe("RainVM", async function () {
     const expected = data;
 
     expected.forEach((expectedValue, index) => {
+      console.log({ expectedValue, actualValue: result[index] });
       assert(
         result[index].eq(expectedValue),
         `wrong value was returned at index ${index}
