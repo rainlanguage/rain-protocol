@@ -440,7 +440,10 @@ abstract contract RainVM {
                         // This is the only runtime integrity check that we do
                         // as it is not possible to know how long context might
                         // be in general until runtime.
-                        require(operand_ < context_.length);
+                        require(
+                            operand_ * 0x20 < context_.length,
+                            "CONTEXT_LENGTH"
+                        );
                         assembly {
                             mstore(
                                 stackTopLocation_,

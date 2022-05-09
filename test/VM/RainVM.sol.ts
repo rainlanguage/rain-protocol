@@ -9,6 +9,8 @@ import type {
   AllStandardOpsTest,
   StateStruct,
 } from "../../typechain/AllStandardOpsTest";
+import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
+import { FnPtrsTest } from "../../typechain/FnPtrsTest";
 
 const { assert } = chai;
 
@@ -17,20 +19,187 @@ const Opcode = Util.AllStandardOps;
 // Contains tests for RainVM, the constant RainVM ops as well as Math ops via AllStandardOpsTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM", async function () {
-  let stateBuilder;
-  let logic;
+  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let logic: AllStandardOpsTest & Contract;
+
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
-    stateBuilder = await stateBuilderFactory.deploy();
+    stateBuilder =
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
+        Contract;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       stateBuilder.address
     )) as AllStandardOpsTest & Contract;
+  });
+
+  it("should error when script length is odd", async () => {
+    this.timeout(0);
+
+    const constants = [];
+
+    const sources = [concat([bytify(Opcode.BLOCK_NUMBER)])];
+
+    await Util.assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "ODD_SOURCE_LENGTH",
+      "did not error when script length is odd"
+    );
+  });
+
+  it("should error when attempting to read stored value outside STORAGE opcode range", async () => {
+    this.timeout(0);
+
+    const constants = [];
+
+    // prettier-ignore
+    const sources = [concat([
+      op(Opcode.STORAGE, 3),
+    ])];
+
+    await Util.assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "", // there is at least an error
+      "should error when attempting to read stored value outside STORAGE opcode range"
+    );
+  });
+
+  it("should support reading stored values via STORAGE opcode", async () => {
+    this.timeout(0);
+
+    const constants = [];
+
+    // prettier-ignore
+    const sources = [concat([
+      op(Opcode.STORAGE, 0),
+      op(Opcode.STORAGE, 1),
+      op(Opcode.STORAGE, 2),
+    ])];
+
+    await logic.initialize({ sources, constants });
+
+    await logic.run();
+
+    const result = await logic.stack();
+    const expected = [0, 1, 2];
+
+    result.forEach((stackVal, index) => {
+      assert(
+        stackVal.eq(expected[index]),
+        `did not support reading stored value via STORAGE opcode at index ${index}
+        expected  ${expected[index]}
+        got       ${stackVal}`
+      );
+    });
+  });
+
+  it("should error if accessing memory outside of context memory range", async () => {
+    this.timeout(0);
+
+    const constants = [];
+    const sources = [concat([op(Opcode.CONTEXT, 3)])];
+
+    await logic.initialize({ sources, constants });
+
+    const data = [10, 20, 30];
+
+    await Util.assertError(
+      async () => await logic.runContext(data),
+      "CONTEXT_LENGTH",
+      "did not error when accessing memory outside of context memory range"
+    );
+  });
+
+  it("should return correct context value when specifying context operand", async () => {
+    this.timeout(0);
+
+    const constants = [];
+    const sources = [
+      concat([
+        op(Opcode.CONTEXT, 0),
+        op(Opcode.CONTEXT, 1),
+        op(Opcode.CONTEXT, 2),
+      ]),
+    ];
+
+    await logic.initialize({ sources, constants });
+
+    const data = [10, 20, 30];
+
+    await logic.runContext(data);
+
+    const result = await logic.stack();
+    const expected = data;
+
+    expected.forEach((expectedValue, index) => {
+      console.log({ expectedValue, actualValue: result[index] });
+      assert(
+        result[index].eq(expectedValue),
+        `wrong value was returned at index ${index}
+        expected  ${expectedValue}
+        got       ${result[index]}`
+      );
+    });
+  });
+
+  it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
+    this.timeout(0);
+
+    const constants = [];
+    const sources = [concat([op(Opcode.CONTEXT, 0)])];
+
+    await logic.initialize({ sources, constants });
+
+    const data = [42];
+
+    await logic.runContext(data);
+
+    const result = await logic.stackTop();
+    const expected = 42;
+
+    assert(
+      result.eq(expected),
+      `wrong value was returned
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should error when contract implementing RainVM returns fnPtrs length not divisible by 32 bytes", async () => {
+    this.timeout(0);
+
+    const fnPtrsTestFactory = await ethers.getContractFactory("FnPtrsTest");
+    const fnPtrsTest = (await fnPtrsTestFactory.deploy(
+      stateBuilder.address
+    )) as FnPtrsTest & Contract;
+
+    const constants = [1];
+    const sources = [concat([op(Opcode.CONSTANT, 0)])];
+
+    await Util.assertError(
+      async () => await fnPtrsTest.initialize({ sources, constants }),
+      "BAD_FN_PTRS_LENGTH",
+      "did not error when contract implementing RainVM returns fnPtrs length not divisible by 32 bytes"
+    );
+  });
+
+  it("should error when script references out-of-bounds opcode", async () => {
+    this.timeout(0);
+
+    const constants = [];
+
+    const sources = [concat([op(99)])];
+
+    await Util.assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "MAX_OPCODE",
+      "did not error when script references out-of-bounds opcode"
+    );
   });
 
   it("should error when trying to read an out-of-bounds argument", async () => {
@@ -43,7 +212,7 @@ describe("RainVM", async function () {
 
     const a0 = op(Opcode.CONSTANT, 3);
     const a1 = op(Opcode.CONSTANT, 4);
-    const aOOB = op(Opcode.CONSTANT, 5);
+    const aOOB = op(Opcode.CONSTANT, 6);
 
     // zero-based counting
     const sourceIndex = 1; // 1
@@ -66,10 +235,8 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
-
     await Util.assertError(
-      async () => await logic.run(),
+      async () => await logic.initialize({ sources, constants }),
       "", // there is at least an error
       "did not error when trying to read an out-of-bounds argument"
     );
@@ -83,16 +250,14 @@ describe("RainVM", async function () {
 
     const sources = [concat([vOOB])];
 
-    await logic.initialize({ sources, constants });
-
     await Util.assertError(
-      async () => await logic.run(),
+      async () => await logic.initialize({ sources, constants }),
       "", // there is at least an error
       "did not error when trying to read an out-of-bounds constant"
     );
   });
 
-  it("should prevent stack underflow at runtime due to bad RainVM script", async () => {
+  it("should prevent bad RainVM script attempting to access stack index out of bounds (underflow)", async () => {
     this.timeout(0);
 
     const constants = [0, 1];
@@ -108,16 +273,14 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
-
     await Util.assertError(
-      async () => await logic.run(),
-      "", // there is at least an error
-      "did not prevent stack underflow due to bad RainVM script"
+      async () => await logic.initialize({ sources, constants }),
+      "MAX_STACK",
+      "did not prevent bad RainVM script accessing stack index out of bounds"
     );
   });
 
-  it("should prevent stack overflow at runtime due to bad RainVM script", async () => {
+  it("should prevent bad RainVM script attempting to access stack index out of bounds (overflow)", async () => {
     this.timeout(0);
 
     const constants = [3, 2, 1];
@@ -135,39 +298,10 @@ describe("RainVM", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
-
     await Util.assertError(
-      async () => await logic.run(),
-      "", // there is at least an error
-      "did not prevent stack overflow due to bad RainVM script"
-    );
-  });
-
-  it("should prevent stack overflow at runtime", async () => {
-    this.timeout(0);
-
-    const constants = [3, 2, 1];
-    const v3 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
-    const v1 = op(Opcode.CONSTANT, 2);
-
-    const sources = [
-      concat([
-        // (1 2 3 +)
-        v1,
-        v2,
-        v3,
-        op(Opcode.ADD, 3),
-      ]),
-    ];
-
-    await logic.initialize({ sources, constants });
-
-    await Util.assertError(
-      async () => await logic.run(),
-      "STACK_OVERFLOW",
-      "did not prevent stack overflow from misconfigured stack length on construction"
+      async () => await logic.initialize({ sources, constants }),
+      "MAX_STACK",
+      "did not prevent bad RainVM script accessing stack index out of bounds"
     );
   });
 

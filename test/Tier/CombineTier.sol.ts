@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, op, paddedUInt32, paddedUInt256 } from "../Util";
+import { op, paddedUInt32, paddedUInt256 } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
