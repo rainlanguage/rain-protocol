@@ -56,7 +56,9 @@ library MathOps {
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
         }
-        while (cursor_ < stackTopLocation_) {
+        while (
+            cursor_ < stackTopLocation_ && accumulator_ < type(uint256).max
+        ) {
             assembly {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
@@ -112,7 +114,7 @@ library MathOps {
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
         }
-        while (cursor_ < stackTopLocation_) {
+        while (cursor_ < stackTopLocation_ && 0 < accumulator_) {
             assembly {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
@@ -172,7 +174,9 @@ library MathOps {
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
         }
-        while (cursor_ < stackTopLocation_) {
+        while (
+            cursor_ < stackTopLocation_ && accumulator_ < type(uint256).max
+        ) {
             assembly {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
@@ -261,6 +265,7 @@ library MathOps {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
             }
+            // This is NOT in assembly so that we get overflow safety.
             accumulator_ = accumulator_**item_;
         }
         assembly {

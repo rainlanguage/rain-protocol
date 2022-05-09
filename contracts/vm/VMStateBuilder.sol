@@ -58,12 +58,6 @@ contract VMStateBuilder {
         }
     }
 
-    // /// A new shapshot has been deployed onchain.
-    // /// @param sender `msg.sender` of the deployer.
-    // /// @param pointer Pointer to the onchain snapshot contract.
-    // /// @param state `State` of the snapshot that was deployed.
-    // event Snapshot(address sender, address pointer, State state);
-
     /// Builds a new `State` bytes from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
