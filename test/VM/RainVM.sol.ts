@@ -52,6 +52,73 @@ describe("RainVM", async function () {
     );
   });
 
+  it("should error when attempting to read stored value outside STORAGE opcode range", async () => {
+    this.timeout(0);
+
+    const constants = [];
+
+    // prettier-ignore
+    const sources = [concat([
+      op(Opcode.STORAGE, 3),
+    ])];
+
+    await Util.assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "", // there is at least an error
+      "should error when attempting to read stored value outside STORAGE opcode range"
+    );
+  });
+
+  it("should support reading stored values via STORAGE opcode", async () => {
+    this.timeout(0);
+
+    const constants = [];
+
+    // prettier-ignore
+    const sources = [concat([
+      op(Opcode.STORAGE, 0),
+      op(Opcode.STORAGE, 1),
+      op(Opcode.STORAGE, 2),
+    ])];
+
+    await logic.initialize({ sources, constants });
+
+    await logic.run();
+
+    const result = await logic.stack();
+    const expected = [0, 1, 2];
+
+    result.forEach((stackVal, index) => {
+      assert(
+        stackVal.eq(expected[index]),
+        `did not support reading stored value via STORAGE opcode at index ${index}
+        expected  ${expected[index]}
+        got       ${stackVal}`
+      );
+    });
+  });
+
+  it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
+    this.timeout(0);
+
+    const constants = [];
+    const sources = [concat([op(Opcode.CONTEXT)])];
+
+    await logic.initialize({ sources, constants });
+
+    await logic.runContext(42);
+
+    const result = await logic.stackTop();
+    const expected = 42;
+
+    assert(
+      result.eq(expected),
+      `wrong value added to stack via context opcode
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
   it("should error when contract implementing RainVM returns fnPtrs length not divisible by 32 bytes", async () => {
     this.timeout(0);
 
@@ -61,7 +128,7 @@ describe("RainVM", async function () {
     )) as FnPtrsTest & Contract;
 
     const constants = [1];
-    const sources = [op(Opcode.CONSTANT, 0)];
+    const sources = [concat([op(Opcode.CONSTANT, 0)])];
 
     await Util.assertError(
       async () => await fnPtrsTest.initialize({ sources, constants }),

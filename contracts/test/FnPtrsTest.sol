@@ -38,7 +38,7 @@ contract FnPtrsTest is RainVM {
             function(uint256, uint256)
                 view
                 returns (uint256)[2]
-                memory fns_ = [zeroFn_,zeroFn_];
+                memory fns_ = [zeroFn_, zeroFn_];
             bytes memory ret_;
             assembly {
                 mstore(fns_, lenBytes_)
