@@ -10,6 +10,7 @@ import type {
   StateStruct,
 } from "../../typechain/AllStandardOpsTest";
 import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
+import { FnPtrsTest } from "../../typechain/FnPtrsTest";
 
 const { assert } = chai;
 
@@ -35,6 +36,52 @@ describe("RainVM", async function () {
     logic = (await logicFactory.deploy(
       stateBuilder.address
     )) as AllStandardOpsTest & Contract;
+  });
+
+  it("should error when script length is odd", async () => {
+    this.timeout(0);
+
+    const constants = [];
+
+    const sources = [concat([bytify(Opcode.BLOCK_NUMBER)])];
+
+    await Util.assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "ODD_SOURCE_LENGTH",
+      "did not error when script length is odd"
+    );
+  });
+
+  it("should error when contract implementing RainVM returns fnPtrs length not divisible by 32 bytes", async () => {
+    this.timeout(0);
+
+    const fnPtrsTestFactory = await ethers.getContractFactory("FnPtrsTest");
+    const fnPtrsTest = (await fnPtrsTestFactory.deploy(
+      stateBuilder.address
+    )) as FnPtrsTest & Contract;
+
+    const constants = [1];
+    const sources = [op(Opcode.CONSTANT, 0)];
+
+    await Util.assertError(
+      async () => await fnPtrsTest.initialize({ sources, constants }),
+      "BAD_FN_PTRS_LENGTH",
+      "did not error when contract implementing RainVM returns fnPtrs length not divisible by 32 bytes"
+    );
+  });
+
+  it("should error when script references out-of-bounds opcode", async () => {
+    this.timeout(0);
+
+    const constants = [];
+
+    const sources = [concat([op(99)])];
+
+    await Util.assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "MAX_OPCODE",
+      "did not error when script references out-of-bounds opcode"
+    );
   });
 
   it("should error when trying to read an out-of-bounds argument", async () => {
@@ -110,7 +157,7 @@ describe("RainVM", async function () {
 
     await Util.assertError(
       async () => await logic.initialize({ sources, constants }),
-      "STACK_OVERFLOW",
+      "MAX_STACK",
       "did not prevent bad RainVM script accessing stack index out of bounds"
     );
   });
@@ -135,7 +182,7 @@ describe("RainVM", async function () {
 
     await Util.assertError(
       async () => await logic.initialize({ sources, constants }),
-      "STACK_OVERFLOW",
+      "MAX_STACK",
       "did not prevent bad RainVM script accessing stack index out of bounds"
     );
   });

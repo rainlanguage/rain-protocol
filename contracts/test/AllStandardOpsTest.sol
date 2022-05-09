@@ -8,7 +8,7 @@ import "../vm/VMStateBuilder.sol";
 
 uint256 constant ENTRYPOINT = 0;
 
-/// @title StandardOpsTest
+/// @title AllStandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
 contract AllStandardOpsTest is RainVM {
     address private immutable self;
