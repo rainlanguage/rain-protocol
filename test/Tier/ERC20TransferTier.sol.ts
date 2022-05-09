@@ -16,6 +16,7 @@ import {
   basicDeploy,
   eighteenZeros,
   getEventArgs,
+  max_uint256,
   zeroAddress,
 } from "../Util";
 
@@ -235,6 +236,9 @@ describe("ERC20TransferTier", async function () {
       "alice doesn't have 0 ERC20 tokens"
     );
 
+    await reserve
+      .connect(alice)
+      .approve(erc20TransferTier.address, max_uint256);
     await assertError(
       async () =>
         await erc20TransferTier

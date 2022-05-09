@@ -5,11 +5,12 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {RainVM, State} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {VMStateBuilder, StateConfig} from "../vm/VMStateBuilder.sol";
+import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
-import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
+import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "../sstore2/SSTORE2.sol";
 
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
@@ -23,6 +24,9 @@ struct EmissionsERC20Config {
     ERC20Config erc20Config;
     StateConfig vmStateConfig;
 }
+
+/// @dev Source index for VM eval.
+uint256 constant ENTRYPOINT = 0;
 
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -40,7 +44,6 @@ struct EmissionsERC20Config {
 contract EmissionsERC20 is
     Initializable,
     RainVM,
-    VMState,
     ERC20Upgradeable,
     IClaim,
     ReadOnlyTier
@@ -51,13 +54,8 @@ contract EmissionsERC20 is
     /// of another account.
     event Initialize(address sender, bool allowDelegatedClaims);
 
-    /// @dev local opcode to put claimant account on the stack.
-    uint256 private constant OPCODE_CLAIMANT_ACCOUNT = 0;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 1;
-
-    /// @dev local offset for local ops.
-    uint256 private immutable localOpsStart;
+    address private immutable self;
+    address private immutable vmStateBuilder;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
@@ -77,13 +75,13 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
-    constructor() {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+    constructor(address vmStateBuilder_) {
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function initialize(EmissionsERC20Config memory config_)
+    function initialize(EmissionsERC20Config calldata config_)
         external
         initializer
     {
@@ -93,37 +91,17 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = _snapshot(_newState(config_.vmStateConfig));
+        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            config_.vmStateConfig,
+            ENTRYPOINT + 1
+        );
+        vmStatePointer = SSTORE2.write(vmStateBytes_);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
 
         emit Initialize(msg.sender, config_.allowDelegatedClaims);
-    }
-
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override {
-        unchecked {
-            if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
-            } else {
-                opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                // There's only one opcode, which stacks the account address.
-                address account_ = abi.decode(context_, (address));
-                state_.stack[state_.stackIndex] = uint256(uint160(account_));
-                state_.stackIndex++;
-            }
-        }
     }
 
     /// @inheritdoc ITier
@@ -134,10 +112,11 @@ contract EmissionsERC20 is
         override
         returns (uint256)
     {
-        return
-            reports[account_] > 0
-                ? reports[account_]
-                : TierConstants.NEVER_REPORT;
+        return reports[account_];
+    }
+
+    function fnPtrs() public pure override returns (bytes memory) {
+        return AllStandardOps.fnPtrs();
     }
 
     /// Calculates the claim without processing it.
@@ -150,8 +129,15 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(claimant_), state_, 0);
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
+        bytes memory context_ = new bytes(0x20);
+        uint256 claimantContext_ = uint256(uint160(claimant_));
+        assembly {
+            mstore(add(context_, 0x20), claimantContext_)
+        }
+        eval(context_, state_, ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }
 

@@ -3,12 +3,14 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import {RainVM, State} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
-import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
+import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
+import "../vm/VMStateBuilder.sol";
+
+uint256 constant ENTRYPOINT = 0;
 
 /// @title CombineTier
 /// @notice Implements `ReadOnlyTier` over RainVM. Allows combining the reports
@@ -16,50 +18,32 @@ import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
 /// construction.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
-contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
-    /// @dev local opcode to put tier report account on the stack.
-    uint256 private constant OPCODE_ACCOUNT = 0;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 1;
-
-    /// @dev local offset for combine tier ops.
-    uint256 private immutable localOpsStart;
-
+contract CombineTier is ReadOnlyTier, RainVM, Initializable {
+    // This allows cloned contracts to forward the template contract to the VM
+    // state builder during initialization.
+    address private immutable self;
+    address private immutable vmStateBuilder;
     address private vmStatePointer;
 
-    constructor() {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+    constructor(address vmStateBuilder_) {
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
     }
 
-    /// @param config_ The StateConfig will be deployed as a pointer under
-    /// `vmStatePointer`.
-    function initialize(StateConfig memory config_) external initializer {
-        vmStatePointer = _snapshot(_newState(config_));
+    function initialize(StateConfig calldata sourceConfig_)
+        external
+        initializer
+    {
+        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            sourceConfig_,
+            ENTRYPOINT + 1
+        );
+        vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override {
-        unchecked {
-            if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
-            } else {
-                opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                // There's only one opcode, which stacks the address to report.
-                address account_ = abi.decode(context_, (address));
-                state_.stack[state_.stackIndex] = uint256(uint160(account_));
-                state_.stackIndex++;
-            }
-        }
+    function fnPtrs() public pure override returns (bytes memory) {
+        return AllStandardOps.fnPtrs();
     }
 
     /// @inheritdoc ITier
@@ -70,8 +54,15 @@ contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
         override
         returns (uint256)
     {
-        State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(account_), state_, 0);
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
+        bytes memory context_ = new bytes(0x20);
+        uint256 accountContext_ = uint256(uint160(account_));
+        assembly {
+            mstore(add(context_, 0x20), accountContext_)
+        }
+        eval(context_, state_, ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }
 }

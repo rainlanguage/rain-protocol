@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, op, paddedUInt32, paddedUInt256 } from "../Util";
+import { op, paddedUInt32, paddedUInt256 } from "../Util";
 import type { Contract } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
@@ -21,18 +21,7 @@ enum Tier {
   SEVEN,
   EIGHT,
 }
-
-enum CombineTierOps {
-  ACCOUNT = 0 + Util.AllStandardOps.length,
-}
-
-export const Opcode = {
-  ...Util.AllStandardOps,
-  ...CombineTierOps,
-};
-
-const sourceAlways = concat([op(Opcode.ALWAYS)]);
-const sourceNever = concat([op(Opcode.NEVER)]);
+export const Opcode = Util.AllStandardOps;
 
 describe("CombineTier", async function () {
   it("should correctly combine Always and Never tier contracts with orLeft", async () => {
@@ -41,16 +30,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
-      stackLength: 8,
-      argumentsLength: 0,
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [0],
     });
     const neverTier = await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
-      stackLength: 8,
-      argumentsLength: 0,
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [Util.ALWAYS],
     });
 
     const constants = [
@@ -59,11 +44,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -75,8 +60,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      stackLength: 8,
-      argumentsLength: 0,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -99,16 +82,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
-      stackLength: 8,
-      argumentsLength: 0,
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
-      stackLength: 8,
-      argumentsLength: 0,
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -117,11 +96,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -133,8 +112,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -157,16 +134,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -175,11 +148,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -191,8 +164,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -215,16 +186,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -233,11 +200,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -249,8 +216,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -273,16 +238,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -291,11 +252,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -307,8 +268,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -331,16 +290,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -349,11 +304,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -365,8 +320,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address);
@@ -389,16 +342,12 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlways],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 2,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.ALWAYS],
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNever],
-      constants: [],
-      argumentsLength: 0,
-      stackLength: 2,
+      sources: [op(Opcode.CONSTANT, 0)],
+      constants: [Util.NEVER],
     })) as CombineTier & Contract;
 
     const constants = [
@@ -407,22 +356,20 @@ describe("CombineTier", async function () {
     ];
 
     const sourceAlwaysReport = concat([
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT, 0),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT, 0),
       op(Opcode.REPORT, 0),
     ]);
 
     const sourceNeverReport = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT, 0),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT, 0),
       op(Opcode.REPORT, 0),
     ]);
 
     const combineTierAlways = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceAlwaysReport],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const resultAlwaysReport = await combineTierAlways.report(
@@ -440,8 +387,6 @@ describe("CombineTier", async function () {
     const combineTierNever = (await Util.combineTierDeploy(signers[0], {
       sources: [sourceNeverReport],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const resultNeverReport = await combineTierNever.report(signers[1].address);
@@ -460,13 +405,11 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const source = concat([bytify(Opcode.ACCOUNT)]);
+    const source = concat([op(Opcode.CONTEXT, 0)]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants: [],
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[1].address);
@@ -498,11 +441,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -514,8 +457,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -631,11 +572,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -647,8 +588,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -766,11 +705,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -782,8 +721,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -888,11 +825,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -904,8 +841,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -1022,11 +957,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -1038,8 +973,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
@@ -1156,11 +1089,11 @@ describe("CombineTier", async function () {
     ];
 
     const source = concat([
-      op(Opcode.VAL, 1),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
-      op(Opcode.VAL, 0),
-      op(Opcode.ACCOUNT),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONTEXT),
       op(Opcode.REPORT),
       op(Opcode.BLOCK_NUMBER),
       op(
@@ -1172,8 +1105,6 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       sources: [source],
       constants,
-      argumentsLength: 0,
-      stackLength: 8,
     })) as CombineTier & Contract;
 
     const startBlock = await ethers.provider.getBlockNumber();
