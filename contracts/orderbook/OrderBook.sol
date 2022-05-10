@@ -42,10 +42,10 @@ struct ClearStateChange {
 }
 
 uint256 constant ENTRYPOINT = 0;
-uint256 constant OPCODE_COUNTERPARTY = 0;
-uint256 constant OPCODE_COUNTERPARTY_FUNDS_CLEARED = 1;
-uint256 constant OPCODE_ORDER_FUNDS_CLEARED = 2;
-uint256 constant LOCAL_OPS_LENGTH = 3;
+
+// - order funds cleared
+// - order counterparty funds cleared
+uint256 constant LOCAL_OPS_LENGTH = 2;
 
 uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
 uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
@@ -284,44 +284,75 @@ contract OrderBook is RainVM {
         emit Clear(msg.sender, a_, b_, bountyConfig_, stateChange_);
     }
 
-    // /// @inheritdoc RainVM
-    // function applyOp(
-    //     bytes memory context_,
-    //     State memory state_,
-    //     uint256 opcode_,
-    //     uint256 operand_
-    // ) internal view override {
-    //     if (opcode_ < localOpsStart) {
-    //         AllStandardOps.applyOp(
-    //             state_,
-    //             opcode_ - ALL_STANDARD_OPS_START,
-    //             operand_
-    //         );
-    //     } else {
-    //         opcode_ -= localOpsStart;
-    //         require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-    //         EvalContext memory evalContext_ = abi.decode(
-    //             context_,
-    //             (EvalContext)
-    //         );
-    //         if (opcode_ == OPCODE_COUNTERPARTY) {
-    //             state_.stack[state_.stackIndex] = uint256(
-    //                 uint160(evalContext_.counterparty)
-    //             );
-    //         } else if (opcode_ == OPCODE_COUNTERPARTY_FUNDS_CLEARED) {
-    //             state_.stack[state_.stackIndex] = clearedCounterparty[
-    //                 evalContext_.orderHash
-    //             ][evalContext_.counterparty];
-    //         } else if (opcode_ == OPCODE_ORDER_FUNDS_CLEARED) {
-    //             state_.stack[state_.stackIndex] = clearedOrder[
-    //                 evalContext_.orderHash
-    //             ];
-    //         }
-    //         state_.stackIndex++;
-    //     }
-    // }
+    function opOrderFundsCleared(uint256, uint256 stackTopLocation_)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 location_;
+        OrderHash orderHash_;
+        assembly {
+            location_ := sub(stackTopLocation_, 0x20)
+            orderHash_ := mload(location_)
+        }
+        uint256 fundsCleared_ = clearedOrder[orderHash_];
+        assembly {
+            mstore(location_, fundsCleared_)
+        }
+        return stackTopLocation_;
+    }
+
+    function opOrderCounterpartyFundsCleared(uint256, uint256 stackTopLocation_)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 location_;
+        OrderHash orderHash_;
+        uint256 counterparty_;
+        assembly {
+            stackTopLocation_ := sub(stackTopLocation_, 0x20)
+            location_ := sub(stackTopLocation_, 0x20)
+            orderHash_ := mload(location_)
+            counterparty_ := mload(stackTopLocation_)
+        }
+        uint256 fundsCleared_ = clearedCounterparty[orderHash_][
+            address(uint160(counterparty_))
+        ];
+        assembly {
+            mstore(location_, fundsCleared_)
+        }
+        return stackTopLocation_;
+    }
+
+    function localFnPtrs() internal pure returns (bytes memory) {
+        unchecked {
+            uint256 lenBytes_ = LOCAL_OPS_LENGTH * 0x20;
+            function(uint256, uint256) pure returns (uint256) zeroFn_;
+            assembly {
+                zeroFn_ := 0
+            }
+            function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH +
+                1]
+                memory fns_ = [
+                    // will be overridden with length
+                    zeroFn_,
+                    opOrderFundsCleared,
+                    opOrderCounterpartyFundsCleared
+                ];
+            bytes memory ret_;
+            assembly {
+                mstore(fns_, lenBytes_)
+                ret_ := fns_
+            }
+            return ret_;
+        }
+    }
 
     function fnPtrs() public pure override returns (bytes memory) {
-        return AllStandardOps.fnPtrs();
+        return bytes.concat(
+            AllStandardOps.fnPtrs(),
+            localFnPtrs()
+        );
     }
 }
