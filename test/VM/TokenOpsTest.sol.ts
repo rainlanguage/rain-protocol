@@ -3,7 +3,7 @@ import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
-import type { Contract, ContractFactory } from "ethers";
+import type { Contract } from "ethers";
 
 import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -24,9 +24,9 @@ let tokenERC20: ReserveToken;
 let tokenERC721: ReserveTokenERC721;
 let tokenERC1155: ReserveTokenERC1155;
 
-describe("TokenOps Test", async function () {
+describe("TokenOps", async function () {
   let stateBuilder;
-  let logic;
+  let logic: AllStandardOpsTest & Contract;
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(

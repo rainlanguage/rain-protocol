@@ -19,6 +19,7 @@ import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { Opcode } from "./OrderBookUtil";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
+import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
 
 const { assert } = chai;
 
@@ -30,6 +31,8 @@ let orderBookFactory: ContractFactory,
   tokenB: ReserveToken18 & Contract;
 
 describe("OrderBook", async function () {
+  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+
   beforeEach(async () => {
     tokenA = (await Util.basicDeploy("ReserveToken18", {})) as ReserveToken18 &
       Contract;
@@ -38,6 +41,14 @@ describe("OrderBook", async function () {
   });
 
   before(async () => {
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder =
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
+        Contract;
+    await stateBuilder.deployed();
+
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
@@ -64,9 +75,9 @@ describe("OrderBook", async function () {
     const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askBlock = await ethers.provider.getBlockNumber();
     const askConstants = [askPrice, askBlock, 5];
-    const vAskPrice = op(Opcode.VAL, 0);
-    const vAskBlock = op(Opcode.VAL, 1);
-    const v5 = op(Opcode.VAL, 2);
+    const vAskPrice = op(Opcode.CONSTANT, 0);
+    const vAskBlock = op(Opcode.CONSTANT, 1);
+    const v5 = op(Opcode.CONSTANT, 2);
     // prettier-ignore
     const askSource = concat([
       // outputMax = (currentBlock - askBlock) * 5 - aliceCleared
@@ -91,9 +102,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [askSource],
+        ptrSources: [askSource],
         constants: askConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -115,8 +126,8 @@ describe("OrderBook", async function () {
     const bidOutputMax = Util.max_uint256;
     const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [bidOutputMax, bidPrice];
-    const vBidOutputMax = op(Opcode.VAL, 0);
-    const vBidPrice = op(Opcode.VAL, 1);
+    const vBidOutputMax = op(Opcode.CONSTANT, 0);
+    const vBidPrice = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -132,9 +143,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [bidSource],
+        ptrSources: [bidSource],
         constants: bidConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -268,9 +279,9 @@ describe("OrderBook", async function () {
     const askBlock = await ethers.provider.getBlockNumber();
 
     const askConstants = [askPrice, askBlock, 5];
-    const vAskPrice = op(Opcode.VAL, 0);
-    const vAskBlock = op(Opcode.VAL, 1);
-    const v5 = op(Opcode.VAL, 2);
+    const vAskPrice = op(Opcode.CONSTANT, 0);
+    const vAskBlock = op(Opcode.CONSTANT, 1);
+    const v5 = op(Opcode.CONSTANT, 2);
     // prettier-ignore
     const askSource = concat([
       // outputMax = (currentBlock - askBlock) * 5 - bidderCleared
@@ -295,9 +306,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [askSource],
+        ptrSources: [askSource],
         constants: askConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -319,8 +330,8 @@ describe("OrderBook", async function () {
     const bidOutputMax = Util.max_uint256;
     const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [bidOutputMax, bidPrice];
-    const vBidOutputMax = op(Opcode.VAL, 0);
-    const vBidPrice = op(Opcode.VAL, 1);
+    const vBidOutputMax = op(Opcode.CONSTANT, 0);
+    const vBidPrice = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -336,9 +347,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [bidSource],
+        ptrSources: [bidSource],
         constants: bidConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -360,8 +371,8 @@ describe("OrderBook", async function () {
     const carolOutputMax = Util.max_uint256;
     const carolPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const carolConstants = [carolOutputMax, carolPrice];
-    const vCarolOutputMax = op(Opcode.VAL, 0);
-    const vCarolPrice = op(Opcode.VAL, 1);
+    const vCarolOutputMax = op(Opcode.CONSTANT, 0);
+    const vCarolPrice = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const carolSource = concat([
       vCarolOutputMax,
@@ -377,9 +388,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [carolSource],
+        ptrSources: [carolSource],
         constants: carolConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -663,9 +674,9 @@ describe("OrderBook", async function () {
     const askBlock = await ethers.provider.getBlockNumber();
 
     const askConstants = [askPrice, askBlock, 5];
-    const vAskPrice = op(Opcode.VAL, 0);
-    const vAskBlock = op(Opcode.VAL, 1);
-    const v5 = op(Opcode.VAL, 2);
+    const vAskPrice = op(Opcode.CONSTANT, 0);
+    const vAskBlock = op(Opcode.CONSTANT, 1);
+    const v5 = op(Opcode.CONSTANT, 2);
     // prettier-ignore
     const askSource = concat([
       // outputMax = (currentBlock - askBlock) * 5 - aliceCleared
@@ -690,9 +701,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [askSource],
+        ptrSources: [askSource],
         constants: askConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -714,8 +725,8 @@ describe("OrderBook", async function () {
     const bidOutputMax = Util.max_uint256;
     const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [bidOutputMax, bidPrice];
-    const vBidOutputMax = op(Opcode.VAL, 0);
-    const vBidPrice = op(Opcode.VAL, 1);
+    const vBidOutputMax = op(Opcode.CONSTANT, 0);
+    const vBidPrice = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -731,9 +742,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [bidSource],
+        ptrSources: [bidSource],
         constants: bidConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -923,10 +934,10 @@ describe("OrderBook", async function () {
       askPrice,
       carol.address,
     ];
-    const vAskOutputMax = op(Opcode.VAL, 0);
-    const vAskOutputMaxIfNotMatch = op(Opcode.VAL, 1);
-    const vAskPrice = op(Opcode.VAL, 2);
-    const vExpectedCounterparty = op(Opcode.VAL, 3);
+    const vAskOutputMax = op(Opcode.CONSTANT, 0);
+    const vAskOutputMaxIfNotMatch = op(Opcode.CONSTANT, 1);
+    const vAskPrice = op(Opcode.CONSTANT, 2);
+    const vExpectedCounterparty = op(Opcode.CONSTANT, 3);
     // prettier-ignore
     const askSource = concat([
           op(Opcode.COUNTERPARTY),
@@ -948,9 +959,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [askSource],
+        ptrSources: [askSource],
         constants: askConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -971,8 +982,8 @@ describe("OrderBook", async function () {
 
     const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [Util.max_uint256, bidPrice];
-    const vBidOutputMax = op(Opcode.VAL, 0);
-    const vBidPrice = op(Opcode.VAL, 1);
+    const vBidOutputMax = op(Opcode.CONSTANT, 0);
+    const vBidPrice = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -988,9 +999,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [bidSource],
+        ptrSources: [bidSource],
         constants: bidConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -1011,8 +1022,8 @@ describe("OrderBook", async function () {
 
     const bidPriceCarol = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstantsCarol = [Util.max_uint256, bidPriceCarol];
-    const vBidOutputMaxCarol = op(Opcode.VAL, 0);
-    const vBidPriceCarol = op(Opcode.VAL, 1);
+    const vBidOutputMaxCarol = op(Opcode.CONSTANT, 0);
+    const vBidPriceCarol = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const bidSourceCarol = concat([
       vBidOutputMaxCarol,
@@ -1028,9 +1039,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [bidSourceCarol],
+        ptrSources: [bidSourceCarol],
         constants: bidConstantsCarol,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -1199,8 +1210,8 @@ describe("OrderBook", async function () {
 
     const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askConstants = [Util.max_uint256, askPrice];
-    const vAskOutputMax = op(Opcode.VAL, 0);
-    const vAskPrice = op(Opcode.VAL, 1);
+    const vAskOutputMax = op(Opcode.CONSTANT, 0);
+    const vAskPrice = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -1216,9 +1227,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [askSource],
+        ptrSources: [askSource],
         constants: askConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -1342,8 +1353,8 @@ describe("OrderBook", async function () {
 
     const askPrice = ethers.BigNumber.from("90" + Util.eighteenZeros);
     const askConstants = [Util.max_uint256, askPrice];
-    const vAskOutputMax = op(Opcode.VAL, 0);
-    const vAskPrice = op(Opcode.VAL, 1);
+    const vAskOutputMax = op(Opcode.CONSTANT, 0);
+    const vAskPrice = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -1359,9 +1370,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [askSource],
+        ptrSources: [askSource],
         constants: askConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
@@ -1382,8 +1393,8 @@ describe("OrderBook", async function () {
 
     const bidPrice = Util.fixedPointDiv(Util.ONE, askPrice);
     const bidConstants = [Util.max_uint256, bidPrice];
-    const vBidOutputMax = op(Opcode.VAL, 0);
-    const vBidPrice = op(Opcode.VAL, 1);
+    const vBidOutputMax = op(Opcode.CONSTANT, 0);
+    const vBidPrice = op(Opcode.CONSTANT, 1);
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -1399,9 +1410,9 @@ describe("OrderBook", async function () {
       vmState: {
         stackIndex: 0,
         stack: [0, 0],
-        sources: [bidSource],
+        ptrSources: [bidSource],
         constants: bidConstants,
-        arguments: [],
+        argumentsIndex: 0,
       },
     };
 
