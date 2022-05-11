@@ -32,6 +32,9 @@ let orderBookFactory: ContractFactory,
   tokenB: ReserveToken18 & Contract;
 
 describe("OrderBook", async function () {
+  const cOrderHash = op(Opcode.CONTEXT, 0);
+  const cCounterparty = op(Opcode.CONTEXT, 1);
+
   let stateBuilder: OrderBookStateBuilder & Contract;
 
   beforeEach(async () => {
@@ -89,6 +92,7 @@ describe("OrderBook", async function () {
           op(Opcode.SUB, 2),
           v5,
         op(Opcode.MUL, 2),
+          cOrderHash,
         op(Opcode.ORDER_FUNDS_CLEARED),
       op(Opcode.SUB, 2),
       vAskPrice,
@@ -289,6 +293,8 @@ describe("OrderBook", async function () {
           op(Opcode.SUB, 2),
           v5,
         op(Opcode.MUL, 2),
+          cOrderHash,
+          cCounterparty,
         op(Opcode.COUNTERPARTY_FUNDS_CLEARED),
       op(Opcode.SUB, 2),
       vAskPrice,
@@ -677,6 +683,7 @@ describe("OrderBook", async function () {
           op(Opcode.SUB, 2),
           v5,
         op(Opcode.MUL, 2),
+          cOrderHash,
         op(Opcode.ORDER_FUNDS_CLEARED),
       op(Opcode.SUB, 2),
       vAskPrice,
@@ -925,9 +932,10 @@ describe("OrderBook", async function () {
     const vAskOutputMaxIfNotMatch = op(Opcode.CONSTANT, 1);
     const vAskPrice = op(Opcode.CONSTANT, 2);
     const vExpectedCounterparty = op(Opcode.CONSTANT, 3);
+
     // prettier-ignore
     const askSource = concat([
-          op(Opcode.COUNTERPARTY),
+          cCounterparty,
           vExpectedCounterparty,
         op(Opcode.EQUAL_TO),
         vAskOutputMax,
