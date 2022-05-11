@@ -99,7 +99,6 @@ describe("OrderBook", async function () {
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
-      owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
@@ -137,7 +136,6 @@ describe("OrderBook", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
-      owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
@@ -299,7 +297,6 @@ describe("OrderBook", async function () {
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
-      owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
@@ -337,7 +334,6 @@ describe("OrderBook", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
-      owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
@@ -375,7 +371,6 @@ describe("OrderBook", async function () {
       vCarolPrice,
     ]);
     const carolOrderConfig: OrderConfigStruct = {
-      owner: carol.address,
       inputToken: tokenB.address,
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
@@ -685,7 +680,6 @@ describe("OrderBook", async function () {
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
-      owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
@@ -723,7 +717,6 @@ describe("OrderBook", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
-      owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
@@ -938,7 +931,6 @@ describe("OrderBook", async function () {
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
-      owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
@@ -975,7 +967,6 @@ describe("OrderBook", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
-      owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
@@ -1012,7 +1003,6 @@ describe("OrderBook", async function () {
       vBidPriceCarol,
     ]);
     const bidOrderConfigCarol: OrderConfigStruct = {
-      owner: carol.address,
       inputToken: tokenB.address,
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
@@ -1200,7 +1190,6 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
     const askOrderConfig: OrderConfigStruct = {
-      owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
@@ -1343,7 +1332,6 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
     const askOrderConfig: OrderConfigStruct = {
-      owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
@@ -1380,7 +1368,6 @@ describe("OrderBook", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
-      owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
