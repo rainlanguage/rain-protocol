@@ -82,9 +82,9 @@ contract OrderBook is RainVM {
         address sender,
         Order a_,
         Order b_,
-        BountyConfig bountyConfig,
-        ClearStateChange stateChange
+        BountyConfig bountyConfig
     );
+    event AfterClear(ClearStateChange stateChange);
 
     address private immutable self;
     address private immutable vmStateBuilder;
@@ -190,6 +190,10 @@ contract OrderBook is RainVM {
             uint256 aOutputMax_;
             uint256 bOutputMax_;
 
+            // emit the Clear event before a_ and b_ are mutated due to the
+            // VM execution in eval.
+            emit Clear(msg.sender, a_, b_, bountyConfig_);
+
             unchecked {
                 State memory vmState_;
                 {
@@ -286,7 +290,8 @@ contract OrderBook is RainVM {
                 ] += bBounty_;
             }
         }
-        emit Clear(msg.sender, a_, b_, bountyConfig_, stateChange_);
+
+        emit AfterClear(stateChange_);
     }
 
     function opOrderFundsCleared(uint256, uint256 stackTopLocation_)
