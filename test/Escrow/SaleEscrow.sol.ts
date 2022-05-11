@@ -1,9 +1,7 @@
 import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
-import { op } from "../Util";
 import { Status } from "../Sale/SaleUtil";
-import { concat } from "ethers/lib/utils";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { Contract, ContractFactory } from "ethers";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";

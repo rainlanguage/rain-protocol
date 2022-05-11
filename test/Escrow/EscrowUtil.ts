@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import * as Util from "../Util";
 import { ethers } from "hardhat";
 import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";

@@ -13,26 +13,14 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { Contract } from "ethers";
-import { getEventArgs, op } from "../Util";
-import { concat, getAddress } from "ethers/lib/utils";
-import { SaleFactory } from "../../typechain/SaleFactory";
+import { getEventArgs } from "../Util";
+import { getAddress } from "ethers/lib/utils";
+import {} from "../../typechain/SaleFactory";
 import { Status } from "../Sale/SaleUtil";
 import { MockISale } from "../../typechain/MockISale";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 
 const { assert } = chai;
-
-enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
 
 let claim: RedeemableERC20ClaimEscrow & Contract,
   claimWrapper: RedeemableERC20ClaimEscrowWrapper & Contract,
@@ -527,7 +515,6 @@ describe("RedeemableERC20ClaimEscrow", async function () {
     const alice = signers[1];
     const bob = signers[2];
     const deployer = signers[3];
-    const feeRecipient = signers[5];
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {

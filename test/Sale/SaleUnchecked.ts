@@ -13,13 +13,7 @@ import {
   SaleConstructorConfigStruct,
   SaleFactory,
 } from "../../typechain/SaleFactory";
-import {
-  afterBlockNumberSource,
-  saleDeploy,
-  Opcode,
-  Tier,
-  SaleStorage,
-} from "./SaleUtil";
+import { afterBlockNumberSource, saleDeploy, Opcode, Tier } from "./SaleUtil";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
