@@ -45,7 +45,14 @@ uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 contract VMStateBuilder {
     using Math for uint256;
 
+    address private immutable _stackPopsFnPtrs;
+    address private immutable _stackPushesFnPtrs;
     mapping(address => address) private ptrCache;
+
+    constructor() {
+        _stackPopsFnPtrs = SSTORE2.write(stackPopsFnPtrs());
+        _stackPushesFnPtrs = SSTORE2.write(stackPushesFnPtrs());
+    }
 
     function _packedFnPtrs(address vm_) private returns (bytes memory) {
         unchecked {
@@ -213,8 +220,8 @@ contract VMStateBuilder {
     ) public view {
         unchecked {
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
-            bytes memory stackPopsFns_ = stackPopsFnPtrs();
-            bytes memory stackPushesFns_ = stackPushesFnPtrs();
+            bytes memory stackPopsFns_ = SSTORE2.read(_stackPopsFnPtrs);
+            bytes memory stackPushesFns_ = SSTORE2.read(_stackPushesFnPtrs);
             uint256 i_ = 0;
             uint256 sourceLen_;
             uint256 opcode_;

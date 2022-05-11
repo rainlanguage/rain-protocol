@@ -3,11 +3,11 @@ pragma solidity =0.8.10;
 
 import {State} from "../../RainVM.sol";
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-/// @title IERC20Ops
-/// @notice RainVM opcode pack to read the IERC20 interface.
-library IERC20Ops {
+/// @title ERC721Ops
+/// @notice RainVM opcode pack to read the ERC721 interface.
+library ERC721Ops {
     // Stack the return of `balanceOf`.
     function balanceOf(uint256, uint256 stackTopLocation_)
         internal
@@ -17,36 +17,44 @@ library IERC20Ops {
         uint256 location_;
         uint256 token_;
         uint256 account_;
+
         assembly {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             token_ := mload(location_)
             account_ := mload(stackTopLocation_)
         }
-        uint256 balance_ = IERC20(address(uint160(token_))).balanceOf(
+        uint256 balance_ = IERC721(address(uint160(token_))).balanceOf(
             address(uint160(account_))
         );
+
         assembly {
             mstore(location_, balance_)
         }
         return stackTopLocation_;
     }
 
-    // Stack the return of `totalSupply`.
-    function totalSupply(uint256, uint256 stackTopLocation_)
+    // Stack the return of `ownerOf`.
+    function ownerOf(uint256, uint256 stackTopLocation_)
         internal
         view
         returns (uint256)
     {
         uint256 location_;
         uint256 token_;
+        uint256 id_;
+
         assembly {
+            stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             token_ := mload(location_)
+            id_ := mload(stackTopLocation_)
         }
-        uint256 supply_ = IERC20(address(uint160(token_))).totalSupply();
+        uint256 owner_ = uint256(
+            uint160(IERC721(address(uint160(token_))).ownerOf(id_))
+        );
         assembly {
-            mstore(location_, supply_)
+            mstore(location_, owner_)
         }
         return stackTopLocation_;
     }

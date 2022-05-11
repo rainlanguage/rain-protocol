@@ -5,9 +5,9 @@ import {State} from "../../RainVM.sol";
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
-/// @title IERC1155Ops
-/// @notice RainVM opcode pack to read the IERC1155 interface.
-library IERC1155Ops {
+/// @title ERC1155Ops
+/// @notice RainVM opcode pack to read the ERC1155 interface.
+library ERC1155Ops {
     function stackPopsBalanceOfBatch(uint256 operand_)
         internal
         pure

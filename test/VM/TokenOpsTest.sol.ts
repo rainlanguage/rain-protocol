@@ -24,9 +24,9 @@ let tokenERC20: ReserveToken;
 let tokenERC721: ReserveTokenERC721;
 let tokenERC1155: ReserveTokenERC1155;
 
-describe("TokenOps Test", async function () {
+describe("TokenOps", async function () {
   let stateBuilder;
-  let logic;
+  let logic: AllStandardOpsTest & Contract;
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
