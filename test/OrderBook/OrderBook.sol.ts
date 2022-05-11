@@ -9,7 +9,7 @@ import type {
   DepositConfigStruct,
   DepositEvent,
   OrderBook,
-  OrderStruct,
+  OrderConfigStruct,
   OrderDeadEvent,
   OrderLiveEvent,
   WithdrawConfigStruct,
@@ -61,7 +61,9 @@ describe("OrderBook", async function () {
     const bob = signers[2];
     const bountyBot = signers[4]; // order clearer
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook & Contract;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -92,19 +94,16 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
 
-    const askOrderConfig: OrderStruct = {
+    const askOrderConfig: OrderConfigStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
       tracking: TRACK_CLEARED_ORDER,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [askSource],
+      vmStateConfig: {
+        sources: [askSource],
         constants: askConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -133,19 +132,16 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderStruct = {
+    const bidOrderConfig: OrderConfigStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [bidSource],
+      vmStateConfig: {
+        sources: [bidSource],
         constants: bidConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -262,7 +258,9 @@ describe("OrderBook", async function () {
     const carol = signers[3];
     const bountyBot = signers[4];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook & Contract;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -296,19 +294,16 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
 
-    const askOrderConfig: OrderStruct = {
+    const askOrderConfig: OrderConfigStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
       tracking: TRACK_CLEARED_COUNTERPARTY,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [askSource],
+      vmStateConfig: {
+        sources: [askSource],
         constants: askConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -337,19 +332,16 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderStruct = {
+    const bidOrderConfig: OrderConfigStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [bidSource],
+      vmStateConfig: {
+        sources: [bidSource],
         constants: bidConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -378,19 +370,16 @@ describe("OrderBook", async function () {
       vCarolOutputMax,
       vCarolPrice,
     ]);
-    const carolOrderConfig: OrderStruct = {
+    const carolOrderConfig: OrderConfigStruct = {
       owner: carol.address,
       inputToken: tokenB.address,
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
       outputVaultId: carolOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [carolSource],
+      vmStateConfig: {
+        sources: [carolSource],
         constants: carolConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -659,7 +648,9 @@ describe("OrderBook", async function () {
     const bob = signers[2];
     const bountyBot = signers[4];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook & Contract;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -691,19 +682,16 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
 
-    const askOrderConfig: OrderStruct = {
+    const askOrderConfig: OrderConfigStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
       tracking: TRACK_CLEARED_ORDER,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [askSource],
+      vmStateConfig: {
+        sources: [askSource],
         constants: askConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -732,19 +720,16 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderStruct = {
+    const bidOrderConfig: OrderConfigStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [bidSource],
+      vmStateConfig: {
+        sources: [bidSource],
         constants: bidConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -911,7 +896,9 @@ describe("OrderBook", async function () {
     const carol = signers[3];
     const bountyBot = signers[4];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook & Contract;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -949,19 +936,16 @@ describe("OrderBook", async function () {
       vAskPrice,
     ]);
 
-    const askOrderConfig: OrderStruct = {
+    const askOrderConfig: OrderConfigStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [askSource],
+      vmStateConfig: {
+        sources: [askSource],
         constants: askConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -989,19 +973,16 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderStruct = {
+    const bidOrderConfig: OrderConfigStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [bidSource],
+      vmStateConfig: {
+        sources: [bidSource],
         constants: bidConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -1029,19 +1010,16 @@ describe("OrderBook", async function () {
       vBidOutputMaxCarol,
       vBidPriceCarol,
     ]);
-    const bidOrderConfigCarol: OrderStruct = {
+    const bidOrderConfigCarol: OrderConfigStruct = {
       owner: carol.address,
       inputToken: tokenB.address,
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
       outputVaultId: carolOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [bidSourceCarol],
+      vmStateConfig: {
+        sources: [bidSourceCarol],
         constants: bidConstantsCarol,
-        argumentsIndex: 0,
       },
     };
 
@@ -1203,7 +1181,9 @@ describe("OrderBook", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook & Contract;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -1217,19 +1197,16 @@ describe("OrderBook", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
-    const askOrderConfig: OrderStruct = {
+    const askOrderConfig: OrderConfigStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [askSource],
+      vmStateConfig: {
+        sources: [askSource],
         constants: askConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -1251,7 +1228,7 @@ describe("OrderBook", async function () {
 
     const txAskOrderDead = await orderBook
       .connect(alice)
-      .removeOrder(askOrderConfig);
+      .removeOrder(askLiveConfig);
 
     const { sender: askDeadSender, config: askDeadConfig } =
       (await Util.getEventArgs(
@@ -1269,7 +1246,9 @@ describe("OrderBook", async function () {
 
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook & Contract;
     const vaultId = ethers.BigNumber.from(1);
 
     // DEPOSITS
@@ -1340,7 +1319,9 @@ describe("OrderBook", async function () {
     const bob = signers[2];
     const bountyBot = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook & Contract;
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook & Contract;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -1360,19 +1341,16 @@ describe("OrderBook", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
-    const askOrderConfig: OrderStruct = {
+    const askOrderConfig: OrderConfigStruct = {
       owner: alice.address,
       inputToken: tokenA.address,
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [askSource],
+      vmStateConfig: {
+        sources: [askSource],
         constants: askConstants,
-        argumentsIndex: 0,
       },
     };
 
@@ -1400,19 +1378,16 @@ describe("OrderBook", async function () {
       vBidOutputMax,
       vBidPrice,
     ]);
-    const bidOrderConfig: OrderStruct = {
+    const bidOrderConfig: OrderConfigStruct = {
       owner: bob.address,
       inputToken: tokenB.address,
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
       tracking: 0x0,
-      vmState: {
-        stackIndex: 0,
-        stack: [0, 0],
-        ptrSources: [bidSource],
+      vmStateConfig: {
+        sources: [bidSource],
         constants: bidConstants,
-        argumentsIndex: 0,
       },
     };
 
