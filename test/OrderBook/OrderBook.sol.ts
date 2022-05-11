@@ -19,7 +19,7 @@ import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { Opcode } from "./OrderBookUtil";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
-import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
+import { OrderBookStateBuilder } from "../../typechain/OrderBookStateBuilder";
 
 const { assert } = chai;
 
@@ -31,7 +31,7 @@ let orderBookFactory: ContractFactory,
   tokenB: ReserveToken18 & Contract;
 
 describe("OrderBook", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let stateBuilder: OrderBookStateBuilder & Contract;
 
   beforeEach(async () => {
     tokenA = (await Util.basicDeploy("ReserveToken18", {})) as ReserveToken18 &
@@ -42,11 +42,10 @@ describe("OrderBook", async function () {
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+      "OrderBookStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder & Contract;
     await stateBuilder.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
