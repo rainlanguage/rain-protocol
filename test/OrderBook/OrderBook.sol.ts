@@ -171,13 +171,11 @@ describe("OrderBook", async function () {
     await tokenA.transfer(bob.address, amountA);
 
     const depositConfigStructAlice: DepositConfigStruct = {
-      depositor: alice.address,
       token: tokenB.address,
       vaultId: aliceOutputVault,
       amount: amountB,
     };
     const depositConfigStructBob: DepositConfigStruct = {
-      depositor: bob.address,
       token: tokenA.address,
       vaultId: bobOutputVault,
       amount: amountA,
@@ -413,19 +411,16 @@ describe("OrderBook", async function () {
     await tokenA.transfer(carol.address, amountA);
 
     const depositConfigStructAlice: DepositConfigStruct = {
-      depositor: alice.address,
       token: tokenB.address,
       vaultId: aliceOutputVault,
       amount: amountB,
     };
     const depositConfigStructBob: DepositConfigStruct = {
-      depositor: bob.address,
       token: tokenA.address,
       vaultId: bobOutputVault,
       amount: amountA,
     };
     const depositConfigStructCarol: DepositConfigStruct = {
-      depositor: carol.address,
       token: tokenA.address,
       vaultId: carolOutputVault,
       amount: amountA,
@@ -762,13 +757,11 @@ describe("OrderBook", async function () {
     await tokenA.transfer(bob.address, amountA);
 
     const depositConfigStructAlice: DepositConfigStruct = {
-      depositor: alice.address,
       token: tokenB.address,
       vaultId: aliceOutputVault,
       amount: amountB,
     };
     const depositConfigStructBob: DepositConfigStruct = {
-      depositor: bob.address,
       token: tokenA.address,
       vaultId: bobOutputVault,
       amount: amountA,
@@ -1055,19 +1048,16 @@ describe("OrderBook", async function () {
     await tokenA.transfer(carol.address, amountA);
 
     const depositConfigStructAlice: DepositConfigStruct = {
-      depositor: alice.address,
       token: tokenB.address,
       vaultId: aliceOutputVault,
       amount: amountB,
     };
     const depositConfigStructBob: DepositConfigStruct = {
-      depositor: bob.address,
       token: tokenA.address,
       vaultId: bobOutputVault,
       amount: amountA,
     };
     const depositConfigStructCarol: DepositConfigStruct = {
-      depositor: carol.address,
       token: tokenA.address,
       vaultId: carolOutputVault,
       amount: amountA,
@@ -1269,7 +1259,6 @@ describe("OrderBook", async function () {
     await tokenA.transfer(alice.address, amount);
 
     const depositConfigStruct: DepositConfigStruct = {
-      depositor: alice.address,
       token: tokenA.address,
       vaultId,
       amount,
@@ -1425,13 +1414,11 @@ describe("OrderBook", async function () {
     await tokenA.transfer(bob.address, amountA);
 
     const depositConfigStructAlice: DepositConfigStruct = {
-      depositor: alice.address,
       token: tokenB.address,
       vaultId: aliceOutputVault,
       amount: amountB,
     };
     const depositConfigStructBob: DepositConfigStruct = {
-      depositor: bob.address,
       token: tokenA.address,
       vaultId: bobOutputVault,
       amount: amountA,

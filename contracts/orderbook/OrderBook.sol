@@ -12,7 +12,6 @@ import "./libraries/Vault.sol";
 import "./libraries/Order.sol";
 
 struct DepositConfig {
-    address depositor;
     address token;
     VaultId vaultId;
     uint256 amount;
@@ -117,7 +116,7 @@ contract OrderBook is RainVM {
     }
 
     function deposit(DepositConfig calldata config_) external {
-        vaults[config_.depositor][config_.token][config_.vaultId] += config_
+        vaults[msg.sender][config_.token][config_.vaultId] += config_
             .amount;
         emit Deposit(msg.sender, config_);
         IERC20(config_.token).safeTransferFrom(
