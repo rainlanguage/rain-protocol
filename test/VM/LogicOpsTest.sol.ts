@@ -1,6 +1,6 @@
 import chai from "chai";
 import { ethers } from "hardhat";
-import { op, AllStandardOps, Debug } from "../Util";
+import { op, AllStandardOps } from "../Util";
 import { concat, hexlify } from "ethers/lib/utils";
 import { callSize, max_uint256, paddedUInt256, paddedUInt32 } from "../Util";
 import type { BigNumber, Contract } from "ethers";

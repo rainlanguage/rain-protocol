@@ -3,7 +3,7 @@ import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
-import type { Contract, ContractFactory } from "ethers";
+import type { Contract } from "ethers";
 
 import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 

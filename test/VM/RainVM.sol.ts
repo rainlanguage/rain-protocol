@@ -2,7 +2,7 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, op } from "../Util";
+import { bytify, callSize, Debug, op } from "../Util";
 import type { Contract } from "ethers";
 
 import type {
@@ -36,6 +36,201 @@ describe("RainVM", async function () {
     logic = (await logicFactory.deploy(
       stateBuilder.address
     )) as AllStandardOpsTest & Contract;
+  });
+
+  it("should log stack index when DEBUG operand is set to DEBUG_STACK_INDEX", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20];
+
+    // prettier-ignore
+    const sources = [concat([
+        op(Opcode.CONSTANT, 0),
+        op(Opcode.CONSTANT, 1),
+      op(Opcode.ADD, 2),
+      op(Opcode.DEBUG, Debug.StackIndex),
+    ])];
+
+    await logic.initialize({ sources, constants });
+    await logic.run();
+
+    assert(true); // you have to check this log yourself
+  });
+
+  it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20];
+
+    // prettier-ignore
+    const sources = [concat([
+        op(Opcode.CONSTANT, 0),
+        op(Opcode.CONSTANT, 1),
+      op(Opcode.ADD, 2),
+      op(Opcode.DEBUG, Debug.Stack),
+    ])];
+
+    await logic.initialize({ sources, constants });
+    await logic.run();
+
+    assert(true); // you have to check this log yourself
+  });
+
+  it("should log packed state when DEBUG operand is set to DEBUG_STATE_PACKED", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20];
+
+    // prettier-ignore
+    const sources = [concat([
+        op(Opcode.CONSTANT, 0),
+        op(Opcode.CONSTANT, 1),
+      op(Opcode.ADD, 2),
+      op(Opcode.DEBUG, Debug.StatePacked),
+    ])];
+
+    await logic.initialize({ sources, constants });
+    await logic.run();
+
+    assert(true); // you have to check this log yourself
+  });
+
+  it("should log state as bytes when DEBUG operand is set to DEBUG_STATE_ABI", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20];
+
+    // prettier-ignore
+    const sources = [concat([
+        op(Opcode.CONSTANT, 0),
+        op(Opcode.CONSTANT, 1),
+      op(Opcode.ADD, 2),
+      op(Opcode.DEBUG, Debug.StateAbi),
+    ])];
+
+    await logic.initialize({ sources, constants });
+    await logic.run();
+
+    assert(true); // you have to check this log yourself
+  });
+
+  it("should error when STACK operand references a stack element that hasn't yet been evaluated", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20, 30];
+
+    // prettier-ignore
+    const sources = [concat([
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.STACK, 3),
+      op(Opcode.CONSTANT, 2),
+    ])];
+
+    await Util.assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "", // at least an error
+      "did not error when STACK operand references a stack element that hasn't yet been evaluated"
+    );
+  });
+
+  it("should error when STACK operand references itself", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20, 30];
+
+    // prettier-ignore
+    const sources = [concat([
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONSTANT, 2),
+      op(Opcode.STACK, 3),
+    ])];
+
+    await Util.assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "", // at least an error
+      "did not error when STACK operand references itself"
+    );
+  });
+
+  it("should evaluate to correct stack element when STACK is called within a nested evaluation", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20, 30, 40];
+
+    // STACK should have access to all evaluated stack values
+
+    // prettier-ignore
+    const sources = [concat([
+      op(Opcode.CONSTANT, 0), // STACK should equal this
+      op(Opcode.CONSTANT, 1),
+        op(Opcode.CONSTANT, 2), // not this (well, not without operand = 2)
+        op(Opcode.CONSTANT, 3),
+        op(Opcode.STACK),
+      op(Opcode.ADD, 3),
+    ])];
+
+    await logic.initialize({ sources, constants });
+    await logic.run();
+
+    const result = await logic.stackTop();
+
+    assert(
+      result.eq(80),
+      `STACK operand evaluated to wrong stack element when STACK is called within a nested evaluation
+      expected  ${80}
+      got       ${result}`
+    );
+  });
+
+  it("should return correct stack element when there are nested evaluations (e.g. returns the addition of several stack elements, rather than a summand)", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20, 30];
+
+    // prettier-ignore
+    const sources = [concat([
+        op(Opcode.CONSTANT, 0),
+        op(Opcode.CONSTANT, 1),
+        op(Opcode.CONSTANT, 2),
+      op(Opcode.ADD, 3),
+      op(Opcode.STACK),
+    ])];
+
+    await logic.initialize({ sources, constants });
+    await logic.run();
+
+    const result = await logic.stackTop();
+
+    assert(
+      result.eq(60),
+      "STACK operand returned wrong stack element when there are nested evaluations (e.g. returns the addition of several stack elements, rather than a summand)"
+    );
+  });
+
+  it("should return correct stack element when specifying operand", async () => {
+    this.timeout(0);
+
+    const constants = [10, 20, 30];
+
+    // prettier-ignore
+    const sources = [concat([
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONSTANT, 1),
+      op(Opcode.CONSTANT, 2),
+      op(Opcode.STACK, 1),
+    ])];
+
+    await logic.initialize({ sources, constants });
+    await logic.run();
+
+    const result = await logic.stackTop();
+
+    assert(
+      result.eq(constants[1]),
+      "STACK operand returned wrong stack element"
+    );
   });
 
   it("should error when script length is odd", async () => {
@@ -1113,7 +1308,7 @@ describe("RainVM", async function () {
     );
   });
 
-  it("should handle a zipmap op which runs multiple functions (using single inner zipmap function source)", async () => {
+  it("should handle a zipmap which runs multiple functions (using single inner zipmap function source)", async () => {
     this.timeout(0);
 
     const constants = [3, 4, 5];
@@ -1184,7 +1379,7 @@ describe("RainVM", async function () {
     );
   });
 
-  it("should handle a simple call op", async () => {
+  it("should handle a simple zipmap", async () => {
     this.timeout(0);
 
     const constants = [1, 2, 3];
