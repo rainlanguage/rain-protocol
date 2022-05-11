@@ -143,7 +143,6 @@ contract OrderBook is RainVM {
     }
 
     function addOrder(OrderConfig calldata orderConfig_) external {
-        require(msg.sender == orderConfig_.owner, "OWNER");
         Order memory order_ = LibOrder.fromOrderConfig(
             vmStateBuilder,
             self,

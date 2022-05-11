@@ -9,7 +9,6 @@ type OrderHash is uint256;
 type OrderLiveness is uint256;
 
 struct OrderConfig {
-    address owner;
     address inputToken;
     VaultId inputVaultId;
     address outputToken;
@@ -41,7 +40,7 @@ library LibOrder {
     ) internal returns (Order memory) {
         return
             Order(
-                config_.owner,
+                msg.sender,
                 config_.inputToken,
                 config_.inputVaultId,
                 config_.outputToken,
