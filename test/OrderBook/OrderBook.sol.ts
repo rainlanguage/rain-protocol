@@ -5,6 +5,7 @@ import { Contract, ContractFactory } from "ethers";
 import type {
   BountyConfigStruct,
   ClearEvent,
+  AfterClearEvent,
   ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
@@ -229,9 +230,9 @@ describe("OrderBook", async function () {
       .clear(askConfig, bidConfig, bountyConfig);
     const { stateChange: stateChange0 } = (await Util.getEventArgs(
       txClearOrder0,
-      "Clear",
+      "AfterClear",
       orderBook
-    )) as ClearEvent["args"];
+    )) as AfterClearEvent["args"];
     const { bInput: bInput0 } = stateChange0;
 
     const actualBounty0 = {
@@ -490,9 +491,9 @@ describe("OrderBook", async function () {
       .clear(askConfig, bobConfig, bountyConfig);
     const { stateChange: stateChange0 } = (await Util.getEventArgs(
       txClearOrder0,
-      "Clear",
+      "AfterClear",
       orderBook
-    )) as ClearEvent["args"];
+    )) as AfterClearEvent["args"];
     const { bInput: bInput0 } = stateChange0;
 
     const actualBounty0 = {
@@ -532,9 +533,9 @@ describe("OrderBook", async function () {
       .clear(askConfig, bobConfig, bountyConfig);
     const { stateChange: stateChange1 } = (await Util.getEventArgs(
       txClearOrder1,
-      "Clear",
+      "AfterClear",
       orderBook
-    )) as ClearEvent["args"];
+    )) as AfterClearEvent["args"];
     const { bInput: bInput1 } = stateChange1;
 
     const actualBounty1 = {
@@ -569,9 +570,9 @@ describe("OrderBook", async function () {
       .clear(askConfig, carolConfig, bountyConfig);
     const { stateChange: stateChange2 } = (await Util.getEventArgs(
       txClearOrder2,
-      "Clear",
+      "AfterClear",
       orderBook
-    )) as ClearEvent["args"];
+    )) as AfterClearEvent["args"];
     const { bInput: bInput2 } = stateChange2;
 
     const actualBounty2 = {
@@ -611,9 +612,9 @@ describe("OrderBook", async function () {
       .clear(askConfig, carolConfig, bountyConfig);
     const { stateChange: stateChange3 } = (await Util.getEventArgs(
       txClearOrder3,
-      "Clear",
+      "AfterClear",
       orderBook
-    )) as ClearEvent["args"];
+    )) as AfterClearEvent["args"];
     const { bInput: bInput3 } = stateChange3;
 
     const actualBounty3 = {
@@ -817,9 +818,9 @@ describe("OrderBook", async function () {
       .clear(askConfig, bidConfig, bountyConfig);
     const { stateChange: stateChange0 } = (await Util.getEventArgs(
       txClearOrder0,
-      "Clear",
+      "AfterClear",
       orderBook
-    )) as ClearEvent["args"];
+    )) as AfterClearEvent["args"];
     const { bInput: bInput0 } = stateChange0;
 
     const actualBounty0 = {
@@ -858,9 +859,9 @@ describe("OrderBook", async function () {
       .clear(askConfig, bidConfig, bountyConfig);
     const { stateChange: stateChange1 } = (await Util.getEventArgs(
       txClearOrder1,
-      "Clear",
+      "AfterClear",
       orderBook
-    )) as ClearEvent["args"];
+    )) as AfterClearEvent["args"];
     const { bInput: bInput1 } = stateChange1;
 
     const actualBounty1 = {
@@ -1140,12 +1141,16 @@ describe("OrderBook", async function () {
       a_: clearA_,
       b_: clearB_,
       bountyConfig: clearBountyConfig,
-      stateChange: clearStateChange,
     } = (await Util.getEventArgs(
       txClearOrder,
       "Clear",
       orderBook
     )) as ClearEvent["args"];
+    const { stateChange: clearStateChange } = (await Util.getEventArgs(
+      txClearOrder,
+      "AfterClear",
+      orderBook
+    )) as AfterClearEvent["args"];
 
     const aOutputMaxExpected = amountA;
     const bOutputMaxExpected = amountB;
@@ -1474,12 +1479,16 @@ describe("OrderBook", async function () {
       a_: clearA_,
       b_: clearB_,
       bountyConfig: clearBountyConfig,
-      stateChange: clearStateChange,
     } = (await Util.getEventArgs(
       txClearOrder,
       "Clear",
       orderBook
     )) as ClearEvent["args"];
+    const { stateChange: clearStateChange } = (await Util.getEventArgs(
+      txClearOrder,
+      "AfterClear",
+      orderBook
+    )) as AfterClearEvent["args"];
 
     const aOutputMaxExpected = amountA;
     const bOutputMaxExpected = amountB;
