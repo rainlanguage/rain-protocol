@@ -6,7 +6,6 @@ import "../vm/ops/AllStandardOps.sol";
 import "./OrderBook.sol";
 
 contract OrderBookStateBuilder is VMStateBuilder {
-
     function localStackPopsFnPtrs() internal pure returns (bytes memory) {
         unchecked {
             uint256 lenBytes_ = LOCAL_OPS_LENGTH * 0x20;
@@ -59,17 +58,19 @@ contract OrderBookStateBuilder is VMStateBuilder {
 
     /// @inheritdoc VMStateBuilder
     function stackPopsFnPtrs() public pure override returns (bytes memory) {
-        return bytes.concat(
-            AllStandardOps.stackPopsFnPtrs(),
-            localStackPopsFnPtrs()
-        );
+        return
+            bytes.concat(
+                AllStandardOps.stackPopsFnPtrs(),
+                localStackPopsFnPtrs()
+            );
     }
 
     /// @inheritdoc VMStateBuilder
     function stackPushesFnPtrs() public pure override returns (bytes memory) {
-        return bytes.concat(
-            AllStandardOps.stackPushesFnPtrs(),
-            localStackPushesFnPtrs()
-        );
+        return
+            bytes.concat(
+                AllStandardOps.stackPushesFnPtrs(),
+                localStackPushesFnPtrs()
+            );
     }
 }

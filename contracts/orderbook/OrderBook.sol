@@ -41,8 +41,6 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
-uint256 constant ENTRYPOINT = 0;
-
 // - order funds cleared
 // - order counterparty funds cleared
 uint256 constant LOCAL_OPS_LENGTH = 2;
@@ -67,8 +65,8 @@ contract OrderBook is RainVM {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
-    using OrderLogic for OrderLiveness;
-    using OrderLogic for Order;
+    using LibOrder for OrderLiveness;
+    using LibOrder for Order;
     using LibEvalContext for EvalContext;
 
     event Deposit(address sender, DepositConfig config);
@@ -88,6 +86,9 @@ contract OrderBook is RainVM {
         ClearStateChange stateChange
     );
 
+    address private immutable self;
+    address private immutable vmStateBuilder;
+
     // order hash => order liveness
     mapping(OrderHash => OrderLiveness) private orders;
     // depositor => token => vault => token amount.
@@ -102,9 +103,9 @@ contract OrderBook is RainVM {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    modifier onlyOrderOwner(Order calldata config_) {
-        require(msg.sender == config_.owner, "NOT_ORDER_OWNER");
-        _;
+    constructor(address vmStateBuilder_) {
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
     }
 
     function _isTracked(uint256 tracking_, uint256 mask_)
@@ -142,7 +143,13 @@ contract OrderBook is RainVM {
         IERC20(config_.token).safeTransfer(msg.sender, withdrawAmount_);
     }
 
-    function addOrder(Order calldata order_) external onlyOrderOwner(order_) {
+    function addOrder(OrderConfig calldata orderConfig_) external {
+        require(msg.sender == orderConfig_.owner, "OWNER");
+        Order memory order_ = LibOrder.fromOrderConfig(
+            vmStateBuilder,
+            self,
+            orderConfig_
+        );
         OrderHash orderHash_ = order_.hash();
         if (orders[orderHash_].isDead()) {
             orders[orderHash_] = ORDER_LIVE;
@@ -150,10 +157,8 @@ contract OrderBook is RainVM {
         }
     }
 
-    function removeOrder(Order calldata order_)
-        external
-        onlyOrderOwner(order_)
-    {
+    function removeOrder(Order calldata order_) external {
+        require(msg.sender == order_.owner, "OWNER");
         OrderHash orderHash_ = order_.hash();
         if (orders[orderHash_].isLive()) {
             orders[orderHash_] = ORDER_DEAD;
@@ -162,8 +167,8 @@ contract OrderBook is RainVM {
     }
 
     function clear(
-        Order calldata a_,
-        Order calldata b_,
+        Order memory a_,
+        Order memory b_,
         BountyConfig calldata bountyConfig_
     ) external {
         OrderHash aHash_ = a_.hash();
@@ -188,7 +193,7 @@ contract OrderBook is RainVM {
             unchecked {
                 State memory vmState_;
                 {
-                    vmState_ = a_.vmState;
+                    vmState_ = LibState.fromBytesPacked(a_.vmState);
                     eval(
                         EvalContext(aHash_, b_.owner).toContextBytes(),
                         vmState_,
@@ -199,7 +204,7 @@ contract OrderBook is RainVM {
                 }
 
                 {
-                    vmState_ = b_.vmState;
+                    vmState_ = LibState.fromBytesPacked(b_.vmState);
                     eval(
                         EvalContext(bHash_, a_.owner).toContextBytes(),
                         vmState_,
@@ -350,9 +355,6 @@ contract OrderBook is RainVM {
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
-        return bytes.concat(
-            AllStandardOps.fnPtrs(),
-            localFnPtrs()
-        );
+        return bytes.concat(AllStandardOps.fnPtrs(), localFnPtrs());
     }
 }
