@@ -81,10 +81,11 @@ export const saleDeploy = async (
 };
 
 export const afterBlockNumberSource = (constant) => {
+  // prettier-ignore
   return concat([
     // (BLOCK_NUMBER blockNumberSub1 gt)
-    op(Opcode.BLOCK_NUMBER),
-    op(Opcode.CONSTANT, constant),
+      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.CONSTANT, constant),
     op(Opcode.GREATER_THAN),
   ]);
 };
