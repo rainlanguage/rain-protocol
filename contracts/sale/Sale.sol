@@ -138,6 +138,7 @@ uint256 constant CAN_START_ENTRYPOINT = 0;
 uint256 constant CAN_END_ENTRYPOINT = 1;
 uint256 constant CALCULATE_PRICE_ENTRYPOINT = 2;
 uint256 constant ENTRYPOINTS_LENGTH = 3;
+uint constant MIN_FINAL_STACK_INDEX = 1;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
@@ -269,10 +270,13 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
+        Bounds memory bounds_;
+        bounds_.entrypointsLength = ENTRYPOINTS_LENGTH;
+        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
         bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             config_.vmStateConfig,
-            ENTRYPOINTS_LENGTH
+            bounds_
         );
         vmStatePointer = SSTORE2.write(vmStateBytes_);
         recipient = config_.recipient;
