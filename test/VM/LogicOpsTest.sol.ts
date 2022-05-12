@@ -10,7 +10,7 @@ const { assert } = chai;
 
 const Opcode = AllStandardOps;
 
-const isTruthy = (vmValue: BigNumber) => vmValue.eq(1);
+const isTruthy = (vmValue: BigNumber) => !vmValue.isZero();
 
 describe("LogicOps Test", async function () {
   let stateBuilder;

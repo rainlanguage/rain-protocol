@@ -414,18 +414,19 @@ describe("RainVM", async function () {
     const loopSize = 0; // 1
     const valSize = 2; // 3
 
+    // prettier-ignore
     const sources = [
       concat([
-        v1,
-        v2,
-        v3,
+          v1,
+          v2,
+          v3,
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 add)
-        a0,
-        a1,
-        aOOB,
+          a0,
+          a1,
+          aOOB,
         op(Opcode.ADD, 3),
       ]),
     ];
@@ -483,12 +484,13 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.CONSTANT, 1);
     const v1 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (1 2 3 +)
-        v1,
-        v2,
-        v3,
+          v1,
+          v2,
+          v3,
         op(Opcode.ADD, 4),
       ]),
     ];
@@ -508,11 +510,12 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.CONSTANT, 1);
 
     // test case with normal multiplication
+    // prettier-ignore
     const sourcesUnsat = [
       concat([
         // (max_uint256 2 *)
-        vMaxUInt256,
-        v2,
+          vMaxUInt256,
+          v2,
         op(Opcode.MUL, 2),
       ]),
     ];
@@ -528,11 +531,12 @@ describe("RainVM", async function () {
       "normal multiplication overflow did not error"
     );
 
+    // prettier-ignore
     const sourcesSat = [
       concat([
         // (max_uint256 2 SAT_MUL)
-        vMaxUInt256,
-        v2,
+          vMaxUInt256,
+          v2,
         op(Opcode.SATURATING_MUL, 2),
       ]),
     ];
@@ -559,11 +563,12 @@ describe("RainVM", async function () {
     const v20 = op(Opcode.CONSTANT, 1);
 
     // test case with normal subtraction
+    // prettier-ignore
     const sourcesUnsat = [
       concat([
         // (10 20 -)
-        v10,
-        v20,
+          v10,
+          v20,
         op(Opcode.SUB, 2),
       ]),
     ];
@@ -579,11 +584,12 @@ describe("RainVM", async function () {
       "normal subtraction overflow did not error"
     );
 
+    // prettier-ignore
     const sourcesSat = [
       concat([
         // (10 20 SAT_SUB)
-        v10,
-        v20,
+          v10,
+          v20,
         op(Opcode.SATURATING_SUB, 2),
       ]),
     ];
@@ -610,11 +616,12 @@ describe("RainVM", async function () {
     const v10 = op(Opcode.CONSTANT, 1);
 
     // test case with normal addition
+    // prettier-ignore
     const sourcesUnsat = [
       concat([
         // (max_uint256 10 +)
-        vMaxUInt256,
-        v10,
+          vMaxUInt256,
+          v10,
         op(Opcode.ADD, 2),
       ]),
     ];
@@ -627,11 +634,12 @@ describe("RainVM", async function () {
       "normal addition overflow did not error"
     );
 
+    // prettier-ignore
     const sourcesSat = [
       concat([
         // (max_uint256 1 SAT_ADD)
-        vMaxUInt256,
-        v10,
+          vMaxUInt256,
+          v10,
         op(Opcode.SATURATING_ADD, 2),
       ]),
     ];
@@ -655,10 +663,9 @@ describe("RainVM", async function () {
 
     const constants = [];
 
-    // prettier-ignore
     const source0 = concat([
       // (BLOCK_NUMBER)
-      op(Opcode.BLOCK_NUMBER)
+      op(Opcode.BLOCK_NUMBER),
     ]);
 
     await logic.initialize({ sources: [source0], constants });
@@ -668,10 +675,9 @@ describe("RainVM", async function () {
     const result0 = await logic.stackTop();
     assert(result0.eq(block0), `expected block ${block0} got ${result0}`);
 
-    // prettier-ignore
     const source1 = concat([
       // (BLOCK_TIMESTAMP)
-      op(Opcode.BLOCK_TIMESTAMP)
+      op(Opcode.BLOCK_TIMESTAMP),
     ]);
 
     await logic.initialize({
@@ -700,12 +706,13 @@ describe("RainVM", async function () {
     const v4 = op(Opcode.CONSTANT, 1);
     const v2 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (7 4 2 %)
-        v7,
-        v4, // -> r3
-        v2, // -> r1
+          v7,
+          v4, // -> r3
+          v2, // -> r1
         op(Opcode.MOD, 3),
       ]),
     ];
@@ -730,11 +737,12 @@ describe("RainVM", async function () {
     const v9 = op(Opcode.CONSTANT, 0);
     const v3 = op(Opcode.CONSTANT, 1);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (9 3 %)
-        v9,
-        v3,
+          v9,
+          v3,
         op(Opcode.MOD, 2),
       ]),
     ];
@@ -759,11 +767,12 @@ describe("RainVM", async function () {
     const v5 = op(Opcode.CONSTANT, 0);
     const v2 = op(Opcode.CONSTANT, 1);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (5 2 %)
-        v5,
-        v2,
+          v5,
+          v2,
         op(Opcode.MOD, 2),
       ]),
     ];
@@ -789,12 +798,13 @@ describe("RainVM", async function () {
     const v4 = op(Opcode.CONSTANT, 1);
     const v3 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (2 4 3 ^)
-        v2,
-        v4,
-        v3,
+          v2,
+          v4,
+          v3,
         op(Opcode.EXP, 3),
       ]),
     ];
@@ -819,11 +829,12 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.CONSTANT, 0);
     const v4 = op(Opcode.CONSTANT, 1);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (2 4 ^)
-        v2,
-        v4,
+          v2,
+          v4,
         op(Opcode.EXP, 2),
       ]),
     ];
@@ -849,11 +860,12 @@ describe("RainVM", async function () {
     const v11 = op(Opcode.CONSTANT, 1);
     const v22 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const source = concat([
       // (22 11 33 max)
-      v22,
-      v11,
-      v33,
+        v22,
+        v11,
+        v33,
       op(Opcode.MAX, 3),
     ]);
 
@@ -873,11 +885,12 @@ describe("RainVM", async function () {
     const v11 = op(Opcode.CONSTANT, 1);
     const v22 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const source = concat([
       // (22 11 33 min)
-      v22,
-      v11,
-      v33,
+        v22,
+        v11,
+        v33,
       op(Opcode.MIN, 3),
     ]);
 
@@ -956,17 +969,17 @@ describe("RainVM", async function () {
     // prettier-ignore
     const sources = [
       concat([ // sourceIndex === 0 (main source)
-        op(Opcode.CONSTANT, val0),
-        op(Opcode.CONSTANT, val1),
+          op(Opcode.CONSTANT, val0),
+          op(Opcode.CONSTANT, val1),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([ // sourceIndex === 1 (inner ZIPMAP function)
         // (arg0 arg1 mul) (arg0 arg1 add)
-        op(Opcode.CONSTANT, arg0),
-        op(Opcode.CONSTANT, arg1),
+          op(Opcode.CONSTANT, arg0),
+          op(Opcode.CONSTANT, arg1),
         op(Opcode.MUL, 2),
-        op(Opcode.CONSTANT, arg0),
-        op(Opcode.CONSTANT, arg1),
+          op(Opcode.CONSTANT, arg0),
+          op(Opcode.CONSTANT, arg1),
         op(Opcode.ADD, 2),
       ]),
     ];
@@ -1032,22 +1045,23 @@ describe("RainVM", async function () {
     const arg1 = 4;
     const arg2 = 5;
 
+    // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.CONSTANT, 2),
-        op(Opcode.CONSTANT, 1),
-        op(Opcode.CONSTANT, 0),
+          op(Opcode.CONSTANT, 2),
+          op(Opcode.CONSTANT, 1),
+          op(Opcode.CONSTANT, 0),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 mul) (arg0 arg1 arg2 add)
-        op(Opcode.CONSTANT, arg0),
-        op(Opcode.CONSTANT, arg1),
-        op(Opcode.CONSTANT, arg2),
+          op(Opcode.CONSTANT, arg0),
+          op(Opcode.CONSTANT, arg1),
+          op(Opcode.CONSTANT, arg2),
         op(Opcode.MUL, 3),
-        op(Opcode.CONSTANT, arg0),
-        op(Opcode.CONSTANT, arg1),
-        op(Opcode.CONSTANT, arg2),
+          op(Opcode.CONSTANT, arg0),
+          op(Opcode.CONSTANT, arg1),
+          op(Opcode.CONSTANT, arg2),
         op(Opcode.ADD, 3),
       ]),
     ];
@@ -1113,83 +1127,84 @@ describe("RainVM", async function () {
     const loopSize = 0; // no subdivision of uint256, normal constants
     const valSize = 7;
 
+    // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 1),
-        op(Opcode.CONSTANT, 2),
-        op(Opcode.CONSTANT, 3),
-        op(Opcode.CONSTANT, 4),
-        op(Opcode.CONSTANT, 5),
-        op(Opcode.CONSTANT, 6),
-        op(Opcode.CONSTANT, 7),
+          op(Opcode.CONSTANT, 0),
+          op(Opcode.CONSTANT, 1),
+          op(Opcode.CONSTANT, 2),
+          op(Opcode.CONSTANT, 3),
+          op(Opcode.CONSTANT, 4),
+          op(Opcode.CONSTANT, 5),
+          op(Opcode.CONSTANT, 6),
+          op(Opcode.CONSTANT, 7),
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 ... add) (arg0 arg1 arg2 ... add)
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
-        a6,
-        a7,
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
-        a6,
-        a7,
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
-        a6,
-        a7,
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
-        a6,
-        a7,
+          a0,
+          a1,
+          a2,
+          a3,
+          a4,
+          a5,
+          a6,
+          a7,
+          a0,
+          a1,
+          a2,
+          a3,
+          a4,
+          a5,
+          a6,
+          a7,
+          a0,
+          a1,
+          a2,
+          a3,
+          a4,
+          a5,
+          a6,
+          a7,
+          a0,
+          a1,
+          a2,
+          a3,
+          a4,
+          a5,
+          a6,
+          a7,
         op(Opcode.ADD, 32), // max no. items
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
-        a6,
-        a7,
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
-        a6,
-        a7,
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
-        a6,
-        a7,
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
+          a0,
+          a1,
+          a2,
+          a3,
+          a4,
+          a5,
+          a6,
+          a7,
+          a0,
+          a1,
+          a2,
+          a3,
+          a4,
+          a5,
+          a6,
+          a7,
+          a0,
+          a1,
+          a2,
+          a3,
+          a4,
+          a5,
+          a6,
+          a7,
+          a0,
+          a1,
+          a2,
+          a3,
+          a4,
+          a5,
         op(Opcode.ADD, 30),
       ]),
     ];
@@ -1244,33 +1259,34 @@ describe("RainVM", async function () {
     const loopSize = 0;
     const valSize = 2;
 
+    // prettier-ignore
     const sources = [
       concat([
-        v0,
-        v1,
-        v2,
+          v0,
+          v1,
+          v2,
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 mul) (arg1 arg2 arg0 arg1 arg2 ... add)
-        a0,
-        a1,
-        a2,
+          a0,
+          a1,
+          a2,
         op(Opcode.MUL, 3),
-        a1,
-        a2,
-        a0,
-        a1,
-        a2,
-        a0,
-        a1,
-        a2,
-        a0,
-        a1,
-        a2,
-        a0,
-        a1,
-        a2,
+          a1,
+          a2,
+          a0,
+          a1,
+          a2,
+          a0,
+          a1,
+          a2,
+          a0,
+          a1,
+          a2,
+          a0,
+          a1,
+          a2,
         op(Opcode.ADD, 14),
       ]),
     ];
@@ -1325,23 +1341,24 @@ describe("RainVM", async function () {
     const loopSize = 0;
     const valSize = 2;
 
+    // prettier-ignore
     const sources = [
       concat([
-        v3,
-        v4,
-        v5,
+          v3,
+          v4,
+          v5,
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // inner zipmap function source
         // (arg0 arg1 arg2 mul) (arg0 arg1 ar2 add)
-        a0,
-        a1,
-        a2,
+          a0,
+          a1,
+          a2,
         op(Opcode.MUL, 3),
-        a0,
-        a1,
-        a2,
+          a0,
+          a1,
+          a2,
         op(Opcode.ADD, 3),
       ]),
     ];
@@ -1396,18 +1413,19 @@ describe("RainVM", async function () {
     const loopSize = 0; // 1
     const valSize = 2; // 3
 
+    // prettier-ignore
     const sources = [
       concat([
-        v1,
-        v2,
-        v3,
+          v1,
+          v2,
+          v3,
         op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 add)
-        a0,
-        a1,
-        a2,
+          a0,
+          a1,
+          a2,
         op(Opcode.ADD, 3),
       ]),
     ];
@@ -1502,17 +1520,18 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.CONSTANT, 0);
     const v3 = op(Opcode.CONSTANT, 1);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (((2 2 2 +) 3 *) 2 3 /)
-        v2,
-        v2,
-        v2,
-        op(Opcode.ADD, 3),
-        v3,
-        op(Opcode.MUL, 2),
-        v2,
-        v3,
+              v2,
+              v2,
+              v2,
+            op(Opcode.ADD, 3),
+            v3,
+          op(Opcode.MUL, 2),
+          v2,
+          v3,
         op(Opcode.DIV, 3),
       ]),
     ];
@@ -1538,12 +1557,13 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.CONSTANT, 1);
     const v13 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (13 2 3 %)
-        v13,
-        v2,
-        v3,
+          v13,
+          v2,
+          v3,
         op(Opcode.MOD, 3),
       ]),
     ];
@@ -1569,12 +1589,13 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.CONSTANT, 1);
     const v12 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (12 2 3 /)
-        v12,
-        v2,
-        v3,
+          v12,
+          v2,
+          v3,
         op(Opcode.DIV, 3),
       ]),
     ];
@@ -1600,12 +1621,13 @@ describe("RainVM", async function () {
     const v4 = op(Opcode.CONSTANT, 1);
     const v3 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (3 4 5 *)
-        v3,
-        v4,
-        v5,
+          v3,
+          v4,
+          v5,
         op(Opcode.MUL, 3),
       ]),
     ];
@@ -1631,12 +1653,13 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.CONSTANT, 1);
     const v10 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (10 2 3 -)
-        v10,
-        v2,
-        v3,
+          v10,
+          v2,
+          v3,
         op(Opcode.SUB, 3),
       ]),
     ];
@@ -1662,12 +1685,13 @@ describe("RainVM", async function () {
     const v2 = op(Opcode.CONSTANT, 1);
     const v1 = op(Opcode.CONSTANT, 2);
 
+    // prettier-ignore
     const sources = [
       concat([
         // (1 2 3 +)
-        v1,
-        v2,
-        v3,
+          v1,
+          v2,
+          v3,
         op(Opcode.ADD, 3),
       ]),
     ];
