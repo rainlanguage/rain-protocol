@@ -130,9 +130,9 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      v1,
-      v2,
-      v3,
+        v1,
+        v2,
+        v3,
       op(Opcode.ANY, 3),
     ]);
 
@@ -147,8 +147,8 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      v0,
-      v0,
+        v0,
+        v0,
       op(Opcode.ANY, 2),
     ]);
 
@@ -164,9 +164,9 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source2 = concat([
-      v0,
-      v0,
-      v3,
+        v0,
+        v0,
+        v3,
       op(Opcode.ANY, 3),
     ]);
 
@@ -193,9 +193,9 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      v1,
-      v2,
-      v3,
+        v1,
+        v2,
+        v3,
       op(Opcode.EVERY, 3),
     ]);
 
@@ -210,9 +210,9 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      v0,
-      v1,
-      v2,
+        v0,
+        v1,
+        v2,
       op(Opcode.EVERY, 3),
     ]);
 
@@ -228,8 +228,8 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source2 = concat([
-      v0,
-      v3,
+        v0,
+        v3,
       op(Opcode.EVERY, 2),
     ]);
 
@@ -257,9 +257,9 @@ describe("LogicOps Test", async function () {
     // prettier-ignore
     const source0 = concat([
       // 1 ? 2 : 3
-      v1,
-      v2,
-      v3,
+        v1,
+        v2,
+        v3,
       op(Opcode.EAGER_IF),
     ]);
 
@@ -276,9 +276,9 @@ describe("LogicOps Test", async function () {
     // prettier-ignore
     const source1 = concat([
       // 2 ? 2 : 3
-      v2,
-      v2,
-      v3,
+        v2,
+        v2,
+        v3,
       op(Opcode.EAGER_IF),
     ]);
 
@@ -295,9 +295,9 @@ describe("LogicOps Test", async function () {
     // prettier-ignore
     const source2 = concat([
       // 2 ? 2 : 3
-      v0,
-      v2,
-      v3,
+        v0,
+        v2,
+        v3,
       op(Opcode.EAGER_IF),
     ]);
 
@@ -319,8 +319,8 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONSTANT, 1), // 2
-      op(Opcode.CONSTANT, 0), // 1
+        op(Opcode.CONSTANT, 1), // 2
+        op(Opcode.CONSTANT, 0), // 1
       op(Opcode.GREATER_THAN),
     ]);
 
@@ -336,8 +336,8 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.CONSTANT, 0), // 1
-      op(Opcode.CONSTANT, 1), // 2
+        op(Opcode.CONSTANT, 0), // 1
+        op(Opcode.CONSTANT, 1), // 2
       op(Opcode.GREATER_THAN),
     ]);
 
@@ -359,8 +359,8 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONSTANT, 1), // 2
-      op(Opcode.CONSTANT, 0), // 1
+        op(Opcode.CONSTANT, 1), // 2
+        op(Opcode.CONSTANT, 0), // 1
       op(Opcode.LESS_THAN),
     ]);
 
@@ -376,8 +376,8 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.CONSTANT, 0), // 1
-      op(Opcode.CONSTANT, 1), // 2
+        op(Opcode.CONSTANT, 0), // 1
+        op(Opcode.CONSTANT, 1), // 2
       op(Opcode.LESS_THAN),
     ]);
 
@@ -399,8 +399,8 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONSTANT, 1), // 2
-      op(Opcode.CONSTANT, 1), // 2
+        op(Opcode.CONSTANT, 1), // 2
+        op(Opcode.CONSTANT, 1), // 2
       op(Opcode.EQUAL_TO),
     ]);
 
@@ -416,8 +416,8 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.CONSTANT, 0), // 1
-      op(Opcode.CONSTANT, 1), // 2
+        op(Opcode.CONSTANT, 0), // 1
+        op(Opcode.CONSTANT, 1), // 2
       op(Opcode.EQUAL_TO),
     ]);
 
@@ -437,7 +437,7 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONSTANT, 0),
+        op(Opcode.CONSTANT, 0),
       op(Opcode.ISZERO),
     ]);
 
@@ -455,7 +455,7 @@ describe("LogicOps Test", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.CONSTANT, 1),
+        op(Opcode.CONSTANT, 1),
       op(Opcode.ISZERO),
     ]);
 
