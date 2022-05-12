@@ -35,6 +35,7 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
 describe("TierOps", async function () {
   let stateBuilder;
   let logic;
+
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
@@ -48,6 +49,7 @@ describe("TierOps", async function () {
       stateBuilder.address
     )) as AllStandardOpsTest & Contract;
   });
+
   it("should enforce maxTier for update tier range operation", async () => {
     this.timeout(0);
 
