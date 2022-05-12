@@ -28,8 +28,8 @@ struct Order {
 }
 
 uint256 constant ENTRYPOINT = 0;
-uint constant ENTRYPOINTS_LENGTH = 1;
-uint constant MIN_FINAL_STACK_INDEX = 2;
+uint256 constant ENTRYPOINTS_LENGTH = 1;
+uint256 constant MIN_FINAL_STACK_INDEX = 2;
 
 OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
 OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);

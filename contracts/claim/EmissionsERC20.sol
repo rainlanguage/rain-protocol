@@ -27,8 +27,8 @@ struct EmissionsERC20Config {
 
 /// @dev Source index for VM eval.
 uint256 constant ENTRYPOINT = 0;
-uint constant ENTRYPOINTS_LENGTH = 1;
-uint constant MIN_FINAL_STACK_INDEX = 1;
+uint256 constant ENTRYPOINTS_LENGTH = 1;
+uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is

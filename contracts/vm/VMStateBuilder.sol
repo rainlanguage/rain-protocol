@@ -33,8 +33,8 @@ struct StateConfig {
 /// fnPtrs, which has undefined and therefore possibly catastrophic behaviour
 /// for the implementing contract, up to and including total funds loss.
 struct Bounds {
-    uint entrypointsLength;
-    uint minFinalStackIndex;
+    uint256 entrypointsLength;
+    uint256 minFinalStackIndex;
     uint256 stackIndex;
     uint256 stackLength;
     uint256 argumentsLength;
