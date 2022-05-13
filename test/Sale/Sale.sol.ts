@@ -104,6 +104,116 @@ describe("Sale", async function () {
       "wrong redeemableERC20Factory in SaleConstructorConfig"
     );
   });
+
+  it("should use calculated maxUnits when processing buy if maxUnits is less than targetUnits", async () => {
+    this.timeout(0);
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+    const maxUnits = ethers.BigNumber.from(3);
+    const constants = [
+      basePrice,
+      startBlock - 1,
+      startBlock + saleTimeout - 1,
+      maxUnits,
+    ];
+    const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vMaxUnits = op(Opcode.CONSTANT, 3);
+    const sources = [
+      afterBlockNumberSource(1),
+      afterBlockNumberSource(2),
+      // prettier-ignore
+      concat([
+        // maxUnits
+        vMaxUnits, // static amount
+        // price
+        vBasePrice,
+      ]),
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits0 = totalTokenSupply.div(10);
+
+    const expectedPrice0 = basePrice;
+    const expectedCost0 = expectedPrice0.mul(maxUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 1,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+    assert(receipt0.id.eq(0), "wrong receipt0 id");
+    assert(
+      receipt0.feeRecipient === feeRecipient.address,
+      "wrong receipt0 feeRecipient"
+    );
+    assert(receipt0.fee.eq(fee), "wrong receipt0 fee");
+    assert(receipt0.units.eq(maxUnits), "wrong receipt0 units");
+    assert(receipt0.price.eq(expectedPrice0), "wrong receipt0 price");
+  });
+
   it("should configure tier correctly", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
