@@ -60,11 +60,11 @@ export const deployGlobals = async () => {
   return {
     tierFactory,
     readWriteTier,
-    saleFactory,
     claimFactory,
     claim,
     claimWrapperFactory,
     claimWrapper,
-    redeemableERC20Factory,
+    saleFactoryFactory,
+    saleFactory,
   };
 };
