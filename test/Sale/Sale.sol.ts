@@ -3838,22 +3838,25 @@ describe("Sale", async function () {
       concat([vBasePrice]),
     ];
     const saleTimeout = 100;
+
+    const saleConfig = {
+      vmStateConfig: {
+        sources,
+        constants,
+      },
+      recipient: recipient.address,
+      reserve: reserve.address,
+      cooldownDuration: 1,
+      minimumRaise,
+      dustSize: 0,
+      saleTimeout,
+    };
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
-      {
-        vmStateConfig: {
-          sources,
-          constants,
-        },
-        recipient: recipient.address,
-        reserve: reserve.address,
-        cooldownDuration: 1,
-        minimumRaise,
-        dustSize: 0,
-        saleTimeout,
-      },
+      saleConfig,
       {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
@@ -3867,8 +3870,8 @@ describe("Sale", async function () {
       "Initialize",
       sale
     )) as InitializeEvent["args"];
-    // TODO: Use compareStruct util fn to test equivalence
-    console.log({ initializeConfig: config }); // just eyeball the log I can't be bothered to test object equivalence
+
+    Util.compareStructs(config, saleConfig);
     assert(sender === saleFactory.address, "wrong sender in Initialize event");
     const saleToken = await sale.token();
     assert(saleToken === token, "wrong token in Initialize event");
