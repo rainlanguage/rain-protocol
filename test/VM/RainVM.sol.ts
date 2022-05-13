@@ -72,12 +72,8 @@ describe("RainVM", async function () {
     // final stack height = 2
     // prettier-ignore
     const sources1 = [concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 0),
-      op(Opcode.ADD, 2),
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 0),
-      op(Opcode.ADD, 2),
+      op(Opcode.CONSTANT, 0),
+      op(Opcode.CONSTANT, 0),
     ])];
 
     // should pass with stack height = min stack height
@@ -88,13 +84,7 @@ describe("RainVM", async function () {
     const sources2 = [concat([
       op(Opcode.CONSTANT, 0),
       op(Opcode.CONSTANT, 0),
-    op(Opcode.ADD, 2),
       op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 0),
-    op(Opcode.ADD, 2),
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 0),
-    op(Opcode.ADD, 2),
   ])];
 
     // should pass with stack height > min stack height
