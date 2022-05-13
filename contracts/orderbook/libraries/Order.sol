@@ -28,6 +28,8 @@ struct Order {
 }
 
 uint256 constant ENTRYPOINT = 0;
+uint constant ENTRYPOINTS_LENGTH = 1;
+uint constant MIN_FINAL_STACK_INDEX = 2;
 
 OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
 OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
@@ -38,6 +40,9 @@ library LibOrder {
         address vm_,
         OrderConfig memory config_
     ) internal returns (Order memory) {
+        Bounds memory bounds_;
+        bounds_.entrypointsLength = ENTRYPOINTS_LENGTH;
+        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
         return
             Order(
                 msg.sender,
@@ -49,7 +54,7 @@ library LibOrder {
                 VMStateBuilder(vmStateBuilder_).buildState(
                     vm_,
                     config_.vmStateConfig,
-                    ENTRYPOINT + 1
+                    bounds_
                 )
             );
     }

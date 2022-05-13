@@ -5,7 +5,7 @@ import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
-import {VMStateBuilder, StateConfig} from "../vm/VMStateBuilder.sol";
+import {VMStateBuilder, StateConfig, Bounds} from "../vm/VMStateBuilder.sol";
 import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
@@ -27,6 +27,8 @@ struct EmissionsERC20Config {
 
 /// @dev Source index for VM eval.
 uint256 constant ENTRYPOINT = 0;
+uint constant ENTRYPOINTS_LENGTH = 1;
+uint constant MIN_FINAL_STACK_INDEX = 1;
 
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -91,10 +93,14 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
+        Bounds memory bounds_;
+        bounds_.entrypointsLength = ENTRYPOINTS_LENGTH;
+        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
+
         bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             config_.vmStateConfig,
-            ENTRYPOINT + 1
+            bounds_
         );
         vmStatePointer = SSTORE2.write(vmStateBytes_);
 

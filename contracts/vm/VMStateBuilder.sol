@@ -33,6 +33,8 @@ struct StateConfig {
 /// fnPtrs, which has undefined and therefore possibly catastrophic behaviour
 /// for the implementing contract, up to and including total funds loss.
 struct Bounds {
+    uint entrypointsLength;
+    uint minFinalStackIndex;
     uint256 stackIndex;
     uint256 stackLength;
     uint256 argumentsLength;
@@ -71,11 +73,10 @@ contract VMStateBuilder {
     function buildState(
         address vm_,
         StateConfig memory config_,
-        uint256 entrypointsLength_
+        Bounds memory bounds_
     ) external returns (bytes memory) {
         unchecked {
             bytes memory packedFnPtrs_ = _packedFnPtrs(vm_);
-            Bounds memory bounds_;
             bounds_.storageLength = RainVM(vm_).storageOpcodesRange().length;
             // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the length
             // to get the valid opcodes length.
@@ -83,7 +84,7 @@ contract VMStateBuilder {
 
             // We need the max stack and arguments length across all possible
             // entrypoints, which means looping over all the entrypoints.
-            for (uint256 i_ = 0; i_ < entrypointsLength_; i_++) {
+            for (uint256 i_ = 0; i_ < bounds_.entrypointsLength; i_++) {
                 bounds_.stackIndex = 0;
                 ensureIntegrity(config_, bounds_, i_);
             }
@@ -100,6 +101,12 @@ contract VMStateBuilder {
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
+
+            // Stack needs to be high enough to read from after eval.
+            require(
+                bounds_.stackIndex >= bounds_.minFinalStackIndex,
+                "FINAL_STACK_INDEX"
+            );
 
             return
                 LibState.toBytesPacked(
