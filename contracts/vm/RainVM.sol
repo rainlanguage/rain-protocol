@@ -41,6 +41,17 @@ struct StorageOpcodesRange {
 }
 
 library LibState {
+    /// Put the state back to a freshly eval-able value. The same state can be
+    /// run more than once (e.g. two different entrypoints) to yield different
+    /// stacks, as long as all the sources are VALID and reset is called
+    /// between each eval call.
+    /// Generally this should be called whenever eval is run over a state that
+    /// is exposed to the calling context (e.g. it is an argument) so that the
+    /// caller may safely eval multiple times on any state it has in scope.
+    function reset(State memory state_) internal pure {
+        state_.stackIndex = 0;
+    }
+
     function toBytesDebug(State memory state_)
         internal
         pure

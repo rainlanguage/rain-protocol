@@ -146,6 +146,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
+    using LibState for State;
 
     /// Contract is constructing.
     /// @param sender `msg.sender` of the contract deployer.
@@ -343,6 +344,10 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         return _saleStatus;
     }
 
+    function _loadState() internal view returns (State memory) {
+        return LibState.fromBytesPacked(SSTORE2.read(vmStatePointer));
+    }
+
     /// Can the Sale live?
     /// Evals the "can live" script.
     /// If a non zero value is returned then the sale can move from pending to
@@ -351,17 +356,15 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// active to a finalised status.
     /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
     /// evaluating the script.
-    function canLive() public view returns (bool) {
+    function _canLive(State memory state_) internal view returns (bool) {
         unchecked {
             if (_remainingUnits < 1) {
                 return false;
             }
-
-            State memory state_ = LibState.fromBytesPacked(
-                SSTORE2.read(vmStatePointer)
-            );
             eval("", state_, CAN_LIVE_ENTRYPOINT);
-            return state_.stack[state_.stackIndex - 1] > 0;
+            bool canLive_ = state_.stack[state_.stackIndex - 1] > 0;
+            state_.reset();
+            return canLive_;
         }
     }
 
@@ -375,25 +378,24 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// the units and price. When `buy` executes the real purchase size will be
     /// the smaller of the target units and the returned maximum units. If this
     /// is below the buyer's minimum the buy will revert.
-    function calculateBuy(uint256 targetUnits_)
-        public
+    function _calculateBuy(State memory state_, uint256 targetUnits_)
+        internal
         view
         returns (uint256, uint256)
     {
         unchecked {
-            State memory state_ = LibState.fromBytesPacked(
-                SSTORE2.read(vmStatePointer)
-            );
             bytes memory context_ = new bytes(0x20);
             assembly {
                 mstore(add(context_, 0x20), targetUnits_)
             }
             eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
 
-            return (
+            (uint256 maxUnits_, uint256 price_) = (
                 state_.stack[state_.stackIndex - 2],
                 state_.stack[state_.stackIndex - 1]
             );
+            state_.reset();
+            return (maxUnits_, price_);
         }
     }
 
@@ -424,13 +426,25 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         }
     }
 
+    function canLive() external view returns (bool) {
+        return _canLive(_loadState());
+    }
+
+    function calculateBuy(uint256 targetUnits_)
+        external
+        view
+        returns (uint256, uint256)
+    {
+        return _calculateBuy(_loadState(), targetUnits_);
+    }
+
     /// Start the sale (move from pending to active).
     /// This is also done automatically inline with each `buy` call so is
     /// optional for anon to call outside of a purchase.
     /// `canStart` MUST return true.
     function start() external {
         require(_saleStatus == SaleStatus.Pending);
-        require(canLive(), "NOT_LIVE");
+        require(_canLive(_loadState()), "NOT_LIVE");
         _start();
     }
 
@@ -440,7 +454,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// `canEnd` MUST return true.
     function end() external {
         require(_saleStatus == SaleStatus.Active);
-        require(!canLive(), "LIVE");
+        require(!_canLive(_loadState()), "LIVE");
         _end();
     }
 
@@ -489,22 +503,33 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             "MINIMUM_OVER_DESIRED"
         );
 
-        bool canLive_ = canLive();
+        // This state is loaded once and shared between 2x `_canLive` calls and
+        // a `_calculateBuy` call.
+        State memory state_ = _loadState();
 
-        // Start if not started and can live.
-        if (_saleStatus == SaleStatus.Pending && canLive_) {
-            _start();
+        // Start or end the sale as required.
+        if (_canLive(state_)) {
+            if (_saleStatus == SaleStatus.Pending) {
+                _start();
+            }
         }
-        // End if active status but cannot be live.
-        else if (_saleStatus == SaleStatus.Active && !canLive_) {
-            _end();
+        else {
+            if (_saleStatus == SaleStatus.Active) {
+                _end();
+            }
         }
 
+        // Check the status AFTER possibly modifying it to ensure the potential
+        // modification is respected.
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
         uint256 targetUnits_ = config_.desiredUnits.min(_remainingUnits);
 
-        (uint256 maxUnits_, uint256 price_) = calculateBuy(targetUnits_);
+        (uint256 maxUnits_, uint256 price_) = _calculateBuy(
+            state_,
+            targetUnits_
+        );
+
         // The script may return a larger max units than the target so we have
         // to cap it to prevent the sale selling more than requested. Scripts
         // SHOULD NOT exceed the target units as it may be confusing to end
@@ -554,14 +579,15 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         emit Buy(msg.sender, config_, receipt_);
 
         // Enforce the status of the sale after the purchase.
-        canLive_ = canLive();
-        if (!canLive_) {
-            _end();
-        } else {
+        // The sale ending AFTER the purchase does NOT rollback the purchase,
+        // it simply prevents further purchases.
+        if (_canLive(state_)) {
             // This prevents the sale from being left with so little stock that
             // nobody else will want to clear it out. E.g. the dust might be
             // worth significantly less than the price of gas to call `buy`.
             require(_remainingUnits >= dustSize, "DUST");
+        } else {
+            _end();
         }
     }
 
