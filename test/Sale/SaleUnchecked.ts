@@ -131,7 +131,8 @@ describe("SaleUnchecked", async function () {
     const vTwo = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
-    const source0 = concat( [
+    const source0 = concat([
+      op(Opcode.CONTEXT),
         vHalfMaxUInt256,
         vTwo,
       op(Opcode.EXP, 2)
@@ -214,6 +215,7 @@ describe("SaleUnchecked", async function () {
 
     // prettier-ignore
     const source0 = concat([
+      op(Opcode.CONTEXT),
         vHalfMaxUInt256,
         vThree,
       op(Opcode.MUL, 2)
@@ -291,6 +293,7 @@ describe("SaleUnchecked", async function () {
 
     // prettier-ignore
     const source0 = concat([
+      op(Opcode.CONTEXT),
         vZero,
         vOne,
       op(Opcode.SUB, 2)
@@ -373,6 +376,7 @@ describe("SaleUnchecked", async function () {
 
     // prettier-ignore
     const source0 = concat([
+      op(Opcode.CONTEXT),
         vMaxUInt256,
         vOne,
       op(Opcode.ADD, 2)

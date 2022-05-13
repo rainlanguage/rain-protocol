@@ -133,7 +133,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const minimumTier = Tier.FOUR;
 
@@ -250,7 +250,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -354,7 +354,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -427,7 +427,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -521,7 +521,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
       async () =>
@@ -580,7 +580,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
       async () =>
@@ -639,7 +639,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const cooldownDuration = 5;
     const maliciousReserveFactory = await ethers.getContractFactory(
@@ -773,7 +773,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -902,7 +902,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -1018,7 +1018,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -1138,7 +1138,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -1238,7 +1238,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const cooldownDuration = 5;
     const [sale, token] = await saleDeploy(
@@ -1398,7 +1398,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -1506,6 +1506,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
           vBasePrice,
               vFractionMultiplier,
                 op(Opcode.STORAGE, SaleStorage.Token),
@@ -1643,6 +1646,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
           vBasePrice,
               vFractionMultiplier,
                 op(Opcode.STORAGE, SaleStorage.Reserve),
@@ -1821,11 +1827,11 @@ describe("Sale", async function () {
       startBlock - 1,
       startBlock + saleTimeout - 1,
     ];
-    const vStaticPrice = op(Opcode.CONSTANT, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vStaticPrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -1908,6 +1914,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // ((CURRENT_BUY_UNITS priceDivisor /) 75 +)
         op(Opcode.CONTEXT),
         vSupplyDivisor,
@@ -2032,6 +2041,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
         vReserveDivisor,
@@ -2276,6 +2288,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
         vReserveDivisor,
@@ -2401,6 +2416,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
         op(Opcode.STORAGE, SaleStorage.RemainingUnits),
         vSupplyDivisor,
@@ -2492,6 +2510,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // (BLOCK_NUMBER 75 +)
         op(Opcode.BLOCK_NUMBER),
         vBasePrice,
@@ -2613,7 +2634,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -2750,7 +2771,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [, token] = await saleDeploy(
       signers,
@@ -2829,7 +2850,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -2968,7 +2989,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -3108,7 +3129,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -3274,7 +3295,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -3422,7 +3443,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -3509,7 +3530,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -3611,7 +3632,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const saleTimeout = 100;
     const [sale, token] = await saleDeploy(
@@ -3835,7 +3856,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const saleTimeout = 100;
     const [sale] = await saleDeploy(
@@ -4005,7 +4026,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
       async () =>
