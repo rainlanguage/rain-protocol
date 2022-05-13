@@ -6,8 +6,8 @@ import "../vm/VMStateBuilder.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 
 uint256 constant ENTRYPOINT = 0;
-uint constant ENTRYPOINTS_LENGTH = 1;
-uint constant MIN_FINAL_STACK_INDEX = 2; // note this value
+uint256 constant ENTRYPOINTS_LENGTH = 1;
+uint256 constant MIN_FINAL_STACK_INDEX = 2; // note this value
 
 /// @title StackHeightTest
 /// Test contract that has misconfigured final stack height.

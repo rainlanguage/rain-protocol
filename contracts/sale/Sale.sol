@@ -134,10 +134,9 @@ struct Receipt {
     uint256 price;
 }
 
-uint256 constant CAN_START_ENTRYPOINT = 0;
-uint256 constant CAN_END_ENTRYPOINT = 1;
-uint256 constant CALCULATE_PRICE_ENTRYPOINT = 2;
-uint256 constant ENTRYPOINTS_LENGTH = 3;
+uint256 constant CAN_LIVE_ENTRYPOINT = 0;
+uint256 constant CALCULATE_PRICE_ENTRYPOINT = 1;
+uint256 constant ENTRYPOINTS_LENGTH = 2;
 uint256 constant MIN_FINAL_STACK_INDEX = 2;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
@@ -344,55 +343,25 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         return _saleStatus;
     }
 
-    /// Can the sale start?
-    /// Evals `canStartStatePointer` to a boolean that determines whether the
-    /// sale can start (move from pending to active). Buying from and ending
-    /// the sale will both always fail if the sale never started.
-    /// The sale can ONLY start if it is currently in pending status.
-    function canStart() public view returns (bool) {
-        // Only a pending sale can start. Starting a sale more than once would
-        // always be a bug.
-        if (_saleStatus == SaleStatus.Pending) {
+    /// Can the Sale live?
+    /// Evals the "can live" script.
+    /// If a non zero value is returned then the sale can move from pending to
+    /// active, or remain active.
+    /// If a zero value is returned the sale can remain pending or move from
+    /// active to a finalised status.
+    /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
+    /// evaluating the script.
+    function canLive() public view returns (bool) {
+        unchecked {
+            if (_remainingUnits < 1) {
+                return false;
+            }
+
             State memory state_ = LibState.fromBytesPacked(
                 SSTORE2.read(vmStatePointer)
             );
-            eval("", state_, CAN_START_ENTRYPOINT);
+            eval("", state_, CAN_LIVE_ENTRYPOINT);
             return state_.stack[state_.stackIndex - 1] > 0;
-        } else {
-            return false;
-        }
-    }
-
-    /// Can the sale end?
-    /// Evals `canEndStatePointer` to a boolean that determines whether the
-    /// sale can end (move from active to success/fail). Buying will fail if
-    /// the sale has ended.
-    /// If the sale is out of rTKN stock it can ALWAYS end and in this case
-    /// will NOT eval the "can end" script.
-    /// The sale can ONLY end if it is currently in active status.
-    function canEnd() public view returns (bool) {
-        // Only an active sale can end. Ending an ended or pending sale would
-        // always be a bug.
-        if (_saleStatus == SaleStatus.Active) {
-            // It is always possible to end an out of stock sale because at
-            // this point the only further buys that can happen are after a
-            // refund, and it makes no sense that someone would refund at a low
-            // price to buy at a high price. Therefore we should end the sale
-            // and tally the final result as soon as we sell out.
-            if (_remainingUnits < 1) {
-                return true;
-            }
-            // The raise is active and still has stock remaining so we delegate
-            // to the appropriate script for an answer.
-            else {
-                State memory state_ = LibState.fromBytesPacked(
-                    SSTORE2.read(vmStatePointer)
-                );
-                eval("", state_, CAN_END_ENTRYPOINT);
-                return state_.stack[state_.stackIndex - 1] > 0;
-            }
-        } else {
-            return false;
         }
     }
 
@@ -428,19 +397,12 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         }
     }
 
-    /// Start the sale (move from pending to active).
-    /// `canStart` MUST return true.
-    function start() external {
-        require(canStart(), "CANT_START");
+    function _start() internal {
         _saleStatus = SaleStatus.Active;
         emit Start(msg.sender);
     }
 
-    /// End the sale (move from active to success or fail).
-    /// `canEnd` MUST return true.
-    function end() public {
-        require(canEnd(), "CANT_END");
-
+    function _end() internal {
         bool success_ = _totalReserveIn >= minimumRaise;
         SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
 
@@ -460,6 +422,26 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                 _totalReserveIn
             );
         }
+    }
+
+    /// Start the sale (move from pending to active).
+    /// This is also done automatically inline with each `buy` call so is
+    /// optional for anon to call outside of a purchase.
+    /// `canStart` MUST return true.
+    function start() external {
+        require(_saleStatus == SaleStatus.Pending);
+        require(canLive(), "NOT_LIVE");
+        _start();
+    }
+
+    /// End the sale (move from active to success or fail).
+    /// This is also done automatically inline with each `buy` call so is
+    /// optional for anon to call outside of a purchase.
+    /// `canEnd` MUST return true.
+    function end() external {
+        require(_saleStatus == SaleStatus.Active);
+        require(!canLive(), "LIVE");
+        _end();
     }
 
     /// Timeout the sale (move from pending or active to fail).
@@ -507,6 +489,17 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             "MINIMUM_OVER_DESIRED"
         );
 
+        bool canLive_ = canLive();
+
+        // Start if not started and can live.
+        if (_saleStatus == SaleStatus.Pending && canLive_) {
+            _start();
+        }
+        // End if active status but cannot be live.
+        else if (_saleStatus == SaleStatus.Active && !canLive_) {
+            _end();
+        }
+
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
         uint256 targetUnits_ = config_.desiredUnits.min(_remainingUnits);
@@ -518,7 +511,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         // users but it MUST be safe from the sale's perspective to do so.
         // Scripts MAY return max units lower than the target units to enforce
         // per-user or other purchase limits.
-        uint units_ = maxUnits_.min(targetUnits_);
+        uint256 units_ = maxUnits_.min(targetUnits_);
         require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
 
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
@@ -558,13 +551,18 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         // distributor is burned and token is frozen.
         IERC20(address(uint160(_token))).safeTransfer(msg.sender, units_);
 
-        if (_remainingUnits < 1) {
-            end();
+        emit Buy(msg.sender, config_, receipt_);
+
+        // Enforce the status of the sale after the purchase.
+        canLive_ = canLive();
+        if (!canLive_) {
+            _end();
         } else {
+            // This prevents the sale from being left with so little stock that
+            // nobody else will want to clear it out. E.g. the dust might be
+            // worth significantly less than the price of gas to call `buy`.
             require(_remainingUnits >= dustSize, "DUST");
         }
-
-        emit Buy(msg.sender, config_, receipt_);
     }
 
     /// @dev This is here so we can use a modifier like a function call.
