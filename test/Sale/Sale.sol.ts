@@ -2442,7 +2442,7 @@ describe("Sale", async function () {
     const desiredUnits = totalTokenSupply.div(10);
     const expectedPrice = basePrice.add(remainingSupplySummand);
     const expectedCost = expectedPrice.mul(desiredUnits).div(Util.ONE);
-    const actualPrice = await sale.calculatePrice(desiredUnits);
+    const [actualMaxUnits, actualPrice] = await sale.calculateBuy(desiredUnits);
     assert(actualPrice.eq(expectedPrice), "wrong calculated price");
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost.add(fee));
@@ -3647,7 +3647,7 @@ describe("Sale", async function () {
     const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
     const desiredUnits = totalTokenSupply;
     const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
-    const price = await sale.calculatePrice(desiredUnits);
+    const [maxUnits, price] = await sale.calculateBuy(desiredUnits);
     assert(price.eq(75000000), "wrong price");
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, cost.add(fee));
