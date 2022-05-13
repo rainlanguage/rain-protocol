@@ -77,12 +77,7 @@ contract OrderBook is RainVM {
     event Withdraw(address sender, WithdrawConfig config, uint256 amount);
     event OrderLive(address sender, Order config);
     event OrderDead(address sender, Order config);
-    event Clear(
-        address sender,
-        Order a_,
-        Order b_,
-        BountyConfig bountyConfig
-    );
+    event Clear(address sender, Order a_, Order b_, BountyConfig bountyConfig);
     event AfterClear(ClearStateChange stateChange);
 
     address private immutable self;
@@ -116,8 +111,7 @@ contract OrderBook is RainVM {
     }
 
     function deposit(DepositConfig calldata config_) external {
-        vaults[msg.sender][config_.token][config_.vaultId] += config_
-            .amount;
+        vaults[msg.sender][config_.token][config_.vaultId] += config_.amount;
         emit Deposit(msg.sender, config_);
         IERC20(config_.token).safeTransferFrom(
             msg.sender,

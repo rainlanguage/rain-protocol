@@ -131,7 +131,8 @@ describe("SaleUnchecked", async function () {
     const vTwo = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
-    const source0 = concat( [
+    const source0 = concat([
+      op(Opcode.CONTEXT),
         vHalfMaxUInt256,
         vTwo,
       op(Opcode.EXP, 2)
@@ -177,7 +178,7 @@ describe("SaleUnchecked", async function () {
     const desiredUnits = totalTokenSupply;
 
     await Util.assertError(
-      async () => await sale.calculatePrice(desiredUnits),
+      async () => await sale.calculateBuy(desiredUnits),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
     );
@@ -214,6 +215,7 @@ describe("SaleUnchecked", async function () {
 
     // prettier-ignore
     const source0 = concat([
+      op(Opcode.CONTEXT),
         vHalfMaxUInt256,
         vThree,
       op(Opcode.MUL, 2)
@@ -259,7 +261,7 @@ describe("SaleUnchecked", async function () {
     const desiredUnits = totalTokenSupply;
 
     await Util.assertError(
-      async () => await sale.calculatePrice(desiredUnits),
+      async () => await sale.calculateBuy(desiredUnits),
       "Transaction reverted",
       "accumulator overflow did not panic"
     );
@@ -291,6 +293,7 @@ describe("SaleUnchecked", async function () {
 
     // prettier-ignore
     const source0 = concat([
+      op(Opcode.CONTEXT),
         vZero,
         vOne,
       op(Opcode.SUB, 2)
@@ -336,7 +339,7 @@ describe("SaleUnchecked", async function () {
     const desiredUnits = totalTokenSupply;
 
     await Util.assertError(
-      async () => await sale.calculatePrice(desiredUnits),
+      async () => await sale.calculateBuy(desiredUnits),
       "Transaction reverted",
       "accumulator underflow did not panic"
     );
@@ -373,6 +376,7 @@ describe("SaleUnchecked", async function () {
 
     // prettier-ignore
     const source0 = concat([
+      op(Opcode.CONTEXT),
         vMaxUInt256,
         vOne,
       op(Opcode.ADD, 2)
@@ -418,7 +422,7 @@ describe("SaleUnchecked", async function () {
     const desiredUnits = totalTokenSupply;
 
     await Util.assertError(
-      async () => await sale.calculatePrice(desiredUnits),
+      async () => await sale.calculateBuy(desiredUnits),
       "Transaction reverted",
       "accumulator overflow did not panic"
     );

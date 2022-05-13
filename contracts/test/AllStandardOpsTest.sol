@@ -7,8 +7,8 @@ import "../vm/ops/AllStandardOps.sol";
 import "../vm/VMStateBuilder.sol";
 
 uint256 constant ENTRYPOINT = 0;
-uint constant ENTRYPOINTS_LENGTH = 1;
-uint constant MIN_FINAL_STACK_INDEX = 1;
+uint256 constant ENTRYPOINTS_LENGTH = 1;
+uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 3;
 

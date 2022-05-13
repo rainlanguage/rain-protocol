@@ -138,7 +138,7 @@ uint256 constant CAN_START_ENTRYPOINT = 0;
 uint256 constant CAN_END_ENTRYPOINT = 1;
 uint256 constant CALCULATE_PRICE_ENTRYPOINT = 2;
 uint256 constant ENTRYPOINTS_LENGTH = 3;
-uint constant MIN_FINAL_STACK_INDEX = 1;
+uint256 constant MIN_FINAL_STACK_INDEX = 2;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
@@ -398,19 +398,34 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     /// Calculates the current reserve price quoted for 1 unit of rTKN.
     /// Used internally to process `buy`.
-    /// @param units_ Amount of rTKN to quote a price for, will be available to
-    /// the price script from OPCODE_CURRENT_BUY_UNITS.
-    function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = LibState.fromBytesPacked(
-            SSTORE2.read(vmStatePointer)
-        );
-        bytes memory context_ = new bytes(0x20);
-        assembly {
-            mstore(add(context_, 0x20), units_)
-        }
-        eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
+    /// @param targetUnits_ Amount of rTKN to quote a price and units for, will
+    /// be available to the price script from OPCODE_CURRENT_BUY_UNITS. When
+    /// `buy` executes the target units will be the smaller of the remaining
+    /// stock and the desired units set by the caller.
+    /// @return (maxUnits, price) The top two items on the stack are used for
+    /// the units and price. When `buy` executes the real purchase size will be
+    /// the smaller of the target units and the returned maximum units. If this
+    /// is below the buyer's minimum the buy will revert.
+    function calculateBuy(uint256 targetUnits_)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        unchecked {
+            State memory state_ = LibState.fromBytesPacked(
+                SSTORE2.read(vmStatePointer)
+            );
+            bytes memory context_ = new bytes(0x20);
+            assembly {
+                mstore(add(context_, 0x20), targetUnits_)
+            }
+            eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
 
-        return state_.stack[state_.stackIndex - 1];
+            return (
+                state_.stack[state_.stackIndex - 2],
+                state_.stack[state_.stackIndex - 1]
+            );
+        }
     }
 
     /// Start the sale (move from pending to active).
@@ -494,10 +509,17 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
-        uint256 units_ = config_.desiredUnits.min(_remainingUnits);
-        require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
+        uint256 targetUnits_ = config_.desiredUnits.min(_remainingUnits);
 
-        uint256 price_ = calculatePrice(units_);
+        (uint256 maxUnits_, uint256 price_) = calculateBuy(targetUnits_);
+        // The script may return a larger max units than the target so we have
+        // to cap it to prevent the sale selling more than requested. Scripts
+        // SHOULD NOT exceed the target units as it may be confusing to end
+        // users but it MUST be safe from the sale's perspective to do so.
+        // Scripts MAY return max units lower than the target units to enforce
+        // per-user or other purchase limits.
+        uint units_ = maxUnits_.min(targetUnits_);
+        require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
 
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
         uint256 cost_ = price_.fixedPointMul(units_);

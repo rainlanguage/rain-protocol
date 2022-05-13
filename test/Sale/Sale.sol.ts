@@ -104,6 +104,116 @@ describe("Sale", async function () {
       "wrong redeemableERC20Factory in SaleConstructorConfig"
     );
   });
+
+  it("should use calculated maxUnits when processing buy if maxUnits is less than targetUnits", async () => {
+    this.timeout(0);
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+
+    const saleTimeout = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: Util.zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+
+    const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
+    const maxUnits = ethers.BigNumber.from(3);
+    const constants = [
+      basePrice,
+      startBlock - 1,
+      startBlock + saleTimeout - 1,
+      maxUnits,
+    ];
+    const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vMaxUnits = op(Opcode.CONSTANT, 3);
+    const sources = [
+      afterBlockNumberSource(1),
+      afterBlockNumberSource(2),
+      // prettier-ignore
+      concat([
+        // maxUnits
+        vMaxUnits, // static amount
+        // price
+        vBasePrice,
+      ]),
+    ];
+
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+
+    const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
+
+    // wait until sale start
+    await Util.createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+
+    await sale.start();
+
+    const desiredUnits0 = totalTokenSupply.div(10);
+
+    const expectedPrice0 = basePrice;
+    const expectedCost0 = expectedPrice0.mul(maxUnits).div(Util.ONE);
+
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: 1,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+    const { receipt: receipt0 } = (await Util.getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+    assert(receipt0.id.eq(0), "wrong receipt0 id");
+    assert(
+      receipt0.feeRecipient === feeRecipient.address,
+      "wrong receipt0 feeRecipient"
+    );
+    assert(receipt0.fee.eq(fee), "wrong receipt0 fee");
+    assert(receipt0.units.eq(maxUnits), "wrong receipt0 units");
+    assert(receipt0.price.eq(expectedPrice0), "wrong receipt0 price");
+  });
+
   it("should configure tier correctly", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -133,7 +243,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const minimumTier = Tier.FOUR;
 
@@ -250,7 +360,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -354,7 +464,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -427,7 +537,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -521,7 +631,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
       async () =>
@@ -580,7 +690,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
       async () =>
@@ -639,7 +749,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const cooldownDuration = 5;
     const maliciousReserveFactory = await ethers.getContractFactory(
@@ -773,7 +883,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -902,7 +1012,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -1018,7 +1128,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -1138,7 +1248,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -1238,7 +1348,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const cooldownDuration = 5;
     const [sale, token] = await saleDeploy(
@@ -1398,7 +1508,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -1506,6 +1616,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
           vBasePrice,
               vFractionMultiplier,
                 op(Opcode.STORAGE, SaleStorage.Token),
@@ -1643,6 +1756,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
           vBasePrice,
               vFractionMultiplier,
                 op(Opcode.STORAGE, SaleStorage.Reserve),
@@ -1821,11 +1937,11 @@ describe("Sale", async function () {
       startBlock - 1,
       startBlock + saleTimeout - 1,
     ];
-    const vStaticPrice = op(Opcode.CONSTANT, 0);
+    const vBasePrice = op(Opcode.CONSTANT, 0);
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vStaticPrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -1908,6 +2024,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // ((CURRENT_BUY_UNITS priceDivisor /) 75 +)
         op(Opcode.CONTEXT),
         vSupplyDivisor,
@@ -2032,6 +2151,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
         vReserveDivisor,
@@ -2276,6 +2398,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
         vReserveDivisor,
@@ -2401,6 +2526,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(2),
       afterBlockNumberSource(3),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
         op(Opcode.STORAGE, SaleStorage.RemainingUnits),
         vSupplyDivisor,
@@ -2442,7 +2570,7 @@ describe("Sale", async function () {
     const desiredUnits = totalTokenSupply.div(10);
     const expectedPrice = basePrice.add(remainingSupplySummand);
     const expectedCost = expectedPrice.mul(desiredUnits).div(Util.ONE);
-    const actualPrice = await sale.calculatePrice(desiredUnits);
+    const [actualMaxUnits, actualPrice] = await sale.calculateBuy(desiredUnits);
     assert(actualPrice.eq(expectedPrice), "wrong calculated price");
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost.add(fee));
@@ -2492,6 +2620,9 @@ describe("Sale", async function () {
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
       concat([
+        // maxUnits
+        op(Opcode.CONTEXT),
+        // price
         // (BLOCK_NUMBER 75 +)
         op(Opcode.BLOCK_NUMBER),
         vBasePrice,
@@ -2613,7 +2744,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -2750,7 +2881,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [, token] = await saleDeploy(
       signers,
@@ -2829,7 +2960,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -2968,7 +3099,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -3108,7 +3239,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -3274,7 +3405,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -3422,7 +3553,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -3509,7 +3640,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -3611,7 +3742,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const saleTimeout = 100;
     const [sale, token] = await saleDeploy(
@@ -3647,7 +3778,7 @@ describe("Sale", async function () {
     const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
     const desiredUnits = totalTokenSupply;
     const cost = staticPrice.mul(desiredUnits).div(Util.ONE);
-    const price = await sale.calculatePrice(desiredUnits);
+    const [maxUnits, price] = await sale.calculateBuy(desiredUnits);
     assert(price.eq(75000000), "wrong price");
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, cost.add(fee));
@@ -3835,7 +3966,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const saleTimeout = 100;
 
@@ -4008,7 +4139,7 @@ describe("Sale", async function () {
     const sources = [
       afterBlockNumberSource(1),
       afterBlockNumberSource(2),
-      concat([vBasePrice]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
       async () =>
