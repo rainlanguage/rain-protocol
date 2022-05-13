@@ -775,6 +775,7 @@ export const compareSolStructs = (
 
   testSolStructs(solAObj, solBObj);
 };
+
 export enum Debug {
   StateAbi,
   StatePacked,

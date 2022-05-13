@@ -2,8 +2,7 @@
 pragma solidity =0.8.10;
 
 import {IFactory} from "./IFactory.sol";
-// solhint-disable-next-line max-line-length
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// @title Factory
 /// @notice Base contract for deploying and registering child contracts.

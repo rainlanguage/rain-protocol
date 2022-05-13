@@ -1,5 +1,5 @@
 import { artifacts, ethers } from "hardhat";
-import type { Contract } from "ethers";
+import type { Contract, Overrides } from "ethers";
 import type {
   SaleConfigStruct,
   SaleFactory,
@@ -39,7 +39,7 @@ export const saleDeploy = async (
   saleFactory: SaleFactory & Contract,
   config: SaleConfigStruct,
   saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
-  ...args
+  ...args: Overrides[]
 ): Promise<[Sale & Contract, RedeemableERC20 & Contract]> => {
   const txDeploy = await saleFactory.createChildTyped(
     config,
