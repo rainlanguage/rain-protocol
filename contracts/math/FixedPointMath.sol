@@ -86,7 +86,7 @@ library FixedPointMath {
         } else {
             uint256 posScaleDownBy_;
             unchecked {
-                posScaleDownBy_ = uint8(-scaleBy_);
+                posScaleDownBy_ = uint8(-1 * scaleBy_);
             }
             return a_ / 10**posScaleDownBy_;
         }
