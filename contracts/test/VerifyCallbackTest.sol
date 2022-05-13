@@ -14,61 +14,73 @@ contract VerifyCallbackTest is IVerifyCallback {
     mapping(address => bool) public bans;
     mapping(address => bool) public removals;
 
-    function afterAdd(
-        address adder_,
-        Evidence calldata evidence_
-    ) external virtual override {
+    function afterAdd(address adder_, Evidence[] calldata evidences_)
+        external
+        virtual
+        override
+    {
         require(adder_ != address(0), "0_ADDRESS");
-        require(!additions[evidence_.account], "PRIOR_ADD");
-        require(
-            keccak256(evidence_.data) == keccak256(bytes("Good")),
-            "BAD_EVIDENCE"
-        );
-        additions[evidence_.account] = true;
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            require(!additions[evidences_[i_].account], "PRIOR_ADD");
+            require(
+                keccak256(evidences_[i_].data) == keccak256(bytes("Good")),
+                "BAD_EVIDENCE"
+            );
+            additions[evidences_[i_].account] = true;
+        }
     }
 
-    function afterApprove(
-        address approver_,
-        Evidence[] calldata evidences_
-    ) external virtual override {
+    function afterApprove(address approver_, Evidence[] calldata evidences_)
+        external
+        virtual
+        override
+    {
         require(approver_ != address(0), "0_ADDRESS");
-        for (uint256 index = 0; index < evidences_.length; index++) {
-            require(!approvals[evidences_[index].account], "PRIOR_APPROVE");
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            require(!approvals[evidences_[i_].account], "PRIOR_APPROVE");
             require(
-                keccak256(evidences_[index].data) == keccak256(bytes("Good")),
+                keccak256(evidences_[i_].data) == keccak256(bytes("Good")),
                 "BAD_EVIDENCE"
             );
-            approvals[evidences_[index].account] = true;
+            // Require that added callback already triggered
+            require(additions[evidences_[i_].account], "NOT_ADDED_CALLBACK");
+            approvals[evidences_[i_].account] = true;
         }
     }
 
-    function afterBan(
-        address banner_,
-        Evidence[] calldata evidences_
-    ) external virtual override {
+    function afterBan(address banner_, Evidence[] calldata evidences_)
+        external
+        virtual
+        override
+    {
         require(banner_ != address(0), "0_ADDRESS");
-        for (uint256 index = 0; index < evidences_.length; index++) {
-            require(!bans[evidences_[index].account], "PRIOR_BAN");
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            require(!bans[evidences_[i_].account], "PRIOR_BAN");
             require(
-                keccak256(evidences_[index].data) == keccak256(bytes("Good")),
+                keccak256(evidences_[i_].data) == keccak256(bytes("Good")),
                 "BAD_EVIDENCE"
             );
-            bans[evidences_[index].account] = true;
+            // Require that added callback already triggered
+            require(additions[evidences_[i_].account], "NOT_ADDED_CALLBACK");
+            bans[evidences_[i_].account] = true;
         }
     }
 
-    function afterRemove(
-        address remover_,
-        Evidence[] calldata evidences_
-    ) external virtual override {
+    function afterRemove(address remover_, Evidence[] calldata evidences_)
+        external
+        virtual
+        override
+    {
         require(remover_ != address(0), "0_ADDRESS");
-        for (uint256 index = 0; index < evidences_.length; index++) {
-            require(!removals[evidences_[index].account], "PRIOR_REMOVE");
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            require(!removals[evidences_[i_].account], "PRIOR_REMOVE");
             require(
-                keccak256(evidences_[index].data) == keccak256(bytes("Good")),
+                keccak256(evidences_[i_].data) == keccak256(bytes("Good")),
                 "BAD_EVIDENCE"
             );
-            removals[evidences_[index].account] = true;
+            // Require that added callback already triggered
+            require(additions[evidences_[i_].account], "NOT_ADDED_CALLBACK");
+            removals[evidences_[i_].account] = true;
         }
     }
 }

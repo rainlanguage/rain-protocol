@@ -12,8 +12,6 @@ import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
 
-import {ERC20Pull, ERC20PullConfig} from "../erc20/ERC20Pull.sol";
-
 /// Everything required by the `RedeemableERC20` constructor.
 /// @param reserve Reserve token that the associated `Trust` or equivalent
 /// raise contract will be forwarding to the `RedeemableERC20` contract.
@@ -92,7 +90,7 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
+contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     using SafeERC20 for IERC20;
 
     /// @dev Phase constants.
@@ -167,9 +165,6 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem, ERC20Pull {
 
         tier = ITier(config_.tier);
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
-        initializeERC20Pull(
-            ERC20PullConfig(config_.erc20Config.distributor, config_.reserve)
-        );
 
         require(
             config_.erc20Config.initialSupply >= MINIMUM_INITIAL_SUPPLY,

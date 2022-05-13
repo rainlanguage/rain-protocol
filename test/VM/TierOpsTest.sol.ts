@@ -2,26 +2,14 @@ import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { op } from "../Util";
+import { op, AllStandardOps } from "../Util";
 import { Contract } from "ethers";
 
-import type { TierOpsTest } from "../../typechain/TierOpsTest";
+import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 
 const { assert } = chai;
 
-const enum Opcode {
-  SKIP,
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  REPORT,
-  NEVER,
-  ALWAYS,
-  SATURATING_DIFF,
-  UPDATE_BLOCKS_FOR_TIER_RANGE,
-  SELECT_LTE,
-}
+const Opcode = AllStandardOps;
 
 enum Tier {
   ZERO,
@@ -44,23 +32,38 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
   return range;
 }
 
-describe("TierOpsTest", async function () {
+describe("TierOps", async function () {
+  let stateBuilder;
+  let logic;
+
+  before(async () => {
+    this.timeout(0);
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
+    );
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
+
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
+  });
+
   it("should enforce maxTier for update tier range operation", async () => {
     this.timeout(0);
-
-    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
 
     await Util.createEmptyBlock(3);
 
     const block = await ethers.provider.getBlockNumber();
 
-    const constants0 = [block];
+    const constants0 = [block, Util.NEVER];
 
-    const vBlock = op(Opcode.VAL, 0);
+    const vBlock = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.NEVER),
+        op(Opcode.CONSTANT, 1),
         vBlock,
       op(
         Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
@@ -68,15 +71,13 @@ describe("TierOpsTest", async function () {
       ),
     ]);
 
-    const tierOps0 = (await tierOpsFactory.deploy({
+    await logic.initialize({
       sources: [source0],
       constants: constants0,
-      argumentsLength: 0,
-      stackLength: 10,
-    })) as TierOpsTest & Contract;
+    });
 
     await Util.assertError(
-      async () => await tierOps0.run(),
+      async () => await logic.run(),
       "MAX_TIER",
       "wrongly updated blocks with endTier of 9, which is greater than maxTier constant"
     );
@@ -85,8 +86,6 @@ describe("TierOpsTest", async function () {
   it("should use saturating sub for diff where only some tiers would underflow", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
-
     const constants0 = [
       //         0x01000000020000000300000004000000050000000600000007
       Util.blockNumbersToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
@@ -94,8 +93,8 @@ describe("TierOpsTest", async function () {
       Util.blockNumbersToReport([2, 0, 4, 0, 6, 0, 8, 0].reverse()),
     ];
 
-    const vReport0 = op(Opcode.VAL, 0);
-    const vReport1 = op(Opcode.VAL, 1);
+    const vReport0 = op(Opcode.CONSTANT, 0);
+    const vReport1 = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -104,14 +103,10 @@ describe("TierOpsTest", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    const tierOps0 = (await tierOpsFactory.deploy({
-      sources: [source0],
-      constants: constants0,
-      argumentsLength: 0,
-      stackLength: 10,
-    })) as TierOpsTest & Contract;
+    await logic.initialize({ sources: [source0], constants: constants0 });
 
-    const result0 = await tierOps0.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
     const expectedResultHex0 =
@@ -128,8 +123,6 @@ describe("TierOpsTest", async function () {
   it("should use saturating sub for diff (does not panic when underflowing, but sets to zero)", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
-
     const constants0 = [
       // 0x01000000020000000300000004000000050000000600000007
       Util.blockNumbersToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
@@ -137,8 +130,8 @@ describe("TierOpsTest", async function () {
       Util.blockNumbersToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
     ];
 
-    const vReport0 = op(Opcode.VAL, 0);
-    const vReport1 = op(Opcode.VAL, 1);
+    const vReport0 = op(Opcode.CONSTANT, 0);
+    const vReport1 = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -147,14 +140,10 @@ describe("TierOpsTest", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    const tierOps0 = (await tierOpsFactory.deploy({
-      sources: [source0],
-      constants: constants0,
-      argumentsLength: 0,
-      stackLength: 10,
-    })) as TierOpsTest & Contract;
+    await logic.initialize({ sources: [source0], constants: constants0 });
 
-    const result0 = await tierOps0.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
     assert(
@@ -168,8 +157,6 @@ describe("TierOpsTest", async function () {
   it("should diff reports correctly", async () => {
     this.timeout(0);
 
-    const tierOpsFactory = await ethers.getContractFactory("TierOpsTest");
-
     const constants0 = [
       // 0x0200000003000000040000000500000006000000070000000800000009
       Util.blockNumbersToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
@@ -177,8 +164,8 @@ describe("TierOpsTest", async function () {
       Util.blockNumbersToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
     ];
 
-    const vReport0 = op(Opcode.VAL, 0);
-    const vReport1 = op(Opcode.VAL, 1);
+    const vReport0 = op(Opcode.CONSTANT, 0);
+    const vReport1 = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const source0 = concat([
@@ -187,14 +174,10 @@ describe("TierOpsTest", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    const tierOps0 = (await tierOpsFactory.deploy({
-      sources: [source0],
-      constants: constants0,
-      argumentsLength: 0,
-      stackLength: 10,
-    })) as TierOpsTest & Contract;
+    await logic.initialize({ sources: [source0], constants: constants0 });
 
-    const result0 = await tierOps0.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
     const expectedResultHex0 =

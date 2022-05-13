@@ -123,7 +123,9 @@ struct VerifyConfig {
 ///   approvers to verify the PAIRING between account and evidence.
 /// - ANY account with the `APPROVER` role can review the evidence by
 ///   inspecting the event logs. IF the evidence is valid then the `approve`
-///   function should be called by the approver.
+///   function should be called by the approver. Approvers MAY also approve and
+///   implicitly add any account atomically if the account did not previously
+///   add itself.
 /// - ANY account with the `BANNER` role can veto either an add OR a prior
 ///   approval. In the case of a false positive, i.e. where an account was
 ///   mistakenly approved, an appeal can be made to a banner to update the
@@ -132,7 +134,9 @@ struct VerifyConfig {
 ///   resubmit new fraudulent evidence and potentially be reapproved.
 ///   Once an account is banned, any attempt by the account holder to change
 ///   their status, or an approver to approve will be rejected. Downstream
-///   consumers of a `State` MUST check for an existing ban.
+///   consumers of a `State` MUST check for an existing ban. Banners MAY ban
+///   and implicity add any account atomically if the account did not
+///   previously add itself.
 ///   - ANY account with the `REMOVER` role can scrub the `State` from an
 ///   account. Of course, this is a blockchain so the state changes are all
 ///   still visible to full nodes and indexers in historical data, in both the
@@ -163,6 +167,21 @@ struct VerifyConfig {
 /// Ideally the admin account assigned at deployment would renounce their admin
 /// rights after establishing a more granular and appropriate set of accounts
 /// with each specific role.
+///
+/// There is no requirement that any of the priviledged accounts with roles are
+/// a single-key EOA, they may be multisig accounts or even a DAO with formal
+/// governance processes mediated by a smart contract.
+///
+/// Every action emits an associated event and optionally calls an onchain
+/// callback on a `IVerifyCallback` contract set during initialize. As each
+/// action my be performed in bulk dupes are not rolled back, instead the
+/// events are emitted for every time the action is called and the callbacks
+/// and onchain state changes are deduped. For example, an approve may be
+/// called twice for a single account, but by different approvers, potentially
+/// submitting different evidence for each approval. In this case the block of
+/// the first approve will be used and the onchain callback will be called for
+/// the first transaction only, but BOTH approvals will emit an event. This
+/// logic is applied per-account, per-action across a batch of evidences.
 contract Verify is AccessControl, Initializable {
     /// Any state never held is UNINITIALIZED.
     /// Note that as per default evm an unset state is 0 so always check the
@@ -230,7 +249,7 @@ contract Verify is AccessControl, Initializable {
 
     /// Optional IVerifyCallback contract.
     /// MAY be address 0.
-    IVerifyCallback public callback = IVerifyCallback(address(0));
+    IVerifyCallback public callback;
 
     /// Initializes the `Verify` contract e.g. as cloned by a factory.
     /// @param config_ The config required to initialize the contract.
@@ -266,6 +285,40 @@ contract Verify is AccessControl, Initializable {
         callback = IVerifyCallback(config_.callback);
 
         emit Initialize(msg.sender, config_);
+    }
+
+    function _updateEvidenceRef(
+        uint256[] memory refs_,
+        Evidence memory evidence_,
+        uint256 refsIndex_
+    ) private pure {
+        uint256 ptr_;
+        assembly {
+            ptr_ := evidence_
+        }
+        refs_[refsIndex_] = ptr_;
+    }
+
+    function _resizeRefs(uint256[] memory refs_, uint256 newLength_)
+        private
+        pure
+    {
+        require(newLength_ <= refs_.length, "BAD_RESIZE");
+        assembly {
+            mstore(refs_, newLength_)
+        }
+    }
+
+    function _refsAsEvidences(uint256[] memory refs_)
+        private
+        pure
+        returns (Evidence[] memory)
+    {
+        Evidence[] memory evidences_;
+        assembly {
+            evidences_ := refs_
+        }
+        return evidences_;
     }
 
     /// Typed accessor into states.
@@ -352,8 +405,11 @@ contract Verify is AccessControl, Initializable {
         // requirements.
         // The inheriting contract MUST `require` or otherwise enforce its
         // needs to rollback a bad add.
-        if (address(callback) != address(0)) {
-            callback.afterAdd(msg.sender, evidence_);
+        IVerifyCallback callback_ = callback;
+        if (address(callback_) != address(0)) {
+            Evidence[] memory evidences_ = new Evidence[](1);
+            evidences_[0] = evidence_;
+            callback_.afterAdd(msg.sender, evidences_);
         }
     }
 
@@ -371,105 +427,147 @@ contract Verify is AccessControl, Initializable {
     /// approval block, even if the approval is more recent than the ban. The
     /// only way to reset a ban is to remove and reapprove the account.
     /// @param evidences_ All evidence for all approvals.
-    function approve(Evidence[] calldata evidences_)
-        external
-        onlyRole(APPROVER)
-    {
-        uint256 dirty_ = 0;
-        State memory state_;
-        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-            state_ = states[evidences_[i_].account];
-            // If the account hasn't been added an approver can still add and
-            // approve it on their behalf.
-            if (state_.addedSince < 1) {
-                state_ = newState();
-                dirty_ = 1;
-            }
-            // If the account hasn't been approved we approve it. As there are
-            // many approvers operating independently and concurrently we do
-            // NOT `require` the approval be unique, but we also do NOT change
-            // the block as the oldest approval is most important. However we
-            // emit an event for every approval even if the state does not
-            // change.
-            // It is possible to approve a banned account but `statusAtBlock`
-            // will ignore the approval time for any banned account and use the
-            // banned block only.
-            if (state_.approvedSince == UNINITIALIZED) {
-                state_.approvedSince = uint32(block.number);
-                dirty_ = 1;
-            }
+    function approve(Evidence[] memory evidences_) external onlyRole(APPROVER) {
+        unchecked {
+            State memory state_;
+            uint256[] memory addedRefs_ = new uint256[](evidences_.length);
+            uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
+            uint256 additions_ = 0;
+            uint256 approvals_ = 0;
 
-            if (dirty_ > 0) {
-                states[evidences_[i_].account] = state_;
-                dirty_ = 0;
-            }
+            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+                Evidence memory evidence_ = evidences_[i_];
+                state_ = states[evidence_.account];
+                // If the account hasn't been added an approver can still add
+                // and approve it on their behalf.
+                if (state_.addedSince < 1) {
+                    state_ = newState();
 
-            // Always emit an `Approve` event even if we didn't write state.
-            // This ensures that supporting evidence hits the logs for offchain
-            // review.
-            emit Approve(msg.sender, evidences_[i_]);
-        }
-        if (address(callback) != address(0)) {
-            callback.afterApprove(msg.sender, evidences_);
+                    _updateEvidenceRef(addedRefs_, evidence_, additions_);
+                    additions_++;
+                }
+                // If the account hasn't been approved we approve it. As there
+                // are many approvers operating independently and concurrently
+                // we do NOT `require` the approval be unique, but we also do
+                // NOT change the block as the oldest approval is most
+                // important. However we emit an event for every approval even
+                // if the state does not change.
+                // It is possible to approve a banned account but
+                // `statusAtBlock` will ignore the approval time for any banned
+                // account and use the banned block only.
+                if (state_.approvedSince == UNINITIALIZED) {
+                    state_.approvedSince = uint32(block.number);
+                    states[evidence_.account] = state_;
+
+                    _updateEvidenceRef(approvedRefs_, evidence_, approvals_);
+                    approvals_++;
+                }
+
+                // Always emit an `Approve` event even if we didn't write to
+                // storage. This ensures that supporting evidence hits the logs
+                // for offchain review.
+                emit Approve(msg.sender, evidence_);
+            }
+            IVerifyCallback callback_ = callback;
+            if (address(callback_) != address(0)) {
+                if (additions_ > 0) {
+                    _resizeRefs(addedRefs_, additions_);
+                    callback_.afterAdd(
+                        msg.sender,
+                        _refsAsEvidences(addedRefs_)
+                    );
+                }
+                if (approvals_ > 0) {
+                    _resizeRefs(approvedRefs_, approvals_);
+                    callback_.afterApprove(
+                        msg.sender,
+                        _refsAsEvidences(approvedRefs_)
+                    );
+                }
+            }
         }
     }
 
-    /// Any approved address can request some other address be approved.
+    /// Any approved address can request some address be approved.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request approvals for.
     function requestApprove(Evidence[] calldata evidences_)
         external
         onlyApproved
     {
-        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-            emit RequestApprove(msg.sender, evidences_[i_]);
+        unchecked {
+            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+                emit RequestApprove(msg.sender, evidences_[i_]);
+            }
         }
     }
 
     /// A `BANNER` can ban an added OR approved account.
     /// @param evidences_ All evidence appropriate for all bans.
     function ban(Evidence[] calldata evidences_) external onlyRole(BANNER) {
-        uint256 dirty_ = 0;
-        State memory state_;
-        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-            state_ = states[evidences_[i_].account];
+        unchecked {
+            State memory state_;
+            uint256[] memory addedRefs_ = new uint256[](evidences_.length);
+            uint256[] memory bannedRefs_ = new uint256[](evidences_.length);
+            uint256 additions_ = 0;
+            uint256 bans_ = 0;
+            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+                Evidence memory evidence_ = evidences_[i_];
+                state_ = states[evidence_.account];
 
-            // There is no requirement that an account be formally added before
-            // it is banned. For example some fraud may be detected in an
-            // affiliated `Verify` contract and the evidence can be used to ban
-            // the same address in the current contract.
-            if (state_.addedSince < 1) {
-                state_ = newState();
-                dirty_ = 1;
+                // There is no requirement that an account be formerly added
+                // before it is banned. For example some fraud may be detected
+                // in an affiliated `Verify` contract and the evidence can be
+                // used to ban the same address in the current contract. In
+                // this case the account will be added and banned in this call.
+                if (state_.addedSince < 1) {
+                    state_ = newState();
+
+                    _updateEvidenceRef(addedRefs_, evidence_, additions_);
+                    additions_++;
+                }
+                // Respect prior bans by leaving onchain storage as-is.
+                if (state_.bannedSince == UNINITIALIZED) {
+                    state_.bannedSince = uint32(block.number);
+                    states[evidence_.account] = state_;
+
+                    _updateEvidenceRef(bannedRefs_, evidence_, bans_);
+                    bans_++;
+                }
+
+                // Always emit a `Ban` event even if we didn't write state. This
+                // ensures that supporting evidence hits the logs for offchain
+                // review.
+                emit Ban(msg.sender, evidence_);
             }
-            // Respect prior bans by leaving the older block number in place.
-            if (state_.bannedSince == UNINITIALIZED) {
-                state_.bannedSince = uint32(block.number);
-                dirty_ = 1;
+            IVerifyCallback callback_ = callback;
+            if (address(callback_) != address(0)) {
+                if (additions_ > 0) {
+                    _resizeRefs(addedRefs_, additions_);
+                    callback_.afterAdd(
+                        msg.sender,
+                        _refsAsEvidences(addedRefs_)
+                    );
+                }
+                if (bans_ > 0) {
+                    _resizeRefs(bannedRefs_, bans_);
+                    callback_.afterBan(
+                        msg.sender,
+                        _refsAsEvidences(bannedRefs_)
+                    );
+                }
             }
-
-            if (dirty_ > 0) {
-                states[evidences_[i_].account] = state_;
-                dirty_ = 0;
-            }
-
-            // Always emit a `Ban` event even if we didn't write state. This
-            // ensures that supporting evidence hits the logs for offchain
-            // review.
-            emit Ban(msg.sender, evidences_[i_]);
-        }
-
-        if (address(callback) != address(0)) {
-            callback.afterBan(msg.sender, evidences_);
         }
     }
 
-    /// Any approved address can request some other address be banned.
+    /// Any approved address can request some address be banned.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request banning for.
     function requestBan(Evidence[] calldata evidences_) external onlyApproved {
-        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-            emit RequestBan(msg.sender, evidences_[i_]);
+        unchecked {
+            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+                emit RequestBan(msg.sender, evidences_[i_]);
+            }
         }
     }
 
@@ -477,30 +575,45 @@ contract Verify is AccessControl, Initializable {
     /// A malicious account MUST be banned rather than removed.
     /// Removal is useful to reset the whole process in case of some mistake.
     /// @param evidences_ All evidence to suppor the removal.
-    function remove(Evidence[] calldata evidences_) external onlyRole(REMOVER) {
-        State memory state_;
-        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-            state_ = states[evidences_[i_].account];
-            if (state_.addedSince > 0) {
-                delete (states[evidences_[i_].account]);
+    function remove(Evidence[] memory evidences_) external onlyRole(REMOVER) {
+        unchecked {
+            State memory state_;
+            uint256[] memory removedRefs_ = new uint256[](evidences_.length);
+            uint256 removals_ = 0;
+            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+                Evidence memory evidence_ = evidences_[i_];
+                state_ = states[evidences_[i_].account];
+                if (state_.addedSince > 0) {
+                    delete (states[evidence_.account]);
+                    _updateEvidenceRef(removedRefs_, evidence_, removals_);
+                    removals_++;
+                }
+                emit Remove(msg.sender, evidence_);
             }
-            emit Remove(msg.sender, evidences_[i_]);
-        }
-
-        if (address(callback) != address(0)) {
-            callback.afterRemove(msg.sender, evidences_);
+            IVerifyCallback callback_ = callback;
+            if (address(callback_) != address(0)) {
+                if (removals_ > 0) {
+                    _resizeRefs(removedRefs_, removals_);
+                    callback_.afterRemove(
+                        msg.sender,
+                        _refsAsEvidences(removedRefs_)
+                    );
+                }
+            }
         }
     }
 
-    /// Any approved address can request some other address be removed.
+    /// Any approved address can request some address be removed.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request removal of.
     function requestRemove(Evidence[] calldata evidences_)
         external
         onlyApproved
     {
-        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-            emit RequestRemove(msg.sender, evidences_[i_]);
+        unchecked {
+            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+                emit RequestRemove(msg.sender, evidences_[i_]);
+            }
         }
     }
 }

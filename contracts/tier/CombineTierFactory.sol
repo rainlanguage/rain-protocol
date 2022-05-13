@@ -4,7 +4,7 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import {Factory} from "../factory/Factory.sol";
 import {CombineTier} from "./CombineTier.sol";
-import {StateConfig} from "../vm/libraries/VMState.sol";
+import {StateConfig} from "../vm/VMStateBuilder.sol";
 
 /// @title CombineTierFactory
 /// @notice Factory for creating and deploying `CombineTier` contracts.
@@ -14,8 +14,8 @@ contract CombineTierFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor() {
-        address implementation_ = address(new CombineTier());
+    constructor(address vmStateBuilder_) {
+        address implementation_ = address(new CombineTier(vmStateBuilder_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
@@ -27,9 +27,9 @@ contract CombineTierFactory is Factory {
         override
         returns (address)
     {
-        StateConfig memory config_ = abi.decode(data_, (StateConfig));
+        StateConfig memory stateConfig_ = abi.decode(data_, (StateConfig));
         address clone_ = Clones.clone(implementation);
-        CombineTier(clone_).initialize(config_);
+        CombineTier(clone_).initialize(stateConfig_);
         return clone_;
     }
 
@@ -37,12 +37,11 @@ contract CombineTierFactory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ `ImmutableSourceConfig` of the `CombineTier` logic.
     /// @return New `CombineTier` child contract address.
-    function createChildTyped(StateConfig calldata config_)
+    function createChildTyped(StateConfig calldata stateConfig_)
         external
         returns (CombineTier)
     {
-        return CombineTier(this.createChild(abi.encode(config_)));
+        return CombineTier(this.createChild(abi.encode(stateConfig_)));
     }
 }

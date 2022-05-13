@@ -3,94 +3,29 @@ import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { op } from "../Util";
-import type { Contract, ContractFactory } from "ethers";
+import type { Contract } from "ethers";
 
-import type { FixedPointMathOpsTest } from "../../typechain/FixedPointMathOpsTest";
+import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 
 const { assert } = chai;
 
-const enum Opcode {
-  SKIP,
-  VAL,
-  DUP,
-  ZIPMAP,
-  DEBUG,
-  SCALE18_MUL,
-  SCALE18_DIV,
-  SCALE18,
-  SCALEN,
-  SCALE_BY,
-  ONE,
-  DECIMALS,
-}
+const Opcode = Util.AllStandardOps;
 
-let tokenOpsTestFactory: ContractFactory;
-
-describe("FixedPointMathOpsTest", async function () {
+describe("FixedPointMathOps Test", async function () {
+  let stateBuilder;
+  let logic;
   before(async () => {
-    tokenOpsTestFactory = await ethers.getContractFactory(
-      "FixedPointMathOpsTest"
-    );
-  });
-
-  it("should return DECIMALS", async () => {
     this.timeout(0);
-
-    const constants = [];
-
-    // prettier-ignore
-    const sources = [
-      concat([
-        op(Opcode.DECIMALS)
-      ]),
-    ];
-
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
-
-    const result0 = await tokenOpsTest.run();
-    const expected0 = 18;
-
-    assert(
-      result0.eq(expected0),
-      `wrong result
-      expected  ${expected0}
-      got       ${result0}`
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "AllStandardOpsStateBuilder"
     );
-  });
+    stateBuilder = await stateBuilderFactory.deploy();
+    await stateBuilder.deployed();
 
-  it("should return ONE", async () => {
-    this.timeout(0);
-
-    const constants = [];
-
-    // prettier-ignore
-    const sources = [
-      concat([
-        op(Opcode.ONE)
-      ]),
-    ];
-
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
-
-    const result0 = await tokenOpsTest.run();
-    const expected0 = ethers.BigNumber.from(1 + Util.eighteenZeros);
-
-    assert(
-      result0.eq(expected0),
-      `wrong result
-      expected  ${expected0}
-      got       ${result0}`
-    );
+    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    logic = (await logicFactory.deploy(
+      stateBuilder.address
+    )) as AllStandardOpsTest & Contract;
   });
 
   it("should scale an arbitrary fixed point number DOWN by scale N", async () => {
@@ -100,7 +35,7 @@ describe("FixedPointMathOpsTest", async function () {
     const n = 0xfc; // -4
 
     const constants = [value1];
-    const v1 = op(Opcode.VAL, 0);
+    const v1 = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const sources = [
@@ -110,14 +45,10 @@ describe("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(100);
 
     assert(
@@ -135,7 +66,7 @@ describe("FixedPointMathOpsTest", async function () {
     const n = 0x04; // 4
 
     const constants = [value1];
-    const v1 = op(Opcode.VAL, 0);
+    const v1 = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const sources = [
@@ -145,14 +76,10 @@ describe("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + Util.sixZeros + "0000");
 
     assert(
@@ -170,7 +97,7 @@ describe("FixedPointMathOpsTest", async function () {
     const n = 20;
 
     const constants = [value1];
-    const v1 = op(Opcode.VAL, 0);
+    const v1 = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const sources = [
@@ -179,15 +106,10 @@ describe("FixedPointMathOpsTest", async function () {
         op(Opcode.SCALEN, n)
       ]),
     ];
+    await logic.initialize({ sources, constants });
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
-
-    const result0 = await tokenOpsTest.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + Util.eighteenZeros + "00");
 
     assert(
@@ -205,7 +127,7 @@ describe("FixedPointMathOpsTest", async function () {
     const n = 6;
 
     const constants = [value1];
-    const v1 = op(Opcode.VAL, 0);
+    const v1 = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const sources = [
@@ -215,14 +137,10 @@ describe("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + Util.sixZeros);
 
     assert(
@@ -237,11 +155,11 @@ describe("FixedPointMathOpsTest", async function () {
     this.timeout(0);
 
     const value1 = 50;
-    const value2 = 3;
+    const value2 = ethers.BigNumber.from("3" + Util.eighteenZeros);
 
     const constants = [value1, value2];
-    const v1 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const sources = [
@@ -252,17 +170,13 @@ describe("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
-    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros).div(
-      value2
-    );
+    await logic.run();
+    const result0 = await logic.stackTop();
+    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros)
+      .mul(Util.ONE)
+      .div(value2);
     assert(
       result0.eq(expected0),
       `wrong result
@@ -275,11 +189,11 @@ describe("FixedPointMathOpsTest", async function () {
     this.timeout(0);
 
     const value1 = 1;
-    const value2 = 2;
+    const value2 = Util.ONE.mul(2);
 
     const constants = [value1, value2];
-    const v1 = op(Opcode.VAL, 0);
-    const v2 = op(Opcode.VAL, 1);
+    const v1 = op(Opcode.CONSTANT, 0);
+    const v2 = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
     const sources = [
@@ -290,17 +204,13 @@ describe("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
-    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros).mul(
-      value2
-    );
+    await logic.run();
+    const result0 = await logic.stackTop();
+    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros)
+      .mul(value2)
+      .div(Util.ONE);
     assert(
       result0.eq(expected0),
       `wrong result
@@ -315,7 +225,7 @@ describe("FixedPointMathOpsTest", async function () {
     const value = 1;
 
     const constants = [value];
-    const v1 = op(Opcode.VAL, 0);
+    const v1 = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
     const sources = [
@@ -325,14 +235,10 @@ describe("FixedPointMathOpsTest", async function () {
       ]),
     ];
 
-    const tokenOpsTest = (await tokenOpsTestFactory.deploy({
-      sources,
-      constants,
-      argumentsLength: 0,
-      stackLength: 3,
-    })) as FixedPointMathOpsTest & Contract;
+    await logic.initialize({ sources, constants });
 
-    const result0 = await tokenOpsTest.run();
+    await logic.run();
+    const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value + Util.eighteenZeros);
     assert(
       result0.eq(expected0),

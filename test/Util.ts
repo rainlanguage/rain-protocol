@@ -1,11 +1,5 @@
 import { ethers, artifacts } from "hardhat";
-import type { CRPFactory } from "../typechain/CRPFactory";
-import type { BFactory } from "../typechain/BFactory";
 import chai from "chai";
-import type {
-  ImplementationEvent as ImplementationEventTrustFactory,
-  TrustFactory,
-} from "../typechain/TrustFactory";
 import type {
   RedeemableERC20,
   RedeemableERC20ConfigStruct,
@@ -29,29 +23,16 @@ import type {
   ImplementationEvent as ImplementationEventVerifyTierFactory,
   VerifyTierFactory,
 } from "../typechain/VerifyTierFactory";
-import type { SeedERC20, SeedERC20ConfigStruct } from "../typechain/SeedERC20";
+import { BigNumber } from "ethers";
 import type {
-  ImplementationEvent as ImplementationEventSeedERC20Factory,
-  SeedERC20Factory,
-} from "../typechain/SeedERC20Factory";
-import type { ConfigurableRightsPool } from "../typechain/ConfigurableRightsPool";
-import type { BPool } from "../typechain/BPool";
-import type {
-  BigNumber,
   Contract,
   BytesLike,
   BigNumberish,
   ContractTransaction,
 } from "ethers";
-import type {
-  Trust,
-  TrustConfigStruct,
-  TrustRedeemableERC20ConfigStruct,
-  TrustSeedERC20ConfigStruct,
-} from "../typechain/Trust";
-import type { SmartPoolManager } from "../typechain/SmartPoolManager";
 import { concat, Hexable, hexlify, Result, zeroPad } from "ethers/lib/utils";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { BoundsStruct } from "../typechain/VMStateBuilder";
 
 const { assert } = chai;
 
@@ -91,79 +72,11 @@ export const basicDeploy = async (name, libs) => {
   return contract;
 };
 
-export const balancerDeploy = async (): Promise<
-  [CRPFactory & Contract, BFactory & Contract]
-> => {
-  let rightsManager;
-  if (rightsManagerAddress) {
-    rightsManager = new ethers.Contract(
-      rightsManagerAddress,
-      (await artifacts.readArtifact("RightsManager")).abi
-    );
-  } else {
-    rightsManager = await basicDeploy("RightsManager", {});
-  }
-
-  let balancerSafeMath;
-  if (balancerSafeMathAddress) {
-    balancerSafeMath = new ethers.Contract(
-      balancerSafeMathAddress,
-      (await artifacts.readArtifact("BalancerSafeMath")).abi
-    );
-  } else {
-    balancerSafeMath = await basicDeploy("BalancerSafeMath", {});
-  }
-
-  let smartPoolManager: SmartPoolManager & Contract;
-  if (smartPoolManagerAddress) {
-    smartPoolManager = new ethers.Contract(
-      smartPoolManagerAddress,
-      (await artifacts.readArtifact("SmartPoolManager")).abi
-    ) as SmartPoolManager & Contract;
-  } else {
-    smartPoolManager = (await basicDeploy(
-      "SmartPoolManager",
-      {}
-    )) as SmartPoolManager & Contract;
-  }
-
-  let crpFactory: CRPFactory & Contract;
-  if (crpFactoryAddress) {
-    crpFactory = new ethers.Contract(
-      crpFactoryAddress,
-      (await artifacts.readArtifact("CRPFactory")).abi
-    ) as CRPFactory & Contract;
-  } else {
-    crpFactory = (await basicDeploy("CRPFactory", {
-      RightsManager: rightsManager.address,
-      BalancerSafeMath: balancerSafeMath.address,
-      SmartPoolManager: smartPoolManager.address,
-    })) as CRPFactory & Contract;
-  }
-
-  let bFactory;
-  if (bFactoryAddress) {
-    bFactory = new ethers.Contract(
-      bFactoryAddress,
-      (await artifacts.readArtifact("BFactory")).abi
-    ) as BFactory & Contract;
-  } else {
-    bFactory = (await basicDeploy("BFactory", {})) as BFactory & Contract;
-  }
-
-  return [crpFactory, bFactory];
-};
-
 export interface Factories {
   redeemableERC20Factory: RedeemableERC20Factory & Contract;
-  seedERC20Factory: SeedERC20Factory & Contract;
-  trustFactory: TrustFactory & Contract;
 }
 
-export const factoriesDeploy = async (
-  crpFactory: CRPFactory & Contract,
-  balancerFactory: BFactory & Contract
-): Promise<Factories> => {
+export const factoriesDeploy = async (): Promise<Factories> => {
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory",
     {}
@@ -183,49 +96,8 @@ export const factoriesDeploy = async (
     "implementation redeemableERC20 factory zero address"
   );
 
-  const seedERC20FactoryFactory = await ethers.getContractFactory(
-    "SeedERC20Factory",
-    {}
-  );
-  const seedERC20Factory =
-    (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory & Contract;
-  await seedERC20Factory.deployed();
-
-  const { implementation: implementation1 } = (await getEventArgs(
-    seedERC20Factory.deployTransaction,
-    "Implementation",
-    seedERC20Factory
-  )) as ImplementationEventSeedERC20Factory["args"];
-  assert(
-    !(implementation1 === zeroAddress),
-    "implementation seedERC20 factory zero address"
-  );
-
-  const trustFactoryFactory = await ethers.getContractFactory("TrustFactory");
-  const trustFactory = (await trustFactoryFactory.deploy({
-    redeemableERC20Factory: redeemableERC20Factory.address,
-    seedERC20Factory: seedERC20Factory.address,
-    crpFactory: crpFactory.address,
-    balancerFactory: balancerFactory.address,
-    creatorFundsReleaseTimeout: CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING,
-    maxRaiseDuration: MAX_RAISE_DURATION_TESTING,
-  })) as TrustFactory & Contract;
-  await trustFactory.deployed();
-
-  const { implementation: implementation2 } = (await getEventArgs(
-    trustFactory.deployTransaction,
-    "Implementation",
-    trustFactory
-  )) as ImplementationEventTrustFactory["args"];
-  assert(
-    !(implementation2 === zeroAddress),
-    "implementation trust factory zero address"
-  );
-
   return {
     redeemableERC20Factory,
-    seedERC20Factory,
-    trustFactory,
   };
 };
 
@@ -253,6 +125,15 @@ export const max_uint16 = ethers.BigNumber.from("0xffff");
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
 
+export const fixedPointMul = (a: BigNumber, b: BigNumber): BigNumber =>
+  a.mul(b).div(ONE);
+export const fixedPointDiv = (a: BigNumber, b: BigNumber): BigNumber =>
+  a.mul(ONE).div(b);
+export const minBN = (a: BigNumber, b: BigNumber): BigNumber =>
+  a.lt(b) ? a : b;
+export const maxBN = (a: BigNumber, b: BigNumber): BigNumber =>
+  a.gt(b) ? a : b;
+
 export const determineReserveDust = (bPoolReserveBalance: BigNumber) => {
   let dust = bPoolReserveBalance.mul(ONE).div(1e7).div(ONE);
   if (dust.lt(RESERVE_MIN_BALANCE)) {
@@ -270,23 +151,6 @@ export const assertError = async (f, s: string, e: string) => {
     didError = true;
   }
   assert(didError, e);
-};
-
-export const poolContracts = async (
-  signers: SignerWithAddress[],
-  trust: Trust & Contract
-): Promise<[ConfigurableRightsPool & Contract, BPool & Contract]> => {
-  const crp = new ethers.Contract(
-    await trust.crp(),
-    (await artifacts.readArtifact("ConfigurableRightsPool")).abi,
-    signers[0]
-  ) as ConfigurableRightsPool & Contract;
-  const bPool = new ethers.Contract(
-    await crp.bPool(),
-    (await artifacts.readArtifact("BPool")).abi,
-    signers[0]
-  ) as BPool & Contract;
-  return [crp, bPool];
 };
 
 export const verifyDeploy = async (deployer, config) => {
@@ -350,8 +214,16 @@ export const verifyTierDeploy = async (deployer, config) => {
 };
 
 export const combineTierDeploy = async (deployer, config) => {
+  const stateBuilderFactory = await ethers.getContractFactory(
+    "AllStandardOpsStateBuilder"
+  );
+  const stateBuilder = await stateBuilderFactory.deploy();
+  await stateBuilder.deployed();
+
   const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
-  const factory = (await factoryFactory.deploy()) as CombineTierFactory;
+  const factory = (await factoryFactory.deploy(
+    stateBuilder.address
+  )) as CombineTierFactory;
   await factory.deployed();
 
   const { implementation } = (await getEventArgs(
@@ -420,89 +292,6 @@ export const redeemableERC20Deploy = async (
   redeemableERC20.deployTransaction = txDeploy;
 
   return redeemableERC20;
-};
-
-export const seedERC20Deploy = async (
-  deployer: SignerWithAddress,
-  config: SeedERC20ConfigStruct
-): Promise<[SeedERC20 & Contract, ContractTransaction]> => {
-  const seedERC20FactoryFactory = await ethers.getContractFactory(
-    "SeedERC20Factory"
-  );
-  const seedERC20Factory =
-    (await seedERC20FactoryFactory.deploy()) as SeedERC20Factory;
-  await seedERC20Factory.deployed();
-
-  const { implementation } = (await getEventArgs(
-    seedERC20Factory.deployTransaction,
-    "Implementation",
-    seedERC20Factory
-  )) as ImplementationEventSeedERC20Factory["args"];
-  assert(
-    !(implementation === zeroAddress),
-    "implementation seedERC20 factory zero address"
-  );
-
-  const txDeploy = await seedERC20Factory.createChildTyped(config);
-  const seedERC20 = new ethers.Contract(
-    ethers.utils.hexZeroPad(
-      ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", seedERC20Factory)).child
-      ),
-      20
-    ),
-    (await artifacts.readArtifact("SeedERC20")).abi,
-    deployer
-  ) as SeedERC20 & Contract;
-
-  await seedERC20.deployed();
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  seedERC20.deployTransaction = txDeploy;
-
-  return [seedERC20, txDeploy];
-};
-
-export const trustDeploy = async (
-  trustFactory: TrustFactory & Contract,
-  creator: SignerWithAddress,
-  trustConfig: TrustConfigStruct,
-  trustRedeemableERC20Config: TrustRedeemableERC20ConfigStruct,
-  trustSeedERC20Config: TrustSeedERC20ConfigStruct,
-  ...args
-): Promise<Trust & Contract> => {
-  const txDeploy = await trustFactory.createChildTyped(
-    trustConfig,
-    trustRedeemableERC20Config,
-    trustSeedERC20Config,
-    ...args
-  );
-
-  const trust = new ethers.Contract(
-    ethers.utils.hexZeroPad(
-      ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", trustFactory)).child
-      ),
-      20 // address bytes length
-    ),
-    (await artifacts.readArtifact("Trust")).abi,
-    creator
-  ) as Trust & Contract;
-
-  if (!ethers.utils.isAddress(trust.address)) {
-    throw new Error(
-      `invalid trust address: ${trust.address} (${trust.address.length} chars)`
-    );
-  }
-
-  await trust.deployed();
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  trust.deployTransaction = txDeploy;
-
-  return trust;
 };
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
@@ -614,13 +403,6 @@ export function callSize(
   callSize <<= 3;
   callSize += sourceIndex;
   return callSize;
-}
-
-export function arg(valIndex: number): number {
-  let arg = 1;
-  arg <<= 7;
-  arg += valIndex;
-  return arg;
 }
 
 export function skip(places: number, conditional = false): number {
@@ -738,7 +520,40 @@ export type Constants = [
  * @param eventName - name of event
  * @param contract - contract object holding the address, filters, interface
  * @param contractAddressOverride - (optional) override the contract address which emits this event
- * @returns Event arguments, can be deconstructed by array index or by object key
+ * @returns Array of events with their arguments, which can each be deconstructed by array index or by object key
+ */
+export const getEvents = async (
+  tx: ContractTransaction,
+  eventName: string,
+  contract: Contract,
+  contractAddressOverride: string = null
+): Promise<Result[]> => {
+  const address = contractAddressOverride
+    ? contractAddressOverride
+    : contract.address;
+
+  const eventObjs = (await tx.wait()).events.filter(
+    (x) =>
+      x.topics[0] == contract.filters[eventName]().topics[0] &&
+      x.address == address
+  );
+
+  if (!eventObjs.length) {
+    throw new Error(`Could not find event ${eventName} at address ${address}`);
+  }
+
+  return eventObjs.map((eventObj) =>
+    contract.interface.decodeEventLog(eventName, eventObj.data)
+  );
+};
+
+/**
+ *
+ * @param tx - transaction where event occurs
+ * @param eventName - name of event
+ * @param contract - contract object holding the address, filters, interface
+ * @param contractAddressOverride - (optional) override the contract address which emits this event
+ * @returns Event arguments of first matching event, can be deconstructed by array index or by object key
  */
 export const getEventArgs = async (
   tx: ContractTransaction,
@@ -746,21 +561,7 @@ export const getEventArgs = async (
   contract: Contract,
   contractAddressOverride: string = null
 ): Promise<Result> => {
-  const address = contractAddressOverride
-    ? contractAddressOverride
-    : contract.address;
-
-  const eventObj = (await tx.wait()).events.find(
-    (x) =>
-      x.topics[0] == contract.filters[eventName]().topics[0] &&
-      x.address == address
-  );
-
-  if (!eventObj) {
-    throw new Error(`Could not find event ${eventName} at address ${address}`);
-  }
-
-  return contract.interface.decodeEventLog(eventName, eventObj.data);
+  return (await getEvents(tx, eventName, contract, contractAddressOverride))[0];
 };
 
 export function selectLte(logic: number, mode: number, length: number): number {
@@ -784,9 +585,10 @@ export enum selectLteMode {
 }
 
 export enum AllStandardOps {
-  SKIP,
-  VAL,
-  DUP,
+  CONSTANT,
+  STACK,
+  CONTEXT,
+  STORAGE,
   ZIPMAP,
   DEBUG,
   BLOCK_NUMBER,
@@ -798,8 +600,6 @@ export enum AllStandardOps {
   SCALE18,
   SCALEN,
   SCALE_BY,
-  SCALE18_ONE,
-  SCALE18_DECIMALS,
   ADD,
   SATURATING_ADD,
   SUB,
@@ -819,8 +619,6 @@ export enum AllStandardOps {
   EVERY,
   ANY,
   REPORT,
-  NEVER,
-  ALWAYS,
   SATURATING_DIFF,
   UPDATE_BLOCKS_FOR_TIER_RANGE,
   SELECT_LTE,
@@ -844,6 +642,9 @@ const testStructs = (
     if (expectedValue !== undefined) {
       if (expectedValue instanceof Uint8Array) {
         expectedValue = hexlify(expectedValue);
+      }
+      if (actualValue instanceof BigNumber) {
+        expectedValue = BigNumber.from(expectedValue);
       }
 
       if (
@@ -973,4 +774,23 @@ export const compareSolStructs = (
   const solBObj = Object.fromEntries(solExpectedEntries);
 
   testSolStructs(solAObj, solBObj);
+};
+
+export enum Debug {
+  StateAbi,
+  StatePacked,
+  Stack,
+  StackIndex,
+}
+
+export const newVMStateBuilderBounds = (): BoundsStruct => {
+  return {
+    entrypointsLength: 0,
+    minFinalStackIndex: 0,
+    stackIndex: 0,
+    stackLength: 0,
+    argumentsLength: 0,
+    storageLength: 0,
+    opcodesLength: 0,
+  };
 };

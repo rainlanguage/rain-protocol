@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../math/SaturatingMath.sol";
+
 import "hardhat/console.sol";
 
 /// Everything required to evaluate and track the state of a rain script.
@@ -24,13 +27,134 @@ import "hardhat/console.sol";
 struct State {
     uint256 stackIndex;
     uint256[] stack;
-    bytes[] sources;
+    bytes[] ptrSources;
     uint256[] constants;
-    uint256[] arguments;
+    /// `ZIPMAP` populates arguments into constants which can be copied to the
+    /// stack by `VAL` as usual, starting from this index. This copying is
+    /// destructive so it is recommended to leave space in the constants array.
+    uint256 argumentsIndex;
 }
 
+struct StorageOpcodesRange {
+    uint256 pointer;
+    uint256 length;
+}
+
+library LibState {
+    function toBytesDebug(State memory state_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encode(state_);
+    }
+
+    function fromBytesPacked(bytes memory stateBytes_)
+        internal
+        pure
+        returns (State memory)
+    {
+        unchecked {
+            State memory state_;
+            uint256 indexes_;
+            assembly {
+                // Load indexes from state bytes.
+                indexes_ := mload(add(stateBytes_, 0x20))
+                // mask out everything but the constants length from state
+                // bytes.
+                mstore(add(stateBytes_, 0x20), and(indexes_, 0xFF))
+                // point state constants at state bytes
+                mstore(add(state_, 0x60), add(stateBytes_, 0x20))
+            }
+            // Stack index 0 is implied.
+            state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
+            state_.argumentsIndex = (indexes_ >> 16) & 0xFF;
+            uint256 sourcesLen_ = (indexes_ >> 24) & 0xFF;
+            bytes[] memory ptrSources_;
+            uint256[] memory ptrSourcesPtrs_ = new uint256[](sourcesLen_);
+
+            assembly {
+                let sourcesStart_ := add(
+                    stateBytes_,
+                    add(
+                        // 0x40 for constants and sources array length
+                        0x40,
+                        // skip over length of constants
+                        mul(0x20, mload(add(stateBytes_, 0x20)))
+                    )
+                )
+                let cursor_ := sourcesStart_
+
+                for {
+                    let i_ := 0
+                } lt(i_, sourcesLen_) {
+                    i_ := add(i_, 1)
+                } {
+                    // sources_ is a dynamic array so it is a list of
+                    // pointers that can be set literally to the cursor_
+                    mstore(
+                        add(ptrSourcesPtrs_, add(0x20, mul(i_, 0x20))),
+                        cursor_
+                    )
+                    // move the cursor by the length of the source in bytes
+                    cursor_ := add(cursor_, add(0x20, mload(cursor_)))
+                }
+                // point state at sources_ rather than clone in memory
+                ptrSources_ := ptrSourcesPtrs_
+                mstore(add(state_, 0x40), ptrSources_)
+            }
+            return state_;
+        }
+    }
+
+    function toBytesPacked(State memory state_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        unchecked {
+            // indexes + constants
+            uint256[] memory constants_ = state_.constants;
+            // constants is first so we can literally use it on the other end
+            uint256 indexes_ = state_.constants.length |
+                (state_.stack.length << 8) |
+                (state_.argumentsIndex << 16) |
+                (state_.ptrSources.length << 24);
+            bytes memory ret_ = bytes.concat(
+                bytes32(indexes_),
+                abi.encodePacked(constants_)
+            );
+            for (uint256 i_ = 0; i_ < state_.ptrSources.length; i_++) {
+                ret_ = bytes.concat(
+                    ret_,
+                    bytes32(state_.ptrSources[i_].length),
+                    state_.ptrSources[i_]
+                );
+            }
+            return ret_;
+        }
+    }
+}
+
+/// @dev Copies a value either off `constants` to the top of the stack.
+uint256 constant OPCODE_CONSTANT = 0;
+/// @dev Duplicates any value in the stack to the top of the stack. The operand
+/// specifies the index to copy from.
+uint256 constant OPCODE_STACK = 1;
+uint256 constant OPCODE_CONTEXT = 2;
+uint256 constant OPCODE_STORAGE = 3;
+/// @dev Takes N values off the stack, interprets them as an array then zips
+/// and maps a source from `sources` over them.
+uint256 constant OPCODE_ZIPMAP = 4;
+/// @dev ABI encodes the entire stack and logs it to the hardhat console.
+uint256 constant OPCODE_DEBUG = 5;
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 5;
+uint256 constant RAIN_VM_OPS_LENGTH = 6;
+
+uint256 constant DEBUG_STATE_ABI = 0;
+uint256 constant DEBUG_STATE_PACKED = 1;
+uint256 constant DEBUG_STACK = 2;
+uint256 constant DEBUG_STACK_INDEX = 3;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -55,17 +179,14 @@ uint256 constant RAIN_VM_OPS_LENGTH = 5;
 /// run `eval` to produce a final value.
 ///
 /// There are only 4 "core" opcodes for `RainVM`:
-/// - `0`: Skip self and optionally additional opcodes, `0 0` is a noop.
-///   DEPRECATED! DON'T USE SKIP!
-///   See https://github.com/beehive-innovation/rain-protocol/issues/262
-/// - `1`: Copy value from either `constants` or `arguments` at index `operand`
-///   to the top of the stack. High bit of `operand` is `0` for `constants` and
-///   `1` for `arguments`.
-/// - `2`: Duplicates the value at stack index `operand_` to the top of the
+/// - `0`: Copy value from either `constants` at index `operand` to the top of
+///   the stack.
+/// - `1`: Duplicates the value at stack index `operand_` to the top of the
 ///   stack.
-/// - `3`: Zipmap takes N values from the stack, interprets each as an array of
+/// - `2`: Zipmap takes N values from the stack, interprets each as an array of
 ///   configurable length, then zips them into `arguments` and maps a source
 ///   from `sources` over these. See `zipmap` for more details.
+/// - `3`: Debug prints the state to the console log as per hardhat.
 ///
 /// To do anything useful the contract that inherits `RainVM` needs to provide
 /// opcodes to build up an internal DSL. This may sound complex but it only
@@ -96,25 +217,20 @@ uint256 constant RAIN_VM_OPS_LENGTH = 5;
 /// up very quickly. Implementing contracts and opcode packs SHOULD require
 /// that opcodes they receive do not exceed the codes they are expecting.
 abstract contract RainVM {
-    /// DEPRECATED! DONT USE SKIP!
-    /// `0` is a skip as this is the fallback value for unset solidity bytes.
-    /// Any additional "whitespace" in rain scripts will be noops as `0 0` is
-    /// "skip self". The val can be used to skip additional opcodes but take
-    /// care to not underflow the source itself.
-    uint256 private constant OP_SKIP = 0;
-    /// `1` copies a value either off `constants` or `arguments` to the top of
-    /// the stack. The high bit of the operand specifies which, `0` for
-    /// `constants` and `1` for `arguments`.
-    uint256 private constant OP_VAL = 1;
-    /// `2` Duplicates the value at index `operand_` to the top of the stack.
-    uint256 private constant OP_DUP = 2;
-    /// `3` takes N values off the stack, interprets them as an array then zips
-    /// and maps a source from `sources` over them. The source has access to
-    /// the original constants using `1 0` and to zipped arguments as `1 1`.
-    uint256 private constant OP_ZIPMAP = 3;
-    /// `4` ABI encodes the entire stack and logs it to the hardhat console.
-    uint256 private constant OP_DEBUG = 4;
+    using Math for uint256;
+    using SaturatingMath for uint256;
 
+    /// Default is to disallow all storage access to opcodes.
+    function storageOpcodesRange()
+        public
+        pure
+        virtual
+        returns (StorageOpcodesRange memory)
+    {
+        return StorageOpcodesRange(0, 0);
+    }
+
+    function fnPtrs() public pure virtual returns (bytes memory);
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -148,53 +264,91 @@ abstract contract RainVM {
     function zipmap(
         bytes memory context_,
         State memory state_,
+        uint256 stackTopLocation_,
         uint256 operand_
-    ) internal view {
+    ) internal view returns (uint256) {
         unchecked {
-            uint256 sourceIndex_;
+            uint256 sourceIndex_ = operand_ & 0x07;
+            uint256 loopSize_ = (operand_ >> 3) & 0x03;
+            uint256 mask_;
             uint256 stepSize_;
-            uint256 offset_;
-            uint256 valLength_;
-            // assembly here to shave some gas.
-            assembly {
-                // rightmost 3 bits are the index of the source to use from
-                // sources in `state_`.
-                sourceIndex_ := and(operand_, 0x07)
-                // bits 4 and 5 indicate size of the loop. Each 1 increment of
-                // the size halves the bits of the arguments to the zipmap.
-                // e.g. 256 `stepSize_` would copy all 256 bits of the uint256
-                // into args for the inner `eval`. A loop size of `1` would
-                // shift `stepSize_` by 1 (halving it) and meaning the uint256
-                // is `eval` as 2x 128 bit values (runs twice). A loop size of
-                // `2` would run 4 times as 64 bit values, and so on.
-                //
-                // Slither false positive here for the shift of constant `256`.
-                // slither-disable-next-line incorrect-shift
-                stepSize_ := shr(and(shr(3, operand_), 0x03), 256)
-                // `offset_` is used by the actual bit shifting operations and
-                // is precalculated here to save some gas as this is a hot
-                // performance path.
-                offset_ := sub(256, stepSize_)
-                // bits 5+ determine the number of vals to be zipped. At least
-                // one value must be provided so a `valLength_` of `0` is one
-                // value to loop over.
-                valLength_ := add(shr(5, operand_), 1)
+            if (loopSize_ == 0) {
+                mask_ = type(uint256).max;
+                stepSize_ = 0x100;
+            } else if (loopSize_ == 1) {
+                mask_ = type(uint128).max;
+                stepSize_ = 0x80;
+            } else if (loopSize_ == 2) {
+                mask_ = type(uint64).max;
+                stepSize_ = 0x40;
+            } else {
+                mask_ = type(uint32).max;
+                stepSize_ = 0x20;
             }
-            state_.stackIndex -= valLength_;
+            uint256 valLength_ = (operand_ >> 5) + 1;
 
+            // Set aside base values so they can't be clobbered during eval
+            // as the stack changes on each loop.
             uint256[] memory baseVals_ = new uint256[](valLength_);
-            for (uint256 a_ = 0; a_ < valLength_; a_++) {
-                baseVals_[a_] = state_.stack[state_.stackIndex + a_];
+            uint256 baseValsBottom_;
+            {
+                assembly {
+                    baseValsBottom_ := add(baseVals_, 0x20)
+                    for {
+                        let cursor_ := sub(
+                            stackTopLocation_,
+                            mul(valLength_, 0x20)
+                        )
+                        let baseValsCursor_ := baseValsBottom_
+                    } lt(cursor_, stackTopLocation_) {
+                        cursor_ := add(cursor_, 0x20)
+                        baseValsCursor_ := add(baseValsCursor_, 0x20)
+                    } {
+                        mstore(baseValsCursor_, mload(cursor_))
+                    }
+                }
             }
 
-            for (uint256 step_ = 0; step_ < 256; step_ += stepSize_) {
-                for (uint256 a_ = 0; a_ < valLength_; a_++) {
-                    state_.arguments[a_] =
-                        (baseVals_[a_] << (offset_ - step_)) >>
-                        offset_;
-                }
-                eval(context_, state_, sourceIndex_);
+            uint256 argumentsBottomLocation_;
+            assembly {
+                let constantsBottomLocation_ := add(
+                    mload(add(state_, 0x60)),
+                    0x20
+                )
+                argumentsBottomLocation_ := add(
+                    constantsBottomLocation_,
+                    mul(
+                        0x20,
+                        mload(
+                            // argumentsIndex
+                            add(state_, 0x80)
+                        )
+                    )
+                )
             }
+
+            for (uint256 step_ = 0; step_ < 0x100; step_ += stepSize_) {
+                // Prepare arguments.
+                {
+                    // max cursor is in this scope to avoid stack overflow from
+                    // solidity.
+                    uint256 maxCursor_ = baseValsBottom_ + (valLength_ * 0x20);
+                    uint256 argumentsCursor_ = argumentsBottomLocation_;
+                    uint256 cursor_ = baseValsBottom_;
+                    while (cursor_ < maxCursor_) {
+                        assembly {
+                            mstore(
+                                argumentsCursor_,
+                                and(shr(step_, mload(cursor_)), mask_)
+                            )
+                            cursor_ := add(cursor_, 0x20)
+                            argumentsCursor_ := add(argumentsCursor_, 0x20)
+                        }
+                    }
+                }
+                stackTopLocation_ = eval(context_, state_, sourceIndex_);
+            }
+            return stackTopLocation_;
         }
     }
 
@@ -214,165 +368,158 @@ abstract contract RainVM {
         bytes memory context_,
         State memory state_,
         uint256 sourceIndex_
-    ) internal view {
-        // Everything in eval can be checked statically, there are no dynamic
-        // runtime values read from the stack that can cause out of bounds
-        // behaviour. E.g. sourceIndex in zipmap and size of a skip are both
-        // taken from the operand in the source, not the stack. A program that
-        // operates out of bounds SHOULD be flagged by static code analysis and
-        // avoided by end-users.
+    ) internal view returns (uint256) {
         unchecked {
-            uint256 i_ = 0;
+            uint256 pc_ = 0;
             uint256 opcode_;
             uint256 operand_;
-            uint256 len_;
             uint256 sourceLocation_;
-            uint256 constantsLocation_;
-            uint256 argumentsLocation_;
-            uint256 stackLocation_;
+            uint256 sourceLen_;
+            uint256 constantsBottomLocation_;
+            uint256 stackBottomLocation_;
+            uint256 stackTopLocation_;
+            uint256 firstFnPtrLocation_;
+
             assembly {
-                stackLocation_ := mload(add(state_, 0x20))
+                let stackLocation_ := mload(add(state_, 0x20))
+                stackBottomLocation_ := add(stackLocation_, 0x20)
+                stackTopLocation_ := add(
+                    stackBottomLocation_,
+                    // Add stack index offset.
+                    mul(mload(state_), 0x20)
+                )
                 sourceLocation_ := mload(
                     add(
                         mload(add(state_, 0x40)),
                         add(0x20, mul(sourceIndex_, 0x20))
                     )
                 )
-                constantsLocation_ := mload(add(state_, 0x60))
-                argumentsLocation_ := mload(add(state_, 0x80))
-                len_ := mload(sourceLocation_)
+                sourceLen_ := mload(sourceLocation_)
+                constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
+                // first fn pointer is seen if we move two bytes into the data.
+                firstFnPtrLocation_ := add(mload(add(state_, 0xA0)), 0x02)
             }
 
             // Loop until complete.
-            while (i_ < len_) {
+            while (pc_ < sourceLen_) {
                 assembly {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
-                    opcode_ := byte(30, op_)
+                    pc_ := add(pc_, 3)
+                    let op_ := mload(add(sourceLocation_, pc_))
                     operand_ := byte(31, op_)
+                    opcode_ := and(shr(8, op_), 0xFFFF)
                 }
+
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ == OP_VAL) {
+                    if (opcode_ == OPCODE_CONSTANT) {
                         assembly {
-                            let location_ := argumentsLocation_
-                            if iszero(and(operand_, 0x80)) {
-                                location_ := constantsLocation_
-                            }
-
-                            let stackIndex_ := mload(state_)
-                            // Copy value to stack.
                             mstore(
-                                add(
-                                    stackLocation_,
-                                    add(0x20, mul(stackIndex_, 0x20))
-                                ),
+                                stackTopLocation_,
                                 mload(
                                     add(
-                                        location_,
-                                        add(
-                                            0x20,
-                                            mul(and(operand_, 0x7F), 0x20)
-                                        )
+                                        constantsBottomLocation_,
+                                        mul(0x20, operand_)
                                     )
                                 )
                             )
-                            mstore(state_, add(stackIndex_, 1))
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
-                    } else if (opcode_ == OP_DUP) {
+                    } else if (opcode_ == OPCODE_STACK) {
                         assembly {
-                            let stackIndex_ := mload(state_)
                             mstore(
-                                add(
-                                    stackLocation_,
-                                    add(0x20, mul(stackIndex_, 0x20))
-                                ),
+                                stackTopLocation_,
                                 mload(
                                     add(
-                                        stackLocation_,
-                                        add(0x20, mul(operand_, 0x20))
+                                        stackBottomLocation_,
+                                        mul(operand_, 0x20)
                                     )
                                 )
                             )
-                            mstore(state_, add(stackIndex_, 1))
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
-                    } else if (opcode_ == OP_ZIPMAP) {
-                        zipmap(context_, state_, operand_);
-                    } else if (opcode_ == OP_DEBUG) {
-                        console.logBytes(abi.encode(state_));
-                    } else {
-                        // DEPRECATED! DON'T USE SKIP!
-                        // if the high bit of the operand is nonzero then take
-                        // the top of the stack and if it is zero we do NOT
-                        // skip.
-                        // analogous to `JUMPI` in evm opcodes.
-                        // If high bit of the operand is zero then we always
-                        // skip.
-                        // analogous to `JUMP` in evm opcodes.
-                        // the operand is interpreted as a signed integer so
-                        // that we can skip forwards or backwards. Notable
-                        // difference between skip and jump from evm is that
-                        // skip moves a relative distance from the current
-                        // position and is known at compile time, while jump
-                        // moves to an absolute position read from the stack at
-                        // runtime. The relative simplicity of skip means we
-                        // can check for out of bounds behaviour at compile
-                        // time and each source can never goto a position in a
-                        // different source.
-
-                        // manually sign extend 1 bit.
-                        // normal signextend works on bytes not bits.
-                        int8 shift_ = int8(
-                            uint8(operand_) & ((uint8(operand_) << 1) | 0x7F)
+                    } else if (opcode_ == OPCODE_CONTEXT) {
+                        // This is the only runtime integrity check that we do
+                        // as it is not possible to know how long context might
+                        // be in general until runtime.
+                        require(
+                            operand_ * 0x20 < context_.length,
+                            "CONTEXT_LENGTH"
                         );
-
-                        // if the high bit is 1...
-                        if (operand_ & 0x80 > 0) {
-                            // take the top of the stack and only skip if it is
-                            // nonzero.
-                            state_.stackIndex--;
-                            if (state_.stack[state_.stackIndex] == 0) {
-                                continue;
-                            }
+                        assembly {
+                            mstore(
+                                stackTopLocation_,
+                                mload(
+                                    add(
+                                        context_,
+                                        add(0x20, mul(0x20, operand_))
+                                    )
+                                )
+                            )
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
                         }
-                        if (shift_ != 0) {
-                            if (shift_ < 0) {
-                                // This is not particularly intuitive.
-                                // Converting between int and uint and then
-                                // moving `i_` back another 2 bytes to
-                                // compensate for the addition of 2 bytes at
-                                // the start of the next loop.
-                                i_ -= uint8(~shift_ + 2) * 2;
-                            } else {
-                                i_ += uint8(shift_ * 2);
-                            }
+                    } else if (opcode_ == OPCODE_STORAGE) {
+                        StorageOpcodesRange
+                            memory storageOpcodesRange_ = storageOpcodesRange();
+                        assembly {
+                            mstore(
+                                stackTopLocation_,
+                                sload(
+                                    add(operand_, mload(storageOpcodesRange_))
+                                )
+                            )
+                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                        }
+                    } else if (opcode_ == OPCODE_ZIPMAP) {
+                        stackTopLocation_ = zipmap(
+                            context_,
+                            state_,
+                            stackTopLocation_,
+                            operand_
+                        );
+                    } else {
+                        bytes memory debug_;
+                        if (operand_ == DEBUG_STATE_ABI) {
+                            debug_ = abi.encode(state_);
+                        } else if (operand_ == DEBUG_STATE_PACKED) {
+                            debug_ = LibState.toBytesPacked(state_);
+                        } else if (operand_ == DEBUG_STACK) {
+                            debug_ = abi.encodePacked(state_.stack);
+                        } else if (operand_ == DEBUG_STACK_INDEX) {
+                            debug_ = abi.encodePacked(state_.stackIndex);
+                        }
+                        if (debug_.length > 0) {
+                            console.logBytes(debug_);
                         }
                     }
                 } else {
-                    applyOp(context_, state_, opcode_, operand_);
+                    function(uint256, uint256) view returns (uint256) fn_;
+                    assembly {
+                        fn_ := opcode_
+                    }
+                    stackTopLocation_ = fn_(operand_, stackTopLocation_);
                 }
+                // The stack index may be the same as the length as this means
+                // the stack is full. But we cannot write past the end of the
+                // stack. This also catches a stack index that underflows due
+                // to unchecked or assembly math. This check MAY be redundant
+                // with standard OOB checks on the stack array due to indexing
+                // into it, but is a required guard in the case of VM assembly.
+                // Future versions of the VM will precalculate all stack
+                // movements at deploy time rather than runtime as this kind of
+                // accounting adds nontrivial gas across longer scripts that
+                // include many opcodes.
+                // Note: This check would NOT be safe in the case that some
+                // opcode used assembly in a way that can underflow the stack
+                // as this would allow a malicious rain script to write to the
+                // stack length and/or the stack index.
+                require(
+                    state_.stackIndex <= state_.stack.length,
+                    "STACK_OVERFLOW"
+                );
             }
+            state_.stackIndex =
+                (stackTopLocation_ - stackBottomLocation_) /
+                0x20;
+            return stackTopLocation_;
         }
     }
-
-    /// Every contract that implements `RainVM` should override `applyOp` so
-    /// that useful opcodes are available to script writers.
-    /// For an example of a simple and efficient `applyOp` implementation that
-    /// dispatches over several opcode packs see `CalculatorTest.sol`.
-    /// Implementing contracts are encouraged to handle the dispatch with
-    /// unchecked math as the dispatch is a critical performance path and
-    /// default solidity checked math can significantly increase gas cost for
-    /// each opcode dispatched. Consider that a single zipmap could loop over
-    /// dozens of opcode dispatches internally.
-    /// Stack is modified by reference NOT returned.
-    /// @param context_ Bytes that the implementing contract can passthrough
-    /// to be ready internally by its own opcodes. RainVM ignores the context.
-    /// @param state_ The RainVM state that tracks the execution progress.
-    /// @param opcode_ The current opcode to dispatch.
-    /// @param operand_ Additional information to inform the opcode dispatch.
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view virtual {} //solhint-disable-line no-empty-blocks
 }
