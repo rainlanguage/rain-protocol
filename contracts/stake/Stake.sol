@@ -4,9 +4,9 @@ pragma solidity =0.8.10;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-// import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "../math/FixedPointMath.sol";
 import "../tier/libraries/TierReport.sol";
@@ -18,12 +18,14 @@ struct StakeConfig {
     string symbol;
 }
 
+/// @param amount Largest value we can squeeze into a uint256 alongside a
+/// uint32.
 struct Deposit {
     uint32 blockNumber;
     uint224 amount;
 }
 
-contract Stake is ERC20Upgradeable {
+contract Stake is ERC20Upgradeable, ReentrancyGuard {
     event Initialize(address sender, StakeConfig config);
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -43,15 +45,19 @@ contract Stake is ERC20Upgradeable {
         emit Initialize(msg.sender, config_);
     }
 
-    function deposit(uint256 amount_) external {
+    function deposit(uint256 amount_) external nonReentrant {
         require(amount_ > 0, "0_AMOUNT");
+
         // MUST check token balance before receiving additional tokens.
         uint256 tokenPoolSize_ = token.balanceOf(address(this));
         // MUST use supply from before the mint.
         uint256 supply_ = totalSupply();
 
+        // Pull tokens before minting BUT AFTER reading contract balance.
+        token.safeTransferFrom(msg.sender, address(this), amount_);
+
         uint256 mintAmount_;
-        if (tokenPoolSize_ == 0 || supply_ == 0) {
+        if (supply_ == 0) {
             mintAmount_ = amount_.fixedPointMul(initialRatio);
         } else {
             mintAmount_ = (supply_ * amount_) / tokenPoolSize_;
@@ -65,10 +71,9 @@ contract Stake is ERC20Upgradeable {
         deposits[msg.sender].push(
             Deposit(uint32(block.number), highwater_ + amount_.toUint224())
         );
-        token.safeTransferFrom(msg.sender, address(this), amount_);
     }
 
-    function withdraw(uint256 amount_) external {
+    function withdraw(uint256 amount_) external nonReentrant {
         require(amount_ > 0, "0_AMOUNT");
 
         // MUST revert if length is 0 so we're guaranteed to have some amount
@@ -78,16 +83,18 @@ contract Stake is ERC20Upgradeable {
         // MUST revert if withdraw amount exceeds highwater.
         uint256 newHighwater_ = oldHighwater_ - amount_;
 
-        while (deposits[msg.sender][i_].amount > newHighwater_) {
-            delete deposits[msg.sender][i_];
-            if (i_ == 0) {
-                break;
+        unchecked {
+            while (deposits[msg.sender][i_].amount > newHighwater_) {
+                delete deposits[msg.sender][i_];
+                if (i_ == 0) {
+                    break;
+                }
+                i_--;
             }
-            i_--;
         }
-        // If the newHighwater_ is anything above zero then the ledger needs
-        // finalizing of the top entry. If a top exists and is exactly the same
-        // as the newHighwater_ we do nothing.
+
+        // If the newHighwater_ is not identical to the current top we write it
+        // as the new top.
         uint256 cmpHighwater_ = deposits[msg.sender].length > 0
             ? deposits[msg.sender][deposits[msg.sender].length - 1].amount
             : 0;
@@ -115,15 +122,17 @@ contract Stake is ERC20Upgradeable {
         uint256 report_ = type(uint256).max;
         if (thresholds_.length > 0) {
             uint256 t_ = 0;
+            Deposit memory deposit_;
             for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
+                deposit_ = deposits[account_][i_];
                 while (
                     t_ < thresholds_.length &&
-                    deposits[account_][i_].amount >= thresholds_[t_]
+                    deposit_.amount >= thresholds_[t_]
                 ) {
                     TierReport.updateBlockAtTier(
                         report_,
                         t_,
-                        deposits[account_][i_].blockNumber
+                        deposit_.blockNumber
                     );
                     t_++;
                 }
