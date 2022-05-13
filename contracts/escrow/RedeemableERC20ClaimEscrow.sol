@@ -288,6 +288,9 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
 
         address redeemable_ = token(sale_);
         uint256 supply_ = IERC20(redeemable_).totalSupply();
+        // Zero supply means the escrow is at best useless (no recipients) and
+        // at worst dangerous (tokens trapped behind a divide by zero).
+        require(supply_ > 0, "ZERO_SUPPLY");
 
         deposits[sale_][token_][depositor_][supply_] += amount_;
         totalDeposits[sale_][token_][supply_] += amount_;
