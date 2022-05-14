@@ -5,7 +5,6 @@ import {RainVM} from "../vm/RainVM.sol";
 import "../vm/VMStateBuilder.sol";
 
 uint256 constant ENTRYPOINT = 0;
-uint256 constant ENTRYPOINTS_LENGTH = 1;
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 /// @title FnPtrsTest
@@ -24,12 +23,14 @@ contract FnPtrsTest is RainVM {
     /// the same thing during construction.
     function initialize(StateConfig calldata stateConfig_) external {
         Bounds memory bounds_;
-        bounds_.entrypointsLength = ENTRYPOINTS_LENGTH;
+        bounds_.entrypoint = ENTRYPOINT;
         bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
+        Bounds[] memory boundss_ = new Bounds[](1);
+        boundss_[0] = bounds_;
         bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             stateConfig_,
-            bounds_
+            boundss_
         );
         vmStatePointer = SSTORE2.write(stateBytes_);
     }

@@ -136,8 +136,9 @@ struct Receipt {
 
 uint256 constant CAN_LIVE_ENTRYPOINT = 0;
 uint256 constant CALCULATE_PRICE_ENTRYPOINT = 1;
-uint256 constant ENTRYPOINTS_LENGTH = 2;
-uint256 constant MIN_FINAL_STACK_INDEX = 2;
+
+uint256 constant CAN_LIVE_MIN_FINAL_STACK_INDEX = 1;
+uint256 constant CALCULATE_PRICE_MIN_FINAL_STACK_INDEX = 2;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
@@ -270,13 +271,20 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        Bounds memory bounds_;
-        bounds_.entrypointsLength = ENTRYPOINTS_LENGTH;
-        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
+        Bounds memory canLiveBounds_;
+        canLiveBounds_.entrypoint = CAN_LIVE_ENTRYPOINT;
+        canLiveBounds_.minFinalStackIndex = CAN_LIVE_MIN_FINAL_STACK_INDEX;
+        Bounds memory calculatePriceBounds_;
+        calculatePriceBounds_.entrypoint = CALCULATE_PRICE_ENTRYPOINT;
+        calculatePriceBounds_
+            .minFinalStackIndex = CALCULATE_PRICE_MIN_FINAL_STACK_INDEX;
+        Bounds[] memory boundss_ = new Bounds[](2);
+        boundss_[0] = canLiveBounds_;
+        boundss_[1] = calculatePriceBounds_;
         bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             config_.vmStateConfig,
-            bounds_
+            boundss_
         );
         vmStatePointer = SSTORE2.write(vmStateBytes_);
         recipient = config_.recipient;
@@ -512,8 +520,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             if (_saleStatus == SaleStatus.Pending) {
                 _start();
             }
-        }
-        else {
+        } else {
             if (_saleStatus == SaleStatus.Active) {
                 _end();
             }

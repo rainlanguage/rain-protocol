@@ -24,6 +24,7 @@ import { SaleReentrant } from "../../typechain/SaleReentrant";
 import { concat, hexlify } from "ethers/lib/utils";
 import {
   afterBlockNumberSource,
+  betweenBlockNumbersSource,
   saleDeploy,
   Opcode,
   Status,
@@ -135,10 +136,11 @@ describe("Sale", async function () {
       maxUnits,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const vMaxUnits = op(Opcode.CONSTANT, 3);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       // prettier-ignore
       concat([
         // maxUnits
@@ -178,8 +180,6 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
-
-    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
 

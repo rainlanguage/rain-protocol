@@ -90,6 +90,19 @@ export const afterBlockNumberSource = (constant) => {
   ]);
 };
 
+export const betweenBlockNumbersSource = (vStart, vEnd) => {
+  // prettier-ignore
+  return concat([
+    op(Opcode.BLOCK_NUMBER),
+    vStart,
+    op(Opcode.GREATER_THAN),
+    op(Opcode.BLOCK_NUMBER),
+    vEnd,
+    op(Opcode.LESS_THAN),
+    op(Opcode.EVERY, 2),
+  ])
+}
+
 export enum SaleStorage {
   RemainingUnits,
   TotalReserveIn,

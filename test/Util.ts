@@ -785,7 +785,7 @@ export enum Debug {
 
 export const newVMStateBuilderBounds = (): BoundsStruct => {
   return {
-    entrypointsLength: 0,
+    entrypoint: 0,
     minFinalStackIndex: 0,
     stackIndex: 0,
     stackLength: 0,

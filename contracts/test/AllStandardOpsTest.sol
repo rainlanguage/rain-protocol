@@ -7,7 +7,6 @@ import "../vm/ops/AllStandardOps.sol";
 import "../vm/VMStateBuilder.sol";
 
 uint256 constant ENTRYPOINT = 0;
-uint256 constant ENTRYPOINTS_LENGTH = 1;
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 3;
@@ -40,12 +39,14 @@ contract AllStandardOpsTest is RainVM {
     function initialize(StateConfig calldata stateConfig_) external {
         uint256 a_ = gasleft();
         Bounds memory bounds_;
-        bounds_.entrypointsLength = ENTRYPOINTS_LENGTH;
+        bounds_.entrypoint = ENTRYPOINT;
         bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
+        Bounds[] memory boundss_ = new Bounds[](1);
+        boundss_[0] = bounds_;
         bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             stateConfig_,
-            bounds_
+            boundss_
         );
         uint256 b_ = gasleft();
         console.log("new state gas", a_ - b_);
