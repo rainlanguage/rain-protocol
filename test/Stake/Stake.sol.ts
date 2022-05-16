@@ -58,6 +58,144 @@ describe("Stake", async function () {
     await stakeFactory.deployed();
   });
 
+  it("should process 50 successive deposits and withdraws", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+    const bob = signers[3];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    for (let i_ = 0; i_ < 50; i_++) {
+      // Give Alice some reserve tokens and deposit them
+      await token.transfer(
+        alice.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceAlice = await token.balanceOf(alice.address);
+      await token.connect(alice).approve(stake.address, tokenBalanceAlice);
+      await stake.connect(alice).deposit(tokenBalanceAlice);
+
+      // Give Bob some reserve tokens and deposit them
+      await token.transfer(
+        bob.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceBob = await token.balanceOf(bob.address);
+      await token.connect(bob).approve(stake.address, tokenBalanceBob);
+      await stake.connect(bob).deposit(tokenBalanceBob);
+
+      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+
+      // Alice redeems half of her stTokens
+      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // Bob redeems half of his stTokens
+      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+    }
+  });
+
+  it("should process 25 successive deposits and withdraws", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+    const bob = signers[3];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    for (let i_ = 0; i_ < 25; i_++) {
+      // Give Alice some reserve tokens and deposit them
+      await token.transfer(
+        alice.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceAlice = await token.balanceOf(alice.address);
+      await token.connect(alice).approve(stake.address, tokenBalanceAlice);
+      await stake.connect(alice).deposit(tokenBalanceAlice);
+
+      // Give Bob some reserve tokens and deposit them
+      await token.transfer(
+        bob.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceBob = await token.balanceOf(bob.address);
+      await token.connect(bob).approve(stake.address, tokenBalanceBob);
+      await stake.connect(bob).deposit(tokenBalanceBob);
+
+      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+
+      // Alice redeems half of her stTokens
+      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // Bob redeems half of his stTokens
+      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+    }
+  });
+
+  it("should process 10 successive deposits and withdraws", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+    const bob = signers[3];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    for (let i_ = 0; i_ < 10; i_++) {
+      // Give Alice some reserve tokens and deposit them
+      await token.transfer(
+        alice.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceAlice = await token.balanceOf(alice.address);
+      await token.connect(alice).approve(stake.address, tokenBalanceAlice);
+      await stake.connect(alice).deposit(tokenBalanceAlice);
+
+      // Give Bob some reserve tokens and deposit them
+      await token.transfer(
+        bob.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceBob = await token.balanceOf(bob.address);
+      await token.connect(bob).approve(stake.address, tokenBalanceBob);
+      await stake.connect(bob).deposit(tokenBalanceBob);
+
+      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+
+      // Alice redeems half of her stTokens
+      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // Bob redeems half of his stTokens
+      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+    }
+  });
+
   it("should return a correct report", async function () {
     this.timeout(0);
 
